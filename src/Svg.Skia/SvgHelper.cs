@@ -436,9 +436,6 @@ namespace Svg.Skia
                 case SvgDeferredPaintServer svgDeferredPaintServer:
                     // Not used.
                     break;
-                case SvgFallbackPaintServer svgFallbackPaintServer:
-                    // Not used.
-                    break;
                 default:
                     break;
             }
@@ -479,11 +476,6 @@ namespace Svg.Skia
                     }
                     break;
                 case SvgDeferredPaintServer svgDeferredPaintServer:
-                    {
-                        // Not used.
-                    }
-                    break;
-                case SvgFallbackPaintServer svgFallbackPaintServer:
                     {
                         // Not used.
                     }
