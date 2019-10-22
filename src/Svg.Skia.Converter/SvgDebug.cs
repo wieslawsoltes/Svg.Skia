@@ -857,9 +857,6 @@ namespace Svg.Skia.Converter
                 case SvgDeferredPaintServer svgDeferredPaintServer:
                     PrintAttributes(svgDeferredPaintServer, indentLine, indentAttribute);
                     break;
-                case SvgFallbackPaintServer svgFallbackPaintServer:
-                    PrintAttributes(svgFallbackPaintServer, indentLine, indentAttribute);
-                    break;
                 case SvgPatternServer svgPatternServer:
                     PrintAttributes(svgPatternServer, indentLine, indentAttribute);
                     break;
@@ -883,11 +880,6 @@ namespace Svg.Skia.Converter
         public void PrintAttributes(SvgDeferredPaintServer svgDeferredPaintServer, string indentLine, string indentAttribute)
         {
             WriteLine($"{indentLine}{indentAttribute}: {svgDeferredPaintServer.GetType()}");
-        }
-
-        public void PrintAttributes(SvgFallbackPaintServer svgFallbackPaintServer, string indentLine, string indentAttribute)
-        {
-            WriteLine($"{indentLine}{indentAttribute}: {svgFallbackPaintServer.GetType()}");
         }
 
         public void PrintAttributes(SvgPatternServer svgPatternServer, string indentLine, string indentAttribute)
@@ -1214,11 +1206,6 @@ namespace Svg.Skia.Converter
                 WriteLine($"{indentLine}{indentAttribute}stroke-opacity: {Format(svgElement.StrokeOpacity)}");
             }
 
-            if (svgElement.StopColor != null)
-            {
-                WriteLine($"{indentLine}{indentAttribute}stop-color: {svgElement.StopColor.ToString()}");
-            }
-
             if (svgElement.Opacity != 1f) // TODO: check attribute name, confilit with `stop-opacity` Svg.SvgGradientStop. Use always SvgAttribute name for validation.
             {
                 WriteLine($"{indentLine}{indentAttribute}opacity: {Format(svgElement.Opacity)}");
@@ -1425,9 +1412,6 @@ namespace Svg.Skia.Converter
                     break;
                 case SvgDeferredPaintServer svgDeferredPaintServer:
                     PrintAttributes(svgDeferredPaintServer, indentLine, indentAttribute);
-                    break;
-                case SvgFallbackPaintServer svgFallbackPaintServer:
-                    PrintAttributes(svgFallbackPaintServer, indentLine, indentAttribute);
                     break;
                 case SvgPatternServer svgPatternServer:
                     PrintAttributes(svgPatternServer, indentLine, indentAttribute);
