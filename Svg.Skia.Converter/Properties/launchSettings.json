@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Svg.Skia.Converter": {
+      "commandName": "Project",
+      "commandLineArgs": "-f c:\\DOWNLOADS\\SVG\\W3CTestSuite-svg\\struct-frag-01-t.svg  -o c:\\DOWNLOADS\\SVG\\W3CTestSuite-png\\"
+    }
+  }
+}

@@ -1,0 +1,60 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp2.2;netcoreapp3.0;net461</TargetFrameworks>
+    <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
+    <EnableDefaultItems>False</EnableDefaultItems>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <NoWarn>CS1591</NoWarn>
+    <IsPackable>True</IsPackable>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VersionPrefix>0.0.1</VersionPrefix>
+    <VersionSuffix>preview1</VersionSuffix>
+    <Authors>Wiesław Šoltés</Authors>
+    <Company>Wiesław Šoltés</Company>
+    <Description>Custom build of the SVG rendering library.</Description>
+    <Copyright>Copyright © Wiesław Šoltés 2019</Copyright>
+    <PackageId>Svg.Custom</PackageId>
+    <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/wieslawsoltes/Draw2D</PackageProjectUrl>
+    <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\externals\SVG\Source\Resources\svg11.dtd" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="**\*.cs" Exclude="obj\**" />
+    <Compile Include="..\..\externals\SVG\Source\**\*.cs" Exclude="..\..\externals\SVG\Source\obj\**" />
+    <Compile Remove="..\..\externals\SVG\Source\Properties\AssemblyInfo.cs" />
+    <Compile Remove="..\..\externals\SVG\Source\External\ExCSS\Parser.generated.cs" />
+    <Compile Remove="..\..\externals\SVG\Source\External\ExCSS\ParserX.cs" />
+    <Compile Remove="..\..\externals\SVG\Source\Resources\svg11.dtd" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
+    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD20</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp2.2'">
+    <DefineConstants>$(DefineConstants);NETCORE;NETCORE22</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp3.0'">
+    <DefineConstants>$(DefineConstants);NETCORE;NETCORE30</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="4.6.0-preview6.19303.8" />
+    <PackageReference Include="System.ObjectModel" Version="4.3.0" />
+    <PackageReference Include="Microsoft.Win32.SystemEvents" Version="4.6.0-preview6.19303.8" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0-preview.2" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>
