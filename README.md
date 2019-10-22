@@ -6,7 +6,7 @@ Skia SVG rendering library.
 
 | Package              | Version                                                                                                                 |
 |----------------------|-------------------------------------------------------------------------------------------------------------------------|
-| Svg.Custom           | [![NuGet](https://img.shields.io/nuget/v/Svg.Custom.svg)](https://www.nuget.org/packages/Svg.Custom)                      |
+| Svg.Custom           | [![NuGet](https://img.shields.io/nuget/v/Svg.Custom.svg)](https://www.nuget.org/packages/Svg.Custom)                    |
 | Svg.Skia             | [![NuGet](https://img.shields.io/nuget/v/Svg.Skia.svg)](https://www.nuget.org/packages/Svg.Skia)                        |
 | Svg.Skia.Converter   | [![NuGet](https://img.shields.io/nuget/v/Svg.Skia.Converter.svg)](https://www.nuget.org/packages/Svg.Skia.Converter)    |
 
