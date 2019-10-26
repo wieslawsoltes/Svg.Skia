@@ -13,14 +13,15 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
-  <Import Project="..\..\build\Base.props" />
-
   <PropertyGroup>
     <Description>Converts a svg file to an encoded bitmap image.</Description>
     <PackageId>Svg.Skia.Converter</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>svg;convert;converter;png;vector graphics;rendering;2d;graphics;geometry;shapes</PackageTags>
   </PropertyGroup>
+
+  <Import Project="..\..\build\Base.props" />
+  <Import Project="..\..\build\ReferenceAssemblies.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
@@ -32,14 +33,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Win32.SystemEvents" Version="4.6.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="SkiaSharp" Version="1.68.0" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="1.68.0" />
     <PackageReference Include="System.CommandLine.Experimental" Version="0.3.0-alpha.19405.1" />
     <PackageReference Include="System.Drawing.Common" Version="4.6.0" />
     <PackageReference Include="System.ObjectModel" Version="4.3.0" />
-    <PackageReference Include="Microsoft.Win32.SystemEvents" Version="4.6.0" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0-preview.2" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
