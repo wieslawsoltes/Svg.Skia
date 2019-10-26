@@ -77,7 +77,7 @@ Options:
 
 ## Build
 
-To build the projects you need to install [.NET Core 3.0](https://dotnet.microsoft.com/download/dotnet-core/3.0) version `SDK 3.0.100-preview7-012821`.
+To build the projects you need to install [.NET Core 3.0](https://dotnet.microsoft.com/download/dotnet-core/3.0) version `SDK 3.0.100`.
 
 ```
 git clone git@github.com:wieslawsoltes/Svg.Skia.git
