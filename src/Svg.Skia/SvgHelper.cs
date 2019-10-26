@@ -766,6 +766,11 @@ namespace Svg.Skia
         {
             var skMatrixTotal = SKMatrix.MakeIdentity();
 
+            if (svgTransformCollection == null)
+            {
+                return skMatrixTotal;
+            }
+
             foreach (var svgTransform in svgTransformCollection)
             {
                 switch (svgTransform)
