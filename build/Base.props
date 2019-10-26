@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <VersionPrefix>0.0.1</VersionPrefix>
+    <VersionSuffix>preview5</VersionSuffix>
+    <Authors>Wiesław Šoltés</Authors>
+    <Company>Wiesław Šoltés</Company>
+    <Copyright>Copyright © Wiesław Šoltés 2019</Copyright>
+    <PackageProjectUrl>https://github.com/wieslawsoltes/Svg.Skia</PackageProjectUrl>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="SourceLink.Create.CommandLine" Version="2.8.3" PrivateAssets="All" />
+  </ItemGroup>
+</Project>
