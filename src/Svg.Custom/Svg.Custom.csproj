@@ -11,14 +11,15 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
-  <Import Project="..\..\build\Base.props" />
-
   <PropertyGroup>
     <Description>Custom build of the SVG rendering library.</Description>
     <PackageId>Svg.Custom</PackageId>
     <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
     <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes</PackageTags>
   </PropertyGroup>
+
+  <Import Project="..\..\build\Base.props" />
+  <Import Project="..\..\build\ReferenceAssemblies.props" />
 
   <ItemGroup>
     <EmbeddedResource Include="..\..\externals\SVG\Source\Resources\svg11.dtd" />
@@ -47,10 +48,9 @@
 
   <ItemGroup>
     <PackageReference Include="Fizzler" Version="1.2.0" />
+    <PackageReference Include="Microsoft.Win32.SystemEvents" Version="4.6.0" />
     <PackageReference Include="System.Drawing.Common" Version="4.6.0" />
     <PackageReference Include="System.ObjectModel" Version="4.3.0" />
-    <PackageReference Include="Microsoft.Win32.SystemEvents" Version="4.6.0" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0-preview.2" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
