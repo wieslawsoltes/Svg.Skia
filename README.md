@@ -75,6 +75,8 @@ Options:
   --version                          Display version information
 ```
 
+### Example
+
 ```
 cd ./src/Svg.Skia.Converter/bin/Debug/netcoreapp3.0
 Svg.Skia.Converter.exe -d ../../../../../externals\SVG\Tests\W3CTestSuite\svg\ -o ./png
@@ -112,14 +114,12 @@ dotnet nuget push ./artifacts/Svg.Skia.Converter.0.0.1-preview5.nupkg -k <key> -
 
 ### Install
 
-
 ```
 dotnet tool install --global --add-source ./artifacts Svg.Skia.Converter
 export DOTNET_ROOT=$HOME/dotnet
 ```
 
 ### Uninstall
-
 
 ```
 dotnet tool uninstall -g Svg.Skia.Converter
