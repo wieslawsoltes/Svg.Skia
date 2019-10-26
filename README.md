@@ -75,6 +75,11 @@ Options:
   --version                          Display version information
 ```
 
+```
+cd ./src/Svg.Skia.Converter/bin/Debug/netcoreapp3.0
+Svg.Skia.Converter.exe -d ../../../../../externals\SVG\Tests\W3CTestSuite\svg\ -o ./png
+```
+
 ## Build
 
 To build the projects you need to install [.NET Core 3.0](https://dotnet.microsoft.com/download/dotnet-core/3.0) version `SDK 3.0.100`.
