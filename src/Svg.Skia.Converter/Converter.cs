@@ -26,7 +26,7 @@ namespace Svg.Skia.Converter
             }
         }
 
-        public static bool Save(FileInfo path, DirectoryInfo output, string format, int quality, string background, float scale, float scaleX, float scaleY, bool debug, bool quiet, int i)
+        public static bool Save(FileInfo path, DirectoryInfo? output, string format, int quality, string background, float scale, float scaleX, float scaleY, bool debug, bool quiet, int i)
         {
             try
             {
@@ -37,7 +37,7 @@ namespace Svg.Skia.Converter
 
                 var extension = path.Extension;
                 string imagePath = path.FullName.Remove(path.FullName.Length - extension.Length) + "." + format.ToLower();
-                if (!string.IsNullOrEmpty(output.FullName))
+                if (output != null && !string.IsNullOrEmpty(output.FullName))
                 {
                     imagePath = Path.Combine(output.FullName, Path.GetFileName(imagePath));
                 }
@@ -49,7 +49,7 @@ namespace Svg.Skia.Converter
                         if (debug == true && svg.Document != null)
                         {
                             string ymlPath = path.FullName.Remove(path.FullName.Length - extension.Length) + ".yml";
-                            if (!string.IsNullOrEmpty(output.FullName))
+                            if (output != null && !string.IsNullOrEmpty(output.FullName))
                             {
                                 ymlPath = Path.Combine(output.FullName, Path.GetFileName(ymlPath));
                             }
@@ -142,7 +142,7 @@ namespace Svg.Skia.Converter
                     }
                 }
 
-                if (!string.IsNullOrEmpty(settings.Output.FullName))
+                if (settings.Output != null && !string.IsNullOrEmpty(settings.Output.FullName))
                 {
                     if (!Directory.Exists(settings.Output.FullName))
                     {

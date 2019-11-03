@@ -16,9 +16,9 @@ namespace Svg.Skia.Converter
 {
     public class SvgDebug
     {
-        public StringBuilder Builder { get; set; }
+        public StringBuilder? Builder { get; set; }
 
-        public string IndentTab { get; set; }
+        public string IndentTab { get; set; } = "  ";
 
         public bool PrintSvgElementAttributesEnabled { get; set; }
 

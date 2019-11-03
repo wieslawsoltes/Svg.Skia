@@ -67,22 +67,22 @@ namespace Svg.Skia.Converter
         {
             var optionFile = new Option(new[] { "--files", "-f" }, "The relative or absolute path to the input files")
             {
-                Argument = new Argument<FileInfo[]>(defaultValue: () => null)
+                Argument = new Argument<FileInfo[]?>(defaultValue: () => null)
             };
 
             var optionDirectory = new Option(new[] { "--directories", "-d" }, "The relative or absolute path to the input directories")
             {
-                Argument = new Argument<DirectoryInfo[]>(defaultValue: () => null)
+                Argument = new Argument<DirectoryInfo[]?>(defaultValue: () => null)
             };
 
             var optionOutput = new Option(new[] { "--output", "-o" }, "The relative or absolute path to the output directory")
             {
-                Argument = new Argument<DirectoryInfo>(defaultValue: () => null)
+                Argument = new Argument<DirectoryInfo?>(defaultValue: () => null)
             };
 
             var optionPattern = new Option(new[] { "--pattern", "-p" }, "The search string to match against the names of files in the input directory")
             {
-                Argument = new Argument<string>(defaultValue: () => null)
+                Argument = new Argument<string?>(defaultValue: () => null)
             };
 
             var optionFormat = new Option(new[] { "--format" }, "The output image format")
@@ -127,12 +127,12 @@ namespace Svg.Skia.Converter
 
             var optionLoadConfig = new Option(new[] { "--load-config", "-c" }, "The relative or absolute path to the config file")
             {
-                Argument = new Argument<FileInfo>(defaultValue: () => null)
+                Argument = new Argument<FileInfo?>(defaultValue: () => null)
             };
 
             var optionSaveConfig = new Option(new[] { "--save-config" }, "The relative or absolute path to the config file")
             {
-                Argument = new Argument<FileInfo>(defaultValue: () => null)
+                Argument = new Argument<FileInfo?>(defaultValue: () => null)
             };
 
             var rootCommand = new RootCommand()
