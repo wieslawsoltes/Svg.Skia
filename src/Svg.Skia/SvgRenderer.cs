@@ -2,14 +2,13 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 // Parts of this source file are adapted from the https://github.com/vvvv/SVG
-using System;
 using System.Reflection;
 using SkiaSharp;
 using Svg.Document_Structure;
 
 namespace Svg.Skia
 {
-    public class SvgRenderer : IDisposable
+    public class SvgRenderer : ISvgRenderer
     {
         private readonly CompositeDisposable _disposable = new CompositeDisposable();
 
