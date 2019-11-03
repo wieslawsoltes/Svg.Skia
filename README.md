@@ -15,11 +15,19 @@ Skia SVG rendering library.
 
 ## NuGet
 
-| Package              | Version                                                                                                                 |
-|----------------------|-------------------------------------------------------------------------------------------------------------------------|
-| Svg.Custom           | [![NuGet](https://img.shields.io/nuget/v/Svg.Custom.svg)](https://www.nuget.org/packages/Svg.Custom)                    |
-| Svg.Skia             | [![NuGet](https://img.shields.io/nuget/v/Svg.Skia.svg)](https://www.nuget.org/packages/Svg.Skia)                        |
-| Svg.Skia.Converter   | [![NuGet](https://img.shields.io/nuget/v/Svg.Skia.Converter.svg)](https://www.nuget.org/packages/Svg.Skia.Converter)    |
+Svg.Skia is delivered as a NuGet package.
+
+You can find the packages here [NuGet](https://www.nuget.org/packages/Svg.Skia/) and install the package like this:
+
+`Install-Package Svg.Skia`
+
+or by using nightly build feed:
+* Add `https://www.myget.org/F/svgskia-nightly/api/v2` to your package sources
+* Update your package using `Svg.Skia` feed
+
+and install the package like this:
+
+`Install-Package Svg.Skia -Pre`
 
 ## Usage
 
