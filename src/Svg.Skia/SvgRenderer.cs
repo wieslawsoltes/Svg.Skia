@@ -12,7 +12,7 @@ namespace Svg.Skia
     {
         private readonly CompositeDisposable _disposable = new CompositeDisposable();
 
-        public void DrawSvgFragment(SKCanvas skCanvas, SKSize skSize, SvgFragment svgFragment)
+        public void DrawFragment(SKCanvas skCanvas, SKSize skSize, SvgFragment svgFragment)
         {
             skCanvas.Save();
 
@@ -21,12 +21,12 @@ namespace Svg.Skia
             SvgHelper.SetOpacity(skCanvas, svgFragment, _disposable);
             SvgHelper.SetTransform(skCanvas, fragment.matrix);
 
-            DrawSvgElementCollection(skCanvas, skSize, svgFragment.Children);
+            DrawElementCollection(skCanvas, skSize, svgFragment.Children);
 
             skCanvas.Restore();
         }
 
-        public void DrawSvgSymbol(SKCanvas skCanvas, SKSize skSize, SvgSymbol svgSymbol)
+        public void DrawSymbol(SKCanvas skCanvas, SKSize skSize, SvgSymbol svgSymbol)
         {
             skCanvas.Save();
 
@@ -35,12 +35,12 @@ namespace Svg.Skia
             SvgHelper.SetOpacity(skCanvas, svgSymbol, _disposable);
             SvgHelper.SetTransform(skCanvas, symbol.matrix);
 
-            DrawSvgElementCollection(skCanvas, skSize, svgSymbol.Children);
+            DrawElementCollection(skCanvas, skSize, svgSymbol.Children);
 
             skCanvas.Restore();
         }
 
-        public void DrawSvgImage(SKCanvas skCanvas, SKSize skSize, SvgImage svgImage)
+        public void DrawImage(SKCanvas skCanvas, SKSize skSize, SvgImage svgImage)
         {
             skCanvas.Save();
 
@@ -54,7 +54,7 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSvgSwitch(SKCanvas skCanvas, SKSize skSize, SvgSwitch svgSwitch)
+        public void DrawSwitch(SKCanvas skCanvas, SKSize skSize, SvgSwitch svgSwitch)
         {
             skCanvas.Save();
 
@@ -68,7 +68,7 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSvgUse(SKCanvas skCanvas, SKSize skSize, SvgUse svgUse)
+        public void DrawUse(SKCanvas skCanvas, SKSize skSize, SvgUse svgUse)
         {
             var svgVisualElement = SvgHelper.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
             if (svgVisualElement != null && !SvgHelper.HasRecursiveReference(svgUse))
@@ -112,11 +112,11 @@ namespace Svg.Skia
 
                 if (svgVisualElement is SvgSymbol svgSymbol)
                 {
-                    DrawSvgSymbol(skCanvas, skSize, svgSymbol);
+                    DrawSymbol(skCanvas, skSize, svgSymbol);
                 }
                 else
                 {
-                    DrawSvgElement(skCanvas, skSize, svgVisualElement);
+                    DrawElement(skCanvas, skSize, svgVisualElement);
                 }
 
                 //svgVisualElement.Parent = parent;
@@ -133,7 +133,7 @@ namespace Svg.Skia
             }
         }
 
-        public void DrawSvgForeignObject(SKCanvas skCanvas, SKSize skSize, SvgForeignObject svgForeignObject)
+        public void DrawForeignObject(SKCanvas skCanvas, SKSize skSize, SvgForeignObject svgForeignObject)
         {
             skCanvas.Save();
 
@@ -147,7 +147,7 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSvgCircle(SKCanvas skCanvas, SKSize skSize, SvgCircle svgCircle)
+        public void DrawCircle(SKCanvas skCanvas, SKSize skSize, SvgCircle svgCircle)
         {
             skCanvas.Save();
 
@@ -175,7 +175,7 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSvgEllipse(SKCanvas skCanvas, SKSize skSize, SvgEllipse svgEllipse)
+        public void DrawEllipse(SKCanvas skCanvas, SKSize skSize, SvgEllipse svgEllipse)
         {
             skCanvas.Save();
 
@@ -203,7 +203,7 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSvgRectangle(SKCanvas skCanvas, SKSize skSize, SvgRectangle svgRectangle)
+        public void DrawRectangle(SKCanvas skCanvas, SKSize skSize, SvgRectangle svgRectangle)
         {
             skCanvas.Save();
 
@@ -245,7 +245,7 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSvgMarker(SKCanvas skCanvas, SKSize skSize, SvgMarker svgMarker)
+        public void DrawMarker(SKCanvas skCanvas, SKSize skSize, SvgMarker svgMarker)
         {
             skCanvas.Save();
 
@@ -259,7 +259,7 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSvgGlyph(SKCanvas skCanvas, SKSize skSize, SvgGlyph svgGlyph)
+        public void DrawGlyph(SKCanvas skCanvas, SKSize skSize, SvgGlyph svgGlyph)
         {
             skCanvas.Save();
 
@@ -273,7 +273,7 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSvgGroup(SKCanvas skCanvas, SKSize skSize, SvgGroup svgGroup)
+        public void DrawGroup(SKCanvas skCanvas, SKSize skSize, SvgGroup svgGroup)
         {
             skCanvas.Save();
 
@@ -283,12 +283,12 @@ namespace Svg.Skia
             SvgHelper.SetFilter(skCanvas, svgGroup, _disposable);
             SvgHelper.SetTransform(skCanvas, group.matrix);
 
-            DrawSvgElementCollection(skCanvas, skSize, svgGroup.Children);
+            DrawElementCollection(skCanvas, skSize, svgGroup.Children);
 
             skCanvas.Restore();
         }
 
-        public void DrawSvgLine(SKCanvas skCanvas, SKSize skSize, SvgLine svgLine)
+        public void DrawLine(SKCanvas skCanvas, SKSize skSize, SvgLine svgLine)
         {
             skCanvas.Save();
 
@@ -308,7 +308,7 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSvgPath(SKCanvas skCanvas, SKSize skSize, SvgPath svgPath)
+        public void DrawPath(SKCanvas skCanvas, SKSize skSize, SvgPath svgPath)
         {
             skCanvas.Save();
 
@@ -344,7 +344,7 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSvgPolyline(SKCanvas skCanvas, SKSize skSize, SvgPolyline svgPolyline)
+        public void DrawPolyline(SKCanvas skCanvas, SKSize skSize, SvgPolyline svgPolyline)
         {
             skCanvas.Save();
 
@@ -380,7 +380,7 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSvgPolygon(SKCanvas skCanvas, SKSize skSize, SvgPolygon svgPolygon)
+        public void DrawPolygon(SKCanvas skCanvas, SKSize skSize, SvgPolygon svgPolygon)
         {
             skCanvas.Save();
 
@@ -416,7 +416,7 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSvgText(SKCanvas skCanvas, SKSize skSize, SvgText svgText)
+        public void DrawText(SKCanvas skCanvas, SKSize skSize, SvgText svgText)
         {
             skCanvas.Save();
 
@@ -430,7 +430,7 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSvgTextPath(SKCanvas skCanvas, SKSize skSize, SvgTextPath svgTextPath)
+        public void DrawTextPath(SKCanvas skCanvas, SKSize skSize, SvgTextPath svgTextPath)
         {
             skCanvas.Save();
 
@@ -444,7 +444,7 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSvgTextRef(SKCanvas skCanvas, SKSize skSize, SvgTextRef svgTextRef)
+        public void DrawTextRef(SKCanvas skCanvas, SKSize skSize, SvgTextRef svgTextRef)
         {
             skCanvas.Save();
 
@@ -458,7 +458,7 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSvgTextSpan(SKCanvas skCanvas, SKSize skSize, SvgTextSpan svgTextSpan)
+        public void DrawTextSpan(SKCanvas skCanvas, SKSize skSize, SvgTextSpan svgTextSpan)
         {
             skCanvas.Save();
 
@@ -472,103 +472,103 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSvgElement(SKCanvas skCanvas, SKSize skSize, SvgElement svgElement)
+        public void DrawElement(SKCanvas skCanvas, SKSize skSize, SvgElement svgElement)
         {
             switch (svgElement)
             {
                 case SvgFragment svgFragment:
                     {
-                        DrawSvgFragment(skCanvas, skSize, svgFragment);
+                        DrawFragment(skCanvas, skSize, svgFragment);
                     }
                     break;
                 case SvgImage svgImage:
                     {
-                        DrawSvgImage(skCanvas, skSize, svgImage);
+                        DrawImage(skCanvas, skSize, svgImage);
                     }
                     break;
                 case SvgSwitch svgSwitch:
                     {
-                        DrawSvgSwitch(skCanvas, skSize, svgSwitch);
+                        DrawSwitch(skCanvas, skSize, svgSwitch);
                     }
                     break;
                 case SvgUse svgUse:
                     {
-                        DrawSvgUse(skCanvas, skSize, svgUse);
+                        DrawUse(skCanvas, skSize, svgUse);
                     }
                     break;
                 case SvgForeignObject svgForeignObject:
                     {
-                        DrawSvgForeignObject(skCanvas, skSize, svgForeignObject);
+                        DrawForeignObject(skCanvas, skSize, svgForeignObject);
                     }
                     break;
                 case SvgCircle svgCircle:
                     {
-                        DrawSvgCircle(skCanvas, skSize, svgCircle);
+                        DrawCircle(skCanvas, skSize, svgCircle);
                     }
                     break;
                 case SvgEllipse svgEllipse:
                     {
-                        DrawSvgEllipse(skCanvas, skSize, svgEllipse);
+                        DrawEllipse(skCanvas, skSize, svgEllipse);
                     }
                     break;
                 case SvgRectangle svgRectangle:
                     {
-                        DrawSvgRectangle(skCanvas, skSize, svgRectangle);
+                        DrawRectangle(skCanvas, skSize, svgRectangle);
                     }
                     break;
                 case SvgMarker svgMarker:
                     {
-                        DrawSvgMarker(skCanvas, skSize, svgMarker);
+                        DrawMarker(skCanvas, skSize, svgMarker);
                     }
                     break;
                 case SvgGlyph svgGlyph:
                     {
-                        DrawSvgGlyph(skCanvas, skSize, svgGlyph);
+                        DrawGlyph(skCanvas, skSize, svgGlyph);
                     }
                     break;
                 case SvgGroup svgGroup:
                     {
-                        DrawSvgGroup(skCanvas, skSize, svgGroup);
+                        DrawGroup(skCanvas, skSize, svgGroup);
                     }
                     break;
                 case SvgLine svgLine:
                     {
-                        DrawSvgLine(skCanvas, skSize, svgLine);
+                        DrawLine(skCanvas, skSize, svgLine);
                     }
                     break;
                 case SvgPath svgPath:
                     {
-                        DrawSvgPath(skCanvas, skSize, svgPath);
+                        DrawPath(skCanvas, skSize, svgPath);
                     }
                     break;
                 case SvgPolyline svgPolyline:
                     {
-                        DrawSvgPolyline(skCanvas, skSize, svgPolyline);
+                        DrawPolyline(skCanvas, skSize, svgPolyline);
                     }
                     break;
                 case SvgPolygon svgPolygon:
                     {
-                        DrawSvgPolygon(skCanvas, skSize, svgPolygon);
+                        DrawPolygon(skCanvas, skSize, svgPolygon);
                     }
                     break;
                 case SvgText svgText:
                     {
-                        DrawSvgText(skCanvas, skSize, svgText);
+                        DrawText(skCanvas, skSize, svgText);
                     }
                     break;
                 case SvgTextPath svgTextPath:
                     {
-                        DrawSvgTextPath(skCanvas, skSize, svgTextPath);
+                        DrawTextPath(skCanvas, skSize, svgTextPath);
                     }
                     break;
                 case SvgTextRef svgTextRef:
                     {
-                        DrawSvgTextRef(skCanvas, skSize, svgTextRef);
+                        DrawTextRef(skCanvas, skSize, svgTextRef);
                     }
                     break;
                 case SvgTextSpan svgTextSpan:
                     {
-                        DrawSvgTextSpan(skCanvas, skSize, svgTextSpan);
+                        DrawTextSpan(skCanvas, skSize, svgTextSpan);
                     }
                     break;
                 default:
@@ -576,11 +576,11 @@ namespace Svg.Skia
             }
         }
 
-        public void DrawSvgElementCollection(SKCanvas canvas, SKSize skSize, SvgElementCollection svgElementCollection)
+        public void DrawElementCollection(SKCanvas canvas, SKSize skSize, SvgElementCollection svgElementCollection)
         {
             foreach (var svgElement in svgElementCollection)
             {
-                DrawSvgElement(canvas, skSize, svgElement);
+                DrawElement(canvas, skSize, svgElement);
             }
         }
 

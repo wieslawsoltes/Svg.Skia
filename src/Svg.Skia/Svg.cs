@@ -23,7 +23,7 @@ namespace Svg.Skia
                 using (var skPictureRecorder = new SKPictureRecorder())
                 using (var skCanvas = skPictureRecorder.BeginRecording(cullRect))
                 {
-                    renderer.DrawSvgElement(skCanvas, skSize, svgFragment);
+                    renderer.DrawElement(skCanvas, skSize, svgFragment);
                     return skPictureRecorder.EndRecording();
                 }
             }
