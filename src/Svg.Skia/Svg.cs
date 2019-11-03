@@ -14,7 +14,7 @@ namespace Svg.Skia
 
         internal SKPicture Load(SvgFragment svgFragment)
         {
-            using (var disposable = new CompositeDisposable())
+            using (var renderer = new SvgRenderer())
             {
                 float width = svgFragment.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
                 float height = svgFragment.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
@@ -23,7 +23,7 @@ namespace Svg.Skia
                 using (var skPictureRecorder = new SKPictureRecorder())
                 using (var skCanvas = skPictureRecorder.BeginRecording(cullRect))
                 {
-                    SvgRenderer.DrawSvgElement(skCanvas, skSize, svgFragment, disposable);
+                    renderer.DrawSvgElement(skCanvas, skSize, svgFragment);
                     return skPictureRecorder.EndRecording();
                 }
             }
