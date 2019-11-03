@@ -1,5 +1,7 @@
 # Svg.Skia
 
+[![Build status](https://dev.azure.com/wieslawsoltes/GitHub/_apis/build/status/Sources/Svg.Skia)](https://dev.azure.com/wieslawsoltes/GitHub/_build/latest?definitionId=-1)
+
 Skia SVG rendering library.
 
 ## NuGet
