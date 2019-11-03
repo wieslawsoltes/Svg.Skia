@@ -17,7 +17,7 @@ namespace Svg.Skia
 {
     internal static class SvgHelper
     {
-        internal static T GetReference<T>(SvgElement svgElement, Uri uri) where T : SvgElement
+        internal static T? GetReference<T>(SvgElement svgElement, Uri uri) where T : SvgElement
         {
             if (uri == null)
             {
@@ -171,7 +171,7 @@ namespace Svg.Skia
                     new SvgUnit(SvgUnitType.User, svgUnit.Value / 100) : svgUnit;
         }
 
-        internal static SKPathEffect CreateDash(SvgElement svgElement, float strokeWidth)
+        internal static SKPathEffect? CreateDash(SvgElement svgElement, float strokeWidth)
         {
             var strokeDashArray = svgElement.StrokeDashArray;
             var count = strokeDashArray.Count;
@@ -622,7 +622,7 @@ namespace Svg.Skia
             }
         }
 
-        internal static SKPaint SetFilter(SKCanvas skCanvas, SvgVisualElement svgVisualElement, CompositeDisposable disposable)
+        internal static SKPaint? SetFilter(SKCanvas skCanvas, SvgVisualElement svgVisualElement, CompositeDisposable disposable)
         {
             if (svgVisualElement.Filter != null)
             {
@@ -910,7 +910,7 @@ namespace Svg.Skia
             skCanvas.SetMatrix(skMatrixTotal);
         }
 
-        internal static SKPaint SetOpacity(SKCanvas skCanvas, SvgElement svgElement, CompositeDisposable disposable)
+        internal static SKPaint? SetOpacity(SKCanvas skCanvas, SvgElement svgElement, CompositeDisposable disposable)
         {
             float opacity = AdjustSvgOpacity(svgElement.Opacity);
             if (opacity < 1f)

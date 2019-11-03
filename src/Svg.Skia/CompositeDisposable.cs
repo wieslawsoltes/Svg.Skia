@@ -7,7 +7,7 @@ namespace Svg.Skia
 {
     internal class CompositeDisposable : IDisposable
     {
-        private IList<IDisposable> _disposables;
+        private IList<IDisposable>? _disposables;
 
         public CompositeDisposable()
         {
@@ -24,9 +24,12 @@ namespace Svg.Skia
 
         public void Dispose()
         {
-            foreach (var disposable in _disposables)
+            if (_disposables != null)
             {
-                disposable?.Dispose();
+                foreach (var disposable in _disposables)
+                {
+                    disposable?.Dispose();
+                }
             }
             _disposables = null;
         }

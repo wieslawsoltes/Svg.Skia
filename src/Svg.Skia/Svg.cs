@@ -8,9 +8,9 @@ namespace Svg.Skia
 {
     public class Svg : IDisposable
     {
-        public SKPicture Picture { get; set; }
+        public SKPicture? Picture { get; set; }
 
-        public SvgDocument Document { get; set; }
+        public SvgDocument? Document { get; set; }
 
         internal SKPicture Load(SvgFragment svgFragment)
         {
@@ -29,7 +29,7 @@ namespace Svg.Skia
             }
         }
 
-        public SKPicture Load(System.IO.Stream stream)
+        public SKPicture? Load(System.IO.Stream stream)
         {
             Reset();
             var svgDocument = SvgDocument.Open<SvgDocument>(stream, null);
@@ -43,7 +43,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public SKPicture Load(string path)
+        public SKPicture? Load(string path)
         {
             Reset();
             var extension = System.IO.Path.GetExtension(path);

@@ -24,7 +24,7 @@ namespace Svg.Skia
             width = svgSymbol.ViewBox.Width;
             height = svgSymbol.ViewBox.Height;
 
-            if (svgSymbol.CustomAttributes.TryGetValue("width", out string _widthString))
+            if (svgSymbol.CustomAttributes.TryGetValue("width", out string? _widthString))
             {
                 if (new SvgUnitConverter().ConvertFrom(_widthString) is SvgUnit _width)
                 {
@@ -32,7 +32,7 @@ namespace Svg.Skia
                 }
             }
 
-            if (svgSymbol.CustomAttributes.TryGetValue("height", out string heightString))
+            if (svgSymbol.CustomAttributes.TryGetValue("height", out string? heightString))
             {
                 if (new SvgUnitConverter().ConvertFrom(heightString) is SvgUnit _height)
                 {
