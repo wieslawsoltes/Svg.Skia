@@ -5,10 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Reflection;
 using System.Text;
 using SkiaSharp;
-using Svg.Document_Structure;
 using Svg.FilterEffects;
 using Svg.Pathing;
 using Svg.Transforms;
