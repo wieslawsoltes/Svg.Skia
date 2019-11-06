@@ -3,7 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29318.209
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvgToPng", "SvgToPng.csproj", "{069892EB-2A34-4856-B1BF-8D9B9C034C72}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgToPng", "SvgToPng.csproj", "{069892EB-2A34-4856-B1BF-8D9B9C034C72}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AB44758F-7615-4A36-9EC4-EE176F95EA10}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "svg", "svg", "{1E1893A1-3F07-4277-B712-D31298E7924C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Custom", "..\..\src\Svg.Custom\Svg.Custom.csproj", "{61BFA4D4-FA27-4C71-8159-7C9AEB7FE16F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Skia", "..\..\src\Svg.Skia\Svg.Skia.csproj", "{AE6D8072-80E1-4192-973C-37B882351EEE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +23,22 @@ Global
 		{069892EB-2A34-4856-B1BF-8D9B9C034C72}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{069892EB-2A34-4856-B1BF-8D9B9C034C72}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{069892EB-2A34-4856-B1BF-8D9B9C034C72}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61BFA4D4-FA27-4C71-8159-7C9AEB7FE16F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61BFA4D4-FA27-4C71-8159-7C9AEB7FE16F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61BFA4D4-FA27-4C71-8159-7C9AEB7FE16F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61BFA4D4-FA27-4C71-8159-7C9AEB7FE16F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE6D8072-80E1-4192-973C-37B882351EEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE6D8072-80E1-4192-973C-37B882351EEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE6D8072-80E1-4192-973C-37B882351EEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE6D8072-80E1-4192-973C-37B882351EEE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{069892EB-2A34-4856-B1BF-8D9B9C034C72} = {AB44758F-7615-4A36-9EC4-EE176F95EA10}
+		{61BFA4D4-FA27-4C71-8159-7C9AEB7FE16F} = {1E1893A1-3F07-4277-B712-D31298E7924C}
+		{AE6D8072-80E1-4192-973C-37B882351EEE} = {1E1893A1-3F07-4277-B712-D31298E7924C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1ABC4DB1-DCCD-48AB-968D-AC2E0FBF3771}

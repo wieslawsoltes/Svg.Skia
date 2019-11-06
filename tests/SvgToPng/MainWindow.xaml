@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
         UseLayoutRounding="True" SnapsToDevicePixels="True"
@@ -19,16 +20,25 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <ListBox x:Name="ListFiles" ItemsSource="{Binding Items}" Margin="4" Grid.Column="0" Grid.Row="0">
+        <ListBox x:Name="items" ItemsSource="{Binding Items}" Margin="4" Grid.Column="0" Grid.Row="0">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding Name}"/>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="4" Grid.Column="1" Grid.Row="0">
-            <Image x:Name="ImagePreview" Source="{Binding ElementName=ListFiles, Path=SelectedItem.Image}"/>
-        </Viewbox>
+        <Grid Grid.Column="1" Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="50*"/>
+                <ColumnDefinition Width="50*"/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Grid.Row="0">
+                <skia:SKElement x:Name="canvas" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+            </Border>
+            <Border Grid.Column="1" Grid.Row="0">
+                <Image x:Name="image" Source="{Binding ElementName=items, Path=SelectedItem.Image}" Stretch="None" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+            </Border>
+        </Grid>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="4" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1">
             <TextBlock Text="Output path" Padding="0" Margin="2"/>
             <TextBox x:Name="TextOutputPath" Text="c:\DOWNLOADS\GitHub\Svg.Skia\src\Svg.Skia.Converter\bin\Debug\netcoreapp3.0\png\" Padding="0" Margin="2"/>

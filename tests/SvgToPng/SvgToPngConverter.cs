@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
+using SkiaSharp;
 
 namespace SvgToPng
 {
@@ -15,6 +18,7 @@ namespace SvgToPng
         public string Svg { get; set; }
         public byte[] Bytes { get; set; }
         public BitmapImage Image { get; set; }
+        public SKPicture Picture { get; set; }
     }
 
     public interface IConvertProgress
@@ -171,27 +175,37 @@ namespace SvgToPng
             {
                 foreach (var inputFile in inputFiles)
                 {
-                    string inputName = Path.GetFileNameWithoutExtension(inputFile);
-                    count++;
-                    await convertProgress.ConvertStatusProgress(count, inputFiles.Count, inputFile);
-#if NET461
-                    string svg = File.ReadAllText(inputFile);
-#else
-                    string svg = await File.ReadAllTextAsync(inputFile);
-#endif
-                    byte[] bytes = await GetBytes(page, svg);
-                    if (bytes != null)
+                    try
                     {
-                        var image = LoadImage(bytes);
-                        var item = new Item()
+                        string inputName = Path.GetFileNameWithoutExtension(inputFile);
+                        count++;
+                        await convertProgress.ConvertStatusProgress(count, inputFiles.Count, inputFile);
+#if NET461
+                        string svg = File.ReadAllText(inputFile);
+#else
+                        string svg = await File.ReadAllTextAsync(inputFile);
+#endif
+                        byte[] bytes = await GetBytes(page, svg);
+                        SKPicture picture = new Svg.Skia.Svg().Load(inputFile);
+                        if (bytes != null)
                         {
-                            Name = inputName,
-                            Path = inputFile,
-                            Svg = svg,
-                            Bytes = bytes,
-                            Image = image
-                        };
-                        items.Add(item);
+                            var image = LoadImage(bytes);
+                            var item = new Item()
+                            {
+                                Name = inputName,
+                                Path = inputFile,
+                                Svg = svg,
+                                Bytes = bytes,
+                                Image = image,
+                                Picture = picture
+                            };
+                            items.Add(item);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                        Debug.WriteLine(ex.StackTrace);
                     }
                 }
             }

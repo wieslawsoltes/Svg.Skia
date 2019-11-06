@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using SkiaSharp;
+using SkiaSharp.Views.Desktop;
 
 namespace SvgToPng
 {
@@ -12,8 +14,35 @@ namespace SvgToPng
         public MainWindow()
         {
             InitializeComponent();
+            this.Loaded += MainWindow_Loaded;
             Items = new ObservableCollection<Item>();
             DataContext = this;
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            items.SelectionChanged += Items_SelectionChanged;
+            canvas.PaintSurface += Canvas_PaintSurface;
+            canvas.InvalidateVisual();
+        }
+
+        private void Items_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            canvas.InvalidateVisual();
+        }
+
+        private void Canvas_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
+        {
+            var canvas = e.Surface.Canvas;
+            canvas.Clear(SKColors.White);
+
+            if (items.SelectedItem is Item item)
+            {
+                if (item.Picture != null)
+                {
+                    canvas.DrawPicture(item.Picture);
+                }
+            }
         }
 
         public async Task HandleDrop(string[] paths)
