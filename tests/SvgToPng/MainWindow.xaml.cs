@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,7 +15,13 @@ namespace SvgToPng
         public MainWindow()
         {
             InitializeComponent();
+
+            var currentDirectory = Directory.GetCurrentDirectory();
+            var outputPath = Path.Combine(currentDirectory, "png");
+            TextOutputPath.Text = outputPath;
+
             this.Loaded += MainWindow_Loaded;
+
             Items = new ObservableCollection<Item>();
             DataContext = this;
         }
@@ -22,24 +29,27 @@ namespace SvgToPng
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             items.SelectionChanged += Items_SelectionChanged;
-            canvas.PaintSurface += Canvas_PaintSurface;
-            canvas.InvalidateVisual();
+            skia.PaintSurface += Canvas_PaintSurface;
+            skia.InvalidateVisual();
         }
 
         private void Items_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            canvas.InvalidateVisual();
+            skia.InvalidateVisual();
         }
 
         private void Canvas_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
             var canvas = e.Surface.Canvas;
+
             canvas.Clear(SKColors.White);
 
             if (items.SelectedItem is Item item)
             {
                 if (item.Picture != null)
                 {
+                    skia.Width = item.Picture.CullRect.Width;
+                    skia.Height = item.Picture.CullRect.Height;
                     canvas.DrawPicture(item.Picture);
                 }
             }
@@ -130,6 +140,23 @@ namespace SvgToPng
             Items.Clear();
         }
 
+        private async void ButtonAdd_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog()
+            {
+                Filter = "Supported Files (*.svg;*.svgz)|*.svg;*.svgz|Svg Files (*.svg)|*.svg;|Svgz Files (*.svgz)|*.svgz|All Files (*.*)|*.*",
+                Multiselect = true,
+                FilterIndex = 0
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                var paths = dlg.FileNames;
+                if (paths != null && paths.Length > 0)
+                {
+                    await HandleDrop(paths);
+                }
+            }
+        }
         private async void ButtonSavePng_Click(object sender, RoutedEventArgs e)
         {
             string outputPath = TextOutputPath.Text;

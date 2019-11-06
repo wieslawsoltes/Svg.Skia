@@ -27,28 +27,50 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <Grid Grid.Column="1" Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="50*"/>
-                <ColumnDefinition Width="50*"/>
-            </Grid.ColumnDefinitions>
-            <Border Grid.Column="0" Grid.Row="0">
-                <skia:SKElement x:Name="canvas" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
-            </Border>
-            <Border Grid.Column="1" Grid.Row="0">
-                <Image x:Name="image" Source="{Binding ElementName=items, Path=SelectedItem.Image}" Stretch="None" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-            </Border>
-        </Grid>
+        <TabControl Margin="4" Grid.Column="1" Grid.Row="0">
+            <TabItem Header="PNG">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50*"/>
+                        <ColumnDefinition Width="50*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Skia" Padding="0" Margin="2" Grid.Column="0" Grid.Row="0"/>
+                    <Border Grid.Column="0" Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="2" Grid.Row="1">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <skia:SKElement x:Name="skia" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                        </ScrollViewer>
+                    </Border>
+                    <TextBlock Text="Chrome" Padding="0" Margin="2" Grid.Column="1" Grid.Row="0"/>
+                    <Border Grid.Column="1" Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="2" Grid.Row="1">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <Image x:Name="image" Source="{Binding ElementName=items, Path=SelectedItem.Image}" Stretch="None" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+            </TabItem>
+            <TabItem Header="SVG">
+                <TextBox Text="{Binding ElementName=items, Path=SelectedItem.Svg}" AcceptsReturn="True" AcceptsTab="True" Padding="0" Margin="2"/>
+            </TabItem>
+        </TabControl>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="4" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1">
+            <GroupBox x:Name="status" Header="Status">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="4">
+                    <TextBlock x:Name="TextProgress" Text="" Padding="0" Margin="2"/>
+                    <TextBlock x:Name="TextInputFile" Text="" Padding="0" Margin="2" TextTrimming="WordEllipsis" TextWrapping="NoWrap"/>
+                    <TextBlock x:Name="TextOutputFile" Text="" Padding="0" Margin="2" TextTrimming="WordEllipsis" TextWrapping="NoWrap"/>
+                </StackPanel>
+            </GroupBox>
             <TextBlock Text="Output path" Padding="0" Margin="2"/>
-            <TextBox x:Name="TextOutputPath" Text="c:\DOWNLOADS\GitHub\Svg.Skia\src\Svg.Skia.Converter\bin\Debug\netcoreapp3.0\png\" Padding="0" Margin="2"/>
+            <TextBox x:Name="TextOutputPath" Text="" Padding="0" Margin="2"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="ButtonClear" Content="Clear" Padding="4" Margin="2" Width="100" Click="ButtonClear_Click"/>
+                <Button x:Name="ButtonAdd" Content="Add..." Padding="4" Margin="2" Width="100" Click="ButtonAdd_Click"/>
                 <Button x:Name="ButtonSavePng" Content="Save as Png" Padding="4" Margin="2" Width="100" Click="ButtonSavePng_Click"/>
             </StackPanel>
-            <TextBlock x:Name="TextProgress" Text="" Padding="0" Margin="2"/>
-            <TextBlock x:Name="TextInputFile" Text="" Padding="0" Margin="2" TextTrimming="WordEllipsis" TextWrapping="NoWrap"/>
-            <TextBlock x:Name="TextOutputFile" Text="" Padding="0" Margin="2" TextTrimming="WordEllipsis" TextWrapping="NoWrap"/>
         </StackPanel>
     </Grid>
 </Window>
