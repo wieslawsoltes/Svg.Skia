@@ -137,7 +137,17 @@ namespace SvgToPng
 
         private void ButtonClear_Click(object sender, RoutedEventArgs e)
         {
+            var items = Items.ToList();
+
             Items.Clear();
+
+            foreach (var item in items)
+            {
+                item.Image = null;
+                item.Bytes = null;
+                item.Picture = null;
+                item.Skia.Dispose();
+            }
         }
 
         private async void ButtonAdd_Click(object sender, RoutedEventArgs e)
