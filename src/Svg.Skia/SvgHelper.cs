@@ -398,7 +398,14 @@ namespace Svg.Skia
 
         internal static void SetFill(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
-            switch (svgVisualElement.Fill)
+            SvgPaintServer server = svgVisualElement.Fill;
+
+            if (server is SvgDeferredPaintServer svgDeferredPaintServerFill)
+            {
+                server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServerFill, svgVisualElement);
+            }
+
+            switch (server)
             {
                 case SvgColourServer svgColourServer:
                     {
@@ -431,7 +438,9 @@ namespace Svg.Skia
                     }
                     break;
                 case SvgDeferredPaintServer svgDeferredPaintServer:
-                    // Not used.
+                    {
+                        // Not used.
+                    }
                     break;
                 default:
                     break;
@@ -440,7 +449,14 @@ namespace Svg.Skia
 
         internal static void SetStroke(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
-            switch (svgVisualElement.Stroke)
+            SvgPaintServer server = svgVisualElement.Stroke;
+
+            if (server is SvgDeferredPaintServer svgDeferredPaintServerStroke)
+            {
+                server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServerStroke, svgVisualElement);
+            }
+
+            switch (server)
             {
                 case SvgColourServer svgColourServer:
                     {
