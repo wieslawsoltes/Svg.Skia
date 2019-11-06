@@ -53,7 +53,7 @@
                 </Grid>
             </TabItem>
             <TabItem Header="SVG">
-                <TextBox Text="{Binding ElementName=items, Path=SelectedItem.Svg}" AcceptsReturn="True" AcceptsTab="True" Padding="0" Margin="2"/>
+                <TextBox Text="{Binding ElementName=items, Path=SelectedItem.Svg}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsReturn="True" AcceptsTab="True" Padding="0" Margin="2"/>
             </TabItem>
         </TabControl>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="4" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1">
