@@ -94,11 +94,21 @@ Options:
   --version                          Display version information
 ```
 
-### Example
+### Examples
 
 ```
 cd ./src/Svg.Skia.Converter/bin/Debug/netcoreapp3.0
 Svg.Skia.Converter.exe -d ../../../../../externals\SVG\Tests\W3CTestSuite\svg\ -o ./png
+```
+
+```
+cd ./src/Svg.Skia.Converter
+dotnet run -f netcoreapp3.0 -- -d ../../externals/SVG/Tests/W3CTestSuite/svg/ -o ./png
+```
+
+```
+cd ./src/Svg.Skia.Converter
+dotnet run -f netcoreapp3.0 -- -d ~/demos -o ~/demos/png
 ```
 
 ## Build
