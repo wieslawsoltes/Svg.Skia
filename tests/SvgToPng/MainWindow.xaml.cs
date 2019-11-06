@@ -42,7 +42,7 @@ namespace SvgToPng
         {
             var canvas = e.Surface.Canvas;
 
-            canvas.Clear(SKColors.White);
+            canvas.Clear(SKColors.Transparent);
 
             if (items.SelectedItem is Item item)
             {
