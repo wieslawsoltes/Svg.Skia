@@ -18,10 +18,15 @@ namespace Svg.Skia
 
             var fragment = new Fragment(svgFragment);
 
-            SvgHelper.SetOpacity(skCanvas, svgFragment, _disposable);
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgFragment, _disposable);
             SvgHelper.SetTransform(skCanvas, fragment.matrix);
 
             DrawElementCollection(skCanvas, skSize, svgFragment.Children);
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
 
             skCanvas.Restore();
         }
@@ -32,10 +37,21 @@ namespace Svg.Skia
 
             var symbol = new Symbol(svgSymbol);
 
-            SvgHelper.SetOpacity(skCanvas, svgSymbol, _disposable);
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgSymbol, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgSymbol, _disposable);
             SvgHelper.SetTransform(skCanvas, symbol.matrix);
 
             DrawElementCollection(skCanvas, skSize, svgSymbol.Children);
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
 
             skCanvas.Restore();
         }
@@ -46,10 +62,21 @@ namespace Svg.Skia
 
             var image = new Image(svgImage);
 
-            SvgHelper.SetOpacity(skCanvas, svgImage, _disposable);
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgImage, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgImage, _disposable);
             SvgHelper.SetTransform(skCanvas, image.matrix);
 
             // TODO:
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
 
             skCanvas.Restore();
         }
@@ -60,10 +87,21 @@ namespace Svg.Skia
 
             var @switch = new Switch(svgSwitch);
 
-            SvgHelper.SetOpacity(skCanvas, svgSwitch, _disposable);
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgSwitch, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgSwitch, _disposable);
             SvgHelper.SetTransform(skCanvas, @switch.matrix);
 
             // TODO:
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
 
             skCanvas.Restore();
         }
@@ -91,8 +129,8 @@ namespace Svg.Skia
 
                 var use = new Use(svgUse, svgVisualElement);
 
-                SvgHelper.SetOpacity(skCanvas, svgUse, _disposable);
-                SvgHelper.SetFilter(skCanvas, svgUse, _disposable);
+                var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgUse, _disposable);
+                var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgUse, _disposable);
                 SvgHelper.SetTransform(skCanvas, use.matrix);
 
                 // TODO:
@@ -129,6 +167,16 @@ namespace Svg.Skia
                 //    throw new Exception("Can not set 'use' referenced element parent.");
                 //}
 
+                if (skPaintFilter != null)
+                {
+                    skCanvas.Restore();
+                }
+
+                if (skPaintOpacity != null)
+                {
+                    skCanvas.Restore();
+                }
+
                 skCanvas.Restore();
             }
         }
@@ -139,10 +187,21 @@ namespace Svg.Skia
 
             var foreignObject = new ForeignObject(svgForeignObject);
 
-            SvgHelper.SetOpacity(skCanvas, svgForeignObject, _disposable);
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgForeignObject, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgForeignObject, _disposable);
             SvgHelper.SetTransform(skCanvas, foreignObject.matrix);
 
             // TODO:
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
 
             skCanvas.Restore();
         }
@@ -153,7 +212,8 @@ namespace Svg.Skia
 
             var circle = new Circle(svgCircle);
 
-            SvgHelper.SetOpacity(skCanvas, svgCircle, _disposable);
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgCircle, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgCircle, _disposable);
             SvgHelper.SetTransform(skCanvas, circle.matrix);
 
             if (svgCircle.Fill != null)
@@ -172,6 +232,16 @@ namespace Svg.Skia
                 }
             }
 
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
             skCanvas.Restore();
         }
 
@@ -181,7 +251,8 @@ namespace Svg.Skia
 
             var ellipse = new Ellipse(svgEllipse);
 
-            SvgHelper.SetOpacity(skCanvas, svgEllipse, _disposable);
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgEllipse, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgEllipse, _disposable);
             SvgHelper.SetTransform(skCanvas, ellipse.matrix);
 
             if (svgEllipse.Fill != null)
@@ -200,16 +271,27 @@ namespace Svg.Skia
                 }
             }
 
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
             skCanvas.Restore();
         }
 
         public void DrawRectangle(SKCanvas skCanvas, SKSize skSize, SvgRectangle svgRectangle)
         {
-            skCanvas.Save();
-
             var rectangle = new Rectangle(svgRectangle);
 
-            SvgHelper.SetOpacity(skCanvas, svgRectangle, _disposable);
+            skCanvas.Save();
+
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgRectangle, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgRectangle, _disposable);
             SvgHelper.SetTransform(skCanvas, rectangle.matrix);
 
             if (svgRectangle.Fill != null)
@@ -242,6 +324,16 @@ namespace Svg.Skia
                 }
             }
 
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
             skCanvas.Restore();
         }
 
@@ -251,10 +343,21 @@ namespace Svg.Skia
 
             var marker = new Marker(svgMarker);
 
-            SvgHelper.SetOpacity(skCanvas, svgMarker, _disposable);
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgMarker, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgMarker, _disposable);
             SvgHelper.SetTransform(skCanvas, marker.matrix);
 
             // TODO:
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
 
             skCanvas.Restore();
         }
@@ -265,36 +368,68 @@ namespace Svg.Skia
 
             var glyph = new Glyph(svgGlyph);
 
-            SvgHelper.SetOpacity(skCanvas, svgGlyph, _disposable);
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgGlyph, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgGlyph, _disposable);
             SvgHelper.SetTransform(skCanvas, glyph.matrix);
 
             // TODO:
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
 
             skCanvas.Restore();
         }
 
         public void DrawGroup(SKCanvas skCanvas, SKSize skSize, SvgGroup svgGroup)
         {
-            skCanvas.Save();
-
             var group = new Group(svgGroup);
 
-            SvgHelper.SetOpacity(skCanvas, svgGroup, _disposable);
-            SvgHelper.SetFilter(skCanvas, svgGroup, _disposable);
+            skCanvas.Save();
+
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgGroup, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgGroup, _disposable);
             SvgHelper.SetTransform(skCanvas, group.matrix);
 
             DrawElementCollection(skCanvas, skSize, svgGroup.Children);
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
 
             skCanvas.Restore();
         }
 
         public void DrawLine(SKCanvas skCanvas, SKSize skSize, SvgLine svgLine)
         {
-            skCanvas.Save();
-
             var line = new Line(svgLine);
 
-            SvgHelper.SetOpacity(skCanvas, svgLine, _disposable);
+            skCanvas.Save();
+
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgLine, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgLine, _disposable);
             SvgHelper.SetTransform(skCanvas, line.matrix);
 
             if (svgLine.Stroke != null)
@@ -303,6 +438,16 @@ namespace Svg.Skia
                 {
                     skCanvas.DrawLine(line.x0, line.y0, line.x1, line.y1, skPaint);
                 }
+            }
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
             }
 
             skCanvas.Restore();
@@ -314,7 +459,8 @@ namespace Svg.Skia
 
             var path = new Path(svgPath);
 
-            SvgHelper.SetOpacity(skCanvas, svgPath, _disposable);
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgPath, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgPath, _disposable);
             SvgHelper.SetTransform(skCanvas, path.matrix);
 
             using (var skPath = SvgHelper.ToSKPath(svgPath.PathData, svgPath.FillRule))
@@ -341,6 +487,16 @@ namespace Svg.Skia
                 }
             }
 
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
             skCanvas.Restore();
         }
 
@@ -350,7 +506,8 @@ namespace Svg.Skia
 
             var polyline = new Polyline(svgPolyline);
 
-            SvgHelper.SetOpacity(skCanvas, svgPolyline, _disposable);
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgPolyline, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgPolyline, _disposable);
             SvgHelper.SetTransform(skCanvas, polyline.matrix);
 
             using (var skPath = SvgHelper.ToSKPath(svgPolyline.Points, svgPolyline.FillRule, false))
@@ -377,6 +534,16 @@ namespace Svg.Skia
                 }
             }
 
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
             skCanvas.Restore();
         }
 
@@ -386,7 +553,8 @@ namespace Svg.Skia
 
             var polygon = new Polygon(svgPolygon);
 
-            SvgHelper.SetOpacity(skCanvas, svgPolygon, _disposable);
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgPolygon, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgPolygon, _disposable);
             SvgHelper.SetTransform(skCanvas, polygon.matrix);
 
             using (var skPath = SvgHelper.ToSKPath(svgPolygon.Points, svgPolygon.FillRule, true))
@@ -413,6 +581,16 @@ namespace Svg.Skia
                 }
             }
 
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
             skCanvas.Restore();
         }
 
@@ -422,10 +600,21 @@ namespace Svg.Skia
 
             var text = new Text(svgText);
 
-            SvgHelper.SetOpacity(skCanvas, svgText, _disposable);
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgText, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgText, _disposable);
             SvgHelper.SetTransform(skCanvas, text.matrix);
 
             // TODO:
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
 
             skCanvas.Restore();
         }
@@ -436,10 +625,21 @@ namespace Svg.Skia
 
             var textPath = new TextPath(svgTextPath);
 
-            SvgHelper.SetOpacity(skCanvas, svgTextPath, _disposable);
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgTextPath, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgTextPath, _disposable);
             SvgHelper.SetTransform(skCanvas, textPath.matrix);
 
             // TODO:
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
 
             skCanvas.Restore();
         }
@@ -450,10 +650,21 @@ namespace Svg.Skia
 
             var textRef = new TextRef(svgTextRef);
 
-            SvgHelper.SetOpacity(skCanvas, svgTextRef, _disposable);
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgTextRef, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgTextRef, _disposable);
             SvgHelper.SetTransform(skCanvas, textRef.matrix);
 
             // TODO:
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
 
             skCanvas.Restore();
         }
@@ -464,10 +675,21 @@ namespace Svg.Skia
 
             var textSpan = new TextSpan(svgTextSpan);
 
-            SvgHelper.SetOpacity(skCanvas, svgTextSpan, _disposable);
+            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgTextSpan, _disposable);
+            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgTextSpan, _disposable);
             SvgHelper.SetTransform(skCanvas, textSpan.matrix);
 
             // TODO:
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
 
             skCanvas.Restore();
         }
