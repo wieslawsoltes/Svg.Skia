@@ -18,6 +18,7 @@ namespace SvgToPng
         public string Svg { get; set; }
         public byte[] Bytes { get; set; }
         public BitmapImage Image { get; set; }
+        public Svg.Skia.Svg Skia { get; set; }
         public SKPicture Picture { get; set; }
     }
 
@@ -186,7 +187,8 @@ namespace SvgToPng
                         string svg = await File.ReadAllTextAsync(inputFile);
 #endif
                         byte[] bytes = await GetBytes(page, svg);
-                        SKPicture picture = new Svg.Skia.Svg().Load(inputFile);
+                        var skia = new Svg.Skia.Svg();
+                        var picture = skia.Load(inputFile);
                         if (bytes != null)
                         {
                             var image = LoadImage(bytes);
@@ -197,6 +199,7 @@ namespace SvgToPng
                                 Svg = svg,
                                 Bytes = bytes,
                                 Image = image,
+                                Skia = skia,
                                 Picture = picture
                             };
                             items.Add(item);
