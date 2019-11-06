@@ -227,7 +227,6 @@ namespace Svg.Skia
                 }
             }
 
-
             var inheritGradient = SvgDeferredPaintServer.TryGet<SvgGradientServer>(svgGradientServer.InheritGradient, svgVisualElement);
             if (colors.Count == 0 && inheritGradient != null)
             {
