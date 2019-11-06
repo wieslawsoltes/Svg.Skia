@@ -14,24 +14,27 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="4"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <ListBox x:Name="items" ItemsSource="{Binding Items}" Margin="4" Grid.Column="0" Grid.Row="0">
+        <ListBox x:Name="items" ItemsSource="{Binding Items}" Margin="4,4,0,4" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding Name}"/>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <TabControl Margin="4" Grid.Column="1" Grid.Row="0">
+        <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"/>
+        <TabControl Margin="4" Grid.Column="2" Grid.Row="0">
             <TabItem Header="PNG">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="50*"/>
+                        <ColumnDefinition Width="4"/>
                         <ColumnDefinition Width="50*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
@@ -39,13 +42,14 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="Skia" Padding="0" Margin="2" Grid.Column="0" Grid.Row="0"/>
-                    <Border Grid.Column="0" Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="2" Grid.Row="1">
+                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="2" Grid.Column="0" Grid.Row="1">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <skia:SKElement x:Name="skia" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
                         </ScrollViewer>
                     </Border>
-                    <TextBlock Text="Chrome" Padding="0" Margin="2" Grid.Column="1" Grid.Row="0"/>
-                    <Border Grid.Column="1" Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="2" Grid.Row="1">
+                    <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"/>
+                    <TextBlock Text="Chrome" Padding="0" Margin="2" Grid.Column="2" Grid.Row="0"/>
+                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="2" Grid.Column="2" Grid.Row="1">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Image x:Name="image" Source="{Binding ElementName=items, Path=SelectedItem.Image}" Stretch="None" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         </ScrollViewer>
@@ -56,7 +60,7 @@
                 <TextBox Text="{Binding ElementName=items, Path=SelectedItem.Svg}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsReturn="True" AcceptsTab="True" Padding="0" Margin="2"/>
             </TabItem>
         </TabControl>
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="4" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="4" Grid.Column="2" Grid.Row="1">
             <GroupBox x:Name="status" Header="Status">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="4">
                     <TextBlock x:Name="TextProgress" Text="" Padding="0" Margin="2"/>
