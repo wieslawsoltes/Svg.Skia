@@ -218,18 +218,14 @@ namespace Svg.Skia
 
             if (svgCircle.Fill != null)
             {
-                using (var skPaint = SKSvgHelper.GetFillSKPaint(svgCircle, skSize, circle.bounds, _disposable))
-                {
-                    skCanvas.DrawCircle(circle.cx, circle.cy, circle.radius, skPaint);
-                }
+                var skPaintFill = SKSvgHelper.GetFillSKPaint(svgCircle, skSize, circle.bounds, _disposable);
+                skCanvas.DrawCircle(circle.cx, circle.cy, circle.radius, skPaintFill);
             }
 
             if (svgCircle.Stroke != null)
             {
-                using (var skPaint = SKSvgHelper.GetStrokeSKPaint(svgCircle, skSize, circle.bounds, _disposable))
-                {
-                    skCanvas.DrawCircle(circle.cx, circle.cy, circle.radius, skPaint);
-                }
+                var skPaintStroke = SKSvgHelper.GetStrokeSKPaint(svgCircle, skSize, circle.bounds, _disposable);
+                skCanvas.DrawCircle(circle.cx, circle.cy, circle.radius, skPaintStroke);
             }
 
             if (skPaintFilter != null)
@@ -257,18 +253,14 @@ namespace Svg.Skia
 
             if (svgEllipse.Fill != null)
             {
-                using (var skPaint = SKSvgHelper.GetFillSKPaint(svgEllipse, skSize, ellipse.bounds, _disposable))
-                {
-                    skCanvas.DrawOval(ellipse.cx, ellipse.cy, ellipse.rx, ellipse.ry, skPaint);
-                }
+                var skPaintFill = SKSvgHelper.GetFillSKPaint(svgEllipse, skSize, ellipse.bounds, _disposable);
+                skCanvas.DrawOval(ellipse.cx, ellipse.cy, ellipse.rx, ellipse.ry, skPaintFill);
             }
 
             if (svgEllipse.Stroke != null)
             {
-                using (var skPaint = SKSvgHelper.GetStrokeSKPaint(svgEllipse, skSize, ellipse.bounds, _disposable))
-                {
-                    skCanvas.DrawOval(ellipse.cx, ellipse.cy, ellipse.rx, ellipse.ry, skPaint);
-                }
+                var skPaintStroke = SKSvgHelper.GetStrokeSKPaint(svgEllipse, skSize, ellipse.bounds, _disposable);
+                skCanvas.DrawOval(ellipse.cx, ellipse.cy, ellipse.rx, ellipse.ry, skPaintStroke);
             }
 
             if (skPaintFilter != null)
@@ -296,31 +288,27 @@ namespace Svg.Skia
 
             if (svgRectangle.Fill != null)
             {
-                using (var skPaint = SKSvgHelper.GetFillSKPaint(svgRectangle, skSize, rectangle.bounds, _disposable))
+                var skPaintFill = SKSvgHelper.GetFillSKPaint(svgRectangle, skSize, rectangle.bounds, _disposable);
+                if (rectangle.isRound)
                 {
-                    if (rectangle.isRound)
-                    {
-                        skCanvas.DrawRoundRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height, rectangle.rx, rectangle.ry, skPaint);
-                    }
-                    else
-                    {
-                        skCanvas.DrawRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height, skPaint);
-                    }
+                    skCanvas.DrawRoundRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height, rectangle.rx, rectangle.ry, skPaintFill);
+                }
+                else
+                {
+                    skCanvas.DrawRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height, skPaintFill);
                 }
             }
 
             if (svgRectangle.Stroke != null)
             {
-                using (var skPaint = SKSvgHelper.GetStrokeSKPaint(svgRectangle, skSize, rectangle.bounds, _disposable))
+                var skPaintStroke = SKSvgHelper.GetStrokeSKPaint(svgRectangle, skSize, rectangle.bounds, _disposable);
+                if (rectangle.isRound)
                 {
-                    if (rectangle.isRound)
-                    {
-                        skCanvas.DrawRoundRect(rectangle.bounds, rectangle.rx, rectangle.ry, skPaint);
-                    }
-                    else
-                    {
-                        skCanvas.DrawRect(rectangle.bounds, skPaint);
-                    }
+                    skCanvas.DrawRoundRect(rectangle.bounds, rectangle.rx, rectangle.ry, skPaintStroke);
+                }
+                else
+                {
+                    skCanvas.DrawRect(rectangle.bounds, skPaintStroke);
                 }
             }
 
@@ -434,10 +422,8 @@ namespace Svg.Skia
 
             if (svgLine.Stroke != null)
             {
-                using (var skPaint = SKSvgHelper.GetStrokeSKPaint(svgLine, skSize, line.bounds, _disposable))
-                {
-                    skCanvas.DrawLine(line.x0, line.y0, line.x1, line.y1, skPaint);
-                }
+                var skPaint = SKSvgHelper.GetStrokeSKPaint(svgLine, skSize, line.bounds, _disposable);
+                skCanvas.DrawLine(line.x0, line.y0, line.x1, line.y1, skPaint);
             }
 
             if (skPaintFilter != null)
@@ -463,27 +449,21 @@ namespace Svg.Skia
             var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgPath, _disposable);
             SKSvgHelper.SetTransform(skCanvas, path.matrix);
 
-            using (var skPath = SKSvgHelper.ToSKPath(svgPath.PathData, svgPath.FillRule))
+            var skPath = SKSvgHelper.ToSKPath(svgPath.PathData, svgPath.FillRule, _disposable);
+            if (skPath != null && !skPath.IsEmpty)
             {
-                if (skPath != null && !skPath.IsEmpty)
+                var skBounds = skPath.Bounds;
+
+                if (svgPath.Fill != null)
                 {
-                    var skBounds = skPath.Bounds;
+                    var skPaint = SKSvgHelper.GetFillSKPaint(svgPath, skSize, skBounds, _disposable);
+                    skCanvas.DrawPath(skPath, skPaint);
+                }
 
-                    if (svgPath.Fill != null)
-                    {
-                        using (var skPaint = SKSvgHelper.GetFillSKPaint(svgPath, skSize, skBounds, _disposable))
-                        {
-                            skCanvas.DrawPath(skPath, skPaint);
-                        }
-                    }
-
-                    if (svgPath.Stroke != null)
-                    {
-                        using (var skPaint = SKSvgHelper.GetStrokeSKPaint(svgPath, skSize, skBounds, _disposable))
-                        {
-                            skCanvas.DrawPath(skPath, skPaint);
-                        }
-                    }
+                if (svgPath.Stroke != null)
+                {
+                    var skPaint = SKSvgHelper.GetStrokeSKPaint(svgPath, skSize, skBounds, _disposable);
+                    skCanvas.DrawPath(skPath, skPaint);
                 }
             }
 
@@ -510,27 +490,21 @@ namespace Svg.Skia
             var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgPolyline, _disposable);
             SKSvgHelper.SetTransform(skCanvas, polyline.matrix);
 
-            using (var skPath = SKSvgHelper.ToSKPath(svgPolyline.Points, svgPolyline.FillRule, false))
+            var skPath = SKSvgHelper.ToSKPath(svgPolyline.Points, svgPolyline.FillRule, false, _disposable);
+            if (skPath != null && !skPath.IsEmpty)
             {
-                if (skPath != null && !skPath.IsEmpty)
+                var skBounds = skPath.Bounds;
+
+                if (svgPolyline.Fill != null)
                 {
-                    var skBounds = skPath.Bounds;
+                    var skPaint = SKSvgHelper.GetFillSKPaint(svgPolyline, skSize, skBounds, _disposable);
+                    skCanvas.DrawPath(skPath, skPaint);
+                }
 
-                    if (svgPolyline.Fill != null)
-                    {
-                        using (var skPaint = SKSvgHelper.GetFillSKPaint(svgPolyline, skSize, skBounds, _disposable))
-                        {
-                            skCanvas.DrawPath(skPath, skPaint);
-                        }
-                    }
-
-                    if (svgPolyline.Stroke != null)
-                    {
-                        using (var skPaint = SKSvgHelper.GetStrokeSKPaint(svgPolyline, skSize, skBounds, _disposable))
-                        {
-                            skCanvas.DrawPath(skPath, skPaint);
-                        }
-                    }
+                if (svgPolyline.Stroke != null)
+                {
+                    var skPaint = SKSvgHelper.GetStrokeSKPaint(svgPolyline, skSize, skBounds, _disposable);
+                    skCanvas.DrawPath(skPath, skPaint);
                 }
             }
 
@@ -557,27 +531,21 @@ namespace Svg.Skia
             var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgPolygon, _disposable);
             SKSvgHelper.SetTransform(skCanvas, polygon.matrix);
 
-            using (var skPath = SKSvgHelper.ToSKPath(svgPolygon.Points, svgPolygon.FillRule, true))
+            var skPath = SKSvgHelper.ToSKPath(svgPolygon.Points, svgPolygon.FillRule, true, _disposable);
+            if (skPath != null && !skPath.IsEmpty)
             {
-                if (skPath != null && !skPath.IsEmpty)
+                var skBounds = skPath.Bounds;
+
+                if (svgPolygon.Fill != null)
                 {
-                    var skBounds = skPath.Bounds;
+                    var skPaint = SKSvgHelper.GetFillSKPaint(svgPolygon, skSize, skBounds, _disposable);
+                    skCanvas.DrawPath(skPath, skPaint);
+                }
 
-                    if (svgPolygon.Fill != null)
-                    {
-                        using (var skPaint = SKSvgHelper.GetFillSKPaint(svgPolygon, skSize, skBounds, _disposable))
-                        {
-                            skCanvas.DrawPath(skPath, skPaint);
-                        }
-                    }
-
-                    if (svgPolygon.Stroke != null)
-                    {
-                        using (var skPaint = SKSvgHelper.GetStrokeSKPaint(svgPolygon, skSize, skBounds, _disposable))
-                        {
-                            skCanvas.DrawPath(skPath, skPaint);
-                        }
-                    }
+                if (svgPolygon.Stroke != null)
+                {
+                    var skPaint = SKSvgHelper.GetStrokeSKPaint(svgPolygon, skSize, skBounds, _disposable);
+                    skCanvas.DrawPath(skPath, skPaint);
                 }
             }
 

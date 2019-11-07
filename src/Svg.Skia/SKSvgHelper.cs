@@ -64,7 +64,7 @@ namespace Svg.Skia
             return SKPath.ParseSvgPathData(svgPath);
         }
 
-        internal static SKPath ToSKPath(SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule)
+        internal static SKPath ToSKPath(SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
@@ -129,10 +129,11 @@ namespace Svg.Skia
                 }
             }
 
+            disposable.Add(skPath);
             return skPath;
         }
 
-        internal static SKPath ToSKPath(SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed)
+        internal static SKPath ToSKPath(SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
@@ -155,6 +156,7 @@ namespace Svg.Skia
                 skPath.Close();
             }
 
+            disposable.Add(skPath);
             return skPath;
         }
 
@@ -500,11 +502,11 @@ namespace Svg.Skia
 
         internal static void SetDash(SvgVisualElement svgVisualElement, SKPaint skPaint, CompositeDisposable disposable)
         {
-            var dash = CreateDash(svgVisualElement, skPaint.StrokeWidth);
-            if (dash != null)
+            var skPathEffect = CreateDash(svgVisualElement, skPaint.StrokeWidth);
+            if (skPathEffect != null)
             {
-                disposable.Add(dash);
-                skPaint.PathEffect = dash;
+                disposable.Add(skPathEffect);
+                skPaint.PathEffect = skPathEffect;
             }
         }
 
@@ -639,12 +641,12 @@ namespace Svg.Skia
         {
             if (svgVisualElement.Filter != null)
             {
-                var paint = new SKPaint();
-                paint.Style = SKPaintStyle.StrokeAndFill;
-                SetFilter(svgVisualElement, paint, disposable);
-                skCanvas.SaveLayer(paint);
-                disposable.Add(paint);
-                return paint;
+                var skPaint = new SKPaint();
+                skPaint.Style = SKPaintStyle.StrokeAndFill;
+                SetFilter(svgVisualElement, skPaint, disposable);
+                skCanvas.SaveLayer(skPaint);
+                disposable.Add(skPaint);
+                return skPaint;
             }
             return null;
         }
@@ -691,6 +693,7 @@ namespace Svg.Skia
 
             skPaint.Style = SKPaintStyle.Fill;
 
+            disposable.Add(skPaint);
             return skPaint;
         }
 
@@ -756,6 +759,7 @@ namespace Svg.Skia
 
             skPaint.Style = SKPaintStyle.Stroke;
 
+            disposable.Add(skPaint);
             return skPaint;
         }
 
@@ -928,15 +932,15 @@ namespace Svg.Skia
             float opacity = AdjustSvgOpacity(svgElement.Opacity);
             if (opacity < 1f)
             {
-                var paint = new SKPaint()
+                var skPaint = new SKPaint()
                 {
                     IsAntialias = true,
                 };
-                paint.Color = new SKColor(255, 255, 255, (byte)Math.Round(opacity * 255));
-                paint.Style = SKPaintStyle.StrokeAndFill;
-                skCanvas.SaveLayer(paint);
-                disposable.Add(paint);
-                return paint;
+                skPaint.Color = new SKColor(255, 255, 255, (byte)Math.Round(opacity * 255));
+                skPaint.Style = SKPaintStyle.StrokeAndFill;
+                skCanvas.SaveLayer(skPaint);
+                disposable.Add(skPaint);
+                return skPaint;
             }
             return null;
         }
