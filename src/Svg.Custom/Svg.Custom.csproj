@@ -22,7 +22,11 @@
   <Import Project="..\..\build\ReferenceAssemblies.props" />
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\externals\SVG\Source\Resources\svg11.dtd" />
+    <!-- https://github.com/vvvv/SVG/blob/master/Source/SvgDtdResolver.cs#L32 -->
+    <EmbeddedResource Include="..\..\externals\SVG\Source\Resources\svg11.dtd">
+      <Link>Resources\svg11.dtd</Link>
+      <LogicalName>Svg.Resources.svg11.dtd</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
