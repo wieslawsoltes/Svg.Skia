@@ -110,3 +110,24 @@ jobs:
       with:
         name: Svg.Skia.Converter-netcoreapp3.0-osx.10.12-x64
         path: ./artifacts/Svg.Skia.Converter-netcoreapp3.0-osx.10.12-x64
+
+  publish-svgtopng:
+    name: Publish SvgToPng
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.0.100
+    - name: Publish
+      if: github.event_name != 'pull_request'
+      run: dotnet publish -c Release -f net461 -r win7-x64 -o ./artifacts/SvgToPng-net461-win7-x64 ./tests/SvgToPng/SvgToPng.csproj
+    - name: Artifacts
+      if: github.event_name != 'pull_request'
+      uses: actions/upload-artifact@master
+      with:
+        name: SvgToPng-net461-win7-x64
+        path: ./artifacts/SvgToPng-net461-win7-x64
