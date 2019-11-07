@@ -7,13 +7,38 @@ using Svg;
 
 namespace Svg.Skia
 {
-    internal struct ForeignObject
+    internal struct ForeignObject : IElement
     {
+        public SvgForeignObject svgForeignObject;
         public SKMatrix matrix;
 
-        public ForeignObject(SvgForeignObject svgForeignObject)
+        public ForeignObject(SvgForeignObject foreignObject)
         {
+            svgForeignObject = foreignObject;
             matrix = SKSvgHelper.GetSKMatrix(svgForeignObject.Transforms);
+        }
+
+        public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
+        {
+            skCanvas.Save();
+
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgForeignObject, disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgForeignObject, disposable);
+            SKSvgHelper.SetTransform(skCanvas, foreignObject.matrix);
+
+            // TODO:
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
+            skCanvas.Restore();
         }
     }
 }

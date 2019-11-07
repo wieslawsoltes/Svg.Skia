@@ -2,14 +2,17 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 // Parts of this source file are adapted from the https://github.com/vvvv/SVG
+using System.Collections.Generic;
 using SkiaSharp;
 using Svg;
 using Svg.Document_Structure;
 
 namespace Svg.Skia
 {
-    internal struct Symbol
+    internal struct Symbol : IElement
     {
+        public SvgSymbol svgSymbol;
+        public List<IElement> children;
         public float x;
         public float y;
         public float width;
@@ -17,8 +20,20 @@ namespace Svg.Skia
         public SKRect bounds;
         public SKMatrix matrix;
 
-        public Symbol(SvgSymbol svgSymbol)
+        public Symbol(SvgSymbol symbol)
         {
+            svgSymbol = symbol;
+            children = new List<IElement>();
+
+            foreach (var svgElement in svgSymbol.Children)
+            {
+                var element = ElementFactory.Create(svgElement);
+                if (element != null)
+                {
+                    children.Add(element);
+                }
+            }
+
             x = 0f;
             y = 0f;
             width = svgSymbol.ViewBox.Width;
@@ -45,6 +60,32 @@ namespace Svg.Skia
             matrix = SKSvgHelper.GetSKMatrix(svgSymbol.Transforms);
             var viewBoxMatrix = SKSvgHelper.GetSvgViewBoxTransform(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
             SKMatrix.Concat(ref matrix, ref matrix, ref viewBoxMatrix);
+        }
+
+        public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
+        {
+            skCanvas.Save();
+
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgSymbol, disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgSymbol, disposable);
+            SKSvgHelper.SetTransform(skCanvas, symbol.matrix);
+
+            for (int i = 0; i < children.Lenght; i++)
+            {
+                children[i].Draw(skCanvas, skSize, disposable);
+            }
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
+            skCanvas.Restore();
         }
     }
 }

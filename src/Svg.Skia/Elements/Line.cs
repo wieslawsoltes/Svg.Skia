@@ -8,8 +8,9 @@ using Svg;
 
 namespace Svg.Skia
 {
-    internal struct Line
+    internal struct Line : IElement
     {
+        public SvgLine svgLine;
         public float x0;
         public float y0;
         public float x1;
@@ -17,8 +18,9 @@ namespace Svg.Skia
         public SKRect bounds;
         public SKMatrix matrix;
 
-        public Line(SvgLine svgLine)
+        public Line(SvgLine line)
         {
+            svgLine = line;
             x0 = svgLine.StartX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgLine);
             y0 = svgLine.StartY.ToDeviceValue(null, UnitRenderingType.Vertical, svgLine);
             x1 = svgLine.EndX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgLine);
@@ -29,6 +31,33 @@ namespace Svg.Skia
             float height = Math.Abs(y0 - y1);
             bounds = SKRect.Create(x, y, width, height);
             matrix = SKSvgHelper.GetSKMatrix(svgLine.Transforms);
+        }
+
+        public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
+        {
+            skCanvas.Save();
+
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgLine, disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgLine, disposable);
+            SKSvgHelper.SetTransform(skCanvas, line.matrix);
+
+            if (svgLine.Stroke != null)
+            {
+                var skPaint = SKSvgHelper.GetStrokeSKPaint(svgLine, skSize, line.bounds, disposable);
+                skCanvas.DrawLine(line.x0, line.y0, line.x1, line.y1, skPaint);
+            }
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
+            skCanvas.Restore();
         }
     }
 }

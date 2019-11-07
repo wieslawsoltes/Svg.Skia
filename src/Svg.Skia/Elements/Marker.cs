@@ -7,13 +7,38 @@ using Svg;
 
 namespace Svg.Skia
 {
-    internal struct Marker
+    internal struct Marker : IElement
     {
+        public SvgMarker svgMarker;
         public SKMatrix matrix;
 
-        public Marker(SvgMarker svgMarker)
+        public Marker(SvgMarker marker)
         {
+            svgMarker = marker;
             matrix = SKSvgHelper.GetSKMatrix(svgMarker.Transforms);
+        }
+
+        public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
+        {
+            skCanvas.Save();
+
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgMarker, disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgMarker, disposable);
+            SKSvgHelper.SetTransform(skCanvas, marker.matrix);
+
+            // TODO:
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
+            skCanvas.Restore();
         }
     }
 }
