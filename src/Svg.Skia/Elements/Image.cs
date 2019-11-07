@@ -18,13 +18,13 @@ namespace Svg.Skia
             matrix = SKSvgHelper.GetSKMatrix(svgImage.Transforms);
         }
 
-        public void DrawImage(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
+        public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
         {
             skCanvas.Save();
 
             var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgImage, disposable);
             var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgImage, disposable);
-            SKSvgHelper.SetTransform(skCanvas, image.matrix);
+            SKSvgHelper.SetTransform(skCanvas, matrix);
 
             // TODO:
 

@@ -40,33 +40,33 @@ namespace Svg.Skia
 
             skCanvas.Save();
 
-            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgRectangle,_disposable);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgRectangle, disposable);
             var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgRectangle, disposable);
-            SKSvgHelper.SetTransform(skCanvas, rectangle.matrix);
+            SKSvgHelper.SetTransform(skCanvas, matrix);
 
             if (svgRectangle.Fill != null)
             {
-                var skPaintFill = SKSvgHelper.GetFillSKPaint(svgRectangle, skSize, rectangle.bounds, disposable);
-                if (rectangle.isRound)
+                var skPaintFill = SKSvgHelper.GetFillSKPaint(svgRectangle, skSize, bounds, disposable);
+                if (isRound)
                 {
-                    skCanvas.DrawRoundRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height, rectangle.rx, rectangle.ry, skPaintFill);
+                    skCanvas.DrawRoundRect(x, y, width, height, rx, ry, skPaintFill);
                 }
                 else
                 {
-                    skCanvas.DrawRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height, skPaintFill);
+                    skCanvas.DrawRect(x, y, width, height, skPaintFill);
                 }
             }
 
             if (svgRectangle.Stroke != null)
             {
-                var skPaintStroke = SKSvgHelper.GetStrokeSKPaint(svgRectangle, skSize, rectangle.bounds, disposable);
-                if (rectangle.isRound)
+                var skPaintStroke = SKSvgHelper.GetStrokeSKPaint(svgRectangle, skSize, bounds, disposable);
+                if (isRound)
                 {
-                    skCanvas.DrawRoundRect(rectangle.bounds, rectangle.rx, rectangle.ry, skPaintStroke);
+                    skCanvas.DrawRoundRect(bounds, rx, ry, skPaintStroke);
                 }
                 else
                 {
-                    skCanvas.DrawRect(rectangle.bounds, skPaintStroke);
+                    skCanvas.DrawRect(bounds, skPaintStroke);
                 }
             }
 

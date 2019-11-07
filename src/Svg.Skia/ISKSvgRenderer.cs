@@ -8,6 +8,6 @@ namespace Svg.Skia
 {
     public interface ISKSvgRenderer : IDisposable
     {
-        void Draw(SKCanvas skCanvas, SKSize skSize, SvgElement svgElement)
+        void Draw(SKCanvas skCanvas, SKSize skSize, SvgElement svgElement);
     }
 }

@@ -76,13 +76,11 @@ namespace Svg.Skia
 
                 svgVisualElement.InvalidateChildPaths();
 
-                var use = new Use(svgUse, svgVisualElement);
-
                 skCanvas.Save();
 
                 var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgUse, disposable);
                 var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgUse, disposable);
-                SKSvgHelper.SetTransform(skCanvas, use.matrix);
+                SKSvgHelper.SetTransform(skCanvas, matrix);
 
                 // TODO:
                 //if (svgUse.ClipPath != null)
@@ -101,11 +99,19 @@ namespace Svg.Skia
 
                 if (svgVisualElement is SvgSymbol svgSymbol)
                 {
-                    DrawSymbol(skCanvas, skSize, svgSymbol);
+                    var element = ElementFactory.Create(svgSymbol);
+                    if (element != null)
+                    {
+                        element.Draw(skCanvas, skSize, disposable);
+                    }
                 }
                 else
                 {
-                    DrawElement(skCanvas, skSize, svgVisualElement);
+                    var element = ElementFactory.Create(svgVisualElement);
+                    if (element != null)
+                    {
+                        element.Draw(skCanvas, skSize, disposable);
+                    }
                 }
 
                 //svgVisualElement.Parent = parent;

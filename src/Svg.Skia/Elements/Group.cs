@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 // Parts of this source file are adapted from the https://github.com/vvvv/SVG
+using System.Reflection;
 using System.Collections.Generic;
 using SkiaSharp;
 using Svg;
@@ -15,18 +16,23 @@ namespace Svg.Skia
 
     internal static class ElementFactory
     {
-        public static IElement Create(SvgElement svgElement)
+        public static IElement? Create(SvgElement svgElement)
         {
             switch (svgElement)
             {
                 case SvgFragment svgFragment:
                     return new Fragment(svgFragment);
                 case SvgImage svgImage:
-                    return new Imag(svgImage);
+                    return new Image(svgImage);
                 case SvgSwitch svgSwitch:
                     return new Switch(svgSwitch);
                 case SvgUse svgUse:
-                    return new Use(svgUse);
+                    var svgVisualElement = SKSvgHelper.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
+                    if (svgVisualElement != null && !SKSvgHelper.HasRecursiveReference(svgUse))
+                    {
+                        return new Use(svgUse, svgVisualElement);
+                    }
+                    return null;
                 case SvgForeignObject svgForeignObject:
                     return new ForeignObject(svgForeignObject);
                 case SvgCircle svgCircle:
@@ -94,7 +100,7 @@ namespace Svg.Skia
             var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgGroup, disposable);
             SKSvgHelper.SetTransform(skCanvas, matrix);
 
-            for (int i = 0; i < children.Lenght; i++)
+            for (int i = 0; i < children.Count; i++)
             {
                 children[i].Draw(skCanvas, skSize, disposable);
             }

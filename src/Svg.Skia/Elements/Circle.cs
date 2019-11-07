@@ -34,18 +34,18 @@ namespace Svg.Skia
 
             var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgCircle, disposable);
             var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgCircle, disposable);
-            SKSvgHelper.SetTransform(skCanvas, circle.matrix);
+            SKSvgHelper.SetTransform(skCanvas, matrix);
 
             if (svgCircle.Fill != null)
             {
-                var skPaintFill = SKSvgHelper.GetFillSKPaint(svgCircle, skSize, circle.bounds, disposable);
-                skCanvas.DrawCircle(circle.cx, circle.cy, circle.radius, skPaintFill);
+                var skPaintFill = SKSvgHelper.GetFillSKPaint(svgCircle, skSize, bounds, disposable);
+                skCanvas.DrawCircle(cx, cy, radius, skPaintFill);
             }
 
             if (svgCircle.Stroke != null)
             {
-                var skPaintStroke = SKSvgHelper.GetStrokeSKPaint(svgCircle, skSize, circle.bounds, disposable);
-                skCanvas.DrawCircle(circle.cx, circle.cy, circle.radius, skPaintStroke);
+                var skPaintStroke = SKSvgHelper.GetStrokeSKPaint(svgCircle, skSize, bounds, disposable);
+                skCanvas.DrawCircle(cx, cy, radius, skPaintStroke);
             }
 
             if (skPaintFilter != null)

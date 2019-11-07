@@ -24,7 +24,7 @@ namespace Svg.Skia
 
             var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgForeignObject, disposable);
             var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgForeignObject, disposable);
-            SKSvgHelper.SetTransform(skCanvas, foreignObject.matrix);
+            SKSvgHelper.SetTransform(skCanvas, matrix);
 
             // TODO:
 

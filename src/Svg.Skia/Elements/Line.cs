@@ -39,12 +39,12 @@ namespace Svg.Skia
 
             var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgLine, disposable);
             var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgLine, disposable);
-            SKSvgHelper.SetTransform(skCanvas, line.matrix);
+            SKSvgHelper.SetTransform(skCanvas, matrix);
 
             if (svgLine.Stroke != null)
             {
-                var skPaint = SKSvgHelper.GetStrokeSKPaint(svgLine, skSize, line.bounds, disposable);
-                skCanvas.DrawLine(line.x0, line.y0, line.x1, line.y1, skPaint);
+                var skPaint = SKSvgHelper.GetStrokeSKPaint(svgLine, skSize, bounds, disposable);
+                skCanvas.DrawLine(x0, y0, x1, y1, skPaint);
             }
 
             if (skPaintFilter != null)

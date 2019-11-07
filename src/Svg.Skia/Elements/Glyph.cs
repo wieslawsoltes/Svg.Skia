@@ -24,7 +24,7 @@ namespace Svg.Skia
 
             var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgGlyph, disposable);
             var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgGlyph, disposable);
-            SKSvgHelper.SetTransform(skCanvas, glyph.matrix);
+            SKSvgHelper.SetTransform(skCanvas, matrix);
 
             // TODO:
 

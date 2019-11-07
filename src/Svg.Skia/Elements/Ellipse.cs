@@ -36,18 +36,18 @@ namespace Svg.Skia
 
             var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgEllipse, disposable);
             var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgEllipse, disposable);
-            SKSvgHelper.SetTransform(skCanvas, ellipse.matrix);
+            SKSvgHelper.SetTransform(skCanvas, matrix);
 
             if (svgEllipse.Fill != null)
             {
-                var skPaintFill = SKSvgHelper.GetFillSKPaint(svgEllipse, skSize, ellipse.bounds, disposable);
-                skCanvas.DrawOval(ellipse.cx, ellipse.cy, ellipse.rx, ellipse.ry, skPaintFill);
+                var skPaintFill = SKSvgHelper.GetFillSKPaint(svgEllipse, skSize, bounds, disposable);
+                skCanvas.DrawOval(cx, cy, rx, ry, skPaintFill);
             }
 
             if (svgEllipse.Stroke != null)
             {
-                var skPaintStroke = SKSvgHelper.GetStrokeSKPaint(svgEllipse, skSize, ellipse.bounds, disposable);
-                skCanvas.DrawOval(ellipse.cx, ellipse.cy, ellipse.rx, ellipse.ry, skPaintStroke);
+                var skPaintStroke = SKSvgHelper.GetStrokeSKPaint(svgEllipse, skSize, bounds, disposable);
+                skCanvas.DrawOval(cx, cy, rx, ry, skPaintStroke);
             }
 
             if (skPaintFilter != null)

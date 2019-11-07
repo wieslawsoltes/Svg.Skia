@@ -68,9 +68,9 @@ namespace Svg.Skia
 
             var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgSymbol, disposable);
             var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgSymbol, disposable);
-            SKSvgHelper.SetTransform(skCanvas, symbol.matrix);
+            SKSvgHelper.SetTransform(skCanvas, matrix);
 
-            for (int i = 0; i < children.Lenght; i++)
+            for (int i = 0; i < children.Count; i++)
             {
                 children[i].Draw(skCanvas, skSize, disposable);
             }
