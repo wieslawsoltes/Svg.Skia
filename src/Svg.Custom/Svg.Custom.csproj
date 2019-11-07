@@ -42,6 +42,10 @@
     <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD20</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
+    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD21</DefineConstants>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp2.2'">
     <DefineConstants>$(DefineConstants);NETCORE;NETCORE22</DefineConstants>
   </PropertyGroup>
