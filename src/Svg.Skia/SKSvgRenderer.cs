@@ -8,7 +8,7 @@ using Svg.Document_Structure;
 
 namespace Svg.Skia
 {
-    public class SvgRenderer : ISvgRenderer
+    public class SKSvgRenderer : ISKSvgRenderer
     {
         private readonly CompositeDisposable _disposable = new CompositeDisposable();
 
@@ -18,8 +18,8 @@ namespace Svg.Skia
 
             var fragment = new Fragment(svgFragment);
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgFragment, _disposable);
-            SvgHelper.SetTransform(skCanvas, fragment.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgFragment, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, fragment.matrix);
 
             DrawElementCollection(skCanvas, skSize, svgFragment.Children);
 
@@ -37,9 +37,9 @@ namespace Svg.Skia
 
             var symbol = new Symbol(svgSymbol);
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgSymbol, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgSymbol, _disposable);
-            SvgHelper.SetTransform(skCanvas, symbol.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgSymbol, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgSymbol, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, symbol.matrix);
 
             DrawElementCollection(skCanvas, skSize, svgSymbol.Children);
 
@@ -62,9 +62,9 @@ namespace Svg.Skia
 
             var image = new Image(svgImage);
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgImage, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgImage, _disposable);
-            SvgHelper.SetTransform(skCanvas, image.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgImage, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgImage, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, image.matrix);
 
             // TODO:
 
@@ -87,9 +87,9 @@ namespace Svg.Skia
 
             var @switch = new Switch(svgSwitch);
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgSwitch, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgSwitch, _disposable);
-            SvgHelper.SetTransform(skCanvas, @switch.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgSwitch, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgSwitch, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, @switch.matrix);
 
             // TODO:
 
@@ -108,8 +108,8 @@ namespace Svg.Skia
 
         public void DrawUse(SKCanvas skCanvas, SKSize skSize, SvgUse svgUse)
         {
-            var svgVisualElement = SvgHelper.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
-            if (svgVisualElement != null && !SvgHelper.HasRecursiveReference(svgUse))
+            var svgVisualElement = SKSvgHelper.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
+            if (svgVisualElement != null && !SKSvgHelper.HasRecursiveReference(svgUse))
             {
                 skCanvas.Save();
 
@@ -129,9 +129,9 @@ namespace Svg.Skia
 
                 var use = new Use(svgUse, svgVisualElement);
 
-                var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgUse, _disposable);
-                var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgUse, _disposable);
-                SvgHelper.SetTransform(skCanvas, use.matrix);
+                var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgUse, _disposable);
+                var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgUse, _disposable);
+                SKSvgHelper.SetTransform(skCanvas, use.matrix);
 
                 // TODO:
                 //if (svgUse.ClipPath != null)
@@ -187,9 +187,9 @@ namespace Svg.Skia
 
             var foreignObject = new ForeignObject(svgForeignObject);
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgForeignObject, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgForeignObject, _disposable);
-            SvgHelper.SetTransform(skCanvas, foreignObject.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgForeignObject, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgForeignObject, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, foreignObject.matrix);
 
             // TODO:
 
@@ -212,13 +212,13 @@ namespace Svg.Skia
 
             var circle = new Circle(svgCircle);
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgCircle, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgCircle, _disposable);
-            SvgHelper.SetTransform(skCanvas, circle.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgCircle, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgCircle, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, circle.matrix);
 
             if (svgCircle.Fill != null)
             {
-                using (var skPaint = SvgHelper.GetFillSKPaint(svgCircle, skSize, circle.bounds, _disposable))
+                using (var skPaint = SKSvgHelper.GetFillSKPaint(svgCircle, skSize, circle.bounds, _disposable))
                 {
                     skCanvas.DrawCircle(circle.cx, circle.cy, circle.radius, skPaint);
                 }
@@ -226,7 +226,7 @@ namespace Svg.Skia
 
             if (svgCircle.Stroke != null)
             {
-                using (var skPaint = SvgHelper.GetStrokeSKPaint(svgCircle, skSize, circle.bounds, _disposable))
+                using (var skPaint = SKSvgHelper.GetStrokeSKPaint(svgCircle, skSize, circle.bounds, _disposable))
                 {
                     skCanvas.DrawCircle(circle.cx, circle.cy, circle.radius, skPaint);
                 }
@@ -251,13 +251,13 @@ namespace Svg.Skia
 
             var ellipse = new Ellipse(svgEllipse);
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgEllipse, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgEllipse, _disposable);
-            SvgHelper.SetTransform(skCanvas, ellipse.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgEllipse, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgEllipse, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, ellipse.matrix);
 
             if (svgEllipse.Fill != null)
             {
-                using (var skPaint = SvgHelper.GetFillSKPaint(svgEllipse, skSize, ellipse.bounds, _disposable))
+                using (var skPaint = SKSvgHelper.GetFillSKPaint(svgEllipse, skSize, ellipse.bounds, _disposable))
                 {
                     skCanvas.DrawOval(ellipse.cx, ellipse.cy, ellipse.rx, ellipse.ry, skPaint);
                 }
@@ -265,7 +265,7 @@ namespace Svg.Skia
 
             if (svgEllipse.Stroke != null)
             {
-                using (var skPaint = SvgHelper.GetStrokeSKPaint(svgEllipse, skSize, ellipse.bounds, _disposable))
+                using (var skPaint = SKSvgHelper.GetStrokeSKPaint(svgEllipse, skSize, ellipse.bounds, _disposable))
                 {
                     skCanvas.DrawOval(ellipse.cx, ellipse.cy, ellipse.rx, ellipse.ry, skPaint);
                 }
@@ -290,13 +290,13 @@ namespace Svg.Skia
 
             skCanvas.Save();
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgRectangle, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgRectangle, _disposable);
-            SvgHelper.SetTransform(skCanvas, rectangle.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgRectangle, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgRectangle, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, rectangle.matrix);
 
             if (svgRectangle.Fill != null)
             {
-                using (var skPaint = SvgHelper.GetFillSKPaint(svgRectangle, skSize, rectangle.bounds, _disposable))
+                using (var skPaint = SKSvgHelper.GetFillSKPaint(svgRectangle, skSize, rectangle.bounds, _disposable))
                 {
                     if (rectangle.isRound)
                     {
@@ -311,7 +311,7 @@ namespace Svg.Skia
 
             if (svgRectangle.Stroke != null)
             {
-                using (var skPaint = SvgHelper.GetStrokeSKPaint(svgRectangle, skSize, rectangle.bounds, _disposable))
+                using (var skPaint = SKSvgHelper.GetStrokeSKPaint(svgRectangle, skSize, rectangle.bounds, _disposable))
                 {
                     if (rectangle.isRound)
                     {
@@ -343,9 +343,9 @@ namespace Svg.Skia
 
             var marker = new Marker(svgMarker);
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgMarker, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgMarker, _disposable);
-            SvgHelper.SetTransform(skCanvas, marker.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgMarker, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgMarker, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, marker.matrix);
 
             // TODO:
 
@@ -368,9 +368,9 @@ namespace Svg.Skia
 
             var glyph = new Glyph(svgGlyph);
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgGlyph, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgGlyph, _disposable);
-            SvgHelper.SetTransform(skCanvas, glyph.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgGlyph, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgGlyph, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, glyph.matrix);
 
             // TODO:
 
@@ -393,9 +393,9 @@ namespace Svg.Skia
 
             skCanvas.Save();
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgGroup, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgGroup, _disposable);
-            SvgHelper.SetTransform(skCanvas, group.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgGroup, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgGroup, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, group.matrix);
 
             DrawElementCollection(skCanvas, skSize, svgGroup.Children);
 
@@ -428,13 +428,13 @@ namespace Svg.Skia
 
             skCanvas.Save();
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgLine, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgLine, _disposable);
-            SvgHelper.SetTransform(skCanvas, line.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgLine, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgLine, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, line.matrix);
 
             if (svgLine.Stroke != null)
             {
-                using (var skPaint = SvgHelper.GetStrokeSKPaint(svgLine, skSize, line.bounds, _disposable))
+                using (var skPaint = SKSvgHelper.GetStrokeSKPaint(svgLine, skSize, line.bounds, _disposable))
                 {
                     skCanvas.DrawLine(line.x0, line.y0, line.x1, line.y1, skPaint);
                 }
@@ -459,11 +459,11 @@ namespace Svg.Skia
 
             var path = new Path(svgPath);
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgPath, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgPath, _disposable);
-            SvgHelper.SetTransform(skCanvas, path.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgPath, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgPath, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, path.matrix);
 
-            using (var skPath = SvgHelper.ToSKPath(svgPath.PathData, svgPath.FillRule))
+            using (var skPath = SKSvgHelper.ToSKPath(svgPath.PathData, svgPath.FillRule))
             {
                 if (skPath != null && !skPath.IsEmpty)
                 {
@@ -471,7 +471,7 @@ namespace Svg.Skia
 
                     if (svgPath.Fill != null)
                     {
-                        using (var skPaint = SvgHelper.GetFillSKPaint(svgPath, skSize, skBounds, _disposable))
+                        using (var skPaint = SKSvgHelper.GetFillSKPaint(svgPath, skSize, skBounds, _disposable))
                         {
                             skCanvas.DrawPath(skPath, skPaint);
                         }
@@ -479,7 +479,7 @@ namespace Svg.Skia
 
                     if (svgPath.Stroke != null)
                     {
-                        using (var skPaint = SvgHelper.GetStrokeSKPaint(svgPath, skSize, skBounds, _disposable))
+                        using (var skPaint = SKSvgHelper.GetStrokeSKPaint(svgPath, skSize, skBounds, _disposable))
                         {
                             skCanvas.DrawPath(skPath, skPaint);
                         }
@@ -506,11 +506,11 @@ namespace Svg.Skia
 
             var polyline = new Polyline(svgPolyline);
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgPolyline, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgPolyline, _disposable);
-            SvgHelper.SetTransform(skCanvas, polyline.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgPolyline, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgPolyline, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, polyline.matrix);
 
-            using (var skPath = SvgHelper.ToSKPath(svgPolyline.Points, svgPolyline.FillRule, false))
+            using (var skPath = SKSvgHelper.ToSKPath(svgPolyline.Points, svgPolyline.FillRule, false))
             {
                 if (skPath != null && !skPath.IsEmpty)
                 {
@@ -518,7 +518,7 @@ namespace Svg.Skia
 
                     if (svgPolyline.Fill != null)
                     {
-                        using (var skPaint = SvgHelper.GetFillSKPaint(svgPolyline, skSize, skBounds, _disposable))
+                        using (var skPaint = SKSvgHelper.GetFillSKPaint(svgPolyline, skSize, skBounds, _disposable))
                         {
                             skCanvas.DrawPath(skPath, skPaint);
                         }
@@ -526,7 +526,7 @@ namespace Svg.Skia
 
                     if (svgPolyline.Stroke != null)
                     {
-                        using (var skPaint = SvgHelper.GetStrokeSKPaint(svgPolyline, skSize, skBounds, _disposable))
+                        using (var skPaint = SKSvgHelper.GetStrokeSKPaint(svgPolyline, skSize, skBounds, _disposable))
                         {
                             skCanvas.DrawPath(skPath, skPaint);
                         }
@@ -553,11 +553,11 @@ namespace Svg.Skia
 
             var polygon = new Polygon(svgPolygon);
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgPolygon, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgPolygon, _disposable);
-            SvgHelper.SetTransform(skCanvas, polygon.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgPolygon, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgPolygon, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, polygon.matrix);
 
-            using (var skPath = SvgHelper.ToSKPath(svgPolygon.Points, svgPolygon.FillRule, true))
+            using (var skPath = SKSvgHelper.ToSKPath(svgPolygon.Points, svgPolygon.FillRule, true))
             {
                 if (skPath != null && !skPath.IsEmpty)
                 {
@@ -565,7 +565,7 @@ namespace Svg.Skia
 
                     if (svgPolygon.Fill != null)
                     {
-                        using (var skPaint = SvgHelper.GetFillSKPaint(svgPolygon, skSize, skBounds, _disposable))
+                        using (var skPaint = SKSvgHelper.GetFillSKPaint(svgPolygon, skSize, skBounds, _disposable))
                         {
                             skCanvas.DrawPath(skPath, skPaint);
                         }
@@ -573,7 +573,7 @@ namespace Svg.Skia
 
                     if (svgPolygon.Stroke != null)
                     {
-                        using (var skPaint = SvgHelper.GetStrokeSKPaint(svgPolygon, skSize, skBounds, _disposable))
+                        using (var skPaint = SKSvgHelper.GetStrokeSKPaint(svgPolygon, skSize, skBounds, _disposable))
                         {
                             skCanvas.DrawPath(skPath, skPaint);
                         }
@@ -600,9 +600,9 @@ namespace Svg.Skia
 
             var text = new Text(svgText);
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgText, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgText, _disposable);
-            SvgHelper.SetTransform(skCanvas, text.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgText, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgText, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, text.matrix);
 
             // TODO:
 
@@ -625,9 +625,9 @@ namespace Svg.Skia
 
             var textPath = new TextPath(svgTextPath);
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgTextPath, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgTextPath, _disposable);
-            SvgHelper.SetTransform(skCanvas, textPath.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgTextPath, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgTextPath, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, textPath.matrix);
 
             // TODO:
 
@@ -650,9 +650,9 @@ namespace Svg.Skia
 
             var textRef = new TextRef(svgTextRef);
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgTextRef, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgTextRef, _disposable);
-            SvgHelper.SetTransform(skCanvas, textRef.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgTextRef, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgTextRef, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, textRef.matrix);
 
             // TODO:
 
@@ -675,9 +675,9 @@ namespace Svg.Skia
 
             var textSpan = new TextSpan(svgTextSpan);
 
-            var skPaintOpacity = SvgHelper.SetOpacity(skCanvas, svgTextSpan, _disposable);
-            var skPaintFilter = SvgHelper.SetFilter(skCanvas, svgTextSpan, _disposable);
-            SvgHelper.SetTransform(skCanvas, textSpan.matrix);
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgTextSpan, _disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgTextSpan, _disposable);
+            SKSvgHelper.SetTransform(skCanvas, textSpan.matrix);
 
             // TODO:
 

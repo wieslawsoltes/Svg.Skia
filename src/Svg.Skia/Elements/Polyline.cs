@@ -13,7 +13,7 @@ namespace Svg.Skia
 
         public Polyline(SvgPolyline svgPolyline)
         {
-            matrix = SvgHelper.GetSKMatrix(svgPolyline.Transforms);
+            matrix = SKSvgHelper.GetSKMatrix(svgPolyline.Transforms);
         }
     }
 }

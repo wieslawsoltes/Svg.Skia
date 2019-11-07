@@ -21,7 +21,7 @@ namespace Svg.Skia
             cy = svgCircle.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgCircle);
             radius = svgCircle.Radius.ToDeviceValue(null, UnitRenderingType.Other, svgCircle);
             bounds = SKRect.Create(cx - radius, cy - radius, radius + radius, radius + radius);
-            matrix = SvgHelper.GetSKMatrix(svgCircle.Transforms);
+            matrix = SKSvgHelper.GetSKMatrix(svgCircle.Transforms);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Svg.Skia
 
         public Use(SvgUse svgUse, SvgVisualElement svgVisualElement)
         {
-            matrix = SvgHelper.GetSKMatrix(svgUse.Transforms);
+            matrix = SKSvgHelper.GetSKMatrix(svgUse.Transforms);
 
             float x = svgUse.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgUse);
             float y = svgUse.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgUse);

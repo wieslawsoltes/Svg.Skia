@@ -13,7 +13,7 @@ namespace Svg.Skia
 
         public Group(SvgGroup svgGroup)
         {
-            matrix = SvgHelper.GetSKMatrix(svgGroup.Transforms);
+            matrix = SKSvgHelper.GetSKMatrix(svgGroup.Transforms);
         }
     }
 }

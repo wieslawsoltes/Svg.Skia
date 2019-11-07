@@ -41,7 +41,7 @@ dotnet add package Svg.Skia
 using SkiaSharp;
 using Svg.Skia;
 
-using (var svg = new Svg())
+using (var svg = new SKSvg())
 {
     if (svg.Load("image.svg") != null)
     {
@@ -54,7 +54,7 @@ using (var svg = new Svg())
 using SkiaSharp;
 using Svg.Skia;
 
-using (var svg = new Svg())
+using (var svg = new SKSvg())
 {
     if (svg.Load("image.svgz") != null)
     {

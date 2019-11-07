@@ -24,8 +24,8 @@ namespace Svg.Skia
             height = svgFragment.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
             bounds = SKRect.Create(x, y, width, height);
 
-            matrix = SvgHelper.GetSKMatrix(svgFragment.Transforms);
-            var viewBoxMatrix = SvgHelper.GetSvgViewBoxTransform(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, width, height);
+            matrix = SKSvgHelper.GetSKMatrix(svgFragment.Transforms);
+            var viewBoxMatrix = SKSvgHelper.GetSvgViewBoxTransform(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, width, height);
             SKMatrix.Concat(ref matrix, ref matrix, ref viewBoxMatrix);
         }
     }

@@ -13,7 +13,7 @@ namespace Svg.Skia
 
         public Marker(SvgMarker svgMarker)
         {
-            matrix = SvgHelper.GetSKMatrix(svgMarker.Transforms);
+            matrix = SKSvgHelper.GetSKMatrix(svgMarker.Transforms);
         }
     }
 }

@@ -6,7 +6,7 @@ using Svg.Document_Structure;
 
 namespace Svg.Skia
 {
-    public interface ISvgRenderer : IDisposable
+    public interface ISKSvgRenderer : IDisposable
     {
         void DrawFragment(SKCanvas skCanvas, SKSize skSize, SvgFragment svgFragment);
         void DrawSymbol(SKCanvas skCanvas, SKSize skSize, SvgSymbol svgSymbol);

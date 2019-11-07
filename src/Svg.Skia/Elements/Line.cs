@@ -28,7 +28,7 @@ namespace Svg.Skia
             float width = Math.Abs(x0 - x1);
             float height = Math.Abs(y0 - y1);
             bounds = SKRect.Create(x, y, width, height);
-            matrix = SvgHelper.GetSKMatrix(svgLine.Transforms);
+            matrix = SKSvgHelper.GetSKMatrix(svgLine.Transforms);
         }
     }
 }

@@ -6,7 +6,7 @@ using Svg;
 
 namespace Svg.Skia
 {
-    public class Svg : IDisposable
+    public class SKSvg : IDisposable
     {
         public SKPicture? Picture { get; set; }
 
@@ -14,7 +14,7 @@ namespace Svg.Skia
 
         internal SKPicture Load(SvgFragment svgFragment)
         {
-            using (var renderer = new SvgRenderer())
+            using (var renderer = new SKSvgRenderer())
             {
                 float width = svgFragment.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
                 float height = svgFragment.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);

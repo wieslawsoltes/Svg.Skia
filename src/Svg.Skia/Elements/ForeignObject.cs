@@ -13,7 +13,7 @@ namespace Svg.Skia
 
         public ForeignObject(SvgForeignObject svgForeignObject)
         {
-            matrix = SvgHelper.GetSKMatrix(svgForeignObject.Transforms);
+            matrix = SKSvgHelper.GetSKMatrix(svgForeignObject.Transforms);
         }
     }
 }

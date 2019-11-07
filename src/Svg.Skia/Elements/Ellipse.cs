@@ -23,7 +23,7 @@ namespace Svg.Skia
             rx = svgEllipse.RadiusX.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
             ry = svgEllipse.RadiusY.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
             bounds = SKRect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
-            matrix = SvgHelper.GetSKMatrix(svgEllipse.Transforms);
+            matrix = SKSvgHelper.GetSKMatrix(svgEllipse.Transforms);
         }
     }
 }

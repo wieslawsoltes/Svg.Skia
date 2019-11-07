@@ -13,7 +13,7 @@ namespace Svg.Skia
 
         public Switch(SvgSwitch svgSwitch)
         {
-            matrix = SvgHelper.GetSKMatrix(svgSwitch.Transforms);
+            matrix = SKSvgHelper.GetSKMatrix(svgSwitch.Transforms);
         }
     }
 }

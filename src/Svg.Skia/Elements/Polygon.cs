@@ -13,7 +13,7 @@ namespace Svg.Skia
 
         public Polygon(SvgPolygon svgPolygon)
         {
-            matrix = SvgHelper.GetSKMatrix(svgPolygon.Transforms);
+            matrix = SKSvgHelper.GetSKMatrix(svgPolygon.Transforms);
         }
     }
 }

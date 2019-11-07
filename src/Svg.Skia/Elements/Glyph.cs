@@ -13,7 +13,7 @@ namespace Svg.Skia
 
         public Glyph(SvgGlyph svgGlyph)
         {
-            matrix = SvgHelper.GetSKMatrix(svgGlyph.Transforms);
+            matrix = SKSvgHelper.GetSKMatrix(svgGlyph.Transforms);
         }
     }
 }

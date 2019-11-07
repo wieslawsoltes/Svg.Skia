@@ -8,11 +8,10 @@ using System.Windows.Media.Imaging;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
 using SkiaSharp;
+using Svg.Skia;
 
 namespace SvgToPng
 {
-    using Svg;
-
     public class Item
     {
         public string Name { get; set; }
@@ -20,7 +19,7 @@ namespace SvgToPng
         public string Svg { get; set; }
         public byte[] Bytes { get; set; }
         public BitmapImage Image { get; set; }
-        public Svg Skia { get; set; }
+        public SKSvg Skia { get; set; }
         public SKPicture Picture { get; set; }
     }
 
@@ -189,7 +188,7 @@ namespace SvgToPng
                         string svg = await File.ReadAllTextAsync(inputFile);
 #endif
                         byte[] bytes = await GetBytes(page, svg);
-                        var skia = new Svg();
+                        var skia = new SKSvg();
                         var picture = skia.Load(inputFile);
                         if (bytes != null)
                         {

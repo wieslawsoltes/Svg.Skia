@@ -42,7 +42,7 @@ namespace Svg.Skia.Converter
                     imagePath = Path.Combine(output.FullName, Path.GetFileName(imagePath));
                 }
 
-                using (var svg = new Svg())
+                using (var svg = new SKSvg())
                 {
                     if (svg.Load(path.FullName) != null)
                     {

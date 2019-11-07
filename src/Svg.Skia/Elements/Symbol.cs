@@ -42,8 +42,8 @@ namespace Svg.Skia
 
             bounds = SKRect.Create(x, y, width, height);
 
-            matrix = SvgHelper.GetSKMatrix(svgSymbol.Transforms);
-            var viewBoxMatrix = SvgHelper.GetSvgViewBoxTransform(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
+            matrix = SKSvgHelper.GetSKMatrix(svgSymbol.Transforms);
+            var viewBoxMatrix = SKSvgHelper.GetSvgViewBoxTransform(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
             SKMatrix.Concat(ref matrix, ref matrix, ref viewBoxMatrix);
         }
     }

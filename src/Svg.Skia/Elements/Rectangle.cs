@@ -29,7 +29,7 @@ namespace Svg.Skia
             ry = svgRectangle.CornerRadiusY.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
             isRound = rx > 0f && ry > 0f;
             bounds = SKRect.Create(x, y, width, height);
-            matrix = SvgHelper.GetSKMatrix(svgRectangle.Transforms);
+            matrix = SKSvgHelper.GetSKMatrix(svgRectangle.Transforms);
         }
     }
 }

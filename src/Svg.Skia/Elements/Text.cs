@@ -13,7 +13,7 @@ namespace Svg.Skia
 
         public Text(SvgText svgText)
         {
-            matrix = SvgHelper.GetSKMatrix(svgText.Transforms);
+            matrix = SKSvgHelper.GetSKMatrix(svgText.Transforms);
         }
     }
 }
