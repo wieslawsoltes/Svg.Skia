@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 // Parts of this source file are adapted from the https://github.com/vvvv/SVG
-using System.Reflection;
 using SkiaSharp;
 using Svg.Document_Structure;
 
