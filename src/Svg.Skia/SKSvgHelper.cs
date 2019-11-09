@@ -234,7 +234,6 @@ namespace Svg.Skia
             {
                 GetStops(inheritGradient, skSize, colors, colorPos, svgVisualElement);
             }
-
         }
 
         internal static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKSize skSize, SKRect skBounds, SvgVisualElement svgVisualElement)
@@ -451,7 +450,7 @@ namespace Svg.Skia
 
         internal static void SetStroke(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
-            SvgPaintServer server = svgVisualElement.Stroke;
+            var server = svgVisualElement.Stroke;
 
             if (server is SvgDeferredPaintServer svgDeferredPaintServerStroke)
             {
