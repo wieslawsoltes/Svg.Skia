@@ -59,83 +59,69 @@ namespace Svg.Skia
 
         public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
         {
-            var svgVisualElement = SKSvgHelper.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
-            if (svgVisualElement != null && !SKSvgHelper.HasRecursiveReference(svgUse))
+            var originalParent = svgUse.Parent;
+            var useParent = svgUse.GetType().GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (useParent != null)
             {
-                var parent = svgUse.Parent;
-                //svgVisualElement.Parent = svgUse;
-                var _parent = svgUse.GetType().GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
-                if (_parent != null)
+                useParent.SetValue(svgVisualElement, svgUse);
+            }
+
+            svgVisualElement.InvalidateChildPaths();
+
+            skCanvas.Save();
+
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgUse, disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgUse, disposable);
+            SKSvgHelper.SetTransform(skCanvas, matrix);
+
+            // TODO:
+            //if (svgUse.ClipPath != null)
+            //{
+            //    var svgClipPath = svgVisualElement.OwnerDocument.GetElementById<SvgClipPath>(svgUse.ClipPath.ToString());
+            //    if (svgClipPath != null && svgClipPath.Children != null)
+            //    {
+            //        foreach (var child in svgClipPath.Children)
+            //        {
+            //            var skPath = new SKPath();
+            //        }
+            //        // TODO:
+            //        Console.WriteLine($"clip-path: {svgClipPath}");
+            //    }
+            //}
+
+            if (svgVisualElement is SvgSymbol svgSymbol)
+            {
+                var element = ElementFactory.Create(svgSymbol);
+                if (element != null)
                 {
-                    _parent.SetValue(svgVisualElement, svgUse);
+                    element.Draw(skCanvas, skSize, disposable);
                 }
-                //else
-                //{
-                //    throw new Exception("Can not set 'use' referenced element parent.");
-                //}
-
-                svgVisualElement.InvalidateChildPaths();
-
-                skCanvas.Save();
-
-                var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgUse, disposable);
-                var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgUse, disposable);
-                SKSvgHelper.SetTransform(skCanvas, matrix);
-
-                // TODO:
-                //if (svgUse.ClipPath != null)
-                //{
-                //    var svgClipPath = svgVisualElement.OwnerDocument.GetElementById<SvgClipPath>(svgUse.ClipPath.ToString());
-                //    if (svgClipPath != null && svgClipPath.Children != null)
-                //    {
-                //        foreach (var child in svgClipPath.Children)
-                //        {
-                //            var skPath = new SKPath();
-                //        }
-                //        // TODO:
-                //        Console.WriteLine($"clip-path: {svgClipPath}");
-                //    }
-                //}
-
-                if (svgVisualElement is SvgSymbol svgSymbol)
+            }
+            else
+            {
+                var element = ElementFactory.Create(svgVisualElement);
+                if (element != null)
                 {
-                    var element = ElementFactory.Create(svgSymbol);
-                    if (element != null)
-                    {
-                        element.Draw(skCanvas, skSize, disposable);
-                    }
+                    element.Draw(skCanvas, skSize, disposable);
                 }
-                else
-                {
-                    var element = ElementFactory.Create(svgVisualElement);
-                    if (element != null)
-                    {
-                        element.Draw(skCanvas, skSize, disposable);
-                    }
-                }
+            }
 
-                //svgVisualElement.Parent = parent;
-                if (_parent != null)
-                {
-                    _parent.SetValue(svgVisualElement, parent);
-                }
-                //else
-                //{
-                //    throw new Exception("Can not set 'use' referenced element parent.");
-                //}
+            if (useParent != null)
+            {
+                useParent.SetValue(svgVisualElement, originalParent);
+            }
 
-                if (skPaintFilter != null)
-                {
-                    skCanvas.Restore();
-                }
-
-                if (skPaintOpacity != null)
-                {
-                    skCanvas.Restore();
-                }
-
+            if (skPaintFilter != null)
+            {
                 skCanvas.Restore();
             }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
+            skCanvas.Restore();
         }
     }
 }
