@@ -187,24 +187,24 @@ namespace SvgToPng
 #else
                         string svg = await File.ReadAllTextAsync(inputFile);
 #endif
-                        byte[] bytes = await GetBytes(page, svg);
+
+                        var bytes = await GetBytes(page, svg);
+                        var image = LoadImage(bytes);
+
                         var skia = new SKSvg();
                         var picture = skia.Load(inputFile);
-                        if (bytes != null)
+
+                        var item = new Item()
                         {
-                            var image = LoadImage(bytes);
-                            var item = new Item()
-                            {
-                                Name = inputName,
-                                Path = inputFile,
-                                Svg = svg,
-                                Bytes = bytes,
-                                Image = image,
-                                Skia = skia,
-                                Picture = picture
-                            };
-                            items.Add(item);
-                        }
+                            Name = inputName,
+                            Path = inputFile,
+                            Svg = svg,
+                            Bytes = bytes,
+                            Image = image,
+                            Skia = skia,
+                            Picture = picture
+                        };
+                        items.Add(item);
                     }
                     catch (Exception ex)
                     {
