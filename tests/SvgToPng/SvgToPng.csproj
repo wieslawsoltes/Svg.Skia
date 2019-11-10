@@ -35,7 +35,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Svg.Custom\Svg.Custom.csproj" />
     <ProjectReference Include="..\..\src\Svg.Skia\Svg.Skia.csproj" />
   </ItemGroup>
 

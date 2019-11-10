@@ -24,7 +24,6 @@
   <Import Project="..\..\build\ReferenceAssemblies.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
     <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" />
   </ItemGroup>
 

@@ -21,19 +21,13 @@
   <Import Project="..\..\build\ReferenceAssemblies.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Win32.SystemEvents" Version="4.6.0" />
     <PackageReference Include="SkiaSharp" Version="1.68.0" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="1.68.0" />
-    <PackageReference Include="System.Drawing.Common" Version="4.6.0" />
-    <PackageReference Include="System.ObjectModel" Version="4.3.0" />
+    <PackageReference Include="Svg" Version="3.0.84" />
   </ItemGroup>
 
 </Project>
