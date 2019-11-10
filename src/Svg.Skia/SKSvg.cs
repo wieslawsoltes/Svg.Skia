@@ -73,6 +73,20 @@ namespace Svg.Skia
             }
         }
 
+        public SKPicture? FromSvg(string svg)
+        {
+            Reset();
+            var svgDocument = SvgDocument.FromSvg<SvgDocument>(svg);
+            if (svgDocument != null)
+            {
+                svgDocument.FlushStyles(true);
+                Picture = Load(svgDocument);
+                Document = svgDocument;
+                return Picture;
+            }
+            return null;
+        }
+
         public bool Save(System.IO.Stream stream, SKColor background, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
         {
             if (Picture == null)
