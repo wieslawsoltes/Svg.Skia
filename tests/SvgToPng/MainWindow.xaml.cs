@@ -146,7 +146,7 @@ namespace SvgToPng
                 item.Image = null;
                 item.Bytes = null;
                 item.Picture = null;
-                item.Skia.Dispose();
+                item.Skia?.Dispose();
             }
         }
 
