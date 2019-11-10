@@ -776,10 +776,89 @@ namespace Svg.Skia
 
             // TODO:
             var fontFamily = svgText.FontFamily;
+
+            var fontWeight = SKFontStyleWeight.Normal;
+            switch (svgText.FontWeight)
+            {
+                case SvgFontWeight.Inherit:
+                    // TODO:
+                    break;
+                case SvgFontWeight.Bolder:
+                    // TODO:
+                    break;
+                case SvgFontWeight.Lighter:
+                    // TODO:
+                    break;
+                case SvgFontWeight.W100:
+                    fontWeight = SKFontStyleWeight.Thin;
+                    break;
+                case SvgFontWeight.W200:
+                    fontWeight = SKFontStyleWeight.ExtraLight;
+                    break;
+                case SvgFontWeight.W300:
+                    fontWeight = SKFontStyleWeight.Light;
+                    break;
+                case SvgFontWeight.W400:
+                //case SvgFontWeight.Normal:
+                    fontWeight = SKFontStyleWeight.Normal;
+                    break;
+                case SvgFontWeight.W500:
+                    fontWeight = SKFontStyleWeight.Medium;
+                    break;
+                case SvgFontWeight.W600:
+                    fontWeight = SKFontStyleWeight.SemiBold;
+                    break;
+                case SvgFontWeight.W700:
+                //case SvgFontWeight.Bold:
+                    fontWeight = SKFontStyleWeight.Bold;
+                    break;
+                case SvgFontWeight.W800:
+                    fontWeight = SKFontStyleWeight.ExtraBold;
+                    break;
+                case SvgFontWeight.W900:
+                    fontWeight = SKFontStyleWeight.Black;
+                    break;
+            }
+
+            var fontWidth = SKFontStyleWidth.Normal;
             // TODO:
-            var fontWeight = 400; //(int)svgText.FontWeight;
-            // TODO:
-            var fontWidth = 5;
+            if (svgText.TryGetAttribute("font-stretch", out string attributeFontStretch))
+            {
+                switch (attributeFontStretch.ToLower())
+                {
+                    case "inherit":
+                        // TODO:
+                        break;
+                    case "ultra-condensed":
+                        fontWidth = SKFontStyleWidth.UltraCondensed;
+                        break;
+                    case "extra-condensed":
+                        fontWidth = SKFontStyleWidth.ExtraCondensed;
+                        break;
+                    case "condensed":
+                        fontWidth = SKFontStyleWidth.Condensed;
+                        break;
+                    case "semi-condensed":
+                        fontWidth = SKFontStyleWidth.SemiCondensed;
+                        break;
+                    case "normal":
+                        fontWidth = SKFontStyleWidth.Normal;
+                        break;
+                    case "semi-expanded":
+                        fontWidth = SKFontStyleWidth.SemiExpanded;
+                        break;
+                    case "expanded":
+                        fontWidth = SKFontStyleWidth.Expanded;
+                        break;
+                    case "extra-expanded":
+                        fontWidth = SKFontStyleWidth.ExtraExpanded;
+                        break;
+                    case "ultra-expanded":
+                        fontWidth = SKFontStyleWidth.UltraExpanded;
+                        break;
+                }
+            }
+
             var fontStyle = SkiaUtil.ToSKFontStyleSlant(svgText.FontStyle);
 
             float fontSize;
