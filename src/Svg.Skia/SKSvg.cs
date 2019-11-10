@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 using System;
 using SkiaSharp;
-using Svg;
 
 namespace Svg.Skia
 {
@@ -14,17 +13,17 @@ namespace Svg.Skia
 
         internal SKPicture Load(SvgFragment svgFragment)
         {
-                float width = svgFragment.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
-                float height = svgFragment.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
-                var skSize = new SKSize(width, height);
-                var cullRect = SKRect.Create(skSize);
-                using (var renderer = new SKSvgRenderer(skSize))
-                using (var skPictureRecorder = new SKPictureRecorder())
-                using (var skCanvas = skPictureRecorder.BeginRecording(cullRect))
-                {
-                    renderer.Draw(skCanvas, svgFragment);
-                    return skPictureRecorder.EndRecording();
-                }
+            float width = svgFragment.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
+            float height = svgFragment.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
+            var skSize = new SKSize(width, height);
+            var cullRect = SKRect.Create(skSize);
+            using (var renderer = new SKSvgRenderer(skSize))
+            using (var skPictureRecorder = new SKPictureRecorder())
+            using (var skCanvas = skPictureRecorder.BeginRecording(cullRect))
+            {
+                renderer.DrawFragment(skCanvas, svgFragment);
+                return skPictureRecorder.EndRecording();
+            }
         }
 
         public SKPicture? Load(System.IO.Stream stream)
