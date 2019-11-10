@@ -17,11 +17,11 @@ namespace Svg.Skia
             float height = svgFragment.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
             var skSize = new SKSize(width, height);
             var cullRect = SKRect.Create(skSize);
-            using (var renderer = new SKSvgRenderer(skSize))
             using (var skPictureRecorder = new SKPictureRecorder())
             using (var skCanvas = skPictureRecorder.BeginRecording(cullRect))
+            using (var renderer = new SKSvgRenderer(skCanvas, skSize))
             {
-                renderer.DrawFragment(skCanvas, svgFragment);
+                renderer.DrawFragment(svgFragment);
                 return skPictureRecorder.EndRecording();
             }
         }

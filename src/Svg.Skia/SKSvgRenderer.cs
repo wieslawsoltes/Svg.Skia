@@ -11,11 +11,13 @@ namespace Svg.Skia
 {
     public class SKSvgRenderer : ISvgRenderer
     {
+        private readonly SKCanvas skCanvas;
         private readonly SKSize _skSize;
         private readonly CompositeDisposable _disposable = new CompositeDisposable();
 
-        public SKSvgRenderer(SKSize skSize)
+        public SKSvgRenderer(SKCanvas skCanvas, SKSize skSize)
         {
+            this.skCanvas = skCanvas;
             _skSize = skSize;
             _disposable = new CompositeDisposable();
         }
@@ -25,80 +27,75 @@ namespace Svg.Skia
             _disposable?.Dispose();
         }
 
-        private void Draw(object canvas, SvgElement svgElement)
+        private void Draw(SvgElement svgElement)
         {
             // HACK: Normally 'SvgElement' object itself would call appropriate 'Draw' on current render.
             switch (svgElement)
             {
                 case SvgFragment svgFragment:
-                    DrawFragment(canvas, svgFragment);
+                    DrawFragment(svgFragment);
                     break;
                 case SvgImage svgImage:
-                    DrawImage(canvas, svgImage);
+                    DrawImage(svgImage);
                     break;
                 case SvgSwitch svgSwitch:
-                    DrawSwitch(canvas, svgSwitch);
+                    DrawSwitch(svgSwitch);
                     break;
                 case SvgUse svgUse:
-                    DrawUse(canvas, svgUse);
+                    DrawUse(svgUse);
                     break;
                 case SvgForeignObject svgForeignObject:
-                    DrawForeignObject(canvas, svgForeignObject);
+                    DrawForeignObject(svgForeignObject);
                     break;
                 case SvgCircle svgCircle:
-                    DrawCircle(canvas, svgCircle);
+                    DrawCircle(svgCircle);
                     break;
                 case SvgEllipse svgEllipse:
-                    DrawEllipse(canvas, svgEllipse);
+                    DrawEllipse(svgEllipse);
                     break;
                 case SvgRectangle svgRectangle:
-                    DrawRectangle(canvas, svgRectangle);
+                    DrawRectangle(svgRectangle);
                     break;
                 case SvgMarker svgMarker:
-                    DrawMarker(canvas, svgMarker);
+                    DrawMarker(svgMarker);
                     break;
                 case SvgGlyph svgGlyph:
-                    DrawGlyph(canvas, svgGlyph);
+                    DrawGlyph(svgGlyph);
                     break;
                 case SvgGroup svgGroup:
-                    DrawGroup(canvas, svgGroup);
+                    DrawGroup(svgGroup);
                     break;
                 case SvgLine svgLine:
-                    DrawLine(canvas, svgLine);
+                    DrawLine(svgLine);
                     break;
                 case SvgPath svgPath:
-                    DrawPath(canvas, svgPath);
+                    DrawPath(svgPath);
                     break;
                 case SvgPolyline svgPolyline:
-                    DrawPolyline(canvas, svgPolyline);
+                    DrawPolyline(svgPolyline);
                     break;
                 case SvgPolygon svgPolygon:
-                    DrawPolygon(canvas, svgPolygon);
+                    DrawPolygon(svgPolygon);
                     break;
                 case SvgText svgText:
-                    DrawText(canvas, svgText);
+                    DrawText(svgText);
                     break;
                 case SvgTextPath svgTextPath:
-                    DrawTextPath(canvas, svgTextPath);
+                    DrawTextPath(svgTextPath);
                     break;
                 case SvgTextRef svgTextRef:
-                    DrawTextRef(canvas, svgTextRef);
+                    DrawTextRef(svgTextRef);
                     break;
                 case SvgTextSpan svgTextSpan:
-                    DrawTextSpan(canvas, svgTextSpan);
+                    DrawTextSpan(svgTextSpan);
                     break;
                 default:
                     break;
             }
         }
 
-        public void DrawFragment(object canvas, SvgFragment svgFragment)
+        public void DrawFragment(SvgFragment svgFragment)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             float x = svgFragment.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
             float y = svgFragment.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
             float width = svgFragment.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
@@ -115,7 +112,7 @@ namespace Svg.Skia
 
             foreach (var svgElement in svgFragment.Children)
             {
-                Draw(canvas, svgElement);
+                Draw(svgElement);
             }
 
             if (skPaintOpacity != null)
@@ -126,13 +123,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawImage(object canvas, SvgImage svgImage)
+        public void DrawImage(SvgImage svgImage)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             SKMatrix matrix = SkiaUtil.GetSKMatrix(svgImage.Transforms);
 
             skCanvas.Save();
@@ -156,13 +148,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSwitch(object canvas, SvgSwitch svgSwitch)
+        public void DrawSwitch(SvgSwitch svgSwitch)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             SKMatrix matrix = SkiaUtil.GetSKMatrix(svgSwitch.Transforms);
 
             skCanvas.Save();
@@ -186,13 +173,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawSymbol(object canvas, SvgSymbol svgSymbol)
+        public void DrawSymbol(SvgSymbol svgSymbol)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             float x = 0f;
             float y = 0f;
             float width = svgSymbol.ViewBox.Width;
@@ -227,7 +209,7 @@ namespace Svg.Skia
 
             foreach (var svgElement in svgSymbol.Children)
             {
-                Draw(canvas, svgElement);
+                Draw(svgElement);
             }
 
             if (skPaintFilter != null)
@@ -243,13 +225,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawUse(object canvas, SvgUse svgUse)
+        public void DrawUse(SvgUse svgUse)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             var svgVisualElement = SkiaUtil.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
             if (svgVisualElement == null || SkiaUtil.HasRecursiveReference(svgUse))
             {
@@ -319,11 +296,11 @@ namespace Svg.Skia
 
             if (svgVisualElement is SvgSymbol svgSymbol)
             {
-                DrawSymbol(canvas, svgSymbol);
+                DrawSymbol(svgSymbol);
             }
             else
             {
-                Draw(skCanvas, svgVisualElement);
+                Draw(svgVisualElement);
             }
 
             if (useParent != null)
@@ -344,13 +321,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawForeignObject(object canvas, SvgForeignObject svgForeignObject)
+        public void DrawForeignObject(SvgForeignObject svgForeignObject)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             SKMatrix matrix = SkiaUtil.GetSKMatrix(svgForeignObject.Transforms);
 
             skCanvas.Save();
@@ -374,13 +346,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawCircle(object canvas, SvgCircle svgCircle)
+        public void DrawCircle(SvgCircle svgCircle)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             float cx = svgCircle.CenterX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgCircle);
             float cy = svgCircle.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgCircle);
             float radius = svgCircle.Radius.ToDeviceValue(null, UnitRenderingType.Other, svgCircle);
@@ -418,13 +385,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawEllipse(object canvas, SvgEllipse svgEllipse)
+        public void DrawEllipse(SvgEllipse svgEllipse)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             float cx = svgEllipse.CenterX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgEllipse);
             float cy = svgEllipse.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgEllipse);
             float rx = svgEllipse.RadiusX.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
@@ -463,13 +425,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawRectangle(object canvas, SvgRectangle svgRectangle)
+        public void DrawRectangle(SvgRectangle svgRectangle)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             float x = svgRectangle.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
             float y = svgRectangle.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
             float width = svgRectangle.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
@@ -525,13 +482,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawMarker(object canvas, SvgMarker svgMarker)
+        public void DrawMarker(SvgMarker svgMarker)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             SKMatrix matrix = SkiaUtil.GetSKMatrix(svgMarker.Transforms);
 
             skCanvas.Save();
@@ -555,13 +507,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawGlyph(object canvas, SvgGlyph svgGlyph)
+        public void DrawGlyph(SvgGlyph svgGlyph)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             SKMatrix matrix = SkiaUtil.GetSKMatrix(svgGlyph.Transforms);
 
             skCanvas.Save();
@@ -585,13 +532,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawGroup(object canvas, SvgGroup svgGroup)
+        public void DrawGroup(SvgGroup svgGroup)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             SKMatrix matrix = SkiaUtil.GetSKMatrix(svgGroup.Transforms);
 
             skCanvas.Save();
@@ -602,7 +544,7 @@ namespace Svg.Skia
 
             foreach (var svgElement in svgGroup.Children)
             {
-                Draw(canvas, svgElement);
+                Draw(svgElement);
             }
 
             if (skPaintFilter != null)
@@ -618,13 +560,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawLine(object canvas, SvgLine svgLine)
+        public void DrawLine(SvgLine svgLine)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             float x0 = svgLine.StartX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgLine);
             float y0 = svgLine.StartY.ToDeviceValue(null, UnitRenderingType.Vertical, svgLine);
             float x1 = svgLine.EndX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgLine);
@@ -661,13 +598,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawPath(object canvas, SvgPath svgPath)
+        public void DrawPath(SvgPath svgPath)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             SKMatrix matrix = SkiaUtil.GetSKMatrix(svgPath.Transforms);
 
             skCanvas.Save();
@@ -707,13 +639,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawPolyline(object canvas, SvgPolyline svgPolyline)
+        public void DrawPolyline(SvgPolyline svgPolyline)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             SKMatrix matrix = SkiaUtil.GetSKMatrix(svgPolyline.Transforms);
 
             skCanvas.Save();
@@ -753,13 +680,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawPolygon(object canvas, SvgPolygon svgPolygon)
+        public void DrawPolygon(SvgPolygon svgPolygon)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             SKMatrix matrix = SkiaUtil.GetSKMatrix(svgPolygon.Transforms);
 
             skCanvas.Save();
@@ -799,13 +721,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawText(object canvas, SvgText svgText)
+        public void DrawText(SvgText svgText)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             SKMatrix matrix = SkiaUtil.GetSKMatrix(svgText.Transforms);
 
             skCanvas.Save();
@@ -861,13 +778,8 @@ namespace Svg.Skia
         }
 
 
-        public void DrawTextPath(object canvas, SvgTextPath svgTextPath)
+        public void DrawTextPath(SvgTextPath svgTextPath)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             SKMatrix matrix = SkiaUtil.GetSKMatrix(svgTextPath.Transforms);
 
             skCanvas.Save();
@@ -891,13 +803,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawTextRef(object canvas, SvgTextRef svgTextRef)
+        public void DrawTextRef(SvgTextRef svgTextRef)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             SKMatrix matrix = SkiaUtil.GetSKMatrix(svgTextRef.Transforms);
 
             skCanvas.Save();
@@ -921,13 +828,8 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public void DrawTextSpan(object canvas, SvgTextSpan svgTextSpan)
+        public void DrawTextSpan(SvgTextSpan svgTextSpan)
         {
-            if (!(canvas is SKCanvas skCanvas))
-            {
-                return;
-            }
-
             SKMatrix matrix = SkiaUtil.GetSKMatrix(svgTextSpan.Transforms);
 
             skCanvas.Save();
