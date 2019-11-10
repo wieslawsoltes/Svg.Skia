@@ -16,8 +16,8 @@ namespace Svg.Skia
                 case SvgSwitch svgSwitch:
                     return new Switch(svgSwitch);
                 case SvgUse svgUse:
-                    var svgVisualElement = SKSvgHelper.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
-                    if (svgVisualElement != null && !SKSvgHelper.HasRecursiveReference(svgUse))
+                    var svgVisualElement = SkiaUtil.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
+                    if (svgVisualElement != null && !SkiaUtil.HasRecursiveReference(svgUse))
                     {
                         return new Use(svgUse, svgVisualElement);
                     }

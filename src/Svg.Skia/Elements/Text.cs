@@ -15,16 +15,16 @@ namespace Svg.Skia
         public Text(SvgText text)
         {
             svgText = text;
-            matrix = SKSvgHelper.GetSKMatrix(svgText.Transforms);
+            matrix = SkiaUtil.GetSKMatrix(svgText.Transforms);
         }
 
         public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
         {
             skCanvas.Save();
 
-            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgText, disposable);
-            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgText, disposable);
-            SKSvgHelper.SetTransform(skCanvas, matrix);
+            var skPaintOpacity = SkiaUtil.SetOpacity(skCanvas, svgText, disposable);
+            var skPaintFilter = SkiaUtil.SetFilter(skCanvas, svgText, disposable);
+            SkiaUtil.SetTransform(skCanvas, matrix);
 
             // TODO:
 

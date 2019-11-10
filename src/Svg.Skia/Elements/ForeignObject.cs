@@ -15,16 +15,16 @@ namespace Svg.Skia
         public ForeignObject(SvgForeignObject foreignObject)
         {
             svgForeignObject = foreignObject;
-            matrix = SKSvgHelper.GetSKMatrix(svgForeignObject.Transforms);
+            matrix = SkiaUtil.GetSKMatrix(svgForeignObject.Transforms);
         }
 
         public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
         {
             skCanvas.Save();
 
-            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgForeignObject, disposable);
-            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgForeignObject, disposable);
-            SKSvgHelper.SetTransform(skCanvas, matrix);
+            var skPaintOpacity = SkiaUtil.SetOpacity(skCanvas, svgForeignObject, disposable);
+            var skPaintFilter = SkiaUtil.SetFilter(skCanvas, svgForeignObject, disposable);
+            SkiaUtil.SetTransform(skCanvas, matrix);
 
             // TODO:
 

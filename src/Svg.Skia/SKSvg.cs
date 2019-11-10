@@ -14,19 +14,17 @@ namespace Svg.Skia
 
         internal SKPicture Load(SvgFragment svgFragment)
         {
-            using (var renderer = new SKSvgRenderer())
-            {
                 float width = svgFragment.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
                 float height = svgFragment.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
                 var skSize = new SKSize(width, height);
                 var cullRect = SKRect.Create(skSize);
+                using (var renderer = new SKSvgRenderer(skSize))
                 using (var skPictureRecorder = new SKPictureRecorder())
                 using (var skCanvas = skPictureRecorder.BeginRecording(cullRect))
                 {
-                    renderer.Draw(skCanvas, skSize, svgFragment);
+                    renderer.Draw(skCanvas, svgFragment);
                     return skPictureRecorder.EndRecording();
                 }
-            }
         }
 
         public SKPicture? Load(System.IO.Stream stream)

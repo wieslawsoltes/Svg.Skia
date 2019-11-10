@@ -28,16 +28,16 @@ namespace Svg.Skia
                 }
             }
 
-            matrix = SKSvgHelper.GetSKMatrix(svgGroup.Transforms);
+            matrix = SkiaUtil.GetSKMatrix(svgGroup.Transforms);
         }
 
         public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
         {
             skCanvas.Save();
 
-            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgGroup, disposable);
-            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgGroup, disposable);
-            SKSvgHelper.SetTransform(skCanvas, matrix);
+            var skPaintOpacity = SkiaUtil.SetOpacity(skCanvas, svgGroup, disposable);
+            var skPaintFilter = SkiaUtil.SetFilter(skCanvas, svgGroup, disposable);
+            SkiaUtil.SetTransform(skCanvas, matrix);
 
             for (int i = 0; i < children.Count; i++)
             {

@@ -15,31 +15,31 @@ namespace Svg.Skia
         public Path(SvgPath path)
         {
             svgPath = path;
-            matrix = SKSvgHelper.GetSKMatrix(svgPath.Transforms);
+            matrix = SkiaUtil.GetSKMatrix(svgPath.Transforms);
         }
 
         public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
         {
             skCanvas.Save();
 
-            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgPath, disposable);
-            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgPath, disposable);
-            SKSvgHelper.SetTransform(skCanvas, matrix);
+            var skPaintOpacity = SkiaUtil.SetOpacity(skCanvas, svgPath, disposable);
+            var skPaintFilter = SkiaUtil.SetFilter(skCanvas, svgPath, disposable);
+            SkiaUtil.SetTransform(skCanvas, matrix);
 
-            var skPath = SKSvgHelper.ToSKPath(svgPath.PathData, svgPath.FillRule, disposable);
+            var skPath = SkiaUtil.ToSKPath(svgPath.PathData, svgPath.FillRule, disposable);
             if (skPath != null && !skPath.IsEmpty)
             {
                 var skBounds = skPath.Bounds;
 
                 if (svgPath.Fill != null)
                 {
-                    var skPaint = SKSvgHelper.GetFillSKPaint(svgPath, skSize, skBounds, disposable);
+                    var skPaint = SkiaUtil.GetFillSKPaint(svgPath, skSize, skBounds, disposable);
                     skCanvas.DrawPath(skPath, skPaint);
                 }
 
                 if (svgPath.Stroke != null)
                 {
-                    var skPaint = SKSvgHelper.GetStrokeSKPaint(svgPath, skSize, skBounds, disposable);
+                    var skPaint = SkiaUtil.GetStrokeSKPaint(svgPath, skSize, skBounds, disposable);
                     skCanvas.DrawPath(skPath, skPaint);
                 }
             }

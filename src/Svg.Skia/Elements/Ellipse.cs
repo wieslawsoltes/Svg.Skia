@@ -25,7 +25,7 @@ namespace Svg.Skia
             rx = svgEllipse.RadiusX.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
             ry = svgEllipse.RadiusY.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
             bounds = SKRect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
-            matrix = SKSvgHelper.GetSKMatrix(svgEllipse.Transforms);
+            matrix = SkiaUtil.GetSKMatrix(svgEllipse.Transforms);
         }
 
         public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
@@ -34,19 +34,19 @@ namespace Svg.Skia
 
             skCanvas.Save();
 
-            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgEllipse, disposable);
-            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgEllipse, disposable);
-            SKSvgHelper.SetTransform(skCanvas, matrix);
+            var skPaintOpacity = SkiaUtil.SetOpacity(skCanvas, svgEllipse, disposable);
+            var skPaintFilter = SkiaUtil.SetFilter(skCanvas, svgEllipse, disposable);
+            SkiaUtil.SetTransform(skCanvas, matrix);
 
             if (svgEllipse.Fill != null)
             {
-                var skPaintFill = SKSvgHelper.GetFillSKPaint(svgEllipse, skSize, bounds, disposable);
+                var skPaintFill = SkiaUtil.GetFillSKPaint(svgEllipse, skSize, bounds, disposable);
                 skCanvas.DrawOval(cx, cy, rx, ry, skPaintFill);
             }
 
             if (svgEllipse.Stroke != null)
             {
-                var skPaintStroke = SKSvgHelper.GetStrokeSKPaint(svgEllipse, skSize, bounds, disposable);
+                var skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgEllipse, skSize, bounds, disposable);
                 skCanvas.DrawOval(cx, cy, rx, ry, skPaintStroke);
             }
 

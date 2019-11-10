@@ -31,7 +31,7 @@ namespace Svg.Skia
             ry = svgRectangle.CornerRadiusY.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
             isRound = rx > 0f && ry > 0f;
             bounds = SKRect.Create(x, y, width, height);
-            matrix = SKSvgHelper.GetSKMatrix(svgRectangle.Transforms);
+            matrix = SkiaUtil.GetSKMatrix(svgRectangle.Transforms);
         }
 
         public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
@@ -40,13 +40,13 @@ namespace Svg.Skia
 
             skCanvas.Save();
 
-            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgRectangle, disposable);
-            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgRectangle, disposable);
-            SKSvgHelper.SetTransform(skCanvas, matrix);
+            var skPaintOpacity = SkiaUtil.SetOpacity(skCanvas, svgRectangle, disposable);
+            var skPaintFilter = SkiaUtil.SetFilter(skCanvas, svgRectangle, disposable);
+            SkiaUtil.SetTransform(skCanvas, matrix);
 
             if (svgRectangle.Fill != null)
             {
-                var skPaintFill = SKSvgHelper.GetFillSKPaint(svgRectangle, skSize, bounds, disposable);
+                var skPaintFill = SkiaUtil.GetFillSKPaint(svgRectangle, skSize, bounds, disposable);
                 if (isRound)
                 {
                     skCanvas.DrawRoundRect(x, y, width, height, rx, ry, skPaintFill);
@@ -59,7 +59,7 @@ namespace Svg.Skia
 
             if (svgRectangle.Stroke != null)
             {
-                var skPaintStroke = SKSvgHelper.GetStrokeSKPaint(svgRectangle, skSize, bounds, disposable);
+                var skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgRectangle, skSize, bounds, disposable);
                 if (isRound)
                 {
                     skCanvas.DrawRoundRect(bounds, rx, ry, skPaintStroke);

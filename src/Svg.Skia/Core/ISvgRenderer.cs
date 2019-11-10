@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 using System;
-using SkiaSharp;
 using Svg.Document_Structure;
 
 namespace Svg.Skia
 {
-    public interface ISKSvgRenderer : IDisposable
+    public interface ISvgRenderer : IDisposable
     {
-        void Draw(SKCanvas skCanvas, SKSize skSize, SvgElement svgElement);
+        void Draw(object canvas, SvgElement svgElement);
     }
 }

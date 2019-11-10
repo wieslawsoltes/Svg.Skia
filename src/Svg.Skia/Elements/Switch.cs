@@ -15,16 +15,16 @@ namespace Svg.Skia
         public Switch(SvgSwitch @switch)
         {
             svgSwitch = @switch;
-            matrix = SKSvgHelper.GetSKMatrix(svgSwitch.Transforms);
+            matrix = SkiaUtil.GetSKMatrix(svgSwitch.Transforms);
         }
 
         public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
         {
             skCanvas.Save();
 
-            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgSwitch, disposable);
-            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgSwitch, disposable);
-            SKSvgHelper.SetTransform(skCanvas, matrix);
+            var skPaintOpacity = SkiaUtil.SetOpacity(skCanvas, svgSwitch, disposable);
+            var skPaintFilter = SkiaUtil.SetFilter(skCanvas, svgSwitch, disposable);
+            SkiaUtil.SetTransform(skCanvas, matrix);
 
             // TODO:
 

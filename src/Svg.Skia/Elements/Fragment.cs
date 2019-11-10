@@ -39,8 +39,8 @@ namespace Svg.Skia
             height = svgFragment.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
             bounds = SKRect.Create(x, y, width, height);
 
-            matrix = SKSvgHelper.GetSKMatrix(svgFragment.Transforms);
-            var viewBoxMatrix = SKSvgHelper.GetSvgViewBoxTransform(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, width, height);
+            matrix = SkiaUtil.GetSKMatrix(svgFragment.Transforms);
+            var viewBoxMatrix = SkiaUtil.GetSvgViewBoxTransform(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, width, height);
             SKMatrix.Concat(ref matrix, ref matrix, ref viewBoxMatrix);
         }
 
@@ -48,8 +48,8 @@ namespace Svg.Skia
         {
             skCanvas.Save();
 
-            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgFragment, disposable);
-            SKSvgHelper.SetTransform(skCanvas, matrix);
+            var skPaintOpacity = SkiaUtil.SetOpacity(skCanvas, svgFragment, disposable);
+            SkiaUtil.SetTransform(skCanvas, matrix);
 
             for (int i = 0; i < children.Count; i++)
             {

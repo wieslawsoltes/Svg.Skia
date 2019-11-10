@@ -15,16 +15,16 @@ namespace Svg.Skia
         public Glyph(SvgGlyph glyph)
         {
             svgGlyph = glyph;
-            matrix = SKSvgHelper.GetSKMatrix(svgGlyph.Transforms);
+            matrix = SkiaUtil.GetSKMatrix(svgGlyph.Transforms);
         }
 
         public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
         {
             skCanvas.Save();
 
-            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgGlyph, disposable);
-            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgGlyph, disposable);
-            SKSvgHelper.SetTransform(skCanvas, matrix);
+            var skPaintOpacity = SkiaUtil.SetOpacity(skCanvas, svgGlyph, disposable);
+            var skPaintFilter = SkiaUtil.SetFilter(skCanvas, svgGlyph, disposable);
+            SkiaUtil.SetTransform(skCanvas, matrix);
 
             // TODO:
 

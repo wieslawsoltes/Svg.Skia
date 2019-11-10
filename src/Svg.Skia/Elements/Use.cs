@@ -20,7 +20,7 @@ namespace Svg.Skia
         {
             svgUse = use;
             svgVisualElement = visualElement;
-            matrix = SKSvgHelper.GetSKMatrix(svgUse.Transforms);
+            matrix = SkiaUtil.GetSKMatrix(svgUse.Transforms);
 
             float x = svgUse.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgUse);
             float y = svgUse.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgUse);
@@ -70,9 +70,9 @@ namespace Svg.Skia
 
             skCanvas.Save();
 
-            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgUse, disposable);
-            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgUse, disposable);
-            SKSvgHelper.SetTransform(skCanvas, matrix);
+            var skPaintOpacity = SkiaUtil.SetOpacity(skCanvas, svgUse, disposable);
+            var skPaintFilter = SkiaUtil.SetFilter(skCanvas, svgUse, disposable);
+            SkiaUtil.SetTransform(skCanvas, matrix);
 
             // TODO:
             //if (svgUse.ClipPath != null)

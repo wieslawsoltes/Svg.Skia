@@ -13,7 +13,7 @@ using Svg.Transforms;
 
 namespace Svg.Skia
 {
-    internal static class SKSvgHelper
+    internal static class SkiaUtil
     {
         internal static T? GetReference<T>(SvgElement svgElement, Uri uri) where T : SvgElement
         {

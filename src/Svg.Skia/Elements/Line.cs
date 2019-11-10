@@ -30,20 +30,20 @@ namespace Svg.Skia
             float width = Math.Abs(x0 - x1);
             float height = Math.Abs(y0 - y1);
             bounds = SKRect.Create(x, y, width, height);
-            matrix = SKSvgHelper.GetSKMatrix(svgLine.Transforms);
+            matrix = SkiaUtil.GetSKMatrix(svgLine.Transforms);
         }
 
         public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
         {
             skCanvas.Save();
 
-            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgLine, disposable);
-            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgLine, disposable);
-            SKSvgHelper.SetTransform(skCanvas, matrix);
+            var skPaintOpacity = SkiaUtil.SetOpacity(skCanvas, svgLine, disposable);
+            var skPaintFilter = SkiaUtil.SetFilter(skCanvas, svgLine, disposable);
+            SkiaUtil.SetTransform(skCanvas, matrix);
 
             if (svgLine.Stroke != null)
             {
-                var skPaint = SKSvgHelper.GetStrokeSKPaint(svgLine, skSize, bounds, disposable);
+                var skPaint = SkiaUtil.GetStrokeSKPaint(svgLine, skSize, bounds, disposable);
                 skCanvas.DrawLine(x0, y0, x1, y1, skPaint);
             }
 

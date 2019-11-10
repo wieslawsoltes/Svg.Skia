@@ -5,16 +5,26 @@ using Svg.Document_Structure;
 
 namespace Svg.Skia
 {
-    public class SKSvgRenderer : ISKSvgRenderer
+    public class SKSvgRenderer : ISvgRenderer
     {
         private readonly CompositeDisposable _disposable = new CompositeDisposable();
+        private readonly SKSize _skSize;
 
-        public void Draw(SKCanvas skCanvas, SKSize skSize, SvgElement svgElement)
+        public SKSvgRenderer(SKSize skSize)
         {
-            var element = ElementFactory.Create(svgElement);
-            if (element != null)
+            _disposable = new CompositeDisposable();
+            _skSize = skSize;
+        }
+
+        public void Draw(object canvas, SvgElement svgElement)
+        {
+            if (canvas is SKCanvas skCanvas)
             {
-                element.Draw(skCanvas, skSize, _disposable);
+                var element = ElementFactory.Create(svgElement);
+                if (element != null)
+                {
+                    element.Draw(skCanvas, _skSize, _disposable);
+                }
             }
         }
 

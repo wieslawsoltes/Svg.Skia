@@ -23,7 +23,7 @@ namespace Svg.Skia
             cy = svgCircle.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgCircle);
             radius = svgCircle.Radius.ToDeviceValue(null, UnitRenderingType.Other, svgCircle);
             bounds = SKRect.Create(cx - radius, cy - radius, radius + radius, radius + radius);
-            matrix = SKSvgHelper.GetSKMatrix(svgCircle.Transforms);
+            matrix = SkiaUtil.GetSKMatrix(svgCircle.Transforms);
         }
 
         public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
@@ -32,19 +32,19 @@ namespace Svg.Skia
 
             skCanvas.Save();
 
-            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgCircle, disposable);
-            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgCircle, disposable);
-            SKSvgHelper.SetTransform(skCanvas, matrix);
+            var skPaintOpacity = SkiaUtil.SetOpacity(skCanvas, svgCircle, disposable);
+            var skPaintFilter = SkiaUtil.SetFilter(skCanvas, svgCircle, disposable);
+            SkiaUtil.SetTransform(skCanvas, matrix);
 
             if (svgCircle.Fill != null)
             {
-                var skPaintFill = SKSvgHelper.GetFillSKPaint(svgCircle, skSize, bounds, disposable);
+                var skPaintFill = SkiaUtil.GetFillSKPaint(svgCircle, skSize, bounds, disposable);
                 skCanvas.DrawCircle(cx, cy, radius, skPaintFill);
             }
 
             if (svgCircle.Stroke != null)
             {
-                var skPaintStroke = SKSvgHelper.GetStrokeSKPaint(svgCircle, skSize, bounds, disposable);
+                var skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgCircle, skSize, bounds, disposable);
                 skCanvas.DrawCircle(cx, cy, radius, skPaintStroke);
             }
 
