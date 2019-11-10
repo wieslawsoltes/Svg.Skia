@@ -816,6 +816,53 @@ namespace Svg.Skia
 
             // TODO:
 
+            if (svgText.Fill != null || svgText.Stroke != null)
+            {
+                var text = svgText.Text;
+
+                if (svgText.X.Count == 1 && svgText.Y.Count == 1 && !string.IsNullOrEmpty(text))
+                {
+                    float x0 = svgText.X[0].ToDeviceValue(null, UnitRenderingType.HorizontalOffset, svgText);
+                    float y0 = svgText.Y[0].ToDeviceValue(null, UnitRenderingType.VerticalOffset, svgText);
+
+                    // TODO:
+                    var bounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
+
+                    var skPaint = SkiaUtil.GetSKPaint(svgText, _skSize, bounds, _disposable);
+
+                    skPaint.LcdRenderText = true;
+                    skPaint.SubpixelText = true;
+                    skPaint.TextEncoding = SKTextEncoding.Utf16;
+
+                    // TODO:
+                    var fontFamily = svgText.FontFamily;
+                    // TODO:
+                    var fontWeight = (int)svgText.FontWeight;
+                    // TODO:
+                    var fontWidth = 5;
+                    var fontStyle = SkiaUtil.ToSKFontStyleSlant(svgText.FontStyle);
+
+                    float fontSize;
+                    var fontSizeUnit = svgText.FontSize;
+                    if (fontSizeUnit == SvgUnit.None || fontSizeUnit == SvgUnit.Empty)
+                    {
+                        fontSize = new SvgUnit(SvgUnitType.Em, 1.0f);
+                    }
+                    else
+                    {
+                        fontSize = fontSizeUnit.ToDeviceValue(null, UnitRenderingType.Vertical, svgText);
+                    }
+                    skPaint.TextSize = fontSize;
+
+                    var skTypeface = SKTypeface.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
+                    _disposable.Add(skTypeface);
+
+                    skPaint.Typeface = skTypeface;
+
+                    skCanvas.DrawText(text, x0, y0, skPaint);
+                }
+            }
+
             if (skPaintFilter != null)
             {
                 skCanvas.Restore();
