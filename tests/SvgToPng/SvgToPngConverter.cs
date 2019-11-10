@@ -191,23 +191,23 @@ namespace SvgToPng
             count = 0;
             foreach (var item in items)
             {
-                try
+                count++;
+                await convertProgress.ConvertStatusProgress(count, inputFiles.Count, item.Path);
+                await Task.Factory.StartNew(() =>
                 {
-                    count++;
-                    await convertProgress.ConvertStatusProgress(count, inputFiles.Count, item.Path);
-                    await Task.Factory.StartNew(() =>
+                    try
                     {
                         var skia = new SKSvg();
                         var picture = skia.Load(item.Path);
                         item.Skia = skia;
                         item.Picture = picture;
-                    });
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex.Message);
-                    Debug.WriteLine(ex.StackTrace);
-                }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                        Debug.WriteLine(ex.StackTrace);
+                    }
+                });
             }
 #endif
             // Google Chrome
