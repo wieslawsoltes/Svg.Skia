@@ -665,13 +665,8 @@ namespace Svg.Skia
             }
         }
 
-        internal static SKPaint GetFillSKPaint(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
+        internal static void SetFillSKPaint(SKPaint skPaint, SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
         {
-            var skPaint = new SKPaint()
-            {
-                IsAntialias = IsAntialias(svgVisualElement)
-            };
-
             // TODO: SvgElement
 
             // TODO: SvgElementStyle
@@ -683,26 +678,11 @@ namespace Svg.Skia
 
             // TODO: SvgVisualElement
 
-            if (svgVisualElement.Filter != null)
-            {
-                SetFilter(svgVisualElement, skPaint, disposable);
-            }
-
             // TODO: SvgVisualElementStyle
-
-            skPaint.Style = SKPaintStyle.Fill;
-
-            disposable.Add(skPaint);
-            return skPaint;
         }
 
-        internal static SKPaint GetStrokeSKPaint(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
+        internal static void SetStrokeSKPaint(SKPaint skPaint, SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
         {
-            var skPaint = new SKPaint()
-            {
-                IsAntialias = IsAntialias(svgVisualElement)
-            };
-
             // TODO: SvgElement
 
             // TODO: SvgElementStyle
@@ -749,14 +729,95 @@ namespace Svg.Skia
 
             // TODO: SvgVisualElement
 
+            // TODO: SvgVisualElementStyle
+        }
+
+        internal static SKPaint GetFillSKPaint(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
+        {
+            var skPaint = new SKPaint()
+            {
+                IsAntialias = IsAntialias(svgVisualElement)
+            };
+
+            SetFillSKPaint(skPaint, svgVisualElement, skSize, skBounds, disposable);
+
             if (svgVisualElement.Filter != null)
             {
                 SetFilter(svgVisualElement, skPaint, disposable);
             }
 
-            // TODO: SvgVisualElementStyle
+            skPaint.Style = SKPaintStyle.Fill;
+
+            disposable.Add(skPaint);
+            return skPaint;
+        }
+
+        internal static SKPaint GetStrokeSKPaint(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
+        {
+            var skPaint = new SKPaint()
+            {
+                IsAntialias = IsAntialias(svgVisualElement)
+            };
+
+            SetStrokeSKPaint(skPaint, svgVisualElement, skSize, skBounds, disposable);
+
+            if (svgVisualElement.Filter != null)
+            {
+                SetFilter(svgVisualElement, skPaint, disposable);
+            }
 
             skPaint.Style = SKPaintStyle.Stroke;
+
+            disposable.Add(skPaint);
+            return skPaint;
+        }
+
+        internal static SKFontStyleSlant ToSKFontStyleSlant(SvgFontStyle fontStyle)
+        {
+            switch (fontStyle)
+            {
+                default:
+                case SvgFontStyle.Normal:
+                    return SKFontStyleSlant.Upright;
+                case SvgFontStyle.Oblique:
+                    return SKFontStyleSlant.Oblique;
+                case SvgFontStyle.Italic:
+                    return SKFontStyleSlant.Italic;
+            }
+        }
+
+        internal static SKPaint GetSKPaint(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
+        {
+            var skPaint = new SKPaint()
+            {
+                IsAntialias = IsAntialias(svgVisualElement)
+            };
+
+            SetFillSKPaint(skPaint, svgVisualElement, skSize, skBounds, disposable);
+            SetStrokeSKPaint(skPaint, svgVisualElement, skSize, skBounds, disposable);
+
+            if (svgVisualElement.Filter != null)
+            {
+                SetFilter(svgVisualElement, skPaint, disposable);
+            }
+
+            // TODO: SvgElement
+            // TODO: SvgElementStyle
+            // TODO: SvgVisualElement
+            // TODO: SvgVisualElementStyle
+
+            if (svgVisualElement.Fill != null && svgVisualElement.Stroke != null)
+            {
+                skPaint.Style = SKPaintStyle.StrokeAndFill;
+            }
+            else if (svgVisualElement.Fill != null && svgVisualElement.Stroke == null)
+            {
+                skPaint.Style = SKPaintStyle.Fill;
+            }
+            else if (svgVisualElement.Fill == null && svgVisualElement.Stroke != null)
+            {
+                skPaint.Style = SKPaintStyle.Stroke;
+            }
 
             disposable.Add(skPaint);
             return skPaint;
