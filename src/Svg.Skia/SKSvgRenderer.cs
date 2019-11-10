@@ -393,13 +393,13 @@ namespace Svg.Skia
             var skPaintFilter = SkiaUtil.SetFilter(skCanvas, svgCircle, _disposable);
             SkiaUtil.SetTransform(skCanvas, matrix);
 
-            if (svgCircle.Fill != null)
+            if (SkiaUtil.IsValidFill(svgCircle))
             {
                 var skPaintFill = SkiaUtil.GetFillSKPaint(svgCircle, _skSize, bounds, _disposable);
                 skCanvas.DrawCircle(cx, cy, radius, skPaintFill);
             }
 
-            if (svgCircle.Stroke != null)
+            if (SkiaUtil.IsValidStroke(svgCircle))
             {
                 var skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgCircle, _skSize, bounds, _disposable);
                 skCanvas.DrawCircle(cx, cy, radius, skPaintStroke);
@@ -438,13 +438,13 @@ namespace Svg.Skia
             var skPaintFilter = SkiaUtil.SetFilter(skCanvas, svgEllipse, _disposable);
             SkiaUtil.SetTransform(skCanvas, matrix);
 
-            if (svgEllipse.Fill != null)
+            if (SkiaUtil.IsValidFill(svgEllipse))
             {
                 var skPaintFill = SkiaUtil.GetFillSKPaint(svgEllipse, _skSize, bounds, _disposable);
                 skCanvas.DrawOval(cx, cy, rx, ry, skPaintFill);
             }
 
-            if (svgEllipse.Stroke != null)
+            if (SkiaUtil.IsValidStroke(svgEllipse))
             {
                 var skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgEllipse, _skSize, bounds, _disposable);
                 skCanvas.DrawOval(cx, cy, rx, ry, skPaintStroke);
@@ -486,7 +486,7 @@ namespace Svg.Skia
             var skPaintFilter = SkiaUtil.SetFilter(skCanvas, svgRectangle, _disposable);
             SkiaUtil.SetTransform(skCanvas, matrix);
 
-            if (svgRectangle.Fill != null)
+            if (SkiaUtil.IsValidFill(svgRectangle))
             {
                 var skPaintFill = SkiaUtil.GetFillSKPaint(svgRectangle, _skSize, bounds, _disposable);
                 if (isRound)
@@ -499,7 +499,7 @@ namespace Svg.Skia
                 }
             }
 
-            if (svgRectangle.Stroke != null)
+            if (SkiaUtil.IsValidStroke(svgRectangle))
             {
                 var skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgRectangle, _skSize, bounds, _disposable);
                 if (isRound)
@@ -642,7 +642,7 @@ namespace Svg.Skia
             var skPaintFilter = SkiaUtil.SetFilter(skCanvas, svgLine, _disposable);
             SkiaUtil.SetTransform(skCanvas, matrix);
 
-            if (svgLine.Stroke != null)
+            if (SkiaUtil.IsValidStroke(svgLine))
             {
                 var skPaint = SkiaUtil.GetStrokeSKPaint(svgLine, _skSize, bounds, _disposable);
                 skCanvas.DrawLine(x0, y0, x1, y1, skPaint);
@@ -681,13 +681,13 @@ namespace Svg.Skia
             {
                 var skBounds = skPath.Bounds;
 
-                if (svgPath.Fill != null)
+                if (SkiaUtil.IsValidFill(svgPath))
                 {
                     var skPaint = SkiaUtil.GetFillSKPaint(svgPath, _skSize, skBounds, _disposable);
                     skCanvas.DrawPath(skPath, skPaint);
                 }
 
-                if (svgPath.Stroke != null)
+                if (SkiaUtil.IsValidStroke(svgPath))
                 {
                     var skPaint = SkiaUtil.GetStrokeSKPaint(svgPath, _skSize, skBounds, _disposable);
                     skCanvas.DrawPath(skPath, skPaint);
@@ -727,13 +727,13 @@ namespace Svg.Skia
             {
                 var skBounds = skPath.Bounds;
 
-                if (svgPolyline.Fill != null)
+                if (SkiaUtil.IsValidFill(svgPolyline))
                 {
                     var skPaint = SkiaUtil.GetFillSKPaint(svgPolyline, _skSize, skBounds, _disposable);
                     skCanvas.DrawPath(skPath, skPaint);
                 }
 
-                if (svgPolyline.Stroke != null)
+                if (SkiaUtil.IsValidStroke(svgPolyline))
                 {
                     var skPaint = SkiaUtil.GetStrokeSKPaint(svgPolyline, _skSize, skBounds, _disposable);
                     skCanvas.DrawPath(skPath, skPaint);
@@ -773,13 +773,13 @@ namespace Svg.Skia
             {
                 var skBounds = skPath.Bounds;
 
-                if (svgPolygon.Fill != null)
+                if (SkiaUtil.IsValidFill(svgPolygon))
                 {
                     var skPaint = SkiaUtil.GetFillSKPaint(svgPolygon, _skSize, skBounds, _disposable);
                     skCanvas.DrawPath(skPath, skPaint);
                 }
 
-                if (svgPolygon.Stroke != null)
+                if (SkiaUtil.IsValidStroke(svgPolygon))
                 {
                     var skPaint = SkiaUtil.GetStrokeSKPaint(svgPolygon, _skSize, skBounds, _disposable);
                     skCanvas.DrawPath(skPath, skPaint);
@@ -815,8 +815,10 @@ namespace Svg.Skia
             SkiaUtil.SetTransform(skCanvas, matrix);
 
             // TODO:
+            bool isValidFill = SkiaUtil.IsValidFill(svgText);
+            bool isValidStroke = SkiaUtil.IsValidStroke(svgText);
 
-            if (svgText.Fill != null || svgText.Stroke != null)
+            if (isValidFill || isValidStroke)
             {
                 var text = svgText.Text;
 
@@ -835,7 +837,7 @@ namespace Svg.Skia
                     skPaint.TextEncoding = SKTextEncoding.Utf16;
 
                     // TODO:
-                    var fontFamily = svgText.FontFamily;
+                    var fontFamily = "Arial";//svgText.FontFamily;
                     // TODO:
                     var fontWeight = (int)svgText.FontWeight;
                     // TODO:

@@ -665,16 +665,25 @@ namespace Svg.Skia
             }
         }
 
+        internal static bool IsValidFill(SvgElement svgElement)
+        {
+            return svgElement.Fill != null;
+        }
+
+        internal static bool IsValidStroke(SvgElement svgElement)
+        {
+            return svgElement.Stroke != null
+                && svgElement.Stroke != SvgPaintServer.None
+                && svgElement.StrokeWidth > 0f;
+        }
+
         internal static void SetFillSKPaint(SKPaint skPaint, SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
         {
             // TODO: SvgElement
 
             // TODO: SvgElementStyle
 
-            if (svgVisualElement.Fill != null)
-            {
-                SetFill(svgVisualElement, skSize, skBounds, skPaint, disposable);
-            }
+            SetFill(svgVisualElement, skSize, skBounds, skPaint, disposable);
 
             // TODO: SvgVisualElement
 
@@ -687,10 +696,7 @@ namespace Svg.Skia
 
             // TODO: SvgElementStyle
 
-            if (svgVisualElement.Stroke != null)
-            {
-                SetStroke(svgVisualElement, skSize, skBounds, skPaint, disposable);
-            }
+            SetStroke(svgVisualElement, skSize, skBounds, skPaint, disposable);
 
             switch (svgVisualElement.StrokeLineCap)
             {
@@ -793,8 +799,17 @@ namespace Svg.Skia
                 IsAntialias = IsAntialias(svgVisualElement)
             };
 
-            SetFillSKPaint(skPaint, svgVisualElement, skSize, skBounds, disposable);
-            SetStrokeSKPaint(skPaint, svgVisualElement, skSize, skBounds, disposable);
+            bool isValidFill = IsValidFill(svgVisualElement);
+            if (isValidFill)
+            {
+                SetFillSKPaint(skPaint, svgVisualElement, skSize, skBounds, disposable);
+            }
+
+            bool isValidStroke = IsValidStroke(svgVisualElement);
+            if (isValidStroke)
+            {
+                SetStrokeSKPaint(skPaint, svgVisualElement, skSize, skBounds, disposable);
+            }
 
             if (svgVisualElement.Filter != null)
             {
@@ -806,15 +821,15 @@ namespace Svg.Skia
             // TODO: SvgVisualElement
             // TODO: SvgVisualElementStyle
 
-            if (svgVisualElement.Fill != null && svgVisualElement.Stroke != null)
+            if (isValidFill && isValidStroke)
             {
                 skPaint.Style = SKPaintStyle.StrokeAndFill;
             }
-            else if (svgVisualElement.Fill != null && svgVisualElement.Stroke == null)
+            else if (isValidFill && !isValidStroke)
             {
                 skPaint.Style = SKPaintStyle.Fill;
             }
-            else if (svgVisualElement.Fill == null && svgVisualElement.Stroke != null)
+            else if (!isValidFill && isValidStroke)
             {
                 skPaint.Style = SKPaintStyle.Stroke;
             }
