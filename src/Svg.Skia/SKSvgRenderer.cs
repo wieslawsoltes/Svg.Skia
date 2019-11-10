@@ -839,7 +839,7 @@ namespace Svg.Skia
                     // TODO:
                     var fontFamily = svgText.FontFamily;
                     // TODO:
-                    var fontWeight = (int)svgText.FontWeight;
+                    var fontWeight = 400; //(int)svgText.FontWeight;
                     // TODO:
                     var fontWidth = 5;
                     var fontStyle = SkiaUtil.ToSKFontStyleSlant(svgText.FontStyle);
