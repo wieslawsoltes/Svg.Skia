@@ -119,7 +119,6 @@ To build the projects you need to install [.NET Core 3.0](https://dotnet.microso
 git clone git@github.com:wieslawsoltes/Svg.Skia.git
 cd Svg.Skia
 git submodule update --init --recursive
-dotnet build -c Release ./src/Svg.Custom/Svg.Custom.csproj
 dotnet build -c Release ./src/Svg.Skia/Svg.Skia.csproj
 dotnet build -c Release ./src/Svg.Skia.Converter/Svg.Skia.Converter.csproj
 ```
@@ -131,10 +130,8 @@ git clone git@github.com:wieslawsoltes/Svg.Skia.git
 cd Svg.Skia
 git submodule update --init --recursive
 export LANG=en-US.UTF-8
-dotnet pack -c Release -o ./artifacts --version-suffix "preview7" ./src/Svg.Custom/Svg.Custom.csproj
 dotnet pack -c Release -o ./artifacts --version-suffix "preview7" ./src/Svg.Skia/Svg.Skia.csproj
 dotnet pack -c Release -o ./artifacts --version-suffix "preview7" ./src/Svg.Skia.Converter/Svg.Skia.Converter.csproj
-dotnet nuget push ./artifacts/Svg.Custom.0.0.1-preview7.nupkg -k <key> -s https://api.nuget.org/v3/index.json
 dotnet nuget push ./artifacts/Svg.Skia.0.0.1-preview7.nupkg -k <key> -s https://api.nuget.org/v3/index.json
 dotnet nuget push ./artifacts/Svg.Skia.Converter.0.0.1-preview7.nupkg -k <key> -s https://api.nuget.org/v3/index.json
 ```
