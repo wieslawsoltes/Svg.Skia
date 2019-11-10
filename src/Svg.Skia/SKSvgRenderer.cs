@@ -824,44 +824,26 @@ namespace Svg.Skia
 
                 if (svgText.X.Count == 1 && svgText.Y.Count == 1 && !string.IsNullOrEmpty(text))
                 {
+                    // TODO:
                     float x0 = svgText.X[0].ToDeviceValue(null, UnitRenderingType.HorizontalOffset, svgText);
                     float y0 = svgText.Y[0].ToDeviceValue(null, UnitRenderingType.VerticalOffset, svgText);
 
                     // TODO:
-                    var bounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
+                    var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
 
-                    var skPaint = SkiaUtil.GetSKPaint(svgText, _skSize, bounds, _disposable);
-
-                    skPaint.LcdRenderText = true;
-                    skPaint.SubpixelText = true;
-                    skPaint.TextEncoding = SKTextEncoding.Utf16;
-
-                    // TODO:
-                    var fontFamily = svgText.FontFamily;
-                    // TODO:
-                    var fontWeight = 400; //(int)svgText.FontWeight;
-                    // TODO:
-                    var fontWidth = 5;
-                    var fontStyle = SkiaUtil.ToSKFontStyleSlant(svgText.FontStyle);
-
-                    float fontSize;
-                    var fontSizeUnit = svgText.FontSize;
-                    if (fontSizeUnit == SvgUnit.None || fontSizeUnit == SvgUnit.Empty)
+                    if (SkiaUtil.IsValidFill(svgText))
                     {
-                        fontSize = new SvgUnit(SvgUnitType.Em, 1.0f);
+                        var skPaint = SkiaUtil.GetFillSKPaint(svgText, _skSize, skBounds, _disposable);
+                        SkiaUtil.SetSKPaintText(svgText, _skSize, skBounds, skPaint, _disposable);
+                        skCanvas.DrawText(text, x0, y0, skPaint);
                     }
-                    else
+
+                    if (SkiaUtil.IsValidStroke(svgText))
                     {
-                        fontSize = fontSizeUnit.ToDeviceValue(null, UnitRenderingType.Vertical, svgText);
+                        var skPaint = SkiaUtil.GetStrokeSKPaint(svgText, _skSize, skBounds, _disposable);
+                        SkiaUtil.SetSKPaintText(svgText, _skSize, skBounds, skPaint, _disposable);
+                        skCanvas.DrawText(text, x0, y0, skPaint);
                     }
-                    skPaint.TextSize = fontSize;
-
-                    var skTypeface = SKTypeface.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
-                    _disposable.Add(skTypeface);
-
-                    skPaint.Typeface = skTypeface;
-
-                    skCanvas.DrawText(text, x0, y0, skPaint);
                 }
             }
 
@@ -877,6 +859,7 @@ namespace Svg.Skia
 
             skCanvas.Restore();
         }
+
 
         public void DrawTextPath(object canvas, SvgTextPath svgTextPath)
         {

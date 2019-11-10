@@ -677,8 +677,13 @@ namespace Svg.Skia
                 && svgElement.StrokeWidth > 0f;
         }
 
-        internal static void SetFillSKPaint(SKPaint skPaint, SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
+        internal static SKPaint GetFillSKPaint(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
         {
+            var skPaint = new SKPaint()
+            {
+                IsAntialias = IsAntialias(svgVisualElement)
+            };
+
             // TODO: SvgElement
 
             // TODO: SvgElementStyle
@@ -688,10 +693,25 @@ namespace Svg.Skia
             // TODO: SvgVisualElement
 
             // TODO: SvgVisualElementStyle
+
+            if (svgVisualElement.Filter != null)
+            {
+                SetFilter(svgVisualElement, skPaint, disposable);
+            }
+
+            skPaint.Style = SKPaintStyle.Fill;
+
+            disposable.Add(skPaint);
+            return skPaint;
         }
 
-        internal static void SetStrokeSKPaint(SKPaint skPaint, SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
+        internal static SKPaint GetStrokeSKPaint(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
         {
+            var skPaint = new SKPaint()
+            {
+                IsAntialias = IsAntialias(svgVisualElement)
+            };
+
             // TODO: SvgElement
 
             // TODO: SvgElementStyle
@@ -736,36 +756,6 @@ namespace Svg.Skia
             // TODO: SvgVisualElement
 
             // TODO: SvgVisualElementStyle
-        }
-
-        internal static SKPaint GetFillSKPaint(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
-        {
-            var skPaint = new SKPaint()
-            {
-                IsAntialias = IsAntialias(svgVisualElement)
-            };
-
-            SetFillSKPaint(skPaint, svgVisualElement, skSize, skBounds, disposable);
-
-            if (svgVisualElement.Filter != null)
-            {
-                SetFilter(svgVisualElement, skPaint, disposable);
-            }
-
-            skPaint.Style = SKPaintStyle.Fill;
-
-            disposable.Add(skPaint);
-            return skPaint;
-        }
-
-        internal static SKPaint GetStrokeSKPaint(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
-        {
-            var skPaint = new SKPaint()
-            {
-                IsAntialias = IsAntialias(svgVisualElement)
-            };
-
-            SetStrokeSKPaint(skPaint, svgVisualElement, skSize, skBounds, disposable);
 
             if (svgVisualElement.Filter != null)
             {
@@ -776,6 +766,38 @@ namespace Svg.Skia
 
             disposable.Add(skPaint);
             return skPaint;
+        }
+
+        internal static void SetSKPaintText(SvgText svgText, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
+        {
+            skPaint.LcdRenderText = true;
+            skPaint.SubpixelText = true;
+            skPaint.TextEncoding = SKTextEncoding.Utf16;
+
+            // TODO:
+            var fontFamily = svgText.FontFamily;
+            // TODO:
+            var fontWeight = 400; //(int)svgText.FontWeight;
+            // TODO:
+            var fontWidth = 5;
+            var fontStyle = SkiaUtil.ToSKFontStyleSlant(svgText.FontStyle);
+
+            float fontSize;
+            var fontSizeUnit = svgText.FontSize;
+            if (fontSizeUnit == SvgUnit.None || fontSizeUnit == SvgUnit.Empty)
+            {
+                fontSize = new SvgUnit(SvgUnitType.Em, 1.0f);
+            }
+            else
+            {
+                fontSize = fontSizeUnit.ToDeviceValue(null, UnitRenderingType.Vertical, svgText);
+            }
+            skPaint.TextSize = fontSize;
+
+            var skTypeface = SKTypeface.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
+            disposable.Add(skTypeface);
+
+            skPaint.Typeface = skTypeface;
         }
 
         internal static SKFontStyleSlant ToSKFontStyleSlant(SvgFontStyle fontStyle)
@@ -790,52 +812,6 @@ namespace Svg.Skia
                 case SvgFontStyle.Italic:
                     return SKFontStyleSlant.Italic;
             }
-        }
-
-        internal static SKPaint GetSKPaint(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
-        {
-            var skPaint = new SKPaint()
-            {
-                IsAntialias = IsAntialias(svgVisualElement)
-            };
-
-            bool isValidFill = IsValidFill(svgVisualElement);
-            if (isValidFill)
-            {
-                SetFillSKPaint(skPaint, svgVisualElement, skSize, skBounds, disposable);
-            }
-
-            bool isValidStroke = IsValidStroke(svgVisualElement);
-            if (isValidStroke)
-            {
-                SetStrokeSKPaint(skPaint, svgVisualElement, skSize, skBounds, disposable);
-            }
-
-            if (svgVisualElement.Filter != null)
-            {
-                SetFilter(svgVisualElement, skPaint, disposable);
-            }
-
-            // TODO: SvgElement
-            // TODO: SvgElementStyle
-            // TODO: SvgVisualElement
-            // TODO: SvgVisualElementStyle
-
-            if (isValidFill && isValidStroke)
-            {
-                skPaint.Style = SKPaintStyle.StrokeAndFill;
-            }
-            else if (isValidFill && !isValidStroke)
-            {
-                skPaint.Style = SKPaintStyle.Fill;
-            }
-            else if (!isValidFill && isValidStroke)
-            {
-                skPaint.Style = SKPaintStyle.Stroke;
-            }
-
-            disposable.Add(skPaint);
-            return skPaint;
         }
 
         internal static SKMatrix GetSKMatrix(SvgMatrix svgMatrix)
