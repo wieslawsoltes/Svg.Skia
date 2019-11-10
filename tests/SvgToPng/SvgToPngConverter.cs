@@ -165,46 +165,70 @@ namespace SvgToPng
         public static async Task Convert(List<string> inputFiles, IList<Item> items, IConvertProgress convertProgress)
         {
             await convertProgress.ConvertStatusReset();
-            await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision);
             int count = 0;
+
+            // Items
+
+            foreach (var inputFile in inputFiles)
+            {
+                string inputName = Path.GetFileNameWithoutExtension(inputFile);
+#if NET461
+                string svg = File.ReadAllText(inputFile);
+#else
+                string svg = await File.ReadAllTextAsync(inputFile);
+#endif
+                var item = new Item()
+                {
+                    Name = inputName,
+                    Path = inputFile,
+                    Svg = svg
+                };
+                items.Add(item);
+            }
+
+            // Svg.Skia
+#if true
+            count = 0;
+            foreach (var item in items)
+            {
+                try
+                {
+                    count++;
+                    await convertProgress.ConvertStatusProgress(count, inputFiles.Count, item.Path);
+                    var skia = new SKSvg();
+                    var picture = skia.Load(item.Path);
+                    item.Skia = skia;
+                    item.Picture = picture;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                    Debug.WriteLine(ex.StackTrace);
+                }
+            }
+#endif
+
+            // Google Chrome
+#if true
+            count = 0;
+            await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision);
             var launchOptions = new LaunchOptions
             {
                 Headless = true
             };
-
             using (var browser = await Puppeteer.LaunchAsync(launchOptions))
             using (var page = await browser.NewPageAsync())
             {
-                foreach (var inputFile in inputFiles)
+                foreach (var item in items)
                 {
                     try
                     {
-                        string inputName = Path.GetFileNameWithoutExtension(inputFile);
                         count++;
-                        await convertProgress.ConvertStatusProgress(count, inputFiles.Count, inputFile);
-#if NET461
-                        string svg = File.ReadAllText(inputFile);
-#else
-                        string svg = await File.ReadAllTextAsync(inputFile);
-#endif
-
-                        var bytes = await GetBytes(page, svg);
+                        await convertProgress.ConvertStatusProgress(count, inputFiles.Count, item.Path);
+                        var bytes = await GetBytes(page, item.Svg);
                         var image = LoadImage(bytes);
-
-                        var skia = new SKSvg();
-                        var picture = skia.Load(inputFile);
-
-                        var item = new Item()
-                        {
-                            Name = inputName,
-                            Path = inputFile,
-                            Svg = svg,
-                            Bytes = bytes,
-                            Image = image,
-                            Skia = skia,
-                            Picture = picture
-                        };
-                        items.Add(item);
+                        item.Bytes = bytes;
+                        item.Image = image;
                     }
                     catch (Exception ex)
                     {
@@ -213,6 +237,7 @@ namespace SvgToPng
                     }
                 }
             }
+#endif
 
             await convertProgress.ConvertStatusDone();
         }
