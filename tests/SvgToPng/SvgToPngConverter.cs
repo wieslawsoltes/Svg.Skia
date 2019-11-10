@@ -198,7 +198,7 @@ namespace SvgToPng
                     try
                     {
                         var skia = new SKSvg();
-                        var picture = skia.Load(item.Path);
+                        var picture = skia.FromSvg(item.Svg);
                         item.Skia = skia;
                         item.Picture = picture;
                     }
