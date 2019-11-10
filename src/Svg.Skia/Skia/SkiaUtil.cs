@@ -980,7 +980,9 @@ namespace Svg.Skia
                         break;
                     case SvgSkew svgSkew:
                         {
-                            var skMatrixSkew = SKMatrix.MakeSkew(svgSkew.AngleX, svgSkew.AngleY);
+                            float sx = (float)Math.Tan(Math.PI * svgSkew.AngleX / 180);
+                            float sy = (float)Math.Tan(Math.PI * svgSkew.AngleY / 180);
+                            var skMatrixSkew = SKMatrix.MakeSkew(sx, sy);
                             SKMatrix.Concat(ref skMatrixTotal, ref skMatrixTotal, ref skMatrixSkew);
                         }
                         break;
