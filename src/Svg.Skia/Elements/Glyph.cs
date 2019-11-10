@@ -7,13 +7,38 @@ using Svg;
 
 namespace Svg.Skia
 {
-    internal struct Glyph
+    internal struct Glyph : IElement
     {
+        public SvgGlyph svgGlyph;
         public SKMatrix matrix;
 
-        public Glyph(SvgGlyph svgGlyph)
+        public Glyph(SvgGlyph glyph)
         {
+            svgGlyph = glyph;
             matrix = SKSvgHelper.GetSKMatrix(svgGlyph.Transforms);
+        }
+
+        public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
+        {
+            skCanvas.Save();
+
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgGlyph, disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgGlyph, disposable);
+            SKSvgHelper.SetTransform(skCanvas, matrix);
+
+            // TODO:
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
+            skCanvas.Restore();
         }
     }
 }

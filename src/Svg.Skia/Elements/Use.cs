@@ -6,15 +6,20 @@ using System;
 using System.Reflection;
 using SkiaSharp;
 using Svg;
+using Svg.Document_Structure;
 
 namespace Svg.Skia
 {
-    internal struct Use
+    internal struct Use : IElement
     {
+        public SvgUse svgUse;
+        public SvgVisualElement svgVisualElement;
         public SKMatrix matrix;
 
-        public Use(SvgUse svgUse, SvgVisualElement svgVisualElement)
+        public Use(SvgUse use, SvgVisualElement visualElement)
         {
+            svgUse = use;
+            svgVisualElement = visualElement;
             matrix = SKSvgHelper.GetSKMatrix(svgUse.Transforms);
 
             float x = svgUse.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgUse);
@@ -50,6 +55,73 @@ namespace Svg.Skia
                 //    throw new Exception("Can not get 'use' referenced element transform.");
                 //}
             }
+        }
+
+        public void Draw(SKCanvas skCanvas, SKSize skSize, CompositeDisposable disposable)
+        {
+            var originalParent = svgUse.Parent;
+            var useParent = svgUse.GetType().GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (useParent != null)
+            {
+                useParent.SetValue(svgVisualElement, svgUse);
+            }
+
+            svgVisualElement.InvalidateChildPaths();
+
+            skCanvas.Save();
+
+            var skPaintOpacity = SKSvgHelper.SetOpacity(skCanvas, svgUse, disposable);
+            var skPaintFilter = SKSvgHelper.SetFilter(skCanvas, svgUse, disposable);
+            SKSvgHelper.SetTransform(skCanvas, matrix);
+
+            // TODO:
+            //if (svgUse.ClipPath != null)
+            //{
+            //    var svgClipPath = svgVisualElement.OwnerDocument.GetElementById<SvgClipPath>(svgUse.ClipPath.ToString());
+            //    if (svgClipPath != null && svgClipPath.Children != null)
+            //    {
+            //        foreach (var child in svgClipPath.Children)
+            //        {
+            //            var skPath = new SKPath();
+            //        }
+            //        // TODO:
+            //        Console.WriteLine($"clip-path: {svgClipPath}");
+            //    }
+            //}
+
+            if (svgVisualElement is SvgSymbol svgSymbol)
+            {
+                var element = ElementFactory.Create(svgSymbol);
+                if (element != null)
+                {
+                    element.Draw(skCanvas, skSize, disposable);
+                }
+            }
+            else
+            {
+                var element = ElementFactory.Create(svgVisualElement);
+                if (element != null)
+                {
+                    element.Draw(skCanvas, skSize, disposable);
+                }
+            }
+
+            if (useParent != null)
+            {
+                useParent.SetValue(svgVisualElement, originalParent);
+            }
+
+            if (skPaintFilter != null)
+            {
+                skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
+            skCanvas.Restore();
         }
     }
 }
