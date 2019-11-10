@@ -451,10 +451,12 @@ namespace Svg.Skia
         internal static void SetStroke(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
             var server = svgVisualElement.Stroke;
+            var fallbackServer = SvgPaintServer.None;
 
             if (server is SvgDeferredPaintServer svgDeferredPaintServerStroke)
             {
                 server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServerStroke, svgVisualElement);
+                fallbackServer = svgDeferredPaintServerStroke.FallbackServer;
             }
 
             switch (server)
@@ -471,21 +473,51 @@ namespace Svg.Skia
                     break;
                 case SvgLinearGradientServer svgLinearGradientServer:
                     {
-                        var skShader = CreateLinearGradient(svgLinearGradientServer, skSize, skBounds, svgVisualElement);
-                        if (skShader != null)
+                        if (svgLinearGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox && (skBounds.Width == 0f || skBounds.Height == 0f))
                         {
-                            disposable.Add(skShader);
-                            skPaint.Shader = skShader;
+                            if (fallbackServer is SvgColourServer svgColourServerFallback)
+                            {
+                                skPaint.Color = GetColor(svgColourServerFallback, AdjustSvgOpacity(svgVisualElement.StrokeOpacity), true);
+                            }
+                            else
+                            {
+                                // TODO: Do not draw element.
+                                skPaint.Color = SKColors.Transparent;
+                            }
+                        }
+                        else
+                        {
+                            var skShader = CreateLinearGradient(svgLinearGradientServer, skSize, skBounds, svgVisualElement);
+                            if (skShader != null)
+                            {
+                                disposable.Add(skShader);
+                                skPaint.Shader = skShader;
+                            }
                         }
                     }
                     break;
                 case SvgRadialGradientServer svgRadialGradientServer:
                     {
-                        var skShader = CreateTwoPointConicalGradient(svgRadialGradientServer, skSize, skBounds, svgVisualElement);
-                        if (skShader != null)
+                        if (svgRadialGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox && (skBounds.Width == 0f || skBounds.Height == 0f))
                         {
-                            disposable.Add(skShader);
-                            skPaint.Shader = skShader;
+                            if (fallbackServer is SvgColourServer svgColourServerFallback)
+                            {
+                                skPaint.Color = GetColor(svgColourServerFallback, AdjustSvgOpacity(svgVisualElement.StrokeOpacity), true);
+                            }
+                            else
+                            {
+                                // TODO: Do not draw element.
+                                skPaint.Color = SKColors.Transparent;
+                            }
+                        }
+                        else
+                        {
+                            var skShader = CreateTwoPointConicalGradient(svgRadialGradientServer, skSize, skBounds, svgVisualElement);
+                            if (skShader != null)
+                            {
+                                disposable.Add(skShader);
+                                skPaint.Shader = skShader;
+                            }
                         }
                     }
                     break;
@@ -495,6 +527,7 @@ namespace Svg.Skia
                     }
                     break;
                 default:
+                    // TODO: Do not draw element.
                     break;
             }
         }
