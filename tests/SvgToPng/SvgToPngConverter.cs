@@ -195,10 +195,13 @@ namespace SvgToPng
                 {
                     count++;
                     await convertProgress.ConvertStatusProgress(count, inputFiles.Count, item.Path);
-                    var skia = new SKSvg();
-                    var picture = skia.Load(item.Path);
-                    item.Skia = skia;
-                    item.Picture = picture;
+                    await Task.Factory.StartNew(() =>
+                    {
+                        var skia = new SKSvg();
+                        var picture = skia.Load(item.Path);
+                        item.Skia = skia;
+                        item.Picture = picture;
+                    });
                 }
                 catch (Exception ex)
                 {
@@ -207,7 +210,6 @@ namespace SvgToPng
                 }
             }
 #endif
-
             // Google Chrome
 #if true
             count = 0;
@@ -238,7 +240,6 @@ namespace SvgToPng
                 }
             }
 #endif
-
             await convertProgress.ConvertStatusDone();
         }
 
