@@ -56,9 +56,9 @@
                     </Border>
                 </Grid>
             </TabItem>
-            <TabItem Header="SVG">
+            <!--<TabItem Header="SVG">
                 <TextBox Text="{Binding ElementName=items, Path=SelectedItem.Svg}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsReturn="True" AcceptsTab="True" Padding="0" Margin="2"/>
-            </TabItem>
+            </TabItem>-->
         </TabControl>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="4" Grid.Column="2" Grid.Row="1">
             <GroupBox x:Name="status" Header="Status">
