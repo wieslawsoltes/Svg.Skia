@@ -837,7 +837,7 @@ namespace Svg.Skia
                     skPaint.TextEncoding = SKTextEncoding.Utf16;
 
                     // TODO:
-                    var fontFamily = "Arial";//svgText.FontFamily;
+                    var fontFamily = svgText.FontFamily;
                     // TODO:
                     var fontWeight = (int)svgText.FontWeight;
                     // TODO:
