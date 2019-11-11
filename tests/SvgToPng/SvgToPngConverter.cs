@@ -248,23 +248,25 @@ namespace SvgToPng
                 count = 0;
                 foreach (var item in items)
                 {
-                    try
+                    count++;
+                    var referenceImagePath = Path.Combine(referencePath, item.Name + ".png");
+                    if (File.Exists(referenceImagePath))
                     {
-                        count++;
-                        await convertProgress.ConvertStatusProgress(count, inputFiles.Count, item.Path);
-
-                        var referenceImagePath = Path.Combine(referencePath, item.Name + ".png");
-                        if (File.Exists(referenceImagePath))
+                        await convertProgress.ConvertStatusProgress(count, inputFiles.Count, referenceImagePath);
+                        await Task.Factory.StartNew(() =>
                         {
-                            var image = LoadImage(referenceImagePath);
-                            item.Bytes = null;
-                            item.Image = image;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex.Message);
-                        Debug.WriteLine(ex.StackTrace);
+                            try
+                            {
+                                var image = LoadImage(referenceImagePath);
+                                item.Bytes = null;
+                                item.Image = image;
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine(ex.Message);
+                                Debug.WriteLine(ex.StackTrace);
+                            }
+                        });
                     }
                 }
             }
