@@ -183,34 +183,38 @@ namespace SvgToPng
             foreach (var inputFile in inputFiles)
             {
                 string inputName = Path.GetFileNameWithoutExtension(inputFile);
-                string svg = string.Empty;
-                string extension = System.IO.Path.GetExtension(inputFile);
 
-                await Task.Factory.StartNew(async () =>
+                string svg = await Task.Factory.StartNew<string>(() =>
                 {
-                    switch (extension.ToLower())
+                    try
                     {
-                        default:
-                        case ".svg":
-                            {
-#if NET461
-                                svg = File.ReadAllText(inputFile);
-#else
-                                svg = await File.ReadAllTextAsync(inputFile);
-#endif
-                            }
-                            break;
-                        case ".svgz":
-                            {
-                                using (var fileStream = File.OpenRead(inputFile))
-                                using (var gzipStream = new GZipStream(fileStream, System.IO.Compression.CompressionMode.Decompress))
-                                using (var sr = new StreamReader(gzipStream))
+                        string extension = Path.GetExtension(inputFile);
+                        switch (extension.ToLower())
+                        {
+                            default:
+                            case ".svg":
                                 {
-                                    svg = sr.ReadToEnd();
+                                    return File.ReadAllText(inputFile);
                                 }
-                            }
-                            break;
+                            case ".svgz":
+                                {
+                                    using (var fileStream = File.OpenRead(inputFile))
+                                    using (var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress))
+                                    using (var sr = new StreamReader(gzipStream))
+                                    {
+                                        return sr.ReadToEnd();
+                                    }
+                                }
+                        }
                     }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Failed to read svg file: {inputFile}");
+                        Debug.WriteLine(ex.Message);
+                        Debug.WriteLine(ex.StackTrace);
+                    }
+
+                    return string.Empty;
                 });
 
                 var item = new Item()
@@ -221,7 +225,7 @@ namespace SvgToPng
                 };
                 items.Add(item);
             }
-     
+
             // Svg.Skia
 #if true
             await convertProgress.ConvertStatus("Converting svg using Svg.Skia...");
@@ -242,6 +246,7 @@ namespace SvgToPng
                     }
                     catch (Exception ex)
                     {
+                        Debug.WriteLine($"Failed to load svg file: {item.Path}");
                         Debug.WriteLine(ex.Message);
                         Debug.WriteLine(ex.StackTrace);
                     }
@@ -272,6 +277,7 @@ namespace SvgToPng
                             }
                             catch (Exception ex)
                             {
+                                Debug.WriteLine($"Failed to load reference image: {referenceImagePath}");
                                 Debug.WriteLine(ex.Message);
                                 Debug.WriteLine(ex.StackTrace);
                             }
@@ -306,6 +312,7 @@ namespace SvgToPng
                     }
                     catch (Exception ex)
                     {
+                        Debug.WriteLine($"Failed to capture: {item.Path}");
                         Debug.WriteLine(ex.Message);
                         Debug.WriteLine(ex.StackTrace);
                     }
