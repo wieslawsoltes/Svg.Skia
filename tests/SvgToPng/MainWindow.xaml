@@ -48,7 +48,7 @@
                         </ScrollViewer>
                     </Border>
                     <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"/>
-                    <TextBlock Text="Chrome" Padding="0" Margin="2" Grid.Column="2" Grid.Row="0"/>
+                    <TextBlock Text="Reference" Padding="0" Margin="2" Grid.Column="2" Grid.Row="0"/>
                     <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="2" Grid.Column="2" Grid.Row="1">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Image x:Name="image" Source="{Binding ElementName=items, Path=SelectedItem.Image}" Stretch="None" VerticalAlignment="Center" HorizontalAlignment="Center"/>
@@ -68,8 +68,20 @@
                     <TextBlock x:Name="TextOutputFile" Text="" Padding="0" Margin="2" TextTrimming="WordEllipsis" TextWrapping="NoWrap"/>
                 </StackPanel>
             </GroupBox>
-            <TextBlock Text="Output path" Padding="0" Margin="2"/>
-            <TextBox x:Name="TextOutputPath" Text="" Padding="0" Margin="2"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Output path" Padding="0" Margin="2" Grid.Row="0" Grid.Column="0"/>
+                <TextBox x:Name="TextOutputPath" Text="" Padding="0" Margin="2" Grid.Row="0" Grid.Column="1"/>
+                <TextBlock Text="Reference path" Padding="0" Margin="2" Grid.Row="1" Grid.Column="0"/>
+                <TextBox x:Name="TextReferencePath" Text="" Padding="0" Margin="2" Grid.Row="1" Grid.Column="1"/>
+            </Grid>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="ButtonClear" Content="Clear" Padding="4" Margin="2" Width="100" Click="ButtonClear_Click"/>
                 <Button x:Name="ButtonAdd" Content="Add..." Padding="4" Margin="2" Width="100" Click="ButtonAdd_Click"/>

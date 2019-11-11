@@ -64,6 +64,13 @@ namespace SvgToPng
             return image;
         }
 
+        public static BitmapImage LoadImage(string path)
+        {
+            var image = new BitmapImage(new Uri(path));
+            image.Freeze();
+            return image;
+        }
+
         public static async Task<byte[]> GetBytes(Page page, string svg, bool clipPage = false)
         {
             await page.SetContentAsync(svg);
@@ -163,7 +170,7 @@ namespace SvgToPng
             }
         }
 
-        public static async Task Convert(List<string> inputFiles, IList<Item> items, IConvertProgress convertProgress)
+        public static async Task Convert(List<string> inputFiles, IList<Item> items, string referencePath, IConvertProgress convertProgress)
         {
             await convertProgress.ConvertStatusReset();
             int count = 0;
@@ -232,6 +239,34 @@ namespace SvgToPng
                         Debug.WriteLine(ex.StackTrace);
                     }
                 });
+            }
+#endif
+            // Reference Png
+#if true
+            if (!string.IsNullOrEmpty(referencePath) && Directory.Exists(referencePath))
+            {
+                count = 0;
+                foreach (var item in items)
+                {
+                    try
+                    {
+                        count++;
+                        await convertProgress.ConvertStatusProgress(count, inputFiles.Count, item.Path);
+
+                        var referenceImagePath = Path.Combine(referencePath, item.Name + ".png");
+                        if (File.Exists(referenceImagePath))
+                        {
+                            var image = LoadImage(referenceImagePath);
+                            item.Bytes = null;
+                            item.Image = image;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                        Debug.WriteLine(ex.StackTrace);
+                    }
+                }
             }
 #endif
             // Google Chrome

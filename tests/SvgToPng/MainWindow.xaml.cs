@@ -55,12 +55,12 @@ namespace SvgToPng
             }
         }
 
-        public async Task HandleDrop(string[] paths)
+        public async Task HandleDrop(string[] paths, string referencePath)
         {
             var inputFiles = SvgToPngConverter.GetFilesDrop(paths).ToList();
             if (inputFiles.Count > 0)
             {
-                await SvgToPngConverter.Convert(inputFiles, Items, this);
+                await SvgToPngConverter.Convert(inputFiles, Items, referencePath, this);
             }
         }
 
@@ -130,7 +130,7 @@ namespace SvgToPng
                 string[] paths = (string[])e.Data.GetData(DataFormats.FileDrop);
                 if (paths != null && paths.Length > 0)
                 {
-                    await HandleDrop(paths);
+                    await HandleDrop(paths, TextReferencePath.Text);
                 }
             }
         }
@@ -163,7 +163,7 @@ namespace SvgToPng
                 var paths = dlg.FileNames;
                 if (paths != null && paths.Length > 0)
                 {
-                    await HandleDrop(paths);
+                    await HandleDrop(paths, TextReferencePath.Text);
                 }
             }
         }
