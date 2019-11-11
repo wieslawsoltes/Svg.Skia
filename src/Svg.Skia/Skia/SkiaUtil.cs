@@ -160,6 +160,90 @@ namespace Svg.Skia
             return skPath;
         }
 
+        internal static SKPath ToSKPath(SvgRectangle svgRectangle, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        {
+            float x = svgRectangle.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
+            float y = svgRectangle.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
+            float width = svgRectangle.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
+            float height = svgRectangle.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
+            float rx = svgRectangle.CornerRadiusX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
+            float ry = svgRectangle.CornerRadiusY.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
+            bool isRound = rx > 0f && ry > 0f;
+            var skRectBounds = SKRect.Create(x, y, width, height);
+
+            var skPath = new SKPath()
+            {
+                FillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding
+            };
+
+            if (isRound)
+            {
+                skPath.AddRoundRect(skRectBounds, rx, ry);
+            }
+            else
+            {
+                skPath.AddRect(skRectBounds);
+            }
+
+            disposable.Add(skPath);
+            return skPath;
+        }
+
+        internal static SKPath ToSKPath(SvgCircle svgCircle, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        {
+            float cx = svgCircle.CenterX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgCircle);
+            float cy = svgCircle.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgCircle);
+            float radius = svgCircle.Radius.ToDeviceValue(null, UnitRenderingType.Other, svgCircle);
+
+            var skPath = new SKPath()
+            {
+                FillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding
+            };
+
+            skPath.AddCircle(cx, cy, radius);
+
+            disposable.Add(skPath);
+            return skPath;
+        }
+
+        internal static SKPath ToSKPath(SvgEllipse svgEllipse, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        {
+            float cx = svgEllipse.CenterX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgEllipse);
+            float cy = svgEllipse.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgEllipse);
+            float rx = svgEllipse.RadiusX.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
+            float ry = svgEllipse.RadiusY.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
+            var skRectBounds = SKRect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
+
+            var skPath = new SKPath()
+            {
+                FillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding
+            };
+
+            skPath.AddOval(skRectBounds);
+
+            disposable.Add(skPath);
+            return skPath;
+        }
+
+        internal static SKPath ToSKPath(SvgLine svgLine, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        {
+            float x0 = svgLine.StartX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgLine);
+            float y0 = svgLine.StartY.ToDeviceValue(null, UnitRenderingType.Vertical, svgLine);
+            float x1 = svgLine.EndX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgLine);
+            float y1 = svgLine.EndY.ToDeviceValue(null, UnitRenderingType.Vertical, svgLine);
+
+            var skPath = new SKPath()
+            {
+                FillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding
+            };
+
+            skPath.MoveTo(x0, y0);
+            skPath.LineTo(x1, y1);
+
+            disposable.Add(skPath);
+            return skPath;
+        }
+
         internal static float AdjustSvgOpacity(float opacity)
         {
             return Math.Min(Math.Max(opacity, 0), 1);
