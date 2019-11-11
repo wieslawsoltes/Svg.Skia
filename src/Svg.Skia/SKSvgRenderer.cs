@@ -275,21 +275,6 @@ namespace Svg.Skia
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgUse, _disposable);
             SkiaUtil.SetTransform(_skCanvas, skMatrix);
 
-            // TODO:
-            //if (svgUse.ClipPath != null)
-            //{
-            //    var svgClipPath = svgVisualElement.OwnerDocument.GetElementById<SvgClipPath>(svgUse.ClipPath.ToString());
-            //    if (svgClipPath != null && svgClipPath.Children != null)
-            //    {
-            //        foreach (var child in svgClipPath.Children)
-            //        {
-            //            var skPath = new SKPath();
-            //        }
-            //        // TODO:
-            //        Console.WriteLine($"clip-path: {svgClipPath}");
-            //    }
-            //}
-
             if (svgVisualElement is SvgSymbol svgSymbol)
             {
                 DrawSymbol(svgSymbol);
