@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
@@ -172,11 +173,34 @@ namespace SvgToPng
             foreach (var inputFile in inputFiles)
             {
                 string inputName = Path.GetFileNameWithoutExtension(inputFile);
+
+                string svg;
+
+                var extension = System.IO.Path.GetExtension(inputFile);
+                switch (extension.ToLower())
+                {
+                    default:
+                    case ".svg":
+                        {
 #if NET461
-                string svg = File.ReadAllText(inputFile);
+                            svg = File.ReadAllText(inputFile);
 #else
-                string svg = await File.ReadAllTextAsync(inputFile);
+                            svg = await File.ReadAllTextAsync(inputFile);
 #endif
+                        }
+                        break;
+                    case ".svgz":
+                        {
+                            using (var fileStream = File.OpenRead(inputFile))
+                            using (var gzipStream = new GZipStream(fileStream, System.IO.Compression.CompressionMode.Decompress))
+                            using (var sr = new StreamReader(gzipStream))
+                            {
+                                svg = sr.ReadToEnd();
+                            }
+                        }
+                        break;
+                }
+
                 var item = new Item()
                 {
                     Name = inputName,
@@ -211,7 +235,7 @@ namespace SvgToPng
             }
 #endif
             // Google Chrome
-#if true
+#if false
             count = 0;
             await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision);
             var launchOptions = new LaunchOptions
