@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
 using SkiaSharp;
@@ -179,13 +180,14 @@ namespace SvgToPng
 
             await convertProgress.ConvertStatus("Loading svg...");
 
-            await Task.Factory.StartNew(() =>
+            foreach (var inputFile in inputFiles)
             {
-                foreach (var inputFile in inputFiles)
+                string inputName = Path.GetFileNameWithoutExtension(inputFile);
+                string svg = string.Empty;
+                string extension = System.IO.Path.GetExtension(inputFile);
+
+                await Task.Factory.StartNew(async () =>
                 {
-                    string inputName = Path.GetFileNameWithoutExtension(inputFile);
-                    string svg;
-                    string extension = System.IO.Path.GetExtension(inputFile);
                     switch (extension.ToLower())
                     {
                         default:
@@ -209,17 +211,17 @@ namespace SvgToPng
                             }
                             break;
                     }
+                });
 
-                    var item = new Item()
-                    {
-                        Name = inputName,
-                        Path = inputFile,
-                        Svg = svg
-                    };
-                    items.Add(item);
-                }
-            });
-
+                var item = new Item()
+                {
+                    Name = inputName,
+                    Path = inputFile,
+                    Svg = svg
+                };
+                items.Add(item);
+            }
+     
             // Svg.Skia
 #if true
             await convertProgress.ConvertStatus("Converting svg using Svg.Skia...");
