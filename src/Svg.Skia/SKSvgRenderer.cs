@@ -299,11 +299,6 @@ namespace Svg.Skia
                 Draw(svgVisualElement);
             }
 
-            if (useParent != null)
-            {
-                useParent.SetValue(svgVisualElement, originalParent);
-            }
-
             if (skPaintFilter != null)
             {
                 _skCanvas.Restore();
@@ -315,6 +310,11 @@ namespace Svg.Skia
             }
 
             _skCanvas.Restore();
+
+            if (useParent != null)
+            {
+                useParent.SetValue(svgVisualElement, originalParent);
+            }
         }
 
         public void DrawForeignObject(SvgForeignObject svgForeignObject)
