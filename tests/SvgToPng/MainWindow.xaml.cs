@@ -79,6 +79,8 @@ namespace SvgToPng
             await Dispatcher.InvokeAsync(() =>
             {
                 TextProgress.Text = message;
+                TextInputFile.Text = $"";
+                TextOutputFile.Text = $"";
             });
         }
 
