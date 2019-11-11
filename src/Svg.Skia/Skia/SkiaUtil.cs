@@ -399,11 +399,13 @@ namespace Svg.Skia
 
         internal static void SetFill(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
-            SvgPaintServer server = svgVisualElement.Fill;
+            var server = svgVisualElement.Fill;
+            var fallbackServer = SvgPaintServer.None;
 
-            if (server is SvgDeferredPaintServer svgDeferredPaintServerFill)
+            if (server is SvgDeferredPaintServer svgDeferredPaintServer)
             {
-                server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServerFill, svgVisualElement);
+                server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServer, svgVisualElement);
+                fallbackServer = svgDeferredPaintServer.FallbackServer;
             }
 
             switch (server)
@@ -420,30 +422,56 @@ namespace Svg.Skia
                     break;
                 case SvgLinearGradientServer svgLinearGradientServer:
                     {
-                        var skShader = CreateLinearGradient(svgLinearGradientServer, skSize, skBounds, svgVisualElement);
-                        if (skShader != null)
+                        if (svgLinearGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox && (skBounds.Width == 0f || skBounds.Height == 0f))
                         {
-                            disposable.Add(skShader);
-                            skPaint.Shader = skShader;
+                            if (fallbackServer is SvgColourServer svgColourServerFallback)
+                            {
+                                skPaint.Color = GetColor(svgColourServerFallback, AdjustSvgOpacity(svgVisualElement.StrokeOpacity), true);
+                            }
+                            else
+                            {
+                                // TODO: Do not draw element.
+                                skPaint.Color = SKColors.Transparent;
+                            }
+                        }
+                        else
+                        {
+                            var skShader = CreateLinearGradient(svgLinearGradientServer, skSize, skBounds, svgVisualElement);
+                            if (skShader != null)
+                            {
+                                disposable.Add(skShader);
+                                skPaint.Shader = skShader;
+                            }
                         }
                     }
                     break;
                 case SvgRadialGradientServer svgRadialGradientServer:
                     {
-                        var skShader = CreateTwoPointConicalGradient(svgRadialGradientServer, skSize, skBounds, svgVisualElement);
-                        if (skShader != null)
+                        if (svgRadialGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox && (skBounds.Width == 0f || skBounds.Height == 0f))
                         {
-                            disposable.Add(skShader);
-                            skPaint.Shader = skShader;
+                            if (fallbackServer is SvgColourServer svgColourServerFallback)
+                            {
+                                skPaint.Color = GetColor(svgColourServerFallback, AdjustSvgOpacity(svgVisualElement.StrokeOpacity), true);
+                            }
+                            else
+                            {
+                                // TODO: Do not draw element.
+                                skPaint.Color = SKColors.Transparent;
+                            }
+                        }
+                        else
+                        {
+                            var skShader = CreateTwoPointConicalGradient(svgRadialGradientServer, skSize, skBounds, svgVisualElement);
+                            if (skShader != null)
+                            {
+                                disposable.Add(skShader);
+                                skPaint.Shader = skShader;
+                            }
                         }
                     }
                     break;
-                case SvgDeferredPaintServer svgDeferredPaintServer:
-                    {
-                        // Not used.
-                    }
-                    break;
                 default:
+                    // TODO: Do not draw element.
                     break;
             }
         }
@@ -453,10 +481,10 @@ namespace Svg.Skia
             var server = svgVisualElement.Stroke;
             var fallbackServer = SvgPaintServer.None;
 
-            if (server is SvgDeferredPaintServer svgDeferredPaintServerStroke)
+            if (server is SvgDeferredPaintServer svgDeferredPaintServer)
             {
-                server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServerStroke, svgVisualElement);
-                fallbackServer = svgDeferredPaintServerStroke.FallbackServer;
+                server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServer, svgVisualElement);
+                fallbackServer = svgDeferredPaintServer.FallbackServer;
             }
 
             switch (server)
@@ -519,11 +547,6 @@ namespace Svg.Skia
                                 skPaint.Shader = skShader;
                             }
                         }
-                    }
-                    break;
-                case SvgDeferredPaintServer svgDeferredPaintServer:
-                    {
-                        // Not used.
                     }
                     break;
                 default:
