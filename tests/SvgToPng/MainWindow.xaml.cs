@@ -74,22 +74,20 @@ namespace SvgToPng
             });
         }
 
+        public async Task ConvertStatus(string message)
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                TextProgress.Text = message;
+            });
+        }
+
         public async Task ConvertStatusProgress(int count, int total, string inputFile)
         {
             await Dispatcher.InvokeAsync(() =>
             {
                 TextProgress.Text = $"Conterting file {count}/{total}";
                 TextInputFile.Text = $"{inputFile}";
-            });
-        }
-
-        public async Task ConvertStatusDone()
-        {
-            await Dispatcher.InvokeAsync(() =>
-            {
-                TextProgress.Text = $"Done";
-                TextInputFile.Text = $"";
-                TextOutputFile.Text = $"";
             });
         }
 

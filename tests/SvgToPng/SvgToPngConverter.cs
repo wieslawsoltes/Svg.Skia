@@ -27,8 +27,8 @@ namespace SvgToPng
     public interface IConvertProgress
     {
         Task ConvertStatusReset();
+        Task ConvertStatus(string message);
         Task ConvertStatusProgress(int count, int total, string inputFile);
-        Task ConvertStatusDone();
     }
 
     public interface ISaveProgress
@@ -177,48 +177,53 @@ namespace SvgToPng
 
             // Items
 
-            foreach (var inputFile in inputFiles)
+            await convertProgress.ConvertStatus("Loading svg...");
+
+            await Task.Factory.StartNew(() =>
             {
-                string inputName = Path.GetFileNameWithoutExtension(inputFile);
-
-                string svg;
-
-                var extension = System.IO.Path.GetExtension(inputFile);
-                switch (extension.ToLower())
+                foreach (var inputFile in inputFiles)
                 {
-                    default:
-                    case ".svg":
-                        {
-#if NET461
-                            svg = File.ReadAllText(inputFile);
-#else
-                            svg = await File.ReadAllTextAsync(inputFile);
-#endif
-                        }
-                        break;
-                    case ".svgz":
-                        {
-                            using (var fileStream = File.OpenRead(inputFile))
-                            using (var gzipStream = new GZipStream(fileStream, System.IO.Compression.CompressionMode.Decompress))
-                            using (var sr = new StreamReader(gzipStream))
+                    string inputName = Path.GetFileNameWithoutExtension(inputFile);
+                    string svg;
+                    string extension = System.IO.Path.GetExtension(inputFile);
+                    switch (extension.ToLower())
+                    {
+                        default:
+                        case ".svg":
                             {
-                                svg = sr.ReadToEnd();
+#if NET461
+                                svg = File.ReadAllText(inputFile);
+#else
+                                svg = await File.ReadAllTextAsync(inputFile);
+#endif
                             }
-                        }
-                        break;
-                }
+                            break;
+                        case ".svgz":
+                            {
+                                using (var fileStream = File.OpenRead(inputFile))
+                                using (var gzipStream = new GZipStream(fileStream, System.IO.Compression.CompressionMode.Decompress))
+                                using (var sr = new StreamReader(gzipStream))
+                                {
+                                    svg = sr.ReadToEnd();
+                                }
+                            }
+                            break;
+                    }
 
-                var item = new Item()
-                {
-                    Name = inputName,
-                    Path = inputFile,
-                    Svg = svg
-                };
-                items.Add(item);
-            }
+                    var item = new Item()
+                    {
+                        Name = inputName,
+                        Path = inputFile,
+                        Svg = svg
+                    };
+                    items.Add(item);
+                }
+            });
 
             // Svg.Skia
 #if true
+            await convertProgress.ConvertStatus("Converting svg using Svg.Skia...");
+
             count = 0;
             foreach (var item in items)
             {
@@ -245,6 +250,8 @@ namespace SvgToPng
 #if true
             if (!string.IsNullOrEmpty(referencePath) && Directory.Exists(referencePath))
             {
+                await convertProgress.ConvertStatus("Loading references...");
+
                 count = 0;
                 foreach (var item in items)
                 {
@@ -273,6 +280,8 @@ namespace SvgToPng
 #endif
             // Google Chrome
 #if false
+            await convertProgress.ConvertStatus("Converting svg using chrome...");
+
             count = 0;
             await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision);
             var launchOptions = new LaunchOptions
@@ -301,7 +310,7 @@ namespace SvgToPng
                 }
             }
 #endif
-            await convertProgress.ConvertStatusDone();
+            await convertProgress.ConvertStatus("Done");
         }
 
         public static async Task Save(string outputPath, IList<Item> items, ISaveProgress saveProgress)
