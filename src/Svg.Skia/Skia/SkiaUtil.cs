@@ -1199,6 +1199,243 @@ namespace Svg.Skia
             skCanvas.SetMatrix(skMatrixTotal);
         }
 
+        internal static SKPath? GetClipPath(SvgVisualElement svgVisualElement, CompositeDisposable disposable)
+        {
+            switch (svgVisualElement)
+            {
+                case SvgPath svgPath:
+                    {
+                        var fillRule = (svgPath.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var skPath = SkiaUtil.ToSKPath(svgPath.PathData, fillRule, disposable);
+                        if (skPath != null && !skPath.IsEmpty)
+                        {
+                            var skMatrix = SkiaUtil.GetSKMatrix(svgPath.Transforms);
+                            skPath.Transform(skMatrix);
+
+                            var skPathClip = GetSvgVisualElementClipPath(svgPath, disposable);
+                            if (skPathClip != null && !skPathClip.IsEmpty)
+                            {
+                                var result = skPath.Op(skPathClip, SKPathOp.Intersect);
+                                disposable.Add(result);
+                                return result;
+                            }
+
+                            return skPath;
+                        }
+                    }
+                    break;
+                case SvgRectangle svgRectangle:
+                    {
+                        var fillRule = (svgRectangle.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var skPath = ToSKPath(svgRectangle, fillRule, disposable);
+                        if (skPath != null && !skPath.IsEmpty)
+                        {
+                            var skMatrix = SkiaUtil.GetSKMatrix(svgRectangle.Transforms);
+                            skPath.Transform(skMatrix);
+
+                            var skPathClip = GetSvgVisualElementClipPath(svgRectangle, disposable);
+                            if (skPathClip != null && !skPathClip.IsEmpty)
+                            {
+                                var result = skPath.Op(skPathClip, SKPathOp.Intersect);
+                                disposable.Add(result);
+                                return result;
+                            }
+
+                            return skPath;
+                        }
+                    }
+                    break;
+                case SvgCircle svgCircle:
+                    {
+                        var fillRule = (svgCircle.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var skPath = ToSKPath(svgCircle, fillRule, disposable);
+                        if (skPath != null && !skPath.IsEmpty)
+                        {
+                            var skMatrix = SkiaUtil.GetSKMatrix(svgCircle.Transforms);
+                            skPath.Transform(skMatrix);
+
+                            var skPathClip = GetSvgVisualElementClipPath(svgCircle, disposable);
+                            if (skPathClip != null && !skPathClip.IsEmpty)
+                            {
+                                var result = skPath.Op(skPathClip, SKPathOp.Intersect);
+                                disposable.Add(result);
+                                return result;
+                            }
+
+                            return skPath;
+                        }
+                    }
+                    break;
+                case SvgEllipse svgEllipse:
+                    {
+                        var fillRule = (svgEllipse.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var skPath = ToSKPath(svgEllipse, fillRule, disposable);
+                        if (skPath != null && !skPath.IsEmpty)
+                        {
+                            var skMatrix = SkiaUtil.GetSKMatrix(svgEllipse.Transforms);
+                            skPath.Transform(skMatrix);
+
+                            var skPathClip = GetSvgVisualElementClipPath(svgEllipse, disposable);
+                            if (skPathClip != null && !skPathClip.IsEmpty)
+                            {
+                                var result = skPath.Op(skPathClip, SKPathOp.Intersect);
+                                disposable.Add(result);
+                                return result;
+                            }
+
+                            return skPath;
+                        }
+                    }
+                    break;
+                case SvgLine svgLine:
+                    {
+                        var fillRule = (svgLine.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var skPath = ToSKPath(svgLine, fillRule, disposable);
+                        if (skPath != null && !skPath.IsEmpty)
+                        {
+                            var skMatrix = SkiaUtil.GetSKMatrix(svgLine.Transforms);
+                            skPath.Transform(skMatrix);
+
+                            var skPathClip = GetSvgVisualElementClipPath(svgLine, disposable);
+                            if (skPathClip != null && !skPathClip.IsEmpty)
+                            {
+                                var result = skPath.Op(skPathClip, SKPathOp.Intersect);
+                                disposable.Add(result);
+                                return result;
+                            }
+
+                            return skPath;
+                        }
+                    }
+                    break;
+                case SvgPolyline svgPolyline:
+                    {
+                        var fillRule = (svgPolyline.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var skPath = ToSKPath(svgPolyline.Points, fillRule, false, disposable);
+                        if (skPath != null && !skPath.IsEmpty)
+                        {
+                            var skMatrix = SkiaUtil.GetSKMatrix(svgPolyline.Transforms);
+                            skPath.Transform(skMatrix);
+
+                            var skPathClip = GetSvgVisualElementClipPath(svgPolyline, disposable);
+                            if (skPathClip != null && !skPathClip.IsEmpty)
+                            {
+                                var result = skPath.Op(skPathClip, SKPathOp.Intersect);
+                                disposable.Add(result);
+                                return result;
+                            }
+
+                            return skPath;
+                        }
+                    }
+                    break;
+                case SvgPolygon svgPolygon:
+                    {
+                        var fillRule = (svgPolygon.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var skPath = ToSKPath(svgPolygon.Points, fillRule, true, disposable);
+                        if (skPath != null && !skPath.IsEmpty)
+                        {
+                            var skMatrix = SkiaUtil.GetSKMatrix(svgPolygon.Transforms);
+                            skPath.Transform(skMatrix);
+
+                            var skPathClip = GetSvgVisualElementClipPath(svgPolygon, disposable);
+                            if (skPathClip != null && !skPathClip.IsEmpty)
+                            {
+                                var result = skPath.Op(skPathClip, SKPathOp.Intersect);
+                                disposable.Add(result);
+                                return result;
+                            }
+
+                            return skPath;
+                        }
+                    }
+                    break;
+                case SvgGroup svgGroup:
+                    {
+                        var skPath = GetClipPath(svgGroup.Children, disposable);
+                        if (skPath != null && !skPath.IsEmpty)
+                        {
+                            var skMatrix = SkiaUtil.GetSKMatrix(svgGroup.Transforms);
+                            skPath.Transform(skMatrix);
+
+                            var skPathClip = GetSvgVisualElementClipPath(svgGroup, disposable);
+                            if (skPathClip != null && !skPathClip.IsEmpty)
+                            {
+                                var result = skPath.Op(skPathClip, SKPathOp.Intersect);
+                                disposable.Add(result);
+                                return result;
+                            }
+
+                            return skPath;
+                        }
+                    }
+                    break;
+                case SvgUse svgUse:
+                    {
+                        // TODO:
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return null;
+        }
+
+        internal static SKPath? GetClipPath(SvgElementCollection svgElementCollection, CompositeDisposable disposable)
+        {
+            var skPathClip = default(SKPath);
+
+            foreach (var child in svgElementCollection)
+            {
+                if (child is SvgVisualElement visualChild)
+                {
+                    var skPath = GetClipPath(visualChild, disposable);
+                    if (skPath != null && !skPath.IsEmpty)
+                    {
+                        if (skPathClip == null)
+                        {
+                            skPathClip = skPath;
+                        }
+                        else
+                        {
+                            var result = skPathClip.Op(skPath, SKPathOp.Union);
+                            disposable.Add(result);
+                            skPathClip = result;
+                        }
+                    }
+                }
+            }
+
+            return skPathClip;
+        }
+
+        internal static SKPath? GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, CompositeDisposable disposable)
+        {
+            if (svgVisualElement == null || svgVisualElement.ClipPath == null)
+            {
+                return null;
+            }
+
+            var svgClipPath = svgVisualElement.OwnerDocument.GetElementById<SvgClipPath>(svgVisualElement.ClipPath.ToString());
+            if (svgClipPath == null || svgClipPath.Children == null)
+            {
+                return null;
+            }
+
+            // TODO: svgClipPath.ClipPathUnits
+
+            return GetClipPath(svgClipPath.Children, disposable);
+        }
+
+        internal static void SetClipPath(SKCanvas skCanvas, SvgVisualElement svgVisualElement, CompositeDisposable disposable)
+        {
+            var skPathClip = GetSvgVisualElementClipPath(svgVisualElement, disposable);
+            if (skPathClip != null && !skPathClip.IsEmpty)
+            {
+                skCanvas.ClipPath(skPathClip);
+            }
+        }
+
         internal static SKPaint? SetOpacity(SKCanvas skCanvas, SvgElement svgElement, CompositeDisposable disposable)
         {
             float opacity = AdjustSvgOpacity(svgElement.Opacity);
