@@ -41,7 +41,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "props", "props", "{5BFEF4F8-2BA7-4050-8E5B-F03A072C2B17}"
 	ProjectSection(SolutionItems) = preProject
 		build\Base.props = build\Base.props
+		build\Newtonsoft.Json.props = build\Newtonsoft.Json.props
 		build\ReferenceAssemblies.props = build\ReferenceAssemblies.props
+		build\SkiaSharp.props = build\SkiaSharp.props
+		build\Svg.props = build\Svg.props
+		build\System.CommandLine.props = build\System.CommandLine.props
 		build\XUnit.props = build\XUnit.props
 	EndProjectSection
 EndProject
