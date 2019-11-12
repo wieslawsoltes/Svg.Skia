@@ -19,15 +19,11 @@
 
   <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
+  <Import Project="..\..\build\SkiaSharp.props" />
+  <Import Project="..\..\build\Svg.props" />
 
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="SkiaSharp" Version="1.68.0" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="1.68.0" />
-    <PackageReference Include="Svg" Version="3.0.84" />
   </ItemGroup>
 
 </Project>
