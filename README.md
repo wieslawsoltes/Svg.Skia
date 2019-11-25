@@ -13,6 +13,10 @@
 
 Skia SVG rendering library.
 
+## About
+
+The `Svg.Skia` is using internally [SVG](https://github.com/vvvv/SVG) library from [NuGet](https://www.nuget.org/packages/Svg) to load `Svg` object model. The original `Svg` library provides only `System.Drawing` rendering backend. The `Svg.Skia` library is providing rendering backend implementation using `SkiaSharp` that aims to be at least on par or more complete then original `System.Drawing` implementation and also more performant. The `Svg.Skia` can be also be used in same way as the [SkiaSharp.Extended.Svg](https://github.com/mono/SkiaSharp.Extended/tree/master/SkiaSharp.Extended.Svg)  (load `svg` files as `SKPicture`). The `Svg` library has more complete implementation of `Svg` document model then [SkiaSharp.Extended.Svg](https://github.com/mono/SkiaSharp.Extended/tree/master/SkiaSharp.Extended.Svg) and the `Svg.Skia` renderer will provide more complete rendering subsystem implementation.
+
 ## NuGet
 
 Svg.Skia is delivered as a NuGet package.
