@@ -101,23 +101,25 @@ namespace Svg.Skia
 #if DEBUG
             Console.WriteLine($"SAVE {_saveCount}");
 #endif
-            _skCanvas.Save(); _saveCount++;
-
             float x = svgFragment.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
             float y = svgFragment.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
             float width = svgFragment.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
             float height = svgFragment.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
             var skRectBounds = SKRect.Create(x, y, width, height);
 
+            _skCanvas.Save(); _saveCount++;
+
+            var skMatrixViewBox = SkiaUtil.GetSvgViewBoxTransform(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, width, height);
+            var skMatrix = SkiaUtil.GetSKMatrix(svgFragment.Transforms);
+            SKMatrix.Concat(ref skMatrix, ref skMatrix, ref skMatrixViewBox);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+
+
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgFragment, _disposable);
             if (skPaintOpacity != null)
             {
                 _saveCount++;
             }
-            var skMatrixViewBox = SkiaUtil.GetSvgViewBoxTransform(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, width, height);
-            var skMatrix = SkiaUtil.GetSKMatrix(svgFragment.Transforms);
-            SKMatrix.Concat(ref skMatrix, ref skMatrix, ref skMatrixViewBox);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
 
             foreach (var svgElement in svgFragment.Children)
             {
@@ -139,19 +141,21 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
+            var skMatrix = SkiaUtil.GetSKMatrix(svgImage.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgImage, _disposable);
+
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgImage, _disposable);
             if (skPaintOpacity != null)
             {
                 _saveCount++;
             }
+
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgImage, _disposable);
             if (skPaintFilter != null)
             {
                 _saveCount++;
             }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgImage.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgImage, _disposable);
 
             // TODO:
 
@@ -172,19 +176,21 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
+            var skMatrix = SkiaUtil.GetSKMatrix(svgSwitch.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgSwitch, _disposable);
+
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgSwitch, _disposable);
             if (skPaintOpacity != null)
             {
                 _saveCount++;
             }
+
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgSwitch, _disposable);
             if (skPaintFilter != null)
             {
                 _saveCount++;
             }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgSwitch.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgSwitch, _disposable);
 
             // TODO:
 
@@ -228,21 +234,23 @@ namespace Svg.Skia
 
             var skRectBounds = SKRect.Create(x, y, width, height);
 
-            var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgSymbol, _disposable);
-            if (skPaintOpacity != null)
-            {
-                _saveCount++;
-            }
-            var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgSymbol, _disposable);
-            if (skPaintFilter != null)
-            {
-                _saveCount++;
-            }
             var skMatrixViewBox = SkiaUtil.GetSvgViewBoxTransform(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
             var skMatrix = SkiaUtil.GetSKMatrix(svgSymbol.Transforms);
             SKMatrix.Concat(ref skMatrix, ref skMatrix, ref skMatrixViewBox);
             SkiaUtil.SetTransform(_skCanvas, skMatrix);
             SkiaUtil.SetClipPath(_skCanvas, svgSymbol, _disposable);
+
+            var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgSymbol, _disposable);
+            if (skPaintOpacity != null)
+            {
+                _saveCount++;
+            }
+
+            var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgSymbol, _disposable);
+            if (skPaintFilter != null)
+            {
+                _saveCount++;
+            }
 
             foreach (var svgElement in svgSymbol.Children)
             {
@@ -269,8 +277,6 @@ namespace Svg.Skia
             {
                 return;
             }
-
-            _skCanvas.Save(); _saveCount++;
 
             float x = svgUse.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgUse);
             float y = svgUse.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgUse);
@@ -310,18 +316,22 @@ namespace Svg.Skia
 
             svgVisualElement.InvalidateChildPaths();
 
+            _skCanvas.Save(); _saveCount++;
+
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgUse, _disposable);
+
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgUse, _disposable);
             if (skPaintOpacity != null)
             {
                 _saveCount++;
             }
+
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgUse, _disposable);
             if (skPaintFilter != null)
             {
                 _saveCount++;
             }
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgUse, _disposable);
 
             if (svgVisualElement is SvgSymbol svgSymbol)
             {
@@ -354,19 +364,21 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
+            var skMatrix = SkiaUtil.GetSKMatrix(svgForeignObject.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgForeignObject, _disposable);
+
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgForeignObject, _disposable);
             if (skPaintOpacity != null)
             {
                 _saveCount++;
             }
+
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgForeignObject, _disposable);
             if (skPaintFilter != null)
             {
                 _saveCount++;
             }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgForeignObject.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgForeignObject, _disposable);
 
             // TODO:
 
@@ -387,24 +399,26 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
-            float cx = svgCircle.CenterX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgCircle);
-            float cy = svgCircle.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgCircle);
-            float radius = svgCircle.Radius.ToDeviceValue(null, UnitRenderingType.Other, svgCircle);
-            var skRectBounds = SKRect.Create(cx - radius, cy - radius, radius + radius, radius + radius);
+            var skMatrix = SkiaUtil.GetSKMatrix(svgCircle.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgCircle, _disposable);
 
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgCircle, _disposable);
             if (skPaintOpacity != null)
             {
                 _saveCount++;
             }
+
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgCircle, _disposable);
             if (skPaintFilter != null)
             {
                 _saveCount++;
             }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgCircle.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgCircle, _disposable);
+
+            float cx = svgCircle.CenterX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgCircle);
+            float cy = svgCircle.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgCircle);
+            float radius = svgCircle.Radius.ToDeviceValue(null, UnitRenderingType.Other, svgCircle);
+            var skRectBounds = SKRect.Create(cx - radius, cy - radius, radius + radius, radius + radius);
 
             if (SkiaUtil.IsValidFill(svgCircle))
             {
@@ -435,25 +449,28 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
-            float cx = svgEllipse.CenterX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgEllipse);
-            float cy = svgEllipse.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgEllipse);
-            float rx = svgEllipse.RadiusX.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
-            float ry = svgEllipse.RadiusY.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
-            var skRectBounds = SKRect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
+            var skMatrix = SkiaUtil.GetSKMatrix(svgEllipse.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgEllipse, _disposable);
 
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgEllipse, _disposable);
             if (skPaintOpacity != null)
             {
                 _saveCount++;
             }
+
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgEllipse, _disposable);
             if (skPaintFilter != null)
             {
                 _saveCount++;
             }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgEllipse.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgEllipse, _disposable);
+
+            float cx = svgEllipse.CenterX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgEllipse);
+            float cy = svgEllipse.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgEllipse);
+            float rx = svgEllipse.RadiusX.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
+            float ry = svgEllipse.RadiusY.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
+            var skRectBounds = SKRect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
+
 
             if (SkiaUtil.IsValidFill(svgEllipse))
             {
@@ -484,6 +501,22 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
+            var skMatrix = SkiaUtil.GetSKMatrix(svgRectangle.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgRectangle, _disposable);
+
+            var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgRectangle, _disposable);
+            if (skPaintOpacity != null)
+            {
+                _saveCount++;
+            }
+
+            var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgRectangle, _disposable);
+            if (skPaintFilter != null)
+            {
+                _saveCount++;
+            }
+
             float x = svgRectangle.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
             float y = svgRectangle.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
             float width = svgRectangle.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
@@ -492,20 +525,6 @@ namespace Svg.Skia
             float ry = svgRectangle.CornerRadiusY.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
             bool isRound = rx > 0f && ry > 0f;
             var skRectBounds = SKRect.Create(x, y, width, height);
-
-            var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgRectangle, _disposable);
-            if (skPaintOpacity != null)
-            {
-                _saveCount++;
-            }
-            var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgRectangle, _disposable);
-            if (skPaintFilter != null)
-            {
-                _saveCount++;
-            }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgRectangle.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgRectangle, _disposable);
 
             if (SkiaUtil.IsValidFill(svgRectangle))
             {
@@ -550,6 +569,10 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
+            var skMatrix = SkiaUtil.GetSKMatrix(svgMarker.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgMarker, _disposable);
+
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgMarker, _disposable);
             if (skPaintOpacity != null)
             {
@@ -560,9 +583,6 @@ namespace Svg.Skia
             {
                 _saveCount++;
             }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgMarker.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgMarker, _disposable);
 
             // TODO:
 
@@ -583,19 +603,21 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
+            var skMatrix = SkiaUtil.GetSKMatrix(svgGlyph.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgGlyph, _disposable);
+
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgGlyph, _disposable);
             if (skPaintOpacity != null)
             {
                 _saveCount++;
             }
+
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgGlyph, _disposable);
             if (skPaintFilter != null)
             {
                 _saveCount++;
             }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgGlyph.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgGlyph, _disposable);
 
             // TODO:
 
@@ -616,19 +638,21 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
+            var skMatrix = SkiaUtil.GetSKMatrix(svgGroup.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgGroup, _disposable);
+
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgGroup, _disposable);
             if (skPaintOpacity != null)
             {
                 _saveCount++;
             }
+
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgGroup, _disposable);
             if (skPaintFilter != null)
             {
                 _saveCount++;
             }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgGroup.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgGroup, _disposable);
 
             foreach (var svgElement in svgGroup.Children)
             {
@@ -652,6 +676,22 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
+            var skMatrix = SkiaUtil.GetSKMatrix(svgLine.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgLine, _disposable);
+
+            var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgLine, _disposable);
+            if (skPaintOpacity != null)
+            {
+                _saveCount++;
+            }
+
+            var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgLine, _disposable);
+            if (skPaintFilter != null)
+            {
+                _saveCount++;
+            }
+
             float x0 = svgLine.StartX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgLine);
             float y0 = svgLine.StartY.ToDeviceValue(null, UnitRenderingType.Vertical, svgLine);
             float x1 = svgLine.EndX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgLine);
@@ -661,21 +701,6 @@ namespace Svg.Skia
             float width = Math.Abs(x0 - x1);
             float height = Math.Abs(y0 - y1);
             var skRectBounds = SKRect.Create(x, y, width, height);
-
-            var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgLine, _disposable);
-            if (skPaintOpacity != null)
-            {
-                _saveCount++;
-            }
-            var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgLine, _disposable);
-            if (skPaintFilter != null)
-            {
-                _saveCount++;
-            }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgLine.Transforms);
-
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgLine, _disposable);
 
             if (SkiaUtil.IsValidStroke(svgLine))
             {
@@ -700,19 +725,21 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
+            var skMatrix = SkiaUtil.GetSKMatrix(svgPath.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgPath, _disposable);
+
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgPath, _disposable);
             if (skPaintOpacity != null)
             {
                 _saveCount++;
             }
+
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgPath, _disposable);
             if (skPaintFilter != null)
             {
                 _saveCount++;
             }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgPath.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgPath, _disposable);
 
             var skPath = SkiaUtil.ToSKPath(svgPath.PathData, svgPath.FillRule, _disposable);
             if (skPath != null && !skPath.IsEmpty)
@@ -731,7 +758,6 @@ namespace Svg.Skia
                     _skCanvas.DrawPath(skPath, skPaint);
                 }
             }
-
             if (skPaintFilter != null)
             {
                 _skCanvas.Restore(); _saveCount--;
@@ -749,19 +775,21 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
+            var skMatrix = SkiaUtil.GetSKMatrix(svgPolyline.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgPolyline, _disposable);
+
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgPolyline, _disposable);
             if (skPaintOpacity != null)
             {
                 _saveCount++;
             }
+
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgPolyline, _disposable);
             if (skPaintFilter != null)
             {
                 _saveCount++;
             }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgPolyline.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgPolyline, _disposable);
 
             var skPath = SkiaUtil.ToSKPath(svgPolyline.Points, svgPolyline.FillRule, false, _disposable);
             if (skPath != null && !skPath.IsEmpty)
@@ -798,19 +826,21 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
+            var skMatrix = SkiaUtil.GetSKMatrix(svgPolygon.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgPolygon, _disposable);
+
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgPolygon, _disposable);
             if (skPaintOpacity != null)
             {
                 _saveCount++;
             }
+
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgPolygon, _disposable);
             if (skPaintFilter != null)
             {
                 _saveCount++;
             }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgPolygon.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgPolygon, _disposable);
 
             var skPath = SkiaUtil.ToSKPath(svgPolygon.Points, svgPolygon.FillRule, true, _disposable);
             if (skPath != null && !skPath.IsEmpty)
@@ -847,19 +877,21 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
+            var skMatrix = SkiaUtil.GetSKMatrix(svgText.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgText, _disposable);
+
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgText, _disposable);
             if (skPaintOpacity != null)
             {
                 _saveCount++;
             }
+
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgText, _disposable);
             if (skPaintFilter != null)
             {
                 _saveCount++;
             }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgText.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgText, _disposable);
 
             // TODO:
             bool isValidFill = SkiaUtil.IsValidFill(svgText);
@@ -911,19 +943,21 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
+            var skMatrix = SkiaUtil.GetSKMatrix(svgTextPath.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgTextPath, _disposable);
+
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgTextPath, _disposable);
             if (skPaintOpacity != null)
             {
                 _saveCount++;
             }
+
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgTextPath, _disposable);
             if (skPaintFilter != null)
             {
                 _saveCount++;
             }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgTextPath.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgTextPath, _disposable);
 
             // TODO:
 
@@ -944,19 +978,21 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
+            var skMatrix = SkiaUtil.GetSKMatrix(svgTextRef.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgTextRef, _disposable);
+
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgTextRef, _disposable);
             if (skPaintOpacity != null)
             {
                 _saveCount++;
             }
+
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgTextRef, _disposable);
             if (skPaintFilter != null)
             {
                 _saveCount++;
             }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgTextRef.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgTextRef, _disposable);
 
             // TODO:
 
@@ -977,19 +1013,21 @@ namespace Svg.Skia
         {
             _skCanvas.Save(); _saveCount++;
 
+            var skMatrix = SkiaUtil.GetSKMatrix(svgTextSpan.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgTextSpan, _disposable);
+
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgTextSpan, _disposable);
             if (skPaintOpacity != null)
             {
                 _saveCount++;
             }
+
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgTextSpan, _disposable);
             if (skPaintFilter != null)
             {
                 _saveCount++;
             }
-            var skMatrix = SkiaUtil.GetSKMatrix(svgTextSpan.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgTextSpan, _disposable);
 
             // TODO:
 
