@@ -767,7 +767,6 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-
         public void DrawTextPath(SvgTextPath svgTextPath)
         {
             _skCanvas.Save();
