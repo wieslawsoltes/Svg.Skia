@@ -131,7 +131,7 @@ namespace Svg.Skia
 
             _skCanvas.Restore(); _saveCount--;
 #if DEBUG
-            Console.WriteLine($"RESTORE: {_saveCount}");
+            Console.WriteLine($"RESTORE {_saveCount}");
 #endif
         }
 
