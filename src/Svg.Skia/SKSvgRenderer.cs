@@ -96,6 +96,12 @@ namespace Svg.Skia
             }
         }
 
+        private bool CanDraw(SvgVisualElement svgVisualElement)
+        {
+            return svgVisualElement.Visible == true
+                && !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
+        }
+
         public void DrawFragment(SvgFragment svgFragment)
         {
 #if DEBUG
@@ -139,6 +145,11 @@ namespace Svg.Skia
 
         public void DrawImage(SvgImage svgImage)
         {
+            if (!CanDraw(svgImage))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgImage.Transforms);
@@ -174,6 +185,11 @@ namespace Svg.Skia
 
         public void DrawSwitch(SvgSwitch svgSwitch)
         {
+            if (!CanDraw(svgSwitch))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgSwitch.Transforms);
@@ -209,6 +225,11 @@ namespace Svg.Skia
 
         public void DrawSymbol(SvgSymbol svgSymbol)
         {
+            if (!CanDraw(svgSymbol))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             float x = 0f;
@@ -272,6 +293,11 @@ namespace Svg.Skia
 
         public void DrawUse(SvgUse svgUse)
         {
+            if (!CanDraw(svgUse))
+            {
+                return;
+            }
+
             var svgVisualElement = SkiaUtil.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
             if (svgVisualElement == null || SkiaUtil.HasRecursiveReference(svgUse))
             {
@@ -362,6 +388,11 @@ namespace Svg.Skia
 
         public void DrawForeignObject(SvgForeignObject svgForeignObject)
         {
+            if (!CanDraw(svgForeignObject))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgForeignObject.Transforms);
@@ -397,6 +428,11 @@ namespace Svg.Skia
 
         public void DrawCircle(SvgCircle svgCircle)
         {
+            if (!CanDraw(svgCircle))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgCircle.Transforms);
@@ -447,6 +483,11 @@ namespace Svg.Skia
 
         public void DrawEllipse(SvgEllipse svgEllipse)
         {
+            if (!CanDraw(svgEllipse))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgEllipse.Transforms);
@@ -499,6 +540,11 @@ namespace Svg.Skia
 
         public void DrawRectangle(SvgRectangle svgRectangle)
         {
+            if (!CanDraw(svgRectangle))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgRectangle.Transforms);
@@ -567,6 +613,11 @@ namespace Svg.Skia
 
         public void DrawMarker(SvgMarker svgMarker)
         {
+            if (!CanDraw(svgMarker))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgMarker.Transforms);
@@ -601,6 +652,11 @@ namespace Svg.Skia
 
         public void DrawGlyph(SvgGlyph svgGlyph)
         {
+            if (!CanDraw(svgGlyph))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgGlyph.Transforms);
@@ -636,6 +692,11 @@ namespace Svg.Skia
 
         public void DrawGroup(SvgGroup svgGroup)
         {
+            if (!CanDraw(svgGroup))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgGroup.Transforms);
@@ -674,6 +735,11 @@ namespace Svg.Skia
 
         public void DrawLine(SvgLine svgLine)
         {
+            if (!CanDraw(svgLine))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgLine.Transforms);
@@ -723,6 +789,11 @@ namespace Svg.Skia
 
         public void DrawPath(SvgPath svgPath)
         {
+            if (!CanDraw(svgPath))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgPath.Transforms);
@@ -773,6 +844,11 @@ namespace Svg.Skia
 
         public void DrawPolyline(SvgPolyline svgPolyline)
         {
+            if (!CanDraw(svgPolyline))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgPolyline.Transforms);
@@ -824,6 +900,11 @@ namespace Svg.Skia
 
         public void DrawPolygon(SvgPolygon svgPolygon)
         {
+            if (!CanDraw(svgPolygon))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgPolygon.Transforms);
@@ -875,6 +956,11 @@ namespace Svg.Skia
 
         public void DrawText(SvgText svgText)
         {
+            if (!CanDraw(svgText))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgText.Transforms);
@@ -941,6 +1027,11 @@ namespace Svg.Skia
 
         public void DrawTextPath(SvgTextPath svgTextPath)
         {
+            if (!CanDraw(svgTextPath))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgTextPath.Transforms);
@@ -976,6 +1067,11 @@ namespace Svg.Skia
 
         public void DrawTextRef(SvgTextRef svgTextRef)
         {
+            if (!CanDraw(svgTextRef))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgTextRef.Transforms);
@@ -1011,6 +1107,11 @@ namespace Svg.Skia
 
         public void DrawTextSpan(SvgTextSpan svgTextSpan)
         {
+            if (!CanDraw(svgTextSpan))
+            {
+                return;
+            }
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgTextSpan.Transforms);
