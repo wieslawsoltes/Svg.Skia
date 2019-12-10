@@ -112,6 +112,11 @@ dotnet run -c Release  -f netcoreapp3.0 -- -d ~/demos/svg -o ~/demos/svg-png
 
 ```
 cd ./src/Svg.Skia.Converter
+dotnet run -c Release  -f netcoreapp3.0 -- -d ~/demos/technical -o ~/demos/technical-png
+```
+
+```
+cd ./src/Svg.Skia.Converter
 dotnet run -c Release  -f netcoreapp3.0 -- -d ~/projects/resvg-test-suite/svg -o ./resvg-test-suite-png
 dotnet run -c Release  -f netcoreapp3.0 -- -d ~/demos/resvg-test-suite -o ~/demos/resvg-test-suite-png
 ```
