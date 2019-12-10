@@ -255,7 +255,7 @@ namespace Svg.Skia
                     new SvgUnit(SvgUnitType.User, svgUnit.Value / 100) : svgUnit;
         }
 
-        internal static SKPathEffect? CreateDash(SvgElement svgElement, float strokeWidth)
+        internal static SKPathEffect? CreateDash(SvgElement svgElement)
         {
             var strokeDashArray = svgElement.StrokeDashArray;
             var count = strokeDashArray.Count;
@@ -263,32 +263,32 @@ namespace Svg.Skia
             if (strokeDashArray != null && count > 0)
             {
                 bool isOdd = count % 2 != 0;
-
-                strokeWidth = strokeWidth <= 0 ? 1 : strokeWidth;
-
+                float sum = 0f;
                 float[] intervals = new float[isOdd ? count * 2 : count];
                 for (int i = 0; i < count; i++)
                 {
                     var dash = strokeDashArray[i].ToDeviceValue(null, UnitRenderingType.Other, svgElement);
-                    var interval = (dash <= 0) ? 1 : dash;
-                    intervals[i] = interval / strokeWidth;
-                }
+                    if (dash < 0f)
+                    {
+                        return null;
+                    }
 
-                if (isOdd)
-                {
-                    for (int i = 0; i < count; i++)
+                    intervals[i] = dash;
+
+                    if (isOdd)
                     {
                         intervals[i + count] = intervals[i];
                     }
+
+                    sum += dash;
                 }
 
-                var dashOffset = svgElement.StrokeDashOffset != null ? svgElement.StrokeDashOffset : 0;
-                var phase = 0f;
-                if (dashOffset != 0)
+                if (sum <= 0f)
                 {
-                    var dashOffsetValue = dashOffset.ToDeviceValue(null, UnitRenderingType.Other, svgElement);
-                    phase = (dashOffsetValue <= 0) ? 1 : dashOffsetValue / strokeWidth;
+                    return null;
                 }
+
+                float phase = svgElement.StrokeDashOffset != null ? svgElement.StrokeDashOffset.ToDeviceValue(null, UnitRenderingType.Other, svgElement) : 0f;
 
                 return SKPathEffect.CreateDash(intervals, phase);
             }
@@ -641,7 +641,7 @@ namespace Svg.Skia
 
         internal static void SetDash(SvgVisualElement svgVisualElement, SKPaint skPaint, CompositeDisposable disposable)
         {
-            var skPathEffect = CreateDash(svgVisualElement, skPaint.StrokeWidth);
+            var skPathEffect = CreateDash(svgVisualElement);
             if (skPathEffect != null)
             {
                 disposable.Add(skPathEffect);
