@@ -433,6 +433,17 @@ namespace Svg.Skia
                 return;
             }
 
+            float cx = svgCircle.CenterX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgCircle);
+            float cy = svgCircle.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgCircle);
+            float radius = svgCircle.Radius.ToDeviceValue(null, UnitRenderingType.Other, svgCircle);
+
+            if (radius <= 0f)
+            {
+                return;
+            }
+
+            var skRectBounds = SKRect.Create(cx - radius, cy - radius, radius + radius, radius + radius);
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgCircle.Transforms);
@@ -450,11 +461,6 @@ namespace Svg.Skia
             {
                 _saveCount++;
             }
-
-            float cx = svgCircle.CenterX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgCircle);
-            float cy = svgCircle.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgCircle);
-            float radius = svgCircle.Radius.ToDeviceValue(null, UnitRenderingType.Other, svgCircle);
-            var skRectBounds = SKRect.Create(cx - radius, cy - radius, radius + radius, radius + radius);
 
             if (SkiaUtil.IsValidFill(svgCircle))
             {
@@ -488,6 +494,18 @@ namespace Svg.Skia
                 return;
             }
 
+            float cx = svgEllipse.CenterX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgEllipse);
+            float cy = svgEllipse.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgEllipse);
+            float rx = svgEllipse.RadiusX.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
+            float ry = svgEllipse.RadiusY.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
+
+            if (rx <= 0f || ry <= 0f)
+            {
+                return;
+            }
+
+            var skRectBounds = SKRect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgEllipse.Transforms);
@@ -505,13 +523,6 @@ namespace Svg.Skia
             {
                 _saveCount++;
             }
-
-            float cx = svgEllipse.CenterX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgEllipse);
-            float cy = svgEllipse.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgEllipse);
-            float rx = svgEllipse.RadiusX.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
-            float ry = svgEllipse.RadiusY.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
-            var skRectBounds = SKRect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
-
 
             if (SkiaUtil.IsValidFill(svgEllipse))
             {
@@ -545,6 +556,39 @@ namespace Svg.Skia
                 return;
             }
 
+            float x = svgRectangle.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
+            float y = svgRectangle.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
+            float width = svgRectangle.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
+            float height = svgRectangle.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
+            float rx = svgRectangle.CornerRadiusX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
+            float ry = svgRectangle.CornerRadiusY.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
+
+            if (width <= 0f || height <= 0f || rx < 0f || ry < 0f)
+            {
+                return;
+            }
+
+            if (rx > 0f)
+            {
+                float halfWidth = width / 2f;
+                if (rx > halfWidth)
+                {
+                    rx = halfWidth;
+                }
+            }
+
+            if (ry > 0f)
+            {
+                float halfHeight = height / 2f;
+                if (ry > halfHeight)
+                {
+                    ry = halfHeight;
+                }
+            }
+
+            bool isRound = rx > 0f && ry > 0f;
+            var skRectBounds = SKRect.Create(x, y, width, height);
+
             _skCanvas.Save(); _saveCount++;
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgRectangle.Transforms);
@@ -562,15 +606,6 @@ namespace Svg.Skia
             {
                 _saveCount++;
             }
-
-            float x = svgRectangle.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
-            float y = svgRectangle.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
-            float width = svgRectangle.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
-            float height = svgRectangle.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
-            float rx = svgRectangle.CornerRadiusX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
-            float ry = svgRectangle.CornerRadiusY.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
-            bool isRound = rx > 0f && ry > 0f;
-            var skRectBounds = SKRect.Create(x, y, width, height);
 
             if (SkiaUtil.IsValidFill(svgRectangle))
             {
