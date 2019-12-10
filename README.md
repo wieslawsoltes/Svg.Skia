@@ -102,19 +102,18 @@ Options:
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet build
-cd ./src/Svg.Skia.Converter/bin/Debug/netcoreapp3.0
-./Svg.Skia.Converter.exe -d ../../../../../externals\SVG\Tests\W3CTestSuite\svg\ -o ./png
+dotnet run -c Release  -f netcoreapp3.0 -- -d ../../externals/SVG/Tests/W3CTestSuite/svg/ -o ~/demos//W3CTestSuite-png
 ```
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet run -c Release  -f netcoreapp3.0 -- -d ../../externals/SVG/Tests/W3CTestSuite/svg/ -o ./png
+dotnet run -c Release  -f netcoreapp3.0 -- -d ~/demos/svg -o ~/demos/svg-png
 ```
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet run -c Release  -f netcoreapp3.0 -- -d ~/demos -o ~/demos/png
+dotnet run -c Release  -f netcoreapp3.0 -- -d ~/projects/resvg-test-suite/svg -o ./resvg-test-suite-png
+dotnet run -c Release  -f netcoreapp3.0 -- -d ~/demos/resvg-test-suite -o ~/demos/resvg-test-suite-png
 ```
 
 ## Build
