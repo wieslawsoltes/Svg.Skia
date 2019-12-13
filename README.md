@@ -41,6 +41,19 @@ and install the package like this:
 dotnet add package Svg.Skia
 ```
 
+
+```C#
+using SkiaSharp;
+using Svg.Skia;
+
+var svg = new SKSvg();
+
+svg.Load("image.svg");
+
+SKCanvas canvas = ...
+canvas.DrawPicture(svg.Picture);
+```
+
 ```C#
 using SkiaSharp;
 using Svg.Skia;
