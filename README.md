@@ -111,29 +111,6 @@ Options:
   --version                          Display version information
 ```
 
-### Examples
-
-```
-cd ./src/Svg.Skia.Converter
-dotnet run -c Release  -f netcoreapp3.0 -- -d ../../externals/SVG/Tests/W3CTestSuite/svg/ -o ~/demos//W3CTestSuite-png
-```
-
-```
-cd ./src/Svg.Skia.Converter
-dotnet run -c Release  -f netcoreapp3.0 -- -d ~/demos/svg -o ~/demos/svg-png
-```
-
-```
-cd ./src/Svg.Skia.Converter
-dotnet run -c Release  -f netcoreapp3.0 -- -d ~/demos/technical -o ~/demos/technical-png
-```
-
-```
-cd ./src/Svg.Skia.Converter
-dotnet run -c Release  -f netcoreapp3.0 -- -d ~/projects/resvg-test-suite/svg -o ./resvg-test-suite-png
-dotnet run -c Release  -f netcoreapp3.0 -- -d ~/demos/resvg-test-suite -o ~/demos/resvg-test-suite-png
-```
-
 ## Build
 
 To build the projects you need to install [.NET Core 3.0](https://dotnet.microsoft.com/download/dotnet-core/3.0) version `SDK 3.0.100`.
