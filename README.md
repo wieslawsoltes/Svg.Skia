@@ -104,7 +104,6 @@ Options:
   -s, --scale <scale>                The output image horizontal and vertical scaling factor
   -sx, --scaleX <scalex>             The output image horizontal scaling factor
   -sy, --scaleY <scaley>             The output image vertical scaling factor
-  --debug                            Write debug output to a file
   --quiet                            Set verbosity level to quiet
   -c, --load-config <load-config>    The relative or absolute path to the config file
   --save-config <save-config>        The relative or absolute path to the config file

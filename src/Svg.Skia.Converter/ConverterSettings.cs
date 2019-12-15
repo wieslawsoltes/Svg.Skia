@@ -17,7 +17,6 @@ namespace Svg.Skia.Converter
         public float Scale { get; set; } = 1f;
         public float ScaleX { get; set; } = 1f;
         public float ScaleY { get; set; } = 1f;
-        public bool Debug { get; set; }
         public bool Quiet { get; set; }
     }
 }

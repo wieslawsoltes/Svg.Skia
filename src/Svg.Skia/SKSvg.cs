@@ -9,8 +9,6 @@ namespace Svg.Skia
     {
         public SKPicture? Picture { get; set; }
 
-        public SvgDocument? Document { get; set; }
-
         internal SKPicture Load(SvgFragment svgFragment)
         {
             float width = svgFragment.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
@@ -34,7 +32,6 @@ namespace Svg.Skia
             {
                 svgDocument.FlushStyles(true);
                 Picture = Load(svgDocument);
-                Document = svgDocument;
                 return Picture;
             }
             return null;
@@ -54,7 +51,6 @@ namespace Svg.Skia
                         {
                             svgDocument.FlushStyles(true);
                             Picture = Load(svgDocument);
-                            Document = svgDocument;
                             return Picture;
                         }
                         return null;
@@ -81,7 +77,6 @@ namespace Svg.Skia
             {
                 svgDocument.FlushStyles(true);
                 Picture = Load(svgDocument);
-                Document = svgDocument;
                 return Picture;
             }
             return null;
@@ -94,7 +89,6 @@ namespace Svg.Skia
             {
                 svgDocument.FlushStyles(true);
                 Picture = Load(svgDocument);
-                Document = svgDocument;
                 return Picture;
             }
             return null;
@@ -154,11 +148,6 @@ namespace Svg.Skia
             {
                 Picture.Dispose();
                 Picture = null;
-            }
-
-            if (Document != null)
-            {
-                Document = null;
             }
         }
 

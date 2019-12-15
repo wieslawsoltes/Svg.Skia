@@ -115,11 +115,6 @@ namespace Svg.Skia.Converter
                 Argument = new Argument<float>(defaultValue: () => 1f)
             };
 
-            var optionDebug = new Option(new[] { "--debug" }, "Write debug output to a file")
-            {
-                Argument = new Argument<bool>()
-            };
-
             var optionQuiet = new Option(new[] { "--quiet" }, "Set verbosity level to quiet")
             {
                 Argument = new Argument<bool>()
@@ -150,7 +145,6 @@ namespace Svg.Skia.Converter
             rootCommand.AddOption(optionScale);
             rootCommand.AddOption(optionScaleX);
             rootCommand.AddOption(optionScaleY);
-            rootCommand.AddOption(optionDebug);
             rootCommand.AddOption(optionQuiet);
             rootCommand.AddOption(optionLoadConfig);
             rootCommand.AddOption(optionSaveConfig);

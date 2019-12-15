@@ -26,7 +26,7 @@ namespace Svg.Skia.Converter
             }
         }
 
-        public static bool Save(FileInfo path, DirectoryInfo? output, string format, int quality, string background, float scale, float scaleX, float scaleY, bool debug, bool quiet, int i)
+        public static bool Save(FileInfo path, DirectoryInfo? output, string format, int quality, string background, float scale, float scaleX, float scaleY, bool quiet, int i)
         {
             try
             {
@@ -46,16 +46,6 @@ namespace Svg.Skia.Converter
                 {
                     if (svg.Load(path.FullName) != null)
                     {
-                        if (debug == true && svg.Document != null)
-                        {
-                            string ymlPath = path.FullName.Remove(path.FullName.Length - extension.Length) + ".yml";
-                            if (output != null && !string.IsNullOrEmpty(output.FullName))
-                            {
-                                ymlPath = Path.Combine(output.FullName, Path.GetFileName(ymlPath));
-                            }
-                            SvgDebug.Print(svg.Document, ymlPath);
-                        }
-
                         if (Enum.TryParse<SKEncodedImageFormat>(format, true, out var skEncodedImageFormat))
                         {
                             if (SKColor.TryParse(background, out var skBackgroundColor))
@@ -158,7 +148,7 @@ namespace Svg.Skia.Converter
                 {
                     var path = paths[i];
 
-                    if (Save(path, settings.Output, settings.Format, settings.Quality, settings.Background, settings.Scale, settings.ScaleX, settings.ScaleY, settings.Debug, settings.Quiet, i))
+                    if (Save(path, settings.Output, settings.Format, settings.Quality, settings.Background, settings.Scale, settings.ScaleX, settings.ScaleY, settings.Quiet, i))
                     {
                         processed++;
                     }
@@ -166,7 +156,7 @@ namespace Svg.Skia.Converter
 
                 sw.Stop();
 
-                if (settings.Quiet == false && paths.Count > 0)
+                if (paths.Count > 0)
                 {
                     Log($"Done: {sw.Elapsed} ({processed}/{paths.Count})");
                 }
