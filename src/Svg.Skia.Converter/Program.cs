@@ -16,7 +16,7 @@ namespace Svg.Skia.Converter
             return objectType == typeof(FileInfo);
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             if (reader.Value is string s)
             {
@@ -25,7 +25,7 @@ namespace Svg.Skia.Converter
             throw new ArgumentOutOfRangeException(nameof(reader));
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             if (!(value is FileInfo fileInfo))
             {
@@ -42,7 +42,7 @@ namespace Svg.Skia.Converter
             return objectType == typeof(DirectoryInfo);
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             if (reader.Value is string s)
             {
@@ -51,7 +51,7 @@ namespace Svg.Skia.Converter
             throw new ArgumentOutOfRangeException(nameof(reader));
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             if (!(value is DirectoryInfo directoryInfo))
             {
