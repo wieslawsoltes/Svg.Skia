@@ -538,35 +538,123 @@ namespace Svg.Skia
 
         internal static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKSize skSize, SKRect skBounds, SvgVisualElement svgVisualElement, CompositeDisposable disposable)
         {
-            float x = svgPatternServer.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgPatternServer);
-            float y = svgPatternServer.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgPatternServer);
-            float width = svgPatternServer.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgPatternServer);
-            float height = svgPatternServer.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgPatternServer);
+            var svgPatternServers = new List<SvgPatternServer>();
+            var currentPatternServer = svgPatternServer;
+            do
+            {
+                svgPatternServers.Add(currentPatternServer);
+                currentPatternServer = SvgDeferredPaintServer.TryGet<SvgPatternServer>(currentPatternServer.InheritGradient, svgVisualElement);
+            } while (currentPatternServer != null);
+
+            SvgPatternServer? firstChildren = null;
+            SvgPatternServer? firstX = null;
+            SvgPatternServer? firstY = null;
+            SvgPatternServer? firstWidth = null;
+            SvgPatternServer? firstHeight = null;
+            SvgPatternServer? firstPatternUnit = null;
+            SvgPatternServer? firstPatternContentUnit = null;
+            SvgPatternServer? firstViewBox = null;
+
+            foreach (var p in svgPatternServers)
+            {
+                if (firstChildren == null)
+                {
+                    if (p.Children.Count > 0)
+                    {
+                        firstChildren = p;
+                    }
+                }
+                if (firstX == null)
+                {
+                    if (p.X != null && p.X != SvgUnit.None)
+                    {
+                        firstX = p;
+                    }
+                }
+                if (firstY == null)
+                {
+                    if (p.Y != null && p.Y != SvgUnit.None)
+                    {
+                        firstY = p;
+                    }
+                }
+                if (firstWidth == null)
+                {
+                    if (p.Width != null && p.Width != SvgUnit.None)
+                    {
+                        firstWidth = p;
+                    }
+                }
+                if (firstHeight == null)
+                {
+                    if (p.Height != null && p.Height != SvgUnit.None)
+                    {
+                        firstHeight = p;
+                    }
+                }
+                if (firstPatternUnit == null)
+                {
+                    if (p.PatternUnits != SvgCoordinateUnits.Inherit)
+                    {
+                        firstPatternUnit = p;
+                    }
+                }
+                if (firstPatternContentUnit == null)
+                {
+                    if (p.PatternContentUnits != SvgCoordinateUnits.Inherit)
+                    {
+                        firstPatternContentUnit = p;
+                    }
+                }
+                if (firstViewBox == null)
+                {
+                    if (p.ViewBox != null && p.ViewBox != SvgViewBox.Empty)
+                    {
+                        firstViewBox = p;
+                    }
+                }
+            }
+
+            if (firstChildren == null || firstWidth == null || firstHeight == null)
+            {
+                return null;
+            }
+            var xUnit = firstX == null ? new SvgUnit(0f) : firstX.X;
+            var yUnit = firstY == null ? new SvgUnit(0f) : firstY.Y;
+            var widthUnit = firstWidth.Width;
+            var heightUnit = firstHeight.Height;
+            var patternUnits = firstPatternUnit == null ? SvgCoordinateUnits.ObjectBoundingBox : firstPatternUnit.PatternUnits;
+            var patternContentUnits = firstPatternContentUnit == null ? SvgCoordinateUnits.UserSpaceOnUse : firstPatternContentUnit.PatternContentUnits;
+            var viewBox = firstViewBox == null ? SvgViewBox.Empty : firstViewBox.ViewBox;
+
+            float x = xUnit.ToDeviceValue(null, UnitRenderingType.Horizontal, svgPatternServer);
+            float y = yUnit.ToDeviceValue(null, UnitRenderingType.Vertical, svgPatternServer);
+            float width = widthUnit.ToDeviceValue(null, UnitRenderingType.Horizontal, svgPatternServer);
+            float height = heightUnit.ToDeviceValue(null, UnitRenderingType.Vertical, svgPatternServer);
 
             if (width <= 0 || height <= 0)
             {
                 return null;
             }
 
-            var patternUnits = svgPatternServer.PatternUnits == SvgCoordinateUnits.Inherit ? SvgCoordinateUnits.ObjectBoundingBox : svgPatternServer.PatternUnits;
             if (patternUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
-                if (svgPatternServer.X.Type != SvgUnitType.Percentage)
+                if (xUnit.Type != SvgUnitType.Percentage)
                 {
                     x *= skBounds.Width;
                 }
 
-                if (svgPatternServer.Y.Type != SvgUnitType.Percentage)
+                if (yUnit.Type != SvgUnitType.Percentage)
                 {
                     y *= skBounds.Height;
                 }
 
-                if (svgPatternServer.Width.Type != SvgUnitType.Percentage)
+                if (widthUnit.Type != SvgUnitType.Percentage)
                 {
                     width *= skBounds.Width;
                 }
 
-                if (svgPatternServer.Height.Type != SvgUnitType.Percentage)
+                if (heightUnit.Type != SvgUnitType.Percentage)
                 {
                     height *= skBounds.Height;
                 }
@@ -586,28 +674,28 @@ namespace Svg.Skia
             var translateTransform = SKMatrix.MakeTranslation(skRectTransformed.Left, skRectTransformed.Top);
             SKMatrix.Concat(ref skLocalMatrix, ref skLocalMatrix, ref translateTransform);
 
-            var patternContentUnits = svgPatternServer.PatternContentUnits == SvgCoordinateUnits.Inherit ? SvgCoordinateUnits.UserSpaceOnUse : svgPatternServer.PatternContentUnits;
-
             SKMatrix skPictureTransform = SKMatrix.MakeIdentity();
-
-            if (!svgPatternServer.ViewBox.Equals(SvgViewBox.Empty))
+            if (!viewBox.Equals(SvgViewBox.Empty))
             {
                 var viewBoxTransform = GetSvgViewBoxTransform(
-                    svgPatternServer.ViewBox,
-                    svgPatternServer.AspectRatio, 
-                    skRectTransformed.Left, 
-                    skRectTransformed.Top, 
-                    skRectTransformed.Width, 
+                    viewBox,
+                    svgPatternServer.AspectRatio,
+                    skRectTransformed.Left,
+                    skRectTransformed.Top,
+                    skRectTransformed.Width,
                     skRectTransformed.Height);
                 SKMatrix.Concat(ref skPictureTransform, ref skPictureTransform, ref viewBoxTransform);
             }
-            else if (patternContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            else
             {
-                var scaleTransform = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
-                SKMatrix.Concat(ref skPictureTransform, ref skPictureTransform, ref scaleTransform);
+                if (patternContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
+                {
+                    var scaleTransform = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
+                    SKMatrix.Concat(ref skPictureTransform, ref skPictureTransform, ref scaleTransform);
+                }
             }
 
-            SKPicture sKPicture = CreatePicture(svgPatternServer.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform);
+            SKPicture sKPicture = CreatePicture(firstChildren.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform);
             disposable.Add(sKPicture);
 
             SKShader sKShader = SKShader.CreatePicture(sKPicture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, skLocalMatrix, sKPicture.CullRect);
