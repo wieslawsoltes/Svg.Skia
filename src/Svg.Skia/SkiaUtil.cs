@@ -551,9 +551,12 @@ namespace Svg.Skia
             float y = svgPatternServer.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgPatternServer);
             float width = svgPatternServer.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgPatternServer);
             float height = svgPatternServer.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgPatternServer);
-            
+
+            var patternUnits = svgPatternServer.PatternUnits == SvgCoordinateUnits.Inherit ? SvgCoordinateUnits.ObjectBoundingBox : svgPatternServer.PatternUnits;
+            var patternContentUnits = svgPatternServer.PatternContentUnits == SvgCoordinateUnits.Inherit ? SvgCoordinateUnits.UserSpaceOnUse : svgPatternServer.PatternContentUnits;
+
             SKRect skRect = SKRect.Create(x, y, width, height);
-            SKRect skRectTransformed = (svgPatternServer.PatternUnits == SvgCoordinateUnits.ObjectBoundingBox) ? BoundsTransform(skRect, skBounds) : skRect;
+            SKRect skRectTransformed = (patternUnits == SvgCoordinateUnits.ObjectBoundingBox) ? BoundsTransform(skRect, skBounds) : skRect;
 
             var skLocalMatrix = SKMatrix.MakeIdentity();
             if (svgPatternServer.PatternTransform != null && svgPatternServer.PatternTransform.Count > 0)
@@ -577,7 +580,7 @@ namespace Svg.Skia
                     skRectTransformed.Height);
                 SKMatrix.Concat(ref skPictureTransform, ref skPictureTransform, ref viewBoxTransform);
             }
-            else if (svgPatternServer.PatternContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            else if (patternContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
                 var scaleTransform = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
                 SKMatrix.Concat(ref skPictureTransform, ref skPictureTransform, ref scaleTransform);
