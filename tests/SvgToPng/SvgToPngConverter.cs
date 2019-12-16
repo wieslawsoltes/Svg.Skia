@@ -334,11 +334,14 @@ namespace SvgToPng
                 string outputFile = Path.Combine(outputPath, inputName + ".png");
                 count++;
                 await saveProgress.SaveStatusProgress(count, items.Count, inputFile, outputFile);
+                item.Skia.Save(outputFile, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1f, 1f);
+                /*
 #if NET461
                 File.WriteAllBytes(outputFile, item.Bytes);
 #else
                 await File.WriteAllBytesAsync(outputFile, item.Bytes);
 #endif
+                */
             }
 
             await saveProgress.SaveStatusDone();
