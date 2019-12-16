@@ -109,17 +109,15 @@ namespace Svg.Skia
 #endif
             float x = svgFragment.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
             float y = svgFragment.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
-            float width = svgFragment.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
-            float height = svgFragment.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
-            var skRectBounds = SKRect.Create(x, y, width, height);
+            var skSize = SkiaUtil.GetDimensions(svgFragment);
+            var skRectBounds = SKRect.Create(x, y, skSize.Width, skSize.Height);
 
             _skCanvas.Save(); _saveCount++;
 
-            var skMatrixViewBox = SkiaUtil.GetSvgViewBoxTransform(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, width, height);
+            var skMatrixViewBox = SkiaUtil.GetSvgViewBoxTransform(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
             var skMatrix = SkiaUtil.GetSKMatrix(svgFragment.Transforms);
             SKMatrix.Concat(ref skMatrix, ref skMatrix, ref skMatrixViewBox);
             SkiaUtil.SetTransform(_skCanvas, skMatrix);
-
 
             var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgFragment, _disposable);
             if (skPaintOpacity != null)
