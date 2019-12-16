@@ -29,7 +29,7 @@ namespace Svg.Skia
             _disposable?.Dispose();
         }
 
-        private void Draw(SvgElement svgElement)
+        internal void Draw(SvgElement svgElement)
         {
             // HACK: Normally 'SvgElement' object itself would call appropriate 'Draw' on current render.
             switch (svgElement)
@@ -96,7 +96,7 @@ namespace Svg.Skia
             }
         }
 
-        private bool CanDraw(SvgVisualElement svgVisualElement)
+        internal bool CanDraw(SvgVisualElement svgVisualElement)
         {
             return svgVisualElement.Visible == true
                 && !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);

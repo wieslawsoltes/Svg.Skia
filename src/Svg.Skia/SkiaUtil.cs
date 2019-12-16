@@ -519,6 +519,80 @@ namespace Svg.Skia
             return sKShader;
         }
 
+        internal static SKPicture CreatePicture(SvgElementCollection svgElementCollection, float width, float height)
+        {
+            var skSize = new SKSize(width, height);
+            var cullRect = SKRect.Create(skSize);
+            using (var skPictureRecorder = new SKPictureRecorder())
+            using (var skCanvas = skPictureRecorder.BeginRecording(cullRect))
+            using (var renderer = new SKSvgRenderer(skCanvas, skSize))
+            {
+                foreach (var svgElement in svgElementCollection)
+                {
+                    renderer.Draw(svgElement);
+                }
+                return skPictureRecorder.EndRecording();
+            }
+        }
+
+        internal static SKShader CreatePicture(SvgPatternServer svgPatternServer, SKSize skSize, SKRect skBounds, SvgVisualElement svgVisualElement, CompositeDisposable disposable)
+        {
+            float x = svgPatternServer.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgPatternServer);
+            float y = svgPatternServer.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgPatternServer);
+            float width = svgPatternServer.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgPatternServer);
+            float height = svgPatternServer.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgPatternServer);
+
+            SKShader sKShader;
+            SKPicture sKPicture;
+
+            // TODO:
+
+            if (svgPatternServer.PatternUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            {
+                var skBoundingBoxTransform = new SKMatrix()
+                {
+                    ScaleX = skBounds.Width,
+                    SkewY = 0f,
+                    SkewX = 0f,
+                    ScaleY = skBounds.Height,
+                    TransX = skBounds.Left,
+                    TransY = skBounds.Top,
+                    Persp0 = 0,
+                    Persp1 = 0,
+                    Persp2 = 1
+                };
+
+                if (svgPatternServer.PatternTransform != null && svgPatternServer.PatternTransform.Count > 0)
+                {
+                    var patternTransform = GetSKMatrix(svgPatternServer.PatternTransform);
+                    SKMatrix.Concat(ref skBoundingBoxTransform, ref skBoundingBoxTransform, ref patternTransform);
+                }
+
+                sKPicture = CreatePicture(svgPatternServer.Children, width, height);
+                disposable.Add(sKPicture);
+                sKShader = SKShader.CreatePicture(sKPicture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, skBoundingBoxTransform, sKPicture.CullRect);
+            }
+            else
+            {
+                if (svgPatternServer.PatternTransform != null && svgPatternServer.PatternTransform.Count > 0)
+                {
+                    var patternTransform = GetSKMatrix(svgPatternServer.PatternTransform);
+
+                    sKPicture = CreatePicture(svgPatternServer.Children, width, height);
+                    disposable.Add(sKPicture);
+                    sKShader = SKShader.CreatePicture(sKPicture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, patternTransform, sKPicture.CullRect);
+                }
+                else
+                {
+                    sKPicture = CreatePicture(svgPatternServer.Children, width, height);
+                    disposable.Add(sKPicture);
+                    sKShader = SKShader.CreatePicture(sKPicture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, sKPicture.CullRect);
+                }
+            }
+
+            return sKShader;
+        }
+
         internal static void SetFill(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
             var server = svgVisualElement.Fill;
@@ -539,7 +613,12 @@ namespace Svg.Skia
                     break;
                 case SvgPatternServer svgPatternServer:
                     {
-                        // TODO:
+                        var skShader = CreatePicture(svgPatternServer, skSize, skBounds, svgVisualElement, disposable);
+                        if (skShader != null)
+                        {
+                            disposable.Add(skShader);
+                            skPaint.Shader = skShader;
+                        }
                     }
                     break;
                 case SvgLinearGradientServer svgLinearGradientServer:
@@ -618,7 +697,12 @@ namespace Svg.Skia
                     break;
                 case SvgPatternServer svgPatternServer:
                     {
-                        // TODO:
+                        var skShader = CreatePicture(svgPatternServer, skSize, skBounds, svgVisualElement, disposable);
+                        if (skShader != null)
+                        {
+                            disposable.Add(skShader);
+                            skPaint.Shader = skShader;
+                        }
                     }
                     break;
                 case SvgLinearGradientServer svgLinearGradientServer:
