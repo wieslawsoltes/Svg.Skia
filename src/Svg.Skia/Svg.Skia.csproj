@@ -14,7 +14,7 @@
     <Description>Skia SVG rendering library.</Description>
     <PackageId>Svg.Skia</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes</PackageTags>
+    <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia</PackageTags>
   </PropertyGroup>
 
   <Import Project="..\..\build\Base.props" />
