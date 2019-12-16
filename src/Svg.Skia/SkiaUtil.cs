@@ -479,16 +479,16 @@ namespace Svg.Skia
         internal static SKShader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, SKSize skSize, SKRect skBounds, SvgVisualElement svgVisualElement)
         {
             var skStart = new SKPoint(
-                NormalizeSvgUnit(svgRadialGradientServer.FocalX, svgRadialGradientServer.GradientUnits)
+                NormalizeSvgUnit(svgRadialGradientServer.CenterX, svgRadialGradientServer.GradientUnits)
                     .ToDeviceValue(null, UnitRenderingType.Horizontal, svgRadialGradientServer),
-                NormalizeSvgUnit(svgRadialGradientServer.FocalY, svgRadialGradientServer.GradientUnits)
+                NormalizeSvgUnit(svgRadialGradientServer.CenterY, svgRadialGradientServer.GradientUnits)
                     .ToDeviceValue(null, UnitRenderingType.Vertical, svgRadialGradientServer));
             var startRadius = 0f;
 
             var skEnd = new SKPoint(
-                NormalizeSvgUnit(svgRadialGradientServer.CenterX, svgRadialGradientServer.GradientUnits)
+                NormalizeSvgUnit(svgRadialGradientServer.FocalX, svgRadialGradientServer.GradientUnits)
                     .ToDeviceValue(null, UnitRenderingType.Horizontal, svgRadialGradientServer),
-                NormalizeSvgUnit(svgRadialGradientServer.CenterY, svgRadialGradientServer.GradientUnits)
+                NormalizeSvgUnit(svgRadialGradientServer.FocalY, svgRadialGradientServer.GradientUnits)
                     .ToDeviceValue(null, UnitRenderingType.Vertical, svgRadialGradientServer));
             var endRadius =
                 NormalizeSvgUnit(svgRadialGradientServer.Radius, svgRadialGradientServer.GradientUnits)
