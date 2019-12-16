@@ -15,6 +15,45 @@ namespace Svg.Skia
 {
     internal static class SkiaUtil
     {
+        internal static SKSize GetDimensions(SvgFragment svgFragment)
+        {
+            float w, h;
+            var isWidthperc = svgFragment.Width.Type == SvgUnitType.Percentage;
+            var isHeightperc = svgFragment.Height.Type == SvgUnitType.Percentage;
+
+            var bounds = new SKRect();
+            if (isWidthperc || isHeightperc)
+            {
+                if (svgFragment.ViewBox.Width > 0 && svgFragment.ViewBox.Height > 0)
+                {
+                    bounds = new SKRect(svgFragment.ViewBox.MinX, svgFragment.ViewBox.MinY, svgFragment.ViewBox.Width, svgFragment.ViewBox.Height);
+                }
+                else
+                {
+                    // TODO: Calculate `bounds` from `Children` bounds.
+                }
+            }
+
+            if (isWidthperc)
+            {
+                w = (bounds.Width + bounds.Left) * (svgFragment.Width.Value * 0.01f);
+            }
+            else
+            {
+                w = svgFragment.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
+            }
+            if (isHeightperc)
+            {
+                h = (bounds.Height + bounds.Top) * (svgFragment.Height.Value * 0.01f);
+            }
+            else
+            {
+                h = svgFragment.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
+            }
+
+            return new SKSize(w, h);
+        }
+
         internal static T? GetReference<T>(SvgElement svgElement, Uri uri) where T : SvgElement
         {
             if (uri == null)
