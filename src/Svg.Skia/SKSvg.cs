@@ -11,9 +11,7 @@ namespace Svg.Skia
 
         internal SKPicture Load(SvgFragment svgFragment)
         {
-            float width = svgFragment.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
-            float height = svgFragment.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
-            var skSize = new SKSize(width, height);
+            var skSize = SkiaUtil.GetDimensions(svgFragment);
             var cullRect = SKRect.Create(skSize);
             using (var skPictureRecorder = new SKPictureRecorder())
             using (var skCanvas = skPictureRecorder.BeginRecording(cullRect))
