@@ -31,7 +31,6 @@ namespace Svg.Skia
 
         internal void Draw(SvgElement svgElement)
         {
-            // HACK: Normally 'SvgElement' object itself would call appropriate 'Draw' on current render.
             switch (svgElement)
             {
                 case SvgFragment svgFragment:
