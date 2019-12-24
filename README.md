@@ -27,6 +27,7 @@ You can find the packages here [NuGet](https://www.nuget.org/packages/Svg.Skia/)
 
 or by using nightly build feed:
 * Add `https://www.myget.org/F/svgskia-nightly/api/v2` to your package sources
+* Alternative nightly build feed `https://pkgs.dev.azure.com/wieslawsoltes/GitHub/_packaging/CI/nuget/v3/index.json`
 * Update your package using `Svg.Skia` feed
 
 and install the package like this:
