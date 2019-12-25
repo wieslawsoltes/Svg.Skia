@@ -45,6 +45,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "props", "props", "{5BFEF4F8
 		build\ReferenceAssemblies.props = build\ReferenceAssemblies.props
 		build\SkiaSharp.Linux.props = build\SkiaSharp.Linux.props
 		build\SkiaSharp.props = build\SkiaSharp.props
+		build\SkiaSharp.Views.props = build\SkiaSharp.Views.props
 		build\Svg.props = build\Svg.props
 		build\System.CommandLine.props = build\System.CommandLine.props
 		build\XUnit.props = build\XUnit.props
