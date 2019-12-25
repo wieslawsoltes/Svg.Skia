@@ -42,6 +42,8 @@ namespace Svg.Skia.Converter
                     imagePath = Path.Combine(output.FullName, Path.GetFileName(imagePath));
                 }
 
+                Directory.SetCurrentDirectory(Path.GetDirectoryName(path.FullName));
+
                 using (var svg = new SKSvg())
                 {
                     if (svg.Load(path.FullName) != null)
