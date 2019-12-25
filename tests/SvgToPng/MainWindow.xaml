@@ -54,7 +54,7 @@
             </Border>
         </Grid>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="4" Grid.Column="2" Grid.Row="1">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="4">
+            <StackPanel x:Name="StackPanelStatus" Visibility="Collapsed" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="4">
                 <TextBlock x:Name="TextProgress" Text="" Padding="0" Margin="2"/>
                 <TextBlock x:Name="TextInputFile" Text="" Padding="0" Margin="2" TextTrimming="WordEllipsis" TextWrapping="NoWrap"/>
                 <TextBlock x:Name="TextOutputFile" Text="" Padding="0" Margin="2" TextTrimming="WordEllipsis" TextWrapping="NoWrap"/>
