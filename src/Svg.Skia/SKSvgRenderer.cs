@@ -55,9 +55,6 @@ namespace Svg.Skia
                 case SvgRectangle svgRectangle:
                     DrawRectangle(svgRectangle);
                     break;
-                case SvgMarker svgMarker:
-                    DrawMarker(svgMarker);
-                    break;
                 case SvgGlyph svgGlyph:
                     DrawGlyph(svgGlyph);
                     break;
