@@ -85,7 +85,7 @@ namespace SvgToPng
         {
             await convertProgress.ConvertStatusReset();
             int count = 0;
-            var fullReferencePath = Path.GetFullPath(referencePath);
+            var fullReferencePath = string.IsNullOrWhiteSpace(referencePath) ? default : Path.GetFullPath(referencePath);
 
             // Items
 
@@ -125,21 +125,24 @@ namespace SvgToPng
                         Debug.WriteLine(ex.StackTrace);
                     }
 
-                    var referenceImagePath = Path.Combine(fullReferencePath, item.Name + ".png");
-                    if (File.Exists(referenceImagePath))
+                    if (!string.IsNullOrWhiteSpace(fullReferencePath))
                     {
-                        try
+                        var referenceImagePath = Path.Combine(fullReferencePath, item.Name + ".png");
+                        if (File.Exists(referenceImagePath))
                         {
-                            var image = new BitmapImage(new Uri(referenceImagePath));
-                            image.Freeze();
-                            item.Image = image;
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine($"Failed to load reference image: {referenceImagePath}");
-                            Debug.WriteLine(ex.Message);
-                            Debug.WriteLine(ex.StackTrace);
-                        }
+                            try
+                            {
+                                var image = new BitmapImage(new Uri(referenceImagePath));
+                                image.Freeze();
+                                item.Image = image;
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine($"Failed to load reference image: {referenceImagePath}");
+                                Debug.WriteLine(ex.Message);
+                                Debug.WriteLine(ex.StackTrace);
+                            }
+                        } 
                     }
                 });
             }
