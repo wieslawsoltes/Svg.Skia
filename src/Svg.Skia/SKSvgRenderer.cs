@@ -104,7 +104,6 @@ namespace Svg.Skia
             float x = svgFragment.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
             float y = svgFragment.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
             var skSize = SkiaUtil.GetDimensions(svgFragment);
-            var skRectBounds = SKRect.Create(x, y, skSize.Width, skSize.Height);
 
             _skCanvas.Save();
 
