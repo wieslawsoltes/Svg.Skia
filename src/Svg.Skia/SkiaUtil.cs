@@ -152,7 +152,7 @@ namespace Svg.Skia
                         {
                             float rx = svgArcSegment.RadiusX;
                             float ry = svgArcSegment.RadiusY;
-                            float xAxisRotate = (float)(svgArcSegment.Angle * Math.PI / 180.0);
+                            float xAxisRotate = svgArcSegment.Angle;
                             var largeArc = svgArcSegment.Size == SvgArcSize.Small ? SKPathArcSize.Small : SKPathArcSize.Large;
                             var sweep = svgArcSegment.Sweep == SvgArcSweep.Negative ? SKPathDirection.CounterClockwise : SKPathDirection.Clockwise;
                             float x = (float)svgArcSegment.End.X;
