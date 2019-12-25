@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
         mc:Ignorable="d"
-        WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="CenterScreen" WindowState="Maximized"
         UseLayoutRounding="True" SnapsToDevicePixels="True"
         TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType"
         RenderOptions.BitmapScalingMode="HighQuality"
@@ -54,13 +54,11 @@
             </Border>
         </Grid>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="4" Grid.Column="2" Grid.Row="1">
-            <GroupBox x:Name="status" Header="Status">
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="4">
-                    <TextBlock x:Name="TextProgress" Text="" Padding="0" Margin="2"/>
-                    <TextBlock x:Name="TextInputFile" Text="" Padding="0" Margin="2" TextTrimming="WordEllipsis" TextWrapping="NoWrap"/>
-                    <TextBlock x:Name="TextOutputFile" Text="" Padding="0" Margin="2" TextTrimming="WordEllipsis" TextWrapping="NoWrap"/>
-                </StackPanel>
-            </GroupBox>
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="4">
+                <TextBlock x:Name="TextProgress" Text="" Padding="0" Margin="2"/>
+                <TextBlock x:Name="TextInputFile" Text="" Padding="0" Margin="2" TextTrimming="WordEllipsis" TextWrapping="NoWrap"/>
+                <TextBlock x:Name="TextOutputFile" Text="" Padding="0" Margin="2" TextTrimming="WordEllipsis" TextWrapping="NoWrap"/>
+            </StackPanel>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -77,8 +75,8 @@
             </Grid>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="ButtonClear" Content="Clear" Padding="4" Margin="2" Width="100" Click="ButtonClear_Click"/>
-                <Button x:Name="ButtonAdd" Content="Add..." Padding="4" Margin="2" Width="100" Click="ButtonAdd_Click"/>
                 <Button x:Name="ButtonSavePng" Content="Save as Png" Padding="4" Margin="2" Width="100" Click="ButtonSavePng_Click"/>
+                <Button x:Name="ButtonAdd" Content="Add..." Padding="4" Margin="2" Width="100" Click="ButtonAdd_Click"/>
             </StackPanel>
         </StackPanel>
     </Grid>
