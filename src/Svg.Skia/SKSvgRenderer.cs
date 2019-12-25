@@ -157,16 +157,6 @@ namespace Svg.Skia
                 _disposable.Add(skImage);
             }
 
-            _skCanvas.Save();
-
-            var skMatrix = SkiaUtil.GetSKMatrix(svgImage.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgImage, _disposable);
-
-            var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgImage, _disposable);
-
-            var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgImage, _disposable);
-
             SKRect srcRect = default;
 
             if (skImage != null)
@@ -182,8 +172,6 @@ namespace Svg.Skia
 
             var destClip = SKRect.Create(location.X, location.Y, width, height);
             var destRect = destClip;
-
-            _skCanvas.ClipRect(destClip, SKClipOperation.Intersect);
 
             var aspectRatio = svgImage.AspectRatio;
             if (aspectRatio.Align != SvgPreserveAspectRatio.none)
@@ -243,6 +231,18 @@ namespace Svg.Skia
                     srcRect.Width * fScaleX, srcRect.Height * fScaleY);
             }
 
+            _skCanvas.Save();
+
+            var skMatrix = SkiaUtil.GetSKMatrix(svgImage.Transforms);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgImage, _disposable);
+
+            var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgImage, _disposable);
+
+            var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgImage, _disposable);
+
+            _skCanvas.ClipRect(destClip, SKClipOperation.Intersect);
+
             if (skImage != null)
             {
                 _skCanvas.DrawImage(skImage, srcRect, destRect);
@@ -250,7 +250,20 @@ namespace Svg.Skia
 
             if (svgFragment != null)
             {
+                _skCanvas.Save();
+
+                float dx = destRect.Left;
+                float dy = destRect.Top;
+                float sx = destRect.Width / srcRect.Width;
+                float sy = destRect.Height / srcRect.Height;
+                var skTranslationMatrix = SKMatrix.MakeTranslation(dx, dy);
+                var skScaleMatrix = SKMatrix.MakeScale(sx, sy);
+                SKMatrix.Concat(ref skTranslationMatrix, ref skTranslationMatrix, ref skScaleMatrix);
+                SkiaUtil.SetTransform(_skCanvas, skTranslationMatrix);
+
                 DrawFragment(svgFragment);
+
+                _skCanvas.Restore();
             }
 
             if (skPaintFilter != null)
