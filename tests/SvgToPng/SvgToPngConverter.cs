@@ -3,12 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
-using PuppeteerSharp;
-using PuppeteerSharp.Media;
 using SkiaSharp;
 using Svg.Skia;
 
@@ -18,11 +14,8 @@ namespace SvgToPng
     {
         public string Name { get; set; }
         public string Path { get; set; }
-        public string Svg { get; set; }
-        public byte[] Bytes { get; set; }
+        public SKSvg Svg { get; set; }
         public BitmapImage Image { get; set; }
-        public SKSvg Skia { get; set; }
-        public SKPicture Picture { get; set; }
     }
 
     public interface IConvertProgress
@@ -41,90 +34,6 @@ namespace SvgToPng
 
     public static class SvgToPngConverter
     {
-        public static BitmapImage LoadImage(byte[] imageData)
-        {
-            if (imageData == null || imageData.Length == 0)
-            {
-                return null;
-            }
-
-            var image = new BitmapImage();
-
-            using (var mem = new MemoryStream(imageData))
-            {
-                mem.Position = 0;
-                image.BeginInit();
-                image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
-                image.CacheOption = BitmapCacheOption.OnLoad;
-                image.UriSource = null;
-                image.StreamSource = mem;
-                image.EndInit();
-            }
-
-            image.Freeze();
-            return image;
-        }
-
-        public static BitmapImage LoadImage(string path)
-        {
-            var image = new BitmapImage(new Uri(path));
-            image.Freeze();
-            return image;
-        }
-
-        public static async Task<byte[]> GetBytes(Page page, string svg, bool clipPage = false)
-        {
-            await page.SetContentAsync(svg);
-
-            var elements = await page.QuerySelectorAllAsync("svg");
-            var svgElement = elements.FirstOrDefault();
-            if (svgElement == null)
-            {
-                return null;
-            }
-            var boundingBox = await svgElement.BoundingBoxAsync();
-            decimal x = boundingBox.X;
-            decimal y = boundingBox.Y;
-            decimal width = boundingBox.Width;
-            decimal height = boundingBox.Height;
-
-            await page.SetViewportAsync(new ViewPortOptions
-            {
-                Width = (int)width,
-                Height = (int)height
-            });
-
-            var options = new ScreenshotOptions()
-            {
-                BurstMode = false,
-                OmitBackground = true,
-                Quality = null,
-                Type = ScreenshotType.Png
-            };
-
-            if (clipPage == true)
-            {
-                var clip = new Clip()
-                {
-                    X = x,
-                    Y = y,
-                    Width = width,
-                    Height = height
-                };
-
-                options.Clip = clip;
-                options.FullPage = false;
-            }
-            else
-            {
-                options.Clip = null;
-                options.FullPage = true;
-            }
-
-            var bytes = await page.ScreenshotDataAsync(options);
-            return bytes;
-        }
-
         public static IEnumerable<string> GetFiles(string inputPath)
         {
             foreach (var file in Directory.EnumerateFiles(inputPath, "*.svg"))
@@ -178,56 +87,21 @@ namespace SvgToPng
 
             // Items
 
-            await convertProgress.ConvertStatus("Loading svg...");
+            await convertProgress.ConvertStatus("Loading items...");
 
             foreach (var inputFile in inputFiles)
             {
-                string inputName = Path.GetFileNameWithoutExtension(inputFile);
-
-                string svg = await Task.Factory.StartNew<string>(() =>
-                {
-                    try
-                    {
-                        string extension = Path.GetExtension(inputFile);
-                        switch (extension.ToLower())
-                        {
-                            default:
-                            case ".svg":
-                                {
-                                    return File.ReadAllText(inputFile);
-                                }
-                            case ".svgz":
-                                {
-                                    using (var fileStream = File.OpenRead(inputFile))
-                                    using (var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress))
-                                    using (var sr = new StreamReader(gzipStream))
-                                    {
-                                        return sr.ReadToEnd();
-                                    }
-                                }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"Failed to read svg file: {inputFile}");
-                        Debug.WriteLine(ex.Message);
-                        Debug.WriteLine(ex.StackTrace);
-                    }
-
-                    return string.Empty;
-                });
-
+                var inputName = Path.GetFileNameWithoutExtension(inputFile);
                 var item = new Item()
                 {
                     Name = inputName,
-                    Path = inputFile,
-                    Svg = svg
+                    Path = inputFile
                 };
                 items.Add(item);
             }
 
             // Svg.Skia
-#if true
+
             await convertProgress.ConvertStatus("Converting svg using Svg.Skia...");
 
             count = 0;
@@ -239,10 +113,8 @@ namespace SvgToPng
                 {
                     try
                     {
-                        var skia = new SKSvg();
-                        var picture = skia.FromSvg(item.Svg);
-                        item.Skia = skia;
-                        item.Picture = picture;
+                        item.Svg = new SKSvg();
+                        item.Svg.Load(item.Path);
                     }
                     catch (Exception ex)
                     {
@@ -250,75 +122,26 @@ namespace SvgToPng
                         Debug.WriteLine(ex.Message);
                         Debug.WriteLine(ex.StackTrace);
                     }
-                });
-            }
-#endif
-            // Reference Png
-#if true
-            if (!string.IsNullOrEmpty(referencePath) && Directory.Exists(referencePath))
-            {
-                await convertProgress.ConvertStatus("Loading references...");
 
-                count = 0;
-                foreach (var item in items)
-                {
-                    count++;
                     var referenceImagePath = Path.Combine(referencePath, item.Name + ".png");
                     if (File.Exists(referenceImagePath))
                     {
-                        await convertProgress.ConvertStatusProgress(count, inputFiles.Count, referenceImagePath);
-                        await Task.Factory.StartNew(() =>
+                        try
                         {
-                            try
-                            {
-                                var image = LoadImage(referenceImagePath);
-                                item.Bytes = null;
-                                item.Image = image;
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine($"Failed to load reference image: {referenceImagePath}");
-                                Debug.WriteLine(ex.Message);
-                                Debug.WriteLine(ex.StackTrace);
-                            }
-                        });
+                            var image = new BitmapImage(new Uri(referenceImagePath));
+                            image.Freeze();
+                            item.Image = image;
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Failed to load reference image: {referenceImagePath}");
+                            Debug.WriteLine(ex.Message);
+                            Debug.WriteLine(ex.StackTrace);
+                        }
                     }
-                }
+                });
             }
-#endif
-            // Google Chrome
-#if false
-            await convertProgress.ConvertStatus("Converting svg using chrome...");
 
-            count = 0;
-            await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision);
-            var launchOptions = new LaunchOptions
-            {
-                Headless = true
-            };
-            using (var browser = await Puppeteer.LaunchAsync(launchOptions))
-            using (var page = await browser.NewPageAsync())
-            {
-                foreach (var item in items)
-                {
-                    try
-                    {
-                        count++;
-                        await convertProgress.ConvertStatusProgress(count, inputFiles.Count, item.Path);
-                        var bytes = await GetBytes(page, item.Svg);
-                        var image = LoadImage(bytes);
-                        item.Bytes = bytes;
-                        item.Image = image;
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"Failed to capture: {item.Path}");
-                        Debug.WriteLine(ex.Message);
-                        Debug.WriteLine(ex.StackTrace);
-                    }
-                }
-            }
-#endif
             await convertProgress.ConvertStatus("Done");
         }
 
@@ -334,14 +157,7 @@ namespace SvgToPng
                 string outputFile = Path.Combine(outputPath, inputName + ".png");
                 count++;
                 await saveProgress.SaveStatusProgress(count, items.Count, inputFile, outputFile);
-                item.Skia.Save(outputFile, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1f, 1f);
-                /*
-#if NET461
-                File.WriteAllBytes(outputFile, item.Bytes);
-#else
-                await File.WriteAllBytesAsync(outputFile, item.Bytes);
-#endif
-                */
+                item.Svg.Save(outputFile, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1f, 1f);
             }
 
             await saveProgress.SaveStatusDone();
