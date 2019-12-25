@@ -694,37 +694,6 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawMarker(SvgMarker svgMarker)
-        {
-            if (!CanDraw(svgMarker))
-            {
-                return;
-            }
-
-            _skCanvas.Save();
-
-            var skMatrix = SkiaUtil.GetSKMatrix(svgMarker.Transforms);
-            SkiaUtil.SetTransform(_skCanvas, skMatrix);
-            SkiaUtil.SetClipPath(_skCanvas, svgMarker, _disposable);
-
-            var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgMarker, _disposable);
-            var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgMarker, _disposable);
-
-            // TODO:
-
-            if (skPaintFilter != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            _skCanvas.Restore();
-        }
-
         public void DrawGlyph(SvgGlyph svgGlyph)
         {
             if (!CanDraw(svgGlyph))
