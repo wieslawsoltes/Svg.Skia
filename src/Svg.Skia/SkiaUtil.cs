@@ -437,56 +437,50 @@ namespace Svg.Skia
             var skColors = colors.ToArray();
             float[] skColorPos = colorPos.ToArray();
 
-            SKShader sKShader;
-
             if (skColors.Length == 0)
             {
-                sKShader = SKShader.CreateColor(SKColors.Transparent);
+                return SKShader.CreateColor(SKColors.Transparent);
             }
             else if (skColors.Length == 1)
             {
-                sKShader = SKShader.CreateColor(skColors[0]);
+                return SKShader.CreateColor(skColors[0]);
+            }
+
+            if (svgLinearGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            {
+                var skBoundingBoxTransform = new SKMatrix()
+                {
+                    ScaleX = skBounds.Width,
+                    SkewY = 0f,
+                    SkewX = 0f,
+                    ScaleY = skBounds.Height,
+                    TransX = skBounds.Left,
+                    TransY = skBounds.Top,
+                    Persp0 = 0,
+                    Persp1 = 0,
+                    Persp2 = 1
+                };
+
+                if (svgLinearGradientServer.GradientTransform != null && svgLinearGradientServer.GradientTransform.Count > 0)
+                {
+                    var gradientTransform = GetSKMatrix(svgLinearGradientServer.GradientTransform);
+                    SKMatrix.Concat(ref skBoundingBoxTransform, ref skBoundingBoxTransform, ref gradientTransform);
+                }
+
+                return SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode, skBoundingBoxTransform);
             }
             else
             {
-                if (svgLinearGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
+                if (svgLinearGradientServer.GradientTransform != null && svgLinearGradientServer.GradientTransform.Count > 0)
                 {
-                    var skBoundingBoxTransform = new SKMatrix()
-                    {
-                        ScaleX = skBounds.Width,
-                        SkewY = 0f,
-                        SkewX = 0f,
-                        ScaleY = skBounds.Height,
-                        TransX = skBounds.Left,
-                        TransY = skBounds.Top,
-                        Persp0 = 0,
-                        Persp1 = 0,
-                        Persp2 = 1
-                    };
-
-                    if (svgLinearGradientServer.GradientTransform != null && svgLinearGradientServer.GradientTransform.Count > 0)
-                    {
-                        var gradientTransform = GetSKMatrix(svgLinearGradientServer.GradientTransform);
-                        SKMatrix.Concat(ref skBoundingBoxTransform, ref skBoundingBoxTransform, ref gradientTransform);
-                    }
-
-                    sKShader = SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode, skBoundingBoxTransform);
+                    var gradientTransform = GetSKMatrix(svgLinearGradientServer.GradientTransform);
+                    return SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode, gradientTransform);
                 }
                 else
                 {
-                    if (svgLinearGradientServer.GradientTransform != null && svgLinearGradientServer.GradientTransform.Count > 0)
-                    {
-                        var gradientTransform = GetSKMatrix(svgLinearGradientServer.GradientTransform);
-                        sKShader = SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode, gradientTransform);
-                    }
-                    else
-                    {
-                        sKShader = SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode);
-                    }
+                    return SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode);
                 }
             }
-
-            return sKShader;
         }
 
         internal static SKShader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, SKSize skSize, SKRect skBounds, SvgVisualElement svgVisualElement)
@@ -530,71 +524,65 @@ namespace Svg.Skia
             var skColors = colors.ToArray();
             float[] skColorPos = colorPos.ToArray();
 
-            SKShader sKShader;
-
             if (skColors.Length == 0)
             {
-                sKShader = SKShader.CreateColor(SKColors.Transparent);
+                return SKShader.CreateColor(SKColors.Transparent);
             }
             else if (skColors.Length == 1)
             {
-                sKShader = SKShader.CreateColor(skColors[0]);
+                return SKShader.CreateColor(skColors[0]);
+            }
+
+            if (svgRadialGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            {
+                var skBoundingBoxTransform = new SKMatrix()
+                {
+                    ScaleX = skBounds.Width,
+                    SkewY = 0f,
+                    SkewX = 0f,
+                    ScaleY = skBounds.Height,
+                    TransX = skBounds.Left,
+                    TransY = skBounds.Top,
+                    Persp0 = 0,
+                    Persp1 = 0,
+                    Persp2 = 1
+                };
+
+                if (svgRadialGradientServer.GradientTransform != null 
+                    && svgRadialGradientServer.GradientTransform.Count > 0)
+                {
+                    var gradientTransform = GetSKMatrix(svgRadialGradientServer.GradientTransform);
+                    SKMatrix.Concat(ref skBoundingBoxTransform, ref skBoundingBoxTransform, ref gradientTransform);
+                }
+
+                return SKShader.CreateTwoPointConicalGradient(
+                    skStart, startRadius, 
+                    skEnd, endRadius, 
+                    skColors, skColorPos, 
+                    shaderTileMode, 
+                    skBoundingBoxTransform);
             }
             else
             {
-                if (svgRadialGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
+                if (svgRadialGradientServer.GradientTransform != null 
+                    && svgRadialGradientServer.GradientTransform.Count > 0)
                 {
-                    var skBoundingBoxTransform = new SKMatrix()
-                    {
-                        ScaleX = skBounds.Width,
-                        SkewY = 0f,
-                        SkewX = 0f,
-                        ScaleY = skBounds.Height,
-                        TransX = skBounds.Left,
-                        TransY = skBounds.Top,
-                        Persp0 = 0,
-                        Persp1 = 0,
-                        Persp2 = 1
-                    };
-
-                    if (svgRadialGradientServer.GradientTransform != null 
-                        && svgRadialGradientServer.GradientTransform.Count > 0)
-                    {
-                        var gradientTransform = GetSKMatrix(svgRadialGradientServer.GradientTransform);
-                        SKMatrix.Concat(ref skBoundingBoxTransform, ref skBoundingBoxTransform, ref gradientTransform);
-                    }
-
-                    sKShader = SKShader.CreateTwoPointConicalGradient(
+                    var gradientTransform = GetSKMatrix(svgRadialGradientServer.GradientTransform);
+                    return SKShader.CreateTwoPointConicalGradient(
                         skStart, startRadius, 
                         skEnd, endRadius, 
                         skColors, skColorPos, 
-                        shaderTileMode, 
-                        skBoundingBoxTransform);
+                        shaderTileMode, gradientTransform);
                 }
                 else
                 {
-                    if (svgRadialGradientServer.GradientTransform != null 
-                        && svgRadialGradientServer.GradientTransform.Count > 0)
-                    {
-                        var gradientTransform = GetSKMatrix(svgRadialGradientServer.GradientTransform);
-                        sKShader = SKShader.CreateTwoPointConicalGradient(
-                            skStart, startRadius, 
-                            skEnd, endRadius, 
-                            skColors, skColorPos, 
-                            shaderTileMode, gradientTransform);
-                    }
-                    else
-                    {
-                        sKShader = SKShader.CreateTwoPointConicalGradient(
-                            skStart, startRadius, 
-                            skEnd, endRadius, 
-                            skColors, skColorPos, 
-                            shaderTileMode);
-                    }
+                    return SKShader.CreateTwoPointConicalGradient(
+                        skStart, startRadius, 
+                        skEnd, endRadius, 
+                        skColors, skColorPos, 
+                        shaderTileMode);
                 }
             }
-
-            return sKShader;
         }
 
         internal static SKPicture CreatePicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix sKMatrix)
