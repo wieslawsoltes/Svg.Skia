@@ -18,6 +18,7 @@
     <PackageId>Svg.Skia.Converter</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>svg;convert;converter;png;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia</PackageTags>
+    <ApplicationIcon>SvgToPng.ico</ApplicationIcon>
   </PropertyGroup>
 
   <Import Project="..\..\build\Base.props" />
@@ -34,6 +35,10 @@
 
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="SvgToPng.ico" />
   </ItemGroup>
 
 </Project>
