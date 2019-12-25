@@ -15,13 +15,11 @@ namespace SvgToPng
         public MainWindow()
         {
             InitializeComponent();
-
-            var currentDirectory = Directory.GetCurrentDirectory();
-            var outputPath = Path.Combine(currentDirectory, "png");
-            TextOutputPath.Text = outputPath;
-
+#if DEBUG
+            TextOutputPath.Text = Path.Combine(Directory.GetCurrentDirectory(), "png");
+            TextReferencePath.Text = @"c:\DOWNLOADS\GitHub\Svg.Skia\externals\SVG\Tests\W3CTestSuite\png\";
+#endif
             this.Loaded += MainWindow_Loaded;
-
             Items = new ObservableCollection<Item>();
             DataContext = this;
         }
@@ -42,7 +40,7 @@ namespace SvgToPng
         {
             var canvas = e.Surface.Canvas;
 
-            //canvas.Clear(SKColors.White);
+            canvas.Clear(SKColors.White);
 
             if (items.SelectedItem is Item item)
             {
