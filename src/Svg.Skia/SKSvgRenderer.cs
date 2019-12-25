@@ -778,20 +778,16 @@ namespace Svg.Skia
 
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgLine, _disposable);
 
-            float x0 = svgLine.StartX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgLine);
-            float y0 = svgLine.StartY.ToDeviceValue(null, UnitRenderingType.Vertical, svgLine);
-            float x1 = svgLine.EndX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgLine);
-            float y1 = svgLine.EndY.ToDeviceValue(null, UnitRenderingType.Vertical, svgLine);
-            float x = Math.Min(x0, x1);
-            float y = Math.Min(y0, y1);
-            float width = Math.Abs(x0 - x1);
-            float height = Math.Abs(y0 - y1);
-            var skRectBounds = SKRect.Create(x, y, width, height);
-
-            if (SkiaUtil.IsValidStroke(svgLine))
+            var skPath = SkiaUtil.ToSKPath(svgLine, svgLine.FillRule, _disposable);
+            if (skPath != null && !skPath.IsEmpty)
             {
-                var skPaint = SkiaUtil.GetStrokeSKPaint(svgLine, _skSize, skRectBounds, _disposable);
-                _skCanvas.DrawLine(x0, y0, x1, y1, skPaint);
+                var skBounds = skPath.Bounds;
+
+                if (SkiaUtil.IsValidStroke(svgLine))
+                {
+                    var skPaint = SkiaUtil.GetStrokeSKPaint(svgLine, _skSize, skBounds, _disposable);
+                    _skCanvas.DrawPath(skPath, skPaint);
+                }
             }
 
             if (skPaintFilter != null)
