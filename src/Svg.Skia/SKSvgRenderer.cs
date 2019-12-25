@@ -135,6 +135,28 @@ namespace Svg.Skia
                 return;
             }
 
+            float width = svgImage.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgImage);
+            float height = svgImage.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgImage);
+            var location = svgImage.Location.ToDeviceValue(null, svgImage);
+
+            if (width <= 0f || height <= 0f || svgImage.Href == null)
+            {
+                return;
+            }
+
+            var image = SkiaUtil.GetImage(svgImage, svgImage.Href);
+            var skImage = image as SKImage;
+            var svgFragment = image as SvgFragment;
+            if (skImage == null && svgFragment == null)
+            {
+                return;
+            }
+
+            if (skImage != null)
+            {
+                _disposable.Add(skImage);
+            }
+
             _skCanvas.Save();
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgImage.Transforms);
@@ -145,7 +167,91 @@ namespace Svg.Skia
 
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgImage, _disposable);
 
-            // TODO:
+            SKRect srcRect = default;
+
+            if (skImage != null)
+            {
+                srcRect = SKRect.Create(0f, 0f, skImage.Width, skImage.Height);
+            }
+
+            if (svgFragment != null)
+            {
+                var skSize = SkiaUtil.GetDimensions(svgFragment);
+                srcRect = SKRect.Create(0f, 0f, skSize.Width, skSize.Height);
+            }
+
+            var destClip = SKRect.Create(location.X, location.Y, width, height);
+            var destRect = destClip;
+
+            _skCanvas.ClipRect(destClip, SKClipOperation.Intersect);
+
+            var aspectRatio = svgImage.AspectRatio;
+            if (aspectRatio.Align != SvgPreserveAspectRatio.none)
+            {
+                var fScaleX = destClip.Width / srcRect.Width;
+                var fScaleY = destClip.Height / srcRect.Height;
+                var xOffset = 0f;
+                var yOffset = 0f;
+
+                if (aspectRatio.Slice)
+                {
+                    fScaleX = Math.Max(fScaleX, fScaleY);
+                    fScaleY = Math.Max(fScaleX, fScaleY);
+                }
+                else
+                {
+                    fScaleX = Math.Min(fScaleX, fScaleY);
+                    fScaleY = Math.Min(fScaleX, fScaleY);
+                }
+
+                switch (aspectRatio.Align)
+                {
+                    case SvgPreserveAspectRatio.xMinYMin:
+                        break;
+                    case SvgPreserveAspectRatio.xMidYMin:
+                        xOffset = (destClip.Width - srcRect.Width * fScaleX) / 2;
+                        break;
+                    case SvgPreserveAspectRatio.xMaxYMin:
+                        xOffset = (destClip.Width - srcRect.Width * fScaleX);
+                        break;
+                    case SvgPreserveAspectRatio.xMinYMid:
+                        yOffset = (destClip.Height - srcRect.Height * fScaleY) / 2;
+                        break;
+                    case SvgPreserveAspectRatio.xMidYMid:
+                        xOffset = (destClip.Width - srcRect.Width * fScaleX) / 2;
+                        yOffset = (destClip.Height - srcRect.Height * fScaleY) / 2;
+                        break;
+                    case SvgPreserveAspectRatio.xMaxYMid:
+                        xOffset = (destClip.Width - srcRect.Width * fScaleX);
+                        yOffset = (destClip.Height - srcRect.Height * fScaleY) / 2;
+                        break;
+                    case SvgPreserveAspectRatio.xMinYMax:
+                        yOffset = (destClip.Height - srcRect.Height * fScaleY);
+                        break;
+                    case SvgPreserveAspectRatio.xMidYMax:
+                        xOffset = (destClip.Width - srcRect.Width * fScaleX) / 2;
+                        yOffset = (destClip.Height - srcRect.Height * fScaleY);
+                        break;
+                    case SvgPreserveAspectRatio.xMaxYMax:
+                        xOffset = (destClip.Width - srcRect.Width * fScaleX);
+                        yOffset = (destClip.Height - srcRect.Height * fScaleY);
+                        break;
+                }
+
+                destRect = SKRect.Create(
+                    destClip.Left + xOffset, destClip.Top + yOffset,
+                    srcRect.Width * fScaleX, srcRect.Height * fScaleY);
+            }
+
+            if (skImage != null)
+            {
+                _skCanvas.DrawImage(skImage, srcRect, destRect);
+            }
+
+            if (svgFragment != null)
+            {
+                DrawFragment(svgFragment);
+            }
 
             if (skPaintFilter != null)
             {
