@@ -877,7 +877,7 @@ namespace Svg.Skia
 
             if (isValidFill || isValidStroke)
             {
-                var text = svgText.Text.Trim();
+                var text = svgText.Text?.Trim();
 
                 if (svgText.X.Count == 1 && svgText.Y.Count == 1 && !string.IsNullOrEmpty(text))
                 {
