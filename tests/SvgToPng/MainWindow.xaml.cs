@@ -17,7 +17,8 @@ namespace SvgToPng
             InitializeComponent();
 #if DEBUG
             TextOutputPath.Text = Path.Combine(Directory.GetCurrentDirectory(), "png");
-            TextReferencePath.Text = @"c:\DOWNLOADS\GitHub\Svg.Skia\externals\SVG\Tests\W3CTestSuite\png\";
+            //TextReferencePath.Text = @"c:\DOWNLOADS\GitHub\Svg.Skia\externals\SVG\Tests\W3CTestSuite\png\";
+            TextReferencePath.Text = @"c:\DOWNLOADS\GitHub-Forks\resvg-test-suite\png\";
 #endif
             this.Loaded += MainWindow_Loaded;
             Items = new ObservableCollection<Item>();
