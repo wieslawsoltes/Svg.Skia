@@ -70,6 +70,7 @@ namespace SvgToPng
                 TextInputFile.Text = $"";
                 TextOutputFile.Text = $"";
             });
+            StackPanelStatus.Visibility = Visibility.Visible;
         }
 
         public async Task ConvertStatus(string message)
@@ -91,6 +92,17 @@ namespace SvgToPng
             });
         }
 
+        public async Task ConvertStatusDone()
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                TextProgress.Text = $"Done";
+                TextInputFile.Text = $"";
+                TextOutputFile.Text = $"";
+            });
+            StackPanelStatus.Visibility = Visibility.Collapsed;
+        }
+
         public async Task SaveStatusReset()
         {
             await Dispatcher.InvokeAsync(() =>
@@ -99,6 +111,7 @@ namespace SvgToPng
                 TextInputFile.Text = $"";
                 TextOutputFile.Text = $"";
             });
+            StackPanelStatus.Visibility = Visibility.Visible;
         }
 
         public async Task SaveStatusProgress(int count, int total, string inputFile, string outputFile)
@@ -119,6 +132,7 @@ namespace SvgToPng
                 TextInputFile.Text = $"";
                 TextOutputFile.Text = $"";
             });
+            StackPanelStatus.Visibility = Visibility.Collapsed;
         }
 
         private async void Window_Drop(object sender, DragEventArgs e)
