@@ -761,6 +761,11 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
+        internal void DrawMarkers(SvgMarkerElement svgMarkerElement, SKPath sKPath)
+        {
+            // TODO:
+        }
+
         public void DrawLine(SvgLine svgLine)
         {
             if (!CanDraw(svgLine))
@@ -788,6 +793,8 @@ namespace Svg.Skia
                     var skPaint = SkiaUtil.GetStrokeSKPaint(svgLine, _skSize, skBounds, _disposable);
                     _skCanvas.DrawPath(skPath, skPaint);
                 }
+
+                DrawMarkers(svgLine, skPath);
             }
 
             if (skPaintFilter != null)
@@ -836,6 +843,8 @@ namespace Svg.Skia
                     var skPaint = SkiaUtil.GetStrokeSKPaint(svgPath, _skSize, skBounds, _disposable);
                     _skCanvas.DrawPath(skPath, skPaint);
                 }
+
+                DrawMarkers(svgPath, skPath);
             }
 
             if (skPaintFilter != null)
@@ -884,6 +893,8 @@ namespace Svg.Skia
                     var skPaint = SkiaUtil.GetStrokeSKPaint(svgPolyline, _skSize, skBounds, _disposable);
                     _skCanvas.DrawPath(skPath, skPaint);
                 }
+
+                DrawMarkers(svgPolyline, skPath);
             }
 
             if (skPaintFilter != null)
@@ -932,6 +943,8 @@ namespace Svg.Skia
                     var skPaint = SkiaUtil.GetStrokeSKPaint(svgPolygon, _skSize, skBounds, _disposable);
                     _skCanvas.DrawPath(skPath, skPaint);
                 }
+
+                DrawMarkers(svgPolygon, skPath);
             }
 
             if (skPaintFilter != null)
