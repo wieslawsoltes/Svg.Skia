@@ -16,7 +16,6 @@ namespace Svg.Skia
         void DrawCircle(SvgCircle svgCircle);
         void DrawEllipse(SvgEllipse svgEllipse);
         void DrawRectangle(SvgRectangle svgRectangle);
-        void DrawMarker(SvgMarker svgMarker);
         void DrawGlyph(SvgGlyph svgGlyph);
         void DrawGroup(SvgGroup svgGroup);
         void DrawLine(SvgLine svgLine);
