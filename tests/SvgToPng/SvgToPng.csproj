@@ -25,6 +25,7 @@
     <PublishTrimmed>True</PublishTrimmed>
     <PublishSingleFile>False</PublishSingleFile>
     <PublishReadyToRun>True</PublishReadyToRun>
+    <ApplicationIcon>SvgToPng.ico</ApplicationIcon>
   </PropertyGroup>
 
   <Import Project="..\..\build\ReferenceAssemblies.props" />
