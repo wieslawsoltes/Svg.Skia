@@ -108,6 +108,18 @@ namespace Svg.Skia
 
             _skCanvas.Save();
 
+            switch (svgFragment.Overflow)
+            {
+                case SvgOverflow.Auto:
+                case SvgOverflow.Visible:
+                case SvgOverflow.Inherit:
+                    break;
+                default:
+                    var skClipRect = SKRect.Create(x, y, skSize.Width, skSize.Height);
+                    _skCanvas.ClipRect(skClipRect, SKClipOperation.Intersect);
+                    break;
+            }
+
             var skMatrixViewBox = SkiaUtil.GetSvgViewBoxTransform(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
             var skMatrix = SkiaUtil.GetSKMatrix(svgFragment.Transforms);
             SKMatrix.Concat(ref skMatrix, ref skMatrix, ref skMatrixViewBox);
