@@ -42,15 +42,15 @@ namespace SvgToPng
         {
             var canvas = e.Surface.Canvas;
 
-            canvas.Clear(SKColors.White);
+            //canvas.Clear(SKColors.White);
 
             if (items.SelectedItem is Item item)
             {
-                if (item.Picture != null)
+                if (item.Svg?.Picture != null)
                 {
-                    skia.Width = item.Picture.CullRect.Width;
-                    skia.Height = item.Picture.CullRect.Height;
-                    canvas.DrawPicture(item.Picture);
+                    skia.Width = item.Svg.Picture.CullRect.Width;
+                    skia.Height = item.Svg.Picture.CullRect.Height;
+                    canvas.DrawPicture(item.Svg.Picture);
                 }
             }
         }
@@ -143,10 +143,8 @@ namespace SvgToPng
 
             foreach (var item in items)
             {
+                item.Svg?.Dispose();
                 item.Image = null;
-                item.Bytes = null;
-                item.Picture = null;
-                item.Skia?.Dispose();
             }
         }
 
