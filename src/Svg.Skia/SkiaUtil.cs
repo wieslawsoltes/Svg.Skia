@@ -1753,7 +1753,8 @@ namespace Svg.Skia
             var skPathClip = GetSvgVisualElementClipPath(svgVisualElement, disposable);
             if (skPathClip != null && !skPathClip.IsEmpty)
             {
-                skCanvas.ClipPath(skPathClip);
+                bool antialias = IsAntialias(svgVisualElement);
+                skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
             }
         }
 
