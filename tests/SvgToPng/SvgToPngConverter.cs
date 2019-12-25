@@ -23,6 +23,7 @@ namespace SvgToPng
         Task ConvertStatusReset();
         Task ConvertStatus(string message);
         Task ConvertStatusProgress(int count, int total, string inputFile);
+        Task ConvertStatusDone();
     }
 
     public interface ISaveProgress
@@ -143,7 +144,7 @@ namespace SvgToPng
                 });
             }
 
-            await convertProgress.ConvertStatus("Done");
+            await convertProgress.ConvertStatusDone();
         }
 
         public static async Task Save(string outputPath, IList<Item> items, ISaveProgress saveProgress)
