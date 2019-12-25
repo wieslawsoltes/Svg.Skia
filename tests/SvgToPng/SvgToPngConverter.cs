@@ -84,6 +84,7 @@ namespace SvgToPng
         {
             await convertProgress.ConvertStatusReset();
             int count = 0;
+            var fullReferencePath = Path.GetFullPath(referencePath);
 
             // Items
 
@@ -100,8 +101,6 @@ namespace SvgToPng
                 items.Add(item);
             }
 
-            // Svg.Skia
-
             await convertProgress.ConvertStatus("Converting svg using Svg.Skia...");
 
             count = 0;
@@ -113,6 +112,8 @@ namespace SvgToPng
                 {
                     try
                     {
+                        Directory.SetCurrentDirectory(Path.GetDirectoryName(item.Path));
+
                         item.Svg = new SKSvg();
                         item.Svg.Load(item.Path);
                     }
@@ -123,7 +124,7 @@ namespace SvgToPng
                         Debug.WriteLine(ex.StackTrace);
                     }
 
-                    var referenceImagePath = Path.Combine(referencePath, item.Name + ".png");
+                    var referenceImagePath = Path.Combine(fullReferencePath, item.Name + ".png");
                     if (File.Exists(referenceImagePath))
                     {
                         try
