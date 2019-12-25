@@ -841,6 +841,7 @@ namespace Svg.Skia
                     _skCanvas.DrawPath(skPath, skPaint);
                 }
             }
+
             if (skPaintFilter != null)
             {
                 _skCanvas.Restore();
