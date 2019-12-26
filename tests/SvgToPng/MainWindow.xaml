@@ -71,7 +71,7 @@
                 <TextBlock Text="Output path" Padding="0" Margin="2" Grid.Row="0" Grid.Column="0"/>
                 <TextBox x:Name="TextOutputPath" Text="" Padding="0" Margin="2" Grid.Row="0" Grid.Column="1"/>
                 <TextBlock Text="Reference path" Padding="0" Margin="2" Grid.Row="1" Grid.Column="0"/>
-                <TextBox x:Name="TextReferencePath" Text="" Padding="0" Margin="2" Grid.Row="1" Grid.Column="1"/>
+                <ComboBox x:Name="TextReferencePath" ItemsSource="{Binding ReferencePaths}" SelectedIndex="0" IsEditable="True" Padding="0" Margin="2" Grid.Row="1" Grid.Column="1"/>
             </Grid>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="ButtonClear" Content="Clear" Padding="4" Margin="2" Width="100" Click="ButtonClear_Click"/>

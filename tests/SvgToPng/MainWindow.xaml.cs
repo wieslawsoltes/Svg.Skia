@@ -11,17 +11,24 @@ namespace SvgToPng
     public partial class MainWindow : Window, IConvertProgress, ISaveProgress
     {
         public ObservableCollection<Item> Items { get; set; }
+        public ObservableCollection<string> ReferencePaths { get; set; }
 
         public MainWindow()
         {
             InitializeComponent();
+            Items = new ObservableCollection<Item>();
+            ReferencePaths = new ObservableCollection<string>();
 #if DEBUG
             TextOutputPath.Text = Path.Combine(Directory.GetCurrentDirectory(), "png");
-            TextReferencePath.Text = @"c:\DOWNLOADS\GitHub\Svg.Skia\externals\SVG\Tests\W3CTestSuite\png\";
-            //TextReferencePath.Text = @"c:\DOWNLOADS\GitHub-Forks\resvg-test-suite\png\";
+            ReferencePaths = new ObservableCollection<string>(new string[]
+            {
+                @"c:\DOWNLOADS\GitHub\Svg.Skia\externals\SVG\Tests\W3CTestSuite\png\",
+                @"c:\DOWNLOADS\GitHub-Forks\resvg-test-suite\png\",
+                @"e:\Dropbox\Draw2D\SVG\vs2017-png\",
+                @"e:\Dropbox\Draw2D\SVG\W3CTestSuite-png\"
+            });
 #endif
             this.Loaded += MainWindow_Loaded;
-            Items = new ObservableCollection<Item>();
             DataContext = this;
         }
 
