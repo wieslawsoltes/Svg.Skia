@@ -90,6 +90,58 @@ namespace Svg.Skia
             }
         }
 
+        internal void DrawMarkers(SvgMarkerElement svgMarkerElement, SKPath sKPath)
+        {
+            var pathTypes = SkiaUtil.GetPathTypes(sKPath);
+            var pathLength = pathTypes.Count;
+
+            if (svgMarkerElement.MarkerStart != null)
+            {
+                var refPoint1 = pathTypes[0].Point;
+                var index = 1;
+                while (index < pathLength && pathTypes[index].Point == refPoint1)
+                {
+                    ++index;
+                }
+                var refPoint2 = pathTypes[index].Point;
+                var marker = svgMarkerElement.OwnerDocument.GetElementById<SvgMarker>(svgMarkerElement.MarkerStart.ToString());
+                // TODO: marker.RenderMarker(renderer, this, refPoint1, refPoint1, refPoint2, true);
+            }
+
+            if (svgMarkerElement.MarkerMid != null)
+            {
+                var marker = svgMarkerElement.OwnerDocument.GetElementById<SvgMarker>(svgMarkerElement.MarkerMid.ToString());
+                int bezierIndex = -1;
+                for (int i = 1; i <= pathLength - 2; i++)
+                {
+                    // for Bezier curves, the marker shall only been shown at the last point
+                    if ((pathTypes[i].Type & (byte)PathPointType.PathTypeMask) == (byte)PathPointType.Bezier)
+                        bezierIndex = (bezierIndex + 1) % 3;
+                    else
+                        bezierIndex = -1;
+
+                    if (bezierIndex == -1 || bezierIndex == 2)
+                    {
+                        // TODO: marker.RenderMarker(renderer, this, pathTypes[i].Point, pathTypes[i - 1].Point, pathTypes[i].Point, pathTypes[i + 1].Point);
+                    }
+                }
+            }
+
+            if (svgMarkerElement.MarkerEnd != null)
+            {
+                var marker = svgMarkerElement.OwnerDocument.GetElementById<SvgMarker>(svgMarkerElement.MarkerEnd.ToString());
+                var index = pathLength - 1;
+                var refPoint1 = pathTypes[index].Point;
+                --index;
+                while (index > 0 && pathTypes[index].Point == refPoint1)
+                {
+                    --index;
+                }
+                var refPoint2 = pathTypes[index].Point;
+                // TODO: marker.RenderMarker(renderer, this, refPoint1, refPoint2, pathTypes[pathLength - 1].Point, false);
+            }
+        }
+
         internal bool CanDraw(SvgVisualElement svgVisualElement)
         {
             return svgVisualElement.Visible == true
@@ -759,58 +811,6 @@ namespace Svg.Skia
             }
 
             _skCanvas.Restore();
-        }
-
-        internal void DrawMarkers(SvgMarkerElement svgMarkerElement, SKPath sKPath)
-        {
-            var pathTypes = SkiaUtil.GetPathTypes(sKPath);
-            var pathLength = pathTypes.Count;
-
-            if (svgMarkerElement.MarkerStart != null)
-            {
-                var refPoint1 = pathTypes[0].Point;
-                var index = 1;
-                while (index < pathLength && pathTypes[index].Point == refPoint1)
-                {
-                    ++index;
-                }
-                var refPoint2 = pathTypes[index].Point;
-                var marker = svgMarkerElement.OwnerDocument.GetElementById<SvgMarker>(svgMarkerElement.MarkerStart.ToString());
-                // TODO: marker.RenderMarker(renderer, this, refPoint1, refPoint1, refPoint2, true);
-            }
-
-            if (svgMarkerElement.MarkerMid != null)
-            {
-                var marker = svgMarkerElement.OwnerDocument.GetElementById<SvgMarker>(svgMarkerElement.MarkerMid.ToString());
-                int bezierIndex = -1;
-                for (int i = 1; i <= pathLength - 2; i++)
-                {
-                    // for Bezier curves, the marker shall only been shown at the last point
-                    if ((pathTypes[i].Type & (byte)PathPointType.PathTypeMask) == (byte)PathPointType.Bezier)
-                        bezierIndex = (bezierIndex + 1) % 3;
-                    else
-                        bezierIndex = -1;
-
-                    if (bezierIndex == -1 || bezierIndex == 2)
-                    {
-                        // TODO: marker.RenderMarker(renderer, this, pathTypes[i].Point, pathTypes[i - 1].Point, pathTypes[i].Point, pathTypes[i + 1].Point);
-                    }
-                }
-            }
-
-            if (svgMarkerElement.MarkerEnd != null)
-            {
-                var marker = svgMarkerElement.OwnerDocument.GetElementById<SvgMarker>(svgMarkerElement.MarkerEnd.ToString());
-                var index = pathLength - 1;
-                var refPoint1 = pathTypes[index].Point;
-                --index;
-                while (index > 0 && pathTypes[index].Point == refPoint1)
-                {
-                    --index;
-                }
-                var refPoint2 = pathTypes[index].Point;
-                // TODO: marker.RenderMarker(renderer, this, refPoint1, refPoint2, pathTypes[pathLength - 1].Point, false);
-            }
         }
 
         public void DrawLine(SvgLine svgLine)
