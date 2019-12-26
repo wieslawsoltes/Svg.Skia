@@ -118,117 +118,112 @@ namespace Svg.Skia
             RenderPart2(svgMarker, (fAngle1 + fAngle2) / 2, pOwner, pRefPoint);
         }
 
+        internal SvgVisualElement? GetMarkerElement(SvgMarker svgMarker)
+        {
+            SvgVisualElement? markerElement = null;
+
+            foreach (var child in svgMarker.Children)
+            {
+                if (child is SvgVisualElement svgVisualElement)
+                {
+                    markerElement = svgVisualElement;
+                    break;
+                }
+            }
+
+            return markerElement;
+        }
+
         internal void RenderPart2(SvgMarker svgMarker, float fAngle, SvgVisualElement pOwner, SKPoint pMarkerPoint)
         {
-            using (var pRenderPen = CreatePen(svgMarker, pOwner))
-            using (var markerPath = GetClone(pOwner))
-            using (var transMatrix = new Matrix())
+            var markerElement = GetMarkerElement(svgMarker);
+            if (markerElement == null)
             {
-                transMatrix.Translate(pMarkerPoint.X, pMarkerPoint.Y);
-                if (svgMarker.Orient.IsAuto)
-                    transMatrix.Rotate(fAngle);
-                else
-                    transMatrix.Rotate(svgMarker.Orient.Angle);
-
-                switch (svgMarker.MarkerUnits)
-                {
-                    case SvgMarkerUnits.StrokeWidth:
-                        if (svgMarker.ViewBox.Width > 0 && svgMarker.ViewBox.Height > 0)
-                        {
-                            transMatrix.Scale(svgMarker.MarkerWidth, svgMarker.MarkerHeight);
-                            var strokeWidth = pOwner.StrokeWidth.ToDeviceValue(null, UnitRenderingType.Other, svgMarker);
-                            transMatrix.Translate(
-                                AdjustForViewBoxWidth(svgMarker, -svgMarker.RefX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgMarker) * strokeWidth),
-                                AdjustForViewBoxHeight(svgMarker, -svgMarker.RefY.ToDeviceValue(null, UnitRenderingType.Vertical, svgMarker) * strokeWidth));
-                        }
-                        else
-                        {
-                            // SvgMarkerUnits.UserSpaceOnUse
-                            // TODO: We know this isn't correct.
-                            //       But use this until the TODOs from AdjustForViewBoxWidth and AdjustForViewBoxHeight are done.
-                            //  MORE see Unit Test "MakerEndTest.TestArrowCodeCreation()"
-                            transMatrix.Translate(
-                                -svgMarker.RefX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgMarker),
-                                -svgMarker.RefY.ToDeviceValue(null, UnitRenderingType.Vertical, svgMarker));
-                        }
-                        break;
-                    case SvgMarkerUnits.UserSpaceOnUse:
-                        transMatrix.Translate(
-                            -svgMarker.RefX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgMarker),
-                            -svgMarker.RefY.ToDeviceValue(null, UnitRenderingType.Vertical, svgMarker));
-                        break;
-                }
-
-                if (svgMarker.MarkerElement != null && svgMarker.MarkerElement.Transforms != null)
-                {
-                    using (var matrix = svgMarker.MarkerElement.Transforms.GetMatrix())
-                        transMatrix.Multiply(matrix);
-                }
-
-                markerPath.Transform(transMatrix);
-                if (pRenderPen != null)
-                {
-                    pRenderer.DrawPath(pRenderPen, markerPath);
-                }
-
-                SvgPaintServer pFill = svgMarker.Children.First().Fill;
-                SvgFillRule pFillRule = svgMarker.FillRule;    // TODO: What do we use the fill rule for?
-
-                if (pFill != null)
-                {
-                    using (var pBrush = pFill.GetBrush(this, null, FixOpacityValue(svgMarker.FillOpacity)))
-                    {
-                        pRenderer.FillPath(pBrush, markerPath);
-                    }
-                }
+                return;
             }
-        }
 
-        internal Pen CreatePen(SvgMarker svgMarker, SvgVisualElement pPath)
-        {
-            if (svgMarker.Stroke == null)
-                return null;
-            Brush pBrush = svgMarker.Stroke.GetBrush(this, renderer, FixOpacityValue(Opacity));
+            var skMarkerMatrix = SKMatrix.MakeIdentity();
+
+            var skMatrixMarkerPoint = SKMatrix.MakeTranslation(pMarkerPoint.X, pMarkerPoint.Y);
+            SKMatrix.Concat(ref skMarkerMatrix, ref skMarkerMatrix, ref skMatrixMarkerPoint);
+
+            var skMatrixAngle = SKMatrix.MakeRotationDegrees(svgMarker.Orient.IsAuto ? fAngle : svgMarker.Orient.Angle);
+            SKMatrix.Concat(ref skMarkerMatrix, ref skMarkerMatrix, ref skMatrixAngle);
+
+            var refX = svgMarker.RefX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgMarker);
+            var refY = svgMarker.RefY.ToDeviceValue(null, UnitRenderingType.Horizontal, svgMarker);
+
             switch (svgMarker.MarkerUnits)
             {
                 case SvgMarkerUnits.StrokeWidth:
-                    // TODO: have to multiply with marker stroke width if it is not inherted from the
-                    // same ancestor as owner path stroke width
-                    return (new Pen(pBrush, pPath.StrokeWidth.ToDeviceValue(null, UnitRenderingType.Other, svgMarker)));
-                case SvgMarkerUnits.UserSpaceOnUse:
-                    return (new Pen(pBrush, svgMarker.StrokeWidth.ToDeviceValue(null, UnitRenderingType.Other, svgMarker)));
-            }
-            return (new Pen(pBrush, svgMarker.StrokeWidth.ToDeviceValue(null, UnitRenderingType.Other, svgMarker)));
-        }
-
-        internal GraphicsPath GetClone(SvgMarker svgMarker, SvgVisualElement pPath)
-        {
-            GraphicsPath pRet = Path(null).Clone() as GraphicsPath;
-            switch (svgMarker.MarkerUnits)
-            {
-                case SvgMarkerUnits.StrokeWidth:
-                    using (var transMatrix = new Matrix())
                     {
-                        transMatrix.Scale(AdjustForViewBoxWidth(svgMarker, pPath.StrokeWidth), AdjustForViewBoxHeight(svgMarker, pPath.StrokeWidth));
-                        pRet.Transform(transMatrix);
+                        var strokeWidth = pOwner.StrokeWidth.ToDeviceValue(null, UnitRenderingType.Other, svgMarker);
+
+                        var skMatrixStrokeWidth = SKMatrix.MakeScale(strokeWidth, strokeWidth);
+                        SKMatrix.Concat(ref skMarkerMatrix, ref skMarkerMatrix, ref skMatrixStrokeWidth);
+
+                        var scaleFactorWidth = svgMarker.MarkerWidth / svgMarker.ViewBox.Width;
+                        var scaleFactorHeight = svgMarker.MarkerHeight / svgMarker.ViewBox.Height;
+
+                        var viewBoxToMarkerUnitsScaleX = 1f;
+                        var viewBoxToMarkerUnitsScaleY = 1f;
+
+                        viewBoxToMarkerUnitsScaleX = Math.Min(scaleFactorWidth, scaleFactorHeight);
+                        viewBoxToMarkerUnitsScaleY = Math.Min(scaleFactorWidth, scaleFactorHeight);
+
+                        var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX * viewBoxToMarkerUnitsScaleX, -refY * viewBoxToMarkerUnitsScaleY);
+                        SKMatrix.Concat(ref skMarkerMatrix, ref skMarkerMatrix, ref skMatrixTranslateRefXY);
+
+                        var skMatrixScaleXY = SKMatrix.MakeTranslation(viewBoxToMarkerUnitsScaleX, viewBoxToMarkerUnitsScaleY);
+                        SKMatrix.Concat(ref skMarkerMatrix, ref skMarkerMatrix, ref skMatrixScaleXY);
                     }
                     break;
                 case SvgMarkerUnits.UserSpaceOnUse:
+                    {
+                        var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX, -refY);
+                        SKMatrix.Concat(ref skMarkerMatrix, ref skMarkerMatrix, ref skMatrixTranslateRefXY);
+                    }
                     break;
             }
-            return (pRet);
-        }
 
-        internal float AdjustForViewBoxWidth(SvgMarker svgMarker, float fWidth)
-        {
-            // TODO: We know this isn't correct
-            return (svgMarker.ViewBox.Width <= 0 ? 1 : fWidth / svgMarker.ViewBox.Width);
-        }
+            var originalParent = markerElement.Parent;
+            var markerElementParent = markerElement.GetType().GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (markerElementParent != null)
+            {
+                markerElementParent.SetValue(markerElement, svgMarker);
+            }
 
-        internal float AdjustForViewBoxHeight(SvgMarker svgMarker, float fHeight)
-        {
-            // TODO: We know this isn't correct
-            return (svgMarker.ViewBox.Height <= 0 ? 1 : fHeight / svgMarker.ViewBox.Height);
+            markerElement.InvalidateChildPaths();
+
+            _skCanvas.Save();
+
+            var skMatrix = SkiaUtil.GetSKMatrix(svgMarker.Transforms);
+            SKMatrix.Concat(ref skMatrix, ref skMatrix, ref skMarkerMatrix);
+            SkiaUtil.SetTransform(_skCanvas, skMatrix);
+            SkiaUtil.SetClipPath(_skCanvas, svgMarker, _disposable);
+
+            var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgMarker, _disposable);
+
+            var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgMarker, _disposable);
+
+            Draw(markerElement);
+
+            if (skPaintFilter != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            _skCanvas.Restore();
+
+            if (markerElementParent != null)
+            {
+                markerElementParent.SetValue(markerElement, originalParent);
+            }
         }
 
         internal void DrawMarkers(SvgMarkerElement svgMarkerElement, SKPath sKPath)
