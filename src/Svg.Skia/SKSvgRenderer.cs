@@ -211,6 +211,8 @@ namespace Svg.Skia
 
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgMarker, _disposable);
 
+            // TODO: _skCanvas.ClipRect(skRectClip, SKClipOperation.Intersect);
+
             Draw(markerElement);
 
             if (skPaintFilter != null)
