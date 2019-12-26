@@ -5,6 +5,7 @@
 using System;
 using System.Reflection;
 using SkiaSharp;
+using Svg.DataTypes;
 using Svg.Document_Structure;
 
 namespace Svg.Skia
@@ -90,6 +91,146 @@ namespace Svg.Skia
             }
         }
 
+        internal void DrawMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker)
+        {
+            float fAngle1 = 0f;
+            if (svgMarker.Orient.IsAuto)
+            {
+                float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
+                float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
+                fAngle1 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
+                if (isStartMarker && svgMarker.Orient.IsAutoStartReverse)
+                {
+                    fAngle1 += 180;
+                }
+            }
+            RenderPart2(svgMarker, fAngle1, pOwner, pRefPoint);
+        }
+
+        internal void DrawMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, SKPoint pMarkerPoint3)
+        {
+            float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
+            float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
+            float fAngle1 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
+            xDiff = pMarkerPoint3.X - pMarkerPoint2.X;
+            yDiff = pMarkerPoint3.Y - pMarkerPoint2.Y;
+            float fAngle2 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
+            RenderPart2(svgMarker, (fAngle1 + fAngle2) / 2, pOwner, pRefPoint);
+        }
+
+        internal void RenderPart2(SvgMarker svgMarker, float fAngle, SvgVisualElement pOwner, SKPoint pMarkerPoint)
+        {
+            using (var pRenderPen = CreatePen(svgMarker, pOwner))
+            using (var markerPath = GetClone(pOwner))
+            using (var transMatrix = new Matrix())
+            {
+                transMatrix.Translate(pMarkerPoint.X, pMarkerPoint.Y);
+                if (svgMarker.Orient.IsAuto)
+                    transMatrix.Rotate(fAngle);
+                else
+                    transMatrix.Rotate(svgMarker.Orient.Angle);
+
+                switch (svgMarker.MarkerUnits)
+                {
+                    case SvgMarkerUnits.StrokeWidth:
+                        if (svgMarker.ViewBox.Width > 0 && svgMarker.ViewBox.Height > 0)
+                        {
+                            transMatrix.Scale(svgMarker.MarkerWidth, svgMarker.MarkerHeight);
+                            var strokeWidth = pOwner.StrokeWidth.ToDeviceValue(null, UnitRenderingType.Other, svgMarker);
+                            transMatrix.Translate(
+                                AdjustForViewBoxWidth(svgMarker, -svgMarker.RefX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgMarker) * strokeWidth),
+                                AdjustForViewBoxHeight(svgMarker, -svgMarker.RefY.ToDeviceValue(null, UnitRenderingType.Vertical, svgMarker) * strokeWidth));
+                        }
+                        else
+                        {
+                            // SvgMarkerUnits.UserSpaceOnUse
+                            // TODO: We know this isn't correct.
+                            //       But use this until the TODOs from AdjustForViewBoxWidth and AdjustForViewBoxHeight are done.
+                            //  MORE see Unit Test "MakerEndTest.TestArrowCodeCreation()"
+                            transMatrix.Translate(
+                                -svgMarker.RefX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgMarker),
+                                -svgMarker.RefY.ToDeviceValue(null, UnitRenderingType.Vertical, svgMarker));
+                        }
+                        break;
+                    case SvgMarkerUnits.UserSpaceOnUse:
+                        transMatrix.Translate(
+                            -svgMarker.RefX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgMarker),
+                            -svgMarker.RefY.ToDeviceValue(null, UnitRenderingType.Vertical, svgMarker));
+                        break;
+                }
+
+                if (svgMarker.MarkerElement != null && svgMarker.MarkerElement.Transforms != null)
+                {
+                    using (var matrix = svgMarker.MarkerElement.Transforms.GetMatrix())
+                        transMatrix.Multiply(matrix);
+                }
+
+                markerPath.Transform(transMatrix);
+                if (pRenderPen != null)
+                {
+                    pRenderer.DrawPath(pRenderPen, markerPath);
+                }
+
+                SvgPaintServer pFill = svgMarker.Children.First().Fill;
+                SvgFillRule pFillRule = svgMarker.FillRule;    // TODO: What do we use the fill rule for?
+
+                if (pFill != null)
+                {
+                    using (var pBrush = pFill.GetBrush(this, null, FixOpacityValue(svgMarker.FillOpacity)))
+                    {
+                        pRenderer.FillPath(pBrush, markerPath);
+                    }
+                }
+            }
+        }
+
+        internal Pen CreatePen(SvgMarker svgMarker, SvgVisualElement pPath)
+        {
+            if (svgMarker.Stroke == null)
+                return null;
+            Brush pBrush = svgMarker.Stroke.GetBrush(this, renderer, FixOpacityValue(Opacity));
+            switch (svgMarker.MarkerUnits)
+            {
+                case SvgMarkerUnits.StrokeWidth:
+                    // TODO: have to multiply with marker stroke width if it is not inherted from the
+                    // same ancestor as owner path stroke width
+                    return (new Pen(pBrush, pPath.StrokeWidth.ToDeviceValue(null, UnitRenderingType.Other, svgMarker)));
+                case SvgMarkerUnits.UserSpaceOnUse:
+                    return (new Pen(pBrush, svgMarker.StrokeWidth.ToDeviceValue(null, UnitRenderingType.Other, svgMarker)));
+            }
+            return (new Pen(pBrush, svgMarker.StrokeWidth.ToDeviceValue(null, UnitRenderingType.Other, svgMarker)));
+        }
+
+        internal GraphicsPath GetClone(SvgMarker svgMarker, SvgVisualElement pPath)
+        {
+            GraphicsPath pRet = Path(null).Clone() as GraphicsPath;
+            switch (svgMarker.MarkerUnits)
+            {
+                case SvgMarkerUnits.StrokeWidth:
+                    using (var transMatrix = new Matrix())
+                    {
+                        transMatrix.Scale(AdjustForViewBoxWidth(svgMarker, pPath.StrokeWidth), AdjustForViewBoxHeight(svgMarker, pPath.StrokeWidth));
+                        pRet.Transform(transMatrix);
+                    }
+                    break;
+                case SvgMarkerUnits.UserSpaceOnUse:
+                    break;
+            }
+            return (pRet);
+        }
+
+        internal float AdjustForViewBoxWidth(SvgMarker svgMarker, float fWidth)
+        {
+            // TODO: We know this isn't correct
+            return (svgMarker.ViewBox.Width <= 0 ? 1 : fWidth / svgMarker.ViewBox.Width);
+        }
+
+        internal float AdjustForViewBoxHeight(SvgMarker svgMarker, float fHeight)
+        {
+            // TODO: We know this isn't correct
+            return (svgMarker.ViewBox.Height <= 0 ? 1 : fHeight / svgMarker.ViewBox.Height);
+        }
+
         internal void DrawMarkers(SvgMarkerElement svgMarkerElement, SKPath sKPath)
         {
             var pathTypes = SkiaUtil.GetPathTypes(sKPath);
@@ -105,7 +246,7 @@ namespace Svg.Skia
                 }
                 var refPoint2 = pathTypes[index].Point;
                 var marker = svgMarkerElement.OwnerDocument.GetElementById<SvgMarker>(svgMarkerElement.MarkerStart.ToString());
-                // TODO: marker.RenderMarker(renderer, this, refPoint1, refPoint1, refPoint2, true);
+                DrawMarker(marker, svgMarkerElement, refPoint1, refPoint1, refPoint2, true);
             }
 
             if (svgMarkerElement.MarkerMid != null)
@@ -122,7 +263,7 @@ namespace Svg.Skia
 
                     if (bezierIndex == -1 || bezierIndex == 2)
                     {
-                        // TODO: marker.RenderMarker(renderer, this, pathTypes[i].Point, pathTypes[i - 1].Point, pathTypes[i].Point, pathTypes[i + 1].Point);
+                        DrawMarker(marker, svgMarkerElement, pathTypes[i].Point, pathTypes[i - 1].Point, pathTypes[i].Point, pathTypes[i + 1].Point);
                     }
                 }
             }
@@ -138,7 +279,7 @@ namespace Svg.Skia
                     --index;
                 }
                 var refPoint2 = pathTypes[index].Point;
-                // TODO: marker.RenderMarker(renderer, this, refPoint1, refPoint2, pathTypes[pathLength - 1].Point, false);
+                DrawMarker(marker, svgMarkerElement, refPoint1, refPoint2, pathTypes[pathLength - 1].Point, false);
             }
         }
 
