@@ -162,8 +162,13 @@ namespace Svg.Skia
                         var skMatrixStrokeWidth = SKMatrix.MakeScale(strokeWidth, strokeWidth);
                         SKMatrix.Concat(ref skMarkerMatrix, ref skMarkerMatrix, ref skMatrixStrokeWidth);
 
-                        var scaleFactorWidth = svgMarker.MarkerWidth / svgMarker.ViewBox.Width;
-                        var scaleFactorHeight = svgMarker.MarkerHeight / svgMarker.ViewBox.Height;
+                        float viewBoxWidth = svgMarker.ViewBox.Width;
+                        float viewBoxHeight = svgMarker.ViewBox.Height;
+                        float markerWidth = svgMarker.MarkerWidth;
+                        float markerHeight = svgMarker.MarkerHeight;
+
+                        var scaleFactorWidth = (viewBoxWidth <= 0) ? 1 : (markerWidth / viewBoxWidth);
+                        var scaleFactorHeight = (viewBoxHeight <= 0) ? 1 : (markerHeight / viewBoxHeight);
 
                         var viewBoxToMarkerUnitsScaleX = 1f;
                         var viewBoxToMarkerUnitsScaleY = 1f;
