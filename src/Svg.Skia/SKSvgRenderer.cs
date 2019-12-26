@@ -174,7 +174,7 @@ namespace Svg.Skia
                         var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX * viewBoxToMarkerUnitsScaleX, -refY * viewBoxToMarkerUnitsScaleY);
                         SKMatrix.Concat(ref skMarkerMatrix, ref skMarkerMatrix, ref skMatrixTranslateRefXY);
 
-                        var skMatrixScaleXY = SKMatrix.MakeTranslation(viewBoxToMarkerUnitsScaleX, viewBoxToMarkerUnitsScaleY);
+                        var skMatrixScaleXY = SKMatrix.MakeScale(viewBoxToMarkerUnitsScaleX, viewBoxToMarkerUnitsScaleY);
                         SKMatrix.Concat(ref skMarkerMatrix, ref skMarkerMatrix, ref skMatrixScaleXY);
                     }
                     break;
