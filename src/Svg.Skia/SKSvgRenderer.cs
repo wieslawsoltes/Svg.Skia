@@ -278,6 +278,31 @@ namespace Svg.Skia
             }
         }
 
+        internal void AddMarkers(SvgGroup svgGroup)
+        {
+            if (svgGroup.MarkerStart != null || svgGroup.MarkerMid != null || svgGroup.MarkerEnd != null)
+            {
+                foreach (var c in svgGroup.Children)
+                {
+                    if (c is SvgMarkerElement)
+                    {
+                        if (svgGroup.MarkerStart != null && ((SvgMarkerElement)c).MarkerStart == null)
+                        {
+                            ((SvgMarkerElement)c).MarkerStart = svgGroup.MarkerStart;
+                        }
+                        if (svgGroup.MarkerMid != null && ((SvgMarkerElement)c).MarkerMid == null)
+                        {
+                            ((SvgMarkerElement)c).MarkerMid = svgGroup.MarkerMid;
+                        }
+                        if (svgGroup.MarkerEnd != null && ((SvgMarkerElement)c).MarkerEnd == null)
+                        {
+                            ((SvgMarkerElement)c).MarkerEnd = svgGroup.MarkerEnd;
+                        }
+                    }
+                }
+            }
+        }
+
         internal bool CanDraw(SvgVisualElement svgVisualElement)
         {
             return svgVisualElement.Visible == true
@@ -920,6 +945,9 @@ namespace Svg.Skia
             {
                 return;
             }
+
+            // TODO: Call AddMarkers only once.
+            AddMarkers(svgGroup);
 
             _skCanvas.Save();
 
