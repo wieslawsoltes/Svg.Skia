@@ -359,14 +359,12 @@ namespace Svg.Skia
                             break;
                         case SKPathVerb.Line:
                             {
-                                //pathTypes.Add((points[0], (byte)PathPointType.Line));
                                 pathTypes.Add((points[1], (byte)PathPointType.Line));
                                 lastPoint = (points[1], (byte)PathPointType.Line);
                             }
                             break;
                         case SKPathVerb.Cubic:
                             {
-                                //pathTypes.Add((points[0], (byte)PathPointType.Bezier));
                                 pathTypes.Add((points[1], (byte)PathPointType.Bezier));
                                 pathTypes.Add((points[2], (byte)PathPointType.Bezier));
                                 pathTypes.Add((points[3], (byte)PathPointType.Bezier));
@@ -375,7 +373,6 @@ namespace Svg.Skia
                             break;
                         case SKPathVerb.Quad:
                             {
-                                //pathTypes.Add((points[0], (byte)PathPointType.Bezier));
                                 pathTypes.Add((points[1], (byte)PathPointType.Bezier));
                                 pathTypes.Add((points[2], (byte)PathPointType.Bezier));
                                 lastPoint = (points[2], (byte)PathPointType.Bezier);
@@ -383,7 +380,6 @@ namespace Svg.Skia
                             break;
                         case SKPathVerb.Conic:
                             {
-                                //pathTypes.Add((points[0], (byte)PathPointType.Bezier));
                                 pathTypes.Add((points[1], (byte)PathPointType.Bezier));
                                 pathTypes.Add((points[2], (byte)PathPointType.Bezier));
                                 lastPoint = (points[2], (byte)PathPointType.Bezier);
@@ -392,7 +388,6 @@ namespace Svg.Skia
                         case SKPathVerb.Close:
                             {
                                 lastPoint = (lastPoint.Point, (byte)((lastPoint.Type | (byte)PathPointType.CloseSubpath)));
-                                //pathTypes.Add(lastPoint);
                                 pathTypes[pathTypes.Count - 1] = lastPoint;
                             }
                             break;
