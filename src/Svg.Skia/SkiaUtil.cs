@@ -622,7 +622,7 @@ namespace Svg.Skia
                     Persp2 = 1
                 };
 
-                if (svgRadialGradientServer.GradientTransform != null 
+                if (svgRadialGradientServer.GradientTransform != null
                     && svgRadialGradientServer.GradientTransform.Count > 0)
                 {
                     var gradientTransform = GetSKMatrix(svgRadialGradientServer.GradientTransform);
@@ -630,30 +630,30 @@ namespace Svg.Skia
                 }
 
                 return SKShader.CreateTwoPointConicalGradient(
-                    skStart, startRadius, 
-                    skEnd, endRadius, 
-                    skColors, skColorPos, 
-                    shaderTileMode, 
+                    skStart, startRadius,
+                    skEnd, endRadius,
+                    skColors, skColorPos,
+                    shaderTileMode,
                     skBoundingBoxTransform);
             }
             else
             {
-                if (svgRadialGradientServer.GradientTransform != null 
+                if (svgRadialGradientServer.GradientTransform != null
                     && svgRadialGradientServer.GradientTransform.Count > 0)
                 {
                     var gradientTransform = GetSKMatrix(svgRadialGradientServer.GradientTransform);
                     return SKShader.CreateTwoPointConicalGradient(
-                        skStart, startRadius, 
-                        skEnd, endRadius, 
-                        skColors, skColorPos, 
+                        skStart, startRadius,
+                        skEnd, endRadius,
+                        skColors, skColorPos,
                         shaderTileMode, gradientTransform);
                 }
                 else
                 {
                     return SKShader.CreateTwoPointConicalGradient(
-                        skStart, startRadius, 
-                        skEnd, endRadius, 
-                        skColors, skColorPos, 
+                        skStart, startRadius,
+                        skEnd, endRadius,
+                        skColors, skColorPos,
                         shaderTileMode);
                 }
             }
