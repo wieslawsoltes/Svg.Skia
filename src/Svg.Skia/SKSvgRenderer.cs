@@ -166,10 +166,6 @@ namespace Svg.Skia
                     break;
             }
 
-            var skRectClip = SKRect.Create(
-                markerWidth / viewBoxToMarkerUnitsScaleX,
-                markerHeight / viewBoxToMarkerUnitsScaleY);
-
             _skCanvas.Save();
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgMarker.Transforms);
@@ -181,7 +177,19 @@ namespace Svg.Skia
 
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgMarker, _disposable);
 
-            _skCanvas.ClipRect(skRectClip, SKClipOperation.Intersect);
+            switch (svgMarker.Overflow)
+            {
+                case SvgOverflow.Auto:
+                case SvgOverflow.Visible:
+                case SvgOverflow.Inherit:
+                    break;
+                default:
+                    var skClipRect = SKRect.Create(
+                        markerWidth / viewBoxToMarkerUnitsScaleX,
+                        markerHeight / viewBoxToMarkerUnitsScaleY);
+                    _skCanvas.ClipRect(skClipRect, SKClipOperation.Intersect);
+                    break;
+            }
 
             Draw(markerElement, true);
 
