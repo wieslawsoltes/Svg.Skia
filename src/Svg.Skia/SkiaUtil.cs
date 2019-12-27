@@ -1440,7 +1440,7 @@ namespace Svg.Skia
             }
         }
 
-        internal static SKMatrix GetSKMatrix(SvgMatrix svgMatrix)
+        internal static SKMatrix ToSKMatrix(SvgMatrix svgMatrix)
         {
             return new SKMatrix()
             {
@@ -1471,7 +1471,7 @@ namespace Svg.Skia
                 {
                     case SvgMatrix svgMatrix:
                         {
-                            var skMatrix = GetSKMatrix(svgMatrix);
+                            var skMatrix = ToSKMatrix(svgMatrix);
                             SKMatrix.Concat(ref skMatrixTotal, ref skMatrixTotal, ref skMatrix);
                         }
                         break;
