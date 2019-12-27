@@ -1768,6 +1768,11 @@ namespace Svg.Skia
                         // TODO:
                     }
                     break;
+                case SvgText svgText:
+                    {
+                        // TODO:
+                    }
+                    break;
                 default:
                     break;
             }
