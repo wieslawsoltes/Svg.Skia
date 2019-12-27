@@ -169,14 +169,6 @@ namespace Svg.Skia
 
             var skRectClip = SKRect.Create(markerWidth / viewBoxToMarkerUnitsScaleX, markerHeight / viewBoxToMarkerUnitsScaleY);
 
-            //var originalParent = markerElement.Parent;
-            //var markerElementParent = markerElement.GetType().GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
-            //if (markerElementParent != null)
-            //{
-            //    markerElementParent.SetValue(markerElement, svgMarker);
-            //}
-            //markerElement.InvalidateChildPaths();
-
             _skCanvas.Save();
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgMarker.Transforms);
@@ -203,11 +195,6 @@ namespace Svg.Skia
             }
 
             _skCanvas.Restore();
-
-            //if (markerElementParent != null)
-            //{
-            //    markerElementParent.SetValue(markerElement, originalParent);
-            //}
         }
 
         internal void DrawMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker)
