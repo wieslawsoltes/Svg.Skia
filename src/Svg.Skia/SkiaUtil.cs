@@ -1338,7 +1338,7 @@ namespace Svg.Skia
             skPaint.Typeface = skTypeface;
         }
 
-        private static SKFontStyleWeight SKFontStyleWeight(SvgFontWeight svgFontWeight)
+        internal static SKFontStyleWeight SKFontStyleWeight(SvgFontWeight svgFontWeight)
         {
             var fontWeight = SkiaSharp.SKFontStyleWeight.Normal;
 
