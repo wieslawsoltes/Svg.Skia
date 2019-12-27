@@ -143,10 +143,11 @@ namespace Svg.Skia
                         var skMatrixStrokeWidth = SKMatrix.MakeScale(strokeWidth, strokeWidth);
                         SKMatrix.Concat(ref skMarkerMatrix, ref skMarkerMatrix, ref skMatrixStrokeWidth);
 
-                        var viewBox = new SKRect(svgMarker.ViewBox.MinX, svgMarker.ViewBox.MinY, svgMarker.ViewBox.Width, svgMarker.ViewBox.Height);
+                        var viewBoxWidth = svgMarker.ViewBox.Width;
+                        var viewBoxHeight = svgMarker.ViewBox.Height;
 
-                        var scaleFactorWidth = (viewBox.Width <= 0) ? 1 : (markerWidth / viewBox.Width);
-                        var scaleFactorHeight = (viewBox.Height <= 0) ? 1 : (markerHeight / viewBox.Height);
+                        var scaleFactorWidth = (viewBoxWidth <= 0) ? 1 : (markerWidth / viewBoxWidth);
+                        var scaleFactorHeight = (viewBoxHeight <= 0) ? 1 : (markerHeight / viewBoxHeight);
 
                         viewBoxToMarkerUnitsScaleX = Math.Min(scaleFactorWidth, scaleFactorHeight);
                         viewBoxToMarkerUnitsScaleY = Math.Min(scaleFactorWidth, scaleFactorHeight);
@@ -187,7 +188,7 @@ namespace Svg.Skia
                     var skClipRect = SKRect.Create(
                         markerWidth / viewBoxToMarkerUnitsScaleX,
                         markerHeight / viewBoxToMarkerUnitsScaleY);
-                    _skCanvas.ClipRect(skClipRect, SKClipOperation.Intersect);
+                    //_skCanvas.ClipRect(skClipRect, SKClipOperation.Intersect);
                     break;
             }
 
