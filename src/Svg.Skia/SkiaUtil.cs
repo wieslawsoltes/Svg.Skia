@@ -538,7 +538,7 @@ namespace Svg.Skia
                 if (svgLinearGradientServer.GradientTransform != null && svgLinearGradientServer.GradientTransform.Count > 0)
                 {
                     var gradientTransform = GetSKMatrix(svgLinearGradientServer.GradientTransform);
-                    SKMatrix.Concat(ref skBoundingBoxTransform, ref skBoundingBoxTransform, ref gradientTransform);
+                    SKMatrix.PreConcat(ref skBoundingBoxTransform, ref gradientTransform);
                 }
 
                 return SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode, skBoundingBoxTransform);
@@ -626,7 +626,7 @@ namespace Svg.Skia
                     && svgRadialGradientServer.GradientTransform.Count > 0)
                 {
                     var gradientTransform = GetSKMatrix(svgRadialGradientServer.GradientTransform);
-                    SKMatrix.Concat(ref skBoundingBoxTransform, ref skBoundingBoxTransform, ref gradientTransform);
+                    SKMatrix.PreConcat(ref skBoundingBoxTransform, ref gradientTransform);
                 }
 
                 return SKShader.CreateTwoPointConicalGradient(
@@ -809,10 +809,10 @@ namespace Svg.Skia
             if (svgPatternServer.PatternTransform != null && svgPatternServer.PatternTransform.Count > 0)
             {
                 var patternTransform = GetSKMatrix(svgPatternServer.PatternTransform);
-                SKMatrix.Concat(ref skLocalMatrix, ref skLocalMatrix, ref patternTransform);
+                SKMatrix.PreConcat(ref skLocalMatrix, ref patternTransform);
             }
             var translateTransform = SKMatrix.MakeTranslation(skRectTransformed.Left, skRectTransformed.Top);
-            SKMatrix.Concat(ref skLocalMatrix, ref skLocalMatrix, ref translateTransform);
+            SKMatrix.PreConcat(ref skLocalMatrix, ref translateTransform);
 
             SKMatrix skPictureTransform = SKMatrix.MakeIdentity();
             if (!viewBox.Equals(SvgViewBox.Empty))
@@ -824,14 +824,14 @@ namespace Svg.Skia
                     skRectTransformed.Top,
                     skRectTransformed.Width,
                     skRectTransformed.Height);
-                SKMatrix.Concat(ref skPictureTransform, ref skPictureTransform, ref viewBoxTransform);
+                SKMatrix.PreConcat(ref skPictureTransform, ref viewBoxTransform);
             }
             else
             {
                 if (patternContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
                 {
                     var scaleTransform = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
-                    SKMatrix.Concat(ref skPictureTransform, ref skPictureTransform, ref scaleTransform);
+                    SKMatrix.PreConcat(ref skPictureTransform, ref scaleTransform);
                 }
             }
 
@@ -1171,20 +1171,6 @@ namespace Svg.Skia
             }
         }
 
-        internal static SKPaint? SetFilter(SKCanvas skCanvas, SvgVisualElement svgVisualElement, CompositeDisposable disposable)
-        {
-            if (svgVisualElement.Filter != null)
-            {
-                var skPaint = new SKPaint();
-                skPaint.Style = SKPaintStyle.StrokeAndFill;
-                SetFilter(svgVisualElement, skPaint, disposable);
-                skCanvas.SaveLayer(skPaint);
-                disposable.Add(skPaint);
-                return skPaint;
-            }
-            return null;
-        }
-
         internal static bool IsAntialias(SvgElement svgElement)
         {
             switch (svgElement.ShapeRendering)
@@ -1472,19 +1458,19 @@ namespace Svg.Skia
                     case SvgMatrix svgMatrix:
                         {
                             var skMatrix = ToSKMatrix(svgMatrix);
-                            SKMatrix.Concat(ref skMatrixTotal, ref skMatrixTotal, ref skMatrix);
+                            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
                         }
                         break;
                     case SvgRotate svgRotate:
                         {
                             var skMatrixRotate = SKMatrix.MakeRotationDegrees(svgRotate.Angle, svgRotate.CenterX, svgRotate.CenterY);
-                            SKMatrix.Concat(ref skMatrixTotal, ref skMatrixTotal, ref skMatrixRotate);
+                            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixRotate);
                         }
                         break;
                     case SvgScale svgScale:
                         {
                             var skMatrixScale = SKMatrix.MakeScale(svgScale.X, svgScale.Y);
-                            SKMatrix.Concat(ref skMatrixTotal, ref skMatrixTotal, ref skMatrixScale);
+                            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixScale);
                         }
                         break;
                     case SvgShear svgShear:
@@ -1497,13 +1483,13 @@ namespace Svg.Skia
                             float sx = (float)Math.Tan(Math.PI * svgSkew.AngleX / 180);
                             float sy = (float)Math.Tan(Math.PI * svgSkew.AngleY / 180);
                             var skMatrixSkew = SKMatrix.MakeSkew(sx, sy);
-                            SKMatrix.Concat(ref skMatrixTotal, ref skMatrixTotal, ref skMatrixSkew);
+                            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixSkew);
                         }
                         break;
                     case SvgTranslate svgTranslate:
                         {
                             var skMatrixTranslate = SKMatrix.MakeTranslation(svgTranslate.X, svgTranslate.Y);
-                            SKMatrix.Concat(ref skMatrixTotal, ref skMatrixTotal, ref skMatrixTranslate);
+                            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixTranslate);
                         }
                         break;
                 }
@@ -1588,22 +1574,15 @@ namespace Svg.Skia
             var skMatrixTotal = SKMatrix.MakeIdentity();
 
             var skMatrixXY = SKMatrix.MakeTranslation(x, y);
-            SKMatrix.Concat(ref skMatrixTotal, ref skMatrixTotal, ref skMatrixXY);
+            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixXY);
 
             var skMatrixMinXY = SKMatrix.MakeTranslation(fMinX, fMinY);
-            SKMatrix.Concat(ref skMatrixTotal, ref skMatrixTotal, ref skMatrixMinXY);
+            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixMinXY);
 
             var skMatrixScale = SKMatrix.MakeScale(fScaleX, fScaleY);
-            SKMatrix.Concat(ref skMatrixTotal, ref skMatrixTotal, ref skMatrixScale);
+            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixScale);
 
             return skMatrixTotal;
-        }
-
-        internal static void SetTransform(SKCanvas skCanvas, SKMatrix skMatrix)
-        {
-            var skMatrixTotal = skCanvas.TotalMatrix;
-            SKMatrix.Concat(ref skMatrixTotal, ref skMatrixTotal, ref skMatrix);
-            skCanvas.SetMatrix(skMatrixTotal);
         }
 
         internal static SKPath? GetClipPath(SvgVisualElement svgVisualElement, CompositeDisposable disposable)
@@ -1837,34 +1816,6 @@ namespace Svg.Skia
             // TODO: svgClipPath.ClipPathUnits
 
             return GetClipPath(svgClipPath.Children, disposable);
-        }
-
-        internal static void SetClipPath(SKCanvas skCanvas, SvgVisualElement svgVisualElement, CompositeDisposable disposable)
-        {
-            var skPathClip = GetSvgVisualElementClipPath(svgVisualElement, disposable);
-            if (skPathClip != null && !skPathClip.IsEmpty)
-            {
-                bool antialias = IsAntialias(svgVisualElement);
-                skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
-            }
-        }
-
-        internal static SKPaint? SetOpacity(SKCanvas skCanvas, SvgElement svgElement, CompositeDisposable disposable)
-        {
-            float opacity = AdjustSvgOpacity(svgElement.Opacity);
-            if (opacity < 1f)
-            {
-                var skPaint = new SKPaint()
-                {
-                    IsAntialias = true,
-                };
-                skPaint.Color = new SKColor(255, 255, 255, (byte)Math.Round(opacity * 255));
-                skPaint.Style = SKPaintStyle.StrokeAndFill;
-                skCanvas.SaveLayer(skPaint);
-                disposable.Add(skPaint);
-                return skPaint;
-            }
-            return null;
         }
 
         internal static bool ElementReferencesUri(SvgUse svgUse, SvgElement element, List<Uri> elementUris)
