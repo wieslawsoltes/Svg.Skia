@@ -1333,8 +1333,7 @@ namespace Svg.Skia
                 case SvgFontWeight.W300:
                     fontWeight = SKFontStyleWeight.Light;
                     break;
-                case SvgFontWeight.W400:
-                //case SvgFontWeight.Normal:
+                case SvgFontWeight.W400: // SvgFontWeight.Normal:
                     fontWeight = SKFontStyleWeight.Normal;
                     break;
                 case SvgFontWeight.W500:
@@ -1343,8 +1342,7 @@ namespace Svg.Skia
                 case SvgFontWeight.W600:
                     fontWeight = SKFontStyleWeight.SemiBold;
                     break;
-                case SvgFontWeight.W700:
-                //case SvgFontWeight.Bold:
+                case SvgFontWeight.W700: // SvgFontWeight.Bold:
                     fontWeight = SKFontStyleWeight.Bold;
                     break;
                 case SvgFontWeight.W800:
