@@ -1304,7 +1304,7 @@ namespace Svg.Skia
             svgText.TryGetAttribute("font-stretch", out string attributeFontStretch);
             var fontWidth = ToSKFontStyleWidth(attributeFontStretch);
 
-            var fontStyle = SkiaUtil.ToSKFontStyleSlant(svgText.FontStyle);
+            var fontStyle = ToSKFontStyleSlant(svgText.FontStyle);
 
             float fontSize;
             var fontSizeUnit = svgText.FontSize;
@@ -1592,10 +1592,10 @@ namespace Svg.Skia
                 case SvgPath svgPath:
                     {
                         var fillRule = (svgPath.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
-                        var skPath = SkiaUtil.ToSKPath(svgPath.PathData, fillRule, disposable);
+                        var skPath = ToSKPath(svgPath.PathData, fillRule, disposable);
                         if (skPath != null && !skPath.IsEmpty)
                         {
-                            var skMatrix = SkiaUtil.GetSKMatrix(svgPath.Transforms);
+                            var skMatrix = GetSKMatrix(svgPath.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgPath, disposable);
@@ -1616,7 +1616,7 @@ namespace Svg.Skia
                         var skPath = ToSKPath(svgRectangle, fillRule, disposable);
                         if (skPath != null && !skPath.IsEmpty)
                         {
-                            var skMatrix = SkiaUtil.GetSKMatrix(svgRectangle.Transforms);
+                            var skMatrix = GetSKMatrix(svgRectangle.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgRectangle, disposable);
@@ -1637,7 +1637,7 @@ namespace Svg.Skia
                         var skPath = ToSKPath(svgCircle, fillRule, disposable);
                         if (skPath != null && !skPath.IsEmpty)
                         {
-                            var skMatrix = SkiaUtil.GetSKMatrix(svgCircle.Transforms);
+                            var skMatrix = GetSKMatrix(svgCircle.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgCircle, disposable);
@@ -1658,7 +1658,7 @@ namespace Svg.Skia
                         var skPath = ToSKPath(svgEllipse, fillRule, disposable);
                         if (skPath != null && !skPath.IsEmpty)
                         {
-                            var skMatrix = SkiaUtil.GetSKMatrix(svgEllipse.Transforms);
+                            var skMatrix = GetSKMatrix(svgEllipse.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgEllipse, disposable);
@@ -1679,7 +1679,7 @@ namespace Svg.Skia
                         var skPath = ToSKPath(svgLine, fillRule, disposable);
                         if (skPath != null && !skPath.IsEmpty)
                         {
-                            var skMatrix = SkiaUtil.GetSKMatrix(svgLine.Transforms);
+                            var skMatrix = GetSKMatrix(svgLine.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgLine, disposable);
@@ -1700,7 +1700,7 @@ namespace Svg.Skia
                         var skPath = ToSKPath(svgPolyline.Points, fillRule, false, disposable);
                         if (skPath != null && !skPath.IsEmpty)
                         {
-                            var skMatrix = SkiaUtil.GetSKMatrix(svgPolyline.Transforms);
+                            var skMatrix = GetSKMatrix(svgPolyline.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgPolyline, disposable);
@@ -1721,7 +1721,7 @@ namespace Svg.Skia
                         var skPath = ToSKPath(svgPolygon.Points, fillRule, true, disposable);
                         if (skPath != null && !skPath.IsEmpty)
                         {
-                            var skMatrix = SkiaUtil.GetSKMatrix(svgPolygon.Transforms);
+                            var skMatrix = GetSKMatrix(svgPolygon.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgPolygon, disposable);
@@ -1741,7 +1741,7 @@ namespace Svg.Skia
                         var skPath = GetClipPath(svgGroup.Children, disposable);
                         if (skPath != null && !skPath.IsEmpty)
                         {
-                            var skMatrix = SkiaUtil.GetSKMatrix(svgGroup.Transforms);
+                            var skMatrix = GetSKMatrix(svgGroup.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgGroup, disposable);
