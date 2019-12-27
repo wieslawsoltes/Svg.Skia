@@ -288,10 +288,11 @@ namespace Svg.Skia
         internal void AddMarkers(SvgGroup svgGroup)
         {
             Uri? marker = null;
-            if (svgGroup.TryGetAttribute("marker", out string markerUrl))
-            {
-                marker = new Uri(markerUrl, UriKind.RelativeOrAbsolute);
-            }
+            // TODO: marker can not be set as presentation attribute
+            //if (svgGroup.TryGetAttribute("marker", out string markerUrl))
+            //{
+            //    marker = new Uri(markerUrl, UriKind.RelativeOrAbsolute);
+            //}
 
             if (svgGroup.MarkerStart == null && svgGroup.MarkerMid == null && svgGroup.MarkerEnd == null && marker == null)
             {
