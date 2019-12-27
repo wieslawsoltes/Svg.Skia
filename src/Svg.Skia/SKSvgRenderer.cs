@@ -95,33 +95,6 @@ namespace Svg.Skia
             }
         }
 
-        internal void DrawMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker)
-        {
-            float fAngle1 = 0f;
-            if (svgMarker.Orient.IsAuto)
-            {
-                float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
-                float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
-                fAngle1 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
-                if (isStartMarker && svgMarker.Orient.IsAutoStartReverse)
-                {
-                    fAngle1 += 180;
-                }
-            }
-            RenderPart2(svgMarker, fAngle1, pOwner, pRefPoint);
-        }
-
-        internal void DrawMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, SKPoint pMarkerPoint3)
-        {
-            float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
-            float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
-            float fAngle1 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
-            xDiff = pMarkerPoint3.X - pMarkerPoint2.X;
-            yDiff = pMarkerPoint3.Y - pMarkerPoint2.Y;
-            float fAngle2 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
-            RenderPart2(svgMarker, (fAngle1 + fAngle2) / 2, pOwner, pRefPoint);
-        }
-
         internal SvgVisualElement? GetMarkerElement(SvgMarker svgMarker)
         {
             SvgVisualElement? markerElement = null;
@@ -138,7 +111,7 @@ namespace Svg.Skia
             return markerElement;
         }
 
-        internal void RenderPart2(SvgMarker svgMarker, float fAngle, SvgVisualElement pOwner, SKPoint pMarkerPoint)
+        internal void DrawMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle)
         {
             var markerElement = GetMarkerElement(svgMarker);
             if (markerElement == null)
@@ -201,7 +174,6 @@ namespace Svg.Skia
             {
                 markerElementParent.SetValue(markerElement, svgMarker);
             }
-
             markerElement.InvalidateChildPaths();
 
             _skCanvas.Save();
@@ -235,6 +207,33 @@ namespace Svg.Skia
             {
                 markerElementParent.SetValue(markerElement, originalParent);
             }
+        }
+
+        internal void DrawMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker)
+        {
+            float fAngle1 = 0f;
+            if (svgMarker.Orient.IsAuto)
+            {
+                float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
+                float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
+                fAngle1 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
+                if (isStartMarker && svgMarker.Orient.IsAutoStartReverse)
+                {
+                    fAngle1 += 180;
+                }
+            }
+            DrawMarker(svgMarker, pOwner, pRefPoint, fAngle1);
+        }
+
+        internal void DrawMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, SKPoint pMarkerPoint3)
+        {
+            float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
+            float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
+            float fAngle1 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
+            xDiff = pMarkerPoint3.X - pMarkerPoint2.X;
+            yDiff = pMarkerPoint3.Y - pMarkerPoint2.Y;
+            float fAngle2 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
+            DrawMarker(svgMarker, pOwner, pRefPoint, (fAngle1 + fAngle2) / 2);
         }
 
         internal void DrawMarkers(SvgMarkerElement svgMarkerElement, SKPath sKPath)
