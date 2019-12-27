@@ -28,67 +28,67 @@ namespace Svg.Skia
             _disposable?.Dispose();
         }
 
-        internal void Draw(SvgElement svgElement)
+        internal void Draw(SvgElement svgElement, bool alwaysDisplay)
         {
             switch (svgElement)
             {
                 // TODO:
                 //case SvgAnchor svgAnchor:
-                //    DrawAnchor(svgAnchor);
+                //    DrawAnchor(svgAnchor, alwaysDisplay);
                 //    break;
                 case SvgFragment svgFragment:
-                    DrawFragment(svgFragment);
+                    DrawFragment(svgFragment, alwaysDisplay);
                     break;
                 case SvgImage svgImage:
-                    DrawImage(svgImage);
+                    DrawImage(svgImage, alwaysDisplay);
                     break;
                 case SvgSwitch svgSwitch:
-                    DrawSwitch(svgSwitch);
+                    DrawSwitch(svgSwitch, alwaysDisplay);
                     break;
                 case SvgUse svgUse:
-                    DrawUse(svgUse);
+                    DrawUse(svgUse, alwaysDisplay);
                     break;
                 case SvgForeignObject svgForeignObject:
-                    DrawForeignObject(svgForeignObject);
+                    DrawForeignObject(svgForeignObject, alwaysDisplay);
                     break;
                 case SvgCircle svgCircle:
-                    DrawCircle(svgCircle);
+                    DrawCircle(svgCircle, alwaysDisplay);
                     break;
                 case SvgEllipse svgEllipse:
-                    DrawEllipse(svgEllipse);
+                    DrawEllipse(svgEllipse, alwaysDisplay);
                     break;
                 case SvgRectangle svgRectangle:
-                    DrawRectangle(svgRectangle);
+                    DrawRectangle(svgRectangle, alwaysDisplay);
                     break;
                 case SvgGlyph svgGlyph:
-                    DrawGlyph(svgGlyph);
+                    DrawGlyph(svgGlyph, alwaysDisplay);
                     break;
                 case SvgGroup svgGroup:
-                    DrawGroup(svgGroup);
+                    DrawGroup(svgGroup, alwaysDisplay);
                     break;
                 case SvgLine svgLine:
-                    DrawLine(svgLine);
+                    DrawLine(svgLine, alwaysDisplay);
                     break;
                 case SvgPath svgPath:
-                    DrawPath(svgPath);
+                    DrawPath(svgPath, alwaysDisplay);
                     break;
                 case SvgPolyline svgPolyline:
-                    DrawPolyline(svgPolyline);
+                    DrawPolyline(svgPolyline, alwaysDisplay);
                     break;
                 case SvgPolygon svgPolygon:
-                    DrawPolygon(svgPolygon);
+                    DrawPolygon(svgPolygon, alwaysDisplay);
                     break;
                 case SvgText svgText:
-                    DrawText(svgText);
+                    DrawText(svgText, alwaysDisplay);
                     break;
                 case SvgTextPath svgTextPath:
-                    DrawTextPath(svgTextPath);
+                    DrawTextPath(svgTextPath, alwaysDisplay);
                     break;
                 case SvgTextRef svgTextRef:
-                    DrawTextRef(svgTextRef);
+                    DrawTextRef(svgTextRef, alwaysDisplay);
                     break;
                 case SvgTextSpan svgTextSpan:
-                    DrawTextSpan(svgTextSpan);
+                    DrawTextSpan(svgTextSpan, alwaysDisplay);
                     break;
                 default:
                     break;
@@ -189,7 +189,7 @@ namespace Svg.Skia
 
             // TODO: _skCanvas.ClipRect(skRectClip, SKClipOperation.Intersect);
 
-            Draw(markerElement);
+            Draw(markerElement, true);
 
             if (skPaintFilter != null)
             {
@@ -315,10 +315,11 @@ namespace Svg.Skia
             }
         }
 
-        internal bool CanDraw(SvgVisualElement svgVisualElement)
+        internal bool CanDraw(SvgVisualElement svgVisualElement, bool alwaysDisplay)
         {
-            return svgVisualElement.Visible == true
-                && !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
+            bool visible = svgVisualElement.Visible == true;
+            bool display = alwaysDisplay ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
+            return visible && display;
         }
 
         // TODO:
@@ -344,7 +345,7 @@ namespace Svg.Skia
         //    _skCanvas.Restore();
         //}
 
-        public void DrawFragment(SvgFragment svgFragment)
+        public void DrawFragment(SvgFragment svgFragment, bool alwaysDisplay)
         {
             float x = svgFragment.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
             float y = svgFragment.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
@@ -373,7 +374,7 @@ namespace Svg.Skia
 
             foreach (var svgElement in svgFragment.Children)
             {
-                Draw(svgElement);
+                Draw(svgElement, alwaysDisplay);
             }
 
             if (skPaintOpacity != null)
@@ -384,9 +385,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawImage(SvgImage svgImage)
+        public void DrawImage(SvgImage svgImage, bool alwaysDisplay)
         {
-            if (!CanDraw(svgImage))
+            if (!CanDraw(svgImage, alwaysDisplay))
             {
                 return;
             }
@@ -517,7 +518,7 @@ namespace Svg.Skia
                 SKMatrix.Concat(ref skTranslationMatrix, ref skTranslationMatrix, ref skScaleMatrix);
                 SkiaUtil.SetTransform(_skCanvas, skTranslationMatrix);
 
-                DrawFragment(svgFragment);
+                DrawFragment(svgFragment, alwaysDisplay);
 
                 _skCanvas.Restore();
             }
@@ -535,9 +536,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawSwitch(SvgSwitch svgSwitch)
+        public void DrawSwitch(SvgSwitch svgSwitch, bool alwaysDisplay)
         {
-            if (!CanDraw(svgSwitch))
+            if (!CanDraw(svgSwitch, alwaysDisplay))
             {
                 return;
             }
@@ -567,9 +568,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawSymbol(SvgSymbol svgSymbol)
+        public void DrawSymbol(SvgSymbol svgSymbol, bool alwaysDisplay)
         {
-            if (!CanDraw(svgSymbol))
+            if (!CanDraw(svgSymbol, alwaysDisplay))
             {
                 return;
             }
@@ -611,7 +612,7 @@ namespace Svg.Skia
 
             foreach (var svgElement in svgSymbol.Children)
             {
-                Draw(svgElement);
+                Draw(svgElement, alwaysDisplay);
             }
 
             if (skPaintFilter != null)
@@ -627,9 +628,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawUse(SvgUse svgUse)
+        public void DrawUse(SvgUse svgUse, bool alwaysDisplay)
         {
-            if (!CanDraw(svgUse))
+            if (!CanDraw(svgUse, alwaysDisplay))
             {
                 return;
             }
@@ -689,11 +690,11 @@ namespace Svg.Skia
 
             if (svgVisualElement is SvgSymbol svgSymbol)
             {
-                DrawSymbol(svgSymbol);
+                DrawSymbol(svgSymbol, alwaysDisplay);
             }
             else
             {
-                Draw(svgVisualElement);
+                Draw(svgVisualElement, alwaysDisplay);
             }
 
             if (skPaintFilter != null)
@@ -714,9 +715,9 @@ namespace Svg.Skia
             }
         }
 
-        public void DrawForeignObject(SvgForeignObject svgForeignObject)
+        public void DrawForeignObject(SvgForeignObject svgForeignObject, bool alwaysDisplay)
         {
-            if (!CanDraw(svgForeignObject))
+            if (!CanDraw(svgForeignObject, alwaysDisplay))
             {
                 return;
             }
@@ -746,9 +747,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawCircle(SvgCircle svgCircle)
+        public void DrawCircle(SvgCircle svgCircle, bool alwaysDisplay)
         {
-            if (!CanDraw(svgCircle))
+            if (!CanDraw(svgCircle, alwaysDisplay))
             {
                 return;
             }
@@ -799,9 +800,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawEllipse(SvgEllipse svgEllipse)
+        public void DrawEllipse(SvgEllipse svgEllipse, bool alwaysDisplay)
         {
-            if (!CanDraw(svgEllipse))
+            if (!CanDraw(svgEllipse, alwaysDisplay))
             {
                 return;
             }
@@ -853,9 +854,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawRectangle(SvgRectangle svgRectangle)
+        public void DrawRectangle(SvgRectangle svgRectangle, bool alwaysDisplay)
         {
-            if (!CanDraw(svgRectangle))
+            if (!CanDraw(svgRectangle, alwaysDisplay))
             {
                 return;
             }
@@ -942,9 +943,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawGlyph(SvgGlyph svgGlyph)
+        public void DrawGlyph(SvgGlyph svgGlyph, bool alwaysDisplay)
         {
-            if (!CanDraw(svgGlyph))
+            if (!CanDraw(svgGlyph, alwaysDisplay))
             {
                 return;
             }
@@ -974,9 +975,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawGroup(SvgGroup svgGroup)
+        public void DrawGroup(SvgGroup svgGroup, bool alwaysDisplay)
         {
-            if (!CanDraw(svgGroup))
+            if (!CanDraw(svgGroup, alwaysDisplay))
             {
                 return;
             }
@@ -996,7 +997,7 @@ namespace Svg.Skia
 
             foreach (var svgElement in svgGroup.Children)
             {
-                Draw(svgElement);
+                Draw(svgElement, alwaysDisplay);
             }
 
             if (skPaintFilter != null)
@@ -1012,9 +1013,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawLine(SvgLine svgLine)
+        public void DrawLine(SvgLine svgLine, bool alwaysDisplay)
         {
-            if (!CanDraw(svgLine))
+            if (!CanDraw(svgLine, alwaysDisplay))
             {
                 return;
             }
@@ -1056,9 +1057,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawPath(SvgPath svgPath)
+        public void DrawPath(SvgPath svgPath, bool alwaysDisplay)
         {
-            if (!CanDraw(svgPath))
+            if (!CanDraw(svgPath, alwaysDisplay))
             {
                 return;
             }
@@ -1106,9 +1107,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawPolyline(SvgPolyline svgPolyline)
+        public void DrawPolyline(SvgPolyline svgPolyline, bool alwaysDisplay)
         {
-            if (!CanDraw(svgPolyline))
+            if (!CanDraw(svgPolyline, alwaysDisplay))
             {
                 return;
             }
@@ -1156,9 +1157,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawPolygon(SvgPolygon svgPolygon)
+        public void DrawPolygon(SvgPolygon svgPolygon, bool alwaysDisplay)
         {
-            if (!CanDraw(svgPolygon))
+            if (!CanDraw(svgPolygon, alwaysDisplay))
             {
                 return;
             }
@@ -1206,9 +1207,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawText(SvgText svgText)
+        public void DrawText(SvgText svgText, bool alwaysDisplay)
         {
-            if (!CanDraw(svgText))
+            if (!CanDraw(svgText, alwaysDisplay))
             {
                 return;
             }
@@ -1269,9 +1270,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawTextPath(SvgTextPath svgTextPath)
+        public void DrawTextPath(SvgTextPath svgTextPath, bool alwaysDisplay)
         {
-            if (!CanDraw(svgTextPath))
+            if (!CanDraw(svgTextPath, alwaysDisplay))
             {
                 return;
             }
@@ -1301,9 +1302,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawTextRef(SvgTextRef svgTextRef)
+        public void DrawTextRef(SvgTextRef svgTextRef, bool alwaysDisplay)
         {
-            if (!CanDraw(svgTextRef))
+            if (!CanDraw(svgTextRef, alwaysDisplay))
             {
                 return;
             }
@@ -1333,9 +1334,9 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawTextSpan(SvgTextSpan svgTextSpan)
+        public void DrawTextSpan(SvgTextSpan svgTextSpan, bool alwaysDisplay)
         {
-            if (!CanDraw(svgTextSpan))
+            if (!CanDraw(svgTextSpan, alwaysDisplay))
             {
                 return;
             }

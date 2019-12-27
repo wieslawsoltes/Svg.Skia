@@ -9,24 +9,24 @@ namespace Svg.Skia
     {
         // TODO:
         //void DrawAnchor(SvgAnchor svgAnchor);
-        void DrawFragment(SvgFragment svgFragment);
-        void DrawImage(SvgImage svgImage);
-        void DrawSwitch(SvgSwitch svgSwitch);
-        void DrawSymbol(SvgSymbol svgSymbol);
-        void DrawUse(SvgUse svgUse);
-        void DrawForeignObject(SvgForeignObject svgForeignObject);
-        void DrawCircle(SvgCircle svgCircle);
-        void DrawEllipse(SvgEllipse svgEllipse);
-        void DrawRectangle(SvgRectangle svgRectangle);
-        void DrawGlyph(SvgGlyph svgGlyph);
-        void DrawGroup(SvgGroup svgGroup);
-        void DrawLine(SvgLine svgLine);
-        void DrawPath(SvgPath svgPath);
-        void DrawPolyline(SvgPolyline svgPolyline);
-        void DrawPolygon(SvgPolygon svgPolygon);
-        void DrawText(SvgText svgText);
-        void DrawTextPath(SvgTextPath svgTextPath);
-        void DrawTextRef(SvgTextRef svgTextRef);
-        void DrawTextSpan(SvgTextSpan svgTextSpan);
+        void DrawFragment(SvgFragment svgFragment, bool alwaysDisplay);
+        void DrawImage(SvgImage svgImage, bool alwaysDisplay);
+        void DrawSwitch(SvgSwitch svgSwitch, bool alwaysDisplay);
+        void DrawSymbol(SvgSymbol svgSymbol, bool alwaysDisplay);
+        void DrawUse(SvgUse svgUse, bool alwaysDisplay);
+        void DrawForeignObject(SvgForeignObject svgForeignObject, bool alwaysDisplay);
+        void DrawCircle(SvgCircle svgCircle, bool alwaysDisplay);
+        void DrawEllipse(SvgEllipse svgEllipse, bool alwaysDisplay);
+        void DrawRectangle(SvgRectangle svgRectangle, bool alwaysDisplay);
+        void DrawGlyph(SvgGlyph svgGlyph, bool alwaysDisplay);
+        void DrawGroup(SvgGroup svgGroup, bool alwaysDisplay);
+        void DrawLine(SvgLine svgLine, bool alwaysDisplay);
+        void DrawPath(SvgPath svgPath, bool alwaysDisplay);
+        void DrawPolyline(SvgPolyline svgPolyline, bool alwaysDisplay);
+        void DrawPolygon(SvgPolygon svgPolygon, bool alwaysDisplay);
+        void DrawText(SvgText svgText, bool alwaysDisplay);
+        void DrawTextPath(SvgTextPath svgTextPath, bool alwaysDisplay);
+        void DrawTextRef(SvgTextRef svgTextRef, bool alwaysDisplay);
+        void DrawTextSpan(SvgTextSpan svgTextSpan, bool alwaysDisplay);
     }
 }

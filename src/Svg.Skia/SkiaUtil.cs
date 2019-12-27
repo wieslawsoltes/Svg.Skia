@@ -675,7 +675,7 @@ namespace Svg.Skia
                 skCanvas.SetMatrix(sKMatrix);
                 foreach (var svgElement in svgElementCollection)
                 {
-                    renderer.Draw(svgElement);
+                    renderer.Draw(svgElement, false);
                 }
                 return skPictureRecorder.EndRecording();
             }
