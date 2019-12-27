@@ -323,7 +323,7 @@ namespace Svg.Skia
         }
 
         // TODO:
-        //public void DrawAnchor(SvgAnchor svgAnchor)
+        //public void DrawAnchor(SvgAnchor svgAnchor, bool alwaysDisplay)
         //{
         //    _skCanvas.Save();
         //
@@ -334,7 +334,7 @@ namespace Svg.Skia
         //
         //    foreach (var svgElement in svgAnchor.Children)
         //    {
-        //        Draw(svgElement);
+        //        Draw(svgElement, alwaysDisplay);
         //    }
         //
         //    if (skPaintOpacity != null)
