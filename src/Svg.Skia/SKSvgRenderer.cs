@@ -32,6 +32,10 @@ namespace Svg.Skia
         {
             switch (svgElement)
             {
+                // TODO:
+                //case SvgAnchor svgAnchor:
+                //    DrawAnchor(svgAnchor);
+                //    break;
                 case SvgFragment svgFragment:
                     DrawFragment(svgFragment);
                     break;
@@ -315,6 +319,29 @@ namespace Svg.Skia
             return svgVisualElement.Visible == true
                 && !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
         }
+
+        // TODO:
+        //public void DrawAnchor(SvgAnchor svgAnchor)
+        //{
+        //    _skCanvas.Save();
+        //
+        //    var skMatrix = SkiaUtil.GetSKMatrix(svgAnchor.Transforms);
+        //    SkiaUtil.SetTransform(_skCanvas, skMatrix);
+        //
+        //    var skPaintOpacity = SkiaUtil.SetOpacity(_skCanvas, svgAnchor, _disposable);
+        //
+        //    foreach (var svgElement in svgAnchor.Children)
+        //    {
+        //        Draw(svgElement);
+        //    }
+        //
+        //    if (skPaintOpacity != null)
+        //    {
+        //        _skCanvas.Restore();
+        //    }
+        //
+        //    _skCanvas.Restore();
+        //}
 
         public void DrawFragment(SvgFragment svgFragment)
         {

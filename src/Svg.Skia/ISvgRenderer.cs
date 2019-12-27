@@ -7,6 +7,8 @@ namespace Svg.Skia
 {
     public interface ISvgRenderer : IDisposable
     {
+        // TODO:
+        //void DrawAnchor(SvgAnchor svgAnchor);
         void DrawFragment(SvgFragment svgFragment);
         void DrawImage(SvgImage svgImage);
         void DrawSwitch(SvgSwitch svgSwitch);
