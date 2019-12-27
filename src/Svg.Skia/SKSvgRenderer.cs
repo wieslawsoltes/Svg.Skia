@@ -291,24 +291,26 @@ namespace Svg.Skia
 
         internal void AddMarkers(SvgGroup svgGroup)
         {
-            if (svgGroup.MarkerStart != null || svgGroup.MarkerMid != null || svgGroup.MarkerEnd != null)
+            if (svgGroup.MarkerStart == null && svgGroup.MarkerMid == null && svgGroup.MarkerEnd == null)
             {
-                foreach (var c in svgGroup.Children)
+                return;
+            }
+
+            foreach (var svgElement in svgGroup.Children)
+            {
+                if (svgElement is SvgMarkerElement svgMarkerElement)
                 {
-                    if (c is SvgMarkerElement)
+                    if (svgGroup.MarkerStart != null && svgMarkerElement.MarkerStart == null)
                     {
-                        if (svgGroup.MarkerStart != null && ((SvgMarkerElement)c).MarkerStart == null)
-                        {
-                            ((SvgMarkerElement)c).MarkerStart = svgGroup.MarkerStart;
-                        }
-                        if (svgGroup.MarkerMid != null && ((SvgMarkerElement)c).MarkerMid == null)
-                        {
-                            ((SvgMarkerElement)c).MarkerMid = svgGroup.MarkerMid;
-                        }
-                        if (svgGroup.MarkerEnd != null && ((SvgMarkerElement)c).MarkerEnd == null)
-                        {
-                            ((SvgMarkerElement)c).MarkerEnd = svgGroup.MarkerEnd;
-                        }
+                        svgMarkerElement.MarkerStart = svgGroup.MarkerStart;
+                    }
+                    if (svgGroup.MarkerMid != null && svgMarkerElement.MarkerMid == null)
+                    {
+                        svgMarkerElement.MarkerMid = svgGroup.MarkerMid;
+                    }
+                    if (svgGroup.MarkerEnd != null && svgMarkerElement.MarkerEnd == null)
+                    {
+                        svgMarkerElement.MarkerEnd = svgGroup.MarkerEnd;
                     }
                 }
             }
