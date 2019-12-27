@@ -167,7 +167,9 @@ namespace Svg.Skia
                     break;
             }
 
-            var skRectClip = SKRect.Create(markerWidth / viewBoxToMarkerUnitsScaleX, markerHeight / viewBoxToMarkerUnitsScaleY);
+            var skRectClip = SKRect.Create(
+                markerWidth / viewBoxToMarkerUnitsScaleX,
+                markerHeight / viewBoxToMarkerUnitsScaleY);
 
             _skCanvas.Save();
 
