@@ -9,24 +9,24 @@ namespace Svg.Skia
     {
         // TODO:
         //void DrawAnchor(SvgAnchor svgAnchor);
-        void DrawFragment(SvgFragment svgFragment, bool alwaysDisplay);
-        void DrawImage(SvgImage svgImage, bool alwaysDisplay);
-        void DrawSwitch(SvgSwitch svgSwitch, bool alwaysDisplay);
-        void DrawSymbol(SvgSymbol svgSymbol, bool alwaysDisplay);
-        void DrawUse(SvgUse svgUse, bool alwaysDisplay);
-        void DrawForeignObject(SvgForeignObject svgForeignObject, bool alwaysDisplay);
-        void DrawCircle(SvgCircle svgCircle, bool alwaysDisplay);
-        void DrawEllipse(SvgEllipse svgEllipse, bool alwaysDisplay);
-        void DrawRectangle(SvgRectangle svgRectangle, bool alwaysDisplay);
-        void DrawGlyph(SvgGlyph svgGlyph, bool alwaysDisplay);
-        void DrawGroup(SvgGroup svgGroup, bool alwaysDisplay);
-        void DrawLine(SvgLine svgLine, bool alwaysDisplay);
-        void DrawPath(SvgPath svgPath, bool alwaysDisplay);
-        void DrawPolyline(SvgPolyline svgPolyline, bool alwaysDisplay);
-        void DrawPolygon(SvgPolygon svgPolygon, bool alwaysDisplay);
-        void DrawText(SvgText svgText, bool alwaysDisplay);
-        void DrawTextPath(SvgTextPath svgTextPath, bool alwaysDisplay);
-        void DrawTextRef(SvgTextRef svgTextRef, bool alwaysDisplay);
-        void DrawTextSpan(SvgTextSpan svgTextSpan, bool alwaysDisplay);
+        void DrawFragment(SvgFragment svgFragment, bool ignoreDisplay);
+        void DrawImage(SvgImage svgImage, bool ignoreDisplay);
+        void DrawSwitch(SvgSwitch svgSwitch, bool ignoreDisplay);
+        void DrawSymbol(SvgSymbol svgSymbol, bool ignoreDisplay);
+        void DrawUse(SvgUse svgUse, bool ignoreDisplay);
+        void DrawForeignObject(SvgForeignObject svgForeignObject, bool ignoreDisplay);
+        void DrawCircle(SvgCircle svgCircle, bool ignoreDisplay);
+        void DrawEllipse(SvgEllipse svgEllipse, bool ignoreDisplay);
+        void DrawRectangle(SvgRectangle svgRectangle, bool ignoreDisplay);
+        void DrawGlyph(SvgGlyph svgGlyph, bool ignoreDisplay);
+        void DrawGroup(SvgGroup svgGroup, bool ignoreDisplay);
+        void DrawLine(SvgLine svgLine, bool ignoreDisplay);
+        void DrawPath(SvgPath svgPath, bool ignoreDisplay);
+        void DrawPolyline(SvgPolyline svgPolyline, bool ignoreDisplay);
+        void DrawPolygon(SvgPolygon svgPolygon, bool ignoreDisplay);
+        void DrawText(SvgText svgText, bool ignoreDisplay);
+        void DrawTextPath(SvgTextPath svgTextPath, bool ignoreDisplay);
+        void DrawTextRef(SvgTextRef svgTextRef, bool ignoreDisplay);
+        void DrawTextSpan(SvgTextSpan svgTextSpan, bool ignoreDisplay);
     }
 }
