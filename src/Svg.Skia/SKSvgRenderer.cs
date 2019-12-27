@@ -131,6 +131,10 @@ namespace Svg.Skia
 
             var refX = svgMarker.RefX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgMarker);
             var refY = svgMarker.RefY.ToDeviceValue(null, UnitRenderingType.Horizontal, svgMarker);
+            float markerWidth = svgMarker.MarkerWidth;
+            float markerHeight = svgMarker.MarkerHeight;
+            float viewBoxToMarkerUnitsScaleX = 1f;
+            float viewBoxToMarkerUnitsScaleY = 1f;
 
             switch (svgMarker.MarkerUnits)
             {
@@ -141,14 +145,9 @@ namespace Svg.Skia
 
                         float viewBoxWidth = svgMarker.ViewBox.Width;
                         float viewBoxHeight = svgMarker.ViewBox.Height;
-                        float markerWidth = svgMarker.MarkerWidth;
-                        float markerHeight = svgMarker.MarkerHeight;
 
                         var scaleFactorWidth = (viewBoxWidth <= 0) ? 1 : (markerWidth / viewBoxWidth);
                         var scaleFactorHeight = (viewBoxHeight <= 0) ? 1 : (markerHeight / viewBoxHeight);
-
-                        var viewBoxToMarkerUnitsScaleX = 1f;
-                        var viewBoxToMarkerUnitsScaleY = 1f;
 
                         viewBoxToMarkerUnitsScaleX = Math.Min(scaleFactorWidth, scaleFactorHeight);
                         viewBoxToMarkerUnitsScaleY = Math.Min(scaleFactorWidth, scaleFactorHeight);
@@ -167,6 +166,8 @@ namespace Svg.Skia
                     }
                     break;
             }
+
+            var skRectClip = SKRect.Create(markerWidth / viewBoxToMarkerUnitsScaleX, markerHeight / viewBoxToMarkerUnitsScaleY);
 
             //var originalParent = markerElement.Parent;
             //var markerElementParent = markerElement.GetType().GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -187,7 +188,7 @@ namespace Svg.Skia
 
             var skPaintFilter = SkiaUtil.SetFilter(_skCanvas, svgMarker, _disposable);
 
-            // TODO: _skCanvas.ClipRect(skRectClip, SKClipOperation.Intersect);
+            _skCanvas.ClipRect(skRectClip, SKClipOperation.Intersect);
 
             Draw(markerElement, true);
 
