@@ -280,7 +280,13 @@ namespace Svg.Skia
 
         internal void AddMarkers(SvgGroup svgGroup)
         {
-            if (svgGroup.MarkerStart == null && svgGroup.MarkerMid == null && svgGroup.MarkerEnd == null)
+            Uri? marker = null;
+            if (svgGroup.TryGetAttribute("marker", out string markerUrl))
+            {
+                marker = new Uri(markerUrl, UriKind.RelativeOrAbsolute);
+            }
+
+            if (svgGroup.MarkerStart == null && svgGroup.MarkerMid == null && svgGroup.MarkerEnd == null && marker == null)
             {
                 return;
             }
@@ -289,17 +295,38 @@ namespace Svg.Skia
             {
                 if (svgElement is SvgMarkerElement svgMarkerElement)
                 {
-                    if (svgGroup.MarkerStart != null && svgMarkerElement.MarkerStart == null)
+                    if (svgMarkerElement.MarkerStart == null)
                     {
-                        svgMarkerElement.MarkerStart = svgGroup.MarkerStart;
+                        if (svgGroup.MarkerStart != null)
+                        {
+                            svgMarkerElement.MarkerStart = svgGroup.MarkerStart;
+                        }
+                        else if (marker != null)
+                        {
+                            svgMarkerElement.MarkerStart = marker;
+                        }
                     }
-                    if (svgGroup.MarkerMid != null && svgMarkerElement.MarkerMid == null)
+                    if (svgMarkerElement.MarkerMid == null)
                     {
-                        svgMarkerElement.MarkerMid = svgGroup.MarkerMid;
+                        if (svgGroup.MarkerMid != null)
+                        {
+                            svgMarkerElement.MarkerMid = svgGroup.MarkerMid;
+                        }
+                        else if (marker != null)
+                        {
+                            svgMarkerElement.MarkerMid = marker;
+                        }
                     }
-                    if (svgGroup.MarkerEnd != null && svgMarkerElement.MarkerEnd == null)
+                    if (svgMarkerElement.MarkerEnd == null)
                     {
-                        svgMarkerElement.MarkerEnd = svgGroup.MarkerEnd;
+                        if (svgGroup.MarkerEnd != null)
+                        {
+                            svgMarkerElement.MarkerEnd = svgGroup.MarkerEnd;
+                        }
+                        else if (marker != null)
+                        {
+                            svgMarkerElement.MarkerEnd = marker;
+                        }
                     }
                 }
             }
