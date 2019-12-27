@@ -186,9 +186,11 @@ namespace Svg.Skia
                     break;
                 default:
                     var skClipRect = SKRect.Create(
+                        svgMarker.ViewBox.MinX,
+                        svgMarker.ViewBox.MinY,
                         markerWidth / viewBoxToMarkerUnitsScaleX,
                         markerHeight / viewBoxToMarkerUnitsScaleY);
-                    //_skCanvas.ClipRect(skClipRect, SKClipOperation.Intersect);
+                    _skCanvas.ClipRect(skClipRect, SKClipOperation.Intersect);
                     break;
             }
 
