@@ -1289,7 +1289,7 @@ namespace Svg.Skia
             return skPaint;
         }
 
-        public static void SetSKPaintText(SvgText svgText, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
+        public static void SetSKPaintText(SvgTextBase svgText, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
             skPaint.LcdRenderText = true;
             skPaint.SubpixelText = true;
