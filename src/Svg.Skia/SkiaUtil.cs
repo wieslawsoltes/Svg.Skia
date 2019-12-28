@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using SkiaSharp;
@@ -1306,6 +1307,9 @@ namespace Svg.Skia
 
             var fontStyle = ToSKFontStyleSlant(svgText.FontStyle);
 
+            // TODO:
+            skPaint.TextAlign = ToSKTextAlign(svgText.TextAnchor);
+
             if (svgText.TextDecoration.HasFlag(SvgTextDecoration.Underline))
             {
                 // TODO:
@@ -1333,10 +1337,28 @@ namespace Svg.Skia
             }
             skPaint.TextSize = fontSize;
 
-            var skTypeface = SKTypeface.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
-            disposable.Add(skTypeface);
+            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim())?.ToArray();
+            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
+            {
+                var defaultName = SKTypeface.Default.FamilyName;
 
-            skPaint.Typeface = skTypeface;
+                foreach (var fontFamilyName in fontFamilyNames)
+                {
+                    var skTypeface = SKTypeface.FromFamilyName(fontFamilyName, fontWeight, fontWidth, fontStyle);
+                    if (skTypeface != null)
+                    {
+                        if (!skTypeface.FamilyName.Equals(fontFamilyName, StringComparison.Ordinal) 
+                            && fontFamilyName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
+                        {
+                            skTypeface.Dispose();
+                            continue;
+                        }
+                        disposable.Add(skTypeface);
+                        skPaint.Typeface = skTypeface;
+                        break;
+                    }
+                }
+            }
         }
 
         public static SKFontStyleWeight SKFontStyleWeight(SvgFontWeight svgFontWeight)
@@ -1425,6 +1447,20 @@ namespace Svg.Skia
             }
 
             return fontWidth;
+        }
+
+        public static SKTextAlign ToSKTextAlign(SvgTextAnchor textAnchor)
+        {
+            switch (textAnchor)
+            {
+                default:
+                case SvgTextAnchor.Start:
+                    return SKTextAlign.Left;
+                case SvgTextAnchor.Middle:
+                    return SKTextAlign.Center;
+                case SvgTextAnchor.End:
+                    return SKTextAlign.Right;
+            }
         }
 
         public static SKFontStyleSlant ToSKFontStyleSlant(SvgFontStyle fontStyle)
