@@ -1484,28 +1484,61 @@ namespace Svg.Skia
             if (isValidFill || isValidStroke)
             {
                 var text = svgText.Text?.Trim();
+                var xCount = svgText.X.Count;
+                var yCount = svgText.Y.Count;
 
-                if (svgText.X.Count == 1 && svgText.Y.Count == 1 && !string.IsNullOrEmpty(text))
+                if (xCount >= 1 && yCount >= 1 && xCount == yCount && text != null && !string.IsNullOrEmpty(text))
                 {
-                    // TODO:
-                    float x0 = svgText.X[0].ToDeviceValue(null, UnitRenderingType.HorizontalOffset, svgText);
-                    float y0 = svgText.Y[0].ToDeviceValue(null, UnitRenderingType.VerticalOffset, svgText);
-
-                    // TODO:
-                    var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
-
-                    if (SkiaUtil.IsValidFill(svgText))
+                    if (xCount == text.Length)
                     {
-                        var skPaint = SkiaUtil.GetFillSKPaint(svgText, _skSize, skBounds, _disposable);
-                        SkiaUtil.SetSKPaintText(svgText, _skSize, skBounds, skPaint, _disposable);
-                        _skCanvas.DrawText(text, x0, y0, skPaint);
+                        // TODO:
+                        var points = new SKPoint[xCount];
+
+                        for (int i = 0; i < xCount; i++)
+                        {
+                            float x = svgText.X[i].ToDeviceValue(null, UnitRenderingType.HorizontalOffset, svgText);
+                            float y = svgText.Y[i].ToDeviceValue(null, UnitRenderingType.VerticalOffset, svgText);
+                            points[i] = new SKPoint(x, y);
+                        }
+
+                        // TODO:
+                        var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
+
+                        if (isValidFill)
+                        {
+                            var skPaint = SkiaUtil.GetFillSKPaint(svgText, _skSize, skBounds, _disposable);
+                            SkiaUtil.SetSKPaintText(svgText, _skSize, skBounds, skPaint, _disposable);
+                            _skCanvas.DrawPositionedText(text, points, skPaint);
+                        }
+
+                        if (isValidStroke)
+                        {
+                            var skPaint = SkiaUtil.GetStrokeSKPaint(svgText, _skSize, skBounds, _disposable);
+                            SkiaUtil.SetSKPaintText(svgText, _skSize, skBounds, skPaint, _disposable);
+                            _skCanvas.DrawPositionedText(text, points, skPaint);
+                        }
                     }
-
-                    if (SkiaUtil.IsValidStroke(svgText))
+                    else
                     {
-                        var skPaint = SkiaUtil.GetStrokeSKPaint(svgText, _skSize, skBounds, _disposable);
-                        SkiaUtil.SetSKPaintText(svgText, _skSize, skBounds, skPaint, _disposable);
-                        _skCanvas.DrawText(text, x0, y0, skPaint);
+                        float x = svgText.X[0].ToDeviceValue(null, UnitRenderingType.HorizontalOffset, svgText);
+                        float y = svgText.Y[0].ToDeviceValue(null, UnitRenderingType.VerticalOffset, svgText);
+  
+                        // TODO:
+                        var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
+
+                        if (isValidFill)
+                        {
+                            var skPaint = SkiaUtil.GetFillSKPaint(svgText, _skSize, skBounds, _disposable);
+                            SkiaUtil.SetSKPaintText(svgText, _skSize, skBounds, skPaint, _disposable);
+                            _skCanvas.DrawText(text, x, y, skPaint);
+                        }
+
+                        if (isValidStroke)
+                        {
+                            var skPaint = SkiaUtil.GetStrokeSKPaint(svgText, _skSize, skBounds, _disposable);
+                            SkiaUtil.SetSKPaintText(svgText, _skSize, skBounds, skPaint, _disposable);
+                            _skCanvas.DrawText(text, x, y, skPaint);
+                        }
                     }
                 }
             }
