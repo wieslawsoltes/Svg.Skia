@@ -1,8 +1,10 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Forms.Integration;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 
@@ -35,27 +37,45 @@ namespace SvgToPng
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             items.SelectionChanged += Items_SelectionChanged;
-            skia.PaintSurface += Canvas_PaintSurface;
-            skia.InvalidateVisual();
         }
 
         private void Items_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            skia.InvalidateVisual();
+            skelement.InvalidateVisual();
+            glhost.Child?.Invalidate();
         }
 
-        private void Canvas_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
+        private void OnGLControlHost(object sender, EventArgs e)
         {
-            var canvas = e.Surface.Canvas;
+            var glControl = new SKGLControl();
+            glControl.PaintSurface += OnPaintGL;
+            glControl.Dock = System.Windows.Forms.DockStyle.None;
+            var host = (WindowsFormsHost)sender;
+            host.Child = glControl;
+        }
 
+        private void OnPaintGL(object sender, SKPaintGLSurfaceEventArgs e)
+        {
+            OnPaintSurface(e.Surface.Canvas, e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
+        }
+
+        private void OnPaintCanvas(object sender, SKPaintSurfaceEventArgs e)
+        {
+            OnPaintSurface(e.Surface.Canvas, e.Info.Width, e.Info.Height);
+        }
+
+        private void OnPaintSurface(SKCanvas canvas, int width, int height)
+        {
             canvas.Clear(SKColors.White);
 
             if (items.SelectedItem is Item item)
             {
                 if (item.Svg?.Picture != null)
                 {
-                    skia.Width = item.Svg.Picture.CullRect.Width;
-                    skia.Height = item.Svg.Picture.CullRect.Height;
+                    skelement.Width = item.Svg.Picture.CullRect.Width;
+                    skelement.Height = item.Svg.Picture.CullRect.Height;
+                    //glhost.Width = item.Svg.Picture.CullRect.Width;
+                    //glhost.Height = item.Svg.Picture.CullRect.Height;
                     canvas.DrawPicture(item.Svg.Picture);
                 }
             }
@@ -185,6 +205,7 @@ namespace SvgToPng
                 }
             }
         }
+
         private async void ButtonSavePng_Click(object sender, RoutedEventArgs e)
         {
             string outputPath = TextOutputPath.Text;
