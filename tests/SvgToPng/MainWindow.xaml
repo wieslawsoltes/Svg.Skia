@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
+        xmlns:views="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen" WindowState="Maximized"
         UseLayoutRounding="True" SnapsToDevicePixels="True"
@@ -42,7 +42,10 @@
             <TextBlock Text="Skia" Padding="0" Margin="2" Grid.Column="0" Grid.Row="0"/>
             <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="2" Grid.Column="0" Grid.Row="1">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                    <skia:SKElement x:Name="skia" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                    <Grid>
+                        <views:SKElement x:Name="skelement" PaintSurface="OnPaintCanvas" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
+                        <WindowsFormsHost x:Name="glhost" Initialized="OnGLControlHost" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Collapsed" />
+                    </Grid>
                 </ScrollViewer>
             </Border>
             <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"/>
