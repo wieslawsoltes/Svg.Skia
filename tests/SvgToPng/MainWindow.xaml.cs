@@ -72,11 +72,16 @@ namespace SvgToPng
             {
                 if (item.Svg?.Picture != null)
                 {
-                    skelement.Width = item.Svg.Picture.CullRect.Width;
-                    skelement.Height = item.Svg.Picture.CullRect.Height;
-                    //glhost.Width = item.Svg.Picture.CullRect.Width;
-                    //glhost.Height = item.Svg.Picture.CullRect.Height;
-                    canvas.DrawPicture(item.Svg.Picture);
+                    float pwidth = item.Svg.Picture.CullRect.Width;
+                    float pheight = item.Svg.Picture.CullRect.Height;
+                    if (pwidth > 0f && pheight > 0f)
+                    {
+                        skelement.Width = pwidth;
+                        skelement.Height = pheight;
+                        //glhost.Width = pwidth;
+                        //glhost.Height = pheight;
+                        canvas.DrawPicture(item.Svg.Picture);
+                    }
                 }
             }
         }
