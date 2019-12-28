@@ -42,6 +42,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "props", "props", "{5BFEF4F8
 	ProjectSection(SolutionItems) = preProject
 		build\Base.props = build\Base.props
 		build\Newtonsoft.Json.props = build\Newtonsoft.Json.props
+		build\OpenTK.props = build\OpenTK.props
 		build\ReferenceAssemblies.props = build\ReferenceAssemblies.props
 		build\SkiaSharp.Linux.props = build\SkiaSharp.Linux.props
 		build\SkiaSharp.props = build\SkiaSharp.props
