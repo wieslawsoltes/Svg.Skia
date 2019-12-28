@@ -1371,6 +1371,11 @@ namespace Svg.Skia
                 }
             }
 
+            foreach (var svgElement in svgText.Children)
+            {
+                Draw(svgElement, ignoreDisplay);
+            }
+
             if (skPaintFilter != null)
             {
                 _skCanvas.Restore();
