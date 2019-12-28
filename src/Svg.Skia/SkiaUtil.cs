@@ -1290,6 +1290,8 @@ namespace Svg.Skia
             return skPaint;
         }
 
+        public static char[] FontFamilyTrim = new char[] { '\'' };
+
         public static void SetSKPaintText(SvgTextBase svgText, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
             skPaint.LcdRenderText = true;
@@ -1337,7 +1339,7 @@ namespace Svg.Skia
             }
             skPaint.TextSize = fontSize;
 
-            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim())?.ToArray();
+            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(FontFamilyTrim))?.ToArray();
             if (fontFamilyNames != null && fontFamilyNames.Length > 0)
             {
                 var defaultName = SKTypeface.Default.FamilyName;
@@ -1348,7 +1350,7 @@ namespace Svg.Skia
                     if (skTypeface != null)
                     {
                         if (!skTypeface.FamilyName.Equals(fontFamilyName, StringComparison.Ordinal) 
-                            && fontFamilyName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
+                            && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
                         {
                             skTypeface.Dispose();
                             continue;
