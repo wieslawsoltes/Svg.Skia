@@ -37,9 +37,9 @@ namespace Svg.Skia
             _skCanvas.SetMatrix(skMatrixTotal);
         }
 
-        internal void SetClipPath(SvgVisualElement svgVisualElement, CompositeDisposable disposable)
+        internal void SetClipPath(SvgVisualElement svgVisualElement)
         {
-            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgVisualElement, disposable);
+            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgVisualElement, _disposable);
             if (skPathClip != null && !skPathClip.IsEmpty)
             {
                 bool antialias = SkiaUtil.IsAntialias(svgVisualElement);
@@ -64,7 +64,7 @@ namespace Svg.Skia
             }
         }
 
-        internal SKPaint? SetOpacity(SvgElement svgElement, CompositeDisposable disposable)
+        internal SKPaint? SetOpacity(SvgElement svgElement)
         {
             float opacity = SkiaUtil.AdjustSvgOpacity(svgElement.Opacity);
             if (opacity < 1f)
@@ -76,21 +76,21 @@ namespace Svg.Skia
                 skPaint.Color = new SKColor(255, 255, 255, (byte)Math.Round(opacity * 255));
                 skPaint.Style = SKPaintStyle.StrokeAndFill;
                 _skCanvas.SaveLayer(skPaint);
-                disposable.Add(skPaint);
+                _disposable.Add(skPaint);
                 return skPaint;
             }
             return null;
         }
 
-        internal SKPaint? SetFilter(SvgVisualElement svgVisualElement, CompositeDisposable disposable)
+        internal SKPaint? SetFilter(SvgVisualElement svgVisualElement)
         {
             if (svgVisualElement.Filter != null)
             {
                 var skPaint = new SKPaint();
                 skPaint.Style = SKPaintStyle.StrokeAndFill;
-                SkiaUtil.SetFilter(svgVisualElement, skPaint, disposable);
+                SkiaUtil.SetFilter(svgVisualElement, skPaint, _disposable);
                 _skCanvas.SaveLayer(skPaint);
-                disposable.Add(skPaint);
+                _disposable.Add(skPaint);
                 return skPaint;
             }
             return null;
@@ -240,11 +240,11 @@ namespace Svg.Skia
             var skMatrix = SkiaUtil.GetSKMatrix(svgMarker.Transforms);
             SKMatrix.PreConcat(ref skMatrix, ref skMarkerMatrix);
             SetTransform(skMatrix);
-            SetClipPath(svgMarker, _disposable);
+            SetClipPath(svgMarker);
 
-            var skPaintOpacity = SetOpacity(svgMarker, _disposable);
+            var skPaintOpacity = SetOpacity(svgMarker);
 
-            var skPaintFilter = SetFilter(svgMarker, _disposable);
+            var skPaintFilter = SetFilter(svgMarker);
 
             switch (svgMarker.Overflow)
             {
@@ -466,7 +466,7 @@ namespace Svg.Skia
             SKMatrix.PreConcat(ref skMatrix, ref skMatrixViewBox);
             SetTransform(skMatrix);
 
-            var skPaintOpacity = SetOpacity(svgFragment, _disposable);
+            var skPaintOpacity = SetOpacity(svgFragment);
 
             foreach (var svgElement in svgFragment.Children)
             {
@@ -588,11 +588,11 @@ namespace Svg.Skia
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgImage.Transforms);
             SetTransform(skMatrix);
-            SetClipPath(svgImage, _disposable);
+            SetClipPath(svgImage);
 
-            var skPaintOpacity = SetOpacity(svgImage, _disposable);
+            var skPaintOpacity = SetOpacity(svgImage);
 
-            var skPaintFilter = SetFilter(svgImage, _disposable);
+            var skPaintFilter = SetFilter(svgImage);
 
             _skCanvas.ClipRect(destClip, SKClipOperation.Intersect);
 
@@ -645,11 +645,11 @@ namespace Svg.Skia
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgSwitch.Transforms);
             SetTransform(skMatrix);
-            SetClipPath(svgSwitch, _disposable);
+            SetClipPath(svgSwitch);
 
-            var skPaintOpacity = SetOpacity(svgSwitch, _disposable);
+            var skPaintOpacity = SetOpacity(svgSwitch);
 
-            var skPaintFilter = SetFilter(svgSwitch, _disposable);
+            var skPaintFilter = SetFilter(svgSwitch);
 
             // TODO:
 
@@ -702,11 +702,11 @@ namespace Svg.Skia
             var skMatrix = SkiaUtil.GetSKMatrix(svgSymbol.Transforms);
             SKMatrix.PreConcat(ref skMatrix, ref skMatrixViewBox);
             SetTransform(skMatrix);
-            SetClipPath(svgSymbol, _disposable);
+            SetClipPath(svgSymbol);
 
-            var skPaintOpacity = SetOpacity(svgSymbol, _disposable);
+            var skPaintOpacity = SetOpacity(svgSymbol);
 
-            var skPaintFilter = SetFilter(svgSymbol, _disposable);
+            var skPaintFilter = SetFilter(svgSymbol);
 
             foreach (var svgElement in svgSymbol.Children)
             {
@@ -780,11 +780,11 @@ namespace Svg.Skia
             _skCanvas.Save();
 
             SetTransform(skMatrix);
-            SetClipPath(svgUse, _disposable);
+            SetClipPath(svgUse);
 
-            var skPaintOpacity = SetOpacity(svgUse, _disposable);
+            var skPaintOpacity = SetOpacity(svgUse);
 
-            var skPaintFilter = SetFilter(svgUse, _disposable);
+            var skPaintFilter = SetFilter(svgUse);
 
             if (svgVisualElement is SvgSymbol svgSymbol)
             {
@@ -824,11 +824,11 @@ namespace Svg.Skia
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgForeignObject.Transforms);
             SetTransform(skMatrix);
-            SetClipPath(svgForeignObject, _disposable);
+            SetClipPath(svgForeignObject);
 
-            var skPaintOpacity = SetOpacity(svgForeignObject, _disposable);
+            var skPaintOpacity = SetOpacity(svgForeignObject);
 
-            var skPaintFilter = SetFilter(svgForeignObject, _disposable);
+            var skPaintFilter = SetFilter(svgForeignObject);
 
             // TODO:
 
@@ -867,11 +867,11 @@ namespace Svg.Skia
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgCircle.Transforms);
             SetTransform(skMatrix);
-            SetClipPath(svgCircle, _disposable);
+            SetClipPath(svgCircle);
 
-            var skPaintOpacity = SetOpacity(svgCircle, _disposable);
+            var skPaintOpacity = SetOpacity(svgCircle);
 
-            var skPaintFilter = SetFilter(svgCircle, _disposable);
+            var skPaintFilter = SetFilter(svgCircle);
 
             if (SkiaUtil.IsValidFill(svgCircle))
             {
@@ -921,11 +921,11 @@ namespace Svg.Skia
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgEllipse.Transforms);
             SetTransform(skMatrix);
-            SetClipPath(svgEllipse, _disposable);
+            SetClipPath(svgEllipse);
 
-            var skPaintOpacity = SetOpacity(svgEllipse, _disposable);
+            var skPaintOpacity = SetOpacity(svgEllipse);
 
-            var skPaintFilter = SetFilter(svgEllipse, _disposable);
+            var skPaintFilter = SetFilter(svgEllipse);
 
             if (SkiaUtil.IsValidFill(svgEllipse))
             {
@@ -996,11 +996,11 @@ namespace Svg.Skia
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgRectangle.Transforms);
             SetTransform(skMatrix);
-            SetClipPath(svgRectangle, _disposable);
+            SetClipPath(svgRectangle);
 
-            var skPaintOpacity = SetOpacity(svgRectangle, _disposable);
+            var skPaintOpacity = SetOpacity(svgRectangle);
 
-            var skPaintFilter = SetFilter(svgRectangle, _disposable);
+            var skPaintFilter = SetFilter(svgRectangle);
 
             if (SkiaUtil.IsValidFill(svgRectangle))
             {
@@ -1052,11 +1052,11 @@ namespace Svg.Skia
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgGlyph.Transforms);
             SetTransform(skMatrix);
-            SetClipPath(svgGlyph, _disposable);
+            SetClipPath(svgGlyph);
 
-            var skPaintOpacity = SetOpacity(svgGlyph, _disposable);
+            var skPaintOpacity = SetOpacity(svgGlyph);
 
-            var skPaintFilter = SetFilter(svgGlyph, _disposable);
+            var skPaintFilter = SetFilter(svgGlyph);
 
             // TODO:
 
@@ -1087,11 +1087,11 @@ namespace Svg.Skia
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgGroup.Transforms);
             SetTransform(skMatrix);
-            SetClipPath(svgGroup, _disposable);
+            SetClipPath(svgGroup);
 
-            var skPaintOpacity = SetOpacity(svgGroup, _disposable);
+            var skPaintOpacity = SetOpacity(svgGroup);
 
-            var skPaintFilter = SetFilter(svgGroup, _disposable);
+            var skPaintFilter = SetFilter(svgGroup);
 
             foreach (var svgElement in svgGroup.Children)
             {
@@ -1122,11 +1122,11 @@ namespace Svg.Skia
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgLine.Transforms);
             SetTransform(skMatrix);
-            SetClipPath(svgLine, _disposable);
+            SetClipPath(svgLine);
 
-            var skPaintOpacity = SetOpacity(svgLine, _disposable);
+            var skPaintOpacity = SetOpacity(svgLine);
 
-            var skPaintFilter = SetFilter(svgLine, _disposable);
+            var skPaintFilter = SetFilter(svgLine);
 
             var skPath = SkiaUtil.ToSKPath(svgLine, svgLine.FillRule, _disposable);
             if (skPath != null && !skPath.IsEmpty)
@@ -1166,11 +1166,11 @@ namespace Svg.Skia
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgPath.Transforms);
             SetTransform(skMatrix);
-            SetClipPath(svgPath, _disposable);
+            SetClipPath(svgPath);
 
-            var skPaintOpacity = SetOpacity(svgPath, _disposable);
+            var skPaintOpacity = SetOpacity(svgPath);
 
-            var skPaintFilter = SetFilter(svgPath, _disposable);
+            var skPaintFilter = SetFilter(svgPath);
 
             var skPath = SkiaUtil.ToSKPath(svgPath.PathData, svgPath.FillRule, _disposable);
             if (skPath != null && !skPath.IsEmpty)
@@ -1216,11 +1216,11 @@ namespace Svg.Skia
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgPolyline.Transforms);
             SetTransform(skMatrix);
-            SetClipPath(svgPolyline, _disposable);
+            SetClipPath(svgPolyline);
 
-            var skPaintOpacity = SetOpacity(svgPolyline, _disposable);
+            var skPaintOpacity = SetOpacity(svgPolyline);
 
-            var skPaintFilter = SetFilter(svgPolyline, _disposable);
+            var skPaintFilter = SetFilter(svgPolyline);
 
             var skPath = SkiaUtil.ToSKPath(svgPolyline.Points, svgPolyline.FillRule, false, _disposable);
             if (skPath != null && !skPath.IsEmpty)
@@ -1266,11 +1266,11 @@ namespace Svg.Skia
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgPolygon.Transforms);
             SetTransform(skMatrix);
-            SetClipPath(svgPolygon, _disposable);
+            SetClipPath(svgPolygon);
 
-            var skPaintOpacity = SetOpacity(svgPolygon, _disposable);
+            var skPaintOpacity = SetOpacity(svgPolygon);
 
-            var skPaintFilter = SetFilter(svgPolygon, _disposable);
+            var skPaintFilter = SetFilter(svgPolygon);
 
             var skPath = SkiaUtil.ToSKPath(svgPolygon.Points, svgPolygon.FillRule, true, _disposable);
             if (skPath != null && !skPath.IsEmpty)
@@ -1316,11 +1316,11 @@ namespace Svg.Skia
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgText.Transforms);
             SetTransform(skMatrix);
-            SetClipPath(svgText, _disposable);
+            SetClipPath(svgText);
 
-            var skPaintOpacity = SetOpacity(svgText, _disposable);
+            var skPaintOpacity = SetOpacity(svgText);
 
-            var skPaintFilter = SetFilter(svgText, _disposable);
+            var skPaintFilter = SetFilter(svgText);
 
             // TODO:
             bool isValidFill = SkiaUtil.IsValidFill(svgText);
@@ -1379,11 +1379,11 @@ namespace Svg.Skia
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgTextPath.Transforms);
             SetTransform(skMatrix);
-            SetClipPath(svgTextPath, _disposable);
+            SetClipPath(svgTextPath);
 
-            var skPaintOpacity = SetOpacity(svgTextPath, _disposable);
+            var skPaintOpacity = SetOpacity(svgTextPath);
 
-            var skPaintFilter = SetFilter(svgTextPath, _disposable);
+            var skPaintFilter = SetFilter(svgTextPath);
 
             // TODO:
 
@@ -1411,11 +1411,11 @@ namespace Svg.Skia
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgTextRef.Transforms);
             SetTransform(skMatrix);
-            SetClipPath(svgTextRef, _disposable);
+            SetClipPath(svgTextRef);
 
-            var skPaintOpacity = SetOpacity(svgTextRef, _disposable);
+            var skPaintOpacity = SetOpacity(svgTextRef);
 
-            var skPaintFilter = SetFilter(svgTextRef, _disposable);
+            var skPaintFilter = SetFilter(svgTextRef);
 
             // TODO:
 
@@ -1443,11 +1443,11 @@ namespace Svg.Skia
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgTextSpan.Transforms);
             SetTransform(skMatrix);
-            SetClipPath(svgTextSpan, _disposable);
+            SetClipPath(svgTextSpan);
 
-            var skPaintOpacity = SetOpacity(svgTextSpan, _disposable);
+            var skPaintOpacity = SetOpacity(svgTextSpan);
 
-            var skPaintFilter = SetFilter(svgTextSpan, _disposable);
+            var skPaintFilter = SetFilter(svgTextSpan);
 
             // TODO:
 
