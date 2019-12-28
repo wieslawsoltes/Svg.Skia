@@ -24,8 +24,5 @@ namespace Svg.Skia
         void DrawPolyline(SvgPolyline svgPolyline, bool ignoreDisplay);
         void DrawPolygon(SvgPolygon svgPolygon, bool ignoreDisplay);
         void DrawText(SvgText svgText, bool ignoreDisplay);
-        void DrawTextPath(SvgTextPath svgTextPath, bool ignoreDisplay);
-        void DrawTextRef(SvgTextRef svgTextRef, bool ignoreDisplay);
-        void DrawTextSpan(SvgTextSpan svgTextSpan, bool ignoreDisplay);
     }
 }
