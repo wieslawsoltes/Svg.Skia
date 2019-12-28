@@ -1446,6 +1446,7 @@ namespace Svg.Skia
             var skPaintFilter = SetFilter(svgTextSpan);
 
             // TODO:
+            DrawTextBase(svgTextSpan);
 
             if (skPaintFilter != null)
             {
