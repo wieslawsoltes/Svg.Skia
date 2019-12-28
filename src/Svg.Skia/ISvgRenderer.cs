@@ -12,7 +12,6 @@ namespace Svg.Skia
         void DrawFragment(SvgFragment svgFragment, bool ignoreDisplay);
         void DrawImage(SvgImage svgImage, bool ignoreDisplay);
         void DrawSwitch(SvgSwitch svgSwitch, bool ignoreDisplay);
-        void DrawSymbol(SvgSymbol svgSymbol, bool ignoreDisplay);
         void DrawUse(SvgUse svgUse, bool ignoreDisplay);
         void DrawForeignObject(SvgForeignObject svgForeignObject, bool ignoreDisplay);
         void DrawCircle(SvgCircle svgCircle, bool ignoreDisplay);
