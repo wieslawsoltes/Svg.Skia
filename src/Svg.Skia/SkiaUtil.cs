@@ -30,7 +30,7 @@ namespace Svg.Skia
 
     internal static class SkiaUtil
     {
-        internal static SKSize GetDimensions(SvgFragment svgFragment)
+        public static SKSize GetDimensions(SvgFragment svgFragment)
         {
             float w, h;
             var isWidthperc = svgFragment.Width.Type == SvgUnitType.Percentage;
@@ -69,7 +69,7 @@ namespace Svg.Skia
             return new SKSize(w, h);
         }
 
-        internal static T? GetReference<T>(SvgElement svgElement, Uri uri) where T : SvgElement
+        public static T? GetReference<T>(SvgElement svgElement, Uri uri) where T : SvgElement
         {
             if (uri == null)
             {
@@ -85,7 +85,7 @@ namespace Svg.Skia
             return null;
         }
 
-        internal static SKColor GetColor(SvgColourServer svgColourServer, float opacity, bool forStroke = false)
+        public static SKColor GetColor(SvgColourServer svgColourServer, float opacity, bool forStroke = false)
         {
             if (svgColourServer == SvgPaintServer.None)
             {
@@ -103,7 +103,7 @@ namespace Svg.Skia
             return new SKColor(colour.R, colour.G, colour.B, alpha);
         }
 
-        internal static string ToSvgPathData(SvgPathSegmentList svgPathSegmentList)
+        public static string ToSvgPathData(SvgPathSegmentList svgPathSegmentList)
         {
             var sb = new StringBuilder();
             foreach (var svgSegment in svgPathSegmentList)
@@ -113,12 +113,12 @@ namespace Svg.Skia
             return sb.ToString();
         }
 
-        internal static SKPath ToSKPath(string svgPath)
+        public static SKPath ToSKPath(string svgPath)
         {
             return SKPath.ParseSvgPathData(svgPath);
         }
 
-        internal static SKPath ToSKPath(SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        public static SKPath ToSKPath(SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
@@ -187,7 +187,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        internal static SKPath ToSKPath(SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, CompositeDisposable disposable)
+        public static SKPath ToSKPath(SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
@@ -214,7 +214,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        internal static SKPath ToSKPath(SvgRectangle svgRectangle, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        public static SKPath ToSKPath(SvgRectangle svgRectangle, SvgFillRule svgFillRule, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
@@ -268,7 +268,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        internal static SKPath ToSKPath(SvgCircle svgCircle, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        public static SKPath ToSKPath(SvgCircle svgCircle, SvgFillRule svgFillRule, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
@@ -291,7 +291,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        internal static SKPath ToSKPath(SvgEllipse svgEllipse, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        public static SKPath ToSKPath(SvgEllipse svgEllipse, SvgFillRule svgFillRule, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
@@ -317,7 +317,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        internal static SKPath ToSKPath(SvgLine svgLine, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        public static SKPath ToSKPath(SvgLine svgLine, SvgFillRule svgFillRule, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
@@ -336,7 +336,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        internal static List<(SKPoint Point, byte Type)> GetPathTypes(SKPath path)
+        public static List<(SKPoint Point, byte Type)> GetPathTypes(SKPath path)
         {
             // System.Drawing.Drawing2D.GraphicsPath.PathTypes
             // System.Drawing.Drawing2D.PathPointType
@@ -397,18 +397,18 @@ namespace Svg.Skia
             return pathTypes;
         }
 
-        internal static float AdjustSvgOpacity(float opacity)
+        public static float AdjustSvgOpacity(float opacity)
         {
             return Math.Min(Math.Max(opacity, 0), 1);
         }
 
-        internal static SvgUnit NormalizeSvgUnit(SvgUnit svgUnit, SvgCoordinateUnits svgCoordinateUnits)
+        public static SvgUnit NormalizeSvgUnit(SvgUnit svgUnit, SvgCoordinateUnits svgCoordinateUnits)
         {
             return svgUnit.Type == SvgUnitType.Percentage && svgCoordinateUnits == SvgCoordinateUnits.ObjectBoundingBox ?
                     new SvgUnit(SvgUnitType.User, svgUnit.Value / 100) : svgUnit;
         }
 
-        internal static SKPathEffect? CreateDash(SvgElement svgElement)
+        public static SKPathEffect? CreateDash(SvgElement svgElement)
         {
             var strokeDashArray = svgElement.StrokeDashArray;
             var count = strokeDashArray.Count;
@@ -449,7 +449,7 @@ namespace Svg.Skia
             return null;
         }
 
-        internal static void GetStops(SvgGradientServer svgGradientServer, SKSize skSize, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement)
+        public static void GetStops(SvgGradientServer svgGradientServer, SKSize skSize, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement)
         {
             foreach (var child in svgGradientServer.Children)
             {
@@ -473,7 +473,7 @@ namespace Svg.Skia
             }
         }
 
-        internal static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKSize skSize, SKRect skBounds, SvgVisualElement svgVisualElement)
+        public static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKSize skSize, SKRect skBounds, SvgVisualElement svgVisualElement)
         {
             var start = SvgUnit.GetDevicePoint(
                 NormalizeSvgUnit(svgLinearGradientServer.X1, svgLinearGradientServer.GradientUnits),
@@ -557,7 +557,7 @@ namespace Svg.Skia
             }
         }
 
-        internal static SKShader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, SKSize skSize, SKRect skBounds, SvgVisualElement svgVisualElement)
+        public static SKShader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, SKSize skSize, SKRect skBounds, SvgVisualElement svgVisualElement)
         {
             var skStart = new SKPoint(
                 NormalizeSvgUnit(svgRadialGradientServer.CenterX, svgRadialGradientServer.GradientUnits)
@@ -659,7 +659,7 @@ namespace Svg.Skia
             }
         }
 
-        internal static SKPicture CreatePicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix sKMatrix)
+        public static SKPicture CreatePicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix sKMatrix)
         {
             var skSize = new SKSize(width, height);
             var cullRect = SKRect.Create(skSize);
@@ -676,7 +676,7 @@ namespace Svg.Skia
             }
         }
 
-        internal static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKSize skSize, SKRect skBounds, SvgVisualElement svgVisualElement, CompositeDisposable disposable)
+        public static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKSize skSize, SKRect skBounds, SvgVisualElement svgVisualElement, CompositeDisposable disposable)
         {
             var svgPatternServers = new List<SvgPatternServer>();
             var currentPatternServer = svgPatternServer;
@@ -842,7 +842,7 @@ namespace Svg.Skia
             return sKShader;
         }
 
-        internal static void SetFill(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
+        public static void SetFill(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
             var server = svgVisualElement.Fill;
             var fallbackServer = SvgPaintServer.None;
@@ -938,7 +938,7 @@ namespace Svg.Skia
             }
         }
 
-        internal static void SetStroke(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
+        public static void SetStroke(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
             var server = svgVisualElement.Stroke;
             var fallbackServer = SvgPaintServer.None;
@@ -1034,7 +1034,7 @@ namespace Svg.Skia
             }
         }
 
-        internal static void SetDash(SvgVisualElement svgVisualElement, SKPaint skPaint, CompositeDisposable disposable)
+        public static void SetDash(SvgVisualElement svgVisualElement, SKPaint skPaint, CompositeDisposable disposable)
         {
             var skPathEffect = CreateDash(svgVisualElement);
             if (skPathEffect != null)
@@ -1044,7 +1044,7 @@ namespace Svg.Skia
             }
         }
 
-        internal static SKColorFilter CreateColorMatrix(SvgColourMatrix svgColourMatrix, SvgVisualElement svgVisualElement)
+        public static SKColorFilter CreateColorMatrix(SvgColourMatrix svgColourMatrix, SvgVisualElement svgVisualElement)
         {
             float[] matrix;
 
@@ -1110,14 +1110,14 @@ namespace Svg.Skia
             return SKColorFilter.CreateColorMatrix(matrix);
         }
 
-        internal static SKImageFilter CreateBlur(SvgGaussianBlur svgGaussianBlur, SvgVisualElement svgVisualElement)
+        public static SKImageFilter CreateBlur(SvgGaussianBlur svgGaussianBlur, SvgVisualElement svgVisualElement)
         {
             // TODO:
             var sigma = svgGaussianBlur.StdDeviation;
             return SKImageFilter.CreateBlur(sigma, sigma);
         }
 
-        internal static void SetFilter(SvgVisualElement svgVisualElement, SKPaint skPaint, CompositeDisposable disposable)
+        public static void SetFilter(SvgVisualElement svgVisualElement, SKPaint skPaint, CompositeDisposable disposable)
         {
             var svgFilter = GetReference<SvgFilter>(svgVisualElement, svgVisualElement.Filter);
             if (svgFilter == null)
@@ -1171,7 +1171,7 @@ namespace Svg.Skia
             }
         }
 
-        internal static bool IsAntialias(SvgElement svgElement)
+        public static bool IsAntialias(SvgElement svgElement)
         {
             switch (svgElement.ShapeRendering)
             {
@@ -1186,19 +1186,19 @@ namespace Svg.Skia
             }
         }
 
-        internal static bool IsValidFill(SvgElement svgElement)
+        public static bool IsValidFill(SvgElement svgElement)
         {
             return svgElement.Fill != null;
         }
 
-        internal static bool IsValidStroke(SvgElement svgElement)
+        public static bool IsValidStroke(SvgElement svgElement)
         {
             return svgElement.Stroke != null
                 && svgElement.Stroke != SvgPaintServer.None
                 && svgElement.StrokeWidth > 0f;
         }
 
-        internal static SKPaint GetFillSKPaint(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
+        public static SKPaint GetFillSKPaint(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
         {
             var skPaint = new SKPaint()
             {
@@ -1226,7 +1226,7 @@ namespace Svg.Skia
             return skPaint;
         }
 
-        internal static SKPaint GetStrokeSKPaint(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
+        public static SKPaint GetStrokeSKPaint(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, CompositeDisposable disposable)
         {
             var skPaint = new SKPaint()
             {
@@ -1289,7 +1289,7 @@ namespace Svg.Skia
             return skPaint;
         }
 
-        internal static void SetSKPaintText(SvgText svgText, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
+        public static void SetSKPaintText(SvgText svgText, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
             skPaint.LcdRenderText = true;
             skPaint.SubpixelText = true;
@@ -1324,7 +1324,7 @@ namespace Svg.Skia
             skPaint.Typeface = skTypeface;
         }
 
-        internal static SKFontStyleWeight SKFontStyleWeight(SvgFontWeight svgFontWeight)
+        public static SKFontStyleWeight SKFontStyleWeight(SvgFontWeight svgFontWeight)
         {
             var fontWeight = SkiaSharp.SKFontStyleWeight.Normal;
 
@@ -1371,7 +1371,7 @@ namespace Svg.Skia
             return fontWeight;
         }
 
-        internal static SKFontStyleWidth ToSKFontStyleWidth(string attributeFontStretch)
+        public static SKFontStyleWidth ToSKFontStyleWidth(string attributeFontStretch)
         {
             var fontWidth = SKFontStyleWidth.Normal;
 
@@ -1412,7 +1412,7 @@ namespace Svg.Skia
             return fontWidth;
         }
 
-        internal static SKFontStyleSlant ToSKFontStyleSlant(SvgFontStyle fontStyle)
+        public static SKFontStyleSlant ToSKFontStyleSlant(SvgFontStyle fontStyle)
         {
             switch (fontStyle)
             {
@@ -1426,7 +1426,7 @@ namespace Svg.Skia
             }
         }
 
-        internal static SKMatrix ToSKMatrix(SvgMatrix svgMatrix)
+        public static SKMatrix ToSKMatrix(SvgMatrix svgMatrix)
         {
             return new SKMatrix()
             {
@@ -1442,7 +1442,7 @@ namespace Svg.Skia
             };
         }
 
-        internal static SKMatrix GetSKMatrix(SvgTransformCollection svgTransformCollection)
+        public static SKMatrix GetSKMatrix(SvgTransformCollection svgTransformCollection)
         {
             var skMatrixTotal = SKMatrix.MakeIdentity();
 
@@ -1498,7 +1498,7 @@ namespace Svg.Skia
             return skMatrixTotal;
         }
 
-        internal static SKMatrix GetSvgViewBoxTransform(SvgViewBox svgViewBox, SvgAspectRatio svgAspectRatio, float x, float y, float width, float height)
+        public static SKMatrix GetSvgViewBoxTransform(SvgViewBox svgViewBox, SvgAspectRatio svgAspectRatio, float x, float y, float width, float height)
         {
             if (svgViewBox.Equals(SvgViewBox.Empty))
             {
@@ -1585,7 +1585,7 @@ namespace Svg.Skia
             return skMatrixTotal;
         }
 
-        internal static SKPath? GetClipPath(SvgVisualElement svgVisualElement, CompositeDisposable disposable)
+        public static SKPath? GetClipPath(SvgVisualElement svgVisualElement, CompositeDisposable disposable)
         {
             switch (svgVisualElement)
             {
@@ -1772,7 +1772,7 @@ namespace Svg.Skia
             return null;
         }
 
-        internal static SKPath? GetClipPath(SvgElementCollection svgElementCollection, CompositeDisposable disposable)
+        public static SKPath? GetClipPath(SvgElementCollection svgElementCollection, CompositeDisposable disposable)
         {
             var skPathClip = default(SKPath);
 
@@ -1800,7 +1800,7 @@ namespace Svg.Skia
             return skPathClip;
         }
 
-        internal static SKPath? GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, CompositeDisposable disposable)
+        public static SKPath? GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, CompositeDisposable disposable)
         {
             if (svgVisualElement == null || svgVisualElement.ClipPath == null)
             {
@@ -1818,7 +1818,7 @@ namespace Svg.Skia
             return GetClipPath(svgClipPath.Children, disposable);
         }
 
-        internal static bool ElementReferencesUri(SvgUse svgUse, SvgElement element, List<Uri> elementUris)
+        public static bool ElementReferencesUri(SvgUse svgUse, SvgElement element, List<Uri> elementUris)
         {
             if (element is SvgUse useElement)
             {
@@ -1845,13 +1845,13 @@ namespace Svg.Skia
             return false;
         }
 
-        internal static bool ReferencedElementReferencesUri(SvgUse svgUse, List<Uri> elementUris)
+        public static bool ReferencedElementReferencesUri(SvgUse svgUse, List<Uri> elementUris)
         {
             var refElement = svgUse.OwnerDocument.GetElementById(svgUse.ReferencedElement.ToString());
             return ElementReferencesUri(svgUse, refElement, elementUris);
         }
 
-        internal static bool HasRecursiveReference(SvgUse svgUse)
+        public static bool HasRecursiveReference(SvgUse svgUse)
         {
             var refElement = svgUse.OwnerDocument.GetElementById(svgUse.ReferencedElement.ToString());
             var uris = new List<Uri>() { svgUse.ReferencedElement };
@@ -1860,7 +1860,7 @@ namespace Svg.Skia
 
         private const string MimeTypeSvg = "image/svg+xml";
 
-        internal static object? GetImage(SvgImage svgImage, string uriString)
+        public static object? GetImage(SvgImage svgImage, string uriString)
         {
             // Uri MaxLength is 65519 (https://msdn.microsoft.com/en-us/library/z6c2z492.aspx)
             // if using data URI scheme, very long URI may happen.
@@ -1901,7 +1901,7 @@ namespace Svg.Skia
             }
         }
 
-        internal static object? GetImageFromDataUri(SvgImage svgImage, string uriString)
+        public static object? GetImageFromDataUri(SvgImage svgImage, string uriString)
         {
             var headerStartIndex = 5;
             var headerEndIndex = uriString.IndexOf(",", headerStartIndex);
@@ -1963,7 +1963,7 @@ namespace Svg.Skia
                 return null;
         }
 
-        internal static SvgDocument LoadSvg(Stream stream, Uri baseUri)
+        public static SvgDocument LoadSvg(Stream stream, Uri baseUri)
         {
             var document = SvgDocument.Open<SvgDocument>(stream);
             document.BaseUri = baseUri;
