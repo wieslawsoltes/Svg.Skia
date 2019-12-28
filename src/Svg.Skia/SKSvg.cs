@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 using System;
+using System.IO;
 using SkiaSharp;
 
 namespace Svg.Skia
@@ -30,7 +31,7 @@ namespace Svg.Skia
             }
             using (var fileStream = System.IO.File.OpenRead(path))
             using (var gzipStream = new System.IO.Compression.GZipStream(fileStream, System.IO.Compression.CompressionMode.Decompress))
-            using (var memoryStream = new System.IO.MemoryStream())
+            using (var memoryStream = new MemoryStream())
             {
                 gzipStream.CopyTo(memoryStream);
                 memoryStream.Position = 0;
@@ -58,7 +59,7 @@ namespace Svg.Skia
             }
         }
 
-        public static bool Save(System.IO.Stream stream, SKPicture sKPicture, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY)
+        public static bool Save(Stream stream, SKPicture sKPicture, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY)
         {
             float width = sKPicture.CullRect.Width * scaleX;
             float height = sKPicture.CullRect.Height * scaleY;
@@ -140,7 +141,7 @@ namespace Svg.Skia
 
         public SKPicture? Picture { get; set; }
 
-        public SKPicture? Load(System.IO.Stream stream)
+        public SKPicture? Load(Stream stream)
         {
             Reset();
             var svgDocument = SvgDocument.Open<SvgDocument>(stream, null);
@@ -190,7 +191,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public bool Save(System.IO.Stream stream, SKColor background, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
+        public bool Save(Stream stream, SKColor background, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
         {
             if (Picture != null)
             {
