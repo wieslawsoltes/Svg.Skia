@@ -163,6 +163,66 @@ namespace Svg.Skia
             }
         }
 
+        internal void DrawSymbol(SvgSymbol svgSymbol, bool ignoreDisplay)
+        {
+            if (!CanDraw(svgSymbol, ignoreDisplay))
+            {
+                return;
+            }
+
+            _skCanvas.Save();
+
+            float x = 0f;
+            float y = 0f;
+            float width = svgSymbol.ViewBox.Width;
+            float height = svgSymbol.ViewBox.Height;
+
+            if (svgSymbol.CustomAttributes.TryGetValue("width", out string? _widthString))
+            {
+                if (new SvgUnitConverter().ConvertFrom(_widthString) is SvgUnit _width)
+                {
+                    width = _width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgSymbol);
+                }
+            }
+
+            if (svgSymbol.CustomAttributes.TryGetValue("height", out string? heightString))
+            {
+                if (new SvgUnitConverter().ConvertFrom(heightString) is SvgUnit _height)
+                {
+                    height = _height.ToDeviceValue(null, UnitRenderingType.Vertical, svgSymbol);
+                }
+            }
+
+            var skRectBounds = SKRect.Create(x, y, width, height);
+
+            var skMatrixViewBox = SkiaUtil.GetSvgViewBoxTransform(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
+            var skMatrix = SkiaUtil.GetSKMatrix(svgSymbol.Transforms);
+            SKMatrix.PreConcat(ref skMatrix, ref skMatrixViewBox);
+            SetTransform(skMatrix);
+            SetClipPath(svgSymbol);
+
+            var skPaintOpacity = SetOpacity(svgSymbol);
+
+            var skPaintFilter = SetFilter(svgSymbol);
+
+            foreach (var svgElement in svgSymbol.Children)
+            {
+                Draw(svgElement, ignoreDisplay);
+            }
+
+            if (skPaintFilter != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            _skCanvas.Restore();
+        }
+
         internal SvgVisualElement? GetMarkerElement(SvgMarker svgMarker)
         {
             SvgVisualElement? markerElement = null;
@@ -652,66 +712,6 @@ namespace Svg.Skia
             var skPaintFilter = SetFilter(svgSwitch);
 
             // TODO:
-
-            if (skPaintFilter != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            _skCanvas.Restore();
-        }
-
-        public void DrawSymbol(SvgSymbol svgSymbol, bool ignoreDisplay)
-        {
-            if (!CanDraw(svgSymbol, ignoreDisplay))
-            {
-                return;
-            }
-
-            _skCanvas.Save();
-
-            float x = 0f;
-            float y = 0f;
-            float width = svgSymbol.ViewBox.Width;
-            float height = svgSymbol.ViewBox.Height;
-
-            if (svgSymbol.CustomAttributes.TryGetValue("width", out string? _widthString))
-            {
-                if (new SvgUnitConverter().ConvertFrom(_widthString) is SvgUnit _width)
-                {
-                    width = _width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgSymbol);
-                }
-            }
-
-            if (svgSymbol.CustomAttributes.TryGetValue("height", out string? heightString))
-            {
-                if (new SvgUnitConverter().ConvertFrom(heightString) is SvgUnit _height)
-                {
-                    height = _height.ToDeviceValue(null, UnitRenderingType.Vertical, svgSymbol);
-                }
-            }
-
-            var skRectBounds = SKRect.Create(x, y, width, height);
-
-            var skMatrixViewBox = SkiaUtil.GetSvgViewBoxTransform(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
-            var skMatrix = SkiaUtil.GetSKMatrix(svgSymbol.Transforms);
-            SKMatrix.PreConcat(ref skMatrix, ref skMatrixViewBox);
-            SetTransform(skMatrix);
-            SetClipPath(svgSymbol);
-
-            var skPaintOpacity = SetOpacity(svgSymbol);
-
-            var skPaintFilter = SetFilter(svgSymbol);
-
-            foreach (var svgElement in svgSymbol.Children)
-            {
-                Draw(svgElement, ignoreDisplay);
-            }
 
             if (skPaintFilter != null)
             {
