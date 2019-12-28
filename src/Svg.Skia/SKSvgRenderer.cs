@@ -149,15 +149,6 @@ namespace Svg.Skia
                 case SvgText svgText:
                     DrawText(svgText, ignoreDisplay);
                     break;
-                case SvgTextPath svgTextPath:
-                    DrawTextPath(svgTextPath, ignoreDisplay);
-                    break;
-                case SvgTextRef svgTextRef:
-                    DrawTextRef(svgTextRef, ignoreDisplay);
-                    break;
-                case SvgTextSpan svgTextSpan:
-                    DrawTextSpan(svgTextSpan, ignoreDisplay);
-                    break;
                 default:
                     break;
             }
@@ -1321,75 +1312,7 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawText(SvgText svgText, bool ignoreDisplay)
-        {
-            if (!CanDraw(svgText, ignoreDisplay))
-            {
-                return;
-            }
-
-            _skCanvas.Save();
-
-            var skMatrix = SkiaUtil.GetSKMatrix(svgText.Transforms);
-            SetTransform(skMatrix);
-            SetClipPath(svgText);
-
-            var skPaintOpacity = SetOpacity(svgText);
-
-            var skPaintFilter = SetFilter(svgText);
-
-            // TODO:
-            bool isValidFill = SkiaUtil.IsValidFill(svgText);
-            bool isValidStroke = SkiaUtil.IsValidStroke(svgText);
-
-            if (isValidFill || isValidStroke)
-            {
-                var text = svgText.Text?.Trim();
-
-                if (svgText.X.Count == 1 && svgText.Y.Count == 1 && !string.IsNullOrEmpty(text))
-                {
-                    // TODO:
-                    float x0 = svgText.X[0].ToDeviceValue(null, UnitRenderingType.HorizontalOffset, svgText);
-                    float y0 = svgText.Y[0].ToDeviceValue(null, UnitRenderingType.VerticalOffset, svgText);
-
-                    // TODO:
-                    var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
-
-                    if (SkiaUtil.IsValidFill(svgText))
-                    {
-                        var skPaint = SkiaUtil.GetFillSKPaint(svgText, _skSize, skBounds, _disposable);
-                        SkiaUtil.SetSKPaintText(svgText, _skSize, skBounds, skPaint, _disposable);
-                        _skCanvas.DrawText(text, x0, y0, skPaint);
-                    }
-
-                    if (SkiaUtil.IsValidStroke(svgText))
-                    {
-                        var skPaint = SkiaUtil.GetStrokeSKPaint(svgText, _skSize, skBounds, _disposable);
-                        SkiaUtil.SetSKPaintText(svgText, _skSize, skBounds, skPaint, _disposable);
-                        _skCanvas.DrawText(text, x0, y0, skPaint);
-                    }
-                }
-            }
-
-            foreach (var svgElement in svgText.Children)
-            {
-                Draw(svgElement, ignoreDisplay);
-            }
-
-            if (skPaintFilter != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            _skCanvas.Restore();
-        }
-
-        public void DrawTextPath(SvgTextPath svgTextPath, bool ignoreDisplay)
+        internal void DrawTextPath(SvgTextPath svgTextPath, bool ignoreDisplay)
         {
             if (!CanDraw(svgTextPath, ignoreDisplay))
             {
@@ -1467,9 +1390,15 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawTextRef(SvgTextRef svgTextRef, bool ignoreDisplay)
+        internal void DrawTextRef(SvgTextRef svgTextRef, bool ignoreDisplay)
         {
             if (!CanDraw(svgTextRef, ignoreDisplay))
+            {
+                return;
+            }
+
+            var svgReferencedText = SkiaUtil.GetReference<SvgText>(svgTextRef, svgTextRef.ReferencedElement);
+            if (svgReferencedText == null)
             {
                 return;
             }
@@ -1484,7 +1413,7 @@ namespace Svg.Skia
 
             var skPaintFilter = SetFilter(svgTextRef);
 
-            // TODO:
+            // TODO: svgReferencedText
 
             if (skPaintFilter != null)
             {
@@ -1499,7 +1428,7 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
-        public void DrawTextSpan(SvgTextSpan svgTextSpan, bool ignoreDisplay)
+        internal void DrawTextSpan(SvgTextSpan svgTextSpan, bool ignoreDisplay)
         {
             if (!CanDraw(svgTextSpan, ignoreDisplay))
             {
@@ -1517,6 +1446,87 @@ namespace Svg.Skia
             var skPaintFilter = SetFilter(svgTextSpan);
 
             // TODO:
+
+            if (skPaintFilter != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            _skCanvas.Restore();
+        }
+
+        public void DrawText(SvgText svgText, bool ignoreDisplay)
+        {
+            if (!CanDraw(svgText, ignoreDisplay))
+            {
+                return;
+            }
+
+            _skCanvas.Save();
+
+            var skMatrix = SkiaUtil.GetSKMatrix(svgText.Transforms);
+            SetTransform(skMatrix);
+            SetClipPath(svgText);
+
+            var skPaintOpacity = SetOpacity(svgText);
+
+            var skPaintFilter = SetFilter(svgText);
+
+            // TODO:
+            bool isValidFill = SkiaUtil.IsValidFill(svgText);
+            bool isValidStroke = SkiaUtil.IsValidStroke(svgText);
+
+            if (isValidFill || isValidStroke)
+            {
+                var text = svgText.Text?.Trim();
+
+                if (svgText.X.Count == 1 && svgText.Y.Count == 1 && !string.IsNullOrEmpty(text))
+                {
+                    // TODO:
+                    float x0 = svgText.X[0].ToDeviceValue(null, UnitRenderingType.HorizontalOffset, svgText);
+                    float y0 = svgText.Y[0].ToDeviceValue(null, UnitRenderingType.VerticalOffset, svgText);
+
+                    // TODO:
+                    var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
+
+                    if (SkiaUtil.IsValidFill(svgText))
+                    {
+                        var skPaint = SkiaUtil.GetFillSKPaint(svgText, _skSize, skBounds, _disposable);
+                        SkiaUtil.SetSKPaintText(svgText, _skSize, skBounds, skPaint, _disposable);
+                        _skCanvas.DrawText(text, x0, y0, skPaint);
+                    }
+
+                    if (SkiaUtil.IsValidStroke(svgText))
+                    {
+                        var skPaint = SkiaUtil.GetStrokeSKPaint(svgText, _skSize, skBounds, _disposable);
+                        SkiaUtil.SetSKPaintText(svgText, _skSize, skBounds, skPaint, _disposable);
+                        _skCanvas.DrawText(text, x0, y0, skPaint);
+                    }
+                }
+            }
+
+            foreach (var svgElement in svgText.Children)
+            {
+                switch (svgElement)
+                {
+                    case SvgTextPath svgTextPath:
+                        DrawTextPath(svgTextPath, ignoreDisplay);
+                        break;
+                    case SvgTextRef svgTextRef:
+                        DrawTextRef(svgTextRef, ignoreDisplay);
+                        break;
+                    case SvgTextSpan svgTextSpan:
+                        DrawTextSpan(svgTextSpan, ignoreDisplay);
+                        break;
+                    default:
+                        break;
+                }
+            }
 
             if (skPaintFilter != null)
             {
