@@ -55,12 +55,12 @@ namespace Svg.Skia
                 clip = clip.Trim();
                 var offsets = (from o in clip.Substring(5, clip.Length - 6).Split(',')
                                select float.Parse(o.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture)).ToList();
-                var clipRect = SKRect.Create(
+                var skClipRect = SKRect.Create(
                     sKRectBounds.Left + offsets[3],
                     sKRectBounds.Top + offsets[0],
                     sKRectBounds.Width - (offsets[3] + offsets[1]),
                     sKRectBounds.Height - (offsets[2] + offsets[0]));
-                _skCanvas.ClipRect(clipRect, SKClipOperation.Intersect);
+                _skCanvas.ClipRect(skClipRect, SKClipOperation.Intersect);
             }
         }
 
@@ -163,23 +163,16 @@ namespace Svg.Skia
             }
         }
 
-        internal void DrawSymbol(SvgSymbol svgSymbol, bool ignoreDisplay)
+        internal void DrawSymbol(SvgSymbol svgSymbol, float x, float y, float width, float height, bool ignoreDisplay)
         {
             if (!CanDraw(svgSymbol, ignoreDisplay))
             {
                 return;
             }
 
-            _skCanvas.Save();
-
-            float x = 0f;
-            float y = 0f;
-            float width = svgSymbol.ViewBox.Width;
-            float height = svgSymbol.ViewBox.Height;
-
             if (svgSymbol.CustomAttributes.TryGetValue("width", out string? _widthString))
             {
-                if (new SvgUnitConverter().ConvertFrom(_widthString) is SvgUnit _width)
+                if (new SvgUnitConverter().ConvertFromString(_widthString) is SvgUnit _width)
                 {
                     width = _width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgSymbol);
                 }
@@ -187,13 +180,34 @@ namespace Svg.Skia
 
             if (svgSymbol.CustomAttributes.TryGetValue("height", out string? heightString))
             {
-                if (new SvgUnitConverter().ConvertFrom(heightString) is SvgUnit _height)
+                if (new SvgUnitConverter().ConvertFromString(heightString) is SvgUnit _height)
                 {
                     height = _height.ToDeviceValue(null, UnitRenderingType.Vertical, svgSymbol);
                 }
             }
 
-            var skRectBounds = SKRect.Create(x, y, width, height);
+            SvgOverflow svgOverflow = SvgOverflow.Hidden;
+            if (svgSymbol.TryGetAttribute("overflow", out string overflowString))
+            {
+                if (new SvgOverflowConverter().ConvertFromString(overflowString) is SvgOverflow _svgOverflow)
+                {
+                    svgOverflow = _svgOverflow;
+                }
+            }
+
+            _skCanvas.Save();
+
+            switch (svgOverflow)
+            {
+                case SvgOverflow.Auto:
+                case SvgOverflow.Visible:
+                case SvgOverflow.Inherit:
+                    break;
+                default:
+                    var skClipRect = SKRect.Create(x, y, width, height);
+                    _skCanvas.ClipRect(skClipRect, SKClipOperation.Intersect);
+                    break;
+            }
 
             var skMatrixViewBox = SkiaUtil.GetSvgViewBoxTransform(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
             var skMatrix = SkiaUtil.GetSKMatrix(svgSymbol.Transforms);
@@ -741,31 +755,24 @@ namespace Svg.Skia
 
             float x = svgUse.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgUse);
             float y = svgUse.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgUse);
-            var skMatrixTranslateXY = SKMatrix.MakeTranslation(x, y);
-            var skMatrix = SkiaUtil.GetSKMatrix(svgUse.Transforms);
-            SKMatrix.PreConcat(ref skMatrix, ref skMatrixTranslateXY);
+            float width = svgUse.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgUse);
+            float height = svgUse.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgUse);
 
-            var ew = svgUse.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgUse);
-            var eh = svgUse.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgUse);
-            if (ew > 0 && eh > 0)
+            if (width <= 0f)
             {
-                var _attributes = svgVisualElement.GetType().GetField("_attributes", BindingFlags.NonPublic | BindingFlags.Instance);
-                if (_attributes != null)
-                {
-                    var attributes = _attributes.GetValue(svgVisualElement) as SvgAttributeCollection;
-                    if (attributes != null)
-                    {
-                        var viewBox = attributes.GetAttribute<SvgViewBox>("viewBox");
-                        if (viewBox != SvgViewBox.Empty && Math.Abs(ew - viewBox.Width) > float.Epsilon && Math.Abs(eh - viewBox.Height) > float.Epsilon)
-                        {
-                            var sw = ew / viewBox.Width;
-                            var sh = eh / viewBox.Height;
+                width = new SvgUnit(SvgUnitType.Percentage, 100f).ToDeviceValue(null, UnitRenderingType.Horizontal, svgUse);
+            }
 
-                            var skMatrixTranslateSWSH = SKMatrix.MakeTranslation(sw, sh);
-                            SKMatrix.PreConcat(ref skMatrix, ref skMatrixTranslateSWSH);
-                        }
-                    }
-                }
+            if (height <= 0f)
+            {
+                height = new SvgUnit(SvgUnitType.Percentage, 100f).ToDeviceValue(null, UnitRenderingType.Vertical, svgUse);
+            }
+
+            var skMatrix = SkiaUtil.GetSKMatrix(svgUse.Transforms);
+            if (!(svgVisualElement is SvgSymbol))
+            {
+                var skMatrixTranslateXY = SKMatrix.MakeTranslation(x, y);
+                SKMatrix.PreConcat(ref skMatrix, ref skMatrixTranslateXY);
             }
 
             var originalParent = svgUse.Parent;
@@ -788,7 +795,7 @@ namespace Svg.Skia
 
             if (svgVisualElement is SvgSymbol svgSymbol)
             {
-                DrawSymbol(svgSymbol, ignoreDisplay);
+                DrawSymbol(svgSymbol, x, y, width, height, ignoreDisplay);
             }
             else
             {
