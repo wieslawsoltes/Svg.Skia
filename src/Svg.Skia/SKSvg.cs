@@ -7,100 +7,61 @@ namespace Svg.Skia
 {
     public class SKSvg : IDisposable
     {
-        public SKPicture? Picture { get; set; }
-
-        internal SKPicture Load(SvgFragment svgFragment)
+        public static SvgDocument? OpenSvg(string path)
         {
-            var skSize = SkiaUtil.GetDimensions(svgFragment);
-            var cullRect = SKRect.Create(skSize);
-            using (var skPictureRecorder = new SKPictureRecorder())
-            using (var skCanvas = skPictureRecorder.BeginRecording(cullRect))
-            using (var renderer = new SKSvgRenderer(skCanvas, skSize))
+            if (!System.IO.File.Exists(path))
             {
-                renderer.DrawFragment(svgFragment, false);
-                return skPictureRecorder.EndRecording();
+                return null;
             }
-        }
-
-        public SKPicture? Load(System.IO.Stream stream)
-        {
-            Reset();
-            var svgDocument = SvgDocument.Open<SvgDocument>(stream, null);
+            var svgDocument = SvgDocument.Open<SvgDocument>(path, null);
             if (svgDocument != null)
             {
                 svgDocument.FlushStyles(true);
-                Picture = Load(svgDocument);
-                return Picture;
+                return svgDocument;
             }
             return null;
         }
 
-        public SKPicture? Load(string path)
+        public static SvgDocument? OpenSvgz(string path)
         {
-            Reset();
+            if (!System.IO.File.Exists(path))
+            {
+                return null;
+            }
+            using (var fileStream = System.IO.File.OpenRead(path))
+            using (var gzipStream = new System.IO.Compression.GZipStream(fileStream, System.IO.Compression.CompressionMode.Decompress))
+            using (var memoryStream = new System.IO.MemoryStream())
+            {
+                gzipStream.CopyTo(memoryStream);
+                memoryStream.Position = 0;
+
+                var svgDocument = SvgDocument.Open<SvgDocument>(memoryStream, null);
+                if (svgDocument != null)
+                {
+                    svgDocument.FlushStyles(true);
+                    return svgDocument;
+                }
+            }
+            return null;
+        }
+
+        public static SvgDocument? Open(string path)
+        {
             var extension = System.IO.Path.GetExtension(path);
             switch (extension.ToLower())
             {
                 default:
                 case ".svg":
-                    {
-                        var svgDocument = SvgDocument.Open<SvgDocument>(path, null);
-                        if (svgDocument != null)
-                        {
-                            svgDocument.FlushStyles(true);
-                            Picture = Load(svgDocument);
-                            return Picture;
-                        }
-                        return null;
-                    }
+                    return OpenSvg(path);
                 case ".svgz":
-                    {
-                        using (var fileStream = System.IO.File.OpenRead(path))
-                        using (var gzipStream = new System.IO.Compression.GZipStream(fileStream, System.IO.Compression.CompressionMode.Decompress))
-                        using (var memoryStream = new System.IO.MemoryStream())
-                        {
-                            gzipStream.CopyTo(memoryStream);
-                            memoryStream.Position = 0;
-                            return Load(memoryStream);
-                        }
-                    }
+                    return OpenSvgz(path);
             }
         }
 
-        public SKPicture? FromSvg(string svg)
+        public static bool Save(System.IO.Stream stream, SKPicture sKPicture, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY)
         {
-            Reset();
-            var svgDocument = SvgDocument.FromSvg<SvgDocument>(svg);
-            if (svgDocument != null)
-            {
-                svgDocument.FlushStyles(true);
-                Picture = Load(svgDocument);
-                return Picture;
-            }
-            return null;
-        }
-
-        public SKPicture? FromSvgDocument(SvgDocument svgDocument)
-        {
-            Reset();
-            if (svgDocument != null)
-            {
-                svgDocument.FlushStyles(true);
-                Picture = Load(svgDocument);
-                return Picture;
-            }
-            return null;
-        }
-
-        public bool Save(System.IO.Stream stream, SKColor background, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
-        {
-            if (Picture == null)
-            {
-                return false;
-            }
-
-            float width = Picture.CullRect.Width * scaleX;
-            float height = Picture.CullRect.Height * scaleY;
+            float width = sKPicture.CullRect.Width * scaleX;
+            float height = sKPicture.CullRect.Height * scaleY;
 
             if (width > 0 && height > 0)
             {
@@ -115,7 +76,7 @@ namespace Svg.Skia
                     }
                     skCanvas.Save();
                     skCanvas.Scale(scaleX, scaleY);
-                    skCanvas.DrawPicture(Picture);
+                    skCanvas.DrawPicture(sKPicture);
                     skCanvas.Restore();
                     using (var skImage = SKImage.FromBitmap(skBitmap))
                     using (var skData = skImage.Encode(format, quality))
@@ -132,12 +93,123 @@ namespace Svg.Skia
             return false;
         }
 
+        public static void Draw(SKCanvas sKCanvas, SvgFragment svgFragment)
+        {
+            var skSize = SkiaUtil.GetDimensions(svgFragment);
+
+            using (var renderer = new SKSvgRenderer(sKCanvas, skSize))
+            {
+                renderer.DrawFragment(svgFragment, false);
+            }
+        }
+
+        public static void Draw(SKCanvas sKCanvas, string path)
+        {
+            var svgDocument = Open(path);
+            if (svgDocument != null)
+            {
+                Draw(sKCanvas, svgDocument);
+            }
+        }
+
+        public static SKPicture ToPicture(SvgFragment svgFragment)
+        {
+            var skSize = SkiaUtil.GetDimensions(svgFragment);
+            var cullRect = SKRect.Create(skSize);
+            using (var skPictureRecorder = new SKPictureRecorder())
+            using (var skCanvas = skPictureRecorder.BeginRecording(cullRect))
+            using (var renderer = new SKSvgRenderer(skCanvas, skSize))
+            {
+                renderer.DrawFragment(svgFragment, false);
+                return skPictureRecorder.EndRecording();
+            }
+        }
+
+        public static SKDrawable ToDrawable(SvgFragment svgFragment)
+        {
+            var skSize = SkiaUtil.GetDimensions(svgFragment);
+            var cullRect = SKRect.Create(skSize);
+            using (var skPictureRecorder = new SKPictureRecorder())
+            using (var skCanvas = skPictureRecorder.BeginRecording(cullRect))
+            using (var renderer = new SKSvgRenderer(skCanvas, skSize))
+            {
+                renderer.DrawFragment(svgFragment, false);
+                return skPictureRecorder.EndRecordingAsDrawable();
+            }
+        }
+
+        public SKPicture? Picture { get; set; }
+
+        public SKPicture? Load(System.IO.Stream stream)
+        {
+            Reset();
+            var svgDocument = SvgDocument.Open<SvgDocument>(stream, null);
+            if (svgDocument != null)
+            {
+                svgDocument.FlushStyles(true);
+                Picture = ToPicture(svgDocument);
+                return Picture;
+            }
+            return null;
+        }
+
+        public SKPicture? Load(string path)
+        {
+            Reset();
+            var svgDocument = Open(path);
+            if (svgDocument != null)
+            {
+                Picture = ToPicture(svgDocument);
+                return Picture;
+            }
+            return null;
+        }
+
+        public SKPicture? FromSvg(string svg)
+        {
+            Reset();
+            var svgDocument = SvgDocument.FromSvg<SvgDocument>(svg);
+            if (svgDocument != null)
+            {
+                svgDocument.FlushStyles(true);
+                Picture = ToPicture(svgDocument);
+                return Picture;
+            }
+            return null;
+        }
+
+        public SKPicture? FromSvgDocument(SvgDocument svgDocument)
+        {
+            Reset();
+            if (svgDocument != null)
+            {
+                svgDocument.FlushStyles(true);
+                Picture = ToPicture(svgDocument);
+                return Picture;
+            }
+            return null;
+        }
+
+        public bool Save(System.IO.Stream stream, SKColor background, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
+        {
+            if (Picture != null)
+            {
+                return Save(stream, Picture, background, format, quality, scaleX, scaleY);
+            }
+            return false;
+        }
+
         public bool Save(string path, SKColor background, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
         {
-            using (var stream = System.IO.File.OpenWrite(path))
+            if (Picture != null)
             {
-                return Save(stream, background, format, quality, scaleX, scaleY);
+                using (var stream = System.IO.File.OpenWrite(path))
+                {
+                    return Save(stream, Picture, background, format, quality, scaleX, scaleY);
+                }
             }
+            return false;
+
         }
 
         public void Reset()
