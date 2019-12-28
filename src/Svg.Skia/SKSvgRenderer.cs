@@ -1426,6 +1426,33 @@ namespace Svg.Skia
             var skPaintFilter = SetFilter(svgTextPath);
 
             // TODO:
+            bool isValidFill = SkiaUtil.IsValidFill(svgTextPath);
+            bool isValidStroke = SkiaUtil.IsValidStroke(svgTextPath);
+
+            if (isValidFill || isValidStroke)
+            {
+                var text = svgTextPath.Text?.Trim();
+
+                if (!string.IsNullOrEmpty(text))
+                {
+                    // TODO:
+                    var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
+
+                    if (SkiaUtil.IsValidFill(svgTextPath))
+                    {
+                        var skPaint = SkiaUtil.GetFillSKPaint(svgTextPath, _skSize, skBounds, _disposable);
+                        SkiaUtil.SetSKPaintText(svgTextPath, _skSize, skBounds, skPaint, _disposable);
+                        _skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint);
+                    }
+
+                    if (SkiaUtil.IsValidStroke(svgTextPath))
+                    {
+                        var skPaint = SkiaUtil.GetStrokeSKPaint(svgTextPath, _skSize, skBounds, _disposable);
+                        SkiaUtil.SetSKPaintText(svgTextPath, _skSize, skBounds, skPaint, _disposable);
+                        _skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint);
+                    }
+                }
+            }
 
             if (skPaintFilter != null)
             {
