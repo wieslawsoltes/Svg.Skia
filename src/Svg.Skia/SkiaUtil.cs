@@ -1306,6 +1306,21 @@ namespace Svg.Skia
 
             var fontStyle = ToSKFontStyleSlant(svgText.FontStyle);
 
+            if (svgText.TextDecoration.HasFlag(SvgTextDecoration.Underline))
+            {
+                // TODO:
+            }
+
+            if (svgText.TextDecoration.HasFlag(SvgTextDecoration.Overline))
+            {
+                // TODO:
+            }
+
+            if (svgText.TextDecoration.HasFlag(SvgTextDecoration.LineThrough))
+            {
+                // TODO:
+            }
+
             float fontSize;
             var fontSizeUnit = svgText.FontSize;
             if (fontSizeUnit == SvgUnit.None || fontSizeUnit == SvgUnit.Empty)
