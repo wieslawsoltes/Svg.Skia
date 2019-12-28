@@ -1396,6 +1396,25 @@ namespace Svg.Skia
                 return;
             }
 
+            var svgPath = SkiaUtil.GetReference<SvgPath>(svgTextPath, svgTextPath.ReferencedPath);
+            if (svgPath == null)
+            {
+                return;
+            }
+
+            var skPath = SkiaUtil.ToSKPath(svgPath.PathData, svgPath.FillRule, _disposable);
+            if (skPath == null || skPath.IsEmpty)
+            {
+                return;
+            }
+
+            var skMatrixPath = SkiaUtil.GetSKMatrix(svgPath.Transforms);
+            skPath.Transform(skMatrixPath);
+
+            // TODO:
+
+            var startOffset = svgTextPath.StartOffset.ToDeviceValue(null, UnitRenderingType.Other, svgTextPath);
+
             _skCanvas.Save();
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgTextPath.Transforms);
