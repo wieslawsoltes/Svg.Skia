@@ -1108,7 +1108,7 @@ namespace Svg.Skia
 
         public static void SetFilter(SvgVisualElement svgVisualElement, SKPaint skPaint, CompositeDisposable disposable)
         {
-            if (!HasRecursiveReference(svgVisualElement, (e) => e.Filter))
+            if (!HasRecursiveReference(svgVisualElement, (e) => e.Filter, new HashSet<Uri>()))
             {
                 return;
             }
@@ -1629,7 +1629,7 @@ namespace Svg.Skia
             return skMatrixTotal;
         }
 
-        public static SKPath? GetClipPath(SvgVisualElement svgVisualElement, CompositeDisposable disposable)
+        public static SKPath? GetClipPath(SvgVisualElement svgVisualElement, HashSet<Uri> uris, CompositeDisposable disposable)
         {
             switch (svgVisualElement)
             {
@@ -1642,7 +1642,7 @@ namespace Svg.Skia
                             var skMatrix = GetSKMatrix(svgPath.Transforms);
                             skPath.Transform(skMatrix);
 
-                            var skPathClip = GetSvgVisualElementClipPath(svgPath, disposable);
+                            var skPathClip = GetSvgVisualElementClipPath(svgPath, uris, disposable);
                             if (skPathClip != null && !skPathClip.IsEmpty)
                             {
                                 var result = skPath.Op(skPathClip, SKPathOp.Intersect);
@@ -1663,7 +1663,7 @@ namespace Svg.Skia
                             var skMatrix = GetSKMatrix(svgRectangle.Transforms);
                             skPath.Transform(skMatrix);
 
-                            var skPathClip = GetSvgVisualElementClipPath(svgRectangle, disposable);
+                            var skPathClip = GetSvgVisualElementClipPath(svgRectangle, uris, disposable);
                             if (skPathClip != null && !skPathClip.IsEmpty)
                             {
                                 var result = skPath.Op(skPathClip, SKPathOp.Intersect);
@@ -1684,7 +1684,7 @@ namespace Svg.Skia
                             var skMatrix = GetSKMatrix(svgCircle.Transforms);
                             skPath.Transform(skMatrix);
 
-                            var skPathClip = GetSvgVisualElementClipPath(svgCircle, disposable);
+                            var skPathClip = GetSvgVisualElementClipPath(svgCircle, uris, disposable);
                             if (skPathClip != null && !skPathClip.IsEmpty)
                             {
                                 var result = skPath.Op(skPathClip, SKPathOp.Intersect);
@@ -1705,7 +1705,7 @@ namespace Svg.Skia
                             var skMatrix = GetSKMatrix(svgEllipse.Transforms);
                             skPath.Transform(skMatrix);
 
-                            var skPathClip = GetSvgVisualElementClipPath(svgEllipse, disposable);
+                            var skPathClip = GetSvgVisualElementClipPath(svgEllipse, uris, disposable);
                             if (skPathClip != null && !skPathClip.IsEmpty)
                             {
                                 var result = skPath.Op(skPathClip, SKPathOp.Intersect);
@@ -1726,7 +1726,7 @@ namespace Svg.Skia
                             var skMatrix = GetSKMatrix(svgLine.Transforms);
                             skPath.Transform(skMatrix);
 
-                            var skPathClip = GetSvgVisualElementClipPath(svgLine, disposable);
+                            var skPathClip = GetSvgVisualElementClipPath(svgLine, uris, disposable);
                             if (skPathClip != null && !skPathClip.IsEmpty)
                             {
                                 var result = skPath.Op(skPathClip, SKPathOp.Intersect);
@@ -1747,7 +1747,7 @@ namespace Svg.Skia
                             var skMatrix = GetSKMatrix(svgPolyline.Transforms);
                             skPath.Transform(skMatrix);
 
-                            var skPathClip = GetSvgVisualElementClipPath(svgPolyline, disposable);
+                            var skPathClip = GetSvgVisualElementClipPath(svgPolyline, uris, disposable);
                             if (skPathClip != null && !skPathClip.IsEmpty)
                             {
                                 var result = skPath.Op(skPathClip, SKPathOp.Intersect);
@@ -1768,7 +1768,7 @@ namespace Svg.Skia
                             var skMatrix = GetSKMatrix(svgPolygon.Transforms);
                             skPath.Transform(skMatrix);
 
-                            var skPathClip = GetSvgVisualElementClipPath(svgPolygon, disposable);
+                            var skPathClip = GetSvgVisualElementClipPath(svgPolygon, uris, disposable);
                             if (skPathClip != null && !skPathClip.IsEmpty)
                             {
                                 var result = skPath.Op(skPathClip, SKPathOp.Intersect);
@@ -1782,13 +1782,13 @@ namespace Svg.Skia
                     break;
                 case SvgGroup svgGroup:
                     {
-                        var skPath = GetClipPath(svgGroup.Children, disposable);
+                        var skPath = GetClipPath(svgGroup.Children, uris, disposable);
                         if (skPath != null && !skPath.IsEmpty)
                         {
                             var skMatrix = GetSKMatrix(svgGroup.Transforms);
                             skPath.Transform(skMatrix);
 
-                            var skPathClip = GetSvgVisualElementClipPath(svgGroup, disposable);
+                            var skPathClip = GetSvgVisualElementClipPath(svgGroup, uris, disposable);
                             if (skPathClip != null && !skPathClip.IsEmpty)
                             {
                                 var result = skPath.Op(skPathClip, SKPathOp.Intersect);
@@ -1816,7 +1816,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static SKPath? GetClipPath(SvgElementCollection svgElementCollection, CompositeDisposable disposable)
+        public static SKPath? GetClipPath(SvgElementCollection svgElementCollection, HashSet<Uri> uris, CompositeDisposable disposable)
         {
             var skPathClip = default(SKPath);
 
@@ -1824,7 +1824,7 @@ namespace Svg.Skia
             {
                 if (child is SvgVisualElement visualChild)
                 {
-                    var skPath = GetClipPath(visualChild, disposable);
+                    var skPath = GetClipPath(visualChild, uris, disposable);
                     if (skPath != null && !skPath.IsEmpty)
                     {
                         if (skPathClip == null)
@@ -1844,14 +1844,14 @@ namespace Svg.Skia
             return skPathClip;
         }
 
-        public static SKPath? GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, CompositeDisposable disposable)
+        public static SKPath? GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, HashSet<Uri> uris, CompositeDisposable disposable)
         {
             if (svgVisualElement == null || svgVisualElement.ClipPath == null)
             {
                 return null;
             }
 
-            if (!HasRecursiveReference(svgVisualElement, (e) => e.ClipPath))
+            if (!HasRecursiveReference(svgVisualElement, (e) => e.ClipPath, uris))
             {
                 return null;
             }
@@ -1864,7 +1864,7 @@ namespace Svg.Skia
 
             // TODO: svgClipPath.ClipPathUnits
 
-            return GetClipPath(svgClipPath.Children, disposable);
+            return GetClipPath(svgClipPath.Children, uris, disposable);
         }
 
         public static T? GetReference<T>(SvgElement svgElement, Uri uri) where T : SvgElement
@@ -1922,11 +1922,15 @@ namespace Svg.Skia
             return false;
         }
 
-        public static bool HasRecursiveReference<T>(T svgElement, Func<T, Uri> getUri) where T : SvgElement
+        public static bool HasRecursiveReference<T>(T svgElement, Func<T, Uri> getUri, HashSet<Uri> uris) where T : SvgElement
         {
             var referencedElementUri = getUri(svgElement);
             var svgReferencedElement = GetReference<SvgElement>(svgElement, referencedElementUri);
-            var uris = new HashSet<Uri>() { referencedElementUri };
+            if (uris.Contains(referencedElementUri))
+            {
+                return true;
+            }
+            uris.Add(referencedElementUri);
             return ElementReferencesUri<T>(svgElement, getUri, uris, svgReferencedElement);
         }
 
