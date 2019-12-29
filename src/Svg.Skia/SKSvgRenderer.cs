@@ -374,7 +374,7 @@ namespace Svg.Skia
             var pathTypes = SkiaUtil.GetPathTypes(sKPath);
             var pathLength = pathTypes.Count;
 
-            if (svgMarkerElement.MarkerStart != null)
+            if (svgMarkerElement.MarkerStart != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart))
             {
                 var marker = SkiaUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerStart);
                 if (marker != null)
@@ -390,7 +390,7 @@ namespace Svg.Skia
                 }
             }
 
-            if (svgMarkerElement.MarkerMid != null)
+            if (svgMarkerElement.MarkerMid != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid))
             {
                 var marker = SkiaUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerMid);
                 if (marker != null)
@@ -412,7 +412,7 @@ namespace Svg.Skia
                 }
             }
 
-            if (svgMarkerElement.MarkerEnd != null)
+            if (svgMarkerElement.MarkerEnd != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd))
             {
                 var marker = SkiaUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerEnd);
                 if (marker != null)
@@ -492,6 +492,11 @@ namespace Svg.Skia
                 return;
             }
 
+            if (!SkiaUtil.HasRecursiveReference(svgTextPath, (e) => e.ReferencedPath))
+            {
+                return;
+            }
+
             var svgPath = SkiaUtil.GetReference<SvgPath>(svgTextPath, svgTextPath.ReferencedPath);
             if (svgPath == null)
             {
@@ -566,6 +571,11 @@ namespace Svg.Skia
         internal void DrawTextRef(SvgTextRef svgTextRef, bool ignoreDisplay)
         {
             if (!CanDraw(svgTextRef, ignoreDisplay))
+            {
+                return;
+            }
+
+            if (!SkiaUtil.HasRecursiveReference(svgTextRef, (e) => e.ReferencedElement))
             {
                 return;
             }
@@ -813,6 +823,12 @@ namespace Svg.Skia
                 return;
             }
 
+            // TODO:
+            //if (SkiaUtil.HasRecursiveReference(svgImage, (e) => e.Href))
+            //{
+            //    return;
+            //}
+
             var image = SkiaUtil.GetImage(svgImage, svgImage.Href);
             var skImage = image as SKImage;
             var svgFragment = image as SvgFragment;
@@ -989,8 +1005,13 @@ namespace Svg.Skia
                 return;
             }
 
+            if (SkiaUtil.HasRecursiveReference(svgUse, (e) => e.ReferencedElement))
+            {
+                return;
+            }
+
             var svgVisualElement = SkiaUtil.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
-            if (svgVisualElement == null || SkiaUtil.HasRecursiveReference(svgUse))
+            if (svgVisualElement == null)
             {
                 return;
             }
