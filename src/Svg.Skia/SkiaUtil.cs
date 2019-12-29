@@ -74,22 +74,6 @@ namespace Svg.Skia
             return new SKSize(w, h);
         }
 
-        public static T? GetReference<T>(SvgElement svgElement, Uri uri) where T : SvgElement
-        {
-            if (uri == null)
-            {
-                return null;
-            }
-
-            var svgElementById = svgElement.OwnerDocument?.GetElementById(uri.ToString());
-            if (svgElementById != null)
-            {
-                return svgElementById as T;
-            }
-
-            return null;
-        }
-
         public static SKColor GetColor(SvgColourServer svgColourServer, float opacity, bool forStroke = false)
         {
             if (svgColourServer == SvgPaintServer.None)
@@ -1871,6 +1855,22 @@ namespace Svg.Skia
             // TODO: svgClipPath.ClipPathUnits
 
             return GetClipPath(svgClipPath.Children, disposable);
+        }
+
+        public static T? GetReference<T>(SvgElement svgElement, Uri uri) where T : SvgElement
+        {
+            if (uri == null)
+            {
+                return null;
+            }
+
+            var svgElementById = svgElement.OwnerDocument?.GetElementById(uri.ToString());
+            if (svgElementById != null)
+            {
+                return svgElementById as T;
+            }
+
+            return null;
         }
 
         public static bool ElementReferencesUri(SvgUse svgUse, SvgElement element, List<Uri> elementUris)
