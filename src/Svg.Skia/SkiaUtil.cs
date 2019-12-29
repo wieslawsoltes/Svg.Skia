@@ -1108,7 +1108,7 @@ namespace Svg.Skia
 
         public static void SetFilter(SvgVisualElement svgVisualElement, SKPaint skPaint, CompositeDisposable disposable)
         {
-            if (!HasRecursiveReference(svgVisualElement, (e) => e.Filter, new HashSet<Uri>()))
+            if (HasRecursiveReference(svgVisualElement, (e) => e.Filter, new HashSet<Uri>()))
             {
                 return;
             }
@@ -1851,7 +1851,7 @@ namespace Svg.Skia
                 return null;
             }
 
-            if (!HasRecursiveReference(svgVisualElement, (e) => e.ClipPath, uris))
+            if (HasRecursiveReference(svgVisualElement, (e) => e.ClipPath, uris))
             {
                 return null;
             }
