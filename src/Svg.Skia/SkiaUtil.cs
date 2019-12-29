@@ -102,12 +102,12 @@ namespace Svg.Skia
             return sb.ToString();
         }
 
-        public static SKPath ToSKPath(string svgPath)
+        public static SKPath? ToSKPath(string svgPath)
         {
             return SKPath.ParseSvgPathData(svgPath);
         }
 
-        public static SKPath ToSKPath(SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        public static SKPath? ToSKPath(SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
@@ -176,7 +176,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        public static SKPath ToSKPath(SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, CompositeDisposable disposable)
+        public static SKPath? ToSKPath(SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
@@ -203,7 +203,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        public static SKPath ToSKPath(SvgRectangle svgRectangle, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        public static SKPath? ToSKPath(SvgRectangle svgRectangle, SvgFillRule svgFillRule, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
@@ -219,8 +219,8 @@ namespace Svg.Skia
 
             if (width <= 0f || height <= 0f || rx < 0f || ry < 0f)
             {
-                disposable.Add(skPath);
-                return skPath;
+                skPath.Dispose();
+                return null;
             }
 
             if (rx > 0f)
@@ -257,7 +257,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        public static SKPath ToSKPath(SvgCircle svgCircle, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        public static SKPath? ToSKPath(SvgCircle svgCircle, SvgFillRule svgFillRule, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
@@ -270,8 +270,8 @@ namespace Svg.Skia
 
             if (radius <= 0f)
             {
-                disposable.Add(skPath);
-                return skPath;
+                skPath.Dispose();
+                return null;
             }
 
             skPath.AddCircle(cx, cy, radius);
@@ -280,7 +280,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        public static SKPath ToSKPath(SvgEllipse svgEllipse, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        public static SKPath? ToSKPath(SvgEllipse svgEllipse, SvgFillRule svgFillRule, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
@@ -294,8 +294,8 @@ namespace Svg.Skia
 
             if (rx <= 0f || ry <= 0f)
             {
-                disposable.Add(skPath);
-                return skPath;
+                skPath.Dispose();
+                return null;
             }
 
             var skRectBounds = SKRect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
@@ -306,7 +306,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        public static SKPath ToSKPath(SvgLine svgLine, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        public static SKPath? ToSKPath(SvgLine svgLine, SvgFillRule svgFillRule, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
