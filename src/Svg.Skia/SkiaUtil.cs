@@ -31,6 +31,10 @@ namespace Svg.Skia
 
     internal static class SkiaUtil
     {
+        public static char[] FontFamilyTrim = new char[] { '\'' };
+
+        private const string MimeTypeSvg = "image/svg+xml";
+
         public static SKSize GetDimensions(SvgFragment svgFragment)
         {
             float w, h;
@@ -1290,8 +1294,6 @@ namespace Svg.Skia
             return skPaint;
         }
 
-        public static char[] FontFamilyTrim = new char[] { '\'' };
-
         public static void SetSKPaintText(SvgTextBase svgText, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
             skPaint.LcdRenderText = true;
@@ -1910,8 +1912,6 @@ namespace Svg.Skia
             var uris = new List<Uri>() { svgUse.ReferencedElement };
             return ElementReferencesUri(svgUse, refElement, uris);
         }
-
-        private const string MimeTypeSvg = "image/svg+xml";
 
         public static object? GetImage(SvgImage svgImage, string uriString)
         {
