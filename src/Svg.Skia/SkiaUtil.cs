@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using SkiaSharp;
+using Svg.Document_Structure;
 using Svg.FilterEffects;
 using Svg.Pathing;
 using Svg.Transforms;
@@ -1801,6 +1802,11 @@ namespace Svg.Skia
                     }
                     break;
                 case SvgUse svgUse:
+                    {
+                        // TODO:
+                    }
+                    break;
+                case SvgSymbol svgSymbol:
                     {
                         // TODO:
                     }
