@@ -1457,7 +1457,7 @@ namespace Svg.Skia
             {
                 return;
             }
-            
+
             var skPath = SkiaUtil.ToSKPath(svgPath.PathData, svgPath.FillRule, _disposable);
             if (skPath == null || skPath.IsEmpty)
             {
@@ -1509,7 +1509,7 @@ namespace Svg.Skia
             {
                 return;
             }
-            
+
             var skPath = SkiaUtil.ToSKPath(svgPolyline.Points, svgPolyline.FillRule, false, _disposable);
             if (skPath == null || skPath.IsEmpty)
             {
@@ -1561,7 +1561,7 @@ namespace Svg.Skia
             {
                 return;
             }
-            
+
             var skPath = SkiaUtil.ToSKPath(svgPolygon.Points, svgPolygon.FillRule, true, _disposable);
             if (skPath == null || skPath.IsEmpty)
             {
