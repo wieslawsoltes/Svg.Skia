@@ -1846,7 +1846,7 @@ namespace Svg.Skia
                 return null;
             }
 
-            var svgClipPath = svgVisualElement.OwnerDocument.GetElementById<SvgClipPath>(svgVisualElement.ClipPath.ToString());
+            var svgClipPath = GetReference<SvgClipPath>(svgVisualElement, svgVisualElement.ClipPath);
             if (svgClipPath == null || svgClipPath.Children == null)
             {
                 return null;
@@ -1873,23 +1873,26 @@ namespace Svg.Skia
             return null;
         }
 
-        public static bool ElementReferencesUri(SvgUse svgUse, SvgElement element, List<Uri> elementUris)
+        public static bool ElementReferencesUri(SvgUse svgUse, SvgElement? svgElement, List<Uri> elementUris)
         {
-            if (element is SvgUse useElement)
+            if (svgElement is SvgUse svgUseElement)
             {
-                if (elementUris.Contains(useElement.ReferencedElement))
+                if (elementUris.Contains(svgUseElement.ReferencedElement))
                 {
                     return true;
                 }
-                if (svgUse.OwnerDocument.GetElementById(useElement.ReferencedElement.ToString()) is SvgUse refElement)
+
+                if (GetReference<SvgUse>(svgUse, svgUseElement.ReferencedElement) != null)
                 {
-                    elementUris.Add(useElement.ReferencedElement);
+                    elementUris.Add(svgUseElement.ReferencedElement);
                 }
-                return ReferencedElementReferencesUri(useElement, elementUris);
+
+                return ReferencedElementReferencesUri(svgUseElement, elementUris);
             }
-            if (element is SvgGroup groupElement)
+
+            if (svgElement is SvgGroup svgGroupElement)
             {
-                foreach (var child in groupElement.Children)
+                foreach (var child in svgGroupElement.Children)
                 {
                     if (ElementReferencesUri(svgUse, child, elementUris))
                     {
@@ -1897,18 +1900,19 @@ namespace Svg.Skia
                     }
                 }
             }
+
             return false;
         }
 
         public static bool ReferencedElementReferencesUri(SvgUse svgUse, List<Uri> elementUris)
         {
-            var refElement = svgUse.OwnerDocument.GetElementById(svgUse.ReferencedElement.ToString());
+            var refElement = GetReference<SvgElement>(svgUse, svgUse.ReferencedElement);
             return ElementReferencesUri(svgUse, refElement, elementUris);
         }
 
         public static bool HasRecursiveReference(SvgUse svgUse)
         {
-            var refElement = svgUse.OwnerDocument.GetElementById(svgUse.ReferencedElement.ToString());
+            var refElement = GetReference<SvgElement>(svgUse, svgUse.ReferencedElement);
             var uris = new List<Uri>() { svgUse.ReferencedElement };
             return ElementReferencesUri(svgUse, refElement, uris);
         }
