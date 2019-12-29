@@ -1863,7 +1863,7 @@ namespace Svg.Skia
             }
 
             var clipPath = GetClipPath(svgClipPath.Children, skBounds, uris, disposable);
- 
+
             if (clipPath != null && svgClipPath.ClipPathUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
                 var skMatrix = SKMatrix.MakeIdentity();
