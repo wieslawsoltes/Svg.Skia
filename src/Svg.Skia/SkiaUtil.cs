@@ -820,8 +820,11 @@ namespace Svg.Skia
             {
                 if (patternContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
                 {
-                    var scaleTransform = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
-                    SKMatrix.PreConcat(ref skPictureTransform, ref scaleTransform);
+                    var skBoundsTranslateTransform = SKMatrix.MakeTranslation(skBounds.Left, skBounds.Top);
+                    SKMatrix.PreConcat(ref skPictureTransform, ref skBoundsTranslateTransform);
+
+                    var skBoundsScaleTransform = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
+                    SKMatrix.PreConcat(ref skPictureTransform, ref skBoundsScaleTransform);
                 }
             }
 
