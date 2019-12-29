@@ -1863,21 +1863,25 @@ namespace Svg.Skia
             }
 
             var clipPath = GetClipPath(svgClipPath.Children, skBounds, uris, disposable);
-
-            if (clipPath != null && svgClipPath.ClipPathUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            if (clipPath != null)
             {
-                var skMatrix = SKMatrix.MakeIdentity();
+                if (svgClipPath.ClipPathUnits == SvgCoordinateUnits.ObjectBoundingBox)
+                {
+                    var skMatrix = SKMatrix.MakeIdentity();
 
-                var skScaleMatrix = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
-                SKMatrix.PostConcat(ref skMatrix, ref skScaleMatrix);
+                    var skScaleMatrix = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
+                    SKMatrix.PostConcat(ref skMatrix, ref skScaleMatrix);
 
-                var skTranslateMatrix = SKMatrix.MakeTranslation(skBounds.Left, skBounds.Top);
-                SKMatrix.PostConcat(ref skMatrix, ref skTranslateMatrix);
+                    var skTranslateMatrix = SKMatrix.MakeTranslation(skBounds.Left, skBounds.Top);
+                    SKMatrix.PostConcat(ref skMatrix, ref skTranslateMatrix);
 
-                clipPath.Transform(skMatrix);
+                    clipPath.Transform(skMatrix);
+                }
+
+                return clipPath;
             }
 
-            return clipPath;
+            return null;
         }
 
         public static T? GetReference<T>(SvgElement svgElement, Uri uri) where T : SvgElement
