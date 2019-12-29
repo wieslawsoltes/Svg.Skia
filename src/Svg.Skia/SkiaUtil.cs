@@ -1108,6 +1108,11 @@ namespace Svg.Skia
 
         public static void SetFilter(SvgVisualElement svgVisualElement, SKPaint skPaint, CompositeDisposable disposable)
         {
+            if (!HasRecursiveReference(svgVisualElement, (e) => e.Filter))
+            {
+                return;
+            }
+
             var svgFilter = GetReference<SvgFilter>(svgVisualElement, svgVisualElement.Filter);
             if (svgFilter == null)
             {
@@ -1846,6 +1851,11 @@ namespace Svg.Skia
                 return null;
             }
 
+            if (!HasRecursiveReference(svgVisualElement, (e) => e.ClipPath))
+            {
+                return null;
+            }
+
             var svgClipPath = GetReference<SvgClipPath>(svgVisualElement, svgVisualElement.ClipPath);
             if (svgClipPath == null || svgClipPath.Children == null)
             {
@@ -1873,83 +1883,99 @@ namespace Svg.Skia
             return null;
         }
 
-        public static bool ElementReferencesUri(SvgUse svgUse, SvgElement? svgElement, HashSet<Uri> uris)
+        public static bool ElementReferencesUri<T>(T svgElement, Func<T, Uri> getUri, HashSet<Uri> uris, SvgElement? svgReferencedElement) where T : SvgElement
         {
-            if (svgElement is SvgUse svgUseElement)
+            if (svgReferencedElement == null)
             {
-                if (uris.Contains(svgUseElement.ReferencedElement))
+                return false;
+            }
+
+            if (svgReferencedElement is T svgElementT)
+            {
+                var referencedElementUri = getUri(svgElementT);
+
+                if (uris.Contains(referencedElementUri))
                 {
                     return true;
                 }
 
-                if (GetReference<SvgUse>(svgUse, svgUseElement.ReferencedElement) != null)
+                if (GetReference<T>(svgElement, referencedElementUri) != null)
                 {
-                    uris.Add(svgUseElement.ReferencedElement);
+                    uris.Add(referencedElementUri);
                 }
 
-                var svgReferencedElement = GetReference<SvgElement>(svgUseElement, svgUseElement.ReferencedElement);
-                return ElementReferencesUri(svgUseElement, svgReferencedElement, uris);
+                return ElementReferencesUri(
+                    svgElementT,
+                    getUri,
+                    uris,
+                    GetReference<SvgElement>(svgElementT, referencedElementUri));
             }
 
-            if (svgElement is SvgGroup svgGroupElement)
+            foreach (var svgChildElement in svgReferencedElement.Children)
             {
-                foreach (var child in svgGroupElement.Children)
+                if (ElementReferencesUri(svgElement, getUri, uris, svgChildElement))
                 {
-                    if (ElementReferencesUri(svgUse, child, uris))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
             return false;
         }
 
-        public static bool HasRecursiveReference(SvgUse svgUse)
+        public static bool HasRecursiveReference<T>(T svgElement, Func<T, Uri> getUri) where T : SvgElement
         {
-            var svgReferencedElement = GetReference<SvgElement>(svgUse, svgUse.ReferencedElement);
-            var uris = new HashSet<Uri>() { svgUse.ReferencedElement };
-            return ElementReferencesUri(svgUse, svgReferencedElement, uris);
+            var referencedElementUri = getUri(svgElement);
+            var svgReferencedElement = GetReference<SvgElement>(svgElement, referencedElementUri);
+            var uris = new HashSet<Uri>() { referencedElementUri };
+            return ElementReferencesUri<T>(svgElement, getUri, uris, svgReferencedElement);
         }
 
         public static object? GetImage(SvgImage svgImage, string uriString)
         {
-            // Uri MaxLength is 65519 (https://msdn.microsoft.com/en-us/library/z6c2z492.aspx)
-            // if using data URI scheme, very long URI may happen.
-            var safeUriString = uriString.Length > 65519 ? uriString.Substring(0, 65519) : uriString;
-
             try
             {
+                // Uri MaxLength is 65519 (https://msdn.microsoft.com/en-us/library/z6c2z492.aspx)
+                // if using data URI scheme, very long URI may happen.
+                var safeUriString = uriString.Length > 65519 ? uriString.Substring(0, 65519) : uriString;
                 var uri = new Uri(safeUriString, UriKind.RelativeOrAbsolute);
 
                 // handle data/uri embedded images (http://en.wikipedia.org/wiki/Data_URI_scheme)
                 if (uri.IsAbsoluteUri && uri.Scheme == "data")
+                {
                     return GetImageFromDataUri(svgImage, uriString);
+                }
 
                 if (!uri.IsAbsoluteUri)
-                    uri = new Uri(svgImage.OwnerDocument.BaseUri, uri);
-
-                // should work with http: and file: protocol urls
-                var httpRequest = WebRequest.Create(uri);
-
-                using (var webResponse = httpRequest.GetResponse())
                 {
-                    using (var stream = webResponse.GetResponseStream())
-                    {
-                        if (stream.CanSeek)
-                            stream.Position = 0;
-
-                        if (webResponse.ContentType.StartsWith(MimeTypeSvg, StringComparison.InvariantCultureIgnoreCase) ||
-                            uri.LocalPath.EndsWith(".svg", StringComparison.InvariantCultureIgnoreCase))
-                            return LoadSvg(stream, uri);
-                        else
-                            return SKImage.FromEncodedData(stream);
-                    }
+                    uri = new Uri(svgImage.OwnerDocument.BaseUri, uri);
                 }
+
+                return GetImageFromWeb(uri);
             }
             catch (Exception)
             {
                 return null;
+            }
+        }
+
+        public static object GetImageFromWeb(Uri uri)
+        {
+            // should work with http: and file: protocol urls
+            var httpRequest = WebRequest.Create(uri);
+
+            using (var webResponse = httpRequest.GetResponse())
+            {
+                using (var stream = webResponse.GetResponseStream())
+                {
+                    if (stream.CanSeek)
+                        stream.Position = 0;
+
+                    if (webResponse.ContentType.StartsWith(MimeTypeSvg, StringComparison.InvariantCultureIgnoreCase) ||
+                        uri.LocalPath.EndsWith(".svg", StringComparison.InvariantCultureIgnoreCase))
+                        return LoadSvg(stream, uri);
+                    else
+                        return SKImage.FromEncodedData(stream);
+                }
             }
         }
 
