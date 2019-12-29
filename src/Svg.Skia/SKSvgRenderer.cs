@@ -3,6 +3,7 @@
 //
 // Parts of this source file are adapted from the https://github.com/vvvv/SVG
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -39,7 +40,7 @@ namespace Svg.Skia
 
         internal void SetClipPath(SvgVisualElement svgVisualElement)
         {
-            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgVisualElement, _disposable);
+            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgVisualElement, new HashSet<Uri>(), _disposable);
             if (skPathClip != null && !skPathClip.IsEmpty)
             {
                 bool antialias = SkiaUtil.IsAntialias(svgVisualElement);
@@ -374,7 +375,7 @@ namespace Svg.Skia
             var pathTypes = SkiaUtil.GetPathTypes(sKPath);
             var pathLength = pathTypes.Count;
 
-            if (svgMarkerElement.MarkerStart != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart))
+            if (svgMarkerElement.MarkerStart != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
             {
                 var marker = SkiaUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerStart);
                 if (marker != null)
@@ -390,7 +391,7 @@ namespace Svg.Skia
                 }
             }
 
-            if (svgMarkerElement.MarkerMid != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid))
+            if (svgMarkerElement.MarkerMid != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, new HashSet<Uri>()))
             {
                 var marker = SkiaUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerMid);
                 if (marker != null)
@@ -412,7 +413,7 @@ namespace Svg.Skia
                 }
             }
 
-            if (svgMarkerElement.MarkerEnd != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd))
+            if (svgMarkerElement.MarkerEnd != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, new HashSet<Uri>()))
             {
                 var marker = SkiaUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerEnd);
                 if (marker != null)
@@ -492,7 +493,7 @@ namespace Svg.Skia
                 return;
             }
 
-            if (!SkiaUtil.HasRecursiveReference(svgTextPath, (e) => e.ReferencedPath))
+            if (!SkiaUtil.HasRecursiveReference(svgTextPath, (e) => e.ReferencedPath, new HashSet<Uri>()))
             {
                 return;
             }
@@ -575,7 +576,7 @@ namespace Svg.Skia
                 return;
             }
 
-            if (!SkiaUtil.HasRecursiveReference(svgTextRef, (e) => e.ReferencedElement))
+            if (!SkiaUtil.HasRecursiveReference(svgTextRef, (e) => e.ReferencedElement, new HashSet<Uri>()))
             {
                 return;
             }
@@ -1005,7 +1006,7 @@ namespace Svg.Skia
                 return;
             }
 
-            if (SkiaUtil.HasRecursiveReference(svgUse, (e) => e.ReferencedElement))
+            if (SkiaUtil.HasRecursiveReference(svgUse, (e) => e.ReferencedElement, new HashSet<Uri>()))
             {
                 return;
             }
