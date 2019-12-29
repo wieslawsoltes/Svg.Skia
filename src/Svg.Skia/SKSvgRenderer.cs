@@ -1140,16 +1140,13 @@ namespace Svg.Skia
                 return;
             }
 
-            float cx = svgCircle.CenterX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgCircle);
-            float cy = svgCircle.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgCircle);
-            float radius = svgCircle.Radius.ToDeviceValue(null, UnitRenderingType.Other, svgCircle);
-
-            if (radius <= 0f)
+            var skPath = SkiaUtil.ToSKPath(svgCircle, svgCircle.FillRule, _disposable);
+            if (skPath == null || skPath.IsEmpty)
             {
                 return;
             }
 
-            var skBounds = SKRect.Create(cx - radius, cy - radius, radius + radius, radius + radius);
+            var skBounds = skPath.Bounds;
 
             _skCanvas.Save();
 
@@ -1164,13 +1161,13 @@ namespace Svg.Skia
             if (SkiaUtil.IsValidFill(svgCircle))
             {
                 var skPaintFill = SkiaUtil.GetFillSKPaint(svgCircle, _skSize, skBounds, _disposable);
-                _skCanvas.DrawCircle(cx, cy, radius, skPaintFill);
+                _skCanvas.DrawPath(skPath, skPaintFill);
             }
 
             if (SkiaUtil.IsValidStroke(svgCircle))
             {
                 var skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgCircle, _skSize, skBounds, _disposable);
-                _skCanvas.DrawCircle(cx, cy, radius, skPaintStroke);
+                _skCanvas.DrawPath(skPath, skPaintStroke);
             }
 
             if (skPaintFilter != null)
@@ -1193,17 +1190,13 @@ namespace Svg.Skia
                 return;
             }
 
-            float cx = svgEllipse.CenterX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgEllipse);
-            float cy = svgEllipse.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgEllipse);
-            float rx = svgEllipse.RadiusX.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
-            float ry = svgEllipse.RadiusY.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
-
-            if (rx <= 0f || ry <= 0f)
+            var skPath = SkiaUtil.ToSKPath(svgEllipse, svgEllipse.FillRule, _disposable);
+            if (skPath == null || skPath.IsEmpty)
             {
                 return;
             }
 
-            var skBounds = SKRect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
+            var skBounds = skPath.Bounds;
 
             _skCanvas.Save();
 
@@ -1218,13 +1211,13 @@ namespace Svg.Skia
             if (SkiaUtil.IsValidFill(svgEllipse))
             {
                 var skPaintFill = SkiaUtil.GetFillSKPaint(svgEllipse, _skSize, skBounds, _disposable);
-                _skCanvas.DrawOval(cx, cy, rx, ry, skPaintFill);
+                _skCanvas.DrawPath(skPath, skPaintFill);
             }
 
             if (SkiaUtil.IsValidStroke(svgEllipse))
             {
                 var skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgEllipse, _skSize, skBounds, _disposable);
-                _skCanvas.DrawOval(cx, cy, rx, ry, skPaintStroke);
+                _skCanvas.DrawPath(skPath, skPaintStroke);
             }
 
             if (skPaintFilter != null)
@@ -1247,38 +1240,13 @@ namespace Svg.Skia
                 return;
             }
 
-            float x = svgRectangle.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
-            float y = svgRectangle.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
-            float width = svgRectangle.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
-            float height = svgRectangle.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
-            float rx = svgRectangle.CornerRadiusX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
-            float ry = svgRectangle.CornerRadiusY.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
-
-            if (width <= 0f || height <= 0f || rx < 0f || ry < 0f)
+            var skPath = SkiaUtil.ToSKPath(svgRectangle, svgRectangle.FillRule, _disposable);
+            if (skPath == null || skPath.IsEmpty)
             {
                 return;
             }
 
-            if (rx > 0f)
-            {
-                float halfWidth = width / 2f;
-                if (rx > halfWidth)
-                {
-                    rx = halfWidth;
-                }
-            }
-
-            if (ry > 0f)
-            {
-                float halfHeight = height / 2f;
-                if (ry > halfHeight)
-                {
-                    ry = halfHeight;
-                }
-            }
-
-            bool isRound = rx > 0f && ry > 0f;
-            var skBounds = SKRect.Create(x, y, width, height);
+            var skBounds = skPath.Bounds;
 
             _skCanvas.Save();
 
@@ -1293,27 +1261,13 @@ namespace Svg.Skia
             if (SkiaUtil.IsValidFill(svgRectangle))
             {
                 var skPaintFill = SkiaUtil.GetFillSKPaint(svgRectangle, _skSize, skBounds, _disposable);
-                if (isRound)
-                {
-                    _skCanvas.DrawRoundRect(x, y, width, height, rx, ry, skPaintFill);
-                }
-                else
-                {
-                    _skCanvas.DrawRect(x, y, width, height, skPaintFill);
-                }
+                _skCanvas.DrawPath(skPath, skPaintFill);
             }
 
             if (SkiaUtil.IsValidStroke(svgRectangle))
             {
                 var skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgRectangle, _skSize, skBounds, _disposable);
-                if (isRound)
-                {
-                    _skCanvas.DrawRoundRect(skBounds, rx, ry, skPaintStroke);
-                }
-                else
-                {
-                    _skCanvas.DrawRect(skBounds, skPaintStroke);
-                }
+                _skCanvas.DrawPath(skPath, skPaintStroke);
             }
 
             if (skPaintFilter != null)
