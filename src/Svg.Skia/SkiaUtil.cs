@@ -1349,7 +1349,7 @@ namespace Svg.Skia
                     var skTypeface = SKTypeface.FromFamilyName(fontFamilyName, fontWeight, fontWidth, fontStyle);
                     if (skTypeface != null)
                     {
-                        if (!skTypeface.FamilyName.Equals(fontFamilyName, StringComparison.Ordinal) 
+                        if (!skTypeface.FamilyName.Equals(fontFamilyName, StringComparison.Ordinal)
                             && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
                         {
                             skTypeface.Dispose();
