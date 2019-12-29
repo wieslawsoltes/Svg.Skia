@@ -493,7 +493,7 @@ namespace Svg.Skia
                 return;
             }
 
-            if (!SkiaUtil.HasRecursiveReference(svgTextPath, (e) => e.ReferencedPath, new HashSet<Uri>()))
+            if (SkiaUtil.HasRecursiveReference(svgTextPath, (e) => e.ReferencedPath, new HashSet<Uri>()))
             {
                 return;
             }
@@ -576,7 +576,7 @@ namespace Svg.Skia
                 return;
             }
 
-            if (!SkiaUtil.HasRecursiveReference(svgTextRef, (e) => e.ReferencedElement, new HashSet<Uri>()))
+            if (SkiaUtil.HasRecursiveReference(svgTextRef, (e) => e.ReferencedElement, new HashSet<Uri>()))
             {
                 return;
             }
