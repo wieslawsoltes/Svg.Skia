@@ -1873,28 +1873,29 @@ namespace Svg.Skia
             return null;
         }
 
-        public static bool ElementReferencesUri(SvgUse svgUse, SvgElement? svgElement, List<Uri> elementUris)
+        public static bool ElementReferencesUri(SvgUse svgUse, SvgElement? svgElement, HashSet<Uri> uris)
         {
             if (svgElement is SvgUse svgUseElement)
             {
-                if (elementUris.Contains(svgUseElement.ReferencedElement))
+                if (uris.Contains(svgUseElement.ReferencedElement))
                 {
                     return true;
                 }
 
                 if (GetReference<SvgUse>(svgUse, svgUseElement.ReferencedElement) != null)
                 {
-                    elementUris.Add(svgUseElement.ReferencedElement);
+                    uris.Add(svgUseElement.ReferencedElement);
                 }
 
-                return ReferencedElementReferencesUri(svgUseElement, elementUris);
+                var svgReferencedElement = GetReference<SvgElement>(svgUseElement, svgUseElement.ReferencedElement);
+                return ElementReferencesUri(svgUseElement, svgReferencedElement, uris);
             }
 
             if (svgElement is SvgGroup svgGroupElement)
             {
                 foreach (var child in svgGroupElement.Children)
                 {
-                    if (ElementReferencesUri(svgUse, child, elementUris))
+                    if (ElementReferencesUri(svgUse, child, uris))
                     {
                         return true;
                     }
@@ -1904,17 +1905,11 @@ namespace Svg.Skia
             return false;
         }
 
-        public static bool ReferencedElementReferencesUri(SvgUse svgUse, List<Uri> elementUris)
-        {
-            var refElement = GetReference<SvgElement>(svgUse, svgUse.ReferencedElement);
-            return ElementReferencesUri(svgUse, refElement, elementUris);
-        }
-
         public static bool HasRecursiveReference(SvgUse svgUse)
         {
-            var refElement = GetReference<SvgElement>(svgUse, svgUse.ReferencedElement);
-            var uris = new List<Uri>() { svgUse.ReferencedElement };
-            return ElementReferencesUri(svgUse, refElement, uris);
+            var svgReferencedElement = GetReference<SvgElement>(svgUse, svgUse.ReferencedElement);
+            var uris = new HashSet<Uri>() { svgUse.ReferencedElement };
+            return ElementReferencesUri(svgUse, svgReferencedElement, uris);
         }
 
         public static object? GetImage(SvgImage svgImage, string uriString)
