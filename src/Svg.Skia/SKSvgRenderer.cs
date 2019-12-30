@@ -101,10 +101,11 @@ namespace Svg.Skia
         {
             switch (svgElement)
             {
-                // TODO:
-                //case SvgAnchor svgAnchor:
-                //    DrawAnchor(svgAnchor, ignoreDisplay);
-                //    break;
+#if false
+                case SvgAnchor svgAnchor:
+                    DrawAnchor(svgAnchor, ignoreDisplay);
+                    break;
+#endif
                 case SvgFragment svgFragment:
                     DrawFragment(svgFragment, ignoreDisplay);
                     break;
@@ -752,30 +753,29 @@ namespace Svg.Skia
             bool display = ignoreDisplay ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
             return visible && display;
         }
+#if false
+        public void DrawAnchor(SvgAnchor svgAnchor, bool ignoreDisplay)
+        {
+            _skCanvas.Save();
 
-        // TODO:
-        //public void DrawAnchor(SvgAnchor svgAnchor, bool ignoreDisplay)
-        //{
-        //    _skCanvas.Save();
-        //
-        //    var skMatrix = SkiaUtil.GetSKMatrix(svgAnchor.Transforms);
-        //    SetTransform(skMatrix);
-        //
-        //    var skPaintOpacity = SetOpacity(svgAnchor, _disposable);
-        //
-        //    foreach (var svgElement in svgAnchor.Children)
-        //    {
-        //        Draw(svgElement, ignoreDisplay);
-        //    }
-        //
-        //    if (skPaintOpacity != null)
-        //    {
-        //        _skCanvas.Restore();
-        //    }
-        //
-        //    _skCanvas.Restore();
-        //}
+            var skMatrix = SkiaUtil.GetSKMatrix(svgAnchor.Transforms);
+            SetTransform(skMatrix);
 
+            var skPaintOpacity = SetOpacity(svgAnchor);
+
+            foreach (var svgElement in svgAnchor.Children)
+            {
+                Draw(svgElement, ignoreDisplay);
+            }
+
+            if (skPaintOpacity != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            _skCanvas.Restore();
+        }
+#endif
         public void DrawFragment(SvgFragment svgFragment, bool ignoreDisplay)
         {
             float x = svgFragment.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
