@@ -67,33 +67,65 @@
             </Grid.RowDefinitions>
             <Grid Margin="4,4,4,0" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="50*"/>
-                    <ColumnDefinition Width="4"/>
-                    <ColumnDefinition Width="50*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="50*"/>
+                    <RowDefinition Height="4"/>
+                    <RowDefinition Height="50*"/>
                 </Grid.RowDefinitions>
-                <TextBlock Text="Skia" Padding="0" Margin="2" Grid.Column="0" Grid.Row="0"/>
-                <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="0" Grid.Row="1">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                        <Grid>
-                            <views:SKElement x:Name="skElementSvg" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
-                            <WindowsFormsHost x:Name="glHostSvg" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Collapsed" />
-                        </Grid>
-                    </ScrollViewer>
-                </Border>
-                <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"/>
-                <TextBlock Text="Reference" Padding="0" Margin="2" Grid.Column="2" Grid.Row="0"/>
-                <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="2" Grid.Row="1">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                        <Grid>
-                            <views:SKElement x:Name="skElementPng" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
-                            <WindowsFormsHost x:Name="glHostPng" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Collapsed" />
-                        </Grid>
-                    </ScrollViewer>
-                </Border>
+                <Grid Grid.Column="0" Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50*"/>
+                        <ColumnDefinition Width="4"/>
+                        <ColumnDefinition Width="50*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="50*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Skia" Padding="0" Margin="2" Grid.Column="0" Grid.Row="0"/>
+                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="0" Grid.Row="1">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <Grid>
+                                <views:SKElement x:Name="skElementSvg" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
+                                <WindowsFormsHost x:Name="glHostSvg" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Collapsed" />
+                            </Grid>
+                        </ScrollViewer>
+                    </Border>
+                    <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"/>
+                    <TextBlock Text="Reference" Padding="0" Margin="2" Grid.Column="2" Grid.Row="0"/>
+                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="2" Grid.Row="1">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <Grid>
+                                <views:SKElement x:Name="skElementPng" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
+                                <WindowsFormsHost x:Name="glHostPng" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Collapsed" />
+                            </Grid>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+                <GridSplitter ResizeDirection="Rows" ResizeBehavior="PreviousAndNext" Background="Transparent" HorizontalAlignment="Stretch" Height="4" Grid.Column="0" Grid.Row="1"/>
+                <Grid Grid.Column="0" Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50*"/>
+                        <ColumnDefinition Width="4"/>
+                        <ColumnDefinition Width="50*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="50*"/>
+                    </Grid.RowDefinitions>
+                    <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"/>
+                    <TextBlock Text="Diff" Padding="0" Margin="2" Grid.Column="2" Grid.Row="0"/>
+                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="2" Grid.Row="1">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <Grid>
+                                <views:SKElement x:Name="skElementDiff" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
+                                <WindowsFormsHost x:Name="glHostDiff" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Collapsed" />
+                            </Grid>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
             </Grid>
             <Grid Margin="2" Grid.Column="0" Grid.Row="1">
                 <Grid.ColumnDefinitions>

@@ -40,6 +40,9 @@ namespace SvgToPng
 
         [IgnoreDataMember]
         public SKBitmap ReferencePng { get; set; }
+
+        [IgnoreDataMember]
+        public SKBitmap PixelDiff { get; set; }
     }
 
     public partial class MainWindow : Window
@@ -74,8 +77,11 @@ namespace SvgToPng
 
             this.skElementSvg.PaintSurface += OnPaintCanvasSvg;
             this.skElementPng.PaintSurface += OnPaintCanvasPng;
+            this.skElementDiff.PaintSurface += OnPaintCanvasDiff;
+
             this.glHostSvg.Initialized += OnGLControlHostSvg;
             this.glHostPng.Initialized += OnGLControlHostPng;
+            this.glHostDiff.Initialized += OnGLControlHostDiff;
 
             DataContext = this;
         }
@@ -99,9 +105,11 @@ namespace SvgToPng
 
             skElementSvg.InvalidateVisual();
             skElementPng.InvalidateVisual();
+            skElementDiff.InvalidateVisual();
 
             glHostSvg.Child?.Invalidate();
             glHostPng.Child?.Invalidate();
+            glHostDiff.Child?.Invalidate();
         }
 
         private void Items_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -150,6 +158,7 @@ namespace SvgToPng
             {
                 item.Svg?.Dispose();
                 item.ReferencePng?.Dispose();
+                item.PixelDiff?.Dispose();
             }
         }
 
@@ -256,6 +265,44 @@ namespace SvgToPng
             }
         }
 
+        private void OnGLControlHostDiff(object sender, EventArgs e)
+        {
+            var glControl = new SKGLControl();
+            glControl.PaintSurface += OnPaintGLDiff;
+            glControl.Dock = System.Windows.Forms.DockStyle.None;
+            var host = (WindowsFormsHost)sender;
+            host.Child = glControl;
+        }
+
+        private void OnPaintGLDiff(object sender, SKPaintGLSurfaceEventArgs e)
+        {
+            OnPaintSurfaceDiff(e.Surface.Canvas, e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
+        }
+
+        private void OnPaintCanvasDiff(object sender, SKPaintSurfaceEventArgs e)
+        {
+            OnPaintSurfaceDiff(e.Surface.Canvas, e.Info.Width, e.Info.Height);
+        }
+
+        private void OnPaintSurfaceDiff(SKCanvas canvas, int width, int height)
+        {
+            canvas.Clear(SKColors.White);
+
+            if (items.SelectedItem is Item item && item.PixelDiff != null)
+            {
+                float pwidth = item.PixelDiff.Width;
+                float pheight = item.PixelDiff.Height;
+                if (pwidth > 0f && pheight > 0f)
+                {
+                    skElementDiff.Width = pwidth;
+                    skElementDiff.Height = pheight;
+                    //glHostDiff.Width = pwidth;
+                    //glHostDiff.Height = pheight;
+                    canvas.DrawBitmap(item.PixelDiff, 0f, 0f);
+                }
+            }
+        }
+
         private void LoadItems()
         {
             if (File.Exists("Items.json"))
@@ -345,6 +392,28 @@ namespace SvgToPng
             }
         }
 
+        unsafe private static SKBitmap PixelDiff(SKBitmap a, SKBitmap b)
+        {
+            SKBitmap output = new SKBitmap(a.Width, a.Height);
+            byte* aPtr = (byte*)a.GetPixels().ToPointer();
+            byte* bPtr = (byte*)b.GetPixels().ToPointer();
+            byte* outputPtr = (byte*)output.GetPixels().ToPointer();
+            int len = a.RowBytes * a.Height;
+            for (int i = 0; i < len; i++)
+            {
+                // For alpha use the average of both images (otherwise pixels with the same alpha won't be visible)
+                if ((i + 1) % 4 == 0)
+                    *outputPtr = (byte)((*aPtr + *bPtr) / 2);
+                else
+                    *outputPtr = (byte)~(*aPtr ^ *bPtr);
+
+                outputPtr++;
+                aPtr++;
+                bPtr++;
+            }
+            return output;
+        }
+
         private static void UpdateItem(Item item)
         {
             if (item.Svg?.Picture == null)
@@ -376,7 +445,18 @@ namespace SvgToPng
                 {
                     if (File.Exists(item.ReferencePngPath))
                     {
-                        item.ReferencePng = SKBitmap.Decode(item.ReferencePngPath);
+                        var referencePng = SKBitmap.Decode(item.ReferencePngPath);
+                        item.ReferencePng = referencePng;
+
+                        using (var svgBitmap = item.Svg.Picture.ToBitmap(SKColor.Empty, 1f, 1f))
+                        {
+                            if (svgBitmap.Width == referencePng.Width 
+                                && svgBitmap.Height == referencePng.Height)
+                            {
+                                var pixelDiff = PixelDiff(referencePng, svgBitmap);
+                                item.PixelDiff = pixelDiff;
+                            }
+                        }
                     }
                 }
                 catch (Exception ex)
