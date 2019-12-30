@@ -13,7 +13,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Forms.Integration;
 using System.Windows.Input;
-using System.Windows.Media.Imaging;
 using Newtonsoft.Json;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
@@ -40,7 +39,7 @@ namespace SvgToPng
         public SKSvg Svg { get; set; }
 
         [IgnoreDataMember]
-        public BitmapImage Image { get; set; }
+        public SKBitmap ReferencePng { get; set; }
     }
 
     public partial class MainWindow : Window
@@ -65,74 +64,57 @@ namespace SvgToPng
             });
 #endif
             LoadItems();
-
-            this.Closing += (sender, e) => SaveItems();
-            this.TextItemsFilter.TextChanged += (sender, e) => ItemsView.Refresh();
-
-            items.SelectionChanged += (sender, e) =>
-            {
-                if (items.SelectedItem is Item item)
-                {
-                    UpdateItem(item);
-                }
-                skelement.InvalidateVisual();
-                glhost.Child?.Invalidate();
-            };
-
-            items.MouseDoubleClick += (sender, e) =>
-            {
-                if (items.SelectedItem is Item item)
-                {
-                    if (e.LeftButton == MouseButtonState.Pressed)
-                    {
-                        Process.Start("notepad", item.SvgPath);
-                    }
-                    if (e.RightButton == MouseButtonState.Pressed)
-                    {
-                        Process.Start("explorer", item.SvgPath);
-                    }
-                }
-            };
-
             CreateItemsView();
+
+            this.Closing += MainWindow_Closing;
+            this.TextItemsFilter.TextChanged += TextItemsFilter_TextChanged;
+
+            this.items.SelectionChanged += Items_SelectionChanged;
+            this.items.MouseDoubleClick += Items_MouseDoubleClick;
+
+            this.skElementSvg.PaintSurface += OnPaintCanvasSvg;
+            this.skElementPng.PaintSurface += OnPaintCanvasPng;
+            this.glHostSvg.Initialized += OnGLControlHostSvg;
+            this.glHostPng.Initialized += OnGLControlHostPng;
 
             DataContext = this;
         }
 
-        private void OnGLControlHost(object sender, EventArgs e)
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
-            var glControl = new SKGLControl();
-            glControl.PaintSurface += OnPaintGL;
-            glControl.Dock = System.Windows.Forms.DockStyle.None;
-            var host = (WindowsFormsHost)sender;
-            host.Child = glControl;
+            SaveItems();
         }
 
-        private void OnPaintGL(object sender, SKPaintGLSurfaceEventArgs e)
+        private void TextItemsFilter_TextChanged(object sender, TextChangedEventArgs e)
         {
-            OnPaintSurface(e.Surface.Canvas, e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
+            ItemsView.Refresh();
         }
 
-        private void OnPaintCanvas(object sender, SKPaintSurfaceEventArgs e)
+        private void Items_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            OnPaintSurface(e.Surface.Canvas, e.Info.Width, e.Info.Height);
-        }
-
-        private void OnPaintSurface(SKCanvas canvas, int width, int height)
-        {
-            canvas.Clear(SKColors.White);
-
-            if (items.SelectedItem is Item item && item.Svg?.Picture != null)
+            if (items.SelectedItem is Item item)
             {
-                float pwidth = item.Svg.Picture.CullRect.Width;
-                float pheight = item.Svg.Picture.CullRect.Height;
-                if (pwidth > 0f && pheight > 0f)
+                UpdateItem(item);
+            }
+
+            skElementSvg.InvalidateVisual();
+            skElementPng.InvalidateVisual();
+
+            glHostSvg.Child?.Invalidate();
+            glHostPng.Child?.Invalidate();
+        }
+
+        private void Items_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (items.SelectedItem is Item item)
+            {
+                if (e.LeftButton == MouseButtonState.Pressed)
                 {
-                    skelement.Width = pwidth;
-                    skelement.Height = pheight;
-                    //glhost.Width = pwidth;
-                    //glhost.Height = pheight;
-                    canvas.DrawPicture(item.Svg.Picture);
+                    Process.Start("notepad", item.SvgPath);
+                }
+                if (e.RightButton == MouseButtonState.Pressed)
+                {
+                    Process.Start("explorer", item.SvgPath);
                 }
             }
         }
@@ -142,7 +124,7 @@ namespace SvgToPng
             var inputFiles = GetFilesDrop(paths).ToList();
             if (inputFiles.Count > 0)
             {
-                Add(inputFiles, Items, referencePath, outputPath);
+                AddItems(inputFiles, Items, referencePath, outputPath);
             }
         }
 
@@ -167,7 +149,7 @@ namespace SvgToPng
             foreach (var item in items)
             {
                 item.Svg?.Dispose();
-                item.Image = null;
+                item.ReferencePng = null;
             }
         }
 
@@ -194,24 +176,83 @@ namespace SvgToPng
             string outputPath = TextOutputPath.Text;
             await Task.Factory.StartNew(() =>
             {
-                Save(Items);
+                SaveItemsAsPng(Items);
             });
         }
 
-        private void UpdateItem(Item item)
+        private void OnGLControlHostSvg(object sender, EventArgs e)
         {
-            if (item.Svg?.Picture == null)
-            {
-                Load(item);
-            }
+            var glControl = new SKGLControl();
+            glControl.PaintSurface += OnPaintGLSvg;
+            glControl.Dock = System.Windows.Forms.DockStyle.None;
+            var host = (WindowsFormsHost)sender;
+            host.Child = glControl;
+        }
 
-            if (item.Image != null)
+        private void OnPaintGLSvg(object sender, SKPaintGLSurfaceEventArgs e)
+        {
+            OnPaintSurfaceSvg(e.Surface.Canvas, e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
+        }
+
+        private void OnPaintCanvasSvg(object sender, SKPaintSurfaceEventArgs e)
+        {
+            OnPaintSurfaceSvg(e.Surface.Canvas, e.Info.Width, e.Info.Height);
+        }
+
+        private void OnPaintSurfaceSvg(SKCanvas canvas, int width, int height)
+        {
+            canvas.Clear(SKColors.White);
+
+            if (items.SelectedItem is Item item && item.Svg?.Picture != null)
             {
-                referenceImage.Source = item.Image;
+                float pwidth = item.Svg.Picture.CullRect.Width;
+                float pheight = item.Svg.Picture.CullRect.Height;
+                if (pwidth > 0f && pheight > 0f)
+                {
+                    skElementSvg.Width = pwidth;
+                    skElementSvg.Height = pheight;
+                    //glHostSvg.Width = pwidth;
+                    //glHostSvg.Height = pheight;
+                    canvas.DrawPicture(item.Svg.Picture);
+                }
             }
-            else
+        }
+
+        private void OnGLControlHostPng(object sender, EventArgs e)
+        {
+            var glControl = new SKGLControl();
+            glControl.PaintSurface += OnPaintGLPng;
+            glControl.Dock = System.Windows.Forms.DockStyle.None;
+            var host = (WindowsFormsHost)sender;
+            host.Child = glControl;
+        }
+
+        private void OnPaintGLPng(object sender, SKPaintGLSurfaceEventArgs e)
+        {
+            OnPaintSurfacePng(e.Surface.Canvas, e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
+        }
+
+        private void OnPaintCanvasPng(object sender, SKPaintSurfaceEventArgs e)
+        {
+            OnPaintSurfacePng(e.Surface.Canvas, e.Info.Width, e.Info.Height);
+        }
+
+        private void OnPaintSurfacePng(SKCanvas canvas, int width, int height)
+        {
+            canvas.Clear(SKColors.White);
+
+            if (items.SelectedItem is Item item && item.ReferencePng != null)
             {
-                referenceImage.Source = null;
+                float pwidth = item.ReferencePng.Width;
+                float pheight = item.ReferencePng.Height;
+                if (pwidth > 0f && pheight > 0f)
+                {
+                    skElementPng.Width = pwidth;
+                    skElementPng.Height = pheight;
+                    //glHostPng.Width = pwidth;
+                    //glHostPng.Height = pheight;
+                    canvas.DrawBitmap(item.ReferencePng, 0f, 0f);
+                }
             }
         }
 
@@ -304,46 +345,50 @@ namespace SvgToPng
             }
         }
 
-        private static void Load(Item item)
+        private static void UpdateItem(Item item)
         {
-            var currentDirectory = Directory.GetCurrentDirectory();
-
-            try
+            if (item.Svg?.Picture == null)
             {
-                if (File.Exists(item.SvgPath))
+                var currentDirectory = Directory.GetCurrentDirectory();
+
+                try
                 {
-                    Directory.SetCurrentDirectory(Path.GetDirectoryName(item.SvgPath));
-                    item.Svg = new SKSvg();
-                    item.Svg.Load(item.SvgPath);
+                    if (File.Exists(item.SvgPath))
+                    {
+                        Directory.SetCurrentDirectory(Path.GetDirectoryName(item.SvgPath));
+                        item.Svg = new SKSvg();
+                        item.Svg.Load(item.SvgPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Failed to load svg file: {item.SvgPath}");
+                    Debug.WriteLine(ex.Message);
+                    Debug.WriteLine(ex.StackTrace);
+                }
+
+                Directory.SetCurrentDirectory(currentDirectory);
+            }
+
+            if (item.ReferencePng == null)
+            {
+                try
+                {
+                    if (File.Exists(item.ReferencePngPath))
+                    {
+                        item.ReferencePng = SKBitmap.Decode(item.ReferencePngPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Failed to load reference png: {item.ReferencePngPath}");
+                    Debug.WriteLine(ex.Message);
+                    Debug.WriteLine(ex.StackTrace);
                 }
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Failed to load svg file: {item.SvgPath}");
-                Debug.WriteLine(ex.Message);
-                Debug.WriteLine(ex.StackTrace);
-            }
-
-            try
-            {
-                if (File.Exists(item.ReferencePngPath))
-                {
-                    var bi = new BitmapImage(new Uri(item.ReferencePngPath));
-                    bi.Freeze();
-                    item.Image = bi;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Failed to load reference png: {item.ReferencePngPath}");
-                Debug.WriteLine(ex.Message);
-                Debug.WriteLine(ex.StackTrace);
-            }
-
-            Directory.SetCurrentDirectory(currentDirectory);
         }
 
-        private static void Add(List<string> paths, IList<Item> items, string referencePath, string outputPath)
+        private static void AddItems(List<string> paths, IList<Item> items, string referencePath, string outputPath)
         {
             var fullReferencePath = string.IsNullOrWhiteSpace(referencePath) ? default : Path.GetFullPath(referencePath);
 
@@ -370,15 +415,16 @@ namespace SvgToPng
             }
         }
 
-        private static void Save(IList<Item> items)
+        private static void SaveItemsAsPng(IList<Item> items)
         {
             foreach (var item in items)
             {
-                item.Svg.Save(
-                    item.OutputPngPath,
-                    SKColors.Transparent,
-                    SKEncodedImageFormat.Png, 100,
-                    1f, 1f);
+                UpdateItem(item);
+
+                if (item.Svg?.Picture != null)
+                {
+                    item.Svg.Save(item.OutputPngPath, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1f, 1f);
+                }
             }
         }
     }
