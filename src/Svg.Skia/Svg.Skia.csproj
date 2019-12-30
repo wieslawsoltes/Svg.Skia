@@ -26,7 +26,10 @@
     <Compile Include="**\*.cs" Exclude="obj\**" />
   </ItemGroup>
 
-  <!--<ItemGroup>
+  <!--<PropertyGroup>
+    <DefineConstants>$(DefineConstants);SVG_ANCHOR</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />
   </ItemGroup>-->
 
