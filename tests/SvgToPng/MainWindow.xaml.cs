@@ -12,6 +12,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Forms.Integration;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Newtonsoft.Json;
 using SkiaSharp;
@@ -76,6 +77,21 @@ namespace SvgToPng
                 }
                 skelement.InvalidateVisual();
                 glhost.Child?.Invalidate();
+            };
+
+            items.MouseDoubleClick += (sender, e) =>
+            {
+                if (items.SelectedItem is Item item)
+                {
+                    if (e.LeftButton == MouseButtonState.Pressed)
+                    {
+                        Process.Start("notepad", item.SvgPath);
+                    }
+                    if (e.RightButton == MouseButtonState.Pressed)
+                    {
+                        Process.Start("explorer", item.SvgPath);
+                    }
+                }
             };
 
             CreateItemsView();
