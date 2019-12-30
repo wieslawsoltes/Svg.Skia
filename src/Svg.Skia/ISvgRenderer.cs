@@ -7,8 +7,9 @@ namespace Svg.Skia
 {
     public interface ISvgRenderer : IDisposable
     {
-        // TODO:
-        //void DrawAnchor(SvgAnchor svgAnchor);
+#if false
+        void DrawAnchor(SvgAnchor svgAnchor, bool ignoreDisplay);
+#endif
         void DrawFragment(SvgFragment svgFragment, bool ignoreDisplay);
         void DrawImage(SvgImage svgImage, bool ignoreDisplay);
         void DrawSwitch(SvgSwitch svgSwitch, bool ignoreDisplay);
