@@ -13,24 +13,11 @@ namespace SvgToPng
     public class Item
     {
         public string Name { get; set; }
-        public string Path { get; set; }
+        public string SvgPath { get; set; }
+        public string ReferencePngPath { get; set; }
+        public string OutputPngPath { get; set; }
         public SKSvg Svg { get; set; }
         public BitmapImage Image { get; set; }
-    }
-
-    public interface IConvertProgress
-    {
-        Task ConvertStatusReset();
-        Task ConvertStatus(string message);
-        Task ConvertStatusProgress(int count, int total, string inputFile);
-        Task ConvertStatusDone();
-    }
-
-    public interface ISaveProgress
-    {
-        Task SaveStatusReset();
-        Task SaveStatusProgress(int count, int total, string inputFile, string outputFile);
-        Task SaveStatusDone();
     }
 
     public static class SvgToPngConverter
@@ -81,91 +68,78 @@ namespace SvgToPng
             }
         }
 
-        public static async Task Convert(List<string> inputFiles, IList<Item> items, string referencePath, IConvertProgress convertProgress)
+        public static void Load(Item item)
         {
-            await convertProgress.ConvertStatusReset();
-            int count = 0;
+            try
+            {
+                if (File.Exists(item.SvgPath))
+                {
+                    Directory.SetCurrentDirectory(Path.GetDirectoryName(item.SvgPath));
+                    item.Svg = new SKSvg();
+                    item.Svg.Load(item.SvgPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to load svg file: {item.SvgPath}");
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
+            }
+
+            try
+            {
+                if (File.Exists(item.ReferencePngPath))
+                {
+                    var image = new BitmapImage(new Uri(item.ReferencePngPath));
+                    image.Freeze();
+                    item.Image = image;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to load reference png: {item.ReferencePngPath}");
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
+            }
+        }
+
+        public static void Convert(List<string> paths, IList<Item> items, string referencePath, string outputPath)
+        {
             var fullReferencePath = string.IsNullOrWhiteSpace(referencePath) ? default : Path.GetFullPath(referencePath);
 
-            // Items
-
-            await convertProgress.ConvertStatus("Loading items...");
-
-            foreach (var inputFile in inputFiles)
+            foreach (var path in paths)
             {
-                var inputName = Path.GetFileNameWithoutExtension(inputFile);
+                string inputName = Path.GetFileNameWithoutExtension(path);
+                string referencePng = string.Empty;
+                string outputPng = Path.Combine(outputPath, inputName + ".png");
+
+                if (!string.IsNullOrWhiteSpace(fullReferencePath))
+                {
+                    referencePng = Path.Combine(fullReferencePath, inputName + ".png");
+                }
+
                 var item = new Item()
                 {
                     Name = inputName,
-                    Path = inputFile
+                    SvgPath = path,
+                    ReferencePngPath = referencePng,
+                    OutputPngPath = outputPng
                 };
+
                 items.Add(item);
             }
-
-            await convertProgress.ConvertStatus("Converting svg using Svg.Skia...");
-
-            count = 0;
-            foreach (var item in items)
-            {
-                count++;
-                await convertProgress.ConvertStatusProgress(count, inputFiles.Count, item.Path);
-                await Task.Factory.StartNew(() =>
-                {
-                    try
-                    {
-                        Directory.SetCurrentDirectory(Path.GetDirectoryName(item.Path));
-
-                        item.Svg = new SKSvg();
-                        item.Svg.Load(item.Path);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"Failed to load svg file: {item.Path}");
-                        Debug.WriteLine(ex.Message);
-                        Debug.WriteLine(ex.StackTrace);
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(fullReferencePath))
-                    {
-                        var referenceImagePath = Path.Combine(fullReferencePath, item.Name + ".png");
-                        if (File.Exists(referenceImagePath))
-                        {
-                            try
-                            {
-                                var image = new BitmapImage(new Uri(referenceImagePath));
-                                image.Freeze();
-                                item.Image = image;
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine($"Failed to load reference image: {referenceImagePath}");
-                                Debug.WriteLine(ex.Message);
-                                Debug.WriteLine(ex.StackTrace);
-                            }
-                        } 
-                    }
-                });
-            }
-
-            await convertProgress.ConvertStatusDone();
         }
 
-        public static async Task Save(string outputPath, IList<Item> items, ISaveProgress saveProgress)
+        public static void Save(IList<Item> items)
         {
-            int count = 0;
-            await saveProgress.SaveStatusReset();
-
             foreach (var item in items)
             {
-                string inputFile = item.Path;
-                string inputName = Path.GetFileNameWithoutExtension(inputFile);
-                string outputFile = Path.Combine(outputPath, inputName + ".png");
-                count++;
-                await saveProgress.SaveStatusProgress(count, items.Count, inputFile, outputFile);
-                item.Svg.Save(outputFile, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1f, 1f);
+                item.Svg.Save(
+                    item.OutputPngPath, 
+                    SKColors.Transparent, 
+                    SKEncodedImageFormat.Png, 100, 
+                    1f, 1f);
             }
-
-            await saveProgress.SaveStatusDone();
         }
     }
 }

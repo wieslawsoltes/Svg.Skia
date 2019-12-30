@@ -10,7 +10,7 @@ using SkiaSharp.Views.Desktop;
 
 namespace SvgToPng
 {
-    public partial class MainWindow : Window, IConvertProgress, ISaveProgress
+    public partial class MainWindow : Window
     {
         public ObservableCollection<Item> Items { get; set; }
         public ObservableCollection<string> ReferencePaths { get; set; }
@@ -70,6 +70,11 @@ namespace SvgToPng
 
             if (items.SelectedItem is Item item)
             {
+                if (item.Svg?.Picture == null)
+                {
+                    SvgToPngConverter.Load(item);
+                }
+
                 if (item.Svg?.Picture != null)
                 {
                     float pwidth = item.Svg.Picture.CullRect.Width;
@@ -86,96 +91,23 @@ namespace SvgToPng
             }
         }
 
-        public async Task HandleDrop(string[] paths, string referencePath)
+        public void HandleDrop(string[] paths, string referencePath, string outputPath)
         {
             var inputFiles = SvgToPngConverter.GetFilesDrop(paths).ToList();
             if (inputFiles.Count > 0)
             {
-                await SvgToPngConverter.Convert(inputFiles, Items, referencePath, this);
+                SvgToPngConverter.Convert(inputFiles, Items, referencePath, outputPath);
             }
         }
 
-        public async Task ConvertStatusReset()
-        {
-            await Dispatcher.InvokeAsync(() =>
-            {
-                TextProgress.Text = $"";
-                TextInputFile.Text = $"";
-                TextOutputFile.Text = $"";
-            });
-            StackPanelStatus.Visibility = Visibility.Visible;
-        }
-
-        public async Task ConvertStatus(string message)
-        {
-            await Dispatcher.InvokeAsync(() =>
-            {
-                TextProgress.Text = message;
-                TextInputFile.Text = $"";
-                TextOutputFile.Text = $"";
-            });
-        }
-
-        public async Task ConvertStatusProgress(int count, int total, string inputFile)
-        {
-            await Dispatcher.InvokeAsync(() =>
-            {
-                TextProgress.Text = $"Conterting file {count}/{total}";
-                TextInputFile.Text = $"{inputFile}";
-            });
-        }
-
-        public async Task ConvertStatusDone()
-        {
-            await Dispatcher.InvokeAsync(() =>
-            {
-                TextProgress.Text = $"Done";
-                TextInputFile.Text = $"";
-                TextOutputFile.Text = $"";
-            });
-            StackPanelStatus.Visibility = Visibility.Collapsed;
-        }
-
-        public async Task SaveStatusReset()
-        {
-            await Dispatcher.InvokeAsync(() =>
-            {
-                TextProgress.Text = $"";
-                TextInputFile.Text = $"";
-                TextOutputFile.Text = $"";
-            });
-            StackPanelStatus.Visibility = Visibility.Visible;
-        }
-
-        public async Task SaveStatusProgress(int count, int total, string inputFile, string outputFile)
-        {
-            await Dispatcher.InvokeAsync(() =>
-            {
-                TextProgress.Text = $"Saving file {count}/{total}";
-                TextInputFile.Text = $"{inputFile}";
-                TextOutputFile.Text = $"{outputFile}";
-            });
-        }
-
-        public async Task SaveStatusDone()
-        {
-            await Dispatcher.InvokeAsync(() =>
-            {
-                TextProgress.Text = $"Done";
-                TextInputFile.Text = $"";
-                TextOutputFile.Text = $"";
-            });
-            StackPanelStatus.Visibility = Visibility.Collapsed;
-        }
-
-        private async void Window_Drop(object sender, DragEventArgs e)
+        private void Window_Drop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] paths = (string[])e.Data.GetData(DataFormats.FileDrop);
                 if (paths != null && paths.Length > 0)
                 {
-                    await HandleDrop(paths, TextReferencePath.Text);
+                    HandleDrop(paths, TextReferencePath.Text, TextOutputPath.Text);
                 }
             }
         }
@@ -193,7 +125,7 @@ namespace SvgToPng
             }
         }
 
-        private async void ButtonAdd_Click(object sender, RoutedEventArgs e)
+        private void ButtonAdd_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new Microsoft.Win32.OpenFileDialog()
             {
@@ -206,7 +138,7 @@ namespace SvgToPng
                 var paths = dlg.FileNames;
                 if (paths != null && paths.Length > 0)
                 {
-                    await HandleDrop(paths, TextReferencePath.Text);
+                    HandleDrop(paths, TextReferencePath.Text, TextOutputPath.Text);
                 }
             }
         }
@@ -214,7 +146,10 @@ namespace SvgToPng
         private async void ButtonSavePng_Click(object sender, RoutedEventArgs e)
         {
             string outputPath = TextOutputPath.Text;
-            await SvgToPngConverter.Save(outputPath, Items, this);
+            await Task.Factory.StartNew(() =>
+            {
+                SvgToPngConverter.Save(Items);
+            });
         }
     }
 }
