@@ -149,7 +149,7 @@ namespace SvgToPng
             foreach (var item in items)
             {
                 item.Svg?.Dispose();
-                item.ReferencePng = null;
+                item.ReferencePng?.Dispose();
             }
         }
 
