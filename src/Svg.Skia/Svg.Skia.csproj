@@ -26,4 +26,9 @@
     <Compile Include="**\*.cs" Exclude="obj\**" />
   </ItemGroup>
 
+  <!--<ItemGroup>
+    <ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />
+  </ItemGroup>-->
+
 </Project>
+ 
