@@ -6,6 +6,34 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
+    public static class SKPictureExtensions
+    {
+        public static SKBitmap? ToBitmap(this SKPicture sKPicture, SKColor background, float scaleX, float scaleY)
+        {
+            float width = sKPicture.CullRect.Width * scaleX;
+            float height = sKPicture.CullRect.Height * scaleY;
+            if (width > 0 && height > 0)
+            {
+                var skImageInfo = new SKImageInfo((int)width, (int)height);
+                var skBitmap = new SKBitmap(skImageInfo);
+                using (var skCanvas = new SKCanvas(skBitmap))
+                {
+                    skCanvas.Clear(SKColors.Transparent);
+                    if (background != SKColor.Empty)
+                    {
+                        skCanvas.DrawColor(background);
+                    }
+                    skCanvas.Save();
+                    skCanvas.Scale(scaleX, scaleY);
+                    skCanvas.DrawPicture(sKPicture);
+                    skCanvas.Restore();
+                    return skBitmap;
+                }
+            }
+            return null;
+        }
+    }
+
     public class SKSvg : IDisposable
     {
         public static SvgDocument? OpenSvg(string path)
@@ -61,36 +89,22 @@ namespace Svg.Skia
 
         public static bool Save(Stream stream, SKPicture sKPicture, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY)
         {
-            float width = sKPicture.CullRect.Width * scaleX;
-            float height = sKPicture.CullRect.Height * scaleY;
-
-            if (width > 0 && height > 0)
+            using (var skBitmap = sKPicture.ToBitmap(background, scaleX, scaleY))
             {
-                var skImageInfo = new SKImageInfo((int)width, (int)height);
-                using (var skBitmap = new SKBitmap(skImageInfo))
-                using (var skCanvas = new SKCanvas(skBitmap))
+                if (skBitmap == null)
                 {
-                    skCanvas.Clear(SKColors.Transparent);
-                    if (background != SKColor.Empty)
+                    return false;
+                }
+                using (var skImage = SKImage.FromBitmap(skBitmap))
+                using (var skData = skImage.Encode(format, quality))
+                {
+                    if (skData != null)
                     {
-                        skCanvas.DrawColor(background);
-                    }
-                    skCanvas.Save();
-                    skCanvas.Scale(scaleX, scaleY);
-                    skCanvas.DrawPicture(sKPicture);
-                    skCanvas.Restore();
-                    using (var skImage = SKImage.FromBitmap(skBitmap))
-                    using (var skData = skImage.Encode(format, quality))
-                    {
-                        if (skData != null)
-                        {
-                            skData.SaveTo(stream);
-                            return true;
-                        }
+                        skData.SaveTo(stream);
+                        return true;
                     }
                 }
             }
-
             return false;
         }
 
