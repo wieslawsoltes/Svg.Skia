@@ -101,7 +101,7 @@ namespace Svg.Skia
         {
             switch (svgElement)
             {
-#if false
+#if SVG_ANCHOR
                 case SvgAnchor svgAnchor:
                     DrawAnchor(svgAnchor, ignoreDisplay);
                     break;
@@ -753,7 +753,8 @@ namespace Svg.Skia
             bool display = ignoreDisplay ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
             return visible && display;
         }
-#if false
+
+#if SVG_ANCHOR
         public void DrawAnchor(SvgAnchor svgAnchor, bool ignoreDisplay)
         {
             _skCanvas.Save();
@@ -776,6 +777,7 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 #endif
+
         public void DrawFragment(SvgFragment svgFragment, bool ignoreDisplay)
         {
             float x = svgFragment.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
