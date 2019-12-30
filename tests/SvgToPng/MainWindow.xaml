@@ -47,8 +47,8 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <TextBlock Text="Skia" Padding="0" Margin="2" Grid.Column="0" Grid.Row="0"/>
-                <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="2" Grid.Column="0" Grid.Row="1">
+                <TextBlock Text="Skia" Padding="0" Margin="1" Grid.Column="0" Grid.Row="0"/>
+                <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="0" Grid.Row="1">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                         <Grid>
                             <views:SKElement x:Name="skelement" PaintSurface="OnPaintCanvas" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
@@ -57,14 +57,14 @@
                     </ScrollViewer>
                 </Border>
                 <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"/>
-                <TextBlock Text="Reference" Padding="0" Margin="2" Grid.Column="2" Grid.Row="0"/>
-                <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="2" Grid.Column="2" Grid.Row="1">
+                <TextBlock Text="Reference" Padding="0" Margin="1" Grid.Column="2" Grid.Row="0"/>
+                <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="2" Grid.Row="1">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                         <Image x:Name="referenceImage" Stretch="None" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </ScrollViewer>
                 </Border>
             </Grid>
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="4" Grid.Column="0" Grid.Row="1">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="2" Grid.Column="0" Grid.Row="1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>

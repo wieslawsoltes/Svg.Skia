@@ -1,19 +1,47 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Forms.Integration;
+using System.Windows.Media.Imaging;
 using Newtonsoft.Json;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
+using Svg.Skia;
 
 namespace SvgToPng
 {
+    [DataContract]
+    public class Item
+    {
+        [DataMember]
+        public string Name { get; set; }
+
+        [DataMember]
+        public string SvgPath { get; set; }
+
+        [DataMember]
+        public string ReferencePngPath { get; set; }
+
+        [DataMember]
+        public string OutputPngPath { get; set; }
+
+        [IgnoreDataMember]
+        public SKSvg Svg { get; set; }
+
+        [IgnoreDataMember]
+        public BitmapImage Image { get; set; }
+    }
+
     public partial class MainWindow : Window
     {
         public ObservableCollection<Item> Items { get; set; }
@@ -35,81 +63,24 @@ namespace SvgToPng
                 @"e:\Dropbox\Draw2D\SVG\W3CTestSuite-png\"
             });
 #endif
-            if (File.Exists("Items.json"))
-            {
-                var jsonSerializerSettings = new JsonSerializerSettings()
-                {
-                    Formatting = Formatting.Indented,
-                    NullValueHandling = NullValueHandling.Ignore
-                };
-                var json = File.ReadAllText("Items.json");
-                Items = JsonConvert.DeserializeObject<ObservableCollection<Item>>(json, jsonSerializerSettings);
-            }
+            LoadItems();
 
-            this.Loaded += MainWindow_Loaded;
-            this.Closing += MainWindow_Closing;
+            this.Closing += (sender, e) => SaveItems();
             this.TextItemsFilter.TextChanged += (sender, e) => ItemsView.Refresh();
+
+            items.SelectionChanged += (sender, e) =>
+            {
+                if (items.SelectedItem is Item item)
+                {
+                    UpdateItem(item);
+                }
+                skelement.InvalidateVisual();
+                glhost.Child?.Invalidate();
+            };
 
             CreateItemsView();
 
             DataContext = this;
-        }
-
-        private void CreateItemsView()
-        {
-            ItemsView = CollectionViewSource.GetDefaultView(Items);
-
-            var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
-
-            ItemsView.Filter = (o) =>
-            {
-                var name = TextItemsFilter.Text;
-                var isEmpty = string.IsNullOrWhiteSpace(name);
-                if (o is Item item && !isEmpty)
-                {
-                    return compareInfo.IndexOf(item.Name, name, CompareOptions.IgnoreCase) >= 0;
-                }
-                return true;
-            };
-        }
-
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            items.SelectionChanged += Items_SelectionChanged;
-        }
-
-        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            var jsonSerializerSettings = new JsonSerializerSettings()
-            {
-                Formatting = Formatting.Indented,
-                NullValueHandling = NullValueHandling.Ignore
-            };
-            string json = JsonConvert.SerializeObject(Items, jsonSerializerSettings);
-            File.WriteAllText("Items.json", json);
-        }
-
-        private void Items_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            if (items.SelectedItem is Item item)
-            {
-                if (item.Svg?.Picture == null)
-                {
-                    SvgToPngConverter.Load(item);
-                }
-
-                if (item.Image != null)
-                {
-                    referenceImage.Source = item.Image;
-                }
-                else
-                {
-                    referenceImage.Source = null;
-                }
-            }
-            
-            skelement.InvalidateVisual();
-            glhost.Child?.Invalidate();
         }
 
         private void OnGLControlHost(object sender, EventArgs e)
@@ -150,12 +121,12 @@ namespace SvgToPng
             }
         }
 
-        public void HandleDrop(string[] paths, string referencePath, string outputPath)
+        private void HandleDrop(string[] paths, string referencePath, string outputPath)
         {
-            var inputFiles = SvgToPngConverter.GetFilesDrop(paths).ToList();
+            var inputFiles = GetFilesDrop(paths).ToList();
             if (inputFiles.Count > 0)
             {
-                SvgToPngConverter.Add(inputFiles, Items, referencePath, outputPath);
+                Add(inputFiles, Items, referencePath, outputPath);
             }
         }
 
@@ -207,8 +178,192 @@ namespace SvgToPng
             string outputPath = TextOutputPath.Text;
             await Task.Factory.StartNew(() =>
             {
-                SvgToPngConverter.Save(Items);
+                Save(Items);
             });
+        }
+
+        private void UpdateItem(Item item)
+        {
+            if (item.Svg?.Picture == null)
+            {
+                Load(item);
+            }
+
+            if (item.Image != null)
+            {
+                referenceImage.Source = item.Image;
+            }
+            else
+            {
+                referenceImage.Source = null;
+            }
+        }
+
+        private void LoadItems()
+        {
+            if (File.Exists("Items.json"))
+            {
+                var jsonSerializerSettings = new JsonSerializerSettings()
+                {
+                    Formatting = Formatting.Indented,
+                    NullValueHandling = NullValueHandling.Ignore
+                };
+                var json = File.ReadAllText("Items.json");
+                Items = JsonConvert.DeserializeObject<ObservableCollection<Item>>(json, jsonSerializerSettings);
+            }
+        }
+
+        private void SaveItems()
+        {
+            var jsonSerializerSettings = new JsonSerializerSettings()
+            {
+                Formatting = Formatting.Indented,
+                NullValueHandling = NullValueHandling.Ignore
+            };
+            string json = JsonConvert.SerializeObject(Items, jsonSerializerSettings);
+            File.WriteAllText("Items.json", json);
+        }
+
+        private void CreateItemsView()
+        {
+            ItemsView = CollectionViewSource.GetDefaultView(Items);
+
+            var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
+
+            ItemsView.Filter = (o) =>
+            {
+                var name = TextItemsFilter.Text;
+                var isEmpty = string.IsNullOrWhiteSpace(name);
+                if (o is Item item && !isEmpty)
+                {
+                    return compareInfo.IndexOf(item.Name, name, CompareOptions.IgnoreCase) >= 0;
+                }
+                return true;
+            };
+        }
+
+        private static IEnumerable<string> GetFiles(string inputPath)
+        {
+            foreach (var file in Directory.EnumerateFiles(inputPath, "*.svg"))
+            {
+                yield return file;
+            }
+
+            foreach (var file in Directory.EnumerateFiles(inputPath, "*.svgz"))
+            {
+                yield return file;
+            }
+
+            foreach (var directory in Directory.EnumerateDirectories(inputPath))
+            {
+                foreach (var file in GetFiles(directory))
+                {
+                    yield return file;
+                }
+            }
+        }
+
+        private static IEnumerable<string> GetFilesDrop(string[] paths)
+        {
+            if (paths != null && paths.Length > 0)
+            {
+                foreach (var path in paths)
+                {
+                    if (File.GetAttributes(path).HasFlag(FileAttributes.Directory))
+                    {
+                        foreach (var file in GetFiles(path))
+                        {
+                            yield return file;
+                        }
+                    }
+                    else
+                    {
+                        var extension = Path.GetExtension(path).ToLower();
+                        if (extension == ".svg" || extension == ".svgz")
+                        {
+                            yield return path;
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void Load(Item item)
+        {
+            var currentDirectory = Directory.GetCurrentDirectory();
+
+            try
+            {
+                if (File.Exists(item.SvgPath))
+                {
+                    Directory.SetCurrentDirectory(Path.GetDirectoryName(item.SvgPath));
+                    item.Svg = new SKSvg();
+                    item.Svg.Load(item.SvgPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to load svg file: {item.SvgPath}");
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
+            }
+
+            try
+            {
+                if (File.Exists(item.ReferencePngPath))
+                {
+                    var bi = new BitmapImage(new Uri(item.ReferencePngPath));
+                    bi.Freeze();
+                    item.Image = bi;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to load reference png: {item.ReferencePngPath}");
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
+            }
+
+            Directory.SetCurrentDirectory(currentDirectory);
+        }
+
+        private static void Add(List<string> paths, IList<Item> items, string referencePath, string outputPath)
+        {
+            var fullReferencePath = string.IsNullOrWhiteSpace(referencePath) ? default : Path.GetFullPath(referencePath);
+
+            foreach (var path in paths)
+            {
+                string inputName = Path.GetFileNameWithoutExtension(path);
+                string referencePng = string.Empty;
+                string outputPng = Path.Combine(outputPath, inputName + ".png");
+
+                if (!string.IsNullOrWhiteSpace(fullReferencePath))
+                {
+                    referencePng = Path.Combine(fullReferencePath, inputName + ".png");
+                }
+
+                var item = new Item()
+                {
+                    Name = inputName,
+                    SvgPath = path,
+                    ReferencePngPath = referencePng,
+                    OutputPngPath = outputPng
+                };
+
+                items.Add(item);
+            }
+        }
+
+        private static void Save(IList<Item> items)
+        {
+            foreach (var item in items)
+            {
+                item.Svg.Save(
+                    item.OutputPngPath,
+                    SKColors.Transparent,
+                    SKEncodedImageFormat.Png, 100,
+                    1f, 1f);
+            }
         }
     }
 }
