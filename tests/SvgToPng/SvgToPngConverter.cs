@@ -2,21 +2,32 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
-using System.Threading.Tasks;
+using System.Runtime.Serialization;
 using System.Windows.Media.Imaging;
 using SkiaSharp;
 using Svg.Skia;
 
 namespace SvgToPng
 {
+    [DataContract]
     public class Item
     {
+        [DataMember]
         public string Name { get; set; }
+
+        [DataMember]
         public string SvgPath { get; set; }
+
+        [DataMember]
         public string ReferencePngPath { get; set; }
+
+        [DataMember]
         public string OutputPngPath { get; set; }
+
+        [IgnoreDataMember]
         public SKSvg Svg { get; set; }
+
+        [IgnoreDataMember]
         public BitmapImage Image { get; set; }
     }
 
@@ -70,6 +81,8 @@ namespace SvgToPng
 
         public static void Load(Item item)
         {
+            var currentDirectory = Directory.GetCurrentDirectory();
+
             try
             {
                 if (File.Exists(item.SvgPath))
@@ -90,9 +103,9 @@ namespace SvgToPng
             {
                 if (File.Exists(item.ReferencePngPath))
                 {
-                    var image = new BitmapImage(new Uri(item.ReferencePngPath));
-                    image.Freeze();
-                    item.Image = image;
+                    var bi = new BitmapImage(new Uri(item.ReferencePngPath));
+                    bi.Freeze();
+                    item.Image = bi;
                 }
             }
             catch (Exception ex)
@@ -101,9 +114,11 @@ namespace SvgToPng
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine(ex.StackTrace);
             }
+
+            Directory.SetCurrentDirectory(currentDirectory);
         }
 
-        public static void Convert(List<string> paths, IList<Item> items, string referencePath, string outputPath)
+        public static void Add(List<string> paths, IList<Item> items, string referencePath, string outputPath)
         {
             var fullReferencePath = string.IsNullOrWhiteSpace(referencePath) ? default : Path.GetFullPath(referencePath);
 

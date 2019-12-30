@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Forms.Integration;
+using Newtonsoft.Json;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 
@@ -13,6 +17,7 @@ namespace SvgToPng
     public partial class MainWindow : Window
     {
         public ObservableCollection<Item> Items { get; set; }
+        public ICollectionView ItemsView { get; set; }
         public ObservableCollection<string> ReferencePaths { get; set; }
 
         public MainWindow()
@@ -30,8 +35,42 @@ namespace SvgToPng
                 @"e:\Dropbox\Draw2D\SVG\W3CTestSuite-png\"
             });
 #endif
+            if (File.Exists("Items.json"))
+            {
+                var jsonSerializerSettings = new JsonSerializerSettings()
+                {
+                    Formatting = Formatting.Indented,
+                    NullValueHandling = NullValueHandling.Ignore
+                };
+                var json = File.ReadAllText("Items.json");
+                Items = JsonConvert.DeserializeObject<ObservableCollection<Item>>(json, jsonSerializerSettings);
+            }
+
             this.Loaded += MainWindow_Loaded;
+            this.Closing += MainWindow_Closing;
+            this.TextItemsFilter.TextChanged += (sender, e) => ItemsView.Refresh();
+
+            CreateItemsView();
+
             DataContext = this;
+        }
+
+        private void CreateItemsView()
+        {
+            ItemsView = CollectionViewSource.GetDefaultView(Items);
+
+            var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
+
+            ItemsView.Filter = (o) =>
+            {
+                var name = TextItemsFilter.Text;
+                var isEmpty = string.IsNullOrWhiteSpace(name);
+                if (o is Item item && !isEmpty)
+                {
+                    return compareInfo.IndexOf(item.Name, name, CompareOptions.IgnoreCase) >= 0;
+                }
+                return true;
+            };
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -39,8 +78,36 @@ namespace SvgToPng
             items.SelectionChanged += Items_SelectionChanged;
         }
 
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            var jsonSerializerSettings = new JsonSerializerSettings()
+            {
+                Formatting = Formatting.Indented,
+                NullValueHandling = NullValueHandling.Ignore
+            };
+            string json = JsonConvert.SerializeObject(Items, jsonSerializerSettings);
+            File.WriteAllText("Items.json", json);
+        }
+
         private void Items_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
+            if (items.SelectedItem is Item item)
+            {
+                if (item.Svg?.Picture == null)
+                {
+                    SvgToPngConverter.Load(item);
+                }
+
+                if (item.Image != null)
+                {
+                    referenceImage.Source = item.Image;
+                }
+                else
+                {
+                    referenceImage.Source = null;
+                }
+            }
+            
             skelement.InvalidateVisual();
             glhost.Child?.Invalidate();
         }
@@ -68,25 +135,17 @@ namespace SvgToPng
         {
             canvas.Clear(SKColors.White);
 
-            if (items.SelectedItem is Item item)
+            if (items.SelectedItem is Item item && item.Svg?.Picture != null)
             {
-                if (item.Svg?.Picture == null)
+                float pwidth = item.Svg.Picture.CullRect.Width;
+                float pheight = item.Svg.Picture.CullRect.Height;
+                if (pwidth > 0f && pheight > 0f)
                 {
-                    SvgToPngConverter.Load(item);
-                }
-
-                if (item.Svg?.Picture != null)
-                {
-                    float pwidth = item.Svg.Picture.CullRect.Width;
-                    float pheight = item.Svg.Picture.CullRect.Height;
-                    if (pwidth > 0f && pheight > 0f)
-                    {
-                        skelement.Width = pwidth;
-                        skelement.Height = pheight;
-                        //glhost.Width = pwidth;
-                        //glhost.Height = pheight;
-                        canvas.DrawPicture(item.Svg.Picture);
-                    }
+                    skelement.Width = pwidth;
+                    skelement.Height = pheight;
+                    //glhost.Width = pwidth;
+                    //glhost.Height = pheight;
+                    canvas.DrawPicture(item.Svg.Picture);
                 }
             }
         }
@@ -96,7 +155,7 @@ namespace SvgToPng
             var inputFiles = SvgToPngConverter.GetFilesDrop(paths).ToList();
             if (inputFiles.Count > 0)
             {
-                SvgToPngConverter.Convert(inputFiles, Items, referencePath, outputPath);
+                SvgToPngConverter.Add(inputFiles, Items, referencePath, outputPath);
             }
         }
 
