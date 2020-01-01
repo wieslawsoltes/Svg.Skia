@@ -15,11 +15,11 @@ namespace Svg.Skia
         protected bool _ignoreDisplay;
         protected bool _antialias;
         protected SKPath? skPath;
-        protected SKPath? skPathClip;
-        protected SKPaint? skPaintOpacity;
-        protected SKPaint? skPaintFilter;
-        protected SKPaint? skPaintFill;
-        protected SKPaint? skPaintStroke;
+        protected SKPath? _skPathClip;
+        protected SKPaint? _skPaintOpacity;
+        protected SKPaint? _skPaintFilter;
+        protected SKPaint? _skPaintFill;
+        protected SKPaint? _skPaintStroke;
         protected SKRect _skBounds;
         protected SKMatrix _skMatrix;
 
@@ -45,37 +45,37 @@ namespace Svg.Skia
             SKMatrix.PreConcat(ref skMatrixTotal, ref _skMatrix);
             canvas.SetMatrix(skMatrixTotal);
 
-            if (skPathClip != null && !skPathClip.IsEmpty)
+            if (_skPathClip != null && !_skPathClip.IsEmpty)
             {
-                canvas.ClipPath(skPathClip, SKClipOperation.Intersect, _antialias);
+                canvas.ClipPath(_skPathClip, SKClipOperation.Intersect, _antialias);
             }
 
-            if (skPaintOpacity != null)
+            if (_skPaintOpacity != null)
             {
-                canvas.SaveLayer(skPaintOpacity);
+                canvas.SaveLayer(_skPaintOpacity);
             }
 
-            if (skPaintFilter != null)
+            if (_skPaintFilter != null)
             {
-                canvas.SaveLayer(skPaintFilter);
+                canvas.SaveLayer(_skPaintFilter);
             }
 
-            if (skPaintFill != null)
+            if (_skPaintFill != null)
             {
-                canvas.DrawPath(skPath, skPaintFill);
+                canvas.DrawPath(skPath, _skPaintFill);
             }
 
-            if (skPaintStroke != null)
+            if (_skPaintStroke != null)
             {
-                canvas.DrawPath(skPath, skPaintStroke);
+                canvas.DrawPath(skPath, _skPaintStroke);
             }
 
-            if (skPaintFilter != null)
+            if (_skPaintFilter != null)
             {
                 canvas.Restore();
             }
 
-            if (skPaintOpacity != null)
+            if (_skPaintOpacity != null)
             {
                 canvas.Restore();
             }
