@@ -45,20 +45,264 @@ namespace SvgToPng
         public SKBitmap PixelDiff { get; set; }
     }
 
+    [DataContract]
+    public class MainWindowViewModel
+    {
+        [DataMember]
+        public ObservableCollection<Item> Items { get; set; }
+
+        [IgnoreDataMember]
+        public ICollectionView ItemsView { get; set; }
+
+        [DataMember]
+        public ObservableCollection<string> ReferencePaths { get; set; }
+
+        [IgnoreDataMember]
+        public TextBox TextItemsFilter { get; set; }
+
+        public MainWindowViewModel()
+        {
+            Items = new ObservableCollection<Item>();
+            ReferencePaths = new ObservableCollection<string>();
+            LoadItems();
+            CreateItemsView();
+        }
+
+        public void CreateItemsView()
+        {
+            ItemsView = CollectionViewSource.GetDefaultView(Items);
+
+            var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
+
+            ItemsView.Filter = (o) =>
+            {
+                var name = TextItemsFilter?.Text;
+                var isEmpty = string.IsNullOrWhiteSpace(name);
+                if (o is Item item && !isEmpty)
+                {
+                    return compareInfo.IndexOf(item.Name, name, CompareOptions.IgnoreCase) >= 0;
+                }
+                return true;
+            };
+        }
+
+        public void LoadItems()
+        {
+            if (File.Exists("Items.json"))
+            {
+                var jsonSerializerSettings = new JsonSerializerSettings()
+                {
+                    Formatting = Formatting.Indented,
+                    NullValueHandling = NullValueHandling.Ignore
+                };
+                var json = File.ReadAllText("Items.json");
+                Items = JsonConvert.DeserializeObject<ObservableCollection<Item>>(json, jsonSerializerSettings);
+            }
+        }
+
+        public void SaveItems()
+        {
+            var jsonSerializerSettings = new JsonSerializerSettings()
+            {
+                Formatting = Formatting.Indented,
+                NullValueHandling = NullValueHandling.Ignore
+            };
+            string json = JsonConvert.SerializeObject(Items, jsonSerializerSettings);
+            File.WriteAllText("Items.json", json);
+        }
+
+        public void ClearItems()
+        {
+            var items = Items.ToList();
+
+            Items.Clear();
+
+            foreach (var item in items)
+            {
+                item.Svg?.Dispose();
+                item.ReferencePng?.Dispose();
+                item.PixelDiff?.Dispose();
+            }
+        }
+
+        public void UpdateItem(Item item)
+        {
+            if (item.Svg?.Picture == null)
+            {
+                var currentDirectory = Directory.GetCurrentDirectory();
+
+                try
+                {
+                    if (File.Exists(item.SvgPath))
+                    {
+                        Directory.SetCurrentDirectory(Path.GetDirectoryName(item.SvgPath));
+                        item.Svg = new SKSvg();
+                        item.Svg.Load(item.SvgPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Failed to load svg file: {item.SvgPath}");
+                    Debug.WriteLine(ex.Message);
+                    Debug.WriteLine(ex.StackTrace);
+                }
+
+                Directory.SetCurrentDirectory(currentDirectory);
+            }
+
+            if (item.ReferencePng == null)
+            {
+                try
+                {
+                    if (File.Exists(item.ReferencePngPath))
+                    {
+                        var referencePng = SKBitmap.Decode(item.ReferencePngPath);
+                        item.ReferencePng = referencePng;
+
+                        using (var svgBitmap = item.Svg.Picture.ToBitmap(SKColors.Transparent, 1f, 1f))
+                        {
+                            if (svgBitmap.Width == referencePng.Width
+                                && svgBitmap.Height == referencePng.Height)
+                            {
+                                var pixelDiff = PixelDiff(referencePng, svgBitmap);
+                                item.PixelDiff = pixelDiff;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Failed to load reference png: {item.ReferencePngPath}");
+                    Debug.WriteLine(ex.Message);
+                    Debug.WriteLine(ex.StackTrace);
+                }
+            }
+        }
+
+        public void AddItems(List<string> paths, IList<Item> items, string referencePath, string outputPath)
+        {
+            var fullReferencePath = string.IsNullOrWhiteSpace(referencePath) ? default : Path.GetFullPath(referencePath);
+
+            foreach (var path in paths)
+            {
+                string inputName = Path.GetFileNameWithoutExtension(path);
+                string referencePng = string.Empty;
+                string outputPng = Path.Combine(outputPath, inputName + ".png");
+
+                if (!string.IsNullOrWhiteSpace(fullReferencePath))
+                {
+                    referencePng = Path.Combine(fullReferencePath, inputName + ".png");
+                }
+
+                var item = new Item()
+                {
+                    Name = inputName,
+                    SvgPath = path,
+                    ReferencePngPath = referencePng,
+                    OutputPngPath = outputPng
+                };
+
+                items.Add(item);
+            }
+        }
+
+        public void SaveItemsAsPng(IList<Item> items)
+        {
+            foreach (var item in items)
+            {
+                UpdateItem(item);
+
+                if (item.Svg?.Picture != null)
+                {
+                    item.Svg.Save(item.OutputPngPath, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1f, 1f);
+                }
+            }
+        }
+
+        public static IEnumerable<string> GetFiles(string inputPath)
+        {
+            foreach (var file in Directory.EnumerateFiles(inputPath, "*.svg"))
+            {
+                yield return file;
+            }
+
+            foreach (var file in Directory.EnumerateFiles(inputPath, "*.svgz"))
+            {
+                yield return file;
+            }
+
+            foreach (var directory in Directory.EnumerateDirectories(inputPath))
+            {
+                foreach (var file in GetFiles(directory))
+                {
+                    yield return file;
+                }
+            }
+        }
+
+        public static IEnumerable<string> GetFilesDrop(string[] paths)
+        {
+            if (paths != null && paths.Length > 0)
+            {
+                foreach (var path in paths)
+                {
+                    if (File.GetAttributes(path).HasFlag(FileAttributes.Directory))
+                    {
+                        foreach (var file in GetFiles(path))
+                        {
+                            yield return file;
+                        }
+                    }
+                    else
+                    {
+                        var extension = Path.GetExtension(path).ToLower();
+                        if (extension == ".svg" || extension == ".svgz")
+                        {
+                            yield return path;
+                        }
+                    }
+                }
+            }
+        }
+
+        unsafe public static SKBitmap PixelDiff(SKBitmap a, SKBitmap b)
+        {
+            SKBitmap output = new SKBitmap(a.Width, a.Height, SKColorType.Bgra8888, SKAlphaType.Unpremul);
+            byte* aPtr = (byte*)a.GetPixels().ToPointer();
+            byte* bPtr = (byte*)b.GetPixels().ToPointer();
+            byte* outputPtr = (byte*)output.GetPixels().ToPointer();
+            int len = a.RowBytes * a.Height;
+            for (int i = 0; i < len; i++)
+            {
+                // For alpha use the average of both images (otherwise pixels with the same alpha won't be visible)
+                if ((i + 1) % 4 == 0)
+                    *outputPtr = (byte)((*aPtr + *bPtr) / 2);
+                else
+                    *outputPtr = (byte)~(*aPtr ^ *bPtr);
+
+                outputPtr++;
+                aPtr++;
+                bPtr++;
+            }
+            return output;
+        }
+    }
+
     public partial class MainWindow : Window
     {
-        public ObservableCollection<Item> Items { get; set; }
-        public ICollectionView ItemsView { get; set; }
-        public ObservableCollection<string> ReferencePaths { get; set; }
+        public MainWindowViewModel VM { get; set; }
 
         public MainWindow()
         {
             InitializeComponent();
-            Items = new ObservableCollection<Item>();
-            ReferencePaths = new ObservableCollection<string>();
+
+            VM = new MainWindowViewModel()
+            {
+                TextItemsFilter = this.TextItemsFilter
+            };
 #if DEBUG
             TextOutputPath.Text = Path.Combine(Directory.GetCurrentDirectory(), "png");
-            ReferencePaths = new ObservableCollection<string>(new string[]
+            VM.ReferencePaths = new ObservableCollection<string>(new string[]
             {
                 @"c:\DOWNLOADS\GitHub\Svg.Skia\externals\SVG\Tests\W3CTestSuite\png\",
                 @"c:\DOWNLOADS\GitHub-Forks\resvg-test-suite\png\",
@@ -66,9 +310,6 @@ namespace SvgToPng
                 @"e:\Dropbox\Draw2D\SVG\W3CTestSuite-png\"
             });
 #endif
-            LoadItems();
-            CreateItemsView();
-
             this.Closing += MainWindow_Closing;
             this.TextItemsFilter.TextChanged += TextItemsFilter_TextChanged;
 
@@ -83,24 +324,25 @@ namespace SvgToPng
             this.glHostPng.Initialized += OnGLControlHostPng;
             this.glHostDiff.Initialized += OnGLControlHostDiff;
 
-            DataContext = this;
+            DataContext = this.VM;
         }
 
         private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
-            SaveItems();
+            VM.SaveItems();
+            VM.ClearItems();
         }
 
         private void TextItemsFilter_TextChanged(object sender, TextChangedEventArgs e)
         {
-            ItemsView.Refresh();
+            VM.ItemsView.Refresh();
         }
 
         private void Items_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (items.SelectedItem is Item item)
             {
-                UpdateItem(item);
+                VM.UpdateItem(item);
             }
 
             skElementSvg.InvalidateVisual();
@@ -129,10 +371,10 @@ namespace SvgToPng
 
         private void HandleDrop(string[] paths, string referencePath, string outputPath)
         {
-            var inputFiles = GetFilesDrop(paths).ToList();
+            var inputFiles = MainWindowViewModel.GetFilesDrop(paths).ToList();
             if (inputFiles.Count > 0)
             {
-                AddItems(inputFiles, Items, referencePath, outputPath);
+                VM.AddItems(inputFiles, VM.Items, referencePath, outputPath);
             }
         }
 
@@ -150,11 +392,7 @@ namespace SvgToPng
 
         private void ButtonClear_Click(object sender, RoutedEventArgs e)
         {
-            var items = Items.ToList();
-
-            Items.Clear();
-
-            ClearItems(items);
+            VM.ClearItems();
         }
 
         private void ButtonAdd_Click(object sender, RoutedEventArgs e)
@@ -180,7 +418,7 @@ namespace SvgToPng
             string outputPath = TextOutputPath.Text;
             await Task.Factory.StartNew(() =>
             {
-                SaveItemsAsPng(Items);
+                VM.SaveItemsAsPng(VM.Items);
             });
         }
 
@@ -294,221 +532,6 @@ namespace SvgToPng
                     //glHostDiff.Width = pwidth;
                     //glHostDiff.Height = pheight;
                     canvas.DrawBitmap(item.PixelDiff, 0f, 0f);
-                }
-            }
-        }
-
-        private void LoadItems()
-        {
-            if (File.Exists("Items.json"))
-            {
-                var jsonSerializerSettings = new JsonSerializerSettings()
-                {
-                    Formatting = Formatting.Indented,
-                    NullValueHandling = NullValueHandling.Ignore
-                };
-                var json = File.ReadAllText("Items.json");
-                Items = JsonConvert.DeserializeObject<ObservableCollection<Item>>(json, jsonSerializerSettings);
-            }
-        }
-
-        private void SaveItems()
-        {
-            var jsonSerializerSettings = new JsonSerializerSettings()
-            {
-                Formatting = Formatting.Indented,
-                NullValueHandling = NullValueHandling.Ignore
-            };
-            string json = JsonConvert.SerializeObject(Items, jsonSerializerSettings);
-            File.WriteAllText("Items.json", json);
-        }
-
-        private void CreateItemsView()
-        {
-            ItemsView = CollectionViewSource.GetDefaultView(Items);
-
-            var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
-
-            ItemsView.Filter = (o) =>
-            {
-                var name = TextItemsFilter.Text;
-                var isEmpty = string.IsNullOrWhiteSpace(name);
-                if (o is Item item && !isEmpty)
-                {
-                    return compareInfo.IndexOf(item.Name, name, CompareOptions.IgnoreCase) >= 0;
-                }
-                return true;
-            };
-        }
-
-        private static IEnumerable<string> GetFiles(string inputPath)
-        {
-            foreach (var file in Directory.EnumerateFiles(inputPath, "*.svg"))
-            {
-                yield return file;
-            }
-
-            foreach (var file in Directory.EnumerateFiles(inputPath, "*.svgz"))
-            {
-                yield return file;
-            }
-
-            foreach (var directory in Directory.EnumerateDirectories(inputPath))
-            {
-                foreach (var file in GetFiles(directory))
-                {
-                    yield return file;
-                }
-            }
-        }
-
-        private static IEnumerable<string> GetFilesDrop(string[] paths)
-        {
-            if (paths != null && paths.Length > 0)
-            {
-                foreach (var path in paths)
-                {
-                    if (File.GetAttributes(path).HasFlag(FileAttributes.Directory))
-                    {
-                        foreach (var file in GetFiles(path))
-                        {
-                            yield return file;
-                        }
-                    }
-                    else
-                    {
-                        var extension = Path.GetExtension(path).ToLower();
-                        if (extension == ".svg" || extension == ".svgz")
-                        {
-                            yield return path;
-                        }
-                    }
-                }
-            }
-        }
-
-        unsafe private static SKBitmap PixelDiff(SKBitmap a, SKBitmap b)
-        {
-            SKBitmap output = new SKBitmap(a.Width, a.Height, SKColorType.Bgra8888, SKAlphaType.Unpremul);
-            byte* aPtr = (byte*)a.GetPixels().ToPointer();
-            byte* bPtr = (byte*)b.GetPixels().ToPointer();
-            byte* outputPtr = (byte*)output.GetPixels().ToPointer();
-            int len = a.RowBytes * a.Height;
-            for (int i = 0; i < len; i++)
-            {
-                // For alpha use the average of both images (otherwise pixels with the same alpha won't be visible)
-                if ((i + 1) % 4 == 0)
-                    *outputPtr = (byte)((*aPtr + *bPtr) / 2);
-                else
-                    *outputPtr = (byte)~(*aPtr ^ *bPtr);
-
-                outputPtr++;
-                aPtr++;
-                bPtr++;
-            }
-            return output;
-        }
-
-        private static void ClearItems(List<Item> items)
-        {
-            foreach (var item in items)
-            {
-                item.Svg?.Dispose();
-                item.ReferencePng?.Dispose();
-                item.PixelDiff?.Dispose();
-            }
-        }
-
-        private static void UpdateItem(Item item)
-        {
-            if (item.Svg?.Picture == null)
-            {
-                var currentDirectory = Directory.GetCurrentDirectory();
-
-                try
-                {
-                    if (File.Exists(item.SvgPath))
-                    {
-                        Directory.SetCurrentDirectory(Path.GetDirectoryName(item.SvgPath));
-                        item.Svg = new SKSvg();
-                        item.Svg.Load(item.SvgPath);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Failed to load svg file: {item.SvgPath}");
-                    Debug.WriteLine(ex.Message);
-                    Debug.WriteLine(ex.StackTrace);
-                }
-
-                Directory.SetCurrentDirectory(currentDirectory);
-            }
-
-            if (item.ReferencePng == null)
-            {
-                try
-                {
-                    if (File.Exists(item.ReferencePngPath))
-                    {
-                        var referencePng = SKBitmap.Decode(item.ReferencePngPath);
-                        item.ReferencePng = referencePng;
-
-                        using (var svgBitmap = item.Svg.Picture.ToBitmap(SKColors.Transparent, 1f, 1f))
-                        {
-                            if (svgBitmap.Width == referencePng.Width
-                                && svgBitmap.Height == referencePng.Height)
-                            {
-                                var pixelDiff = PixelDiff(referencePng, svgBitmap);
-                                item.PixelDiff = pixelDiff;
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Failed to load reference png: {item.ReferencePngPath}");
-                    Debug.WriteLine(ex.Message);
-                    Debug.WriteLine(ex.StackTrace);
-                }
-            }
-        }
-
-        private static void AddItems(List<string> paths, IList<Item> items, string referencePath, string outputPath)
-        {
-            var fullReferencePath = string.IsNullOrWhiteSpace(referencePath) ? default : Path.GetFullPath(referencePath);
-
-            foreach (var path in paths)
-            {
-                string inputName = Path.GetFileNameWithoutExtension(path);
-                string referencePng = string.Empty;
-                string outputPng = Path.Combine(outputPath, inputName + ".png");
-
-                if (!string.IsNullOrWhiteSpace(fullReferencePath))
-                {
-                    referencePng = Path.Combine(fullReferencePath, inputName + ".png");
-                }
-
-                var item = new Item()
-                {
-                    Name = inputName,
-                    SvgPath = path,
-                    ReferencePngPath = referencePng,
-                    OutputPngPath = outputPng
-                };
-
-                items.Add(item);
-            }
-        }
-
-        private static void SaveItemsAsPng(IList<Item> items)
-        {
-            foreach (var item in items)
-            {
-                UpdateItem(item);
-
-                if (item.Svg?.Picture != null)
-                {
-                    item.Svg.Save(item.OutputPngPath, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1f, 1f);
                 }
             }
         }
