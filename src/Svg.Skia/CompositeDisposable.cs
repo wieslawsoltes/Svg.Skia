@@ -7,7 +7,7 @@ namespace Svg.Skia
 {
     internal class CompositeDisposable : IDisposable
     {
-        private IList<IDisposable>? _disposables;
+        private List<IDisposable>? _disposables;
 
         public CompositeDisposable()
         {
