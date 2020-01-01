@@ -411,6 +411,26 @@ namespace SvgToPng
                 aPtr++;
                 bPtr++;
             }
+            /*
+            for (int row = 0; row < a.Height; row++)
+            {
+                for (int col = 0; col < a.Width; col++)
+                {
+                    // red
+                    *outputPtr = (byte)~(*aPtr ^ *bPtr);
+                    outputPtr++;aPtr++;bPtr++;
+                    // green
+                    *outputPtr = (byte)~(*aPtr ^ *bPtr);
+                    outputPtr++;aPtr++;bPtr++;
+                    // blue
+                    *outputPtr = (byte)~(*aPtr ^ *bPtr);
+                    outputPtr++;aPtr++;bPtr++;
+                    // alpha
+                    *outputPtr = (byte)((*aPtr + *bPtr) / 2); 
+                    outputPtr++;aPtr++;bPtr++;
+                }
+            }
+            */
             return output;
         }
 
