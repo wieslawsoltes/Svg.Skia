@@ -112,10 +112,12 @@ namespace SvgToPng.ViewModels
                         var referencePng = SKBitmap.Decode(item.ReferencePngPath);
                         item.ReferencePng = referencePng;
 
-                        using (var svgBitmap = item.Svg.Picture.ToBitmap(SKColors.Transparent, 1f, 1f))
+                        float scaleX = referencePng.Width / item.Svg.Picture.CullRect.Width;
+                        float scaleY = referencePng.Height / item.Svg.Picture.CullRect.Height;
+
+                        using (var svgBitmap = item.Svg.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY))
                         {
-                            if (svgBitmap.Width == referencePng.Width
-                                && svgBitmap.Height == referencePng.Height)
+                            if (svgBitmap.Width == referencePng.Width && svgBitmap.Height == referencePng.Height)
                             {
                                 var pixelDiff = PixelDiff(referencePng, svgBitmap);
                                 item.PixelDiff = pixelDiff;
