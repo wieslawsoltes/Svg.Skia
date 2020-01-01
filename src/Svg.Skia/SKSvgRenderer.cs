@@ -1062,7 +1062,7 @@ namespace Svg.Skia
 
             svgVisualElement.InvalidateChildPaths();
 
-            // TODO:
+            // TODO: Calculate correct bounds from SvgSymbol or SvgVisualElement.
             var skBounds = SKRect.Create(x, y, width, height);
 
             _skCanvas.Save();
