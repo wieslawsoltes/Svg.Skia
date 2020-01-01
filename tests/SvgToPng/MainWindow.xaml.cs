@@ -154,12 +154,7 @@ namespace SvgToPng
 
             Items.Clear();
 
-            foreach (var item in items)
-            {
-                item.Svg?.Dispose();
-                item.ReferencePng?.Dispose();
-                item.PixelDiff?.Dispose();
-            }
+            ClearItems(items);
         }
 
         private void ButtonAdd_Click(object sender, RoutedEventArgs e)
@@ -414,6 +409,16 @@ namespace SvgToPng
             return output;
         }
 
+        private static void ClearItems(List<Item> items)
+        {
+            foreach (var item in items)
+            {
+                item.Svg?.Dispose();
+                item.ReferencePng?.Dispose();
+                item.PixelDiff?.Dispose();
+            }
+        }
+
         private static void UpdateItem(Item item)
         {
             if (item.Svg?.Picture == null)
@@ -450,7 +455,7 @@ namespace SvgToPng
 
                         using (var svgBitmap = item.Svg.Picture.ToBitmap(SKColors.Transparent, 1f, 1f))
                         {
-                            if (svgBitmap.Width == referencePng.Width 
+                            if (svgBitmap.Width == referencePng.Width
                                 && svgBitmap.Height == referencePng.Height)
                             {
                                 var pixelDiff = PixelDiff(referencePng, svgBitmap);
