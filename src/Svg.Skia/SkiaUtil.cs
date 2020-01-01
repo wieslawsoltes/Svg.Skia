@@ -2077,6 +2077,24 @@ namespace Svg.Skia
             return null;
         }
 
+        public static SKRect? GetClipRect(SvgVisualElement svgVisualElement, SKRect sKRectBounds)
+        {
+            var clip = svgVisualElement.Clip;
+            if (!string.IsNullOrEmpty(clip) && clip.StartsWith("rect("))
+            {
+                clip = clip.Trim();
+                var offsets = (from o in clip.Substring(5, clip.Length - 6).Split(',')
+                               select float.Parse(o.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture)).ToList();
+                var skClipRect = SKRect.Create(
+                    sKRectBounds.Left + offsets[3],
+                    sKRectBounds.Top + offsets[0],
+                    sKRectBounds.Width - (offsets[3] + offsets[1]),
+                    sKRectBounds.Height - (offsets[2] + offsets[0]));
+                return skClipRect;
+            }
+            return null;
+        }
+
         public static T? GetReference<T>(SvgElement svgElement, Uri uri) where T : SvgElement
         {
             if (uri == null)
