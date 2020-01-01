@@ -58,32 +58,16 @@ namespace SvgToPng
         public ObservableCollection<string> ReferencePaths { get; set; }
 
         [IgnoreDataMember]
-        public TextBox TextItemsFilter { get; set; }
+        public Predicate<object> ItemsFilter { get; set; }
 
         public MainWindowViewModel()
         {
-            Items = new ObservableCollection<Item>();
-            ReferencePaths = new ObservableCollection<string>();
-            LoadItems();
-            CreateItemsView();
         }
 
         public void CreateItemsView()
         {
             ItemsView = CollectionViewSource.GetDefaultView(Items);
-
-            var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
-
-            ItemsView.Filter = (o) =>
-            {
-                var name = TextItemsFilter?.Text;
-                var isEmpty = string.IsNullOrWhiteSpace(name);
-                if (o is Item item && !isEmpty)
-                {
-                    return compareInfo.IndexOf(item.Name, name, CompareOptions.IgnoreCase) >= 0;
-                }
-                return true;
-            };
+            ItemsView.Filter = ItemsFilter;
         }
 
         public void LoadItems()
@@ -298,10 +282,23 @@ namespace SvgToPng
 
             VM = new MainWindowViewModel()
             {
-                TextItemsFilter = this.TextItemsFilter
+                Items = new ObservableCollection<Item>(),
+                ReferencePaths = new ObservableCollection<string>(),
+                ItemsFilter = (o) =>
+                {
+                    var name = TextItemsFilter?.Text;
+                    var isEmpty = string.IsNullOrWhiteSpace(name);
+                    if (o is Item item && !isEmpty)
+                    {
+                        var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
+                        return compareInfo.IndexOf(item.Name, name, CompareOptions.IgnoreCase) >= 0;
+                    }
+                    return true;
+                }
             };
+            VM.LoadItems();
+            VM.CreateItemsView();
 #if DEBUG
-            TextOutputPath.Text = Path.Combine(Directory.GetCurrentDirectory(), "png");
             VM.ReferencePaths = new ObservableCollection<string>(new string[]
             {
                 @"c:\DOWNLOADS\GitHub\Svg.Skia\externals\SVG\Tests\W3CTestSuite\png\",
@@ -309,7 +306,9 @@ namespace SvgToPng
                 @"e:\Dropbox\Draw2D\SVG\vs2017-png\",
                 @"e:\Dropbox\Draw2D\SVG\W3CTestSuite-png\"
             });
+            TextOutputPath.Text = Path.Combine(Directory.GetCurrentDirectory(), "png");
 #endif
+
             this.Closing += MainWindow_Closing;
             this.TextItemsFilter.TextChanged += TextItemsFilter_TextChanged;
 
