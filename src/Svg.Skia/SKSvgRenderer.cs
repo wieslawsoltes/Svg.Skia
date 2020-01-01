@@ -437,7 +437,7 @@ namespace Svg.Skia
         internal void AddMarkers(SvgGroup svgGroup)
         {
             Uri? marker = null;
-            // TODO: marker can not be set as presentation attribute
+            // TODO: The marker can not be set as presentation attribute.
             //if (svgGroup.TryGetAttribute("marker", out string markerUrl))
             //{
             //    marker = new Uri(markerUrl, UriKind.RelativeOrAbsolute);
@@ -602,7 +602,7 @@ namespace Svg.Skia
 
             var skPaintFilter = SetFilter(svgTextRef);
 
-            // TODO: svgReferencedText
+            // TODO: Draw svgReferencedText
 
             if (skPaintFilter != null)
             {
@@ -637,7 +637,7 @@ namespace Svg.Skia
 
             var skPaintFilter = SetFilter(svgTextSpan);
 
-            // TODO:
+            // TODO: Implement SvgTextSpan drawing.
             DrawTextBase(svgTextSpan);
 
             if (skPaintFilter != null)
