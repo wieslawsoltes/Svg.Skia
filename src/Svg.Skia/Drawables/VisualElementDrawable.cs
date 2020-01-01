@@ -59,18 +59,21 @@ namespace Svg.Skia
             _skBounds = skPath.Bounds;
 
             _skMatrix = SkiaUtil.GetSKMatrix(svgVisualElement.Transforms);
-            skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgVisualElement, _skBounds, new HashSet<Uri>(), _disposable);
-            skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgVisualElement, _disposable);
-            skPaintFilter = SkiaUtil.GetFilterSKPaint(svgVisualElement, _disposable);
+
+            _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgVisualElement, _skBounds, new HashSet<Uri>(), _disposable);
+
+            _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgVisualElement, _disposable);
+
+            _skPaintFilter = SkiaUtil.GetFilterSKPaint(svgVisualElement, _disposable);
 
             if (SkiaUtil.IsValidFill(svgVisualElement))
             {
-                skPaintFill = SkiaUtil.GetFillSKPaint(svgVisualElement, sKSize, _skBounds, _disposable);
+                _skPaintFill = SkiaUtil.GetFillSKPaint(svgVisualElement, sKSize, _skBounds, _disposable);
             }
 
             if (SkiaUtil.IsValidStroke(svgVisualElement))
             {
-                skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgVisualElement, sKSize, _skBounds, _disposable);
+                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgVisualElement, sKSize, _skBounds, _disposable);
             }
         }
     }
