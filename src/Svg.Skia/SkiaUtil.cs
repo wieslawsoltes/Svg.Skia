@@ -850,7 +850,12 @@ namespace Svg.Skia
             return sKShader;
         }
 
-        public static void SetFill(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
+        public static bool SetFill(
+            SvgVisualElement svgVisualElement, 
+            SKSize skSize, 
+            SKRect skBounds, 
+            SKPaint skPaint, 
+            CompositeDisposable disposable)
         {
             var server = svgVisualElement.Fill;
             var fallbackServer = SvgPaintServer.None;
@@ -888,6 +893,7 @@ namespace Svg.Skia
                             {
                                 // TODO: Do not draw element.
                                 skPaint.Color = SKColors.Transparent;
+                                return false;
                             }
                         }
                     }
@@ -904,6 +910,7 @@ namespace Svg.Skia
                             {
                                 // TODO: Do not draw element.
                                 skPaint.Color = SKColors.Transparent;
+                                return false;
                             }
                         }
                         else
@@ -913,6 +920,10 @@ namespace Svg.Skia
                             {
                                 disposable.Add(skShader);
                                 skPaint.Shader = skShader;
+                            }
+                            else
+                            {
+                                return false;
                             }
                         }
                     }
@@ -929,6 +940,7 @@ namespace Svg.Skia
                             {
                                 // TODO: Do not draw element.
                                 skPaint.Color = SKColors.Transparent;
+                                return false;
                             }
                         }
                         else
@@ -939,16 +951,26 @@ namespace Svg.Skia
                                 disposable.Add(skShader);
                                 skPaint.Shader = skShader;
                             }
+                            else
+                            {
+                                return false;
+                            }
                         }
                     }
                     break;
                 default:
                     // TODO: Do not draw element.
-                    break;
+                    return false;
             }
+            return true;
         }
 
-        public static void SetStroke(SvgVisualElement svgVisualElement, SKSize skSize, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
+        public static bool SetStroke(
+            SvgVisualElement svgVisualElement, 
+            SKSize skSize, 
+            SKRect skBounds, 
+            SKPaint skPaint, 
+            CompositeDisposable disposable)
         {
             var server = svgVisualElement.Stroke;
             var fallbackServer = SvgPaintServer.None;
@@ -986,6 +1008,7 @@ namespace Svg.Skia
                             {
                                 // TODO: Do not draw element.
                                 skPaint.Color = SKColors.Transparent;
+                                return false;
                             }
                         }
                     }
@@ -1002,6 +1025,7 @@ namespace Svg.Skia
                             {
                                 // TODO: Do not draw element.
                                 skPaint.Color = SKColors.Transparent;
+                                return false;
                             }
                         }
                         else
@@ -1011,6 +1035,10 @@ namespace Svg.Skia
                             {
                                 disposable.Add(skShader);
                                 skPaint.Shader = skShader;
+                            }
+                            else
+                            {
+                                return false;
                             }
                         }
                     }
@@ -1027,6 +1055,7 @@ namespace Svg.Skia
                             {
                                 // TODO: Do not draw element.
                                 skPaint.Color = SKColors.Transparent;
+                                return false;
                             }
                         }
                         else
@@ -1037,13 +1066,18 @@ namespace Svg.Skia
                                 disposable.Add(skShader);
                                 skPaint.Shader = skShader;
                             }
+                            else
+                            {
+                                return false;
+                            }
                         }
                     }
                     break;
                 default:
                     // TODO: Do not draw element.
-                    break;
+                    return false;
             }
+            return true;
         }
 
         public static void SetDash(SvgVisualElement svgVisualElement, SKPaint skPaint, CompositeDisposable disposable)
