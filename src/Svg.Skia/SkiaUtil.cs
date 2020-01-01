@@ -2090,6 +2090,7 @@ namespace Svg.Skia
                     sKRectBounds.Top + offsets[0],
                     sKRectBounds.Width - (offsets[3] + offsets[1]),
                     sKRectBounds.Height - (offsets[2] + offsets[0]));
+                return skClipRect;
             }
             return null;
         }
