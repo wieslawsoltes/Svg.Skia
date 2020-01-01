@@ -51,7 +51,7 @@ namespace Svg.Skia
                 }
                 else
                 {
-                    // TODO: Calculate `bounds` from `Children` bounds.
+                    // TODO: Calculate correct bounds using Children bounds.
                 }
             }
 
