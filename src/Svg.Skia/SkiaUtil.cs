@@ -1549,6 +1549,36 @@ namespace Svg.Skia
             }
         }
 
+        public static SKPaint? GetOpacitySKPaint(SvgElement svgElement, CompositeDisposable disposable)
+        {
+            float opacity = SkiaUtil.AdjustSvgOpacity(svgElement.Opacity);
+            if (opacity < 1f)
+            {
+                var skPaint = new SKPaint()
+                {
+                    IsAntialias = true,
+                };
+                skPaint.Color = new SKColor(255, 255, 255, (byte)Math.Round(opacity * 255));
+                skPaint.Style = SKPaintStyle.StrokeAndFill;
+                disposable.Add(skPaint);
+                return skPaint;
+            }
+            return null;
+        }
+
+        public static SKPaint? GetFilterSKPaint(SvgVisualElement svgVisualElement, CompositeDisposable disposable)
+        {
+            if (svgVisualElement.Filter != null)
+            {
+                var skPaint = new SKPaint();
+                skPaint.Style = SKPaintStyle.StrokeAndFill;
+                SkiaUtil.SetFilter(svgVisualElement, skPaint, disposable);
+                disposable.Add(skPaint);
+                return skPaint;
+            }
+            return null;
+        }
+
         public static SKMatrix ToSKMatrix(SvgMatrix svgMatrix)
         {
             return new SKMatrix()
