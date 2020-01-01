@@ -32,8 +32,6 @@ namespace Svg.Skia
 
         protected override void OnDraw(SKCanvas canvas)
         {
-            base.OnDraw(canvas);
-
             if (!_canDraw)
             {
                 return;
@@ -81,6 +79,8 @@ namespace Svg.Skia
             }
 
             canvas.Restore();
+
+            //base.OnDraw(canvas);
         }
         protected override SKRect OnGetBounds()
         {
