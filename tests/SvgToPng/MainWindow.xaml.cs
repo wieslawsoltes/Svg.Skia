@@ -448,7 +448,7 @@ namespace SvgToPng
                         var referencePng = SKBitmap.Decode(item.ReferencePngPath);
                         item.ReferencePng = referencePng;
 
-                        using (var svgBitmap = item.Svg.Picture.ToBitmap(SKColor.Empty, 1f, 1f))
+                        using (var svgBitmap = item.Svg.Picture.ToBitmap(SKColors.Transparent, 1f, 1f))
                         {
                             if (svgBitmap.Width == referencePng.Width 
                                 && svgBitmap.Height == referencePng.Height)
