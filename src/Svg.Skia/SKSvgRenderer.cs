@@ -516,8 +516,7 @@ namespace Svg.Skia
             var skMatrixPath = SkiaUtil.GetSKMatrix(svgPath.Transforms);
             skPath.Transform(skMatrixPath);
 
-            // TODO:
-
+            // TODO: Implement StartOffset
             var startOffset = svgTextPath.StartOffset.ToDeviceValue(null, UnitRenderingType.Other, svgTextPath);
 
             // TODO: Calculate correct bounds.
@@ -533,7 +532,7 @@ namespace Svg.Skia
 
             var skPaintFilter = SetFilter(svgTextPath);
 
-            // TODO:
+            // TODO: Fix SvgTextPath rendering.
             bool isValidFill = SkiaUtil.IsValidFill(svgTextPath);
             bool isValidStroke = SkiaUtil.IsValidStroke(svgTextPath);
 
@@ -676,7 +675,7 @@ namespace Svg.Skia
 
         internal void DrawTextBase(SvgTextBase svgTextBase)
         {
-            // TODO:
+            // TODO: Fix SvgTextBase rendering.
             bool isValidFill = SkiaUtil.IsValidFill(svgTextBase);
             bool isValidStroke = SkiaUtil.IsValidStroke(svgTextBase);
             string? text = svgTextBase.Text?.Trim();
@@ -690,7 +689,7 @@ namespace Svg.Skia
 
                 if (xCount >= 1 && yCount >= 1 && xCount == yCount && xCount == text.Length)
                 {
-                    // TODO:
+                    // TODO: Fix text position rendering.
                     var points = new SKPoint[xCount];
 
                     for (int i = 0; i < xCount; i++)
@@ -836,7 +835,7 @@ namespace Svg.Skia
                 return;
             }
 
-            // TODO:
+            // TODO: Check for image recursive references.
             //if (SkiaUtil.HasRecursiveReference(svgImage, (e) => e.Href))
             //{
             //    return;
@@ -999,7 +998,7 @@ namespace Svg.Skia
 
             var skPaintFilter = SetFilter(svgSwitch);
 
-            // TODO:
+            // TODO: Implement SvgSwitch drawing
 
             if (skPaintFilter != null)
             {
