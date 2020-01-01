@@ -1065,7 +1065,7 @@ namespace Svg.Skia
                 case SvgColourMatrixType.HueRotate:
                     {
                         float value = (string.IsNullOrEmpty(svgColourMatrix.Values) ? 0 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture));
-                        // TODO:
+                        // TODO: Fix matrix.
                         matrix = new float[]
                         {
                             (float)(0.213 + Math.Cos(value) * +0.787 + Math.Sin(value) * -0.213),
@@ -1083,7 +1083,7 @@ namespace Svg.Skia
                     break;
                 case SvgColourMatrixType.LuminanceToAlpha:
                     {
-                        // TODO:
+                        // TODO: Fix matrix.
                         matrix = new float[]
                         {
                             0, 0, 0, 0, 0,
@@ -1096,7 +1096,7 @@ namespace Svg.Skia
                 case SvgColourMatrixType.Saturate:
                     {
                         float value = (string.IsNullOrEmpty(svgColourMatrix.Values) ? 1 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture));
-                        // TODO:
+                        // TODO: Fix matrix.
                         matrix = new float[]
                         {
                             (float)(0.213+0.787*value), (float)(0.715-0.715*value), (float)(0.072-0.072*value), 0, 0,
@@ -1124,7 +1124,7 @@ namespace Svg.Skia
 
         public static SKImageFilter CreateBlur(SvgGaussianBlur svgGaussianBlur, SvgVisualElement svgVisualElement)
         {
-            // TODO:
+            // TODO: Fix sigma.
             var sigma = svgGaussianBlur.StdDeviation;
             return SKImageFilter.CreateBlur(sigma, sigma);
         }
@@ -1170,17 +1170,17 @@ namespace Svg.Skia
                             break;
                         case SvgMerge svgMerge:
                             {
-                                // TODO:
+                                // TODO: Implement SvgMerge filter.
                             }
                             break;
                         case SvgOffset svgOffset:
                             {
-                                // TODO:
+                                // TODO: Implement SvgOffset filter.
                             }
                             break;
                         default:
                             {
-                                // TODO:
+                                // TODO: Implement other filters.
                             }
                             break;
                     }
@@ -1222,15 +1222,15 @@ namespace Svg.Skia
                 IsAntialias = IsAntialias(svgVisualElement)
             };
 
-            // TODO: SvgElement
+            // TODO: Set all SKPaint properties from SvgElement
 
-            // TODO: SvgElementStyle
+            // TODO: Set all SKPaint properties from SvgElementStyle
 
             SetFill(svgVisualElement, skSize, skBounds, skPaint, disposable);
 
-            // TODO: SvgVisualElement
+            // TODO: Set all SKPaint properties from SvgVisualElement
 
-            // TODO: SvgVisualElementStyle
+            // TODO: Set all SKPaint properties from SvgVisualElementStyle
 
             if (svgVisualElement.Filter != null)
             {
@@ -1250,9 +1250,9 @@ namespace Svg.Skia
                 IsAntialias = IsAntialias(svgVisualElement)
             };
 
-            // TODO: SvgElement
+            // TODO: Set all SKPaint properties from SvgElement
 
-            // TODO: SvgElementStyle
+            // TODO: Set all SKPaint properties from SvgElementStyle
 
             SetStroke(svgVisualElement, skSize, skBounds, skPaint, disposable);
 
@@ -1291,9 +1291,9 @@ namespace Svg.Skia
                 SetDash(svgVisualElement, skPaint, disposable);
             }
 
-            // TODO: SvgVisualElement
+            // TODO: Set all SKPaint properties from SvgVisualElement
 
-            // TODO: SvgVisualElementStyle
+            // TODO: Set all SKPaint properties from SvgVisualElementStyle
 
             if (svgVisualElement.Filter != null)
             {
@@ -1312,33 +1312,31 @@ namespace Svg.Skia
             skPaint.SubpixelText = true;
             skPaint.TextEncoding = SKTextEncoding.Utf16;
 
-            // TODO:
             var fontFamily = svgText.FontFamily;
 
             var fontWeight = SKFontStyleWeight(svgText.FontWeight);
 
-            // TODO:
+            // TODO: Use FontStretch property.
             svgText.TryGetAttribute("font-stretch", out string attributeFontStretch);
             var fontWidth = ToSKFontStyleWidth(attributeFontStretch);
 
             var fontStyle = ToSKFontStyleSlant(svgText.FontStyle);
 
-            // TODO:
             skPaint.TextAlign = ToSKTextAlign(svgText.TextAnchor);
 
             if (svgText.TextDecoration.HasFlag(SvgTextDecoration.Underline))
             {
-                // TODO:
+                // TODO: Implement SvgTextDecoration.Underline
             }
 
             if (svgText.TextDecoration.HasFlag(SvgTextDecoration.Overline))
             {
-                // TODO:
+                // TODO: Implement SvgTextDecoration.Overline
             }
 
             if (svgText.TextDecoration.HasFlag(SvgTextDecoration.LineThrough))
             {
-                // TODO:
+                // TODO: Implement SvgTextDecoration.LineThrough
             }
 
             float fontSize;
@@ -1384,13 +1382,13 @@ namespace Svg.Skia
             switch (svgFontWeight)
             {
                 case SvgFontWeight.Inherit:
-                    // TODO:
+                    // TODO: Implement SvgFontWeight.Inherit
                     break;
                 case SvgFontWeight.Bolder:
-                    // TODO:
+                    // TODO: Implement SvgFontWeight.Bolder
                     break;
                 case SvgFontWeight.Lighter:
-                    // TODO:
+                    // TODO: Implement SvgFontWeight.Lighter
                     break;
                 case SvgFontWeight.W100:
                     fontWeight = SkiaSharp.SKFontStyleWeight.Thin;
@@ -1431,7 +1429,7 @@ namespace Svg.Skia
             switch (attributeFontStretch?.ToLower())
             {
                 case "inherit":
-                    // TODO:
+                    // TODO: Implement inherit
                     break;
                 case "ultra-condensed":
                     fontWidth = SKFontStyleWidth.UltraCondensed;
@@ -1898,7 +1896,7 @@ namespace Svg.Skia
                     break;
                 case SvgText svgText:
                     {
-                        // TODO:
+                        // TODO: Get path from SvgText.
                     }
                     break;
                 default:
