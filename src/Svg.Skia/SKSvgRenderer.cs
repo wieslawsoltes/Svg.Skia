@@ -520,7 +520,7 @@ namespace Svg.Skia
 
             var startOffset = svgTextPath.StartOffset.ToDeviceValue(null, UnitRenderingType.Other, svgTextPath);
 
-            // TODO:
+            // TODO: Calculate correct bounds.
             var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
 
             _skCanvas.Save();
@@ -590,7 +590,7 @@ namespace Svg.Skia
                 return;
             }
 
-            // TODO:
+            // TODO: Calculate correct bounds.
             var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
 
             _skCanvas.Save();
@@ -625,7 +625,7 @@ namespace Svg.Skia
                 return;
             }
 
-            // TODO:
+            // TODO: Calculate correct bounds.
             var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
 
             _skCanvas.Save();
@@ -656,6 +656,7 @@ namespace Svg.Skia
 
         internal void DrawTextString(SvgTextBase svgTextBase, string text, float x, float y)
         {
+            // TODO: Calculate correct bounds.
             var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
 
             if (SkiaUtil.IsValidFill(svgTextBase))
@@ -699,6 +700,7 @@ namespace Svg.Skia
                         points[i] = new SKPoint(x, y);
                     }
 
+                    // TODO: Calculate correct bounds.
                     var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
 
                     if (SkiaUtil.IsValidFill(svgTextBase))
@@ -984,7 +986,7 @@ namespace Svg.Skia
                 return;
             }
 
-            // TODO:
+            // TODO: Calculate correct bounds.
             var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
 
             _skCanvas.Save();
@@ -1107,7 +1109,7 @@ namespace Svg.Skia
                 return;
             }
 
-            // TODO:
+            // TODO: Calculate correct bounds.
             var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
 
             _skCanvas.Save();
@@ -1120,7 +1122,7 @@ namespace Svg.Skia
 
             var skPaintFilter = SetFilter(svgForeignObject);
 
-            // TODO:
+            // TODO: Draw SvgForeignObject
 
             if (skPaintFilter != null)
             {
@@ -1292,7 +1294,7 @@ namespace Svg.Skia
                 return;
             }
 
-            // TODO:
+            // TODO: Calculate correct bounds.
             var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
 
             _skCanvas.Save();
@@ -1305,7 +1307,7 @@ namespace Svg.Skia
 
             var skPaintFilter = SetFilter(svgGlyph);
 
-            // TODO:
+            // TODO: Draw SvgGlyph
 
             if (skPaintFilter != null)
             {
@@ -1330,7 +1332,7 @@ namespace Svg.Skia
             // TODO: Call AddMarkers only once.
             AddMarkers(svgGroup);
 
-            // TODO:
+            // TODO: Calculate correct bounds using Children bounds.
             var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
 
             _skCanvas.Save();
@@ -1570,7 +1572,7 @@ namespace Svg.Skia
                 return;
             }
 
-            // TODO:
+            // TODO: Calculate correct bounds.
             var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
 
             _skCanvas.Save();
