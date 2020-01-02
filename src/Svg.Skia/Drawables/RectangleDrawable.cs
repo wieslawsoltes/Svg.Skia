@@ -31,6 +31,8 @@ namespace Svg.Skia
 
             _skBounds = skPath.Bounds;
 
+            // TODO: Transform _skBounds using _skMatrix.
+
             _skMatrix = SkiaUtil.GetSKMatrix(svgRectangle.Transforms);
             _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgRectangle, _skBounds, new HashSet<Uri>(), _disposable);
             _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgRectangle, _disposable);
