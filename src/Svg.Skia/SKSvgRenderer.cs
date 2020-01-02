@@ -4,8 +4,6 @@
 // Parts of this source file are adapted from the https://github.com/vvvv/SVG
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Reflection;
 using SkiaSharp;
 using Svg.DataTypes;
