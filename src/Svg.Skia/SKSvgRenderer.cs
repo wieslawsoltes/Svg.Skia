@@ -64,24 +64,21 @@ namespace Svg.Skia
                     break;
                 case SvgCircle svgCircle:
                     {
-                        var drawable = new VisualElementDrawable(svgCircle, _skSize, ignoreDisplay);
-                        //_skCanvas.DrawDrawable(drawable, 0f, 0f);
+                        var drawable = new CircleDrawable(svgCircle, _skSize, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
                     //DrawCircle(svgCircle, ignoreDisplay);
                     break;
                 case SvgEllipse svgEllipse:
                     {
-                        var drawable = new VisualElementDrawable(svgEllipse, _skSize, ignoreDisplay);
-                        //_skCanvas.DrawDrawable(drawable, 0f, 0f);
+                        var drawable = new EllipseDrawable(svgEllipse, _skSize, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
                     //DrawEllipse(svgEllipse, ignoreDisplay);
                     break;
                 case SvgRectangle svgRectangle:
                     {
-                        var drawable = new VisualElementDrawable(svgRectangle, _skSize, ignoreDisplay);
-                        //_skCanvas.DrawDrawable(drawable, 0f, 0f);
+                        var drawable = new RectangleDrawable(svgRectangle, _skSize, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
                     //DrawRectangle(svgRectangle, ignoreDisplay);
@@ -94,32 +91,28 @@ namespace Svg.Skia
                     break;
                 case SvgLine svgLine:
                     {
-                        var drawable = new VisualElementDrawable(svgLine, _skSize, ignoreDisplay);
-                        //_skCanvas.DrawDrawable(drawable, 0f, 0f);
+                        var drawable = new LineDrawable(svgLine, _skSize, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
                     //DrawLine(svgLine, ignoreDisplay);
                     break;
                 case SvgPath svgPath:
                     {
-                        var drawable = new VisualElementDrawable(svgPath, _skSize, ignoreDisplay);
-                        //_skCanvas.DrawDrawable(drawable, 0f, 0f);
+                        var drawable = new PathDrawable(svgPath, _skSize, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
                     //DrawPath(svgPath, ignoreDisplay);
                     break;
                 case SvgPolyline svgPolyline:
                     {
-                        var drawable = new VisualElementDrawable(svgPolyline, _skSize, ignoreDisplay);
-                        //_skCanvas.DrawDrawable(drawable, 0f, 0f);
+                        var drawable = new PolylineDrawable(svgPolyline, _skSize, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
                     //DrawPolyline(svgPolyline, ignoreDisplay);
                     break;
                 case SvgPolygon svgPolygon:
                     {
-                        var drawable = new VisualElementDrawable(svgPolygon, _skSize, ignoreDisplay);
-                        //_skCanvas.DrawDrawable(drawable, 0f, 0f);
+                        var drawable = new PolygonDrawable(svgPolygon, _skSize, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
                     //DrawPolygon(svgPolygon, ignoreDisplay);
