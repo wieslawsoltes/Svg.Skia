@@ -87,7 +87,11 @@ namespace Svg.Skia
                     DrawGlyph(svgGlyph, ignoreDisplay);
                     break;
                 case SvgGroup svgGroup:
-                    DrawGroup(svgGroup, ignoreDisplay);
+                    {
+                        var drawable = new GroupDrawable(svgGroup, _skSize, ignoreDisplay);
+                        drawable.Draw(_skCanvas, 0f, 0f);
+                    }
+                    //DrawGroup(svgGroup, ignoreDisplay);
                     break;
                 case SvgLine svgLine:
                     {
