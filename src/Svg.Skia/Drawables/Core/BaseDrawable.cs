@@ -9,18 +9,18 @@ namespace Svg.Skia
 {
     internal abstract class BaseDrawable : SKDrawable
     {
-        protected CompositeDisposable _disposable = new CompositeDisposable();
-        protected bool _canDraw;
-        protected bool _ignoreDisplay;
-        protected bool _antialias;
-        protected SKRect _skBounds;
-        protected SKMatrix _skMatrix;
+        internal CompositeDisposable _disposable = new CompositeDisposable();
+        internal bool _canDraw;
+        internal bool _ignoreDisplay;
+        internal bool _antialias;
+        internal SKRect _skBounds;
+        internal SKMatrix _skMatrix;
 
-        protected SKPath? _skPathClip;
-        protected SKPaint? _skPaintOpacity;
-        protected SKPaint? _skPaintFilter;
-        protected SKPaint? _skPaintFill;
-        protected SKPaint? _skPaintStroke;
+        internal SKPath? _skPathClip;
+        internal SKPaint? _skPaintOpacity;
+        internal SKPaint? _skPaintFilter;
+        internal SKPaint? _skPaintFill;
+        internal SKPaint? _skPaintStroke;
 
         protected bool CanDraw(SvgVisualElement svgVisualElement, bool ignoreDisplay)
         {
