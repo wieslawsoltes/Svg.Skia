@@ -186,6 +186,8 @@ namespace SvgToPng
 
         private void OnPaintSurfaceSvg(SKCanvas canvas, int width, int height)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             canvas.Clear(SKColors.White);
 
             if (items.SelectedItem is Item item && item.Svg?.Picture != null)
@@ -201,6 +203,9 @@ namespace SvgToPng
                     canvas.DrawPicture(item.Svg.Picture);
                 }
             }
+
+            stopwatch.Stop();
+            Debug.WriteLine($"Draw: {stopwatch.Elapsed.TotalMilliseconds}ms");
         }
 
         private void OnGLControlHostPng(object sender, EventArgs e)
