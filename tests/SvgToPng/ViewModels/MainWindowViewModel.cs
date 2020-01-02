@@ -90,7 +90,13 @@ namespace SvgToPng.ViewModels
                     {
                         Directory.SetCurrentDirectory(Path.GetDirectoryName(item.SvgPath));
                         item.Svg = new SKSvg();
+
+                        var stopwatch = Stopwatch.StartNew();
+
                         item.Svg.Load(item.SvgPath);
+
+                        stopwatch.Stop();
+                        Debug.WriteLine($"Load: {stopwatch.Elapsed.TotalMilliseconds}ms");
                     }
                 }
                 catch (Exception ex)
