@@ -16,6 +16,12 @@ namespace Svg.Skia
         protected SKRect _skBounds;
         protected SKMatrix _skMatrix;
 
+        protected SKPath? _skPathClip;
+        protected SKPaint? _skPaintOpacity;
+        protected SKPaint? _skPaintFilter;
+        protected SKPaint? _skPaintFill;
+        protected SKPaint? _skPaintStroke;
+
         protected bool CanDraw(SvgVisualElement svgVisualElement, bool ignoreDisplay)
         {
             bool visible = svgVisualElement.Visible == true;
