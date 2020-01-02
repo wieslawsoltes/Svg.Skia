@@ -28,5 +28,20 @@ namespace Svg.Skia
             bool display = ignoreDisplay ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
             return visible && display;
         }
+
+        protected override SKRect OnGetBounds()
+        {
+            if (_canDraw)
+            {
+                return _skBounds;
+            }
+            return SKRect.Empty;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            _disposable?.Dispose();
+        }
     }
 }
