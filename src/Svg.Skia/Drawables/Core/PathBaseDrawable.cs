@@ -51,7 +51,20 @@ namespace Svg.Skia
                 canvas.DrawPath(skPath, _skPaintStroke);
             }
 
-            // TODO: Draw markers.
+            if (_markerStart != null)
+            {
+                _markerStart.Draw(canvas, 0f, 0f);
+            }
+
+            if (_markerMid != null)
+            {
+                _markerMid.Draw(canvas, 0f, 0f);
+            }
+
+            if (_markerEnd != null)
+            {
+                _markerEnd.Draw(canvas, 0f, 0f);
+            }
 
             if (_skPaintFilter != null)
             {
