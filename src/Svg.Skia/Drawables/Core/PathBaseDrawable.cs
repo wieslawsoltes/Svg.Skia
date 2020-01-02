@@ -9,11 +9,6 @@ namespace Svg.Skia
     internal abstract class PathBaseDrawable : BaseDrawable
     {
         protected SKPath? skPath;
-        protected SKPath? _skPathClip;
-        protected SKPaint? _skPaintOpacity;
-        protected SKPaint? _skPaintFilter;
-        protected SKPaint? _skPaintFill;
-        protected SKPaint? _skPaintStroke;
 
         protected override void OnDraw(SKCanvas canvas)
         {
