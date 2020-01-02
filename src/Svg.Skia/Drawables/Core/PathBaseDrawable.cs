@@ -48,6 +48,8 @@ namespace Svg.Skia
                 canvas.DrawPath(skPath, _skPaintStroke);
             }
 
+            // TODO: Draw markers.
+
             if (_skPaintFilter != null)
             {
                 canvas.Restore();
