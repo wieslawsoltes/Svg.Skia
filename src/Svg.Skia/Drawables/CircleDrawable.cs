@@ -1,0 +1,50 @@
+﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+//
+// Parts of this source file are adapted from the https://github.com/vvvv/SVG
+using System;
+using System.Collections.Generic;
+using SkiaSharp;
+
+namespace Svg.Skia
+{
+    internal class CircleDrawable : PathBaseDrawable
+    {
+        public CircleDrawable(SvgCircle svgCircle, SKSize sKSize, bool ignoreDisplay)
+        {
+            _ignoreDisplay = ignoreDisplay;
+            _canDraw = CanDraw(svgCircle, _ignoreDisplay);
+
+            if (!_canDraw)
+            {
+                return;
+            }
+
+            skPath = SkiaUtil.ToSKPath(svgCircle, svgCircle.FillRule, _disposable);
+            if (skPath == null || skPath.IsEmpty)
+            {
+                _canDraw = false;
+                return;
+            }
+
+            _antialias = SkiaUtil.IsAntialias(svgCircle);
+
+            _skBounds = skPath.Bounds;
+
+            _skMatrix = SkiaUtil.GetSKMatrix(svgCircle.Transforms);
+            _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgCircle, _skBounds, new HashSet<Uri>(), _disposable);
+            _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgCircle, _disposable);
+            _skPaintFilter = SkiaUtil.GetFilterSKPaint(svgCircle, _disposable);
+
+            if (SkiaUtil.IsValidFill(svgCircle))
+            {
+                _skPaintFill = SkiaUtil.GetFillSKPaint(svgCircle, sKSize, _skBounds, _disposable);
+            }
+
+            if (SkiaUtil.IsValidStroke(svgCircle))
+            {
+                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgCircle, sKSize, _skBounds, _disposable);
+            }
+        }
+    }
+}
