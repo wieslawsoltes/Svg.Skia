@@ -24,7 +24,7 @@ namespace Svg.Skia
                 SvgEllipse svgEllipse => new EllipseDrawable(svgEllipse, _skSize, ignoreDisplay),
                 SvgRectangle svgRectangle => new RectangleDrawable(svgRectangle, _skSize, ignoreDisplay),
                 SvgGlyph svgGlyph => new GlyphDrawable(/* TODO: */),
-                SvgGroup svgGroup => new GroupDrawable(/* TODO: */),
+                SvgGroup svgGroup => new GroupDrawable(svgGroup, _skSize, ignoreDisplay),
                 SvgLine svgLine => new LineDrawable(svgLine, _skSize, ignoreDisplay),
                 SvgPath svgPath => new PathDrawable(svgPath, _skSize, ignoreDisplay),
                 SvgPolyline svgPolyline => new PolylineDrawable(svgPolyline, _skSize, ignoreDisplay),
