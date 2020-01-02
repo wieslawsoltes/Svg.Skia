@@ -78,20 +78,5 @@ namespace Svg.Skia
 
             canvas.Restore();
         }
-
-        protected override SKRect OnGetBounds()
-        {
-            if (_canDraw)
-            {
-                return _skBounds;
-            }
-            return SKRect.Empty;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            _disposable?.Dispose();
-        }
     }
 }
