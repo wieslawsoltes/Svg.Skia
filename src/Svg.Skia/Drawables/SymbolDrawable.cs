@@ -12,7 +12,6 @@ namespace Svg.Skia
     internal class SymbolDrawable : BaseDrawable
     {
         internal List<BaseDrawable> _childrenDrawable = new List<BaseDrawable>();
-        internal SKRect? _skClipRect = null;
 
         public SymbolDrawable(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, bool ignoreDisplay)
         {
