@@ -1297,9 +1297,20 @@ namespace Svg.Skia
 
         public static SKImageFilter CreateBlur(SvgGaussianBlur svgGaussianBlur, SvgVisualElement svgVisualElement)
         {
-            // TODO: Fix sigma.
-            var sigma = svgGaussianBlur.StdDeviation;
-            return SKImageFilter.CreateBlur(sigma, sigma);
+            // TODO: Calculate correct value of sigma using one value stdDeviation.
+            var sigmaX = svgGaussianBlur.StdDeviation;
+            var sigmaY = svgGaussianBlur.StdDeviation;
+
+            switch (svgGaussianBlur.BlurType)
+            {
+                default:
+                case BlurType.Both:
+                    return SKImageFilter.CreateBlur(sigmaX, sigmaY);
+                case BlurType.HorizontalOnly:
+                    return SKImageFilter.CreateBlur(sigmaX, 0f);
+                case BlurType.VerticalOnly:
+                    return SKImageFilter.CreateBlur(0f, sigmaY);
+            }
         }
 
         public static void SetFilter(SvgVisualElement svgVisualElement, SKPaint skPaint, CompositeDisposable disposable)
