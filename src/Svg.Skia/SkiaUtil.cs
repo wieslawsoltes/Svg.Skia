@@ -1532,7 +1532,9 @@ namespace Svg.Skia
             if (fontSizeUnit == SvgUnit.None || fontSizeUnit == SvgUnit.Empty)
             {
                 // TODO: Do not use implicit float conversion from SvgUnit.ToDeviceValue
-                fontSize = new SvgUnit(SvgUnitType.Em, 1.0f);
+                //fontSize = new SvgUnit(SvgUnitType.Em, 1.0f);
+                // NOTE: Use default SkPaint Font_Size
+                fontSize = 12f;
             }
             else
             {
