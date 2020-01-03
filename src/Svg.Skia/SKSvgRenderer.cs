@@ -56,7 +56,14 @@ namespace Svg.Skia
                     DrawSwitch(svgSwitch, skOwnerBounds, ignoreDisplay);
                     break;
                 case SvgUse svgUse:
+#if USE_DRAWABLES
+                    {
+                        var drawable = new UseDrawable(svgUse, skOwnerBounds, ignoreDisplay);
+                        drawable.Draw(_skCanvas, 0f, 0f);
+                    }
+#else
                     DrawUse(svgUse, skOwnerBounds, ignoreDisplay);
+#endif
                     break;
                 case SvgForeignObject svgForeignObject:
                     DrawForeignObject(svgForeignObject, skOwnerBounds, ignoreDisplay);
