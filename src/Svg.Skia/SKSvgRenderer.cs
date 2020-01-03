@@ -43,7 +43,14 @@ namespace Svg.Skia
             {
 #if SVG_ANCHOR
                 case SvgAnchor svgAnchor:
+#if USE_DRAWABLES
+                    {
+                        var drawable = new AnchorDrawable(svgAnchor, skOwnerBounds, ignoreDisplay);
+                        drawable.Draw(_skCanvas, 0f, 0f);
+                    }
+#else
                     DrawAnchor(svgAnchor, skOwnerBounds, ignoreDisplay);
+#endif
                     break;
 #endif
                 case SvgFragment svgFragment:
@@ -67,7 +74,14 @@ namespace Svg.Skia
 #endif
                     break;
                 case SvgSwitch svgSwitch:
+#if USE_DRAWABLES
+                    {
+                        var drawable = new SwitchDrawable(svgSwitch, skOwnerBounds, ignoreDisplay);
+                        drawable.Draw(_skCanvas, 0f, 0f);
+                    }
+#else
                     DrawSwitch(svgSwitch, skOwnerBounds, ignoreDisplay);
+#endif
                     break;
                 case SvgUse svgUse:
 #if USE_DRAWABLES
@@ -80,7 +94,14 @@ namespace Svg.Skia
 #endif
                     break;
                 case SvgForeignObject svgForeignObject:
+#if USE_DRAWABLES
+                    {
+                        var drawable = new ForeignObjectDrawable(svgForeignObject, skOwnerBounds, ignoreDisplay);
+                        drawable.Draw(_skCanvas, 0f, 0f);
+                    }
+#else
                     DrawForeignObject(svgForeignObject, skOwnerBounds, ignoreDisplay);
+#endif
                     break;
                 case SvgCircle svgCircle:
 #if USE_DRAWABLES
@@ -113,7 +134,15 @@ namespace Svg.Skia
 #endif
                     break;
                 case SvgGlyph svgGlyph:
+#if USE_DRAWABLES
+                    {
+                        var drawable = new GlyphDrawable(svgGlyph, skOwnerBounds, ignoreDisplay);
+                        drawable.Draw(_skCanvas, 0f, 0f);
+                    }
+#else
                     DrawGlyph(svgGlyph, skOwnerBounds, ignoreDisplay);
+#endif
+
                     break;
                 case SvgGroup svgGroup:
 #if USE_DRAWABLES
@@ -166,7 +195,14 @@ namespace Svg.Skia
 #endif
                     break;
                 case SvgText svgText:
+#if USE_DRAWABLES
+                    {
+                        var drawable = new TextDrawable(svgText, skOwnerBounds, ignoreDisplay);
+                        drawable.Draw(_skCanvas, 0f, 0f);
+                    }
+#else
                     DrawText(svgText, skOwnerBounds, ignoreDisplay);
+#endif
                     break;
                 default:
                     break;
