@@ -52,7 +52,7 @@ namespace Svg.Skia
                 case SvgUnitType.Em:
                     points = (float)(value * 9);
                     _deviceValue = (points / 72.0f) * ppi;
-                    // TODO:
+                    // TODO: Implement GetFont for Skia.
                     //using (var currFont = GetFont(renderer, owner))
                     //{
                     //    if (currFont == null)
@@ -69,7 +69,7 @@ namespace Svg.Skia
                 case SvgUnitType.Ex:
                     points = (float)(value * 9);
                     _deviceValue = (points * 0.5f / 72.0f) * ppi;
-                    // TODO:
+                    // TODO: Implement GetFont for Skia.
                     //using (var currFont = GetFont(renderer, owner))
                     //{
                     //    if (currFont == null)
