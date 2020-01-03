@@ -18,7 +18,7 @@ namespace Svg.Skia
                 SvgFragment svgFragment => new FragmentDrawable(/* TODO: */),
                 SvgImage svgImage => new ImageDrawable(/* TODO: */),
                 SvgSwitch svgSwitch => new SwitchDrawable(/* TODO: */),
-                SvgUse svgUse => new UseDrawable(/* TODO: */),
+                SvgUse svgUse => new UseDrawable(svgUse, skOwnerBounds, ignoreDisplay),
                 SvgForeignObject svgForeignObject => new ForeignObjectDrawable(/* TODO: */),
                 SvgCircle svgCircle => new CircleDrawable(svgCircle, skOwnerBounds, ignoreDisplay),
                 SvgEllipse svgEllipse => new EllipseDrawable(svgEllipse, skOwnerBounds, ignoreDisplay),
