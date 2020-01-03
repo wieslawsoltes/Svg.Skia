@@ -16,6 +16,7 @@ namespace Svg.Skia
         internal SKRect _skBounds;
         internal SKMatrix _skMatrix;
 
+        internal SKRect? _skClipRect;
         internal SKPath? _skPathClip;
         internal SKPaint? _skPaintOpacity;
         internal SKPaint? _skPaintFilter;
