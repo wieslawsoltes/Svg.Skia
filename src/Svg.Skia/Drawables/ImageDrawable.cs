@@ -4,7 +4,6 @@
 // Parts of this source file are adapted from the https://github.com/vvvv/SVG
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using SkiaSharp;
 
 namespace Svg.Skia
