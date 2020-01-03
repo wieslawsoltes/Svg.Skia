@@ -125,7 +125,7 @@ namespace Svg.Skia
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
 #else
-                    DrawLine(svgLine, ignoreDisplay);
+                    DrawLine(svgLine, skOwnerBounds, ignoreDisplay);
 #endif
                     break;
                 case SvgPath svgPath:
@@ -135,7 +135,7 @@ namespace Svg.Skia
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
 #else
-                    DrawPath(svgPath, ignoreDisplay);
+                    DrawPath(svgPath, skOwnerBounds, ignoreDisplay);
 #endif
                     break;
                 case SvgPolyline svgPolyline:
