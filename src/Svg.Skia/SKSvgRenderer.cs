@@ -1156,8 +1156,8 @@ namespace Svg.Skia
                 return;
             }
 
-            var svgVisualElement = SkiaUtil.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
-            if (svgVisualElement == null)
+            var svgReferencedElement = SkiaUtil.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
+            if (svgReferencedElement == null)
             {
                 return;
             }
@@ -1178,7 +1178,7 @@ namespace Svg.Skia
             }
 
             var skMatrix = SkiaUtil.GetSKMatrix(svgUse.Transforms);
-            if (!(svgVisualElement is SvgSymbol))
+            if (!(svgReferencedElement is SvgSymbol))
             {
                 var skMatrixTranslateXY = SKMatrix.MakeTranslation(x, y);
                 SKMatrix.PreConcat(ref skMatrix, ref skMatrixTranslateXY);
@@ -1188,10 +1188,10 @@ namespace Svg.Skia
             var useParent = svgUse.GetType().GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
             if (useParent != null)
             {
-                useParent.SetValue(svgVisualElement, svgUse);
+                useParent.SetValue(svgReferencedElement, svgUse);
             }
 
-            svgVisualElement.InvalidateChildPaths();
+            svgReferencedElement.InvalidateChildPaths();
 
             // TODO: Calculate correct bounds from SvgSymbol or SvgVisualElement.
             var skBounds = SKRect.Create(x, y, width, height);
@@ -1221,13 +1221,13 @@ namespace Svg.Skia
                 _skCanvas.SaveLayer(skPaintFilter);
             }
 
-            if (svgVisualElement is SvgSymbol svgSymbol)
+            if (svgReferencedElement is SvgSymbol svgSymbol)
             {
                 DrawSymbol(svgSymbol, x, y, width, height, skOwnerBounds, ignoreDisplay);
             }
             else
             {
-                Draw(svgVisualElement, skOwnerBounds, ignoreDisplay);
+                Draw(svgReferencedElement, skOwnerBounds, ignoreDisplay);
             }
 
             if (skPaintFilter != null)
@@ -1244,7 +1244,7 @@ namespace Svg.Skia
 
             if (useParent != null)
             {
-                useParent.SetValue(svgVisualElement, originalParent);
+                useParent.SetValue(svgReferencedElement, originalParent);
             }
         }
 
