@@ -43,7 +43,7 @@ namespace Svg.Skia
                 _skPaintFill = SkiaUtil.GetFillSKPaint(svgLine, _skBounds, _disposable);
             }
 
-            if (SkiaUtil.IsValidStroke(svgLine))
+            if (SkiaUtil.IsValidStroke(svgLine, _skBounds))
             {
                 _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgLine, _skBounds, _disposable);
             }

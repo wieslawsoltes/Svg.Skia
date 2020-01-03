@@ -1392,11 +1392,11 @@ namespace Svg.Skia
             return svgElement.Fill != null;
         }
 
-        public static bool IsValidStroke(SvgElement svgElement)
+        public static bool IsValidStroke(SvgElement svgElement, SKRect skBounds)
         {
             return svgElement.Stroke != null
                 && svgElement.Stroke != SvgPaintServer.None
-                && svgElement.StrokeWidth > 0f;
+                && svgElement.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
         }
 
         public static SKPaint GetFillSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable)
@@ -1531,6 +1531,7 @@ namespace Svg.Skia
             var fontSizeUnit = svgText.FontSize;
             if (fontSizeUnit == SvgUnit.None || fontSizeUnit == SvgUnit.Empty)
             {
+                // TODO: Do not use implicit float conversion from SvgUnit.ToDeviceValue
                 fontSize = new SvgUnit(SvgUnitType.Em, 1.0f);
             }
             else

@@ -65,7 +65,7 @@ namespace Svg.Skia
                 _skPaintFill = SkiaUtil.GetFillSKPaint(svgGroup, _skBounds, _disposable);
             }
 
-            if (SkiaUtil.IsValidStroke(svgGroup))
+            if (SkiaUtil.IsValidStroke(svgGroup, _skBounds))
             {
                 _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgGroup, _skBounds, _disposable);
             }

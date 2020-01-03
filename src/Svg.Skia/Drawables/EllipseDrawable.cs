@@ -43,7 +43,7 @@ namespace Svg.Skia
                 _skPaintFill = SkiaUtil.GetFillSKPaint(svgEllipse, _skBounds, _disposable);
             }
 
-            if (SkiaUtil.IsValidStroke(svgEllipse))
+            if (SkiaUtil.IsValidStroke(svgEllipse, _skBounds))
             {
                 _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgEllipse, _skBounds, _disposable);
             }
