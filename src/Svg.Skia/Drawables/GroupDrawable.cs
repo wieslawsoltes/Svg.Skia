@@ -80,6 +80,11 @@ namespace Svg.Skia
 
             canvas.Save();
 
+            if (_skClipRect != null)
+            {
+                canvas.ClipRect(_skClipRect.Value, SKClipOperation.Intersect);
+            }
+
             var skMatrixTotal = canvas.TotalMatrix;
             SKMatrix.PreConcat(ref skMatrixTotal, ref _skMatrix);
             canvas.SetMatrix(skMatrixTotal);
