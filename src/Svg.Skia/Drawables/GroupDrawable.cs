@@ -12,7 +12,7 @@ namespace Svg.Skia
     {
         internal List<BaseDrawable> _childrenDrawable = new List<BaseDrawable>();
 
-        public GroupDrawable(SvgGroup svgGroup, SKSize sKSize, bool ignoreDisplay)
+        public GroupDrawable(SvgGroup svgGroup, SKRect skOwnerBounds, bool ignoreDisplay)
         {
             _ignoreDisplay = ignoreDisplay;
             _canDraw = CanDraw(svgGroup, _ignoreDisplay);
@@ -26,7 +26,7 @@ namespace Svg.Skia
 
             foreach (var svgElement in svgGroup.Children)
             {
-                var drawable = DrawableFactory.Create(svgElement, sKSize, ignoreDisplay);
+                var drawable = DrawableFactory.Create(svgElement, skOwnerBounds, ignoreDisplay);
                 if (drawable != null)
                 {
                     _childrenDrawable.Add(drawable);
@@ -62,12 +62,12 @@ namespace Svg.Skia
 
             if (SkiaUtil.IsValidFill(svgGroup))
             {
-                _skPaintFill = SkiaUtil.GetFillSKPaint(svgGroup, sKSize, _skBounds, _disposable);
+                _skPaintFill = SkiaUtil.GetFillSKPaint(svgGroup, _skBounds, _disposable);
             }
 
             if (SkiaUtil.IsValidStroke(svgGroup))
             {
-                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgGroup, sKSize, _skBounds, _disposable);
+                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgGroup, _skBounds, _disposable);
             }
         }
 

@@ -8,7 +8,7 @@ namespace Svg.Skia
 {
     internal static class DrawableFactory
     {
-        public static BaseDrawable? Create(SvgElement svgElement, SKSize _skSize, bool ignoreDisplay)
+        public static BaseDrawable? Create(SvgElement svgElement, SKRect skOwnerBounds, bool ignoreDisplay)
         {
             return svgElement switch
             {
@@ -20,15 +20,15 @@ namespace Svg.Skia
                 SvgSwitch svgSwitch => new SwitchDrawable(/* TODO: */),
                 SvgUse svgUse => new UseDrawable(/* TODO: */),
                 SvgForeignObject svgForeignObject => new ForeignObjectDrawable(/* TODO: */),
-                SvgCircle svgCircle => new CircleDrawable(svgCircle, _skSize, ignoreDisplay),
-                SvgEllipse svgEllipse => new EllipseDrawable(svgEllipse, _skSize, ignoreDisplay),
-                SvgRectangle svgRectangle => new RectangleDrawable(svgRectangle, _skSize, ignoreDisplay),
+                SvgCircle svgCircle => new CircleDrawable(svgCircle, skOwnerBounds, ignoreDisplay),
+                SvgEllipse svgEllipse => new EllipseDrawable(svgEllipse, skOwnerBounds, ignoreDisplay),
+                SvgRectangle svgRectangle => new RectangleDrawable(svgRectangle, skOwnerBounds, ignoreDisplay),
                 SvgGlyph svgGlyph => new GlyphDrawable(/* TODO: */),
-                SvgGroup svgGroup => new GroupDrawable(svgGroup, _skSize, ignoreDisplay),
-                SvgLine svgLine => new LineDrawable(svgLine, _skSize, ignoreDisplay),
-                SvgPath svgPath => new PathDrawable(svgPath, _skSize, ignoreDisplay),
-                SvgPolyline svgPolyline => new PolylineDrawable(svgPolyline, _skSize, ignoreDisplay),
-                SvgPolygon svgPolygon => new PolygonDrawable(svgPolygon, _skSize, ignoreDisplay),
+                SvgGroup svgGroup => new GroupDrawable(svgGroup, skOwnerBounds, ignoreDisplay),
+                SvgLine svgLine => new LineDrawable(svgLine, skOwnerBounds, ignoreDisplay),
+                SvgPath svgPath => new PathDrawable(svgPath, skOwnerBounds, ignoreDisplay),
+                SvgPolyline svgPolyline => new PolylineDrawable(svgPolyline, skOwnerBounds, ignoreDisplay),
+                SvgPolygon svgPolygon => new PolygonDrawable(svgPolygon, skOwnerBounds, ignoreDisplay),
                 SvgText svgText => new TextDrawable(/* TODO: */),
                 _ => null,
             };

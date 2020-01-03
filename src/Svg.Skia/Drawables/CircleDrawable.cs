@@ -10,7 +10,7 @@ namespace Svg.Skia
 {
     internal class CircleDrawable : PathBaseDrawable
     {
-        public CircleDrawable(SvgCircle svgCircle, SKSize sKSize, bool ignoreDisplay)
+        public CircleDrawable(SvgCircle svgCircle, SKRect skOwnerBounds, bool ignoreDisplay)
         {
             _ignoreDisplay = ignoreDisplay;
             _canDraw = CanDraw(svgCircle, _ignoreDisplay);
@@ -20,7 +20,7 @@ namespace Svg.Skia
                 return;
             }
 
-            skPath = SkiaUtil.ToSKPath(svgCircle, svgCircle.FillRule, _disposable);
+            skPath = SkiaUtil.ToSKPath(svgCircle, svgCircle.FillRule, skOwnerBounds, _disposable);
             if (skPath == null || skPath.IsEmpty)
             {
                 _canDraw = false;
@@ -40,12 +40,12 @@ namespace Svg.Skia
 
             if (SkiaUtil.IsValidFill(svgCircle))
             {
-                _skPaintFill = SkiaUtil.GetFillSKPaint(svgCircle, sKSize, _skBounds, _disposable);
+                _skPaintFill = SkiaUtil.GetFillSKPaint(svgCircle, _skBounds, _disposable);
             }
 
             if (SkiaUtil.IsValidStroke(svgCircle))
             {
-                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgCircle, sKSize, _skBounds, _disposable);
+                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgCircle, _skBounds, _disposable);
             }
         }
     }

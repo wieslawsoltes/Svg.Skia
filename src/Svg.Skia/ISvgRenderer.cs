@@ -1,28 +1,29 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 using System;
+using SkiaSharp;
 
 namespace Svg.Skia
 {
     public interface ISvgRenderer : IDisposable
     {
 #if SVG_ANCHOR
-        void DrawAnchor(SvgAnchor svgAnchor, bool ignoreDisplay);
+        void DrawAnchor(SvgAnchor svgAnchor, SKRect skOwnerBounds, bool ignoreDisplay);
 #endif
-        void DrawFragment(SvgFragment svgFragment, bool ignoreDisplay);
-        void DrawImage(SvgImage svgImage, bool ignoreDisplay);
-        void DrawSwitch(SvgSwitch svgSwitch, bool ignoreDisplay);
-        void DrawUse(SvgUse svgUse, bool ignoreDisplay);
-        void DrawForeignObject(SvgForeignObject svgForeignObject, bool ignoreDisplay);
-        void DrawCircle(SvgCircle svgCircle, bool ignoreDisplay);
-        void DrawEllipse(SvgEllipse svgEllipse, bool ignoreDisplay);
-        void DrawRectangle(SvgRectangle svgRectangle, bool ignoreDisplay);
-        void DrawGlyph(SvgGlyph svgGlyph, bool ignoreDisplay);
-        void DrawGroup(SvgGroup svgGroup, bool ignoreDisplay);
-        void DrawLine(SvgLine svgLine, bool ignoreDisplay);
-        void DrawPath(SvgPath svgPath, bool ignoreDisplay);
-        void DrawPolyline(SvgPolyline svgPolyline, bool ignoreDisplay);
-        void DrawPolygon(SvgPolygon svgPolygon, bool ignoreDisplay);
-        void DrawText(SvgText svgText, bool ignoreDisplay);
+        void DrawFragment(SvgFragment svgFragment, SKRect skOwnerBounds, bool ignoreDisplay);
+        void DrawImage(SvgImage svgImage, SKRect skOwnerBounds, bool ignoreDisplay);
+        void DrawSwitch(SvgSwitch svgSwitch, SKRect skOwnerBounds, bool ignoreDisplay);
+        void DrawUse(SvgUse svgUse, SKRect skOwnerBounds, bool ignoreDisplay);
+        void DrawForeignObject(SvgForeignObject svgForeignObject, SKRect skOwnerBounds, bool ignoreDisplay);
+        void DrawCircle(SvgCircle svgCircle, SKRect skOwnerBounds, bool ignoreDisplay);
+        void DrawEllipse(SvgEllipse svgEllipse, SKRect skOwnerBounds, bool ignoreDisplay);
+        void DrawRectangle(SvgRectangle svgRectangle, SKRect skOwnerBounds, bool ignoreDisplay);
+        void DrawGlyph(SvgGlyph svgGlyph, SKRect skOwnerBounds, bool ignoreDisplay);
+        void DrawGroup(SvgGroup svgGroup, SKRect skOwnerBounds, bool ignoreDisplay);
+        void DrawLine(SvgLine svgLine, SKRect skOwnerBounds, bool ignoreDisplay);
+        void DrawPath(SvgPath svgPath, SKRect skOwnerBounds, bool ignoreDisplay);
+        void DrawPolyline(SvgPolyline svgPolyline, SKRect skOwnerBounds, bool ignoreDisplay);
+        void DrawPolygon(SvgPolygon svgPolygon, SKRect skOwnerBounds, bool ignoreDisplay);
+        void DrawText(SvgText svgText, SKRect skOwnerBounds, bool ignoreDisplay);
     }
 }

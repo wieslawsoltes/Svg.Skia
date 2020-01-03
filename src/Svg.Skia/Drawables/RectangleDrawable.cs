@@ -10,7 +10,7 @@ namespace Svg.Skia
 {
     internal class RectangleDrawable : PathBaseDrawable
     {
-        public RectangleDrawable(SvgRectangle svgRectangle, SKSize sKSize, bool ignoreDisplay)
+        public RectangleDrawable(SvgRectangle svgRectangle, SKRect skOwnerBounds, bool ignoreDisplay)
         {
             _ignoreDisplay = ignoreDisplay;
             _canDraw = CanDraw(svgRectangle, _ignoreDisplay);
@@ -20,7 +20,7 @@ namespace Svg.Skia
                 return;
             }
 
-            skPath = SkiaUtil.ToSKPath(svgRectangle, svgRectangle.FillRule, _disposable);
+            skPath = SkiaUtil.ToSKPath(svgRectangle, svgRectangle.FillRule, skOwnerBounds, _disposable);
             if (skPath == null || skPath.IsEmpty)
             {
                 _canDraw = false;
@@ -40,12 +40,12 @@ namespace Svg.Skia
 
             if (SkiaUtil.IsValidFill(svgRectangle))
             {
-                _skPaintFill = SkiaUtil.GetFillSKPaint(svgRectangle, sKSize, _skBounds, _disposable);
+                _skPaintFill = SkiaUtil.GetFillSKPaint(svgRectangle, _skBounds, _disposable);
             }
 
             if (SkiaUtil.IsValidStroke(svgRectangle))
             {
-                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgRectangle, sKSize, _skBounds, _disposable);
+                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgRectangle, _skBounds, _disposable);
             }
         }
     }

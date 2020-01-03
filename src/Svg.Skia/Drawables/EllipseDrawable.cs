@@ -10,7 +10,7 @@ namespace Svg.Skia
 {
     internal class EllipseDrawable : PathBaseDrawable
     {
-        public EllipseDrawable(SvgEllipse svgEllipse, SKSize sKSize, bool ignoreDisplay)
+        public EllipseDrawable(SvgEllipse svgEllipse, SKRect skOwnerBounds, bool ignoreDisplay)
         {
             _ignoreDisplay = ignoreDisplay;
             _canDraw = CanDraw(svgEllipse, _ignoreDisplay);
@@ -20,7 +20,7 @@ namespace Svg.Skia
                 return;
             }
 
-            skPath = SkiaUtil.ToSKPath(svgEllipse, svgEllipse.FillRule, _disposable);
+            skPath = SkiaUtil.ToSKPath(svgEllipse, svgEllipse.FillRule, skOwnerBounds, _disposable);
             if (skPath == null || skPath.IsEmpty)
             {
                 _canDraw = false;
@@ -40,12 +40,12 @@ namespace Svg.Skia
 
             if (SkiaUtil.IsValidFill(svgEllipse))
             {
-                _skPaintFill = SkiaUtil.GetFillSKPaint(svgEllipse, sKSize, _skBounds, _disposable);
+                _skPaintFill = SkiaUtil.GetFillSKPaint(svgEllipse, _skBounds, _disposable);
             }
 
             if (SkiaUtil.IsValidStroke(svgEllipse))
             {
-                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgEllipse, sKSize, _skBounds, _disposable);
+                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgEllipse, _skBounds, _disposable);
             }
         }
     }

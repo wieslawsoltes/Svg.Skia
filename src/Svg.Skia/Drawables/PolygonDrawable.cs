@@ -10,7 +10,7 @@ namespace Svg.Skia
 {
     internal class PolygonDrawable : PathBaseDrawable
     {
-        public PolygonDrawable(SvgPolygon svgPolygon, SKSize sKSize, bool ignoreDisplay)
+        public PolygonDrawable(SvgPolygon svgPolygon, SKRect skOwnerBounds, bool ignoreDisplay)
         {
             _ignoreDisplay = ignoreDisplay;
             _canDraw = CanDraw(svgPolygon, _ignoreDisplay);
@@ -20,7 +20,7 @@ namespace Svg.Skia
                 return;
             }
 
-            skPath = SkiaUtil.ToSKPath(svgPolygon.Points, svgPolygon.FillRule, true, _disposable);
+            skPath = SkiaUtil.ToSKPath(svgPolygon.Points, svgPolygon.FillRule, true, skOwnerBounds, _disposable);
             if (skPath == null || skPath.IsEmpty)
             {
                 _canDraw = false;
@@ -40,12 +40,12 @@ namespace Svg.Skia
 
             if (SkiaUtil.IsValidFill(svgPolygon))
             {
-                _skPaintFill = SkiaUtil.GetFillSKPaint(svgPolygon, sKSize, _skBounds, _disposable);
+                _skPaintFill = SkiaUtil.GetFillSKPaint(svgPolygon, _skBounds, _disposable);
             }
 
             if (SkiaUtil.IsValidStroke(svgPolygon))
             {
-                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgPolygon, sKSize, _skBounds, _disposable);
+                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgPolygon, _skBounds, _disposable);
             }
         }
     }

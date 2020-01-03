@@ -111,10 +111,11 @@ namespace Svg.Skia
         public static void Draw(SKCanvas sKCanvas, SvgFragment svgFragment)
         {
             var skSize = SkiaUtil.GetDimensions(svgFragment);
+            var skBounds = SKRect.Create(skSize);
 
             using (var renderer = new SKSvgRenderer(sKCanvas, skSize))
             {
-                renderer.DrawFragment(svgFragment, false);
+                renderer.DrawFragment(svgFragment, skBounds, false);
             }
         }
 
@@ -130,12 +131,12 @@ namespace Svg.Skia
         public static SKPicture ToPicture(SvgFragment svgFragment)
         {
             var skSize = SkiaUtil.GetDimensions(svgFragment);
-            var cullRect = SKRect.Create(skSize);
+            var skBounds = SKRect.Create(skSize);
             using (var skPictureRecorder = new SKPictureRecorder())
-            using (var skCanvas = skPictureRecorder.BeginRecording(cullRect))
+            using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
             using (var renderer = new SKSvgRenderer(skCanvas, skSize))
             {
-                renderer.DrawFragment(svgFragment, false);
+                renderer.DrawFragment(svgFragment, skBounds, false);
                 return skPictureRecorder.EndRecording();
             }
         }
@@ -143,12 +144,12 @@ namespace Svg.Skia
         public static SKDrawable ToDrawable(SvgFragment svgFragment)
         {
             var skSize = SkiaUtil.GetDimensions(svgFragment);
-            var cullRect = SKRect.Create(skSize);
+            var skBounds = SKRect.Create(skSize);
             using (var skPictureRecorder = new SKPictureRecorder())
-            using (var skCanvas = skPictureRecorder.BeginRecording(cullRect))
+            using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
             using (var renderer = new SKSvgRenderer(skCanvas, skSize))
             {
-                renderer.DrawFragment(svgFragment, false);
+                renderer.DrawFragment(svgFragment, skBounds, false);
                 return skPictureRecorder.EndRecordingAsDrawable();
             }
         }

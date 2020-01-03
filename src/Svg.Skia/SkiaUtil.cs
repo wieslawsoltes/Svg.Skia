@@ -30,6 +30,135 @@ namespace Svg.Skia
         CloseSubpath = 0x80
     }
 
+    internal static class SvgExtensions
+    {
+        /// <summary>
+        /// Converts the current unit to one that can be used at render time.
+        /// </summary>
+        /// <returns>The representation of the current unit in a device value (usually pixels).</returns>
+        public static float ToDeviceValue(this SvgUnit svgUnit, UnitRenderingType renderType, SvgElement? owner, SKRect skBounds)
+        {
+            /*
+            // If it's already been calculated
+            if (this._deviceValue.HasValue)
+            {
+                return this._deviceValue.Value;
+            }
+
+            if (this._value == 0.0f)
+            {
+                this._deviceValue = 0.0f;
+                return this._deviceValue.Value;
+            }
+            */
+            // http://www.w3.org/TR/CSS21/syndata.html#values
+            // http://www.w3.org/TR/SVG11/coords.html#Units
+
+            const float cmInInch = 2.54f;
+            int ppi = SvgDocument.PointsPerInch;
+
+            var type = svgUnit.Type;
+            var value = svgUnit.Value;
+
+
+            float? _deviceValue = null;
+            if (value == 0.0f)
+            {
+                _deviceValue = 0.0f;
+                return _deviceValue.Value;
+            }
+
+            //float points;
+
+            switch (type)
+            {
+                case SvgUnitType.Em:
+                    // TODO:
+                    //using (var currFont = GetFont(renderer, owner))
+                    //{
+                    //    if (currFont == null)
+                    //    {
+                    //        points = (float)(value * 9);
+                    //        _deviceValue = (points / 72.0f) * ppi;
+                    //    }
+                    //    else
+                    //    {
+                    //        _deviceValue = value * (currFont.SizeInPoints / 72.0f) * ppi;
+                    //    }
+                    //}
+                    break;
+                case SvgUnitType.Ex:
+                    // TODO:
+                    //using (var currFont = GetFont(renderer, owner))
+                    //{
+                    //    if (currFont == null)
+                    //    {
+                    //        points = (float)(value * 9);
+                    //        _deviceValue = (points * 0.5f / 72.0f) * ppi;
+                    //    }
+                    //    else
+                    //    {
+                    //        _deviceValue = value * 0.5f * (currFont.SizeInPoints / 72.0f) * ppi;
+                    //    }
+                    //    break;
+                    //}
+                case SvgUnitType.Centimeter:
+                    _deviceValue = (float)((value / cmInInch) * ppi);
+                    break;
+                case SvgUnitType.Inch:
+                    _deviceValue = value * ppi;
+                    break;
+                case SvgUnitType.Millimeter:
+                    _deviceValue = (float)((value / 10) / cmInInch) * ppi;
+                    break;
+                case SvgUnitType.Pica:
+                    _deviceValue = ((value * 12) / 72) * ppi;
+                    break;
+                case SvgUnitType.Point:
+                    _deviceValue = (value / 72) * ppi;
+                    break;
+                case SvgUnitType.Pixel:
+                    _deviceValue = value;
+                    break;
+                case SvgUnitType.User:
+                    _deviceValue = value;
+                    break;
+                case SvgUnitType.Percentage:
+                    var size = skBounds.Size;
+
+                    switch (renderType)
+                    {
+                        case UnitRenderingType.Horizontal:
+                            _deviceValue = (size.Width / 100) * value;
+                            break;
+                        case UnitRenderingType.HorizontalOffset:
+                            _deviceValue = (size.Width / 100) * value + skBounds.Location.X;
+                            break;
+                        case UnitRenderingType.Vertical:
+                            _deviceValue = (size.Height / 100) * value;
+                            break;
+                        case UnitRenderingType.VerticalOffset:
+                            _deviceValue = (size.Height / 100) * value + skBounds.Location.Y;
+                            break;
+                        case UnitRenderingType.Other:
+                            // Calculate a percentage value of the normalized viewBox diagonal length. 
+                            if (owner.OwnerDocument != null && owner.OwnerDocument.ViewBox != null && owner.OwnerDocument.ViewBox.Width != 0 && owner.OwnerDocument.ViewBox.Height != 0)
+                            {
+                                _deviceValue = (float)(Math.Sqrt(Math.Pow(owner.OwnerDocument.ViewBox.Width, 2) + Math.Pow(owner.OwnerDocument.ViewBox.Height, 2)) / Math.Sqrt(2) * value / 100.0);
+                            }
+                            else
+                                _deviceValue = (float)(Math.Sqrt(Math.Pow(size.Width, 2) + Math.Pow(size.Height, 2)) / Math.Sqrt(2) * value / 100.0);
+                            break;
+                    }
+                    break;
+                default:
+                    _deviceValue = value;
+                    break;
+            }
+            return _deviceValue.Value;
+        }
+    }
+
     internal static class SkiaUtil
     {
         public static char[] FontFamilyTrim = new char[] { '\'' };
@@ -61,7 +190,8 @@ namespace Svg.Skia
             }
             else
             {
-                w = svgFragment.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgFragment);
+                // NOTE: // Pass bounds as SKRect.Empty because percentage case is handled before.
+                w = svgFragment.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, SKRect.Empty);
             }
             if (isHeightperc)
             {
@@ -69,7 +199,8 @@ namespace Svg.Skia
             }
             else
             {
-                h = svgFragment.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgFragment);
+                // NOTE: // Pass bounds as SKRect.Empty because percentage case is handled before.
+                h = svgFragment.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, SKRect.Empty);
             }
 
             return new SKSize(w, h);
@@ -177,7 +308,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        public static SKPath? ToSKPath(SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, CompositeDisposable disposable)
+        public static SKPath? ToSKPath(SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, SKRect skOwnerBounds, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
@@ -188,8 +319,8 @@ namespace Svg.Skia
 
             for (int i = 0; (i + 1) < svgPointCollection.Count; i += 2)
             {
-                float x = (float)svgPointCollection[i];
-                float y = (float)svgPointCollection[i + 1];
+                float x = svgPointCollection[i].ToDeviceValue(UnitRenderingType.Other, null, skOwnerBounds);
+                float y = svgPointCollection[i + 1].ToDeviceValue(UnitRenderingType.Other, null, skOwnerBounds);
                 skPoints[i / 2] = new SKPoint(x, y);
             }
 
@@ -204,19 +335,19 @@ namespace Svg.Skia
             return skPath;
         }
 
-        public static SKPath? ToSKPath(SvgRectangle svgRectangle, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        public static SKPath? ToSKPath(SvgRectangle svgRectangle, SvgFillRule svgFillRule, SKRect skOwnerBounds, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
                 FillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding
             };
 
-            float x = svgRectangle.X.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
-            float y = svgRectangle.Y.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
-            float width = svgRectangle.Width.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
-            float height = svgRectangle.Height.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
-            float rx = svgRectangle.CornerRadiusX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgRectangle);
-            float ry = svgRectangle.CornerRadiusY.ToDeviceValue(null, UnitRenderingType.Vertical, svgRectangle);
+            float x = svgRectangle.X.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skOwnerBounds);
+            float y = svgRectangle.Y.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skOwnerBounds);
+            float width = svgRectangle.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skOwnerBounds);
+            float height = svgRectangle.Height.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skOwnerBounds);
+            float rx = svgRectangle.CornerRadiusX.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skOwnerBounds);
+            float ry = svgRectangle.CornerRadiusY.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skOwnerBounds);
 
             if (width <= 0f || height <= 0f || rx < 0f || ry < 0f)
             {
@@ -258,16 +389,16 @@ namespace Svg.Skia
             return skPath;
         }
 
-        public static SKPath? ToSKPath(SvgCircle svgCircle, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        public static SKPath? ToSKPath(SvgCircle svgCircle, SvgFillRule svgFillRule, SKRect skOwnerBounds, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
                 FillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding
             };
 
-            float cx = svgCircle.CenterX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgCircle);
-            float cy = svgCircle.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgCircle);
-            float radius = svgCircle.Radius.ToDeviceValue(null, UnitRenderingType.Other, svgCircle);
+            float cx = svgCircle.CenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgCircle, skOwnerBounds);
+            float cy = svgCircle.CenterY.ToDeviceValue(UnitRenderingType.Vertical, svgCircle, skOwnerBounds);
+            float radius = svgCircle.Radius.ToDeviceValue(UnitRenderingType.Other, svgCircle, skOwnerBounds);
 
             if (radius <= 0f)
             {
@@ -281,17 +412,17 @@ namespace Svg.Skia
             return skPath;
         }
 
-        public static SKPath? ToSKPath(SvgEllipse svgEllipse, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        public static SKPath? ToSKPath(SvgEllipse svgEllipse, SvgFillRule svgFillRule, SKRect skOwnerBounds, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
                 FillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding
             };
 
-            float cx = svgEllipse.CenterX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgEllipse);
-            float cy = svgEllipse.CenterY.ToDeviceValue(null, UnitRenderingType.Vertical, svgEllipse);
-            float rx = svgEllipse.RadiusX.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
-            float ry = svgEllipse.RadiusY.ToDeviceValue(null, UnitRenderingType.Other, svgEllipse);
+            float cx = svgEllipse.CenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgEllipse, skOwnerBounds);
+            float cy = svgEllipse.CenterY.ToDeviceValue(UnitRenderingType.Vertical, svgEllipse, skOwnerBounds);
+            float rx = svgEllipse.RadiusX.ToDeviceValue(UnitRenderingType.Other, svgEllipse, skOwnerBounds);
+            float ry = svgEllipse.RadiusY.ToDeviceValue(UnitRenderingType.Other, svgEllipse, skOwnerBounds);
 
             if (rx <= 0f || ry <= 0f)
             {
@@ -307,17 +438,17 @@ namespace Svg.Skia
             return skPath;
         }
 
-        public static SKPath? ToSKPath(SvgLine svgLine, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        public static SKPath? ToSKPath(SvgLine svgLine, SvgFillRule svgFillRule, SKRect skOwnerBounds, CompositeDisposable disposable)
         {
             var skPath = new SKPath()
             {
                 FillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding
             };
 
-            float x0 = svgLine.StartX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgLine);
-            float y0 = svgLine.StartY.ToDeviceValue(null, UnitRenderingType.Vertical, svgLine);
-            float x1 = svgLine.EndX.ToDeviceValue(null, UnitRenderingType.Horizontal, svgLine);
-            float y1 = svgLine.EndY.ToDeviceValue(null, UnitRenderingType.Vertical, svgLine);
+            float x0 = svgLine.StartX.ToDeviceValue(UnitRenderingType.Horizontal, svgLine, skOwnerBounds);
+            float y0 = svgLine.StartY.ToDeviceValue(UnitRenderingType.Vertical, svgLine, skOwnerBounds);
+            float x1 = svgLine.EndX.ToDeviceValue(UnitRenderingType.Horizontal, svgLine, skOwnerBounds);
+            float y1 = svgLine.EndY.ToDeviceValue(UnitRenderingType.Vertical, svgLine, skOwnerBounds);
 
             skPath.MoveTo(x0, y0);
             skPath.LineTo(x1, y1);
@@ -398,7 +529,7 @@ namespace Svg.Skia
                     new SvgUnit(SvgUnitType.User, svgUnit.Value / 100) : svgUnit;
         }
 
-        public static SKPathEffect? CreateDash(SvgElement svgElement)
+        public static SKPathEffect? CreateDash(SvgElement svgElement, SKRect skBounds)
         {
             var strokeDashArray = svgElement.StrokeDashArray;
             var count = strokeDashArray.Count;
@@ -410,7 +541,7 @@ namespace Svg.Skia
                 float[] intervals = new float[isOdd ? count * 2 : count];
                 for (int i = 0; i < count; i++)
                 {
-                    var dash = strokeDashArray[i].ToDeviceValue(null, UnitRenderingType.Other, svgElement);
+                    var dash = strokeDashArray[i].ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds);
                     if (dash < 0f)
                     {
                         return null;
@@ -431,7 +562,7 @@ namespace Svg.Skia
                     return null;
                 }
 
-                float phase = svgElement.StrokeDashOffset != null ? svgElement.StrokeDashOffset.ToDeviceValue(null, UnitRenderingType.Other, svgElement) : 0f;
+                float phase = svgElement.StrokeDashOffset != null ? svgElement.StrokeDashOffset.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) : 0f;
 
                 return SKPathEffect.CreateDash(intervals, phase);
             }
@@ -441,7 +572,7 @@ namespace Svg.Skia
 
         public static void GetStops(
             SvgGradientServer svgGradientServer,
-            SKSize skSize,
+            SKRect skBounds,
             List<SKColor> colors,
             List<float> colorPos,
             SvgVisualElement svgVisualElement,
@@ -455,8 +586,9 @@ namespace Svg.Skia
                     {
                         var stopOpacity = AdjustSvgOpacity(svgGradientStop.StopOpacity);
                         var stopColor = GetColor(stopColorSvgColourServer, opacity * stopOpacity, false);
-                        float offset = svgGradientStop.Offset.ToDeviceValue(null, UnitRenderingType.Horizontal, svgGradientServer);
-                        offset /= skSize.Width;
+                        float offset = svgGradientStop.Offset.ToDeviceValue(UnitRenderingType.Horizontal, svgGradientServer, skBounds);
+                        offset /= skBounds.Width;
+                        offset = (float)Math.Round(offset, 1, MidpointRounding.AwayFromZero);
                         colors.Add(stopColor);
                         colorPos.Add(offset);
                     }
@@ -466,32 +598,33 @@ namespace Svg.Skia
             var inheritGradient = SvgDeferredPaintServer.TryGet<SvgGradientServer>(svgGradientServer.InheritGradient, svgVisualElement);
             if (colors.Count == 0 && inheritGradient != null)
             {
-                GetStops(inheritGradient, skSize, colors, colorPos, svgVisualElement, opacity);
+                GetStops(inheritGradient, skBounds, colors, colorPos, svgVisualElement, opacity);
             }
         }
 
         public static SKShader CreateLinearGradient(
             SvgLinearGradientServer svgLinearGradientServer,
-            SKSize skSize,
             SKRect skBounds,
             SvgVisualElement svgVisualElement,
             float opacity)
         {
-            var start = SvgUnit.GetDevicePoint(
-                NormalizeSvgUnit(svgLinearGradientServer.X1, svgLinearGradientServer.GradientUnits),
-                NormalizeSvgUnit(svgLinearGradientServer.Y1, svgLinearGradientServer.GradientUnits),
-                null,
-                svgLinearGradientServer);
-            var end = SvgUnit.GetDevicePoint(
-                NormalizeSvgUnit(svgLinearGradientServer.X2, svgLinearGradientServer.GradientUnits),
-                NormalizeSvgUnit(svgLinearGradientServer.Y2, svgLinearGradientServer.GradientUnits),
-                null,
-                svgLinearGradientServer);
+            var normilizedX1 = NormalizeSvgUnit(svgLinearGradientServer.X1, svgLinearGradientServer.GradientUnits);
+            var normilizedY1 = NormalizeSvgUnit(svgLinearGradientServer.Y1, svgLinearGradientServer.GradientUnits);
+            var normilizedX2 = NormalizeSvgUnit(svgLinearGradientServer.X2, svgLinearGradientServer.GradientUnits);
+            var normilizedY2 = NormalizeSvgUnit(svgLinearGradientServer.Y2, svgLinearGradientServer.GradientUnits);
+
+            float x1 = normilizedX1.ToDeviceValue(UnitRenderingType.Horizontal, svgLinearGradientServer, skBounds);
+            float y1 = normilizedY1.ToDeviceValue(UnitRenderingType.Vertical, svgLinearGradientServer, skBounds);
+            float x2 = normilizedX2.ToDeviceValue(UnitRenderingType.Horizontal, svgLinearGradientServer, skBounds);
+            float y2 = normilizedY2.ToDeviceValue(UnitRenderingType.Vertical, svgLinearGradientServer, skBounds);
+
+            var skStart = new SKPoint(x1, y1);
+            var skEnd = new SKPoint(x2, y2);
 
             var colors = new List<SKColor>();
             var colorPos = new List<float>();
 
-            GetStops(svgLinearGradientServer, skSize, colors, colorPos, svgVisualElement, opacity);
+            GetStops(svgLinearGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity);
 
             SKShaderTileMode shaderTileMode;
             switch (svgLinearGradientServer.SpreadMethod)
@@ -508,8 +641,6 @@ namespace Svg.Skia
                     break;
             }
 
-            SKPoint skStart = new SKPoint(start.X, start.Y);
-            SKPoint skEnd = new SKPoint(end.X, end.Y);
             var skColors = colors.ToArray();
             float[] skColorPos = colorPos.ToArray();
 
@@ -561,31 +692,31 @@ namespace Svg.Skia
 
         public static SKShader CreateTwoPointConicalGradient(
             SvgRadialGradientServer svgRadialGradientServer,
-            SKSize skSize,
             SKRect skBounds,
             SvgVisualElement svgVisualElement,
             float opacity)
         {
-            var skStart = new SKPoint(
-                NormalizeSvgUnit(svgRadialGradientServer.CenterX, svgRadialGradientServer.GradientUnits)
-                    .ToDeviceValue(null, UnitRenderingType.Horizontal, svgRadialGradientServer),
-                NormalizeSvgUnit(svgRadialGradientServer.CenterY, svgRadialGradientServer.GradientUnits)
-                    .ToDeviceValue(null, UnitRenderingType.Vertical, svgRadialGradientServer));
-            var startRadius = 0f;
+            var normilizedCenterX = NormalizeSvgUnit(svgRadialGradientServer.CenterX, svgRadialGradientServer.GradientUnits);
+            var normilizedCenterY = NormalizeSvgUnit(svgRadialGradientServer.CenterY, svgRadialGradientServer.GradientUnits);
+            var normilizedFocalX = NormalizeSvgUnit(svgRadialGradientServer.FocalX, svgRadialGradientServer.GradientUnits);
+            var normilizedFocalY = NormalizeSvgUnit(svgRadialGradientServer.FocalY, svgRadialGradientServer.GradientUnits);
+            var normilizedRadius = NormalizeSvgUnit(svgRadialGradientServer.Radius, svgRadialGradientServer.GradientUnits);
 
-            var skEnd = new SKPoint(
-                NormalizeSvgUnit(svgRadialGradientServer.FocalX, svgRadialGradientServer.GradientUnits)
-                    .ToDeviceValue(null, UnitRenderingType.Horizontal, svgRadialGradientServer),
-                NormalizeSvgUnit(svgRadialGradientServer.FocalY, svgRadialGradientServer.GradientUnits)
-                    .ToDeviceValue(null, UnitRenderingType.Vertical, svgRadialGradientServer));
-            var endRadius =
-                NormalizeSvgUnit(svgRadialGradientServer.Radius, svgRadialGradientServer.GradientUnits)
-                    .ToDeviceValue(null, UnitRenderingType.Other, svgRadialGradientServer);
+            float centerX = normilizedCenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
+            float centerY = normilizedCenterY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
+            float focalX = normilizedFocalX.ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
+            float focalY = normilizedFocalY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
+
+            var skStart = new SKPoint(centerX, centerY);
+            var skEnd = new SKPoint(focalX, focalY);
+
+            float startRadius = 0f;
+            float endRadius = normilizedRadius.ToDeviceValue(UnitRenderingType.Other, svgRadialGradientServer, skBounds);
 
             var colors = new List<SKColor>();
             var colorPos = new List<float>();
 
-            GetStops(svgRadialGradientServer, skSize, colors, colorPos, svgVisualElement, opacity);
+            GetStops(svgRadialGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity);
 
             SKShaderTileMode shaderTileMode;
             switch (svgRadialGradientServer.SpreadMethod)
@@ -674,16 +805,16 @@ namespace Svg.Skia
             float opacity)
         {
             var skSize = new SKSize(width, height);
-            var cullRect = SKRect.Create(skSize);
+            var skBounds = SKRect.Create(skSize);
             using (var skPictureRecorder = new SKPictureRecorder())
-            using (var skCanvas = skPictureRecorder.BeginRecording(cullRect))
+            using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
             using (var renderer = new SKSvgRenderer(skCanvas, skSize))
             {
                 skCanvas.SetMatrix(sKMatrix);
                 foreach (var svgElement in svgElementCollection)
                 {
                     // TODO: Adjust opacity for pattern based on fill-opacity and stroke-opacity.
-                    renderer.Draw(svgElement, false);
+                    renderer.Draw(svgElement, skBounds, false);
                 }
                 return skPictureRecorder.EndRecording();
             }
@@ -691,7 +822,6 @@ namespace Svg.Skia
 
         public static SKShader? CreatePicture(
             SvgPatternServer svgPatternServer,
-            SKSize skSize,
             SKRect skBounds,
             SvgVisualElement svgVisualElement,
             float opacity,
@@ -786,10 +916,10 @@ namespace Svg.Skia
             var patternContentUnits = firstPatternContentUnit == null ? SvgCoordinateUnits.UserSpaceOnUse : firstPatternContentUnit.PatternContentUnits;
             var viewBox = firstViewBox == null ? SvgViewBox.Empty : firstViewBox.ViewBox;
 
-            float x = xUnit.ToDeviceValue(null, UnitRenderingType.Horizontal, svgPatternServer);
-            float y = yUnit.ToDeviceValue(null, UnitRenderingType.Vertical, svgPatternServer);
-            float width = widthUnit.ToDeviceValue(null, UnitRenderingType.Horizontal, svgPatternServer);
-            float height = heightUnit.ToDeviceValue(null, UnitRenderingType.Vertical, svgPatternServer);
+            float x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgPatternServer, skBounds);
+            float y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgPatternServer, skBounds);
+            float width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgPatternServer, skBounds);
+            float height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgPatternServer, skBounds);
 
             if (width <= 0 || height <= 0)
             {
@@ -863,7 +993,6 @@ namespace Svg.Skia
 
         public static bool SetFill(
             SvgVisualElement svgVisualElement,
-            SKSize skSize,
             SKRect skBounds,
             SKPaint skPaint,
             CompositeDisposable disposable)
@@ -888,7 +1017,7 @@ namespace Svg.Skia
                     break;
                 case SvgPatternServer svgPatternServer:
                     {
-                        var skShader = CreatePicture(svgPatternServer, skSize, skBounds, svgVisualElement, opacity, disposable);
+                        var skShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, disposable);
                         if (skShader != null)
                         {
                             disposable.Add(skShader);
@@ -926,7 +1055,7 @@ namespace Svg.Skia
                         }
                         else
                         {
-                            var skShader = CreateLinearGradient(svgLinearGradientServer, skSize, skBounds, svgVisualElement, opacity);
+                            var skShader = CreateLinearGradient(svgLinearGradientServer, skBounds, svgVisualElement, opacity);
                             if (skShader != null)
                             {
                                 disposable.Add(skShader);
@@ -956,7 +1085,7 @@ namespace Svg.Skia
                         }
                         else
                         {
-                            var skShader = CreateTwoPointConicalGradient(svgRadialGradientServer, skSize, skBounds, svgVisualElement, opacity);
+                            var skShader = CreateTwoPointConicalGradient(svgRadialGradientServer, skBounds, svgVisualElement, opacity);
                             if (skShader != null)
                             {
                                 disposable.Add(skShader);
@@ -978,7 +1107,6 @@ namespace Svg.Skia
 
         public static bool SetStroke(
             SvgVisualElement svgVisualElement,
-            SKSize skSize,
             SKRect skBounds,
             SKPaint skPaint,
             CompositeDisposable disposable)
@@ -1003,7 +1131,7 @@ namespace Svg.Skia
                     break;
                 case SvgPatternServer svgPatternServer:
                     {
-                        var skShader = CreatePicture(svgPatternServer, skSize, skBounds, svgVisualElement, opacity, disposable);
+                        var skShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, disposable);
                         if (skShader != null)
                         {
                             disposable.Add(skShader);
@@ -1041,7 +1169,7 @@ namespace Svg.Skia
                         }
                         else
                         {
-                            var skShader = CreateLinearGradient(svgLinearGradientServer, skSize, skBounds, svgVisualElement, opacity);
+                            var skShader = CreateLinearGradient(svgLinearGradientServer, skBounds, svgVisualElement, opacity);
                             if (skShader != null)
                             {
                                 disposable.Add(skShader);
@@ -1071,7 +1199,7 @@ namespace Svg.Skia
                         }
                         else
                         {
-                            var skShader = CreateTwoPointConicalGradient(svgRadialGradientServer, skSize, skBounds, svgVisualElement, opacity);
+                            var skShader = CreateTwoPointConicalGradient(svgRadialGradientServer, skBounds, svgVisualElement, opacity);
                             if (skShader != null)
                             {
                                 disposable.Add(skShader);
@@ -1091,9 +1219,9 @@ namespace Svg.Skia
             return true;
         }
 
-        public static void SetDash(SvgVisualElement svgVisualElement, SKPaint skPaint, CompositeDisposable disposable)
+        public static void SetDash(SvgVisualElement svgVisualElement, SKPaint skPaint, SKRect skBounds, CompositeDisposable disposable)
         {
-            var skPathEffect = CreateDash(svgVisualElement);
+            var skPathEffect = CreateDash(svgVisualElement, skBounds);
             if (skPathEffect != null)
             {
                 disposable.Add(skPathEffect);
@@ -1260,11 +1388,7 @@ namespace Svg.Skia
                 && svgElement.StrokeWidth > 0f;
         }
 
-        public static SKPaint GetFillSKPaint(
-            SvgVisualElement svgVisualElement,
-            SKSize skSize,
-            SKRect skBounds,
-            CompositeDisposable disposable)
+        public static SKPaint GetFillSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable)
         {
             var skPaint = new SKPaint()
             {
@@ -1275,7 +1399,7 @@ namespace Svg.Skia
 
             // TODO: Set all SKPaint properties from SvgElementStyle
 
-            SetFill(svgVisualElement, skSize, skBounds, skPaint, disposable);
+            SetFill(svgVisualElement, skBounds, skPaint, disposable);
 
             // TODO: Set all SKPaint properties from SvgVisualElement
 
@@ -1292,11 +1416,7 @@ namespace Svg.Skia
             return skPaint;
         }
 
-        public static SKPaint GetStrokeSKPaint(
-            SvgVisualElement svgVisualElement,
-            SKSize skSize,
-            SKRect skBounds,
-            CompositeDisposable disposable)
+        public static SKPaint GetStrokeSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable)
         {
             var skPaint = new SKPaint()
             {
@@ -1307,7 +1427,7 @@ namespace Svg.Skia
 
             // TODO: Set all SKPaint properties from SvgElementStyle
 
-            SetStroke(svgVisualElement, skSize, skBounds, skPaint, disposable);
+            SetStroke(svgVisualElement, skBounds, skPaint, disposable);
 
             switch (svgVisualElement.StrokeLineCap)
             {
@@ -1337,11 +1457,11 @@ namespace Svg.Skia
 
             skPaint.StrokeMiter = svgVisualElement.StrokeMiterLimit;
 
-            skPaint.StrokeWidth = svgVisualElement.StrokeWidth.ToDeviceValue(null, UnitRenderingType.Other, svgVisualElement);
+            skPaint.StrokeWidth = svgVisualElement.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgVisualElement, skBounds);
 
             if (svgVisualElement.StrokeDashArray != null)
             {
-                SetDash(svgVisualElement, skPaint, disposable);
+                SetDash(svgVisualElement, skPaint, skBounds, disposable);
             }
 
             // TODO: Set all SKPaint properties from SvgVisualElement
@@ -1361,7 +1481,6 @@ namespace Svg.Skia
 
         public static void SetSKPaintText(
             SvgTextBase svgText,
-            SKSize skSize,
             SKRect skBounds,
             SKPaint skPaint,
             CompositeDisposable disposable)
@@ -1405,7 +1524,7 @@ namespace Svg.Skia
             }
             else
             {
-                fontSize = fontSizeUnit.ToDeviceValue(null, UnitRenderingType.Vertical, svgText);
+                fontSize = fontSizeUnit.ToDeviceValue(UnitRenderingType.Vertical, svgText, skBounds);
             }
             skPaint.TextSize = fontSize;
 
@@ -1774,7 +1893,7 @@ namespace Svg.Skia
                 case SvgRectangle svgRectangle:
                     {
                         var fillRule = (svgRectangle.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
-                        var skPath = ToSKPath(svgRectangle, fillRule, disposable);
+                        var skPath = ToSKPath(svgRectangle, fillRule, skBounds, disposable);
                         if (skPath != null && !skPath.IsEmpty)
                         {
                             var skMatrix = GetSKMatrix(svgRectangle.Transforms);
@@ -1795,7 +1914,7 @@ namespace Svg.Skia
                 case SvgCircle svgCircle:
                     {
                         var fillRule = (svgCircle.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
-                        var skPath = ToSKPath(svgCircle, fillRule, disposable);
+                        var skPath = ToSKPath(svgCircle, fillRule, skBounds, disposable);
                         if (skPath != null && !skPath.IsEmpty)
                         {
                             var skMatrix = GetSKMatrix(svgCircle.Transforms);
@@ -1816,7 +1935,7 @@ namespace Svg.Skia
                 case SvgEllipse svgEllipse:
                     {
                         var fillRule = (svgEllipse.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
-                        var skPath = ToSKPath(svgEllipse, fillRule, disposable);
+                        var skPath = ToSKPath(svgEllipse, fillRule, skBounds, disposable);
                         if (skPath != null && !skPath.IsEmpty)
                         {
                             var skMatrix = GetSKMatrix(svgEllipse.Transforms);
@@ -1837,7 +1956,7 @@ namespace Svg.Skia
                 case SvgLine svgLine:
                     {
                         var fillRule = (svgLine.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
-                        var skPath = ToSKPath(svgLine, fillRule, disposable);
+                        var skPath = ToSKPath(svgLine, fillRule, skBounds, disposable);
                         if (skPath != null && !skPath.IsEmpty)
                         {
                             var skMatrix = GetSKMatrix(svgLine.Transforms);
@@ -1858,7 +1977,7 @@ namespace Svg.Skia
                 case SvgPolyline svgPolyline:
                     {
                         var fillRule = (svgPolyline.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
-                        var skPath = ToSKPath(svgPolyline.Points, fillRule, false, disposable);
+                        var skPath = ToSKPath(svgPolyline.Points, fillRule, false, skBounds, disposable);
                         if (skPath != null && !skPath.IsEmpty)
                         {
                             var skMatrix = GetSKMatrix(svgPolyline.Transforms);
@@ -1879,7 +1998,7 @@ namespace Svg.Skia
                 case SvgPolygon svgPolygon:
                     {
                         var fillRule = (svgPolygon.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
-                        var skPath = ToSKPath(svgPolygon.Points, fillRule, true, disposable);
+                        var skPath = ToSKPath(svgPolygon.Points, fillRule, true, skBounds, disposable);
                         if (skPath != null && !skPath.IsEmpty)
                         {
                             var skMatrix = GetSKMatrix(svgPolygon.Transforms);
