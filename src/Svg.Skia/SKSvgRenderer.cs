@@ -47,7 +47,14 @@ namespace Svg.Skia
                     break;
 #endif
                 case SvgFragment svgFragment:
+#if USE_DRAWABLES
+                    {
+                        var drawable = new FragmentDrawable(svgFragment, skOwnerBounds, ignoreDisplay);
+                        drawable.Draw(_skCanvas, 0f, 0f);
+                    }
+#else
                     DrawFragment(svgFragment, skOwnerBounds, ignoreDisplay);
+#endif
                     break;
                 case SvgImage svgImage:
                     DrawImage(svgImage, skOwnerBounds, ignoreDisplay);
