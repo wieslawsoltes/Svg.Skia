@@ -9,10 +9,8 @@ using Svg.Document_Structure;
 
 namespace Svg.Skia
 {
-    internal class SymbolDrawable : BaseDrawable
+    internal class SymbolDrawable : ChildBaseDrawable
     {
-        internal List<BaseDrawable> _childrenDrawable = new List<BaseDrawable>();
-
         public SymbolDrawable(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, bool ignoreDisplay)
         {
             _ignoreDisplay = ignoreDisplay;
@@ -107,57 +105,6 @@ namespace Svg.Skia
             {
                 _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgSymbol, _skBounds, _disposable);
             }
-        }
-
-        protected override void OnDraw(SKCanvas canvas)
-        {
-            if (!_canDraw)
-            {
-                return;
-            }
-
-            canvas.Save();
-
-            if (_skClipRect != null)
-            {
-                canvas.ClipRect(_skClipRect.Value, SKClipOperation.Intersect); 
-            }
-
-            var skMatrixTotal = canvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref _skMatrix);
-            canvas.SetMatrix(skMatrixTotal);
-
-            if (_skPathClip != null && !_skPathClip.IsEmpty)
-            {
-                canvas.ClipPath(_skPathClip, SKClipOperation.Intersect, _antialias);
-            }
-
-            if (_skPaintOpacity != null)
-            {
-                canvas.SaveLayer(_skPaintOpacity);
-            }
-
-            if (_skPaintFilter != null)
-            {
-                canvas.SaveLayer(_skPaintFilter);
-            }
-
-            foreach (var drawable in _childrenDrawable)
-            {
-                drawable.Draw(canvas, 0f, 0f);
-            }
-
-            if (_skPaintFilter != null)
-            {
-                canvas.Restore();
-            }
-
-            if (_skPaintOpacity != null)
-            {
-                canvas.Restore();
-            }
-
-            canvas.Restore();
         }
     }
 }
