@@ -67,7 +67,7 @@ namespace Svg.Skia
 
             if (svgFragment != null)
             {
-                var skSize = SkiaUtil.GetDimensions(svgFragment);
+                var skSize = SvgExtensions.GetDimensions(svgFragment);
                 srcRect = SKRect.Create(0f, 0f, skSize.Width, skSize.Height);
             }
 
