@@ -17,19 +17,19 @@ namespace Svg.Skia
 #endif
                 SvgFragment svgFragment => new FragmentDrawable(svgFragment, skOwnerBounds, ignoreDisplay),
                 SvgImage svgImage => new ImageDrawable(svgImage, skOwnerBounds, ignoreDisplay),
-                SvgSwitch svgSwitch => new SwitchDrawable(/* TODO: */),
+                SvgSwitch svgSwitch => new SwitchDrawable(svgSwitch, skOwnerBounds, ignoreDisplay),
                 SvgUse svgUse => new UseDrawable(svgUse, skOwnerBounds, ignoreDisplay),
-                SvgForeignObject svgForeignObject => new ForeignObjectDrawable(/* TODO: */),
+                SvgForeignObject svgForeignObject => new ForeignObjectDrawable(svgForeignObject, skOwnerBounds, ignoreDisplay),
                 SvgCircle svgCircle => new CircleDrawable(svgCircle, skOwnerBounds, ignoreDisplay),
                 SvgEllipse svgEllipse => new EllipseDrawable(svgEllipse, skOwnerBounds, ignoreDisplay),
                 SvgRectangle svgRectangle => new RectangleDrawable(svgRectangle, skOwnerBounds, ignoreDisplay),
-                SvgGlyph svgGlyph => new GlyphDrawable(/* TODO: */),
+                SvgGlyph svgGlyph => new GlyphDrawable(svgGlyph, skOwnerBounds, ignoreDisplay),
                 SvgGroup svgGroup => new GroupDrawable(svgGroup, skOwnerBounds, ignoreDisplay),
                 SvgLine svgLine => new LineDrawable(svgLine, skOwnerBounds, ignoreDisplay),
                 SvgPath svgPath => new PathDrawable(svgPath, skOwnerBounds, ignoreDisplay),
                 SvgPolyline svgPolyline => new PolylineDrawable(svgPolyline, skOwnerBounds, ignoreDisplay),
                 SvgPolygon svgPolygon => new PolygonDrawable(svgPolygon, skOwnerBounds, ignoreDisplay),
-                SvgText svgText => new TextDrawable(/* TODO: */),
+                SvgText svgText => new TextDrawable(svgText, skOwnerBounds, ignoreDisplay),
                 _ => null,
             };
         }
