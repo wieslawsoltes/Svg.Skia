@@ -15,7 +15,7 @@ namespace Svg.Skia
 
             float x = svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skOwnerBounds);
             float y = svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skOwnerBounds);
-            var skSize = SkiaUtil.GetDimensions(svgFragment);
+            var skSize = SvgExtensions.GetDimensions(svgFragment);
 
             switch (svgFragment.Overflow)
             {
