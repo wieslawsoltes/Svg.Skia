@@ -885,7 +885,7 @@ namespace Svg.Skia
         {
             float x = svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skOwnerBounds);
             float y = svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skOwnerBounds);
-            var skSize = SkiaUtil.GetDimensions(svgFragment);
+            var skSize = SvgExtensions.GetDimensions(svgFragment);
 
             _skCanvas.Save();
 
@@ -974,7 +974,7 @@ namespace Svg.Skia
 
             if (svgFragment != null)
             {
-                var skSize = SkiaUtil.GetDimensions(svgFragment);
+                var skSize = SvgExtensions.GetDimensions(svgFragment);
                 srcRect = SKRect.Create(0f, 0f, skSize.Width, skSize.Height);
             }
 
