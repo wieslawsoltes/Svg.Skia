@@ -43,7 +43,7 @@ namespace Svg.Skia
             {
 #if SVG_ANCHOR
                 case SvgAnchor svgAnchor:
-                    DrawAnchor(svgAnchor, ignoreDisplay);
+                    DrawAnchor(svgAnchor, skOwnerBounds, ignoreDisplay);
                     break;
 #endif
                 case SvgFragment svgFragment:
