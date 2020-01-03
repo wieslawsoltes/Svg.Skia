@@ -57,7 +57,14 @@ namespace Svg.Skia
 #endif
                     break;
                 case SvgImage svgImage:
+#if USE_DRAWABLES
+                    {
+                        var drawable = new ImageDrawable(svgImage, skOwnerBounds, ignoreDisplay);
+                        drawable.Draw(_skCanvas, 0f, 0f);
+                    }
+#else
                     DrawImage(svgImage, skOwnerBounds, ignoreDisplay);
+#endif
                     break;
                 case SvgSwitch svgSwitch:
                     DrawSwitch(svgSwitch, skOwnerBounds, ignoreDisplay);
