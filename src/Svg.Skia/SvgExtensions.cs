@@ -122,6 +122,7 @@ namespace Svg.Skia
                         case UnitRenderingType.VerticalOffset:
                             _deviceValue = (size.Height / 100) * value + skBounds.Location.Y;
                             break;
+                        default:
                         case UnitRenderingType.Other:
                             // Calculate a percentage value of the normalized viewBox diagonal length. 
                             if (owner?.OwnerDocument != null && owner.OwnerDocument.ViewBox != null && owner.OwnerDocument.ViewBox.Width != 0 && owner.OwnerDocument.ViewBox.Height != 0)
