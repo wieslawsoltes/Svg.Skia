@@ -68,11 +68,13 @@ namespace Svg.Skia
                 return _deviceValue.Value;
             }
 
-            //float points;
+            float points;
 
             switch (type)
             {
                 case SvgUnitType.Em:
+                    points = (float)(value * 9);
+                    _deviceValue = (points / 72.0f) * ppi;
                     // TODO:
                     //using (var currFont = GetFont(renderer, owner))
                     //{
@@ -88,6 +90,8 @@ namespace Svg.Skia
                     //}
                     break;
                 case SvgUnitType.Ex:
+                    points = (float)(value * 9);
+                    _deviceValue = (points * 0.5f / 72.0f) * ppi;
                     // TODO:
                     //using (var currFont = GetFont(renderer, owner))
                     //{
@@ -102,6 +106,7 @@ namespace Svg.Skia
                     //    }
                     //    break;
                     //}
+                    break;
                 case SvgUnitType.Centimeter:
                     _deviceValue = (float)((value / cmInInch) * ppi);
                     break;
