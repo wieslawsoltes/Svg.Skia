@@ -36,47 +36,6 @@ namespace Svg.Skia
 
         private const string MimeTypeSvg = "image/svg+xml";
 
-        public static SKSize GetDimensions(SvgFragment svgFragment)
-        {
-            float w, h;
-            var isWidthperc = svgFragment.Width.Type == SvgUnitType.Percentage;
-            var isHeightperc = svgFragment.Height.Type == SvgUnitType.Percentage;
-
-            var bounds = new SKRect();
-            if (isWidthperc || isHeightperc)
-            {
-                if (svgFragment.ViewBox.Width > 0 && svgFragment.ViewBox.Height > 0)
-                {
-                    bounds = new SKRect(svgFragment.ViewBox.MinX, svgFragment.ViewBox.MinY, svgFragment.ViewBox.Width, svgFragment.ViewBox.Height);
-                }
-                else
-                {
-                    // TODO: Calculate correct bounds using Children bounds.
-                }
-            }
-
-            if (isWidthperc)
-            {
-                w = (bounds.Width + bounds.Left) * (svgFragment.Width.Value * 0.01f);
-            }
-            else
-            {
-                // NOTE: // Pass bounds as SKRect.Empty because percentage case is handled before.
-                w = svgFragment.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, SKRect.Empty);
-            }
-            if (isHeightperc)
-            {
-                h = (bounds.Height + bounds.Top) * (svgFragment.Height.Value * 0.01f);
-            }
-            else
-            {
-                // NOTE: // Pass bounds as SKRect.Empty because percentage case is handled before.
-                h = svgFragment.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, SKRect.Empty);
-            }
-
-            return new SKSize(w, h);
-        }
-
         public static SKColor GetColor(SvgColourServer svgColourServer, float opacity, bool forStroke = false)
         {
             if (svgColourServer == SvgPaintServer.None)
