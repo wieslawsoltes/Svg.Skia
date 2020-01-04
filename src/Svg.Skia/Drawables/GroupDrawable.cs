@@ -20,7 +20,8 @@ namespace Svg.Skia
                 return;
             }
 
-            // TODO: Call AddMarkers.
+            // TODO: Call AddMarkers only once.
+            AddMarkers(svgGroup);
 
             foreach (var svgElement in svgGroup.Children)
             {
@@ -66,6 +67,61 @@ namespace Svg.Skia
             if (SkiaUtil.IsValidStroke(svgGroup, _skBounds))
             {
                 _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgGroup, _skBounds, _disposable);
+            }
+        }
+
+        internal void AddMarkers(SvgGroup svgGroup)
+        {
+            Uri? marker = null;
+            // TODO: The marker can not be set as presentation attribute.
+            //if (svgGroup.TryGetAttribute("marker", out string markerUrl))
+            //{
+            //    marker = new Uri(markerUrl, UriKind.RelativeOrAbsolute);
+            //}
+
+            if (svgGroup.MarkerStart == null && svgGroup.MarkerMid == null && svgGroup.MarkerEnd == null && marker == null)
+            {
+                return;
+            }
+
+            foreach (var svgElement in svgGroup.Children)
+            {
+                if (svgElement is SvgMarkerElement svgMarkerElement)
+                {
+                    if (svgMarkerElement.MarkerStart == null)
+                    {
+                        if (svgGroup.MarkerStart != null)
+                        {
+                            svgMarkerElement.MarkerStart = svgGroup.MarkerStart;
+                        }
+                        else if (marker != null)
+                        {
+                            svgMarkerElement.MarkerStart = marker;
+                        }
+                    }
+                    if (svgMarkerElement.MarkerMid == null)
+                    {
+                        if (svgGroup.MarkerMid != null)
+                        {
+                            svgMarkerElement.MarkerMid = svgGroup.MarkerMid;
+                        }
+                        else if (marker != null)
+                        {
+                            svgMarkerElement.MarkerMid = marker;
+                        }
+                    }
+                    if (svgMarkerElement.MarkerEnd == null)
+                    {
+                        if (svgGroup.MarkerEnd != null)
+                        {
+                            svgMarkerElement.MarkerEnd = svgGroup.MarkerEnd;
+                        }
+                        else if (marker != null)
+                        {
+                            svgMarkerElement.MarkerEnd = marker;
+                        }
+                    }
+                }
             }
         }
     }
