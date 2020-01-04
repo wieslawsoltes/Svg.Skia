@@ -55,10 +55,6 @@ namespace Svg.Skia
 
         public static SvgDocument? OpenSvg(string path)
         {
-            if (!File.Exists(path))
-            {
-                return null;
-            }
             var svgDocument = SvgDocument.Open<SvgDocument>(path, null);
             if (svgDocument != null)
             {
@@ -70,10 +66,6 @@ namespace Svg.Skia
 
         public static SvgDocument? OpenSvgz(string path)
         {
-            if (!File.Exists(path))
-            {
-                return null;
-            }
             using (var fileStream = File.OpenRead(path))
             using (var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress))
             using (var memoryStream = new MemoryStream())
