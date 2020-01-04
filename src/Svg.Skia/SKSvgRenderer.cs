@@ -16,7 +16,7 @@ namespace Svg.Skia
         private readonly SKCanvas _skCanvas;
         private readonly CompositeDisposable _disposable;
 
-        public SKSvgRenderer(SKCanvas skCanvas, SKSize skSize)
+        public SKSvgRenderer(SKCanvas skCanvas)
         {
             _skCanvas = skCanvas;
             _disposable = new CompositeDisposable();
