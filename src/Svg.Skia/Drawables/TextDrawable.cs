@@ -4,6 +4,10 @@
 // Parts of this source file are adapted from the https://github.com/vvvv/SVG
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using SkiaSharp;
 
 namespace Svg.Skia
@@ -20,6 +24,39 @@ namespace Svg.Skia
             _svgText = svgText;
             _skOwnerBounds = skOwnerBounds;
             _ignoreDisplay = ignoreDisplay;
+        }
+
+        internal virtual IEnumerable<ISvgNode> GetContentNodes(SvgTextBase svgTextBase)
+        {
+            return svgTextBase.Nodes == null || svgTextBase.Nodes.Count < 1 ?
+                svgTextBase.Children.OfType<ISvgNode>().Where(o => !(o is ISvgDescriptiveElement)) :
+                svgTextBase.Nodes;
+        }
+
+        private static readonly Regex MultipleSpaces = new Regex(@" {2,}", RegexOptions.Compiled);
+
+        protected string PrepareText(SvgTextBase svgTextBase, string value)
+        {
+            value = ApplyTransformation(svgTextBase, value);
+            value = new StringBuilder(value).Replace("\r\n", " ").Replace('\r', ' ').Replace('\n', ' ').Replace('\t', ' ').ToString();
+            return svgTextBase.SpaceHandling == XmlSpaceHandling.preserve ? value : MultipleSpaces.Replace(value.Trim(), " ");
+        }
+
+        private string ApplyTransformation(SvgTextBase svgTextBase, string value)
+        {
+            switch (svgTextBase.TextTransformation)
+            {
+                case SvgTextTransformation.Capitalize:
+                    return value.ToUpper();
+
+                case SvgTextTransformation.Uppercase:
+                    return value.ToUpper();
+
+                case SvgTextTransformation.Lowercase:
+                    return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value);
+            }
+
+            return value;
         }
 
         internal void DrawTextPath(SvgTextPath svgTextPath, SKRect skOwnerBounds, bool ignoreDisplay, SKCanvas _skCanvas)
@@ -88,10 +125,10 @@ namespace Svg.Skia
 
             if (isValidFill || isValidStroke)
             {
-                var text = svgTextPath.Text?.Trim();
-
-                if (!string.IsNullOrEmpty(text))
+                if (!string.IsNullOrEmpty(svgTextPath.Text))
                 {
+                    var text = PrepareText(svgTextPath, svgTextPath.Text);
+
                     if (SkiaUtil.IsValidFill(svgTextPath))
                     {
                         var skPaint = SkiaUtil.GetFillSKPaint(svgTextPath, skBounds, _disposable);
@@ -170,6 +207,11 @@ namespace Svg.Skia
             }
 
             // TODO: Draw svgReferencedText
+            if (!string.IsNullOrEmpty(svgReferencedText.Text))
+            {
+                var text = PrepareText(svgReferencedText, svgReferencedText.Text);
+                DrawTextBase(svgReferencedText, svgReferencedText.Text, skOwnerBounds, _skCanvas);
+            }
 
             if (skPaintFilter != null)
             {
@@ -222,7 +264,11 @@ namespace Svg.Skia
             }
 
             // TODO: Implement SvgTextSpan drawing.
-            DrawTextBase(svgTextSpan, skOwnerBounds, _skCanvas);
+            if (!string.IsNullOrEmpty(svgTextSpan.Text))
+            {
+                var text = PrepareText(svgTextSpan, svgTextSpan.Text);
+                DrawTextBase(svgTextSpan, svgTextSpan.Text, skOwnerBounds, _skCanvas);
+            }
 
             if (skPaintFilter != null)
             {
@@ -257,12 +303,11 @@ namespace Svg.Skia
             }
         }
 
-        internal void DrawTextBase(SvgTextBase svgTextBase, SKRect skOwnerBounds, SKCanvas _skCanvas)
+        internal void DrawTextBase(SvgTextBase svgTextBase, string? text, SKRect skOwnerBounds, SKCanvas _skCanvas)
         {
             // TODO: Fix SvgTextBase rendering.
             bool isValidFill = SkiaUtil.IsValidFill(svgTextBase);
             bool isValidStroke = SkiaUtil.IsValidStroke(svgTextBase, skOwnerBounds);
-            string? text = svgTextBase.Text?.Trim();
 
             if ((isValidFill || isValidStroke) && text != null && !string.IsNullOrEmpty(text))
             {
@@ -369,23 +414,36 @@ namespace Svg.Skia
                 _skCanvas.SaveLayer(skPaintFilter);
             }
 
-            DrawTextBase(svgText, skOwnerBounds, _skCanvas);
+            var nodes = GetContentNodes(svgText);
 
-            foreach (var svgElement in svgText.Children)
+            foreach (var node in nodes)
             {
-                switch (svgElement)
+                var textNode = node as SvgTextBase;
+
+                if (textNode == null)
                 {
-                    case SvgTextPath svgTextPath:
-                        DrawTextPath(svgTextPath, skOwnerBounds, ignoreDisplay, _skCanvas);
-                        break;
-                    case SvgTextRef svgTextRef:
-                        DrawTextRef(svgTextRef, skOwnerBounds, ignoreDisplay, _skCanvas);
-                        break;
-                    case SvgTextSpan svgTextSpan:
-                        DrawTextSpan(svgTextSpan, skOwnerBounds, ignoreDisplay, _skCanvas);
-                        break;
-                    default:
-                        break;
+                    if (!string.IsNullOrEmpty(node.Content))
+                    {
+                        var text = PrepareText(svgText, node.Content);
+                        DrawTextBase(svgText, text, skOwnerBounds, _skCanvas);
+                    }
+                }
+                else
+                {
+                    switch (textNode)
+                    {
+                        case SvgTextPath svgTextPath:
+                            DrawTextPath(svgTextPath, skOwnerBounds, ignoreDisplay, _skCanvas);
+                            break;
+                        case SvgTextRef svgTextRef:
+                            DrawTextRef(svgTextRef, skOwnerBounds, ignoreDisplay, _skCanvas);
+                            break;
+                        case SvgTextSpan svgTextSpan:
+                            DrawTextSpan(svgTextSpan, skOwnerBounds, ignoreDisplay, _skCanvas);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
 
