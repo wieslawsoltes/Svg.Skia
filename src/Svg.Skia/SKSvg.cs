@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 using System;
 using System.IO;
+using System.IO.Compression;
 using SkiaSharp;
 
 namespace Svg.Skia
@@ -38,7 +39,7 @@ namespace Svg.Skia
     {
         public static SvgDocument? OpenSvg(string path)
         {
-            if (!System.IO.File.Exists(path))
+            if (!File.Exists(path))
             {
                 return null;
             }
@@ -53,12 +54,12 @@ namespace Svg.Skia
 
         public static SvgDocument? OpenSvgz(string path)
         {
-            if (!System.IO.File.Exists(path))
+            if (!File.Exists(path))
             {
                 return null;
             }
-            using (var fileStream = System.IO.File.OpenRead(path))
-            using (var gzipStream = new System.IO.Compression.GZipStream(fileStream, System.IO.Compression.CompressionMode.Decompress))
+            using (var fileStream = File.OpenRead(path))
+            using (var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress))
             using (var memoryStream = new MemoryStream())
             {
                 gzipStream.CopyTo(memoryStream);
@@ -76,7 +77,7 @@ namespace Svg.Skia
 
         public static SvgDocument? Open(string path)
         {
-            var extension = System.IO.Path.GetExtension(path);
+            var extension = Path.GetExtension(path);
             switch (extension.ToLower())
             {
                 default:
@@ -219,7 +220,7 @@ namespace Svg.Skia
         {
             if (Picture != null)
             {
-                using (var stream = System.IO.File.OpenWrite(path))
+                using (var stream = File.OpenWrite(path))
                 {
                     return Save(stream, Picture, background, format, quality, scaleX, scaleY);
                 }
