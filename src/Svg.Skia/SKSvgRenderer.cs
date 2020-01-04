@@ -464,54 +464,7 @@ namespace Svg.Skia
 
         public void DrawSwitch(SvgSwitch svgSwitch, SKRect skOwnerBounds, bool ignoreDisplay)
         {
-            if (!CanDraw(svgSwitch, ignoreDisplay))
-            {
-                return;
-            }
-
-            // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
-
-            _skCanvas.Save();
-
-            var skMatrix = SkiaUtil.GetSKMatrix(svgSwitch.Transforms);
-
-            var skMatrixTotal = _skCanvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
-            _skCanvas.SetMatrix(skMatrixTotal);
-
-            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgSwitch, skBounds, new HashSet<Uri>(), _disposable);
-            if (skPathClip != null && !skPathClip.IsEmpty)
-            {
-                bool antialias = SkiaUtil.IsAntialias(svgSwitch);
-                _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
-            }
-
-            var skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgSwitch, _disposable);
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.SaveLayer(skPaintOpacity);
-            }
-
-            var skPaintFilter = SkiaUtil.GetFilterSKPaint(svgSwitch, _disposable);
-            if (skPaintFilter != null)
-            {
-                _skCanvas.SaveLayer(skPaintFilter);
-            }
-
             // TODO: Implement SvgSwitch drawing
-
-            if (skPaintFilter != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            _skCanvas.Restore();
         }
 
         internal void DrawSymbol(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, bool ignoreDisplay)
@@ -712,54 +665,7 @@ namespace Svg.Skia
 
         public void DrawForeignObject(SvgForeignObject svgForeignObject, SKRect skOwnerBounds, bool ignoreDisplay)
         {
-            if (!CanDraw(svgForeignObject, ignoreDisplay))
-            {
-                return;
-            }
-
-            // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
-
-            _skCanvas.Save();
-
-            var skMatrix = SkiaUtil.GetSKMatrix(svgForeignObject.Transforms);
-
-            var skMatrixTotal = _skCanvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
-            _skCanvas.SetMatrix(skMatrixTotal);
-
-            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgForeignObject, skBounds, new HashSet<Uri>(), _disposable);
-            if (skPathClip != null && !skPathClip.IsEmpty)
-            {
-                bool antialias = SkiaUtil.IsAntialias(svgForeignObject);
-                _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
-            }
-
-            var skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgForeignObject, _disposable);
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.SaveLayer(skPaintOpacity);
-            }
-
-            var skPaintFilter = SkiaUtil.GetFilterSKPaint(svgForeignObject, _disposable);
-            if (skPaintFilter != null)
-            {
-                _skCanvas.SaveLayer(skPaintFilter);
-            }
-
             // TODO: Draw SvgForeignObject
-
-            if (skPaintFilter != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            _skCanvas.Restore();
         }
 
         public void DrawCircle(SvgCircle svgCircle, SKRect skOwnerBounds, bool ignoreDisplay)
@@ -965,54 +871,7 @@ namespace Svg.Skia
 
         public void DrawGlyph(SvgGlyph svgGlyph, SKRect skOwnerBounds, bool ignoreDisplay)
         {
-            if (!CanDraw(svgGlyph, ignoreDisplay))
-            {
-                return;
-            }
-
-            // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
-
-            _skCanvas.Save();
-
-            var skMatrix = SkiaUtil.GetSKMatrix(svgGlyph.Transforms);
-
-            var skMatrixTotal = _skCanvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
-            _skCanvas.SetMatrix(skMatrixTotal);
-
-            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgGlyph, skBounds, new HashSet<Uri>(), _disposable);
-            if (skPathClip != null && !skPathClip.IsEmpty)
-            {
-                bool antialias = SkiaUtil.IsAntialias(svgGlyph);
-                _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
-            }
-
-            var skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgGlyph, _disposable);
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.SaveLayer(skPaintOpacity);
-            }
-
-            var skPaintFilter = SkiaUtil.GetFilterSKPaint(svgGlyph, _disposable);
-            if (skPaintFilter != null)
-            {
-                _skCanvas.SaveLayer(skPaintFilter);
-            }
-
             // TODO: Draw SvgGlyph
-
-            if (skPaintFilter != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            _skCanvas.Restore();
         }
 
         internal void AddMarkers(SvgGroup svgGroup)
