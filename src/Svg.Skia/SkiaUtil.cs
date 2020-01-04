@@ -1966,17 +1966,13 @@ namespace Svg.Skia
             return null;
         }
 
-        public static SKPath? GetClipPath(
-            SvgElementCollection svgElementCollection,
-            SKRect skBounds,
-            HashSet<Uri> uris,
-            CompositeDisposable disposable)
+        private static SKPath? GetClipPath(SvgElementCollection svgElementCollection, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {
             var skPathClip = default(SKPath);
 
-            foreach (var child in svgElementCollection)
+            foreach (var svgElement in svgElementCollection)
             {
-                if (child is SvgVisualElement visualChild)
+                if (svgElement is SvgVisualElement visualChild)
                 {
                     var skPath = GetClipPath(visualChild, skBounds, uris, disposable);
                     if (skPath != null && !skPath.IsEmpty)
