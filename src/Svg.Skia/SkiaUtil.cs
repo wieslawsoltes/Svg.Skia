@@ -632,7 +632,7 @@ namespace Svg.Skia
             SvgElementCollection svgElementCollection,
             float width,
             float height,
-            SKMatrix sKMatrix,
+            SKMatrix skMatrix,
             float opacity)
         {
             var skSize = new SKSize(width, height);
@@ -641,7 +641,7 @@ namespace Svg.Skia
             using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
 #if USE_DRAWABLES
             {
-                skCanvas.SetMatrix(sKMatrix);
+                skCanvas.SetMatrix(skMatrix);
                 foreach (var svgElement in svgElementCollection)
                 {
                     // TODO: Adjust opacity for pattern based on fill-opacity and stroke-opacity.
@@ -655,7 +655,7 @@ namespace Svg.Skia
 #else
             using (var renderer = new SKSvgRenderer(skCanvas, skSize))
             {
-                skCanvas.SetMatrix(sKMatrix);
+                skCanvas.SetMatrix(skMatrix);
                 foreach (var svgElement in svgElementCollection)
                 {
                     // TODO: Adjust opacity for pattern based on fill-opacity and stroke-opacity.
@@ -830,11 +830,11 @@ namespace Svg.Skia
                 }
             }
 
-            SKPicture sKPicture = CreatePicture(firstChildren.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform, opacity);
-            disposable.Add(sKPicture);
+            SKPicture skPicture = CreatePicture(firstChildren.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform, opacity);
+            disposable.Add(skPicture);
 
-            SKShader sKShader = SKShader.CreatePicture(sKPicture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, skLocalMatrix, sKPicture.CullRect);
-            return sKShader;
+            SKShader skShader = SKShader.CreatePicture(skPicture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, skLocalMatrix, skPicture.CullRect);
+            return skShader;
         }
 
         public static bool SetFill(
@@ -2056,7 +2056,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static SKRect? GetClipRect(SvgVisualElement svgVisualElement, SKRect sKRectBounds)
+        public static SKRect? GetClipRect(SvgVisualElement svgVisualElement, SKRect skRectBounds)
         {
             var clip = svgVisualElement.Clip;
             if (!string.IsNullOrEmpty(clip) && clip.StartsWith("rect("))
@@ -2065,10 +2065,10 @@ namespace Svg.Skia
                 var offsets = (from o in clip.Substring(5, clip.Length - 6).Split(',')
                                select float.Parse(o.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture)).ToList();
                 var skClipRect = SKRect.Create(
-                    sKRectBounds.Left + offsets[3],
-                    sKRectBounds.Top + offsets[0],
-                    sKRectBounds.Width - (offsets[3] + offsets[1]),
-                    sKRectBounds.Height - (offsets[2] + offsets[0]));
+                    skRectBounds.Left + offsets[3],
+                    skRectBounds.Top + offsets[0],
+                    skRectBounds.Width - (offsets[3] + offsets[1]),
+                    skRectBounds.Height - (offsets[2] + offsets[0]));
                 return skClipRect;
             }
             return null;
