@@ -2,16 +2,17 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 using System;
 using System.IO;
+using System.IO.Compression;
 using SkiaSharp;
 
 namespace Svg.Skia
 {
     public static class SKPictureExtensions
     {
-        public static SKBitmap? ToBitmap(this SKPicture sKPicture, SKColor background, float scaleX, float scaleY)
+        public static SKBitmap? ToBitmap(this SKPicture skPicture, SKColor background, float scaleX, float scaleY)
         {
-            float width = sKPicture.CullRect.Width * scaleX;
-            float height = sKPicture.CullRect.Height * scaleY;
+            float width = skPicture.CullRect.Width * scaleX;
+            float height = skPicture.CullRect.Height * scaleY;
             if (width > 0 && height > 0)
             {
                 var skImageInfo = new SKImageInfo((int)width, (int)height);
@@ -25,7 +26,7 @@ namespace Svg.Skia
                     }
                     skCanvas.Save();
                     skCanvas.Scale(scaleX, scaleY);
-                    skCanvas.DrawPicture(sKPicture);
+                    skCanvas.DrawPicture(skPicture);
                     skCanvas.Restore();
                     return skBitmap;
                 }
@@ -38,7 +39,7 @@ namespace Svg.Skia
     {
         public static SvgDocument? OpenSvg(string path)
         {
-            if (!System.IO.File.Exists(path))
+            if (!File.Exists(path))
             {
                 return null;
             }
@@ -53,12 +54,12 @@ namespace Svg.Skia
 
         public static SvgDocument? OpenSvgz(string path)
         {
-            if (!System.IO.File.Exists(path))
+            if (!File.Exists(path))
             {
                 return null;
             }
-            using (var fileStream = System.IO.File.OpenRead(path))
-            using (var gzipStream = new System.IO.Compression.GZipStream(fileStream, System.IO.Compression.CompressionMode.Decompress))
+            using (var fileStream = File.OpenRead(path))
+            using (var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress))
             using (var memoryStream = new MemoryStream())
             {
                 gzipStream.CopyTo(memoryStream);
@@ -76,7 +77,7 @@ namespace Svg.Skia
 
         public static SvgDocument? Open(string path)
         {
-            var extension = System.IO.Path.GetExtension(path);
+            var extension = Path.GetExtension(path);
             switch (extension.ToLower())
             {
                 default:
@@ -87,9 +88,9 @@ namespace Svg.Skia
             }
         }
 
-        public static bool Save(Stream stream, SKPicture sKPicture, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY)
+        public static bool Save(Stream stream, SKPicture skPicture, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY)
         {
-            using (var skBitmap = sKPicture.ToBitmap(background, scaleX, scaleY))
+            using (var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY))
             {
                 if (skBitmap == null)
                 {
@@ -108,49 +109,70 @@ namespace Svg.Skia
             return false;
         }
 
-        public static void Draw(SKCanvas sKCanvas, SvgFragment svgFragment)
+        public static void Draw(SKCanvas skCanvas, SvgFragment svgFragment)
         {
-            var skSize = SkiaUtil.GetDimensions(svgFragment);
-
-            using (var renderer = new SKSvgRenderer(sKCanvas, skSize))
+            var skSize = SvgExtensions.GetDimensions(svgFragment);
+            var skBounds = SKRect.Create(skSize);
+#if USE_DRAWABLES
+            using (var drawable = DrawableFactory.Create(svgFragment, skBounds, false))
             {
-                renderer.DrawFragment(svgFragment, false);
+                drawable?.Draw(skCanvas, 0f, 0f);
             }
+#else
+            using (var renderer = new SKSvgRenderer(skCanvas))
+            {
+                renderer.DrawFragment(svgFragment, skBounds, false);
+            }
+#endif
         }
 
-        public static void Draw(SKCanvas sKCanvas, string path)
+        public static void Draw(SKCanvas skCanvas, string path)
         {
             var svgDocument = Open(path);
             if (svgDocument != null)
             {
-                Draw(sKCanvas, svgDocument);
+                Draw(skCanvas, svgDocument);
             }
         }
 
-        public static SKPicture ToPicture(SvgFragment svgFragment)
+        public static SKPicture? ToPicture(SvgFragment svgFragment)
         {
-            var skSize = SkiaUtil.GetDimensions(svgFragment);
-            var cullRect = SKRect.Create(skSize);
+            var skSize = SvgExtensions.GetDimensions(svgFragment);
+            var skBounds = SKRect.Create(skSize);
             using (var skPictureRecorder = new SKPictureRecorder())
-            using (var skCanvas = skPictureRecorder.BeginRecording(cullRect))
-            using (var renderer = new SKSvgRenderer(skCanvas, skSize))
+            using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
+#if USE_DRAWABLES
+            using (var drawable = DrawableFactory.Create(svgFragment, skBounds, false))
             {
-                renderer.DrawFragment(svgFragment, false);
+                drawable?.Draw(skCanvas, 0f, 0f);
                 return skPictureRecorder.EndRecording();
             }
+#else
+            using (var renderer = new SKSvgRenderer(skCanvas))
+            {
+                renderer.DrawFragment(svgFragment, skBounds, false);
+                return skPictureRecorder.EndRecording();
+            }
+#endif
         }
 
-        public static SKDrawable ToDrawable(SvgFragment svgFragment)
+        public static SKDrawable? ToDrawable(SvgFragment svgFragment)
         {
-            var skSize = SkiaUtil.GetDimensions(svgFragment);
-            var cullRect = SKRect.Create(skSize);
+            var skSize = SvgExtensions.GetDimensions(svgFragment);
+            var skBounds = SKRect.Create(skSize);
             using (var skPictureRecorder = new SKPictureRecorder())
-            using (var skCanvas = skPictureRecorder.BeginRecording(cullRect))
-            using (var renderer = new SKSvgRenderer(skCanvas, skSize))
+            using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
+#if USE_DRAWABLES
             {
-                renderer.DrawFragment(svgFragment, false);
+                return DrawableFactory.Create(svgFragment, skBounds, false);
+            }
+#else
+            using (var renderer = new SKSvgRenderer(skCanvas))
+            {
+                renderer.DrawFragment(svgFragment, skBounds, false);
                 return skPictureRecorder.EndRecordingAsDrawable();
             }
+#endif
         }
 
         public SKPicture? Picture { get; set; }
@@ -218,7 +240,7 @@ namespace Svg.Skia
         {
             if (Picture != null)
             {
-                using (var stream = System.IO.File.OpenWrite(path))
+                using (var stream = File.OpenWrite(path))
                 {
                     return Save(stream, Picture, background, format, quality, scaleX, scaleY);
                 }

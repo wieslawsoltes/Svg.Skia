@@ -60,12 +60,16 @@ namespace SvgToPng
             this.items.MouseDoubleClick += Items_MouseDoubleClick;
 
             this.skElementSvg.PaintSurface += OnPaintCanvasSvg;
+#if true
             this.skElementPng.PaintSurface += OnPaintCanvasPng;
             this.skElementDiff.PaintSurface += OnPaintCanvasDiff;
+#endif
 
             this.glHostSvg.Initialized += OnGLControlHostSvg;
+#if true
             this.glHostPng.Initialized += OnGLControlHostPng;
             this.glHostDiff.Initialized += OnGLControlHostDiff;
+#endif
 
             DataContext = this.VM;
         }
@@ -89,12 +93,16 @@ namespace SvgToPng
             }
 
             skElementSvg.InvalidateVisual();
+#if true
             skElementPng.InvalidateVisual();
             skElementDiff.InvalidateVisual();
+#endif
 
+#if true
             glHostSvg.Child?.Invalidate();
             glHostPng.Child?.Invalidate();
             glHostDiff.Child?.Invalidate();
+#endif
         }
 
         private void Items_MouseDoubleClick(object sender, MouseButtonEventArgs e)
