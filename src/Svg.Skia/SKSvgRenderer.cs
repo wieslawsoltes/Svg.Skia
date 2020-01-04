@@ -36,174 +36,167 @@ namespace Svg.Skia
 
         internal void Draw(SvgElement svgElement, SKRect skOwnerBounds, bool ignoreDisplay)
         {
+#if USE_DRAWABLES
             switch (svgElement)
             {
 #if USE_SVG_ANCHOR
                 case SvgAnchor svgAnchor:
-#if USE_DRAWABLES
                     {
                         var drawable = new AnchorDrawable(svgAnchor, skOwnerBounds, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
-#else
-                    DrawAnchor(svgAnchor, skOwnerBounds, ignoreDisplay);
-#endif
                     break;
 #endif
                 case SvgFragment svgFragment:
-#if USE_DRAWABLES
                     {
                         var drawable = new FragmentDrawable(svgFragment, skOwnerBounds, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
-#else
-                    DrawFragment(svgFragment, skOwnerBounds, ignoreDisplay);
-#endif
                     break;
                 case SvgImage svgImage:
-#if USE_DRAWABLES
                     {
                         var drawable = new ImageDrawable(svgImage, skOwnerBounds, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
-#else
-                    DrawImage(svgImage, skOwnerBounds, ignoreDisplay);
-#endif
                     break;
                 case SvgSwitch svgSwitch:
-#if USE_DRAWABLES
                     {
                         var drawable = new SwitchDrawable(svgSwitch, skOwnerBounds, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
-#else
-                    DrawSwitch(svgSwitch, skOwnerBounds, ignoreDisplay);
-#endif
                     break;
                 case SvgUse svgUse:
-#if USE_DRAWABLES
                     {
                         var drawable = new UseDrawable(svgUse, skOwnerBounds, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
-#else
-                    DrawUse(svgUse, skOwnerBounds, ignoreDisplay);
-#endif
                     break;
                 case SvgForeignObject svgForeignObject:
-#if USE_DRAWABLES
                     {
                         var drawable = new ForeignObjectDrawable(svgForeignObject, skOwnerBounds, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
-#else
-                    DrawForeignObject(svgForeignObject, skOwnerBounds, ignoreDisplay);
-#endif
                     break;
                 case SvgCircle svgCircle:
-#if USE_DRAWABLES
                     {
                         var drawable = new CircleDrawable(svgCircle, skOwnerBounds, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
-#else
-                    DrawCircle(svgCircle, skOwnerBounds, ignoreDisplay);
-#endif
                     break;
                 case SvgEllipse svgEllipse:
-#if USE_DRAWABLES
                     {
                         var drawable = new EllipseDrawable(svgEllipse, skOwnerBounds, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
-#else
-                    DrawEllipse(svgEllipse, skOwnerBounds, ignoreDisplay);
-#endif
                     break;
                 case SvgRectangle svgRectangle:
-#if USE_DRAWABLES
                     {
                         var drawable = new RectangleDrawable(svgRectangle, skOwnerBounds, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
-#else
-                    DrawRectangle(svgRectangle, skOwnerBounds, ignoreDisplay);
-#endif
                     break;
                 case SvgGlyph svgGlyph:
-#if USE_DRAWABLES
                     {
                         var drawable = new GlyphDrawable(svgGlyph, skOwnerBounds, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
-#else
-                    DrawGlyph(svgGlyph, skOwnerBounds, ignoreDisplay);
-#endif
-
                     break;
                 case SvgGroup svgGroup:
-#if USE_DRAWABLES
                     {
                         var drawable = new GroupDrawable(svgGroup, skOwnerBounds, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
-#else
-                    DrawGroup(svgGroup, skOwnerBounds, ignoreDisplay);
-#endif
                     break;
                 case SvgLine svgLine:
-#if USE_DRAWABLES
                     {
                         var drawable = new LineDrawable(svgLine, skOwnerBounds, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
-#else
-                    DrawLine(svgLine, skOwnerBounds, ignoreDisplay);
-#endif
                     break;
                 case SvgPath svgPath:
-#if USE_DRAWABLES
                     {
                         var drawable = new PathDrawable(svgPath, skOwnerBounds, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
-#else
-                    DrawPath(svgPath, skOwnerBounds, ignoreDisplay);
-#endif
                     break;
                 case SvgPolyline svgPolyline:
-#if USE_DRAWABLES
                     {
                         var drawable = new PolylineDrawable(svgPolyline, skOwnerBounds, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
-#else
-                    DrawPolyline(svgPolyline, skOwnerBounds, ignoreDisplay);
-#endif
                     break;
                 case SvgPolygon svgPolygon:
-#if USE_DRAWABLES
                     {
                         var drawable = new PolygonDrawable(svgPolygon, skOwnerBounds, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
-#else
-                    DrawPolygon(svgPolygon, skOwnerBounds, ignoreDisplay);
-#endif
                     break;
                 case SvgText svgText:
-#if USE_DRAWABLES
                     {
                         var drawable = new TextDrawable(svgText, skOwnerBounds, ignoreDisplay);
                         drawable.Draw(_skCanvas, 0f, 0f);
                     }
-#else
-                    DrawText(svgText, skOwnerBounds, ignoreDisplay);
-#endif
                     break;
                 default:
                     break;
             }
+#else
+            switch (svgElement)
+            {
+#if USE_SVG_ANCHOR
+                case SvgAnchor svgAnchor:
+                    DrawAnchor(svgAnchor, skOwnerBounds, ignoreDisplay);
+                    break;
+#endif
+                case SvgFragment svgFragment:
+                    DrawFragment(svgFragment, skOwnerBounds, ignoreDisplay);
+                    break;
+                case SvgImage svgImage:
+                    DrawImage(svgImage, skOwnerBounds, ignoreDisplay);
+                    break;
+                case SvgSwitch svgSwitch:
+                    DrawSwitch(svgSwitch, skOwnerBounds, ignoreDisplay);
+                    break;
+                case SvgUse svgUse:
+                    DrawUse(svgUse, skOwnerBounds, ignoreDisplay);
+                    break;
+                case SvgForeignObject svgForeignObject:
+                    DrawForeignObject(svgForeignObject, skOwnerBounds, ignoreDisplay);
+                    break;
+                case SvgCircle svgCircle:
+                    DrawCircle(svgCircle, skOwnerBounds, ignoreDisplay);
+                    break;
+                case SvgEllipse svgEllipse:
+                    DrawEllipse(svgEllipse, skOwnerBounds, ignoreDisplay);
+                    break;
+                case SvgRectangle svgRectangle:
+                    DrawRectangle(svgRectangle, skOwnerBounds, ignoreDisplay);
+                    break;
+                case SvgGlyph svgGlyph:
+                    DrawGlyph(svgGlyph, skOwnerBounds, ignoreDisplay);
+                    break;
+                case SvgGroup svgGroup:
+                    DrawGroup(svgGroup, skOwnerBounds, ignoreDisplay);
+                    break;
+                case SvgLine svgLine:
+                    DrawLine(svgLine, skOwnerBounds, ignoreDisplay);
+                    break;
+                case SvgPath svgPath:
+                    DrawPath(svgPath, skOwnerBounds, ignoreDisplay);
+                    break;
+                case SvgPolyline svgPolyline:
+                    DrawPolyline(svgPolyline, skOwnerBounds, ignoreDisplay);
+                    break;
+                case SvgPolygon svgPolygon:
+                    DrawPolygon(svgPolygon, skOwnerBounds, ignoreDisplay);
+                    break;
+                case SvgText svgText:
+                    DrawText(svgText, skOwnerBounds, ignoreDisplay);
+                    break;
+                default:
+                    break;
+            }
+#endif
         }
 
         internal void DrawSymbol(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, bool ignoreDisplay)
