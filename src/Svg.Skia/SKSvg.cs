@@ -58,7 +58,6 @@ namespace Svg.Skia
             var svgDocument = SvgDocument.Open<SvgDocument>(path, null);
             if (svgDocument != null)
             {
-                svgDocument.FlushStyles(true);
                 return svgDocument;
             }
             return null;
@@ -76,7 +75,6 @@ namespace Svg.Skia
                 var svgDocument = SvgDocument.Open<SvgDocument>(memoryStream, null);
                 if (svgDocument != null)
                 {
-                    svgDocument.FlushStyles(true);
                     return svgDocument;
                 }
             }
