@@ -36,111 +36,6 @@ namespace Svg.Skia
 
         internal void Draw(SvgElement svgElement, SKRect skOwnerBounds, bool ignoreDisplay)
         {
-#if USE_DRAWABLES
-            switch (svgElement)
-            {
-#if USE_SVG_ANCHOR
-                case SvgAnchor svgAnchor:
-                    {
-                        var drawable = new AnchorDrawable(svgAnchor, skOwnerBounds, ignoreDisplay);
-                        drawable.Draw(_skCanvas, 0f, 0f);
-                    }
-                    break;
-#endif
-                case SvgFragment svgFragment:
-                    {
-                        var drawable = new FragmentDrawable(svgFragment, skOwnerBounds, ignoreDisplay);
-                        drawable.Draw(_skCanvas, 0f, 0f);
-                    }
-                    break;
-                case SvgImage svgImage:
-                    {
-                        var drawable = new ImageDrawable(svgImage, skOwnerBounds, ignoreDisplay);
-                        drawable.Draw(_skCanvas, 0f, 0f);
-                    }
-                    break;
-                case SvgSwitch svgSwitch:
-                    {
-                        var drawable = new SwitchDrawable(svgSwitch, skOwnerBounds, ignoreDisplay);
-                        drawable.Draw(_skCanvas, 0f, 0f);
-                    }
-                    break;
-                case SvgUse svgUse:
-                    {
-                        var drawable = new UseDrawable(svgUse, skOwnerBounds, ignoreDisplay);
-                        drawable.Draw(_skCanvas, 0f, 0f);
-                    }
-                    break;
-                case SvgForeignObject svgForeignObject:
-                    {
-                        var drawable = new ForeignObjectDrawable(svgForeignObject, skOwnerBounds, ignoreDisplay);
-                        drawable.Draw(_skCanvas, 0f, 0f);
-                    }
-                    break;
-                case SvgCircle svgCircle:
-                    {
-                        var drawable = new CircleDrawable(svgCircle, skOwnerBounds, ignoreDisplay);
-                        drawable.Draw(_skCanvas, 0f, 0f);
-                    }
-                    break;
-                case SvgEllipse svgEllipse:
-                    {
-                        var drawable = new EllipseDrawable(svgEllipse, skOwnerBounds, ignoreDisplay);
-                        drawable.Draw(_skCanvas, 0f, 0f);
-                    }
-                    break;
-                case SvgRectangle svgRectangle:
-                    {
-                        var drawable = new RectangleDrawable(svgRectangle, skOwnerBounds, ignoreDisplay);
-                        drawable.Draw(_skCanvas, 0f, 0f);
-                    }
-                    break;
-                case SvgGlyph svgGlyph:
-                    {
-                        var drawable = new GlyphDrawable(svgGlyph, skOwnerBounds, ignoreDisplay);
-                        drawable.Draw(_skCanvas, 0f, 0f);
-                    }
-                    break;
-                case SvgGroup svgGroup:
-                    {
-                        var drawable = new GroupDrawable(svgGroup, skOwnerBounds, ignoreDisplay);
-                        drawable.Draw(_skCanvas, 0f, 0f);
-                    }
-                    break;
-                case SvgLine svgLine:
-                    {
-                        var drawable = new LineDrawable(svgLine, skOwnerBounds, ignoreDisplay);
-                        drawable.Draw(_skCanvas, 0f, 0f);
-                    }
-                    break;
-                case SvgPath svgPath:
-                    {
-                        var drawable = new PathDrawable(svgPath, skOwnerBounds, ignoreDisplay);
-                        drawable.Draw(_skCanvas, 0f, 0f);
-                    }
-                    break;
-                case SvgPolyline svgPolyline:
-                    {
-                        var drawable = new PolylineDrawable(svgPolyline, skOwnerBounds, ignoreDisplay);
-                        drawable.Draw(_skCanvas, 0f, 0f);
-                    }
-                    break;
-                case SvgPolygon svgPolygon:
-                    {
-                        var drawable = new PolygonDrawable(svgPolygon, skOwnerBounds, ignoreDisplay);
-                        drawable.Draw(_skCanvas, 0f, 0f);
-                    }
-                    break;
-                case SvgText svgText:
-                    {
-                        var drawable = new TextDrawable(svgText, skOwnerBounds, ignoreDisplay);
-                        drawable.Draw(_skCanvas, 0f, 0f);
-                    }
-                    break;
-                default:
-                    break;
-            }
-#else
             switch (svgElement)
             {
 #if USE_SVG_ANCHOR
@@ -196,7 +91,6 @@ namespace Svg.Skia
                 default:
                     break;
             }
-#endif
         }
 
 #if USE_SVG_ANCHOR

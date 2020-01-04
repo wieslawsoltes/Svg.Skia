@@ -638,7 +638,6 @@ namespace Svg.Skia
             var skBounds = SKRect.Create(skSize);
             using (var skPictureRecorder = new SKPictureRecorder())
             using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
-#if USE_DRAWABLES
             {
                 skCanvas.SetMatrix(skMatrix);
                 foreach (var svgElement in svgElementCollection)
@@ -651,18 +650,6 @@ namespace Svg.Skia
                 }
                 return skPictureRecorder.EndRecording();
             }
-#else
-            using (var renderer = new SKSvgRenderer(skCanvas))
-            {
-                skCanvas.SetMatrix(skMatrix);
-                foreach (var svgElement in svgElementCollection)
-                {
-                    // TODO: Adjust opacity for pattern based on fill-opacity and stroke-opacity.
-                    renderer.Draw(svgElement, skBounds, false);
-                }
-                return skPictureRecorder.EndRecording();
-            }
-#endif
         }
 
         public static SKShader? CreatePicture(

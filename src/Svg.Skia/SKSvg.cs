@@ -113,17 +113,10 @@ namespace Svg.Skia
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
-#if USE_DRAWABLES
             using (var drawable = DrawableFactory.Create(svgFragment, skBounds, false))
             {
                 drawable?.Draw(skCanvas, 0f, 0f);
             }
-#else
-            using (var renderer = new SKSvgRenderer(skCanvas))
-            {
-                renderer.DrawFragment(svgFragment, skBounds, false);
-            }
-#endif
         }
 
         public static void Draw(SKCanvas skCanvas, string path)
@@ -141,19 +134,11 @@ namespace Svg.Skia
             var skBounds = SKRect.Create(skSize);
             using (var skPictureRecorder = new SKPictureRecorder())
             using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
-#if USE_DRAWABLES
             using (var drawable = DrawableFactory.Create(svgFragment, skBounds, false))
             {
                 drawable?.Draw(skCanvas, 0f, 0f);
                 return skPictureRecorder.EndRecording();
             }
-#else
-            using (var renderer = new SKSvgRenderer(skCanvas))
-            {
-                renderer.DrawFragment(svgFragment, skBounds, false);
-                return skPictureRecorder.EndRecording();
-            }
-#endif
         }
 
         public static SKDrawable? ToDrawable(SvgFragment svgFragment)
@@ -162,17 +147,9 @@ namespace Svg.Skia
             var skBounds = SKRect.Create(skSize);
             using (var skPictureRecorder = new SKPictureRecorder())
             using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
-#if USE_DRAWABLES
             {
                 return DrawableFactory.Create(svgFragment, skBounds, false);
             }
-#else
-            using (var renderer = new SKSvgRenderer(skCanvas))
-            {
-                renderer.DrawFragment(svgFragment, skBounds, false);
-                return skPictureRecorder.EndRecordingAsDrawable();
-            }
-#endif
         }
 
         public SKPicture? Picture { get; set; }

@@ -31,10 +31,6 @@
     <DefineConstants>$(DefineConstants);USE_SVG_ANCHOR</DefineConstants>
   </PropertyGroup>-->
 
-  <PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_DRAWABLES</DefineConstants>
-  </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />
   </ItemGroup>
