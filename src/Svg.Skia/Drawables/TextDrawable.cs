@@ -8,9 +8,14 @@ namespace Svg.Skia
 {
     internal class TextDrawable : Drawable
     {
+        // TODO: Implement drawable.
+
         public TextDrawable(SvgText svgText, SKRect skOwnerBounds, bool ignoreDisplay)
         {
-            // TODO: Implement drawable.
+        }
+
+        protected override void OnDraw(SKCanvas canvas)
+        {
         }
     }
 }

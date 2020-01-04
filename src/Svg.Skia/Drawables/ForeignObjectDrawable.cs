@@ -8,9 +8,14 @@ namespace Svg.Skia
 {
     internal class ForeignObjectDrawable : Drawable
     {
+        // TODO: Implement drawable.
+
         public ForeignObjectDrawable(SvgForeignObject svgForeignObject, SKRect skOwnerBounds, bool ignoreDisplay)
         {
-            // TODO: Implement drawable.
+        }
+
+        protected override void OnDraw(SKCanvas canvas)
+        {
         }
     }
 }

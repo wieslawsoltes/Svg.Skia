@@ -8,9 +8,14 @@ namespace Svg.Skia
 {
     internal class SwitchDrawable : Drawable
     {
+        // TODO: Implement drawable.
+
         public SwitchDrawable(SvgSwitch svgSwitch, SKRect skOwnerBounds, bool ignoreDisplay)
         {
-            // TODO: Implement drawable.
+        }
+
+        protected override void OnDraw(SKCanvas canvas)
+        {
         }
     }
 }
