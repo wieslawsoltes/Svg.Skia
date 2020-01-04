@@ -20,8 +20,8 @@ namespace Svg.Skia
                 return;
             }
 
-            skPath = SkiaUtil.ToSKPath(svgLine, svgLine.FillRule, skOwnerBounds, _disposable);
-            if (skPath == null || skPath.IsEmpty)
+            _skPath = SkiaUtil.ToSKPath(svgLine, svgLine.FillRule, skOwnerBounds, _disposable);
+            if (_skPath == null || _skPath.IsEmpty)
             {
                 _canDraw = false;
                 return;
@@ -29,7 +29,7 @@ namespace Svg.Skia
 
             _antialias = SkiaUtil.IsAntialias(svgLine);
 
-            _skBounds = skPath.Bounds;
+            _skBounds = _skPath.Bounds;
 
             // TODO: Transform _skBounds using _skMatrix.
 
@@ -47,6 +47,8 @@ namespace Svg.Skia
             {
                 _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgLine, _skBounds, _disposable);
             }
+
+            CreateMarkers(svgLine, _skPath, skOwnerBounds);
         }
     }
 }

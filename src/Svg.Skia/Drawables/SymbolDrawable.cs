@@ -62,7 +62,7 @@ namespace Svg.Skia
                 var drawable = DrawableFactory.Create(svgElement, skOwnerBounds, ignoreDisplay);
                 if (drawable != null)
                 {
-                    _childrenDrawable.Add(drawable);
+                    _childrenDrawables.Add(drawable);
                     _disposable.Add(drawable);
                 }
             }
@@ -71,7 +71,7 @@ namespace Svg.Skia
 
             _skBounds = SKRect.Empty;
 
-            foreach (var drawable in _childrenDrawable)
+            foreach (var drawable in _childrenDrawables)
             {
                 if (_skBounds.IsEmpty)
                 {

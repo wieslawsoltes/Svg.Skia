@@ -9,7 +9,7 @@ namespace Svg.Skia
 {
     internal abstract class ChildBaseDrawable : BaseDrawable
     {
-        internal List<BaseDrawable> _childrenDrawable = new List<BaseDrawable>();
+        internal List<BaseDrawable> _childrenDrawables = new List<BaseDrawable>();
 
         protected override void OnDraw(SKCanvas canvas)
         {
@@ -44,7 +44,7 @@ namespace Svg.Skia
                 canvas.SaveLayer(_skPaintFilter);
             }
 
-            foreach (var drawable in _childrenDrawable)
+            foreach (var drawable in _childrenDrawables)
             {
                 drawable.Draw(canvas, 0f, 0f);
             }
