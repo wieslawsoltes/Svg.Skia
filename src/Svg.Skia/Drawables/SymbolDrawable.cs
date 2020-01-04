@@ -96,15 +96,8 @@ namespace Svg.Skia
             _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgSymbol, _disposable);
             _skPaintFilter = SkiaUtil.GetFilterSKPaint(svgSymbol, _disposable);
 
-            if (SkiaUtil.IsValidFill(svgSymbol))
-            {
-                _skPaintFill = SkiaUtil.GetFillSKPaint(svgSymbol, _skBounds, _disposable);
-            }
-
-            if (SkiaUtil.IsValidStroke(svgSymbol, _skBounds))
-            {
-                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgSymbol, _skBounds, _disposable);
-            }
+            _skPaintFill = null;
+            _skPaintStroke = null;
         }
     }
 }
