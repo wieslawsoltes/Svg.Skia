@@ -59,15 +59,8 @@ namespace Svg.Skia
             _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgGroup, _disposable);
             _skPaintFilter = SkiaUtil.GetFilterSKPaint(svgGroup, _disposable);
 
-            if (SkiaUtil.IsValidFill(svgGroup))
-            {
-                _skPaintFill = SkiaUtil.GetFillSKPaint(svgGroup, _skBounds, _disposable);
-            }
-
-            if (SkiaUtil.IsValidStroke(svgGroup, _skBounds))
-            {
-                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgGroup, _skBounds, _disposable);
-            }
+            _skPaintFill = null;
+            _skPaintStroke = null;
         }
 
         internal void AddMarkers(SvgGroup svgGroup)
