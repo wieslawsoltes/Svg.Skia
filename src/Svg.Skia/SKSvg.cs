@@ -9,11 +9,6 @@ namespace Svg.Skia
 {
     public class SKSvg : IDisposable
     {
-        public static SKDrawable? ToDrawable(SvgElement svgElement, SKRect skBounds, bool ignoreDisplay = false)
-        {
-            return DrawableFactory.Create(svgElement, skBounds, ignoreDisplay);
-        }
-
         public static void Draw(SKCanvas skCanvas, SvgFragment svgFragment)
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
@@ -51,6 +46,11 @@ namespace Svg.Skia
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
             return DrawableFactory.Create(svgFragment, skBounds, false);
+        }
+
+        public static SKDrawable? ToDrawable(SvgElement svgElement, SKRect skBounds, bool ignoreDisplay = false)
+        {
+            return DrawableFactory.Create(svgElement, skBounds, ignoreDisplay);
         }
 
         public static SvgDocument? OpenSvg(string path)
