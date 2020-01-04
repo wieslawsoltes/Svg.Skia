@@ -137,7 +137,7 @@ namespace Svg.Skia
             var skClipRect = SkiaUtil.GetClipRect(svgImage, destClip);
             if (skClipRect != null)
             {
-                _skClipRect.Value.Intersect(skClipRect.Value);
+                _skClipRect = skClipRect;
             }
 
             if (skImage != null)
