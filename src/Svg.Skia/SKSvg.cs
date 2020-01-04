@@ -10,10 +10,10 @@ namespace Svg.Skia
 {
     public static class SKPictureExtensions
     {
-        public static SKBitmap? ToBitmap(this SKPicture sKPicture, SKColor background, float scaleX, float scaleY)
+        public static SKBitmap? ToBitmap(this SKPicture skPicture, SKColor background, float scaleX, float scaleY)
         {
-            float width = sKPicture.CullRect.Width * scaleX;
-            float height = sKPicture.CullRect.Height * scaleY;
+            float width = skPicture.CullRect.Width * scaleX;
+            float height = skPicture.CullRect.Height * scaleY;
             if (width > 0 && height > 0)
             {
                 var skImageInfo = new SKImageInfo((int)width, (int)height);
@@ -27,7 +27,7 @@ namespace Svg.Skia
                     }
                     skCanvas.Save();
                     skCanvas.Scale(scaleX, scaleY);
-                    skCanvas.DrawPicture(sKPicture);
+                    skCanvas.DrawPicture(skPicture);
                     skCanvas.Restore();
                     return skBitmap;
                 }
@@ -89,9 +89,9 @@ namespace Svg.Skia
             }
         }
 
-        public static bool Save(Stream stream, SKPicture sKPicture, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY)
+        public static bool Save(Stream stream, SKPicture skPicture, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY)
         {
-            using (var skBitmap = sKPicture.ToBitmap(background, scaleX, scaleY))
+            using (var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY))
             {
                 if (skBitmap == null)
                 {
