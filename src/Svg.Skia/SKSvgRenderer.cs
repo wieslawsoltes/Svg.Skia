@@ -460,9 +460,9 @@ namespace Svg.Skia
             DrawMarker(svgMarker, pOwner, pRefPoint, (fAngle1 + fAngle2) / 2, skOwnerBounds);
         }
 
-        internal void DrawMarkers(SvgMarkerElement svgMarkerElement, SKPath sKPath, SKRect skOwnerBounds)
+        internal void DrawMarkers(SvgMarkerElement svgMarkerElement, SKPath skPath, SKRect skOwnerBounds)
         {
-            var pathTypes = SkiaUtil.GetPathTypes(sKPath);
+            var pathTypes = SkiaUtil.GetPathTypes(skPath);
             var pathLength = pathTypes.Count;
 
             if (svgMarkerElement.MarkerStart != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
