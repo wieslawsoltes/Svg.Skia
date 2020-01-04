@@ -652,7 +652,7 @@ namespace Svg.Skia
                 return skPictureRecorder.EndRecording();
             }
 #else
-            using (var renderer = new SKSvgRenderer(skCanvas, skSize))
+            using (var renderer = new SKSvgRenderer(skCanvas))
             {
                 skCanvas.SetMatrix(skMatrix);
                 foreach (var svgElement in svgElementCollection)
