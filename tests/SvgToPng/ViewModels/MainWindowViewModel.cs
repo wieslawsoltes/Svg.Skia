@@ -109,6 +109,7 @@ namespace SvgToPng.ViewModels
                 Directory.SetCurrentDirectory(currentDirectory);
             }
 
+#if true
             if (item.ReferencePng == null)
             {
                 try
@@ -137,7 +138,8 @@ namespace SvgToPng.ViewModels
                     Debug.WriteLine(ex.Message);
                     Debug.WriteLine(ex.StackTrace);
                 }
-            }
+            } 
+#endif
         }
 
         public void AddItems(List<string> paths, IList<Item> items, string referencePath, string outputPath)
