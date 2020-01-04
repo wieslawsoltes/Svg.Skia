@@ -199,683 +199,6 @@ namespace Svg.Skia
 #endif
         }
 
-        internal void DrawSymbol(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, bool ignoreDisplay)
-        {
-            if (!CanDraw(svgSymbol, ignoreDisplay))
-            {
-                return;
-            }
-
-            if (svgSymbol.CustomAttributes.TryGetValue("width", out string? _widthString))
-            {
-                if (new SvgUnitConverter().ConvertFromString(_widthString) is SvgUnit _width)
-                {
-                    width = _width.ToDeviceValue(UnitRenderingType.Horizontal, svgSymbol, skOwnerBounds);
-                }
-            }
-
-            if (svgSymbol.CustomAttributes.TryGetValue("height", out string? heightString))
-            {
-                if (new SvgUnitConverter().ConvertFromString(heightString) is SvgUnit _height)
-                {
-                    height = _height.ToDeviceValue(UnitRenderingType.Vertical, svgSymbol, skOwnerBounds);
-                }
-            }
-
-            SvgOverflow svgOverflow = SvgOverflow.Hidden;
-            if (svgSymbol.TryGetAttribute("overflow", out string overflowString))
-            {
-                if (new SvgOverflowConverter().ConvertFromString(overflowString) is SvgOverflow _svgOverflow)
-                {
-                    svgOverflow = _svgOverflow;
-                }
-            }
-
-            _skCanvas.Save();
-
-            var skClipRect = SKRect.Create(x, y, width, height);
-
-            switch (svgOverflow)
-            {
-                case SvgOverflow.Auto:
-                case SvgOverflow.Visible:
-                case SvgOverflow.Inherit:
-                    break;
-                default:
-                    _skCanvas.ClipRect(skClipRect, SKClipOperation.Intersect);
-                    break;
-            }
-
-            var skMatrixViewBox = SkiaUtil.GetSvgViewBoxTransform(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
-            var skMatrix = SkiaUtil.GetSKMatrix(svgSymbol.Transforms);
-            SKMatrix.PreConcat(ref skMatrix, ref skMatrixViewBox);
-
-            var skMatrixTotal = _skCanvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
-            _skCanvas.SetMatrix(skMatrixTotal);
-
-            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgSymbol, skClipRect, new HashSet<Uri>(), _disposable);
-            if (skPathClip != null && !skPathClip.IsEmpty)
-            {
-                bool antialias = SkiaUtil.IsAntialias(svgSymbol);
-                _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
-            }
-
-            var skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgSymbol, _disposable);
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.SaveLayer(skPaintOpacity);
-            }
-
-            var skPaintFilter = SkiaUtil.GetFilterSKPaint(svgSymbol, _disposable);
-            if (skPaintFilter != null)
-            {
-                _skCanvas.SaveLayer(skPaintFilter);
-            }
-
-            foreach (var svgElement in svgSymbol.Children)
-            {
-                Draw(svgElement, skOwnerBounds, ignoreDisplay);
-            }
-
-            if (skPaintFilter != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            _skCanvas.Restore();
-        }
-
-        internal SvgVisualElement? GetMarkerElement(SvgMarker svgMarker)
-        {
-            SvgVisualElement? markerElement = null;
-
-            foreach (var child in svgMarker.Children)
-            {
-                if (child is SvgVisualElement svgVisualElement)
-                {
-                    markerElement = svgVisualElement;
-                    break;
-                }
-            }
-
-            return markerElement;
-        }
-
-        internal void DrawMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds)
-        {
-            var markerElement = GetMarkerElement(svgMarker);
-            if (markerElement == null)
-            {
-                return;
-            }
-
-            var skMarkerMatrix = SKMatrix.MakeIdentity();
-
-            var skMatrixMarkerPoint = SKMatrix.MakeTranslation(pMarkerPoint.X, pMarkerPoint.Y);
-            SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixMarkerPoint);
-
-            var skMatrixAngle = SKMatrix.MakeRotationDegrees(svgMarker.Orient.IsAuto ? fAngle : svgMarker.Orient.Angle);
-            SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixAngle);
-
-            var strokeWidth = pOwner.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
-
-            var refX = svgMarker.RefX.ToDeviceValue(UnitRenderingType.Horizontal, svgMarker, skOwnerBounds);
-            var refY = svgMarker.RefY.ToDeviceValue(UnitRenderingType.Vertical, svgMarker, skOwnerBounds);
-            float markerWidth = svgMarker.MarkerWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
-            float markerHeight = svgMarker.MarkerHeight.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
-            float viewBoxToMarkerUnitsScaleX = 1f;
-            float viewBoxToMarkerUnitsScaleY = 1f;
-
-            switch (svgMarker.MarkerUnits)
-            {
-                case SvgMarkerUnits.StrokeWidth:
-                    {
-                        var skMatrixStrokeWidth = SKMatrix.MakeScale(strokeWidth, strokeWidth);
-                        SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixStrokeWidth);
-
-                        var viewBoxWidth = svgMarker.ViewBox.Width;
-                        var viewBoxHeight = svgMarker.ViewBox.Height;
-
-                        var scaleFactorWidth = (viewBoxWidth <= 0) ? 1 : (markerWidth / viewBoxWidth);
-                        var scaleFactorHeight = (viewBoxHeight <= 0) ? 1 : (markerHeight / viewBoxHeight);
-
-                        viewBoxToMarkerUnitsScaleX = Math.Min(scaleFactorWidth, scaleFactorHeight);
-                        viewBoxToMarkerUnitsScaleY = Math.Min(scaleFactorWidth, scaleFactorHeight);
-
-                        var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX * viewBoxToMarkerUnitsScaleX, -refY * viewBoxToMarkerUnitsScaleY);
-                        SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixTranslateRefXY);
-
-                        var skMatrixScaleXY = SKMatrix.MakeScale(viewBoxToMarkerUnitsScaleX, viewBoxToMarkerUnitsScaleY);
-                        SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixScaleXY);
-                    }
-                    break;
-                case SvgMarkerUnits.UserSpaceOnUse:
-                    {
-                        var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX, -refY);
-                        SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixTranslateRefXY);
-                    }
-                    break;
-            }
-
-            var skClipRect = SKRect.Create(
-                svgMarker.ViewBox.MinX,
-                svgMarker.ViewBox.MinY,
-                markerWidth / viewBoxToMarkerUnitsScaleX,
-                markerHeight / viewBoxToMarkerUnitsScaleY);
-
-            _skCanvas.Save();
-
-            var skMatrix = SkiaUtil.GetSKMatrix(svgMarker.Transforms);
-            SKMatrix.PreConcat(ref skMatrix, ref skMarkerMatrix);
-
-            var skMatrixTotal = _skCanvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
-            _skCanvas.SetMatrix(skMatrixTotal);
-
-            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgMarker, skClipRect, new HashSet<Uri>(), _disposable);
-            if (skPathClip != null && !skPathClip.IsEmpty)
-            {
-                bool antialias = SkiaUtil.IsAntialias(svgMarker);
-                _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
-            }
-
-            var skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgMarker, _disposable);
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.SaveLayer(skPaintOpacity);
-            }
-
-            var skPaintFilter = SkiaUtil.GetFilterSKPaint(svgMarker, _disposable);
-            if (skPaintFilter != null)
-            {
-                _skCanvas.SaveLayer(skPaintFilter);
-            }
-
-            switch (svgMarker.Overflow)
-            {
-                case SvgOverflow.Auto:
-                case SvgOverflow.Visible:
-                case SvgOverflow.Inherit:
-                    break;
-                default:
-                    _skCanvas.ClipRect(skClipRect, SKClipOperation.Intersect);
-                    break;
-            }
-
-            Draw(markerElement, skOwnerBounds, true);
-
-            if (skPaintFilter != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            _skCanvas.Restore();
-        }
-
-        internal void DrawMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skOwnerBounds)
-        {
-            float fAngle1 = 0f;
-            if (svgMarker.Orient.IsAuto)
-            {
-                float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
-                float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
-                fAngle1 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
-                if (isStartMarker && svgMarker.Orient.IsAutoStartReverse)
-                {
-                    fAngle1 += 180;
-                }
-            }
-            DrawMarker(svgMarker, pOwner, pRefPoint, fAngle1, skOwnerBounds);
-        }
-
-        internal void DrawMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, SKPoint pMarkerPoint3, SKRect skOwnerBounds)
-        {
-            float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
-            float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
-            float fAngle1 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
-            xDiff = pMarkerPoint3.X - pMarkerPoint2.X;
-            yDiff = pMarkerPoint3.Y - pMarkerPoint2.Y;
-            float fAngle2 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
-            DrawMarker(svgMarker, pOwner, pRefPoint, (fAngle1 + fAngle2) / 2, skOwnerBounds);
-        }
-
-        internal void DrawMarkers(SvgMarkerElement svgMarkerElement, SKPath skPath, SKRect skOwnerBounds)
-        {
-            var pathTypes = SkiaUtil.GetPathTypes(skPath);
-            var pathLength = pathTypes.Count;
-
-            if (svgMarkerElement.MarkerStart != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
-            {
-                var marker = SkiaUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerStart);
-                if (marker != null)
-                {
-                    var refPoint1 = pathTypes[0].Point;
-                    var index = 1;
-                    while (index < pathLength && pathTypes[index].Point == refPoint1)
-                    {
-                        ++index;
-                    }
-                    var refPoint2 = pathTypes[index].Point;
-                    DrawMarker(marker, svgMarkerElement, refPoint1, refPoint1, refPoint2, true, skOwnerBounds);
-                }
-            }
-
-            if (svgMarkerElement.MarkerMid != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, new HashSet<Uri>()))
-            {
-                var marker = SkiaUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerMid);
-                if (marker != null)
-                {
-                    int bezierIndex = -1;
-                    for (int i = 1; i <= pathLength - 2; i++)
-                    {
-                        // for Bezier curves, the marker shall only been shown at the last point
-                        if ((pathTypes[i].Type & (byte)PathPointType.PathTypeMask) == (byte)PathPointType.Bezier)
-                            bezierIndex = (bezierIndex + 1) % 3;
-                        else
-                            bezierIndex = -1;
-
-                        if (bezierIndex == -1 || bezierIndex == 2)
-                        {
-                            DrawMarker(marker, svgMarkerElement, pathTypes[i].Point, pathTypes[i - 1].Point, pathTypes[i].Point, pathTypes[i + 1].Point, skOwnerBounds);
-                        }
-                    }
-                }
-            }
-
-            if (svgMarkerElement.MarkerEnd != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, new HashSet<Uri>()))
-            {
-                var marker = SkiaUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerEnd);
-                if (marker != null)
-                {
-                    var index = pathLength - 1;
-                    var refPoint1 = pathTypes[index].Point;
-                    --index;
-                    while (index > 0 && pathTypes[index].Point == refPoint1)
-                    {
-                        --index;
-                    }
-                    var refPoint2 = pathTypes[index].Point;
-                    DrawMarker(marker, svgMarkerElement, refPoint1, refPoint2, pathTypes[pathLength - 1].Point, false, skOwnerBounds);
-                }
-            }
-        }
-
-        internal void AddMarkers(SvgGroup svgGroup)
-        {
-            Uri? marker = null;
-            // TODO: The marker can not be set as presentation attribute.
-            //if (svgGroup.TryGetAttribute("marker", out string markerUrl))
-            //{
-            //    marker = new Uri(markerUrl, UriKind.RelativeOrAbsolute);
-            //}
-
-            if (svgGroup.MarkerStart == null && svgGroup.MarkerMid == null && svgGroup.MarkerEnd == null && marker == null)
-            {
-                return;
-            }
-
-            foreach (var svgElement in svgGroup.Children)
-            {
-                if (svgElement is SvgMarkerElement svgMarkerElement)
-                {
-                    if (svgMarkerElement.MarkerStart == null)
-                    {
-                        if (svgGroup.MarkerStart != null)
-                        {
-                            svgMarkerElement.MarkerStart = svgGroup.MarkerStart;
-                        }
-                        else if (marker != null)
-                        {
-                            svgMarkerElement.MarkerStart = marker;
-                        }
-                    }
-                    if (svgMarkerElement.MarkerMid == null)
-                    {
-                        if (svgGroup.MarkerMid != null)
-                        {
-                            svgMarkerElement.MarkerMid = svgGroup.MarkerMid;
-                        }
-                        else if (marker != null)
-                        {
-                            svgMarkerElement.MarkerMid = marker;
-                        }
-                    }
-                    if (svgMarkerElement.MarkerEnd == null)
-                    {
-                        if (svgGroup.MarkerEnd != null)
-                        {
-                            svgMarkerElement.MarkerEnd = svgGroup.MarkerEnd;
-                        }
-                        else if (marker != null)
-                        {
-                            svgMarkerElement.MarkerEnd = marker;
-                        }
-                    }
-                }
-            }
-        }
-
-        internal void DrawTextPath(SvgTextPath svgTextPath, SKRect skOwnerBounds, bool ignoreDisplay)
-        {
-            if (!CanDraw(svgTextPath, ignoreDisplay))
-            {
-                return;
-            }
-
-            if (SkiaUtil.HasRecursiveReference(svgTextPath, (e) => e.ReferencedPath, new HashSet<Uri>()))
-            {
-                return;
-            }
-
-            var svgPath = SkiaUtil.GetReference<SvgPath>(svgTextPath, svgTextPath.ReferencedPath);
-            if (svgPath == null)
-            {
-                return;
-            }
-
-            var skPath = SkiaUtil.ToSKPath(svgPath.PathData, svgPath.FillRule, _disposable);
-            if (skPath == null || skPath.IsEmpty)
-            {
-                return;
-            }
-
-            var skMatrixPath = SkiaUtil.GetSKMatrix(svgPath.Transforms);
-            skPath.Transform(skMatrixPath);
-
-            // TODO: Implement StartOffset
-            var startOffset = svgTextPath.StartOffset.ToDeviceValue(UnitRenderingType.Other, svgTextPath, skOwnerBounds);
-
-            // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
-
-            _skCanvas.Save();
-
-            var skMatrix = SkiaUtil.GetSKMatrix(svgTextPath.Transforms);
-
-            var skMatrixTotal = _skCanvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
-            _skCanvas.SetMatrix(skMatrixTotal);
-
-            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgTextPath, skBounds, new HashSet<Uri>(), _disposable);
-            if (skPathClip != null && !skPathClip.IsEmpty)
-            {
-                bool antialias = SkiaUtil.IsAntialias(svgTextPath);
-                _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
-            }
-
-            var skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgTextPath, _disposable);
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.SaveLayer(skPaintOpacity);
-            }
-
-            var skPaintFilter = SkiaUtil.GetFilterSKPaint(svgTextPath, _disposable);
-            if (skPaintFilter != null)
-            {
-                _skCanvas.SaveLayer(skPaintFilter);
-            }
-
-            // TODO: Fix SvgTextPath rendering.
-            bool isValidFill = SkiaUtil.IsValidFill(svgTextPath);
-            bool isValidStroke = SkiaUtil.IsValidStroke(svgTextPath, skBounds);
-
-            if (isValidFill || isValidStroke)
-            {
-                var text = svgTextPath.Text?.Trim();
-
-                if (!string.IsNullOrEmpty(text))
-                {
-                    if (SkiaUtil.IsValidFill(svgTextPath))
-                    {
-                        var skPaint = SkiaUtil.GetFillSKPaint(svgTextPath, skBounds, _disposable);
-                        SkiaUtil.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
-                        _skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint);
-                    }
-
-                    if (SkiaUtil.IsValidStroke(svgTextPath, skBounds))
-                    {
-                        var skPaint = SkiaUtil.GetStrokeSKPaint(svgTextPath, skBounds, _disposable);
-                        SkiaUtil.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
-                        _skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint);
-                    }
-                }
-            }
-
-            if (skPaintFilter != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            _skCanvas.Restore();
-        }
-
-        internal void DrawTextRef(SvgTextRef svgTextRef, SKRect skOwnerBounds, bool ignoreDisplay)
-        {
-            if (!CanDraw(svgTextRef, ignoreDisplay))
-            {
-                return;
-            }
-
-            if (SkiaUtil.HasRecursiveReference(svgTextRef, (e) => e.ReferencedElement, new HashSet<Uri>()))
-            {
-                return;
-            }
-
-            var svgReferencedText = SkiaUtil.GetReference<SvgText>(svgTextRef, svgTextRef.ReferencedElement);
-            if (svgReferencedText == null)
-            {
-                return;
-            }
-
-            // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
-
-            _skCanvas.Save();
-
-            var skMatrix = SkiaUtil.GetSKMatrix(svgTextRef.Transforms);
-
-            var skMatrixTotal = _skCanvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
-            _skCanvas.SetMatrix(skMatrixTotal);
-
-            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgTextRef, skBounds, new HashSet<Uri>(), _disposable);
-            if (skPathClip != null && !skPathClip.IsEmpty)
-            {
-                bool antialias = SkiaUtil.IsAntialias(svgTextRef);
-                _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
-            }
-
-            var skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgTextRef, _disposable);
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.SaveLayer(skPaintOpacity);
-            }
-
-            var skPaintFilter = SkiaUtil.GetFilterSKPaint(svgTextRef, _disposable);
-            if (skPaintFilter != null)
-            {
-                _skCanvas.SaveLayer(skPaintFilter);
-            }
-
-            // TODO: Draw svgReferencedText
-
-            if (skPaintFilter != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            _skCanvas.Restore();
-        }
-
-        internal void DrawTextSpan(SvgTextSpan svgTextSpan, SKRect skOwnerBounds, bool ignoreDisplay)
-        {
-            if (!CanDraw(svgTextSpan, ignoreDisplay))
-            {
-                return;
-            }
-
-            // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
-
-            _skCanvas.Save();
-
-            var skMatrix = SkiaUtil.GetSKMatrix(svgTextSpan.Transforms);
-
-            var skMatrixTotal = _skCanvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
-            _skCanvas.SetMatrix(skMatrixTotal);
-
-            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgTextSpan, skBounds, new HashSet<Uri>(), _disposable);
-            if (skPathClip != null && !skPathClip.IsEmpty)
-            {
-                bool antialias = SkiaUtil.IsAntialias(svgTextSpan);
-                _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
-            }
-
-            var skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgTextSpan, _disposable);
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.SaveLayer(skPaintOpacity);
-            }
-
-            var skPaintFilter = SkiaUtil.GetFilterSKPaint(svgTextSpan, _disposable);
-            if (skPaintFilter != null)
-            {
-                _skCanvas.SaveLayer(skPaintFilter);
-            }
-
-            // TODO: Implement SvgTextSpan drawing.
-            DrawTextBase(svgTextSpan, skOwnerBounds);
-
-            if (skPaintFilter != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            if (skPaintOpacity != null)
-            {
-                _skCanvas.Restore();
-            }
-
-            _skCanvas.Restore();
-        }
-
-        internal void DrawTextString(SvgTextBase svgTextBase, string text, float x, float y, SKRect skOwnerBounds)
-        {
-            // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
-
-            if (SkiaUtil.IsValidFill(svgTextBase))
-            {
-                var skPaint = SkiaUtil.GetFillSKPaint(svgTextBase, skBounds, _disposable);
-                SkiaUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
-                _skCanvas.DrawText(text, x, y, skPaint);
-            }
-
-            if (SkiaUtil.IsValidStroke(svgTextBase, skBounds))
-            {
-                var skPaint = SkiaUtil.GetStrokeSKPaint(svgTextBase, skBounds, _disposable);
-                SkiaUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
-                _skCanvas.DrawText(text, x, y, skPaint);
-            }
-        }
-
-        internal void DrawTextBase(SvgTextBase svgTextBase, SKRect skOwnerBounds)
-        {
-            // TODO: Fix SvgTextBase rendering.
-            bool isValidFill = SkiaUtil.IsValidFill(svgTextBase);
-            bool isValidStroke = SkiaUtil.IsValidStroke(svgTextBase, skOwnerBounds);
-            string? text = svgTextBase.Text?.Trim();
-
-            if ((isValidFill || isValidStroke) && text != null && !string.IsNullOrEmpty(text))
-            {
-                var xCount = svgTextBase.X.Count;
-                var yCount = svgTextBase.Y.Count;
-                var dxCount = svgTextBase.Dx.Count;
-                var dyCount = svgTextBase.Dy.Count;
-
-                if (xCount >= 1 && yCount >= 1 && xCount == yCount && xCount == text.Length)
-                {
-                    // TODO: Fix text position rendering.
-                    var points = new SKPoint[xCount];
-
-                    for (int i = 0; i < xCount; i++)
-                    {
-                        float x = svgTextBase.X[i].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, skOwnerBounds);
-                        float y = svgTextBase.Y[i].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, skOwnerBounds);
-                        points[i] = new SKPoint(x, y);
-                    }
-
-                    // TODO: Calculate correct bounds.
-                    var skBounds = skOwnerBounds;
-
-                    if (SkiaUtil.IsValidFill(svgTextBase))
-                    {
-                        var skPaint = SkiaUtil.GetFillSKPaint(svgTextBase, skBounds, _disposable);
-                        SkiaUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
-                        _skCanvas.DrawPositionedText(text, points, skPaint);
-                    }
-
-                    if (SkiaUtil.IsValidStroke(svgTextBase, skBounds))
-                    {
-                        var skPaint = SkiaUtil.GetStrokeSKPaint(svgTextBase, skBounds, _disposable);
-                        SkiaUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
-                        _skCanvas.DrawPositionedText(text, points, skPaint);
-                    }
-                }
-                else
-                {
-                    float x = 0f;
-                    float y = 0f;
-                    float dx = 0f;
-                    float dy = 0f;
-
-                    if (xCount >= 1)
-                    {
-                        x = svgTextBase.X[0].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, skOwnerBounds);
-                    }
-
-                    if (yCount >= 1)
-                    {
-                        y = svgTextBase.Y[0].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, skOwnerBounds);
-                    }
-
-                    if (dxCount >= 1)
-                    {
-                        dx = svgTextBase.Dx[0].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, skOwnerBounds);
-                    }
-
-                    if (dyCount >= 1)
-                    {
-                        dy = svgTextBase.Dy[0].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, skOwnerBounds);
-                    }
-
-                    DrawTextString(svgTextBase, text, x + dx, y + dy, skOwnerBounds);
-                }
-            }
-        }
-
 #if USE_SVG_ANCHOR
         public void DrawAnchor(SvgAnchor svgAnchor, SKRect skOwnerBounds, bool ignoreDisplay)
         {
@@ -1177,6 +500,98 @@ namespace Svg.Skia
             }
 
             // TODO: Implement SvgSwitch drawing
+
+            if (skPaintFilter != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            _skCanvas.Restore();
+        }
+
+        internal void DrawSymbol(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, bool ignoreDisplay)
+        {
+            if (!CanDraw(svgSymbol, ignoreDisplay))
+            {
+                return;
+            }
+
+            if (svgSymbol.CustomAttributes.TryGetValue("width", out string? _widthString))
+            {
+                if (new SvgUnitConverter().ConvertFromString(_widthString) is SvgUnit _width)
+                {
+                    width = _width.ToDeviceValue(UnitRenderingType.Horizontal, svgSymbol, skOwnerBounds);
+                }
+            }
+
+            if (svgSymbol.CustomAttributes.TryGetValue("height", out string? heightString))
+            {
+                if (new SvgUnitConverter().ConvertFromString(heightString) is SvgUnit _height)
+                {
+                    height = _height.ToDeviceValue(UnitRenderingType.Vertical, svgSymbol, skOwnerBounds);
+                }
+            }
+
+            SvgOverflow svgOverflow = SvgOverflow.Hidden;
+            if (svgSymbol.TryGetAttribute("overflow", out string overflowString))
+            {
+                if (new SvgOverflowConverter().ConvertFromString(overflowString) is SvgOverflow _svgOverflow)
+                {
+                    svgOverflow = _svgOverflow;
+                }
+            }
+
+            _skCanvas.Save();
+
+            var skClipRect = SKRect.Create(x, y, width, height);
+
+            switch (svgOverflow)
+            {
+                case SvgOverflow.Auto:
+                case SvgOverflow.Visible:
+                case SvgOverflow.Inherit:
+                    break;
+                default:
+                    _skCanvas.ClipRect(skClipRect, SKClipOperation.Intersect);
+                    break;
+            }
+
+            var skMatrixViewBox = SkiaUtil.GetSvgViewBoxTransform(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
+            var skMatrix = SkiaUtil.GetSKMatrix(svgSymbol.Transforms);
+            SKMatrix.PreConcat(ref skMatrix, ref skMatrixViewBox);
+
+            var skMatrixTotal = _skCanvas.TotalMatrix;
+            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
+            _skCanvas.SetMatrix(skMatrixTotal);
+
+            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgSymbol, skClipRect, new HashSet<Uri>(), _disposable);
+            if (skPathClip != null && !skPathClip.IsEmpty)
+            {
+                bool antialias = SkiaUtil.IsAntialias(svgSymbol);
+                _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
+            }
+
+            var skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgSymbol, _disposable);
+            if (skPaintOpacity != null)
+            {
+                _skCanvas.SaveLayer(skPaintOpacity);
+            }
+
+            var skPaintFilter = SkiaUtil.GetFilterSKPaint(svgSymbol, _disposable);
+            if (skPaintFilter != null)
+            {
+                _skCanvas.SaveLayer(skPaintFilter);
+            }
+
+            foreach (var svgElement in svgSymbol.Children)
+            {
+                Draw(svgElement, skOwnerBounds, ignoreDisplay);
+            }
 
             if (skPaintFilter != null)
             {
@@ -1600,6 +1015,61 @@ namespace Svg.Skia
             _skCanvas.Restore();
         }
 
+        internal void AddMarkers(SvgGroup svgGroup)
+        {
+            Uri? marker = null;
+            // TODO: The marker can not be set as presentation attribute.
+            //if (svgGroup.TryGetAttribute("marker", out string markerUrl))
+            //{
+            //    marker = new Uri(markerUrl, UriKind.RelativeOrAbsolute);
+            //}
+
+            if (svgGroup.MarkerStart == null && svgGroup.MarkerMid == null && svgGroup.MarkerEnd == null && marker == null)
+            {
+                return;
+            }
+
+            foreach (var svgElement in svgGroup.Children)
+            {
+                if (svgElement is SvgMarkerElement svgMarkerElement)
+                {
+                    if (svgMarkerElement.MarkerStart == null)
+                    {
+                        if (svgGroup.MarkerStart != null)
+                        {
+                            svgMarkerElement.MarkerStart = svgGroup.MarkerStart;
+                        }
+                        else if (marker != null)
+                        {
+                            svgMarkerElement.MarkerStart = marker;
+                        }
+                    }
+                    if (svgMarkerElement.MarkerMid == null)
+                    {
+                        if (svgGroup.MarkerMid != null)
+                        {
+                            svgMarkerElement.MarkerMid = svgGroup.MarkerMid;
+                        }
+                        else if (marker != null)
+                        {
+                            svgMarkerElement.MarkerMid = marker;
+                        }
+                    }
+                    if (svgMarkerElement.MarkerEnd == null)
+                    {
+                        if (svgGroup.MarkerEnd != null)
+                        {
+                            svgMarkerElement.MarkerEnd = svgGroup.MarkerEnd;
+                        }
+                        else if (marker != null)
+                        {
+                            svgMarkerElement.MarkerEnd = marker;
+                        }
+                    }
+                }
+            }
+        }
+
         public void DrawGroup(SvgGroup svgGroup, SKRect skOwnerBounds, bool ignoreDisplay)
         {
             if (!CanDraw(svgGroup, ignoreDisplay))
@@ -1656,6 +1126,226 @@ namespace Svg.Skia
             }
 
             _skCanvas.Restore();
+        }
+
+        internal SvgVisualElement? GetMarkerElement(SvgMarker svgMarker)
+        {
+            SvgVisualElement? markerElement = null;
+
+            foreach (var child in svgMarker.Children)
+            {
+                if (child is SvgVisualElement svgVisualElement)
+                {
+                    markerElement = svgVisualElement;
+                    break;
+                }
+            }
+
+            return markerElement;
+        }
+
+        internal void DrawMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds)
+        {
+            var markerElement = GetMarkerElement(svgMarker);
+            if (markerElement == null)
+            {
+                return;
+            }
+
+            var skMarkerMatrix = SKMatrix.MakeIdentity();
+
+            var skMatrixMarkerPoint = SKMatrix.MakeTranslation(pMarkerPoint.X, pMarkerPoint.Y);
+            SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixMarkerPoint);
+
+            var skMatrixAngle = SKMatrix.MakeRotationDegrees(svgMarker.Orient.IsAuto ? fAngle : svgMarker.Orient.Angle);
+            SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixAngle);
+
+            var strokeWidth = pOwner.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
+
+            var refX = svgMarker.RefX.ToDeviceValue(UnitRenderingType.Horizontal, svgMarker, skOwnerBounds);
+            var refY = svgMarker.RefY.ToDeviceValue(UnitRenderingType.Vertical, svgMarker, skOwnerBounds);
+            float markerWidth = svgMarker.MarkerWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
+            float markerHeight = svgMarker.MarkerHeight.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
+            float viewBoxToMarkerUnitsScaleX = 1f;
+            float viewBoxToMarkerUnitsScaleY = 1f;
+
+            switch (svgMarker.MarkerUnits)
+            {
+                case SvgMarkerUnits.StrokeWidth:
+                    {
+                        var skMatrixStrokeWidth = SKMatrix.MakeScale(strokeWidth, strokeWidth);
+                        SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixStrokeWidth);
+
+                        var viewBoxWidth = svgMarker.ViewBox.Width;
+                        var viewBoxHeight = svgMarker.ViewBox.Height;
+
+                        var scaleFactorWidth = (viewBoxWidth <= 0) ? 1 : (markerWidth / viewBoxWidth);
+                        var scaleFactorHeight = (viewBoxHeight <= 0) ? 1 : (markerHeight / viewBoxHeight);
+
+                        viewBoxToMarkerUnitsScaleX = Math.Min(scaleFactorWidth, scaleFactorHeight);
+                        viewBoxToMarkerUnitsScaleY = Math.Min(scaleFactorWidth, scaleFactorHeight);
+
+                        var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX * viewBoxToMarkerUnitsScaleX, -refY * viewBoxToMarkerUnitsScaleY);
+                        SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixTranslateRefXY);
+
+                        var skMatrixScaleXY = SKMatrix.MakeScale(viewBoxToMarkerUnitsScaleX, viewBoxToMarkerUnitsScaleY);
+                        SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixScaleXY);
+                    }
+                    break;
+                case SvgMarkerUnits.UserSpaceOnUse:
+                    {
+                        var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX, -refY);
+                        SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixTranslateRefXY);
+                    }
+                    break;
+            }
+
+            var skClipRect = SKRect.Create(
+                svgMarker.ViewBox.MinX,
+                svgMarker.ViewBox.MinY,
+                markerWidth / viewBoxToMarkerUnitsScaleX,
+                markerHeight / viewBoxToMarkerUnitsScaleY);
+
+            _skCanvas.Save();
+
+            var skMatrix = SkiaUtil.GetSKMatrix(svgMarker.Transforms);
+            SKMatrix.PreConcat(ref skMatrix, ref skMarkerMatrix);
+
+            var skMatrixTotal = _skCanvas.TotalMatrix;
+            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
+            _skCanvas.SetMatrix(skMatrixTotal);
+
+            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgMarker, skClipRect, new HashSet<Uri>(), _disposable);
+            if (skPathClip != null && !skPathClip.IsEmpty)
+            {
+                bool antialias = SkiaUtil.IsAntialias(svgMarker);
+                _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
+            }
+
+            var skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgMarker, _disposable);
+            if (skPaintOpacity != null)
+            {
+                _skCanvas.SaveLayer(skPaintOpacity);
+            }
+
+            var skPaintFilter = SkiaUtil.GetFilterSKPaint(svgMarker, _disposable);
+            if (skPaintFilter != null)
+            {
+                _skCanvas.SaveLayer(skPaintFilter);
+            }
+
+            switch (svgMarker.Overflow)
+            {
+                case SvgOverflow.Auto:
+                case SvgOverflow.Visible:
+                case SvgOverflow.Inherit:
+                    break;
+                default:
+                    _skCanvas.ClipRect(skClipRect, SKClipOperation.Intersect);
+                    break;
+            }
+
+            Draw(markerElement, skOwnerBounds, true);
+
+            if (skPaintFilter != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            _skCanvas.Restore();
+        }
+
+        internal void DrawMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skOwnerBounds)
+        {
+            float fAngle1 = 0f;
+            if (svgMarker.Orient.IsAuto)
+            {
+                float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
+                float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
+                fAngle1 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
+                if (isStartMarker && svgMarker.Orient.IsAutoStartReverse)
+                {
+                    fAngle1 += 180;
+                }
+            }
+            DrawMarker(svgMarker, pOwner, pRefPoint, fAngle1, skOwnerBounds);
+        }
+
+        internal void DrawMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, SKPoint pMarkerPoint3, SKRect skOwnerBounds)
+        {
+            float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
+            float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
+            float fAngle1 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
+            xDiff = pMarkerPoint3.X - pMarkerPoint2.X;
+            yDiff = pMarkerPoint3.Y - pMarkerPoint2.Y;
+            float fAngle2 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
+            DrawMarker(svgMarker, pOwner, pRefPoint, (fAngle1 + fAngle2) / 2, skOwnerBounds);
+        }
+
+        internal void DrawMarkers(SvgMarkerElement svgMarkerElement, SKPath skPath, SKRect skOwnerBounds)
+        {
+            var pathTypes = SkiaUtil.GetPathTypes(skPath);
+            var pathLength = pathTypes.Count;
+
+            if (svgMarkerElement.MarkerStart != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
+            {
+                var marker = SkiaUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerStart);
+                if (marker != null)
+                {
+                    var refPoint1 = pathTypes[0].Point;
+                    var index = 1;
+                    while (index < pathLength && pathTypes[index].Point == refPoint1)
+                    {
+                        ++index;
+                    }
+                    var refPoint2 = pathTypes[index].Point;
+                    DrawMarker(marker, svgMarkerElement, refPoint1, refPoint1, refPoint2, true, skOwnerBounds);
+                }
+            }
+
+            if (svgMarkerElement.MarkerMid != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, new HashSet<Uri>()))
+            {
+                var marker = SkiaUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerMid);
+                if (marker != null)
+                {
+                    int bezierIndex = -1;
+                    for (int i = 1; i <= pathLength - 2; i++)
+                    {
+                        // for Bezier curves, the marker shall only been shown at the last point
+                        if ((pathTypes[i].Type & (byte)PathPointType.PathTypeMask) == (byte)PathPointType.Bezier)
+                            bezierIndex = (bezierIndex + 1) % 3;
+                        else
+                            bezierIndex = -1;
+
+                        if (bezierIndex == -1 || bezierIndex == 2)
+                        {
+                            DrawMarker(marker, svgMarkerElement, pathTypes[i].Point, pathTypes[i - 1].Point, pathTypes[i].Point, pathTypes[i + 1].Point, skOwnerBounds);
+                        }
+                    }
+                }
+            }
+
+            if (svgMarkerElement.MarkerEnd != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, new HashSet<Uri>()))
+            {
+                var marker = SkiaUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerEnd);
+                if (marker != null)
+                {
+                    var index = pathLength - 1;
+                    var refPoint1 = pathTypes[index].Point;
+                    --index;
+                    while (index > 0 && pathTypes[index].Point == refPoint1)
+                    {
+                        --index;
+                    }
+                    var refPoint2 = pathTypes[index].Point;
+                    DrawMarker(marker, svgMarkerElement, refPoint1, refPoint2, pathTypes[pathLength - 1].Point, false, skOwnerBounds);
+                }
+            }
         }
 
         public void DrawLine(SvgLine svgLine, SKRect skOwnerBounds, bool ignoreDisplay)
@@ -1926,6 +1616,316 @@ namespace Svg.Skia
             }
 
             _skCanvas.Restore();
+        }
+
+        internal void DrawTextPath(SvgTextPath svgTextPath, SKRect skOwnerBounds, bool ignoreDisplay)
+        {
+            if (!CanDraw(svgTextPath, ignoreDisplay))
+            {
+                return;
+            }
+
+            if (SkiaUtil.HasRecursiveReference(svgTextPath, (e) => e.ReferencedPath, new HashSet<Uri>()))
+            {
+                return;
+            }
+
+            var svgPath = SkiaUtil.GetReference<SvgPath>(svgTextPath, svgTextPath.ReferencedPath);
+            if (svgPath == null)
+            {
+                return;
+            }
+
+            var skPath = SkiaUtil.ToSKPath(svgPath.PathData, svgPath.FillRule, _disposable);
+            if (skPath == null || skPath.IsEmpty)
+            {
+                return;
+            }
+
+            var skMatrixPath = SkiaUtil.GetSKMatrix(svgPath.Transforms);
+            skPath.Transform(skMatrixPath);
+
+            // TODO: Implement StartOffset
+            var startOffset = svgTextPath.StartOffset.ToDeviceValue(UnitRenderingType.Other, svgTextPath, skOwnerBounds);
+
+            // TODO: Calculate correct bounds.
+            var skBounds = skOwnerBounds;
+
+            _skCanvas.Save();
+
+            var skMatrix = SkiaUtil.GetSKMatrix(svgTextPath.Transforms);
+
+            var skMatrixTotal = _skCanvas.TotalMatrix;
+            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
+            _skCanvas.SetMatrix(skMatrixTotal);
+
+            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgTextPath, skBounds, new HashSet<Uri>(), _disposable);
+            if (skPathClip != null && !skPathClip.IsEmpty)
+            {
+                bool antialias = SkiaUtil.IsAntialias(svgTextPath);
+                _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
+            }
+
+            var skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgTextPath, _disposable);
+            if (skPaintOpacity != null)
+            {
+                _skCanvas.SaveLayer(skPaintOpacity);
+            }
+
+            var skPaintFilter = SkiaUtil.GetFilterSKPaint(svgTextPath, _disposable);
+            if (skPaintFilter != null)
+            {
+                _skCanvas.SaveLayer(skPaintFilter);
+            }
+
+            // TODO: Fix SvgTextPath rendering.
+            bool isValidFill = SkiaUtil.IsValidFill(svgTextPath);
+            bool isValidStroke = SkiaUtil.IsValidStroke(svgTextPath, skBounds);
+
+            if (isValidFill || isValidStroke)
+            {
+                var text = svgTextPath.Text?.Trim();
+
+                if (!string.IsNullOrEmpty(text))
+                {
+                    if (SkiaUtil.IsValidFill(svgTextPath))
+                    {
+                        var skPaint = SkiaUtil.GetFillSKPaint(svgTextPath, skBounds, _disposable);
+                        SkiaUtil.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
+                        _skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint);
+                    }
+
+                    if (SkiaUtil.IsValidStroke(svgTextPath, skBounds))
+                    {
+                        var skPaint = SkiaUtil.GetStrokeSKPaint(svgTextPath, skBounds, _disposable);
+                        SkiaUtil.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
+                        _skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint);
+                    }
+                }
+            }
+
+            if (skPaintFilter != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            _skCanvas.Restore();
+        }
+
+        internal void DrawTextRef(SvgTextRef svgTextRef, SKRect skOwnerBounds, bool ignoreDisplay)
+        {
+            if (!CanDraw(svgTextRef, ignoreDisplay))
+            {
+                return;
+            }
+
+            if (SkiaUtil.HasRecursiveReference(svgTextRef, (e) => e.ReferencedElement, new HashSet<Uri>()))
+            {
+                return;
+            }
+
+            var svgReferencedText = SkiaUtil.GetReference<SvgText>(svgTextRef, svgTextRef.ReferencedElement);
+            if (svgReferencedText == null)
+            {
+                return;
+            }
+
+            // TODO: Calculate correct bounds.
+            var skBounds = skOwnerBounds;
+
+            _skCanvas.Save();
+
+            var skMatrix = SkiaUtil.GetSKMatrix(svgTextRef.Transforms);
+
+            var skMatrixTotal = _skCanvas.TotalMatrix;
+            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
+            _skCanvas.SetMatrix(skMatrixTotal);
+
+            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgTextRef, skBounds, new HashSet<Uri>(), _disposable);
+            if (skPathClip != null && !skPathClip.IsEmpty)
+            {
+                bool antialias = SkiaUtil.IsAntialias(svgTextRef);
+                _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
+            }
+
+            var skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgTextRef, _disposable);
+            if (skPaintOpacity != null)
+            {
+                _skCanvas.SaveLayer(skPaintOpacity);
+            }
+
+            var skPaintFilter = SkiaUtil.GetFilterSKPaint(svgTextRef, _disposable);
+            if (skPaintFilter != null)
+            {
+                _skCanvas.SaveLayer(skPaintFilter);
+            }
+
+            // TODO: Draw svgReferencedText
+
+            if (skPaintFilter != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            _skCanvas.Restore();
+        }
+
+        internal void DrawTextSpan(SvgTextSpan svgTextSpan, SKRect skOwnerBounds, bool ignoreDisplay)
+        {
+            if (!CanDraw(svgTextSpan, ignoreDisplay))
+            {
+                return;
+            }
+
+            // TODO: Calculate correct bounds.
+            var skBounds = skOwnerBounds;
+
+            _skCanvas.Save();
+
+            var skMatrix = SkiaUtil.GetSKMatrix(svgTextSpan.Transforms);
+
+            var skMatrixTotal = _skCanvas.TotalMatrix;
+            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
+            _skCanvas.SetMatrix(skMatrixTotal);
+
+            var skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgTextSpan, skBounds, new HashSet<Uri>(), _disposable);
+            if (skPathClip != null && !skPathClip.IsEmpty)
+            {
+                bool antialias = SkiaUtil.IsAntialias(svgTextSpan);
+                _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
+            }
+
+            var skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgTextSpan, _disposable);
+            if (skPaintOpacity != null)
+            {
+                _skCanvas.SaveLayer(skPaintOpacity);
+            }
+
+            var skPaintFilter = SkiaUtil.GetFilterSKPaint(svgTextSpan, _disposable);
+            if (skPaintFilter != null)
+            {
+                _skCanvas.SaveLayer(skPaintFilter);
+            }
+
+            // TODO: Implement SvgTextSpan drawing.
+            DrawTextBase(svgTextSpan, skOwnerBounds);
+
+            if (skPaintFilter != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            if (skPaintOpacity != null)
+            {
+                _skCanvas.Restore();
+            }
+
+            _skCanvas.Restore();
+        }
+
+        internal void DrawTextString(SvgTextBase svgTextBase, string text, float x, float y, SKRect skOwnerBounds)
+        {
+            // TODO: Calculate correct bounds.
+            var skBounds = skOwnerBounds;
+
+            if (SkiaUtil.IsValidFill(svgTextBase))
+            {
+                var skPaint = SkiaUtil.GetFillSKPaint(svgTextBase, skBounds, _disposable);
+                SkiaUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
+                _skCanvas.DrawText(text, x, y, skPaint);
+            }
+
+            if (SkiaUtil.IsValidStroke(svgTextBase, skBounds))
+            {
+                var skPaint = SkiaUtil.GetStrokeSKPaint(svgTextBase, skBounds, _disposable);
+                SkiaUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
+                _skCanvas.DrawText(text, x, y, skPaint);
+            }
+        }
+
+        internal void DrawTextBase(SvgTextBase svgTextBase, SKRect skOwnerBounds)
+        {
+            // TODO: Fix SvgTextBase rendering.
+            bool isValidFill = SkiaUtil.IsValidFill(svgTextBase);
+            bool isValidStroke = SkiaUtil.IsValidStroke(svgTextBase, skOwnerBounds);
+            string? text = svgTextBase.Text?.Trim();
+
+            if ((isValidFill || isValidStroke) && text != null && !string.IsNullOrEmpty(text))
+            {
+                var xCount = svgTextBase.X.Count;
+                var yCount = svgTextBase.Y.Count;
+                var dxCount = svgTextBase.Dx.Count;
+                var dyCount = svgTextBase.Dy.Count;
+
+                if (xCount >= 1 && yCount >= 1 && xCount == yCount && xCount == text.Length)
+                {
+                    // TODO: Fix text position rendering.
+                    var points = new SKPoint[xCount];
+
+                    for (int i = 0; i < xCount; i++)
+                    {
+                        float x = svgTextBase.X[i].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, skOwnerBounds);
+                        float y = svgTextBase.Y[i].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, skOwnerBounds);
+                        points[i] = new SKPoint(x, y);
+                    }
+
+                    // TODO: Calculate correct bounds.
+                    var skBounds = skOwnerBounds;
+
+                    if (SkiaUtil.IsValidFill(svgTextBase))
+                    {
+                        var skPaint = SkiaUtil.GetFillSKPaint(svgTextBase, skBounds, _disposable);
+                        SkiaUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
+                        _skCanvas.DrawPositionedText(text, points, skPaint);
+                    }
+
+                    if (SkiaUtil.IsValidStroke(svgTextBase, skBounds))
+                    {
+                        var skPaint = SkiaUtil.GetStrokeSKPaint(svgTextBase, skBounds, _disposable);
+                        SkiaUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
+                        _skCanvas.DrawPositionedText(text, points, skPaint);
+                    }
+                }
+                else
+                {
+                    float x = 0f;
+                    float y = 0f;
+                    float dx = 0f;
+                    float dy = 0f;
+
+                    if (xCount >= 1)
+                    {
+                        x = svgTextBase.X[0].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, skOwnerBounds);
+                    }
+
+                    if (yCount >= 1)
+                    {
+                        y = svgTextBase.Y[0].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, skOwnerBounds);
+                    }
+
+                    if (dxCount >= 1)
+                    {
+                        dx = svgTextBase.Dx[0].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, skOwnerBounds);
+                    }
+
+                    if (dyCount >= 1)
+                    {
+                        dy = svgTextBase.Dy[0].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, skOwnerBounds);
+                    }
+
+                    DrawTextString(svgTextBase, text, x + dx, y + dy, skOwnerBounds);
+                }
+            }
         }
 
         public void DrawText(SvgText svgText, SKRect skOwnerBounds, bool ignoreDisplay)
