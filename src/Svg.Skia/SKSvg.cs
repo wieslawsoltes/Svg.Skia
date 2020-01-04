@@ -119,7 +119,7 @@ namespace Svg.Skia
                 drawable?.Draw(skCanvas, 0f, 0f);
             }
 #else
-            using (var renderer = new SKSvgRenderer(skCanvas, skSize))
+            using (var renderer = new SKSvgRenderer(skCanvas))
             {
                 renderer.DrawFragment(svgFragment, skBounds, false);
             }
@@ -148,7 +148,7 @@ namespace Svg.Skia
                 return skPictureRecorder.EndRecording();
             }
 #else
-            using (var renderer = new SKSvgRenderer(skCanvas, skSize))
+            using (var renderer = new SKSvgRenderer(skCanvas))
             {
                 renderer.DrawFragment(svgFragment, skBounds, false);
                 return skPictureRecorder.EndRecording();
@@ -167,7 +167,7 @@ namespace Svg.Skia
                 return DrawableFactory.Create(svgFragment, skBounds, false);
             }
 #else
-            using (var renderer = new SKSvgRenderer(skCanvas, skSize))
+            using (var renderer = new SKSvgRenderer(skCanvas))
             {
                 renderer.DrawFragment(svgFragment, skBounds, false);
                 return skPictureRecorder.EndRecordingAsDrawable();
