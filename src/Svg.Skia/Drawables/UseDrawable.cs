@@ -64,6 +64,7 @@ namespace Svg.Skia
             if (svgReferencedElement is SvgSymbol svgSymbol)
             {
                 _referencedDrawable = new SymbolDrawable(svgSymbol, x, y, width, height, skOwnerBounds, ignoreDisplay);
+                _disposable.Add(_referencedDrawable);
             }
             else
             {
@@ -71,6 +72,7 @@ namespace Svg.Skia
                 if (drawable != null)
                 {
                     _referencedDrawable = drawable;
+                    _disposable.Add(_referencedDrawable);
                 }
                 else
                 {
