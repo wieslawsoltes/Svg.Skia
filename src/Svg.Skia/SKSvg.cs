@@ -104,7 +104,7 @@ namespace Svg.Skia
             }
         }
 
-        public static bool Save(Stream stream, SKPicture skPicture, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY)
+        public static bool Save(Stream stream, SKPicture skPicture, SKColor background, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
         {
             using (var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY))
             {
