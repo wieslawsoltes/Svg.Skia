@@ -89,7 +89,10 @@ namespace SvgToPng
         {
             if (items.SelectedItem is Item item)
             {
-                VM.UpdateItem(item, TextLoadTime);
+                TextOpenTime.Text = "";
+                TextToPictureTime.Text = "";
+                TextDrawTime.Text = "";
+                VM.UpdateItem(item, TextOpenTime, TextToPictureTime);
             }
 
             skElementSvg.InvalidateVisual();
@@ -194,12 +197,12 @@ namespace SvgToPng
 
         private void OnPaintSurfaceSvg(SKCanvas canvas, int width, int height)
         {
-            var stopwatch = Stopwatch.StartNew();
-
-            canvas.Clear(SKColors.White);
-
             if (items.SelectedItem is Item item && item.Picture != null)
             {
+                var stopwatch = Stopwatch.StartNew();
+
+                canvas.Clear(SKColors.White);
+
                 float pwidth = item.Picture.CullRect.Width;
                 float pheight = item.Picture.CullRect.Height;
                 if (pwidth > 0f && pheight > 0f)
@@ -210,11 +213,15 @@ namespace SvgToPng
                     glHostSvg.Height = pheight;
                     canvas.DrawPicture(item.Picture);
                 }
-            }
 
-            stopwatch.Stop();
-            TextDrawTime.Text = $"{Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3)}ms";
-            Debug.WriteLine($"Draw: {Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3)}ms");
+                stopwatch.Stop();
+                TextDrawTime.Text = $"{Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3)}ms";
+                Debug.WriteLine($"Draw: {Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3)}ms");
+            }
+            else
+            {
+                canvas.Clear(SKColors.White);
+            }
         }
 
         private void OnGLControlHostPng(object sender, EventArgs e)
