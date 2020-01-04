@@ -8,7 +8,7 @@ namespace Svg.Skia
 {
     internal static class DrawableFactory
     {
-        public static BaseDrawable? Create(SvgElement svgElement, SKRect skOwnerBounds, bool ignoreDisplay)
+        public static Drawable? Create(SvgElement svgElement, SKRect skOwnerBounds, bool ignoreDisplay)
         {
             return svgElement switch
             {

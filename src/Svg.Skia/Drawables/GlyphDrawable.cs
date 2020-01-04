@@ -6,7 +6,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal class GlyphDrawable : BaseDrawable
+    internal class GlyphDrawable : Drawable
     {
         public GlyphDrawable(SvgGlyph svgGlyph, SKRect skOwnerBounds, bool ignoreDisplay)
         {

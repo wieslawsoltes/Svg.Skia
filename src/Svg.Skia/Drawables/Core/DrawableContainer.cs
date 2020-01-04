@@ -7,9 +7,9 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal abstract class ChildBaseDrawable : BaseDrawable
+    internal abstract class DrawableContainer : Drawable
     {
-        internal List<BaseDrawable> _childrenDrawables = new List<BaseDrawable>();
+        internal List<Drawable> _childrenDrawables = new List<Drawable>();
 
         protected override void OnDraw(SKCanvas canvas)
         {

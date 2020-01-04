@@ -10,9 +10,9 @@ using Svg.Document_Structure;
 
 namespace Svg.Skia
 {
-    internal class UseDrawable : BaseDrawable
+    internal class UseDrawable : Drawable
     {
-        internal BaseDrawable? _referencedDrawable;
+        internal Drawable? _referencedDrawable;
 
         public UseDrawable(SvgUse svgUse, SKRect skOwnerBounds, bool ignoreDisplay)
         {

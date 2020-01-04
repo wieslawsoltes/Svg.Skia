@@ -8,7 +8,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal class GroupDrawable : ChildBaseDrawable
+    internal class GroupDrawable : DrawableContainer
     {
         public GroupDrawable(SvgGroup svgGroup, SKRect skOwnerBounds, bool ignoreDisplay)
         {

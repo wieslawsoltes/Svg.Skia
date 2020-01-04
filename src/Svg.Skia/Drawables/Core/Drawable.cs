@@ -7,7 +7,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal abstract class BaseDrawable : SKDrawable
+    internal abstract class Drawable : SKDrawable
     {
         internal CompositeDisposable _disposable = new CompositeDisposable();
         internal bool _canDraw;

@@ -6,7 +6,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal class FragmentDrawable : ChildBaseDrawable
+    internal class FragmentDrawable : DrawableContainer
     {
         public FragmentDrawable(SvgFragment svgFragment, SKRect skOwnerBounds, bool ignoreDisplay)
         {

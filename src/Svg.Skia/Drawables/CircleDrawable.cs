@@ -8,7 +8,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal class CircleDrawable : PathBaseDrawable
+    internal class CircleDrawable : DrawablePath
     {
         public CircleDrawable(SvgCircle svgCircle, SKRect skOwnerBounds, bool ignoreDisplay)
         {

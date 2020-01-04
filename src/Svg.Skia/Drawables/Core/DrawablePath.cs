@@ -8,10 +8,10 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal abstract class PathBaseDrawable : BaseDrawable
+    internal abstract class DrawablePath : Drawable
     {
         protected SKPath? _skPath;
-        internal List<BaseDrawable> _markerDrawables = new List<BaseDrawable>();
+        internal List<Drawable> _markerDrawables = new List<Drawable>();
 
         internal void CreateMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skOwnerBounds)
         {

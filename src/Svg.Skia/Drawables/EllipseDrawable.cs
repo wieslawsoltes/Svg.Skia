@@ -8,7 +8,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal class EllipseDrawable : PathBaseDrawable
+    internal class EllipseDrawable : DrawablePath
     {
         public EllipseDrawable(SvgEllipse svgEllipse, SKRect skOwnerBounds, bool ignoreDisplay)
         {

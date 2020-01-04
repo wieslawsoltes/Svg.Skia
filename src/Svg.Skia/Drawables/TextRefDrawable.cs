@@ -5,7 +5,7 @@
 
 namespace Svg.Skia
 {
-    internal class TextRefDrawable : BaseDrawable
+    internal class TextRefDrawable : Drawable
     {
         // TODO: Implement drawable.
     }

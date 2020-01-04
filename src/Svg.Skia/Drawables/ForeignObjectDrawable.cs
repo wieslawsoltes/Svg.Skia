@@ -6,7 +6,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal class ForeignObjectDrawable : BaseDrawable
+    internal class ForeignObjectDrawable : Drawable
     {
         public ForeignObjectDrawable(SvgForeignObject svgForeignObject, SKRect skOwnerBounds, bool ignoreDisplay)
         {

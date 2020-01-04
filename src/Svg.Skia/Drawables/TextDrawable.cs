@@ -6,7 +6,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal class TextDrawable : BaseDrawable
+    internal class TextDrawable : Drawable
     {
         public TextDrawable(SvgText svgText, SKRect skOwnerBounds, bool ignoreDisplay)
         {

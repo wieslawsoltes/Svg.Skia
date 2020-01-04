@@ -6,7 +6,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal class SwitchDrawable : BaseDrawable
+    internal class SwitchDrawable : Drawable
     {
         public SwitchDrawable(SvgSwitch svgSwitch, SKRect skOwnerBounds, bool ignoreDisplay)
         {

@@ -9,9 +9,9 @@ using Svg.DataTypes;
 
 namespace Svg.Skia
 {
-    internal class MarkerDrawable : BaseDrawable
+    internal class MarkerDrawable : Drawable
     {
-        internal BaseDrawable? _markerDrawable;
+        internal Drawable? _markerDrawable;
 
         public MarkerDrawable(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds)
         {

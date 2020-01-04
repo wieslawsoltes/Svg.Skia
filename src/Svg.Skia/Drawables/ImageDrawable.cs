@@ -8,7 +8,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal class ImageDrawable : BaseDrawable
+    internal class ImageDrawable : Drawable
     {
         internal SKImage? _skImage;
         internal FragmentDrawable? _fragmentDrawable;
