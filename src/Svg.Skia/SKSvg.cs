@@ -37,6 +37,50 @@ namespace Svg.Skia
 
     public class SKSvg : IDisposable
     {
+        public static SKDrawable? ToDrawable(SvgElement svgElement, SKRect skBounds, bool ignoreDisplay = false)
+        {
+            return DrawableFactory.Create(svgElement, skBounds, ignoreDisplay);
+        }
+
+        public static void Draw(SKCanvas skCanvas, SvgFragment svgFragment)
+        {
+            var skSize = SvgExtensions.GetDimensions(svgFragment);
+            var skBounds = SKRect.Create(skSize);
+            using (var drawable = DrawableFactory.Create(svgFragment, skBounds, false))
+            {
+                drawable?.Draw(skCanvas, 0f, 0f);
+            }
+        }
+
+        public static void Draw(SKCanvas skCanvas, string path)
+        {
+            var svgDocument = Open(path);
+            if (svgDocument != null)
+            {
+                Draw(skCanvas, svgDocument);
+            }
+        }
+
+        public static SKPicture? ToPicture(SvgFragment svgFragment)
+        {
+            var skSize = SvgExtensions.GetDimensions(svgFragment);
+            var skBounds = SKRect.Create(skSize);
+            using (var skPictureRecorder = new SKPictureRecorder())
+            using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
+            using (var drawable = DrawableFactory.Create(svgFragment, skBounds, false))
+            {
+                drawable?.Draw(skCanvas, 0f, 0f);
+                return skPictureRecorder.EndRecording();
+            }
+        }
+
+        public static SKDrawable? ToDrawable(SvgFragment svgFragment)
+        {
+            var skSize = SvgExtensions.GetDimensions(svgFragment);
+            var skBounds = SKRect.Create(skSize);
+            return DrawableFactory.Create(svgFragment, skBounds, false);
+        }
+
         public static SvgDocument? OpenSvg(string path)
         {
             if (!File.Exists(path))
@@ -107,49 +151,6 @@ namespace Svg.Skia
                 }
             }
             return false;
-        }
-
-        public static void Draw(SKCanvas skCanvas, SvgFragment svgFragment)
-        {
-            var skSize = SvgExtensions.GetDimensions(svgFragment);
-            var skBounds = SKRect.Create(skSize);
-            using (var drawable = DrawableFactory.Create(svgFragment, skBounds, false))
-            {
-                drawable?.Draw(skCanvas, 0f, 0f);
-            }
-        }
-
-        public static void Draw(SKCanvas skCanvas, string path)
-        {
-            var svgDocument = Open(path);
-            if (svgDocument != null)
-            {
-                Draw(skCanvas, svgDocument);
-            }
-        }
-
-        public static SKPicture? ToPicture(SvgFragment svgFragment)
-        {
-            var skSize = SvgExtensions.GetDimensions(svgFragment);
-            var skBounds = SKRect.Create(skSize);
-            using (var skPictureRecorder = new SKPictureRecorder())
-            using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
-            using (var drawable = DrawableFactory.Create(svgFragment, skBounds, false))
-            {
-                drawable?.Draw(skCanvas, 0f, 0f);
-                return skPictureRecorder.EndRecording();
-            }
-        }
-
-        public static SKDrawable? ToDrawable(SvgFragment svgFragment)
-        {
-            var skSize = SvgExtensions.GetDimensions(svgFragment);
-            var skBounds = SKRect.Create(skSize);
-            using (var skPictureRecorder = new SKPictureRecorder())
-            using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
-            {
-                return DrawableFactory.Create(svgFragment, skBounds, false);
-            }
         }
 
         public SKPicture? Picture { get; set; }
