@@ -1,5 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using SkiaSharp;
+using Svg;
 using Svg.Skia;
 
 namespace SvgToPng.ViewModels
@@ -20,7 +21,10 @@ namespace SvgToPng.ViewModels
         public string OutputPngPath { get; set; }
 
         [IgnoreDataMember]
-        public SKSvg Svg { get; set; }
+        public SvgDocument Svg { get; set; }
+
+        [IgnoreDataMember]
+        public SKPicture Picture { get; set; }
 
         [IgnoreDataMember]
         public SKBitmap ReferencePng { get; set; }

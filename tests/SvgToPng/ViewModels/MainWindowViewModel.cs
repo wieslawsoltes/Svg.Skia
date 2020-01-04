@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Windows.Controls;
 using System.Windows.Data;
 using Newtonsoft.Json;
 using SkiaSharp;
@@ -72,15 +73,17 @@ namespace SvgToPng.ViewModels
 
             foreach (var item in items)
             {
-                item.Svg?.Dispose();
+                item.Svg = null;
+                item.Picture?.Dispose();
+                item.Picture = null;
                 item.ReferencePng?.Dispose();
                 item.PixelDiff?.Dispose();
             }
         }
 
-        public void UpdateItem(Item item)
+        public void UpdateItem(Item item, TextBox textBoxStatus)
         {
-            if (item.Svg?.Picture == null)
+            if (item.Svg == null)
             {
                 var currentDirectory = Directory.GetCurrentDirectory();
 
@@ -89,14 +92,21 @@ namespace SvgToPng.ViewModels
                     if (File.Exists(item.SvgPath))
                     {
                         Directory.SetCurrentDirectory(Path.GetDirectoryName(item.SvgPath));
-                        item.Svg = new SKSvg();
 
                         var stopwatch = Stopwatch.StartNew();
 
-                        item.Svg.Load(item.SvgPath);
+                        item.Svg = SKSvg.Open(item.SvgPath);
+                        if (item.Svg != null)
+                        {
+                            item.Picture = SKSvg.ToPicture(item.Svg);
+                        }
 
                         stopwatch.Stop();
-                        Debug.WriteLine($"Load: {stopwatch.Elapsed.TotalMilliseconds}ms");
+                        if (textBoxStatus != null)
+                        {
+                            textBoxStatus.Text = $"{Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3)}ms"; 
+                        }
+                        Debug.WriteLine($"Load: {Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3)}ms");
                     }
                 }
                 catch (Exception ex)
@@ -119,10 +129,10 @@ namespace SvgToPng.ViewModels
                         var referencePng = SKBitmap.Decode(item.ReferencePngPath);
                         item.ReferencePng = referencePng;
 
-                        float scaleX = referencePng.Width / item.Svg.Picture.CullRect.Width;
-                        float scaleY = referencePng.Height / item.Svg.Picture.CullRect.Height;
+                        float scaleX = referencePng.Width / item.Picture.CullRect.Width;
+                        float scaleY = referencePng.Height / item.Picture.CullRect.Height;
 
-                        using (var svgBitmap = item.Svg.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY))
+                        using (var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY))
                         {
                             if (svgBitmap.Width == referencePng.Width && svgBitmap.Height == referencePng.Height)
                             {
@@ -173,11 +183,14 @@ namespace SvgToPng.ViewModels
         {
             foreach (var item in items)
             {
-                UpdateItem(item);
+                UpdateItem(item, null);
 
-                if (item.Svg?.Picture != null)
+                if (item.Picture != null)
                 {
-                    item.Svg.Save(item.OutputPngPath, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1f, 1f);
+                    using (var stream = File.OpenWrite(item.OutputPngPath))
+                    {
+                        SKSvg.Save(stream, item.Picture, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1f, 1f);
+                    }
                 }
             }
         }

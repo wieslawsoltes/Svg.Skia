@@ -89,7 +89,7 @@ namespace SvgToPng
         {
             if (items.SelectedItem is Item item)
             {
-                VM.UpdateItem(item);
+                VM.UpdateItem(item, TextLoadTime);
             }
 
             skElementSvg.InvalidateVisual();
@@ -198,22 +198,23 @@ namespace SvgToPng
 
             canvas.Clear(SKColors.White);
 
-            if (items.SelectedItem is Item item && item.Svg?.Picture != null)
+            if (items.SelectedItem is Item item && item.Picture != null)
             {
-                float pwidth = item.Svg.Picture.CullRect.Width;
-                float pheight = item.Svg.Picture.CullRect.Height;
+                float pwidth = item.Picture.CullRect.Width;
+                float pheight = item.Picture.CullRect.Height;
                 if (pwidth > 0f && pheight > 0f)
                 {
                     skElementSvg.Width = pwidth;
                     skElementSvg.Height = pheight;
                     glHostSvg.Width = pwidth;
                     glHostSvg.Height = pheight;
-                    canvas.DrawPicture(item.Svg.Picture);
+                    canvas.DrawPicture(item.Picture);
                 }
             }
 
             stopwatch.Stop();
-            Debug.WriteLine($"Draw: {stopwatch.Elapsed.TotalMilliseconds}ms");
+            TextDrawTime.Text = $"{Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3)}ms";
+            Debug.WriteLine($"Draw: {Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3)}ms");
         }
 
         private void OnGLControlHostPng(object sender, EventArgs e)
