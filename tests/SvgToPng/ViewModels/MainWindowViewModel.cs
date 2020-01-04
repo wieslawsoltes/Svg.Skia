@@ -81,7 +81,7 @@ namespace SvgToPng.ViewModels
             }
         }
 
-        public void UpdateItem(Item item, TextBox textBoxStatus)
+        public void UpdateItem(Item item, TextBox textBoxOpen, TextBox textBoxToPicture)
         {
             if (item.Svg == null)
             {
@@ -93,20 +93,33 @@ namespace SvgToPng.ViewModels
                     {
                         Directory.SetCurrentDirectory(Path.GetDirectoryName(item.SvgPath));
 
-                        var stopwatch = Stopwatch.StartNew();
-
+                        var stopwatchOpen = Stopwatch.StartNew();
                         item.Svg = SKSvg.Open(item.SvgPath);
+                        stopwatchOpen.Stop();
+                        if (textBoxOpen != null)
+                        {
+                            textBoxOpen.Text = $"{Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms";
+                        }
+                        Debug.WriteLine($"Open: {Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
+
                         if (item.Svg != null)
                         {
+                            var stopwatchToPicture = Stopwatch.StartNew();
                             item.Picture = SKSvg.ToPicture(item.Svg);
+                            stopwatchToPicture.Stop();
+                            if (textBoxToPicture != null)
+                            {
+                                textBoxToPicture.Text = $"{Math.Round(stopwatchToPicture.Elapsed.TotalMilliseconds, 3)}ms";
+                            }
+                            Debug.WriteLine($"ToPicture: {Math.Round(stopwatchToPicture.Elapsed.TotalMilliseconds, 3)}ms");
                         }
-
-                        stopwatch.Stop();
-                        if (textBoxStatus != null)
+                        else
                         {
-                            textBoxStatus.Text = $"{Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3)}ms"; 
+                            if (textBoxToPicture != null)
+                            {
+                                textBoxToPicture.Text = $"";
+                            }
                         }
-                        Debug.WriteLine($"Load: {Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3)}ms");
                     }
                 }
                 catch (Exception ex)
@@ -183,7 +196,7 @@ namespace SvgToPng.ViewModels
         {
             foreach (var item in items)
             {
-                UpdateItem(item, null);
+                UpdateItem(item, null, null);
 
                 if (item.Picture != null)
                 {
