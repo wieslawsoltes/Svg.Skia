@@ -148,6 +148,7 @@ namespace Svg.Skia
             if (svgFragment != null)
             {
                 _fragmentDrawable = new FragmentDrawable(svgFragment, skOwnerBounds, ignoreDisplay);
+                _disposable.Add(_fragmentDrawable);
             }
 
             _antialias = SkiaUtil.IsAntialias(svgImage);
