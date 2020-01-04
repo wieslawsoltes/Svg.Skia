@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
+#define USE_DRAWABLES
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -109,50 +110,70 @@ namespace Svg.Skia
             return false;
         }
 
-        public static void Draw(SKCanvas sKCanvas, SvgFragment svgFragment)
+        public static void Draw(SKCanvas skCanvas, SvgFragment svgFragment)
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
-
-            using (var renderer = new SKSvgRenderer(sKCanvas, skSize))
+#if USE_DRAWABLES
+            using (var drawable = DrawableFactory.Create(svgFragment, skBounds, false))
+            {
+                drawable?.Draw(skCanvas, 0f, 0f);
+            }
+#else
+            using (var renderer = new SKSvgRenderer(skCanvas, skSize))
             {
                 renderer.DrawFragment(svgFragment, skBounds, false);
             }
+#endif
         }
 
-        public static void Draw(SKCanvas sKCanvas, string path)
+        public static void Draw(SKCanvas skCanvas, string path)
         {
             var svgDocument = Open(path);
             if (svgDocument != null)
             {
-                Draw(sKCanvas, svgDocument);
+                Draw(skCanvas, svgDocument);
             }
         }
 
-        public static SKPicture ToPicture(SvgFragment svgFragment)
+        public static SKPicture? ToPicture(SvgFragment svgFragment)
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
             using (var skPictureRecorder = new SKPictureRecorder())
             using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
+#if USE_DRAWABLES
+            using (var drawable = DrawableFactory.Create(svgFragment, skBounds, false))
+            {
+                drawable?.Draw(skCanvas, 0f, 0f);
+                return skPictureRecorder.EndRecording();
+            }
+#else
             using (var renderer = new SKSvgRenderer(skCanvas, skSize))
             {
                 renderer.DrawFragment(svgFragment, skBounds, false);
                 return skPictureRecorder.EndRecording();
             }
+#endif
         }
 
-        public static SKDrawable ToDrawable(SvgFragment svgFragment)
+        public static SKDrawable? ToDrawable(SvgFragment svgFragment)
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
             using (var skPictureRecorder = new SKPictureRecorder())
             using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
+#if USE_DRAWABLES
+            {
+                return DrawableFactory.Create(svgFragment, skBounds, false);
+            }
+#else
             using (var renderer = new SKSvgRenderer(skCanvas, skSize))
             {
                 renderer.DrawFragment(svgFragment, skBounds, false);
                 return skPictureRecorder.EndRecordingAsDrawable();
             }
+#endif
         }
 
         public SKPicture? Picture { get; set; }
