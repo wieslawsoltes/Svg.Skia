@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-#define USE_DRAWABLES
 using System;
 using System.IO;
 using System.IO.Compression;

@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 // Parts of this source file are adapted from the https://github.com/vvvv/SVG
-#define USE_DRAWABLES
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -15,13 +14,11 @@ namespace Svg.Skia
     public class SKSvgRenderer : ISvgRenderer
     {
         private readonly SKCanvas _skCanvas;
-        private readonly SKSize _skSize;
         private readonly CompositeDisposable _disposable;
 
         public SKSvgRenderer(SKCanvas skCanvas, SKSize skSize)
         {
             _skCanvas = skCanvas;
-            _skSize = skSize;
             _disposable = new CompositeDisposable();
         }
 
@@ -41,7 +38,7 @@ namespace Svg.Skia
         {
             switch (svgElement)
             {
-#if SVG_ANCHOR
+#if USE_SVG_ANCHOR
                 case SvgAnchor svgAnchor:
 #if USE_DRAWABLES
                     {
@@ -607,7 +604,7 @@ namespace Svg.Skia
             var startOffset = svgTextPath.StartOffset.ToDeviceValue(UnitRenderingType.Other, svgTextPath, skOwnerBounds);
 
             // TODO: Calculate correct bounds.
-            var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
+            var skBounds = skOwnerBounds;
 
             _skCanvas.Save();
 
@@ -694,7 +691,7 @@ namespace Svg.Skia
             }
 
             // TODO: Calculate correct bounds.
-            var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
+            var skBounds = skOwnerBounds;
 
             _skCanvas.Save();
 
@@ -746,7 +743,7 @@ namespace Svg.Skia
             }
 
             // TODO: Calculate correct bounds.
-            var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
+            var skBounds = skOwnerBounds;
 
             _skCanvas.Save();
 
@@ -794,7 +791,7 @@ namespace Svg.Skia
         internal void DrawTextString(SvgTextBase svgTextBase, string text, float x, float y, SKRect skOwnerBounds)
         {
             // TODO: Calculate correct bounds.
-            var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
+            var skBounds = skOwnerBounds;
 
             if (SkiaUtil.IsValidFill(svgTextBase))
             {
@@ -838,7 +835,7 @@ namespace Svg.Skia
                     }
 
                     // TODO: Calculate correct bounds.
-                    var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
+                    var skBounds = skOwnerBounds;
 
                     if (SkiaUtil.IsValidFill(svgTextBase))
                     {
@@ -886,7 +883,7 @@ namespace Svg.Skia
             }
         }
 
-#if SVG_ANCHOR
+#if USE_SVG_ANCHOR
         public void DrawAnchor(SvgAnchor svgAnchor, SKRect skOwnerBounds, bool ignoreDisplay)
         {
             _skCanvas.Save();
@@ -1157,7 +1154,7 @@ namespace Svg.Skia
             }
 
             // TODO: Calculate correct bounds.
-            var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
+            var skBounds = skOwnerBounds;
 
             _skCanvas.Save();
 
@@ -1313,7 +1310,7 @@ namespace Svg.Skia
             }
 
             // TODO: Calculate correct bounds.
-            var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
+            var skBounds = skOwnerBounds;
 
             _skCanvas.Save();
 
@@ -1566,7 +1563,7 @@ namespace Svg.Skia
             }
 
             // TODO: Calculate correct bounds.
-            var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
+            var skBounds = skOwnerBounds;
 
             _skCanvas.Save();
 
@@ -1621,7 +1618,7 @@ namespace Svg.Skia
             AddMarkers(svgGroup);
 
             // TODO: Calculate correct bounds using Children bounds.
-            var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
+            var skBounds = skOwnerBounds;
 
             _skCanvas.Save();
 
@@ -1946,7 +1943,7 @@ namespace Svg.Skia
             }
 
             // TODO: Calculate correct bounds.
-            var skBounds = SKRect.Create(0f, 0f, _skSize.Width, _skSize.Height);
+            var skBounds = skOwnerBounds;
 
             _skCanvas.Save();
 

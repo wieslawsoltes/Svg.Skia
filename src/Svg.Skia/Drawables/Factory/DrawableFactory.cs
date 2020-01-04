@@ -12,7 +12,7 @@ namespace Svg.Skia
         {
             return svgElement switch
             {
-#if SVG_ANCHOR
+#if USE_SVG_ANCHOR
                 SvgAnchor svgAnchor => new AnchorDrawable(svgAnchor, skOwnerBounds, ignoreDisplay),
 #endif
                 SvgFragment svgFragment => new FragmentDrawable(svgFragment, skOwnerBounds, ignoreDisplay),

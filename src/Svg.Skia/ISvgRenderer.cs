@@ -7,7 +7,7 @@ namespace Svg.Skia
 {
     public interface ISvgRenderer : IDisposable
     {
-#if SVG_ANCHOR
+#if USE_SVG_ANCHOR
         void DrawAnchor(SvgAnchor svgAnchor, SKRect skOwnerBounds, bool ignoreDisplay);
 #endif
         void DrawFragment(SvgFragment svgFragment, SKRect skOwnerBounds, bool ignoreDisplay);
