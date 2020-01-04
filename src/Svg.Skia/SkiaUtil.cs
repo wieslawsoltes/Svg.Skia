@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 // Parts of this source file are adapted from the https://github.com/vvvv/SVG
+#define USE_DRAWABLES
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -638,6 +639,20 @@ namespace Svg.Skia
             var skBounds = SKRect.Create(skSize);
             using (var skPictureRecorder = new SKPictureRecorder())
             using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
+#if USE_DRAWABLES
+            {
+                skCanvas.SetMatrix(sKMatrix);
+                foreach (var svgElement in svgElementCollection)
+                {
+                    // TODO: Adjust opacity for pattern based on fill-opacity and stroke-opacity.
+                    using (var drawable = DrawableFactory.Create(svgElement, skBounds, false))
+                    {
+                        drawable?.Draw(skCanvas, 0f, 0f);
+                    }
+                }
+                return skPictureRecorder.EndRecording();
+            }
+#else
             using (var renderer = new SKSvgRenderer(skCanvas, skSize))
             {
                 skCanvas.SetMatrix(sKMatrix);
@@ -648,6 +663,7 @@ namespace Svg.Skia
                 }
                 return skPictureRecorder.EndRecording();
             }
+#endif
         }
 
         public static SKShader? CreatePicture(
