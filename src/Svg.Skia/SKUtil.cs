@@ -30,11 +30,250 @@ namespace Svg.Skia
         CloseSubpath = 0x80
     }
 
-    internal static class SKUtil
+    internal static partial class SKUtil
+    {
+        public static T? GetReference<T>(SvgElement svgElement, Uri uri) where T : SvgElement
+        {
+            if (uri == null)
+            {
+                return null;
+            }
+
+            var svgElementById = svgElement.OwnerDocument?.GetElementById(uri.ToString());
+            if (svgElementById != null)
+            {
+                return svgElementById as T;
+            }
+
+            return null;
+        }
+
+        public static bool ElementReferencesUri<T>(T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris, SvgElement? svgReferencedElement) where T : SvgElement
+        {
+            if (svgReferencedElement == null)
+            {
+                return false;
+            }
+
+            if (svgReferencedElement is T svgElementT)
+            {
+                var referencedElementUri = getUri(svgElementT);
+
+                if (referencedElementUri == null)
+                {
+                    return false;
+                }
+
+                if (uris.Contains(referencedElementUri))
+                {
+                    return true;
+                }
+
+                if (GetReference<T>(svgElement, referencedElementUri) != null)
+                {
+                    uris.Add(referencedElementUri);
+                }
+
+                return ElementReferencesUri(
+                    svgElementT,
+                    getUri,
+                    uris,
+                    GetReference<SvgElement>(svgElementT, referencedElementUri));
+            }
+
+            foreach (var svgChildElement in svgReferencedElement.Children)
+            {
+                if (ElementReferencesUri(svgElement, getUri, uris, svgChildElement))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool HasRecursiveReference<T>(T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris) where T : SvgElement
+        {
+            var referencedElementUri = getUri(svgElement);
+            if (referencedElementUri == null)
+            {
+                return false;
+            }
+            var svgReferencedElement = GetReference<SvgElement>(svgElement, referencedElementUri);
+            if (uris.Contains(referencedElementUri))
+            {
+                return true;
+            }
+            uris.Add(referencedElementUri);
+            return ElementReferencesUri<T>(svgElement, getUri, uris, svgReferencedElement);
+        }
+    }
+
+    internal static partial class SKUtil
+    {
+        public static SKMatrix ToSKMatrix(SvgMatrix svgMatrix)
+        {
+            return new SKMatrix()
+            {
+                ScaleX = svgMatrix.Points[0],
+                SkewY = svgMatrix.Points[1],
+                SkewX = svgMatrix.Points[2],
+                ScaleY = svgMatrix.Points[3],
+                TransX = svgMatrix.Points[4],
+                TransY = svgMatrix.Points[5],
+                Persp0 = 0,
+                Persp1 = 0,
+                Persp2 = 1
+            };
+        }
+
+        public static SKMatrix GetSKMatrix(SvgTransformCollection svgTransformCollection)
+        {
+            var skMatrixTotal = SKMatrix.MakeIdentity();
+
+            if (svgTransformCollection == null)
+            {
+                return skMatrixTotal;
+            }
+
+            foreach (var svgTransform in svgTransformCollection)
+            {
+                switch (svgTransform)
+                {
+                    case SvgMatrix svgMatrix:
+                        {
+                            var skMatrix = ToSKMatrix(svgMatrix);
+                            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
+                        }
+                        break;
+                    case SvgRotate svgRotate:
+                        {
+                            var skMatrixRotate = SKMatrix.MakeRotationDegrees(svgRotate.Angle, svgRotate.CenterX, svgRotate.CenterY);
+                            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixRotate);
+                        }
+                        break;
+                    case SvgScale svgScale:
+                        {
+                            var skMatrixScale = SKMatrix.MakeScale(svgScale.X, svgScale.Y);
+                            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixScale);
+                        }
+                        break;
+                    case SvgShear svgShear:
+                        {
+                            // Not in the svg specification.
+                        }
+                        break;
+                    case SvgSkew svgSkew:
+                        {
+                            float sx = (float)Math.Tan(Math.PI * svgSkew.AngleX / 180);
+                            float sy = (float)Math.Tan(Math.PI * svgSkew.AngleY / 180);
+                            var skMatrixSkew = SKMatrix.MakeSkew(sx, sy);
+                            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixSkew);
+                        }
+                        break;
+                    case SvgTranslate svgTranslate:
+                        {
+                            var skMatrixTranslate = SKMatrix.MakeTranslation(svgTranslate.X, svgTranslate.Y);
+                            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixTranslate);
+                        }
+                        break;
+                }
+            }
+
+            return skMatrixTotal;
+        }
+
+        public static SKMatrix GetSvgViewBoxTransform(SvgViewBox svgViewBox, SvgAspectRatio svgAspectRatio, float x, float y, float width, float height)
+        {
+            if (svgViewBox.Equals(SvgViewBox.Empty))
+            {
+                return SKMatrix.MakeTranslation(x, y);
+            }
+
+            float fScaleX = width / svgViewBox.Width;
+            float fScaleY = height / svgViewBox.Height;
+            float fMinX = -svgViewBox.MinX * fScaleX;
+            float fMinY = -svgViewBox.MinY * fScaleY;
+
+            if (svgAspectRatio == null)
+            {
+                svgAspectRatio = new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid, false);
+            }
+
+            if (svgAspectRatio.Align != SvgPreserveAspectRatio.none)
+            {
+                if (svgAspectRatio.Slice)
+                {
+                    fScaleX = Math.Max(fScaleX, fScaleY);
+                    fScaleY = Math.Max(fScaleX, fScaleY);
+                }
+                else
+                {
+                    fScaleX = Math.Min(fScaleX, fScaleY);
+                    fScaleY = Math.Min(fScaleX, fScaleY);
+                }
+                float fViewMidX = (svgViewBox.Width / 2) * fScaleX;
+                float fViewMidY = (svgViewBox.Height / 2) * fScaleY;
+                float fMidX = width / 2;
+                float fMidY = height / 2;
+                fMinX = -svgViewBox.MinX * fScaleX;
+                fMinY = -svgViewBox.MinY * fScaleY;
+
+                switch (svgAspectRatio.Align)
+                {
+                    case SvgPreserveAspectRatio.xMinYMin:
+                        break;
+                    case SvgPreserveAspectRatio.xMidYMin:
+                        fMinX += fMidX - fViewMidX;
+                        break;
+                    case SvgPreserveAspectRatio.xMaxYMin:
+                        fMinX += width - svgViewBox.Width * fScaleX;
+                        break;
+                    case SvgPreserveAspectRatio.xMinYMid:
+                        fMinY += fMidY - fViewMidY;
+                        break;
+                    case SvgPreserveAspectRatio.xMidYMid:
+                        fMinX += fMidX - fViewMidX;
+                        fMinY += fMidY - fViewMidY;
+                        break;
+                    case SvgPreserveAspectRatio.xMaxYMid:
+                        fMinX += width - svgViewBox.Width * fScaleX;
+                        fMinY += fMidY - fViewMidY;
+                        break;
+                    case SvgPreserveAspectRatio.xMinYMax:
+                        fMinY += height - svgViewBox.Height * fScaleY;
+                        break;
+                    case SvgPreserveAspectRatio.xMidYMax:
+                        fMinX += fMidX - fViewMidX;
+                        fMinY += height - svgViewBox.Height * fScaleY;
+                        break;
+                    case SvgPreserveAspectRatio.xMaxYMax:
+                        fMinX += width - svgViewBox.Width * fScaleX;
+                        fMinY += height - svgViewBox.Height * fScaleY;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            var skMatrixTotal = SKMatrix.MakeIdentity();
+
+            var skMatrixXY = SKMatrix.MakeTranslation(x, y);
+            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixXY);
+
+            var skMatrixMinXY = SKMatrix.MakeTranslation(fMinX, fMinY);
+            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixMinXY);
+
+            var skMatrixScale = SKMatrix.MakeScale(fScaleX, fScaleY);
+            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixScale);
+
+            return skMatrixTotal;
+        }
+    }
+
+    internal static partial class SKUtil
     {
         public static char[] FontFamilyTrim = new char[] { '\'' };
-
-        private const string MimeTypeSvg = "image/svg+xml";
 
         public static SKColor GetColor(SvgColourServer svgColourServer, float opacity, bool forStroke = false)
         {
@@ -52,306 +291,6 @@ namespace Svg.Skia
             byte alpha = (byte)Math.Round((opacity * (svgColourServer.Colour.A / 255.0)) * 255);
 
             return new SKColor(colour.R, colour.G, colour.B, alpha);
-        }
-
-        public static string ToSvgPathData(SvgPathSegmentList svgPathSegmentList)
-        {
-            var sb = new StringBuilder();
-            foreach (var svgSegment in svgPathSegmentList)
-            {
-                sb.AppendLine(svgSegment.ToString());
-            }
-            return sb.ToString();
-        }
-
-        public static SKPath? ToSKPath(string svgPath)
-        {
-            return SKPath.ParseSvgPathData(svgPath);
-        }
-
-        public static SKPath? ToSKPath(SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule, CompositeDisposable disposable)
-        {
-            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
-            var skPath = new SKPath()
-            {
-                FillType = fillType
-            };
-
-            foreach (var svgSegment in svgPathSegmentList)
-            {
-                switch (svgSegment)
-                {
-                    case SvgMoveToSegment svgMoveToSegment:
-                        {
-                            float x = svgMoveToSegment.Start.X;
-                            float y = svgMoveToSegment.Start.Y;
-                            skPath.MoveTo(x, y);
-                        }
-                        break;
-                    case SvgLineSegment svgLineSegment:
-                        {
-                            float x = svgLineSegment.End.X;
-                            float y = svgLineSegment.End.Y;
-                            skPath.LineTo(x, y);
-                        }
-                        break;
-                    case SvgCubicCurveSegment svgCubicCurveSegment:
-                        {
-                            float x0 = svgCubicCurveSegment.FirstControlPoint.X;
-                            float y0 = svgCubicCurveSegment.FirstControlPoint.Y;
-                            float x1 = svgCubicCurveSegment.SecondControlPoint.X;
-                            float y1 = svgCubicCurveSegment.SecondControlPoint.Y;
-                            float x2 = svgCubicCurveSegment.End.X;
-                            float y2 = svgCubicCurveSegment.End.Y;
-                            skPath.CubicTo(x0, y0, x1, y1, x2, y2);
-                        }
-                        break;
-                    case SvgQuadraticCurveSegment svgQuadraticCurveSegment:
-                        {
-                            float x0 = svgQuadraticCurveSegment.ControlPoint.X;
-                            float y0 = svgQuadraticCurveSegment.ControlPoint.Y;
-                            float x1 = svgQuadraticCurveSegment.End.X;
-                            float y1 = svgQuadraticCurveSegment.End.Y;
-                            skPath.QuadTo(x0, y0, x1, y1);
-                        }
-                        break;
-                    case SvgArcSegment svgArcSegment:
-                        {
-                            float rx = svgArcSegment.RadiusX;
-                            float ry = svgArcSegment.RadiusY;
-                            float xAxisRotate = svgArcSegment.Angle;
-                            var largeArc = svgArcSegment.Size == SvgArcSize.Small ? SKPathArcSize.Small : SKPathArcSize.Large;
-                            var sweep = svgArcSegment.Sweep == SvgArcSweep.Negative ? SKPathDirection.CounterClockwise : SKPathDirection.Clockwise;
-                            float x = svgArcSegment.End.X;
-                            float y = svgArcSegment.End.Y;
-                            skPath.ArcTo(rx, ry, xAxisRotate, largeArc, sweep, x, y);
-                        }
-                        break;
-                    case SvgClosePathSegment _:
-                        {
-                            skPath.Close();
-                        }
-                        break;
-                }
-            }
-
-            disposable.Add(skPath);
-            return skPath;
-        }
-
-        public static SKPath? ToSKPath(SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, SKRect skOwnerBounds, CompositeDisposable disposable)
-        {
-            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
-            var skPath = new SKPath()
-            {
-                FillType = fillType
-            };
-
-            var skPoints = new SKPoint[svgPointCollection.Count / 2];
-
-            for (int i = 0; (i + 1) < svgPointCollection.Count; i += 2)
-            {
-                float x = svgPointCollection[i].ToDeviceValue(UnitRenderingType.Other, null, skOwnerBounds);
-                float y = svgPointCollection[i + 1].ToDeviceValue(UnitRenderingType.Other, null, skOwnerBounds);
-                skPoints[i / 2] = new SKPoint(x, y);
-            }
-
-            skPath.AddPoly(skPoints, false);
-
-            if (isClosed)
-            {
-                skPath.Close();
-            }
-
-            disposable.Add(skPath);
-            return skPath;
-        }
-
-        public static SKPath? ToSKPath(SvgRectangle svgRectangle, SvgFillRule svgFillRule, SKRect skOwnerBounds, CompositeDisposable disposable)
-        {
-            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
-            var skPath = new SKPath()
-            {
-                FillType = fillType
-            };
-
-            float x = svgRectangle.X.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skOwnerBounds);
-            float y = svgRectangle.Y.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skOwnerBounds);
-            float width = svgRectangle.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skOwnerBounds);
-            float height = svgRectangle.Height.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skOwnerBounds);
-            float rx = svgRectangle.CornerRadiusX.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skOwnerBounds);
-            float ry = svgRectangle.CornerRadiusY.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skOwnerBounds);
-
-            if (width <= 0f || height <= 0f || rx < 0f || ry < 0f)
-            {
-                skPath.Dispose();
-                return null;
-            }
-
-            if (rx > 0f)
-            {
-                float halfWidth = width / 2f;
-                if (rx > halfWidth)
-                {
-                    rx = halfWidth;
-                }
-            }
-
-            if (ry > 0f)
-            {
-                float halfHeight = height / 2f;
-                if (ry > halfHeight)
-                {
-                    ry = halfHeight;
-                }
-            }
-
-            bool isRound = rx > 0f && ry > 0f;
-            var skRectBounds = SKRect.Create(x, y, width, height);
-
-            if (isRound)
-            {
-                skPath.AddRoundRect(skRectBounds, rx, ry);
-            }
-            else
-            {
-                skPath.AddRect(skRectBounds);
-            }
-
-            disposable.Add(skPath);
-            return skPath;
-        }
-
-        public static SKPath? ToSKPath(SvgCircle svgCircle, SvgFillRule svgFillRule, SKRect skOwnerBounds, CompositeDisposable disposable)
-        {
-            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
-            var skPath = new SKPath()
-            {
-                FillType = fillType
-            };
-
-            float cx = svgCircle.CenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgCircle, skOwnerBounds);
-            float cy = svgCircle.CenterY.ToDeviceValue(UnitRenderingType.Vertical, svgCircle, skOwnerBounds);
-            float radius = svgCircle.Radius.ToDeviceValue(UnitRenderingType.Other, svgCircle, skOwnerBounds);
-
-            if (radius <= 0f)
-            {
-                skPath.Dispose();
-                return null;
-            }
-
-            skPath.AddCircle(cx, cy, radius);
-
-            disposable.Add(skPath);
-            return skPath;
-        }
-
-        public static SKPath? ToSKPath(SvgEllipse svgEllipse, SvgFillRule svgFillRule, SKRect skOwnerBounds, CompositeDisposable disposable)
-        {
-            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
-            var skPath = new SKPath()
-            {
-                FillType = fillType
-            };
-
-            float cx = svgEllipse.CenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgEllipse, skOwnerBounds);
-            float cy = svgEllipse.CenterY.ToDeviceValue(UnitRenderingType.Vertical, svgEllipse, skOwnerBounds);
-            float rx = svgEllipse.RadiusX.ToDeviceValue(UnitRenderingType.Other, svgEllipse, skOwnerBounds);
-            float ry = svgEllipse.RadiusY.ToDeviceValue(UnitRenderingType.Other, svgEllipse, skOwnerBounds);
-
-            if (rx <= 0f || ry <= 0f)
-            {
-                skPath.Dispose();
-                return null;
-            }
-
-            var skRectBounds = SKRect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
-
-            skPath.AddOval(skRectBounds);
-
-            disposable.Add(skPath);
-            return skPath;
-        }
-
-        public static SKPath? ToSKPath(SvgLine svgLine, SvgFillRule svgFillRule, SKRect skOwnerBounds, CompositeDisposable disposable)
-        {
-            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
-            var skPath = new SKPath()
-            {
-                FillType = fillType
-            };
-
-            float x0 = svgLine.StartX.ToDeviceValue(UnitRenderingType.Horizontal, svgLine, skOwnerBounds);
-            float y0 = svgLine.StartY.ToDeviceValue(UnitRenderingType.Vertical, svgLine, skOwnerBounds);
-            float x1 = svgLine.EndX.ToDeviceValue(UnitRenderingType.Horizontal, svgLine, skOwnerBounds);
-            float y1 = svgLine.EndY.ToDeviceValue(UnitRenderingType.Vertical, svgLine, skOwnerBounds);
-
-            skPath.MoveTo(x0, y0);
-            skPath.LineTo(x1, y1);
-
-            disposable.Add(skPath);
-            return skPath;
-        }
-
-        public static List<(SKPoint Point, byte Type)> GetPathTypes(SKPath path)
-        {
-            // System.Drawing.Drawing2D.GraphicsPath.PathTypes
-            // System.Drawing.Drawing2D.PathPointType
-            // byte -> PathPointType
-            var pathTypes = new List<(SKPoint Point, byte Type)>();
-            using (var iterator = path.CreateRawIterator())
-            {
-                var points = new SKPoint[4];
-                var pathVerb = SKPathVerb.Move;
-                (SKPoint Point, byte Type) lastPoint = (default, 0);
-                while ((pathVerb = iterator.Next(points)) != SKPathVerb.Done)
-                {
-                    switch (pathVerb)
-                    {
-                        case SKPathVerb.Move:
-                            {
-                                pathTypes.Add((points[0], (byte)PathPointType.Start));
-                                lastPoint = (points[0], (byte)PathPointType.Start);
-                            }
-                            break;
-                        case SKPathVerb.Line:
-                            {
-                                pathTypes.Add((points[1], (byte)PathPointType.Line));
-                                lastPoint = (points[1], (byte)PathPointType.Line);
-                            }
-                            break;
-                        case SKPathVerb.Cubic:
-                            {
-                                pathTypes.Add((points[1], (byte)PathPointType.Bezier));
-                                pathTypes.Add((points[2], (byte)PathPointType.Bezier));
-                                pathTypes.Add((points[3], (byte)PathPointType.Bezier));
-                                lastPoint = (points[3], (byte)PathPointType.Bezier);
-                            }
-                            break;
-                        case SKPathVerb.Quad:
-                            {
-                                pathTypes.Add((points[1], (byte)PathPointType.Bezier));
-                                pathTypes.Add((points[2], (byte)PathPointType.Bezier));
-                                lastPoint = (points[2], (byte)PathPointType.Bezier);
-                            }
-                            break;
-                        case SKPathVerb.Conic:
-                            {
-                                pathTypes.Add((points[1], (byte)PathPointType.Bezier));
-                                pathTypes.Add((points[2], (byte)PathPointType.Bezier));
-                                lastPoint = (points[2], (byte)PathPointType.Bezier);
-                            }
-                            break;
-                        case SKPathVerb.Close:
-                            {
-                                lastPoint = (lastPoint.Point, (byte)((lastPoint.Type | (byte)PathPointType.CloseSubpath)));
-                                pathTypes[pathTypes.Count - 1] = lastPoint;
-                            }
-                            break;
-                    }
-                }
-            }
-            return pathTypes;
         }
 
         public static float AdjustSvgOpacity(float opacity)
@@ -1516,166 +1455,313 @@ namespace Svg.Skia
             }
             return null;
         }
+    }
 
-        public static SKMatrix ToSKMatrix(SvgMatrix svgMatrix)
+    internal static partial class SKUtil
+    {
+        public static string ToSvgPathData(SvgPathSegmentList svgPathSegmentList)
         {
-            return new SKMatrix()
+            var sb = new StringBuilder();
+            foreach (var svgSegment in svgPathSegmentList)
             {
-                ScaleX = svgMatrix.Points[0],
-                SkewY = svgMatrix.Points[1],
-                SkewX = svgMatrix.Points[2],
-                ScaleY = svgMatrix.Points[3],
-                TransX = svgMatrix.Points[4],
-                TransY = svgMatrix.Points[5],
-                Persp0 = 0,
-                Persp1 = 0,
-                Persp2 = 1
+                sb.AppendLine(svgSegment.ToString());
+            }
+            return sb.ToString();
+        }
+
+        public static SKPath? ToSKPath(string svgPath)
+        {
+            return SKPath.ParseSvgPathData(svgPath);
+        }
+
+        public static SKPath? ToSKPath(SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        {
+            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
+            var skPath = new SKPath()
+            {
+                FillType = fillType
             };
+
+            foreach (var svgSegment in svgPathSegmentList)
+            {
+                switch (svgSegment)
+                {
+                    case SvgMoveToSegment svgMoveToSegment:
+                        {
+                            float x = svgMoveToSegment.Start.X;
+                            float y = svgMoveToSegment.Start.Y;
+                            skPath.MoveTo(x, y);
+                        }
+                        break;
+                    case SvgLineSegment svgLineSegment:
+                        {
+                            float x = svgLineSegment.End.X;
+                            float y = svgLineSegment.End.Y;
+                            skPath.LineTo(x, y);
+                        }
+                        break;
+                    case SvgCubicCurveSegment svgCubicCurveSegment:
+                        {
+                            float x0 = svgCubicCurveSegment.FirstControlPoint.X;
+                            float y0 = svgCubicCurveSegment.FirstControlPoint.Y;
+                            float x1 = svgCubicCurveSegment.SecondControlPoint.X;
+                            float y1 = svgCubicCurveSegment.SecondControlPoint.Y;
+                            float x2 = svgCubicCurveSegment.End.X;
+                            float y2 = svgCubicCurveSegment.End.Y;
+                            skPath.CubicTo(x0, y0, x1, y1, x2, y2);
+                        }
+                        break;
+                    case SvgQuadraticCurveSegment svgQuadraticCurveSegment:
+                        {
+                            float x0 = svgQuadraticCurveSegment.ControlPoint.X;
+                            float y0 = svgQuadraticCurveSegment.ControlPoint.Y;
+                            float x1 = svgQuadraticCurveSegment.End.X;
+                            float y1 = svgQuadraticCurveSegment.End.Y;
+                            skPath.QuadTo(x0, y0, x1, y1);
+                        }
+                        break;
+                    case SvgArcSegment svgArcSegment:
+                        {
+                            float rx = svgArcSegment.RadiusX;
+                            float ry = svgArcSegment.RadiusY;
+                            float xAxisRotate = svgArcSegment.Angle;
+                            var largeArc = svgArcSegment.Size == SvgArcSize.Small ? SKPathArcSize.Small : SKPathArcSize.Large;
+                            var sweep = svgArcSegment.Sweep == SvgArcSweep.Negative ? SKPathDirection.CounterClockwise : SKPathDirection.Clockwise;
+                            float x = svgArcSegment.End.X;
+                            float y = svgArcSegment.End.Y;
+                            skPath.ArcTo(rx, ry, xAxisRotate, largeArc, sweep, x, y);
+                        }
+                        break;
+                    case SvgClosePathSegment _:
+                        {
+                            skPath.Close();
+                        }
+                        break;
+                }
+            }
+
+            disposable.Add(skPath);
+            return skPath;
         }
 
-        public static SKMatrix GetSKMatrix(SvgTransformCollection svgTransformCollection)
+        public static SKPath? ToSKPath(SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, SKRect skOwnerBounds, CompositeDisposable disposable)
         {
-            var skMatrixTotal = SKMatrix.MakeIdentity();
-
-            if (svgTransformCollection == null)
+            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
+            var skPath = new SKPath()
             {
-                return skMatrixTotal;
+                FillType = fillType
+            };
+
+            var skPoints = new SKPoint[svgPointCollection.Count / 2];
+
+            for (int i = 0; (i + 1) < svgPointCollection.Count; i += 2)
+            {
+                float x = svgPointCollection[i].ToDeviceValue(UnitRenderingType.Other, null, skOwnerBounds);
+                float y = svgPointCollection[i + 1].ToDeviceValue(UnitRenderingType.Other, null, skOwnerBounds);
+                skPoints[i / 2] = new SKPoint(x, y);
             }
 
-            foreach (var svgTransform in svgTransformCollection)
+            skPath.AddPoly(skPoints, false);
+
+            if (isClosed)
             {
-                switch (svgTransform)
-                {
-                    case SvgMatrix svgMatrix:
-                        {
-                            var skMatrix = ToSKMatrix(svgMatrix);
-                            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
-                        }
-                        break;
-                    case SvgRotate svgRotate:
-                        {
-                            var skMatrixRotate = SKMatrix.MakeRotationDegrees(svgRotate.Angle, svgRotate.CenterX, svgRotate.CenterY);
-                            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixRotate);
-                        }
-                        break;
-                    case SvgScale svgScale:
-                        {
-                            var skMatrixScale = SKMatrix.MakeScale(svgScale.X, svgScale.Y);
-                            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixScale);
-                        }
-                        break;
-                    case SvgShear svgShear:
-                        {
-                            // Not in the svg specification.
-                        }
-                        break;
-                    case SvgSkew svgSkew:
-                        {
-                            float sx = (float)Math.Tan(Math.PI * svgSkew.AngleX / 180);
-                            float sy = (float)Math.Tan(Math.PI * svgSkew.AngleY / 180);
-                            var skMatrixSkew = SKMatrix.MakeSkew(sx, sy);
-                            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixSkew);
-                        }
-                        break;
-                    case SvgTranslate svgTranslate:
-                        {
-                            var skMatrixTranslate = SKMatrix.MakeTranslation(svgTranslate.X, svgTranslate.Y);
-                            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixTranslate);
-                        }
-                        break;
-                }
+                skPath.Close();
             }
 
-            return skMatrixTotal;
+            disposable.Add(skPath);
+            return skPath;
         }
 
-        public static SKMatrix GetSvgViewBoxTransform(SvgViewBox svgViewBox, SvgAspectRatio svgAspectRatio, float x, float y, float width, float height)
+        public static SKPath? ToSKPath(SvgRectangle svgRectangle, SvgFillRule svgFillRule, SKRect skOwnerBounds, CompositeDisposable disposable)
         {
-            if (svgViewBox.Equals(SvgViewBox.Empty))
+            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
+            var skPath = new SKPath()
             {
-                return SKMatrix.MakeTranslation(x, y);
+                FillType = fillType
+            };
+
+            float x = svgRectangle.X.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skOwnerBounds);
+            float y = svgRectangle.Y.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skOwnerBounds);
+            float width = svgRectangle.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skOwnerBounds);
+            float height = svgRectangle.Height.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skOwnerBounds);
+            float rx = svgRectangle.CornerRadiusX.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skOwnerBounds);
+            float ry = svgRectangle.CornerRadiusY.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skOwnerBounds);
+
+            if (width <= 0f || height <= 0f || rx < 0f || ry < 0f)
+            {
+                skPath.Dispose();
+                return null;
             }
 
-            float fScaleX = width / svgViewBox.Width;
-            float fScaleY = height / svgViewBox.Height;
-            float fMinX = -svgViewBox.MinX * fScaleX;
-            float fMinY = -svgViewBox.MinY * fScaleY;
-
-            if (svgAspectRatio == null)
+            if (rx > 0f)
             {
-                svgAspectRatio = new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid, false);
-            }
-
-            if (svgAspectRatio.Align != SvgPreserveAspectRatio.none)
-            {
-                if (svgAspectRatio.Slice)
+                float halfWidth = width / 2f;
+                if (rx > halfWidth)
                 {
-                    fScaleX = Math.Max(fScaleX, fScaleY);
-                    fScaleY = Math.Max(fScaleX, fScaleY);
-                }
-                else
-                {
-                    fScaleX = Math.Min(fScaleX, fScaleY);
-                    fScaleY = Math.Min(fScaleX, fScaleY);
-                }
-                float fViewMidX = (svgViewBox.Width / 2) * fScaleX;
-                float fViewMidY = (svgViewBox.Height / 2) * fScaleY;
-                float fMidX = width / 2;
-                float fMidY = height / 2;
-                fMinX = -svgViewBox.MinX * fScaleX;
-                fMinY = -svgViewBox.MinY * fScaleY;
-
-                switch (svgAspectRatio.Align)
-                {
-                    case SvgPreserveAspectRatio.xMinYMin:
-                        break;
-                    case SvgPreserveAspectRatio.xMidYMin:
-                        fMinX += fMidX - fViewMidX;
-                        break;
-                    case SvgPreserveAspectRatio.xMaxYMin:
-                        fMinX += width - svgViewBox.Width * fScaleX;
-                        break;
-                    case SvgPreserveAspectRatio.xMinYMid:
-                        fMinY += fMidY - fViewMidY;
-                        break;
-                    case SvgPreserveAspectRatio.xMidYMid:
-                        fMinX += fMidX - fViewMidX;
-                        fMinY += fMidY - fViewMidY;
-                        break;
-                    case SvgPreserveAspectRatio.xMaxYMid:
-                        fMinX += width - svgViewBox.Width * fScaleX;
-                        fMinY += fMidY - fViewMidY;
-                        break;
-                    case SvgPreserveAspectRatio.xMinYMax:
-                        fMinY += height - svgViewBox.Height * fScaleY;
-                        break;
-                    case SvgPreserveAspectRatio.xMidYMax:
-                        fMinX += fMidX - fViewMidX;
-                        fMinY += height - svgViewBox.Height * fScaleY;
-                        break;
-                    case SvgPreserveAspectRatio.xMaxYMax:
-                        fMinX += width - svgViewBox.Width * fScaleX;
-                        fMinY += height - svgViewBox.Height * fScaleY;
-                        break;
-                    default:
-                        break;
+                    rx = halfWidth;
                 }
             }
 
-            var skMatrixTotal = SKMatrix.MakeIdentity();
+            if (ry > 0f)
+            {
+                float halfHeight = height / 2f;
+                if (ry > halfHeight)
+                {
+                    ry = halfHeight;
+                }
+            }
 
-            var skMatrixXY = SKMatrix.MakeTranslation(x, y);
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixXY);
+            bool isRound = rx > 0f && ry > 0f;
+            var skRectBounds = SKRect.Create(x, y, width, height);
 
-            var skMatrixMinXY = SKMatrix.MakeTranslation(fMinX, fMinY);
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixMinXY);
+            if (isRound)
+            {
+                skPath.AddRoundRect(skRectBounds, rx, ry);
+            }
+            else
+            {
+                skPath.AddRect(skRectBounds);
+            }
 
-            var skMatrixScale = SKMatrix.MakeScale(fScaleX, fScaleY);
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixScale);
-
-            return skMatrixTotal;
+            disposable.Add(skPath);
+            return skPath;
         }
 
+        public static SKPath? ToSKPath(SvgCircle svgCircle, SvgFillRule svgFillRule, SKRect skOwnerBounds, CompositeDisposable disposable)
+        {
+            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
+            var skPath = new SKPath()
+            {
+                FillType = fillType
+            };
+
+            float cx = svgCircle.CenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgCircle, skOwnerBounds);
+            float cy = svgCircle.CenterY.ToDeviceValue(UnitRenderingType.Vertical, svgCircle, skOwnerBounds);
+            float radius = svgCircle.Radius.ToDeviceValue(UnitRenderingType.Other, svgCircle, skOwnerBounds);
+
+            if (radius <= 0f)
+            {
+                skPath.Dispose();
+                return null;
+            }
+
+            skPath.AddCircle(cx, cy, radius);
+
+            disposable.Add(skPath);
+            return skPath;
+        }
+
+        public static SKPath? ToSKPath(SvgEllipse svgEllipse, SvgFillRule svgFillRule, SKRect skOwnerBounds, CompositeDisposable disposable)
+        {
+            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
+            var skPath = new SKPath()
+            {
+                FillType = fillType
+            };
+
+            float cx = svgEllipse.CenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgEllipse, skOwnerBounds);
+            float cy = svgEllipse.CenterY.ToDeviceValue(UnitRenderingType.Vertical, svgEllipse, skOwnerBounds);
+            float rx = svgEllipse.RadiusX.ToDeviceValue(UnitRenderingType.Other, svgEllipse, skOwnerBounds);
+            float ry = svgEllipse.RadiusY.ToDeviceValue(UnitRenderingType.Other, svgEllipse, skOwnerBounds);
+
+            if (rx <= 0f || ry <= 0f)
+            {
+                skPath.Dispose();
+                return null;
+            }
+
+            var skRectBounds = SKRect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
+
+            skPath.AddOval(skRectBounds);
+
+            disposable.Add(skPath);
+            return skPath;
+        }
+
+        public static SKPath? ToSKPath(SvgLine svgLine, SvgFillRule svgFillRule, SKRect skOwnerBounds, CompositeDisposable disposable)
+        {
+            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
+            var skPath = new SKPath()
+            {
+                FillType = fillType
+            };
+
+            float x0 = svgLine.StartX.ToDeviceValue(UnitRenderingType.Horizontal, svgLine, skOwnerBounds);
+            float y0 = svgLine.StartY.ToDeviceValue(UnitRenderingType.Vertical, svgLine, skOwnerBounds);
+            float x1 = svgLine.EndX.ToDeviceValue(UnitRenderingType.Horizontal, svgLine, skOwnerBounds);
+            float y1 = svgLine.EndY.ToDeviceValue(UnitRenderingType.Vertical, svgLine, skOwnerBounds);
+
+            skPath.MoveTo(x0, y0);
+            skPath.LineTo(x1, y1);
+
+            disposable.Add(skPath);
+            return skPath;
+        }
+
+        public static List<(SKPoint Point, byte Type)> GetPathTypes(SKPath path)
+        {
+            // System.Drawing.Drawing2D.GraphicsPath.PathTypes
+            // System.Drawing.Drawing2D.PathPointType
+            // byte -> PathPointType
+            var pathTypes = new List<(SKPoint Point, byte Type)>();
+            using (var iterator = path.CreateRawIterator())
+            {
+                var points = new SKPoint[4];
+                var pathVerb = SKPathVerb.Move;
+                (SKPoint Point, byte Type) lastPoint = (default, 0);
+                while ((pathVerb = iterator.Next(points)) != SKPathVerb.Done)
+                {
+                    switch (pathVerb)
+                    {
+                        case SKPathVerb.Move:
+                            {
+                                pathTypes.Add((points[0], (byte)PathPointType.Start));
+                                lastPoint = (points[0], (byte)PathPointType.Start);
+                            }
+                            break;
+                        case SKPathVerb.Line:
+                            {
+                                pathTypes.Add((points[1], (byte)PathPointType.Line));
+                                lastPoint = (points[1], (byte)PathPointType.Line);
+                            }
+                            break;
+                        case SKPathVerb.Cubic:
+                            {
+                                pathTypes.Add((points[1], (byte)PathPointType.Bezier));
+                                pathTypes.Add((points[2], (byte)PathPointType.Bezier));
+                                pathTypes.Add((points[3], (byte)PathPointType.Bezier));
+                                lastPoint = (points[3], (byte)PathPointType.Bezier);
+                            }
+                            break;
+                        case SKPathVerb.Quad:
+                            {
+                                pathTypes.Add((points[1], (byte)PathPointType.Bezier));
+                                pathTypes.Add((points[2], (byte)PathPointType.Bezier));
+                                lastPoint = (points[2], (byte)PathPointType.Bezier);
+                            }
+                            break;
+                        case SKPathVerb.Conic:
+                            {
+                                pathTypes.Add((points[1], (byte)PathPointType.Bezier));
+                                pathTypes.Add((points[2], (byte)PathPointType.Bezier));
+                                lastPoint = (points[2], (byte)PathPointType.Bezier);
+                            }
+                            break;
+                        case SKPathVerb.Close:
+                            {
+                                lastPoint = (lastPoint.Point, (byte)((lastPoint.Type | (byte)PathPointType.CloseSubpath)));
+                                pathTypes[pathTypes.Count - 1] = lastPoint;
+                            }
+                            break;
+                    }
+                }
+            }
+            return pathTypes;
+        }
+    }
+
+    internal static partial class SKUtil
+    {
         public static SKPath? GetClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {
             switch (svgVisualElement)
@@ -1841,21 +1927,21 @@ namespace Svg.Skia
                         }
 
                         var skPath = GetClipPath(svgReferencedVisualElement, skBounds, uris, disposable);
-                            if (skPath != null && !skPath.IsEmpty)
+                        if (skPath != null && !skPath.IsEmpty)
+                        {
+                            var skMatrix = GetSKMatrix(svgUse.Transforms);
+                            skPath.Transform(skMatrix);
+
+                            var skPathClip = GetSvgVisualElementClipPath(svgUse, skPath.Bounds, uris, disposable);
+                            if (skPathClip != null && !skPathClip.IsEmpty)
                             {
-                                var skMatrix = GetSKMatrix(svgUse.Transforms);
-                                skPath.Transform(skMatrix);
-
-                                var skPathClip = GetSvgVisualElementClipPath(svgUse, skPath.Bounds, uris, disposable);
-                                if (skPathClip != null && !skPathClip.IsEmpty)
-                                {
-                                    var result = skPath.Op(skPathClip, SKPathOp.Intersect);
-                                    disposable.Add(result);
-                                    return result;
-                                }
-
-                                return skPath;
+                                var result = skPath.Op(skPathClip, SKPathOp.Intersect);
+                                disposable.Add(result);
+                                return result;
                             }
+
+                            return skPath;
+                        }
                     }
                     break;
                 case SvgText svgText:
@@ -2029,77 +2115,11 @@ namespace Svg.Skia
             }
             return null;
         }
+    }
 
-        public static T? GetReference<T>(SvgElement svgElement, Uri uri) where T : SvgElement
-        {
-            if (uri == null)
-            {
-                return null;
-            }
-
-            var svgElementById = svgElement.OwnerDocument?.GetElementById(uri.ToString());
-            if (svgElementById != null)
-            {
-                return svgElementById as T;
-            }
-
-            return null;
-        }
-
-        public static bool ElementReferencesUri<T>(T svgElement, Func<T, Uri> getUri, HashSet<Uri> uris, SvgElement? svgReferencedElement) where T : SvgElement
-        {
-            if (svgReferencedElement == null)
-            {
-                return false;
-            }
-
-            if (svgReferencedElement is T svgElementT)
-            {
-                var referencedElementUri = getUri(svgElementT);
-
-                if (uris.Contains(referencedElementUri))
-                {
-                    return true;
-                }
-
-                if (GetReference<T>(svgElement, referencedElementUri) != null)
-                {
-                    uris.Add(referencedElementUri);
-                }
-
-                return ElementReferencesUri(
-                    svgElementT,
-                    getUri,
-                    uris,
-                    GetReference<SvgElement>(svgElementT, referencedElementUri));
-            }
-
-            foreach (var svgChildElement in svgReferencedElement.Children)
-            {
-                if (ElementReferencesUri(svgElement, getUri, uris, svgChildElement))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public static bool HasRecursiveReference<T>(T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris) where T : SvgElement
-        {
-            var referencedElementUri = getUri(svgElement);
-            if (referencedElementUri == null)
-            {
-                return false;
-            }
-            var svgReferencedElement = GetReference<SvgElement>(svgElement, referencedElementUri);
-            if (uris.Contains(referencedElementUri))
-            {
-                return true;
-            }
-            uris.Add(referencedElementUri);
-            return ElementReferencesUri<T>(svgElement, getUri, uris, svgReferencedElement);
-        }
+    internal static partial class SKUtil
+    {
+        private const string MimeTypeSvg = "image/svg+xml";
 
         public static object? GetImage(SvgImage svgImage, string uriString)
         {
