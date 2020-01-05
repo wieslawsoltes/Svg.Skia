@@ -74,7 +74,11 @@ namespace Svg.Skia
             //    marker = new Uri(markerUrl, UriKind.RelativeOrAbsolute);
             //}
 
-            if (svgGroup.MarkerStart == null && svgGroup.MarkerMid == null && svgGroup.MarkerEnd == null && marker == null)
+            var groupMarkerStart = svgGroup.MarkerStart;
+            var groupMarkerMid = svgGroup.MarkerMid;
+            var groupMarkerEnd = svgGroup.MarkerEnd;
+
+            if (groupMarkerStart == null && groupMarkerMid == null && groupMarkerEnd == null && marker == null)
             {
                 return;
             }
@@ -85,9 +89,9 @@ namespace Svg.Skia
                 {
                     if (svgMarkerElement.MarkerStart == null)
                     {
-                        if (svgGroup.MarkerStart != null)
+                        if (groupMarkerStart != null)
                         {
-                            svgMarkerElement.MarkerStart = svgGroup.MarkerStart;
+                            svgMarkerElement.MarkerStart = groupMarkerStart;
                         }
                         else if (marker != null)
                         {
@@ -96,9 +100,9 @@ namespace Svg.Skia
                     }
                     if (svgMarkerElement.MarkerMid == null)
                     {
-                        if (svgGroup.MarkerMid != null)
+                        if (groupMarkerMid != null)
                         {
-                            svgMarkerElement.MarkerMid = svgGroup.MarkerMid;
+                            svgMarkerElement.MarkerMid = groupMarkerMid;
                         }
                         else if (marker != null)
                         {
@@ -107,9 +111,9 @@ namespace Svg.Skia
                     }
                     if (svgMarkerElement.MarkerEnd == null)
                     {
-                        if (svgGroup.MarkerEnd != null)
+                        if (groupMarkerEnd != null)
                         {
-                            svgMarkerElement.MarkerEnd = svgGroup.MarkerEnd;
+                            svgMarkerElement.MarkerEnd = groupMarkerEnd;
                         }
                         else if (marker != null)
                         {
