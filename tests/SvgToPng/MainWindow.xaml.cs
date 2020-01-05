@@ -108,7 +108,7 @@ namespace SvgToPng
                 TextOpenTime.Text = "";
                 TextToPictureTime.Text = "";
                 TextDrawTime.Text = "";
-                VM.UpdateItem(item, TextOpenTime, TextToPictureTime);
+                VM.UpdateItem(item, (text) => TextOpenTime.Text = text, (text) => TextToPictureTime.Text = text);
             }
 
             skElementSvg.InvalidateVisual();
