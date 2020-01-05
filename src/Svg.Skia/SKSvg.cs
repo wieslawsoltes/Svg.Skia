@@ -40,8 +40,12 @@ namespace Svg.Skia
                 }
                 if (skBounds.IsEmpty)
                 {
-                    skSize = drawable.Bounds.Size;
-                    skBounds = SKRect.Create(skSize);
+                    var skFragmentBounds = svgFragment.Bounds;
+                    skBounds = SKRect.Create(
+                        0f,
+                        0f,
+                        Math.Abs(skFragmentBounds.Left) + skFragmentBounds.Width,
+                        Math.Abs(skFragmentBounds.Top) + skFragmentBounds.Height);
                 }
                 using (var skPictureRecorder = new SKPictureRecorder())
                 using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
