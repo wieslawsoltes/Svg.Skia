@@ -1212,15 +1212,7 @@ namespace Svg.Skia
                 IsAntialias = IsAntialias(svgVisualElement)
             };
 
-            // TODO: Set all SKPaint properties from SvgElement
-
-            // TODO: Set all SKPaint properties from SvgElementStyle
-
             SetFill(svgVisualElement, skBounds, skPaint, disposable);
-
-            // TODO: Set all SKPaint properties from SvgVisualElement
-
-            // TODO: Set all SKPaint properties from SvgVisualElementStyle
 
             if (svgVisualElement.Filter != null)
             {
@@ -1239,10 +1231,6 @@ namespace Svg.Skia
             {
                 IsAntialias = IsAntialias(svgVisualElement)
             };
-
-            // TODO: Set all SKPaint properties from SvgElement
-
-            // TODO: Set all SKPaint properties from SvgElementStyle
 
             SetStroke(svgVisualElement, skBounds, skPaint, disposable);
 
@@ -1280,10 +1268,6 @@ namespace Svg.Skia
             {
                 SetDash(svgVisualElement, skPaint, skBounds, disposable);
             }
-
-            // TODO: Set all SKPaint properties from SvgVisualElement
-
-            // TODO: Set all SKPaint properties from SvgVisualElementStyle
 
             if (svgVisualElement.Filter != null)
             {
