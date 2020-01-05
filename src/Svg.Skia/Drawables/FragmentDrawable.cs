@@ -15,7 +15,13 @@ namespace Svg.Skia
 
             float x = svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skOwnerBounds);
             float y = svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skOwnerBounds);
+
             var skSize = SvgExtensions.GetDimensions(svgFragment);
+
+            if (skOwnerBounds.IsEmpty)
+            {
+                skOwnerBounds = SKRect.Create(x, y, skSize.Width, skSize.Height);
+            }
 
             switch (svgFragment.Overflow)
             {
@@ -57,11 +63,12 @@ namespace Svg.Skia
                 }
             }
 
-            // TODO: Transform _skBounds using _skMatrix.
-
             _skMatrix = SkiaUtil.GetSKMatrix(svgFragment.Transforms);
             var skMatrixViewBox = SkiaUtil.GetSvgViewBoxTransform(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
             SKMatrix.PreConcat(ref _skMatrix, ref skMatrixViewBox);
+
+            // TODO: Transform _skBounds using _skMatrix.
+            SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
 
             _skPathClip = null;
             _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgFragment, _disposable);
