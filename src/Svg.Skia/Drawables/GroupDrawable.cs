@@ -52,9 +52,11 @@ namespace Svg.Skia
                 }
             }
 
-            // TODO: Transform _skBounds using _skMatrix.
-
             _skMatrix = SkiaUtil.GetSKMatrix(svgGroup.Transforms);
+
+            // TODO: Transform _skBounds using _skMatrix.
+            SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
+
             _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgGroup, _skBounds, new HashSet<Uri>(), _disposable);
             _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgGroup, _disposable);
             _skPaintFilter = SkiaUtil.GetFilterSKPaint(svgGroup, _disposable);

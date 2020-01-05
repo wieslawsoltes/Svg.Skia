@@ -100,10 +100,11 @@ namespace Svg.Skia
 
             _skBounds = _markerDrawable._skBounds;
 
-            // TODO: Transform _skBounds using _skMatrix.
-
             _skMatrix = SkiaUtil.GetSKMatrix(svgMarker.Transforms);
             SKMatrix.PreConcat(ref _skMatrix, ref skMarkerMatrix);
+
+            // TODO: Transform _skBounds using _skMatrix.
+            SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
 
             _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgMarker, _skBounds, new HashSet<Uri>(), _disposable);
             _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgMarker, _disposable);

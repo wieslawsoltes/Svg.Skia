@@ -48,9 +48,11 @@ namespace Svg.Skia
                 }
             }
 
-            // TODO: Transform _skBounds using _skMatrix.
-
             _skMatrix = SkiaUtil.GetSKMatrix(svgAnchor.Transforms);
+
+            // TODO: Transform _skBounds using _skMatrix.
+            SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
+
             _skPathClip = null;
             _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgAnchor, _disposable);
             _skPaintFilter = null;

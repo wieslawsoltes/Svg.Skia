@@ -164,8 +164,6 @@ namespace Svg.Skia
                 _skBounds = destRect;
             }
 
-            // TODO: Transform _skBounds using _skMatrix.
-
             _skMatrix = SkiaUtil.GetSKMatrix(svgImage.Transforms);
             if (_fragmentDrawable != null)
             {
@@ -178,6 +176,9 @@ namespace Svg.Skia
                 SKMatrix.PreConcat(ref skTranslationMatrix, ref skScaleMatrix);
                 SKMatrix.PreConcat(ref _skMatrix, ref skTranslationMatrix);
             }
+
+            // TODO: Transform _skBounds using _skMatrix.
+            SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
 
             _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgImage, _skBounds, new HashSet<Uri>(), _disposable);
             _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgImage, _disposable);

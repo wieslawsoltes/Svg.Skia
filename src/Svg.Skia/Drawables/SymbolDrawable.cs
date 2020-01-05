@@ -86,11 +86,12 @@ namespace Svg.Skia
                 }
             }
 
-            // TODO: Transform _skBounds using _skMatrix.
-
             _skMatrix = SkiaUtil.GetSKMatrix(svgSymbol.Transforms);
             var skMatrixViewBox = SkiaUtil.GetSvgViewBoxTransform(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
             SKMatrix.PreConcat(ref _skMatrix, ref skMatrixViewBox);
+
+            // TODO: Transform _skBounds using _skMatrix.
+            SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
 
             _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgSymbol, _skBounds, new HashSet<Uri>(), _disposable);
             _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgSymbol, _disposable);

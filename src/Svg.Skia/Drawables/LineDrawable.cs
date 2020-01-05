@@ -31,9 +31,11 @@ namespace Svg.Skia
 
             _skBounds = _skPath.Bounds;
 
-            // TODO: Transform _skBounds using _skMatrix.
-
             _skMatrix = SkiaUtil.GetSKMatrix(svgLine.Transforms);
+
+            // TODO: Transform _skBounds using _skMatrix.
+            SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
+
             _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgLine, _skBounds, new HashSet<Uri>(), _disposable);
             _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgLine, _disposable);
             _skPaintFilter = SkiaUtil.GetFilterSKPaint(svgLine, _disposable);
