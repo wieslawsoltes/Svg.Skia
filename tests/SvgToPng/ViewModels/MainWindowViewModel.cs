@@ -40,21 +40,21 @@ namespace SvgToPng.ViewModels
             ItemsView.Filter = ItemsFilter;
         }
 
-        public void LoadItems()
+        public void LoadItems(string path)
         {
-            if (File.Exists("Items.json"))
+            if (File.Exists(path))
             {
                 var jsonSerializerSettings = new JsonSerializerSettings()
                 {
                     Formatting = Formatting.Indented,
                     NullValueHandling = NullValueHandling.Ignore
                 };
-                var json = File.ReadAllText("Items.json");
+                var json = File.ReadAllText(path);
                 Items = JsonConvert.DeserializeObject<ObservableCollection<Item>>(json, jsonSerializerSettings);
             }
         }
 
-        public void SaveItems()
+        public void SaveItems(string path)
         {
             var jsonSerializerSettings = new JsonSerializerSettings()
             {
@@ -62,7 +62,7 @@ namespace SvgToPng.ViewModels
                 NullValueHandling = NullValueHandling.Ignore
             };
             string json = JsonConvert.SerializeObject(Items, jsonSerializerSettings);
-            File.WriteAllText("Items.json", json);
+            File.WriteAllText(path, json);
         }
 
         public void ClearItems()
