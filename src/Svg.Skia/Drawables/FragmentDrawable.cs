@@ -59,24 +59,23 @@ namespace Svg.Skia
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
 
-            switch (svgFragment.Overflow)
-            {
-                case SvgOverflow.Auto:
-                case SvgOverflow.Visible:
-                case SvgOverflow.Inherit:
-                    break;
-                default:
-                    //_skClipRect = _skBounds;
-                    //if (skSize.IsEmpty)
-                    //{
-                    //    _skClipRect = _skBounds;
-                    //}
-                    //else
-                    //{
-                    //    _skClipRect = SKRect.Create(x, y, skSize.Width, skSize.Height);
-                    //}
-                    break;
-            }
+            //switch (svgFragment.Overflow)
+            //{
+            //    case SvgOverflow.Auto:
+            //    case SvgOverflow.Visible:
+            //    case SvgOverflow.Inherit:
+            //        break;
+            //    default:
+            //        if (skSize.IsEmpty)
+            //        {
+            //            _skClipRect = _skBounds;
+            //        }
+            //        else
+            //        {
+            //            _skClipRect = SKRect.Create(x, y, skSize.Width, skSize.Height);
+            //        }
+            //        break;
+            //}
 
             _skPathClip = null;
             _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgFragment, _disposable);
