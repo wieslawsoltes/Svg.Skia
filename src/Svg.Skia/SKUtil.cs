@@ -1959,22 +1959,38 @@ namespace Svg.Skia
             return skPathClip;
         }
 
-        public static SKPath? GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
+        public static Uri? GetClipPathUri(SvgClipPath svgClipPath)
         {
-            if (svgVisualElement == null || svgVisualElement.ClipPath == null)
+            if (svgClipPath.TryGetAttribute("clip-path", out string clipPathUrl))
             {
-                return null;
+                return new Uri(clipPathUrl, UriKind.RelativeOrAbsolute);
             }
+            return null;
+        }
 
-            if (HasRecursiveReference(svgVisualElement, (e) => e.ClipPath, uris))
+        public static SKPath? GetClipPathClipPath(SvgClipPath svgClipPath, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
+        {
+            var clipPathUri = GetClipPathUri(svgClipPath);
+            if (clipPathUri != null)
             {
-                return null;
+                var svgClipPathRef = GetReference<SvgClipPath>(svgClipPath, clipPathUri);
+                if (svgClipPathRef == null || svgClipPathRef.Children == null)
+                {
+                    return null;
+                }
+                return GetClipPath(svgClipPathRef, skBounds, uris, disposable);
             }
+            return null;
+        }
 
-            var svgClipPath = GetReference<SvgClipPath>(svgVisualElement, svgVisualElement.ClipPath);
-            if (svgClipPath == null || svgClipPath.Children == null)
+        private static SKPath? GetClipPath(SvgClipPath svgClipPath, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
+        {
+            var skPathClip = default(SKPath);
+
+            var clipPathClipPath = GetClipPathClipPath(svgClipPath, skBounds, uris, disposable);
+            if (clipPathClipPath != null && !clipPathClipPath.IsEmpty)
             {
-                return null;
+                skPathClip = clipPathClipPath;
             }
 
             var clipPath = GetClipPath(svgClipPath.Children, skBounds, uris, disposable);
@@ -1993,10 +2009,40 @@ namespace Svg.Skia
                     clipPath.Transform(skMatrix);
                 }
 
-                return clipPath;
+                if (skPathClip == null)
+                {
+                    skPathClip = clipPath;
+                }
+                else
+                {
+                    var result = skPathClip.Op(clipPath, SKPathOp.Intersect);
+                    disposable.Add(result);
+                    skPathClip = result;
+                }
             }
 
-            return null;
+            return skPathClip;
+        }
+
+        public static SKPath? GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
+        {
+            if (svgVisualElement == null || svgVisualElement.ClipPath == null)
+            {
+                return null;
+            }
+
+            if (HasRecursiveReference(svgVisualElement, (e) => e.ClipPath, uris))
+            {
+                return null;
+            }
+
+            var svgClipPath = GetReference<SvgClipPath>(svgVisualElement, svgVisualElement.ClipPath);
+            if (svgClipPath == null || svgClipPath.Children == null)
+            {
+                return null;
+            }
+
+            return GetClipPath(svgClipPath, skBounds, uris, disposable);
         }
 
         public static SKRect? GetClipRect(SvgVisualElement svgVisualElement, SKRect skRectBounds)
