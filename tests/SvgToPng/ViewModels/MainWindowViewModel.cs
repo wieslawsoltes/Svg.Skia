@@ -94,10 +94,7 @@ namespace SvgToPng.ViewModels
                         var stopwatchOpen = Stopwatch.StartNew();
                         item.Svg = SKSvg.Open(item.SvgPath);
                         stopwatchOpen.Stop();
-                        if (textBoxOpen != null)
-                        {
-                            textBoxOpen($"{Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
-                        }
+                        textBoxOpen?.Invoke($"{Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
                         Debug.WriteLine($"Open: {Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
 
                         if (item.Svg != null)
@@ -105,18 +102,12 @@ namespace SvgToPng.ViewModels
                             var stopwatchToPicture = Stopwatch.StartNew();
                             item.Picture = SKSvg.ToPicture(item.Svg);
                             stopwatchToPicture.Stop();
-                            if (textBoxToPicture != null)
-                            {
-                                textBoxToPicture($"{Math.Round(stopwatchToPicture.Elapsed.TotalMilliseconds, 3)}ms");
-                            }
+                            textBoxToPicture?.Invoke($"{Math.Round(stopwatchToPicture.Elapsed.TotalMilliseconds, 3)}ms");
                             Debug.WriteLine($"ToPicture: {Math.Round(stopwatchToPicture.Elapsed.TotalMilliseconds, 3)}ms");
                         }
                         else
                         {
-                            if (textBoxToPicture != null)
-                            {
-                                textBoxToPicture($"");
-                            }
+                            textBoxToPicture?.Invoke($"");
                         }
                     }
                 }
