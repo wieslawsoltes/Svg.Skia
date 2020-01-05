@@ -48,12 +48,12 @@ namespace Svg.Skia
 
         internal void CreateMarkers(SvgMarkerElement svgMarkerElement, SKPath skPath, SKRect skOwnerBounds)
         {
-            var pathTypes = SkiaUtil.GetPathTypes(skPath);
+            var pathTypes = SKUtil.GetPathTypes(skPath);
             var pathLength = pathTypes.Count;
 
-            if (svgMarkerElement.MarkerStart != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
+            if (svgMarkerElement.MarkerStart != null && !SKUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
             {
-                var marker = SkiaUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerStart);
+                var marker = SKUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerStart);
                 if (marker != null)
                 {
                     var refPoint1 = pathTypes[0].Point;
@@ -67,9 +67,9 @@ namespace Svg.Skia
                 }
             }
 
-            if (svgMarkerElement.MarkerMid != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, new HashSet<Uri>()))
+            if (svgMarkerElement.MarkerMid != null && !SKUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, new HashSet<Uri>()))
             {
-                var marker = SkiaUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerMid);
+                var marker = SKUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerMid);
                 if (marker != null)
                 {
                     int bezierIndex = -1;
@@ -89,9 +89,9 @@ namespace Svg.Skia
                 }
             }
 
-            if (svgMarkerElement.MarkerEnd != null && !SkiaUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, new HashSet<Uri>()))
+            if (svgMarkerElement.MarkerEnd != null && !SKUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, new HashSet<Uri>()))
             {
-                var marker = SkiaUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerEnd);
+                var marker = SKUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerEnd);
                 if (marker != null)
                 {
                     var index = pathLength - 1;

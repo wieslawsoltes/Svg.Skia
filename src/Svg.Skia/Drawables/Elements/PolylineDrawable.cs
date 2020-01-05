@@ -20,34 +20,34 @@ namespace Svg.Skia
                 return;
             }
 
-            Path = SkiaUtil.ToSKPath(svgPolyline.Points, svgPolyline.FillRule, false, skOwnerBounds, _disposable);
+            Path = SKUtil.ToSKPath(svgPolyline.Points, svgPolyline.FillRule, false, skOwnerBounds, _disposable);
             if (Path == null || Path.IsEmpty)
             {
                 IsDrawable = false;
                 return;
             }
 
-            IsAntialias = SkiaUtil.IsAntialias(svgPolyline);
+            IsAntialias = SKUtil.IsAntialias(svgPolyline);
 
             TransformedBounds = Path.Bounds;
 
-            Transform = SkiaUtil.GetSKMatrix(svgPolyline.Transforms);
+            Transform = SKUtil.GetSKMatrix(svgPolyline.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            PathClip = SkiaUtil.GetSvgVisualElementClipPath(svgPolyline, TransformedBounds, new HashSet<Uri>(), _disposable);
-            PaintOpacity = SkiaUtil.GetOpacitySKPaint(svgPolyline, _disposable);
-            PaintFilter = SkiaUtil.GetFilterSKPaint(svgPolyline, _disposable);
+            PathClip = SKUtil.GetSvgVisualElementClipPath(svgPolyline, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SKUtil.GetOpacitySKPaint(svgPolyline, _disposable);
+            PaintFilter = SKUtil.GetFilterSKPaint(svgPolyline, _disposable);
 
-            if (SkiaUtil.IsValidFill(svgPolyline))
+            if (SKUtil.IsValidFill(svgPolyline))
             {
-                PaintFill = SkiaUtil.GetFillSKPaint(svgPolyline, TransformedBounds, _disposable);
+                PaintFill = SKUtil.GetFillSKPaint(svgPolyline, TransformedBounds, _disposable);
             }
 
-            if (SkiaUtil.IsValidStroke(svgPolyline, TransformedBounds))
+            if (SKUtil.IsValidStroke(svgPolyline, TransformedBounds))
             {
-                PaintStroke = SkiaUtil.GetStrokeSKPaint(svgPolyline, TransformedBounds, _disposable);
+                PaintStroke = SKUtil.GetStrokeSKPaint(svgPolyline, TransformedBounds, _disposable);
             }
 
             CreateMarkers(svgPolyline, Path, skOwnerBounds);

@@ -20,34 +20,34 @@ namespace Svg.Skia
                 return;
             }
 
-            Path = SkiaUtil.ToSKPath(svgEllipse, svgEllipse.FillRule, skOwnerBounds, _disposable);
+            Path = SKUtil.ToSKPath(svgEllipse, svgEllipse.FillRule, skOwnerBounds, _disposable);
             if (Path == null || Path.IsEmpty)
             {
                 IsDrawable = false;
                 return;
             }
 
-            IsAntialias = SkiaUtil.IsAntialias(svgEllipse);
+            IsAntialias = SKUtil.IsAntialias(svgEllipse);
 
             TransformedBounds = Path.Bounds;
 
-            Transform = SkiaUtil.GetSKMatrix(svgEllipse.Transforms);
+            Transform = SKUtil.GetSKMatrix(svgEllipse.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            PathClip = SkiaUtil.GetSvgVisualElementClipPath(svgEllipse, TransformedBounds, new HashSet<Uri>(), _disposable);
-            PaintOpacity = SkiaUtil.GetOpacitySKPaint(svgEllipse, _disposable);
-            PaintFilter = SkiaUtil.GetFilterSKPaint(svgEllipse, _disposable);
+            PathClip = SKUtil.GetSvgVisualElementClipPath(svgEllipse, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SKUtil.GetOpacitySKPaint(svgEllipse, _disposable);
+            PaintFilter = SKUtil.GetFilterSKPaint(svgEllipse, _disposable);
 
-            if (SkiaUtil.IsValidFill(svgEllipse))
+            if (SKUtil.IsValidFill(svgEllipse))
             {
-                PaintFill = SkiaUtil.GetFillSKPaint(svgEllipse, TransformedBounds, _disposable);
+                PaintFill = SKUtil.GetFillSKPaint(svgEllipse, TransformedBounds, _disposable);
             }
 
-            if (SkiaUtil.IsValidStroke(svgEllipse, TransformedBounds))
+            if (SKUtil.IsValidStroke(svgEllipse, TransformedBounds))
             {
-                PaintStroke = SkiaUtil.GetStrokeSKPaint(svgEllipse, TransformedBounds, _disposable);
+                PaintStroke = SKUtil.GetStrokeSKPaint(svgEllipse, TransformedBounds, _disposable);
             }
         }
     }

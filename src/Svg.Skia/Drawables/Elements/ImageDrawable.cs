@@ -44,7 +44,7 @@ namespace Svg.Skia
             //    return;
             //}
 
-            var image = SkiaUtil.GetImage(svgImage, svgImage.Href);
+            var image = SKUtil.GetImage(svgImage, svgImage.Href);
             var skImage = image as SKImage;
             var svgFragment = image as SvgFragment;
             if (skImage == null && svgFragment == null)
@@ -134,7 +134,7 @@ namespace Svg.Skia
 
             ClipRect = destClip;
 
-            var skClipRect = SkiaUtil.GetClipRect(svgImage, destClip);
+            var skClipRect = SKUtil.GetClipRect(svgImage, destClip);
             if (skClipRect != null)
             {
                 ClipRect = skClipRect;
@@ -151,7 +151,7 @@ namespace Svg.Skia
                 _disposable.Add(_fragmentDrawable);
             }
 
-            IsAntialias = SkiaUtil.IsAntialias(svgImage);
+            IsAntialias = SKUtil.IsAntialias(svgImage);
 
             if (_skImage != null)
             {
@@ -164,7 +164,7 @@ namespace Svg.Skia
                 TransformedBounds = destRect;
             }
 
-            Transform = SkiaUtil.GetSKMatrix(svgImage.Transforms);
+            Transform = SKUtil.GetSKMatrix(svgImage.Transforms);
             if (_fragmentDrawable != null)
             {
                 float dx = destRect.Left;
@@ -180,18 +180,18 @@ namespace Svg.Skia
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            PathClip = SkiaUtil.GetSvgVisualElementClipPath(svgImage, TransformedBounds, new HashSet<Uri>(), _disposable);
-            PaintOpacity = SkiaUtil.GetOpacitySKPaint(svgImage, _disposable);
-            PaintFilter = SkiaUtil.GetFilterSKPaint(svgImage, _disposable);
+            PathClip = SKUtil.GetSvgVisualElementClipPath(svgImage, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SKUtil.GetOpacitySKPaint(svgImage, _disposable);
+            PaintFilter = SKUtil.GetFilterSKPaint(svgImage, _disposable);
 
-            if (SkiaUtil.IsValidFill(svgImage))
+            if (SKUtil.IsValidFill(svgImage))
             {
-                PaintFill = SkiaUtil.GetFillSKPaint(svgImage, TransformedBounds, _disposable);
+                PaintFill = SKUtil.GetFillSKPaint(svgImage, TransformedBounds, _disposable);
             }
 
-            if (SkiaUtil.IsValidStroke(svgImage, TransformedBounds))
+            if (SKUtil.IsValidStroke(svgImage, TransformedBounds))
             {
-                PaintStroke = SkiaUtil.GetStrokeSKPaint(svgImage, TransformedBounds, _disposable);
+                PaintStroke = SKUtil.GetStrokeSKPaint(svgImage, TransformedBounds, _disposable);
             }
         }
 

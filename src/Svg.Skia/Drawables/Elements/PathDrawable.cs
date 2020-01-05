@@ -20,34 +20,34 @@ namespace Svg.Skia
                 return;
             }
 
-            Path = SkiaUtil.ToSKPath(svgPath.PathData, svgPath.FillRule, _disposable);
+            Path = SKUtil.ToSKPath(svgPath.PathData, svgPath.FillRule, _disposable);
             if (Path == null || Path.IsEmpty)
             {
                 IsDrawable = false;
                 return;
             }
 
-            IsAntialias = SkiaUtil.IsAntialias(svgPath);
+            IsAntialias = SKUtil.IsAntialias(svgPath);
 
             TransformedBounds = Path.Bounds;
 
-            Transform = SkiaUtil.GetSKMatrix(svgPath.Transforms);
+            Transform = SKUtil.GetSKMatrix(svgPath.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            PathClip = SkiaUtil.GetSvgVisualElementClipPath(svgPath, TransformedBounds, new HashSet<Uri>(), _disposable);
-            PaintOpacity = SkiaUtil.GetOpacitySKPaint(svgPath, _disposable);
-            PaintFilter = SkiaUtil.GetFilterSKPaint(svgPath, _disposable);
+            PathClip = SKUtil.GetSvgVisualElementClipPath(svgPath, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SKUtil.GetOpacitySKPaint(svgPath, _disposable);
+            PaintFilter = SKUtil.GetFilterSKPaint(svgPath, _disposable);
 
-            if (SkiaUtil.IsValidFill(svgPath))
+            if (SKUtil.IsValidFill(svgPath))
             {
-                PaintFill = SkiaUtil.GetFillSKPaint(svgPath, TransformedBounds, _disposable);
+                PaintFill = SKUtil.GetFillSKPaint(svgPath, TransformedBounds, _disposable);
             }
 
-            if (SkiaUtil.IsValidStroke(svgPath, TransformedBounds))
+            if (SKUtil.IsValidStroke(svgPath, TransformedBounds))
             {
-                PaintStroke = SkiaUtil.GetStrokeSKPaint(svgPath, TransformedBounds, _disposable);
+                PaintStroke = SKUtil.GetStrokeSKPaint(svgPath, TransformedBounds, _disposable);
             }
 
             CreateMarkers(svgPath, Path, skOwnerBounds);

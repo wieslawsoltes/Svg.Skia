@@ -20,34 +20,34 @@ namespace Svg.Skia
                 return;
             }
 
-            Path = SkiaUtil.ToSKPath(svgCircle, svgCircle.FillRule, skOwnerBounds, _disposable);
+            Path = SKUtil.ToSKPath(svgCircle, svgCircle.FillRule, skOwnerBounds, _disposable);
             if (Path == null || Path.IsEmpty)
             {
                 IsDrawable = false;
                 return;
             }
 
-            IsAntialias = SkiaUtil.IsAntialias(svgCircle);
+            IsAntialias = SKUtil.IsAntialias(svgCircle);
 
             TransformedBounds = Path.Bounds;
 
-            Transform = SkiaUtil.GetSKMatrix(svgCircle.Transforms);
+            Transform = SKUtil.GetSKMatrix(svgCircle.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            PathClip = SkiaUtil.GetSvgVisualElementClipPath(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
-            PaintOpacity = SkiaUtil.GetOpacitySKPaint(svgCircle, _disposable);
-            PaintFilter = SkiaUtil.GetFilterSKPaint(svgCircle, _disposable);
+            PathClip = SKUtil.GetSvgVisualElementClipPath(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SKUtil.GetOpacitySKPaint(svgCircle, _disposable);
+            PaintFilter = SKUtil.GetFilterSKPaint(svgCircle, _disposable);
 
-            if (SkiaUtil.IsValidFill(svgCircle))
+            if (SKUtil.IsValidFill(svgCircle))
             {
-                PaintFill = SkiaUtil.GetFillSKPaint(svgCircle, TransformedBounds, _disposable);
+                PaintFill = SKUtil.GetFillSKPaint(svgCircle, TransformedBounds, _disposable);
             }
 
-            if (SkiaUtil.IsValidStroke(svgCircle, TransformedBounds))
+            if (SKUtil.IsValidStroke(svgCircle, TransformedBounds))
             {
-                PaintStroke = SkiaUtil.GetStrokeSKPaint(svgCircle, TransformedBounds, _disposable);
+                PaintStroke = SKUtil.GetStrokeSKPaint(svgCircle, TransformedBounds, _disposable);
             }
         }
     }

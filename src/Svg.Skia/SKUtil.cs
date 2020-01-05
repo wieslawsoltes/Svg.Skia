@@ -30,7 +30,7 @@ namespace Svg.Skia
         CloseSubpath = 0x80
     }
 
-    internal static class SkiaUtil
+    internal static class SKUtil
     {
         public static char[] FontFamilyTrim = new char[] { '\'' };
 
@@ -1480,7 +1480,7 @@ namespace Svg.Skia
 
         public static SKPaint? GetOpacitySKPaint(SvgElement svgElement, CompositeDisposable disposable)
         {
-            float opacity = SkiaUtil.AdjustSvgOpacity(svgElement.Opacity);
+            float opacity = SKUtil.AdjustSvgOpacity(svgElement.Opacity);
             if (opacity < 1f)
             {
                 var skPaint = new SKPaint()
@@ -1501,7 +1501,7 @@ namespace Svg.Skia
             {
                 var skPaint = new SKPaint();
                 skPaint.Style = SKPaintStyle.StrokeAndFill;
-                SkiaUtil.SetFilter(svgVisualElement, skPaint, disposable);
+                SKUtil.SetFilter(svgVisualElement, skPaint, disposable);
                 disposable.Add(skPaint);
                 return skPaint;
             }

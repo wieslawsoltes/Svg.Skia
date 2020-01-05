@@ -96,19 +96,19 @@ namespace Svg.Skia
                 return;
             }
 
-            IsAntialias = SkiaUtil.IsAntialias(svgMarker);
+            IsAntialias = SKUtil.IsAntialias(svgMarker);
 
             TransformedBounds = _markerDrawable.TransformedBounds;
 
-            Transform = SkiaUtil.GetSKMatrix(svgMarker.Transforms);
+            Transform = SKUtil.GetSKMatrix(svgMarker.Transforms);
             SKMatrix.PreConcat(ref Transform, ref skMarkerMatrix);
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            PathClip = SkiaUtil.GetSvgVisualElementClipPath(svgMarker, TransformedBounds, new HashSet<Uri>(), _disposable);
-            PaintOpacity = SkiaUtil.GetOpacitySKPaint(svgMarker, _disposable);
-            PaintFilter = SkiaUtil.GetFilterSKPaint(svgMarker, _disposable);
+            PathClip = SKUtil.GetSvgVisualElementClipPath(svgMarker, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SKUtil.GetOpacitySKPaint(svgMarker, _disposable);
+            PaintFilter = SKUtil.GetFilterSKPaint(svgMarker, _disposable);
 
             PaintFill = null;
             PaintStroke = null;
