@@ -103,15 +103,15 @@ namespace Svg.Skia
             Transform = SKUtil.GetSKMatrix(svgMarker.Transforms);
             SKMatrix.PreConcat(ref Transform, ref skMarkerMatrix);
 
-            // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
-
             PathClip = SKUtil.GetSvgVisualElementClipPath(svgMarker, TransformedBounds, new HashSet<Uri>(), _disposable);
             PaintOpacity = SKUtil.GetOpacitySKPaint(svgMarker, _disposable);
             PaintFilter = SKUtil.GetFilterSKPaint(svgMarker, _disposable);
 
             PaintFill = null;
             PaintStroke = null;
+
+            // TODO: Transform _skBounds using _skMatrix.
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
         }
 
         internal SvgVisualElement? GetMarkerElement(SvgMarker svgMarker)

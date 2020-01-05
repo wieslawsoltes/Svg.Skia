@@ -33,9 +33,6 @@ namespace Svg.Skia
 
             Transform = SKUtil.GetSKMatrix(svgPolyline.Transforms);
 
-            // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
-
             PathClip = SKUtil.GetSvgVisualElementClipPath(svgPolyline, TransformedBounds, new HashSet<Uri>(), _disposable);
             PaintOpacity = SKUtil.GetOpacitySKPaint(svgPolyline, _disposable);
             PaintFilter = SKUtil.GetFilterSKPaint(svgPolyline, _disposable);
@@ -51,6 +48,9 @@ namespace Svg.Skia
             }
 
             CreateMarkers(svgPolyline, Path, skOwnerBounds);
+
+            // TODO: Transform _skBounds using _skMatrix.
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
         }
     }
 }

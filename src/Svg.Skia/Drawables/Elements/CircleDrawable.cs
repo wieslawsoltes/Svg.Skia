@@ -33,9 +33,6 @@ namespace Svg.Skia
 
             Transform = SKUtil.GetSKMatrix(svgCircle.Transforms);
 
-            // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
-
             PathClip = SKUtil.GetSvgVisualElementClipPath(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
             PaintOpacity = SKUtil.GetOpacitySKPaint(svgCircle, _disposable);
             PaintFilter = SKUtil.GetFilterSKPaint(svgCircle, _disposable);
@@ -49,6 +46,9 @@ namespace Svg.Skia
             {
                 PaintStroke = SKUtil.GetStrokeSKPaint(svgCircle, TransformedBounds, _disposable);
             }
+
+            // TODO: Transform _skBounds using _skMatrix.
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
         }
     }
 }

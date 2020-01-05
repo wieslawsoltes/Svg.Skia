@@ -33,9 +33,6 @@ namespace Svg.Skia
 
             Transform = SKUtil.GetSKMatrix(svgRectangle.Transforms);
 
-            // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
-
             PathClip = SKUtil.GetSvgVisualElementClipPath(svgRectangle, TransformedBounds, new HashSet<Uri>(), _disposable);
             PaintOpacity = SKUtil.GetOpacitySKPaint(svgRectangle, _disposable);
             PaintFilter = SKUtil.GetFilterSKPaint(svgRectangle, _disposable);
@@ -49,6 +46,9 @@ namespace Svg.Skia
             {
                 PaintStroke = SKUtil.GetStrokeSKPaint(svgRectangle, TransformedBounds, _disposable);
             }
+
+            // TODO: Transform _skBounds using _skMatrix.
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
         }
     }
 }

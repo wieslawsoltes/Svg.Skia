@@ -50,15 +50,15 @@ namespace Svg.Skia
 
             Transform = SKUtil.GetSKMatrix(svgAnchor.Transforms);
 
-            // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
-
             PathClip = null;
             PaintOpacity = SKUtil.GetOpacitySKPaint(svgAnchor, _disposable);
             PaintFilter = null;
 
             PaintFill = null;
             PaintStroke = null;
+
+            // TODO: Transform _skBounds using _skMatrix.
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
         }
     }
 #endif

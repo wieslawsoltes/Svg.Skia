@@ -57,9 +57,6 @@ namespace Svg.Skia
             var skMatrixViewBox = SKUtil.GetSvgViewBoxTransform(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
             SKMatrix.PreConcat(ref Transform, ref skMatrixViewBox);
 
-            // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
-
             switch (svgFragment.Overflow)
             {
                 case SvgOverflow.Auto:
@@ -88,6 +85,9 @@ namespace Svg.Skia
 
             PaintFill = null;
             PaintStroke = null;
+
+            // TODO: Transform _skBounds using _skMatrix.
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
         }
     }
 }

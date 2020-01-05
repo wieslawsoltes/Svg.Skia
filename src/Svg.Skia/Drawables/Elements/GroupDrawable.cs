@@ -54,15 +54,15 @@ namespace Svg.Skia
 
             Transform = SKUtil.GetSKMatrix(svgGroup.Transforms);
 
-            // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
-
             PathClip = SKUtil.GetSvgVisualElementClipPath(svgGroup, TransformedBounds, new HashSet<Uri>(), _disposable);
             PaintOpacity = SKUtil.GetOpacitySKPaint(svgGroup, _disposable);
             PaintFilter = SKUtil.GetFilterSKPaint(svgGroup, _disposable);
 
             PaintFill = null;
             PaintStroke = null;
+
+            // TODO: Transform _skBounds using _skMatrix.
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
         }
 
         internal void AddMarkers(SvgGroup svgGroup)

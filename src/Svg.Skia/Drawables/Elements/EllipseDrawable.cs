@@ -33,9 +33,6 @@ namespace Svg.Skia
 
             Transform = SKUtil.GetSKMatrix(svgEllipse.Transforms);
 
-            // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
-
             PathClip = SKUtil.GetSvgVisualElementClipPath(svgEllipse, TransformedBounds, new HashSet<Uri>(), _disposable);
             PaintOpacity = SKUtil.GetOpacitySKPaint(svgEllipse, _disposable);
             PaintFilter = SKUtil.GetFilterSKPaint(svgEllipse, _disposable);
@@ -49,6 +46,9 @@ namespace Svg.Skia
             {
                 PaintStroke = SKUtil.GetStrokeSKPaint(svgEllipse, TransformedBounds, _disposable);
             }
+
+            // TODO: Transform _skBounds using _skMatrix.
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
         }
     }
 }

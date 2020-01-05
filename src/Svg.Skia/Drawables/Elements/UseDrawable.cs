@@ -92,9 +92,6 @@ namespace Svg.Skia
                 SKMatrix.PreConcat(ref Transform, ref skMatrixTranslateXY);
             }
 
-            // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
-
             PathClip = SKUtil.GetSvgVisualElementClipPath(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
             PaintOpacity = SKUtil.GetOpacitySKPaint(svgUse, _disposable);
             PaintFilter = SKUtil.GetFilterSKPaint(svgUse, _disposable);
@@ -108,6 +105,9 @@ namespace Svg.Skia
             {
                 PaintStroke = SKUtil.GetStrokeSKPaint(svgUse, TransformedBounds, _disposable);
             }
+
+            // TODO: Transform _skBounds using _skMatrix.
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
             if (useParent != null)
             {
