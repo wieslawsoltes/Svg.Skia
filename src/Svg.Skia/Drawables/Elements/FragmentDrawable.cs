@@ -60,28 +60,27 @@ namespace Svg.Skia
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            //switch (svgFragment.Overflow)
-            //{
-            //    case SvgOverflow.Auto:
-            //    case SvgOverflow.Visible:
-            //    case SvgOverflow.Inherit:
-            //        break;
-            //    default:
-            //        if (skSize.IsEmpty)
-            //        {
-            //            ClipRect = TransformedBounds;
-            //            ClipRect = SKRect.Create(
-            //                0f,
-            //                0f,
-            //                Math.Abs(TransformedBounds.Left) + TransformedBounds.Width,
-            //                Math.Abs(TransformedBounds.Top) + TransformedBounds.Height);
-            //        }
-            //        else
-            //        {
-            //            ClipRect = SKRect.Create(x, y, skSize.Width, skSize.Height);
-            //        }
-            //        break;
-            //}
+            switch (svgFragment.Overflow)
+            {
+                case SvgOverflow.Auto:
+                case SvgOverflow.Visible:
+                case SvgOverflow.Inherit:
+                    break;
+                default:
+                    if (skSize.IsEmpty)
+                    {
+                        ClipRect = SKRect.Create(
+                            0f,
+                            0f,
+                            Math.Abs(TransformedBounds.Left) + TransformedBounds.Width,
+                            Math.Abs(TransformedBounds.Top) + TransformedBounds.Height);
+                    }
+                    else
+                    {
+                        ClipRect = SKRect.Create(x, y, skSize.Width, skSize.Height);
+                    }
+                    break;
+            }
 
             PathClip = null;
             PaintOpacity = SKUtil.GetOpacitySKPaint(svgFragment, _disposable);
