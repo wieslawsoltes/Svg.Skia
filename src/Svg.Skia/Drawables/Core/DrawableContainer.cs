@@ -9,52 +9,52 @@ namespace Svg.Skia
 {
     internal abstract class DrawableContainer : Drawable
     {
-        internal List<Drawable> _childrenDrawables = new List<Drawable>();
+        public List<Drawable> ChildrenDrawables = new List<Drawable>();
 
         protected override void OnDraw(SKCanvas canvas)
         {
-            if (!_canDraw)
+            if (!IsDrawable)
             {
                 return;
             }
 
             canvas.Save();
 
-            if (_skClipRect != null)
+            if (ClipRect != null)
             {
-                canvas.ClipRect(_skClipRect.Value, SKClipOperation.Intersect);
+                canvas.ClipRect(ClipRect.Value, SKClipOperation.Intersect);
             }
 
             var skMatrixTotal = canvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref _skMatrix);
+            SKMatrix.PreConcat(ref skMatrixTotal, ref Transform);
             canvas.SetMatrix(skMatrixTotal);
 
-            if (_skPathClip != null && !_skPathClip.IsEmpty)
+            if (PathClip != null && !PathClip.IsEmpty)
             {
-                canvas.ClipPath(_skPathClip, SKClipOperation.Intersect, _antialias);
+                canvas.ClipPath(PathClip, SKClipOperation.Intersect, IsAntialias);
             }
 
-            if (_skPaintOpacity != null)
+            if (PaintOpacity != null)
             {
-                canvas.SaveLayer(_skPaintOpacity);
+                canvas.SaveLayer(PaintOpacity);
             }
 
-            if (_skPaintFilter != null)
+            if (PaintFilter != null)
             {
-                canvas.SaveLayer(_skPaintFilter);
+                canvas.SaveLayer(PaintFilter);
             }
 
-            foreach (var drawable in _childrenDrawables)
+            foreach (var drawable in ChildrenDrawables)
             {
                 drawable.Draw(canvas, 0f, 0f);
             }
 
-            if (_skPaintFilter != null)
+            if (PaintFilter != null)
             {
                 canvas.Restore();
             }
 
-            if (_skPaintOpacity != null)
+            if (PaintOpacity != null)
             {
                 canvas.Restore();
             }

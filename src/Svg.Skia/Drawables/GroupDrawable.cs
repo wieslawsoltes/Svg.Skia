@@ -12,10 +12,10 @@ namespace Svg.Skia
     {
         public GroupDrawable(SvgGroup svgGroup, SKRect skOwnerBounds, bool ignoreDisplay)
         {
-            _ignoreDisplay = ignoreDisplay;
-            _canDraw = CanDraw(svgGroup, _ignoreDisplay);
+            IgnoreDisplay = ignoreDisplay;
+            IsDrawable = CanDraw(svgGroup, IgnoreDisplay);
 
-            if (!_canDraw)
+            if (!IsDrawable)
             {
                 return;
             }
@@ -28,41 +28,41 @@ namespace Svg.Skia
                 var drawable = DrawableFactory.Create(svgElement, skOwnerBounds, ignoreDisplay);
                 if (drawable != null)
                 {
-                    _childrenDrawables.Add(drawable);
+                    ChildrenDrawables.Add(drawable);
                     _disposable.Add(drawable);
                 }
             }
 
-            _antialias = SkiaUtil.IsAntialias(svgGroup);
+            IsAntialias = SkiaUtil.IsAntialias(svgGroup);
 
-            _skBounds = SKRect.Empty;
+            TransformedBounds = SKRect.Empty;
 
-            foreach (var drawable in _childrenDrawables)
+            foreach (var drawable in ChildrenDrawables)
             {
-                if (_skBounds.IsEmpty)
+                if (TransformedBounds.IsEmpty)
                 {
-                    _skBounds = drawable._skBounds;
+                    TransformedBounds = drawable.TransformedBounds;
                 }
                 else
                 {
-                    if (!drawable._skBounds.IsEmpty)
+                    if (!drawable.TransformedBounds.IsEmpty)
                     {
-                        _skBounds = SKRect.Union(_skBounds, drawable._skBounds);
+                        TransformedBounds = SKRect.Union(TransformedBounds, drawable.TransformedBounds);
                     }
                 }
             }
 
-            _skMatrix = SkiaUtil.GetSKMatrix(svgGroup.Transforms);
+            Transform = SkiaUtil.GetSKMatrix(svgGroup.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgGroup, _skBounds, new HashSet<Uri>(), _disposable);
-            _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgGroup, _disposable);
-            _skPaintFilter = SkiaUtil.GetFilterSKPaint(svgGroup, _disposable);
+            PathClip = SkiaUtil.GetSvgVisualElementClipPath(svgGroup, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SkiaUtil.GetOpacitySKPaint(svgGroup, _disposable);
+            PaintFilter = SkiaUtil.GetFilterSKPaint(svgGroup, _disposable);
 
-            _skPaintFill = null;
-            _skPaintStroke = null;
+            PaintFill = null;
+            PaintStroke = null;
         }
 
         internal void AddMarkers(SvgGroup svgGroup)

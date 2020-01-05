@@ -12,42 +12,42 @@ namespace Svg.Skia
     {
         public CircleDrawable(SvgCircle svgCircle, SKRect skOwnerBounds, bool ignoreDisplay)
         {
-            _ignoreDisplay = ignoreDisplay;
-            _canDraw = CanDraw(svgCircle, _ignoreDisplay);
+            IgnoreDisplay = ignoreDisplay;
+            IsDrawable = CanDraw(svgCircle, IgnoreDisplay);
 
-            if (!_canDraw)
+            if (!IsDrawable)
             {
                 return;
             }
 
-            _skPath = SkiaUtil.ToSKPath(svgCircle, svgCircle.FillRule, skOwnerBounds, _disposable);
-            if (_skPath == null || _skPath.IsEmpty)
+            Path = SkiaUtil.ToSKPath(svgCircle, svgCircle.FillRule, skOwnerBounds, _disposable);
+            if (Path == null || Path.IsEmpty)
             {
-                _canDraw = false;
+                IsDrawable = false;
                 return;
             }
 
-            _antialias = SkiaUtil.IsAntialias(svgCircle);
+            IsAntialias = SkiaUtil.IsAntialias(svgCircle);
 
-            _skBounds = _skPath.Bounds;
+            TransformedBounds = Path.Bounds;
 
-            _skMatrix = SkiaUtil.GetSKMatrix(svgCircle.Transforms);
+            Transform = SkiaUtil.GetSKMatrix(svgCircle.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgCircle, _skBounds, new HashSet<Uri>(), _disposable);
-            _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgCircle, _disposable);
-            _skPaintFilter = SkiaUtil.GetFilterSKPaint(svgCircle, _disposable);
+            PathClip = SkiaUtil.GetSvgVisualElementClipPath(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SkiaUtil.GetOpacitySKPaint(svgCircle, _disposable);
+            PaintFilter = SkiaUtil.GetFilterSKPaint(svgCircle, _disposable);
 
             if (SkiaUtil.IsValidFill(svgCircle))
             {
-                _skPaintFill = SkiaUtil.GetFillSKPaint(svgCircle, _skBounds, _disposable);
+                PaintFill = SkiaUtil.GetFillSKPaint(svgCircle, TransformedBounds, _disposable);
             }
 
-            if (SkiaUtil.IsValidStroke(svgCircle, _skBounds))
+            if (SkiaUtil.IsValidStroke(svgCircle, TransformedBounds))
             {
-                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgCircle, _skBounds, _disposable);
+                PaintStroke = SkiaUtil.GetStrokeSKPaint(svgCircle, TransformedBounds, _disposable);
             }
         }
     }

@@ -12,42 +12,42 @@ namespace Svg.Skia
     {
         public EllipseDrawable(SvgEllipse svgEllipse, SKRect skOwnerBounds, bool ignoreDisplay)
         {
-            _ignoreDisplay = ignoreDisplay;
-            _canDraw = CanDraw(svgEllipse, _ignoreDisplay);
+            IgnoreDisplay = ignoreDisplay;
+            IsDrawable = CanDraw(svgEllipse, IgnoreDisplay);
 
-            if (!_canDraw)
+            if (!IsDrawable)
             {
                 return;
             }
 
-            _skPath = SkiaUtil.ToSKPath(svgEllipse, svgEllipse.FillRule, skOwnerBounds, _disposable);
-            if (_skPath == null || _skPath.IsEmpty)
+            Path = SkiaUtil.ToSKPath(svgEllipse, svgEllipse.FillRule, skOwnerBounds, _disposable);
+            if (Path == null || Path.IsEmpty)
             {
-                _canDraw = false;
+                IsDrawable = false;
                 return;
             }
 
-            _antialias = SkiaUtil.IsAntialias(svgEllipse);
+            IsAntialias = SkiaUtil.IsAntialias(svgEllipse);
 
-            _skBounds = _skPath.Bounds;
+            TransformedBounds = Path.Bounds;
 
-            _skMatrix = SkiaUtil.GetSKMatrix(svgEllipse.Transforms);
+            Transform = SkiaUtil.GetSKMatrix(svgEllipse.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgEllipse, _skBounds, new HashSet<Uri>(), _disposable);
-            _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgEllipse, _disposable);
-            _skPaintFilter = SkiaUtil.GetFilterSKPaint(svgEllipse, _disposable);
+            PathClip = SkiaUtil.GetSvgVisualElementClipPath(svgEllipse, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SkiaUtil.GetOpacitySKPaint(svgEllipse, _disposable);
+            PaintFilter = SkiaUtil.GetFilterSKPaint(svgEllipse, _disposable);
 
             if (SkiaUtil.IsValidFill(svgEllipse))
             {
-                _skPaintFill = SkiaUtil.GetFillSKPaint(svgEllipse, _skBounds, _disposable);
+                PaintFill = SkiaUtil.GetFillSKPaint(svgEllipse, TransformedBounds, _disposable);
             }
 
-            if (SkiaUtil.IsValidStroke(svgEllipse, _skBounds))
+            if (SkiaUtil.IsValidStroke(svgEllipse, TransformedBounds))
             {
-                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgEllipse, _skBounds, _disposable);
+                PaintStroke = SkiaUtil.GetStrokeSKPaint(svgEllipse, TransformedBounds, _disposable);
             }
         }
     }

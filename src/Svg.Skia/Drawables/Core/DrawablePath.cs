@@ -10,8 +10,8 @@ namespace Svg.Skia
 {
     internal abstract class DrawablePath : Drawable
     {
-        protected SKPath? _skPath;
-        internal List<Drawable> _markerDrawables = new List<Drawable>();
+        public SKPath? Path;
+        public List<Drawable> MarkerDrawables = new List<Drawable>();
 
         internal void CreateMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skOwnerBounds)
         {
@@ -28,7 +28,7 @@ namespace Svg.Skia
             }
 
             var markerDrawable = new MarkerDrawable(svgMarker, pOwner, pRefPoint, fAngle1, skOwnerBounds);
-            _markerDrawables.Add(markerDrawable);
+            MarkerDrawables.Add(markerDrawable);
             _disposable.Add(markerDrawable);
         }
 
@@ -42,7 +42,7 @@ namespace Svg.Skia
             float fAngle2 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
 
             var markerDrawable = new MarkerDrawable(svgMarker, pOwner, pRefPoint, (fAngle1 + fAngle2) / 2, skOwnerBounds);
-            _markerDrawables.Add(markerDrawable);
+            MarkerDrawables.Add(markerDrawable);
             _disposable.Add(markerDrawable);
         }
 
@@ -109,58 +109,58 @@ namespace Svg.Skia
 
         protected override void OnDraw(SKCanvas canvas)
         {
-            if (!_canDraw)
+            if (!IsDrawable)
             {
                 return;
             }
 
             canvas.Save();
 
-            if (_skClipRect != null)
+            if (ClipRect != null)
             {
-                canvas.ClipRect(_skClipRect.Value, SKClipOperation.Intersect);
+                canvas.ClipRect(ClipRect.Value, SKClipOperation.Intersect);
             }
 
             var skMatrixTotal = canvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref _skMatrix);
+            SKMatrix.PreConcat(ref skMatrixTotal, ref Transform);
             canvas.SetMatrix(skMatrixTotal);
 
-            if (_skPathClip != null && !_skPathClip.IsEmpty)
+            if (PathClip != null && !PathClip.IsEmpty)
             {
-                canvas.ClipPath(_skPathClip, SKClipOperation.Intersect, _antialias);
+                canvas.ClipPath(PathClip, SKClipOperation.Intersect, IsAntialias);
             }
 
-            if (_skPaintOpacity != null)
+            if (PaintOpacity != null)
             {
-                canvas.SaveLayer(_skPaintOpacity);
+                canvas.SaveLayer(PaintOpacity);
             }
 
-            if (_skPaintFilter != null)
+            if (PaintFilter != null)
             {
-                canvas.SaveLayer(_skPaintFilter);
+                canvas.SaveLayer(PaintFilter);
             }
 
-            if (_skPaintFill != null)
+            if (PaintFill != null)
             {
-                canvas.DrawPath(_skPath, _skPaintFill);
+                canvas.DrawPath(Path, PaintFill);
             }
 
-            if (_skPaintStroke != null)
+            if (PaintStroke != null)
             {
-                canvas.DrawPath(_skPath, _skPaintStroke);
+                canvas.DrawPath(Path, PaintStroke);
             }
 
-            foreach (var drawable in _markerDrawables)
+            foreach (var drawable in MarkerDrawables)
             {
                 drawable.Draw(canvas, 0f, 0f);
             }
 
-            if (_skPaintFilter != null)
+            if (PaintFilter != null)
             {
                 canvas.Restore();
             }
 
-            if (_skPaintOpacity != null)
+            if (PaintOpacity != null)
             {
                 canvas.Restore();
             }

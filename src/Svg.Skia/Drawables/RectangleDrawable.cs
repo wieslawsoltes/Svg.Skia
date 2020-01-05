@@ -12,42 +12,42 @@ namespace Svg.Skia
     {
         public RectangleDrawable(SvgRectangle svgRectangle, SKRect skOwnerBounds, bool ignoreDisplay)
         {
-            _ignoreDisplay = ignoreDisplay;
-            _canDraw = CanDraw(svgRectangle, _ignoreDisplay);
+            IgnoreDisplay = ignoreDisplay;
+            IsDrawable = CanDraw(svgRectangle, IgnoreDisplay);
 
-            if (!_canDraw)
+            if (!IsDrawable)
             {
                 return;
             }
 
-            _skPath = SkiaUtil.ToSKPath(svgRectangle, svgRectangle.FillRule, skOwnerBounds, _disposable);
-            if (_skPath == null || _skPath.IsEmpty)
+            Path = SkiaUtil.ToSKPath(svgRectangle, svgRectangle.FillRule, skOwnerBounds, _disposable);
+            if (Path == null || Path.IsEmpty)
             {
-                _canDraw = false;
+                IsDrawable = false;
                 return;
             }
 
-            _antialias = SkiaUtil.IsAntialias(svgRectangle);
+            IsAntialias = SkiaUtil.IsAntialias(svgRectangle);
 
-            _skBounds = _skPath.Bounds;
+            TransformedBounds = Path.Bounds;
 
-            _skMatrix = SkiaUtil.GetSKMatrix(svgRectangle.Transforms);
+            Transform = SkiaUtil.GetSKMatrix(svgRectangle.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgRectangle, _skBounds, new HashSet<Uri>(), _disposable);
-            _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgRectangle, _disposable);
-            _skPaintFilter = SkiaUtil.GetFilterSKPaint(svgRectangle, _disposable);
+            PathClip = SkiaUtil.GetSvgVisualElementClipPath(svgRectangle, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SkiaUtil.GetOpacitySKPaint(svgRectangle, _disposable);
+            PaintFilter = SkiaUtil.GetFilterSKPaint(svgRectangle, _disposable);
 
             if (SkiaUtil.IsValidFill(svgRectangle))
             {
-                _skPaintFill = SkiaUtil.GetFillSKPaint(svgRectangle, _skBounds, _disposable);
+                PaintFill = SkiaUtil.GetFillSKPaint(svgRectangle, TransformedBounds, _disposable);
             }
 
-            if (SkiaUtil.IsValidStroke(svgRectangle, _skBounds))
+            if (SkiaUtil.IsValidStroke(svgRectangle, TransformedBounds))
             {
-                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgRectangle, _skBounds, _disposable);
+                PaintStroke = SkiaUtil.GetStrokeSKPaint(svgRectangle, TransformedBounds, _disposable);
             }
         }
     }

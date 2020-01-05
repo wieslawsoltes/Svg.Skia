@@ -17,7 +17,6 @@ namespace Svg.Skia
                 SvgImage svgImage => new ImageDrawable(svgImage, skOwnerBounds, ignoreDisplay),
                 SvgSwitch svgSwitch => new SwitchDrawable(svgSwitch, skOwnerBounds, ignoreDisplay),
                 SvgUse svgUse => new UseDrawable(svgUse, skOwnerBounds, ignoreDisplay),
-                SvgForeignObject svgForeignObject => new ForeignObjectDrawable(svgForeignObject, skOwnerBounds, ignoreDisplay),
                 SvgCircle svgCircle => new CircleDrawable(svgCircle, skOwnerBounds, ignoreDisplay),
                 SvgEllipse svgEllipse => new EllipseDrawable(svgEllipse, skOwnerBounds, ignoreDisplay),
                 SvgRectangle svgRectangle => new RectangleDrawable(svgRectangle, skOwnerBounds, ignoreDisplay),

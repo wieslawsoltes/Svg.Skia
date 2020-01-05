@@ -10,18 +10,18 @@ namespace Svg.Skia
     internal abstract class Drawable : SKDrawable
     {
         internal CompositeDisposable _disposable = new CompositeDisposable();
-        internal bool _canDraw;
-        internal bool _ignoreDisplay;
-        internal bool _antialias;
-        internal SKRect _skBounds;
-        internal SKMatrix _skMatrix;
 
-        internal SKRect? _skClipRect;
-        internal SKPath? _skPathClip;
-        internal SKPaint? _skPaintOpacity;
-        internal SKPaint? _skPaintFilter;
-        internal SKPaint? _skPaintFill;
-        internal SKPaint? _skPaintStroke;
+        public bool IsDrawable;
+        public bool IgnoreDisplay;
+        public bool IsAntialias;
+        public SKRect TransformedBounds;
+        public SKMatrix Transform;
+        public SKRect? ClipRect;
+        public SKPath? PathClip;
+        public SKPaint? PaintOpacity;
+        public SKPaint? PaintFilter;
+        public SKPaint? PaintFill;
+        public SKPaint? PaintStroke;
 
         protected bool CanDraw(SvgVisualElement svgVisualElement, bool ignoreDisplay)
         {
@@ -32,9 +32,9 @@ namespace Svg.Skia
 
         protected override SKRect OnGetBounds()
         {
-            if (_canDraw)
+            if (IsDrawable)
             {
-                return _skBounds;
+                return TransformedBounds;
             }
             return SKRect.Empty;
         }

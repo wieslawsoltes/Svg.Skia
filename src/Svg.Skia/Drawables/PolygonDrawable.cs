@@ -12,45 +12,45 @@ namespace Svg.Skia
     {
         public PolygonDrawable(SvgPolygon svgPolygon, SKRect skOwnerBounds, bool ignoreDisplay)
         {
-            _ignoreDisplay = ignoreDisplay;
-            _canDraw = CanDraw(svgPolygon, _ignoreDisplay);
+            IgnoreDisplay = ignoreDisplay;
+            IsDrawable = CanDraw(svgPolygon, IgnoreDisplay);
 
-            if (!_canDraw)
+            if (!IsDrawable)
             {
                 return;
             }
 
-            _skPath = SkiaUtil.ToSKPath(svgPolygon.Points, svgPolygon.FillRule, true, skOwnerBounds, _disposable);
-            if (_skPath == null || _skPath.IsEmpty)
+            Path = SkiaUtil.ToSKPath(svgPolygon.Points, svgPolygon.FillRule, true, skOwnerBounds, _disposable);
+            if (Path == null || Path.IsEmpty)
             {
-                _canDraw = false;
+                IsDrawable = false;
                 return;
             }
 
-            _antialias = SkiaUtil.IsAntialias(svgPolygon);
+            IsAntialias = SkiaUtil.IsAntialias(svgPolygon);
 
-            _skBounds = _skPath.Bounds;
+            TransformedBounds = Path.Bounds;
 
-            _skMatrix = SkiaUtil.GetSKMatrix(svgPolygon.Transforms);
+            Transform = SkiaUtil.GetSKMatrix(svgPolygon.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgPolygon, _skBounds, new HashSet<Uri>(), _disposable);
-            _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgPolygon, _disposable);
-            _skPaintFilter = SkiaUtil.GetFilterSKPaint(svgPolygon, _disposable);
+            PathClip = SkiaUtil.GetSvgVisualElementClipPath(svgPolygon, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SkiaUtil.GetOpacitySKPaint(svgPolygon, _disposable);
+            PaintFilter = SkiaUtil.GetFilterSKPaint(svgPolygon, _disposable);
 
             if (SkiaUtil.IsValidFill(svgPolygon))
             {
-                _skPaintFill = SkiaUtil.GetFillSKPaint(svgPolygon, _skBounds, _disposable);
+                PaintFill = SkiaUtil.GetFillSKPaint(svgPolygon, TransformedBounds, _disposable);
             }
 
-            if (SkiaUtil.IsValidStroke(svgPolygon, _skBounds))
+            if (SkiaUtil.IsValidStroke(svgPolygon, TransformedBounds))
             {
-                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgPolygon, _skBounds, _disposable);
+                PaintStroke = SkiaUtil.GetStrokeSKPaint(svgPolygon, TransformedBounds, _disposable);
             }
 
-            CreateMarkers(svgPolygon, _skPath, skOwnerBounds);
+            CreateMarkers(svgPolygon, Path, skOwnerBounds);
         }
     }
 }

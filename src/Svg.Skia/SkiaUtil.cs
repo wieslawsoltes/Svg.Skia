@@ -400,13 +400,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static void GetStops(
-            SvgGradientServer svgGradientServer,
-            SKRect skBounds,
-            List<SKColor> colors,
-            List<float> colorPos,
-            SvgVisualElement svgVisualElement,
-            float opacity)
+        public static void GetStops(SvgGradientServer svgGradientServer, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity)
         {
             foreach (var child in svgGradientServer.Children)
             {
@@ -432,11 +426,7 @@ namespace Svg.Skia
             }
         }
 
-        public static SKShader CreateLinearGradient(
-            SvgLinearGradientServer svgLinearGradientServer,
-            SKRect skBounds,
-            SvgVisualElement svgVisualElement,
-            float opacity)
+        public static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity)
         {
             var normilizedX1 = NormalizeSvgUnit(svgLinearGradientServer.X1, svgLinearGradientServer.GradientUnits);
             var normilizedY1 = NormalizeSvgUnit(svgLinearGradientServer.Y1, svgLinearGradientServer.GradientUnits);
@@ -520,11 +510,7 @@ namespace Svg.Skia
             }
         }
 
-        public static SKShader CreateTwoPointConicalGradient(
-            SvgRadialGradientServer svgRadialGradientServer,
-            SKRect skBounds,
-            SvgVisualElement svgVisualElement,
-            float opacity)
+        public static SKShader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity)
         {
             var normilizedCenterX = NormalizeSvgUnit(svgRadialGradientServer.CenterX, svgRadialGradientServer.GradientUnits);
             var normilizedCenterY = NormalizeSvgUnit(svgRadialGradientServer.CenterY, svgRadialGradientServer.GradientUnits);
@@ -627,12 +613,7 @@ namespace Svg.Skia
             }
         }
 
-        public static SKPicture CreatePicture(
-            SvgElementCollection svgElementCollection,
-            float width,
-            float height,
-            SKMatrix skMatrix,
-            float opacity)
+        public static SKPicture CreatePicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity)
         {
             var skSize = new SKSize(width, height);
             var skBounds = SKRect.Create(skSize);
@@ -652,12 +633,7 @@ namespace Svg.Skia
             }
         }
 
-        public static SKShader? CreatePicture(
-            SvgPatternServer svgPatternServer,
-            SKRect skBounds,
-            SvgVisualElement svgVisualElement,
-            float opacity,
-            CompositeDisposable disposable)
+        public static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, CompositeDisposable disposable)
         {
             var svgPatternServers = new List<SvgPatternServer>();
             var currentPatternServer = svgPatternServer;
@@ -823,11 +799,7 @@ namespace Svg.Skia
             return skShader;
         }
 
-        public static bool SetFill(
-            SvgVisualElement svgVisualElement,
-            SKRect skBounds,
-            SKPaint skPaint,
-            CompositeDisposable disposable)
+        public static bool SetFill(SvgVisualElement svgVisualElement, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
             var server = svgVisualElement.Fill;
             var fallbackServer = SvgPaintServer.None;
@@ -937,11 +909,7 @@ namespace Svg.Skia
             return true;
         }
 
-        public static bool SetStroke(
-            SvgVisualElement svgVisualElement,
-            SKRect skBounds,
-            SKPaint skPaint,
-            CompositeDisposable disposable)
+        public static bool SetStroke(SvgVisualElement svgVisualElement, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
             var server = svgVisualElement.Stroke;
             var fallbackServer = SvgPaintServer.None;
@@ -1322,11 +1290,7 @@ namespace Svg.Skia
             return skPaint;
         }
 
-        public static void SetSKPaintText(
-            SvgTextBase svgText,
-            SKRect skBounds,
-            SKPaint skPaint,
-            CompositeDisposable disposable)
+        public static void SetSKPaintText(SvgTextBase svgText, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
             skPaint.LcdRenderText = true;
             skPaint.SubpixelText = true;
@@ -1616,11 +1580,7 @@ namespace Svg.Skia
             return skMatrixTotal;
         }
 
-        public static SKMatrix GetSvgViewBoxTransform(
-            SvgViewBox svgViewBox,
-            SvgAspectRatio svgAspectRatio,
-            float x, float y,
-            float width, float height)
+        public static SKMatrix GetSvgViewBoxTransform(SvgViewBox svgViewBox, SvgAspectRatio svgAspectRatio, float x, float y, float width, float height)
         {
             if (svgViewBox.Equals(SvgViewBox.Empty))
             {
@@ -1707,11 +1667,7 @@ namespace Svg.Skia
             return skMatrixTotal;
         }
 
-        public static SKPath? GetClipPath(
-            SvgVisualElement svgVisualElement,
-            SKRect skBounds,
-            HashSet<Uri> uris,
-            CompositeDisposable disposable)
+        public static SKPath? GetClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {
             switch (svgVisualElement)
             {
@@ -1994,11 +1950,7 @@ namespace Svg.Skia
             return skPathClip;
         }
 
-        public static SKPath? GetSvgVisualElementClipPath(
-            SvgVisualElement svgVisualElement,
-            SKRect skBounds,
-            HashSet<Uri> uris,
-            CompositeDisposable disposable)
+        public static SKPath? GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {
             if (svgVisualElement == null || svgVisualElement.ClipPath == null)
             {

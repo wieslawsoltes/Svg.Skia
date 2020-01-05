@@ -23,7 +23,7 @@ namespace Svg.Skia
         {
             _svgText = svgText;
             _skOwnerBounds = skOwnerBounds;
-            _ignoreDisplay = ignoreDisplay;
+            IgnoreDisplay = ignoreDisplay;
         }
 
         internal virtual IEnumerable<ISvgNode> GetContentNodes(SvgTextBase svgTextBase)
@@ -463,7 +463,7 @@ namespace Svg.Skia
         protected override void OnDraw(SKCanvas canvas)
         {
             // TODO:
-            DrawText(_svgText, _skOwnerBounds, _ignoreDisplay, canvas);
+            DrawText(_svgText, _skOwnerBounds, IgnoreDisplay, canvas);
         }
     }
 }

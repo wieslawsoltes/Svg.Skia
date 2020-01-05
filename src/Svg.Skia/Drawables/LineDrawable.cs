@@ -12,45 +12,45 @@ namespace Svg.Skia
     {
         public LineDrawable(SvgLine svgLine, SKRect skOwnerBounds, bool ignoreDisplay)
         {
-            _ignoreDisplay = ignoreDisplay;
-            _canDraw = CanDraw(svgLine, _ignoreDisplay);
+            IgnoreDisplay = ignoreDisplay;
+            IsDrawable = CanDraw(svgLine, IgnoreDisplay);
 
-            if (!_canDraw)
+            if (!IsDrawable)
             {
                 return;
             }
 
-            _skPath = SkiaUtil.ToSKPath(svgLine, svgLine.FillRule, skOwnerBounds, _disposable);
-            if (_skPath == null || _skPath.IsEmpty)
+            Path = SkiaUtil.ToSKPath(svgLine, svgLine.FillRule, skOwnerBounds, _disposable);
+            if (Path == null || Path.IsEmpty)
             {
-                _canDraw = false;
+                IsDrawable = false;
                 return;
             }
 
-            _antialias = SkiaUtil.IsAntialias(svgLine);
+            IsAntialias = SkiaUtil.IsAntialias(svgLine);
 
-            _skBounds = _skPath.Bounds;
+            TransformedBounds = Path.Bounds;
 
-            _skMatrix = SkiaUtil.GetSKMatrix(svgLine.Transforms);
+            Transform = SkiaUtil.GetSKMatrix(svgLine.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgLine, _skBounds, new HashSet<Uri>(), _disposable);
-            _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgLine, _disposable);
-            _skPaintFilter = SkiaUtil.GetFilterSKPaint(svgLine, _disposable);
+            PathClip = SkiaUtil.GetSvgVisualElementClipPath(svgLine, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SkiaUtil.GetOpacitySKPaint(svgLine, _disposable);
+            PaintFilter = SkiaUtil.GetFilterSKPaint(svgLine, _disposable);
 
             if (SkiaUtil.IsValidFill(svgLine))
             {
-                _skPaintFill = SkiaUtil.GetFillSKPaint(svgLine, _skBounds, _disposable);
+                PaintFill = SkiaUtil.GetFillSKPaint(svgLine, TransformedBounds, _disposable);
             }
 
-            if (SkiaUtil.IsValidStroke(svgLine, _skBounds))
+            if (SkiaUtil.IsValidStroke(svgLine, TransformedBounds))
             {
-                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgLine, _skBounds, _disposable);
+                PaintStroke = SkiaUtil.GetStrokeSKPaint(svgLine, TransformedBounds, _disposable);
             }
 
-            CreateMarkers(svgLine, _skPath, skOwnerBounds);
+            CreateMarkers(svgLine, Path, skOwnerBounds);
         }
     }
 }

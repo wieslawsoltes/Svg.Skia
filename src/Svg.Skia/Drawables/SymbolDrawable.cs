@@ -13,10 +13,10 @@ namespace Svg.Skia
     {
         public SymbolDrawable(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, bool ignoreDisplay)
         {
-            _ignoreDisplay = ignoreDisplay;
-            _canDraw = CanDraw(svgSymbol, _ignoreDisplay);
+            IgnoreDisplay = ignoreDisplay;
+            IsDrawable = CanDraw(svgSymbol, IgnoreDisplay);
 
-            if (!_canDraw)
+            if (!IsDrawable)
             {
                 return;
             }
@@ -53,7 +53,7 @@ namespace Svg.Skia
                 case SvgOverflow.Inherit:
                     break;
                 default:
-                    _skClipRect = SKRect.Create(x, y, width, height);
+                    ClipRect = SKRect.Create(x, y, width, height);
                     break;
             }
 
@@ -62,43 +62,43 @@ namespace Svg.Skia
                 var drawable = DrawableFactory.Create(svgElement, skOwnerBounds, ignoreDisplay);
                 if (drawable != null)
                 {
-                    _childrenDrawables.Add(drawable);
+                    ChildrenDrawables.Add(drawable);
                     _disposable.Add(drawable);
                 }
             }
 
-            _antialias = SkiaUtil.IsAntialias(svgSymbol);
+            IsAntialias = SkiaUtil.IsAntialias(svgSymbol);
 
-            _skBounds = SKRect.Empty;
+            TransformedBounds = SKRect.Empty;
 
-            foreach (var drawable in _childrenDrawables)
+            foreach (var drawable in ChildrenDrawables)
             {
-                if (_skBounds.IsEmpty)
+                if (TransformedBounds.IsEmpty)
                 {
-                    _skBounds = drawable._skBounds;
+                    TransformedBounds = drawable.TransformedBounds;
                 }
                 else
                 {
-                    if (!drawable._skBounds.IsEmpty)
+                    if (!drawable.TransformedBounds.IsEmpty)
                     {
-                        _skBounds = SKRect.Union(_skBounds, drawable._skBounds);
+                        TransformedBounds = SKRect.Union(TransformedBounds, drawable.TransformedBounds);
                     }
                 }
             }
 
-            _skMatrix = SkiaUtil.GetSKMatrix(svgSymbol.Transforms);
+            Transform = SkiaUtil.GetSKMatrix(svgSymbol.Transforms);
             var skMatrixViewBox = SkiaUtil.GetSvgViewBoxTransform(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
-            SKMatrix.PreConcat(ref _skMatrix, ref skMatrixViewBox);
+            SKMatrix.PreConcat(ref Transform, ref skMatrixViewBox);
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgSymbol, _skBounds, new HashSet<Uri>(), _disposable);
-            _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgSymbol, _disposable);
-            _skPaintFilter = SkiaUtil.GetFilterSKPaint(svgSymbol, _disposable);
+            PathClip = SkiaUtil.GetSvgVisualElementClipPath(svgSymbol, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SkiaUtil.GetOpacitySKPaint(svgSymbol, _disposable);
+            PaintFilter = SkiaUtil.GetFilterSKPaint(svgSymbol, _disposable);
 
-            _skPaintFill = null;
-            _skPaintStroke = null;
+            PaintFill = null;
+            PaintStroke = null;
         }
     }
 }

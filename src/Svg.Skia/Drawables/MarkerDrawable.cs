@@ -15,10 +15,10 @@ namespace Svg.Skia
 
         public MarkerDrawable(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds)
         {
-            _ignoreDisplay = true;
-            _canDraw = true;
+            IgnoreDisplay = true;
+            IsDrawable = true;
 
-            if (!_canDraw)
+            if (!IsDrawable)
             {
                 return;
             }
@@ -26,7 +26,7 @@ namespace Svg.Skia
             var markerElement = GetMarkerElement(svgMarker);
             if (markerElement == null)
             {
-                _canDraw = false;
+                IsDrawable = false;
                 return;
             }
 
@@ -78,7 +78,7 @@ namespace Svg.Skia
                     break;
             }
 
-            _skClipRect = SKRect.Create(
+            ClipRect = SKRect.Create(
                 svgMarker.ViewBox.MinX,
                 svgMarker.ViewBox.MinY,
                 markerWidth / viewBoxToMarkerUnitsScaleX,
@@ -92,26 +92,26 @@ namespace Svg.Skia
             }
             else
             {
-                _canDraw = false;
+                IsDrawable = false;
                 return;
             }
 
-            _antialias = SkiaUtil.IsAntialias(svgMarker);
+            IsAntialias = SkiaUtil.IsAntialias(svgMarker);
 
-            _skBounds = _markerDrawable._skBounds;
+            TransformedBounds = _markerDrawable.TransformedBounds;
 
-            _skMatrix = SkiaUtil.GetSKMatrix(svgMarker.Transforms);
-            SKMatrix.PreConcat(ref _skMatrix, ref skMarkerMatrix);
+            Transform = SkiaUtil.GetSKMatrix(svgMarker.Transforms);
+            SKMatrix.PreConcat(ref Transform, ref skMarkerMatrix);
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgMarker, _skBounds, new HashSet<Uri>(), _disposable);
-            _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgMarker, _disposable);
-            _skPaintFilter = SkiaUtil.GetFilterSKPaint(svgMarker, _disposable);
+            PathClip = SkiaUtil.GetSvgVisualElementClipPath(svgMarker, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SkiaUtil.GetOpacitySKPaint(svgMarker, _disposable);
+            PaintFilter = SkiaUtil.GetFilterSKPaint(svgMarker, _disposable);
 
-            _skPaintFill = null;
-            _skPaintStroke = null;
+            PaintFill = null;
+            PaintStroke = null;
         }
 
         internal SvgVisualElement? GetMarkerElement(SvgMarker svgMarker)
@@ -132,7 +132,7 @@ namespace Svg.Skia
 
         protected override void OnDraw(SKCanvas canvas)
         {
-            if (!_canDraw)
+            if (!IsDrawable)
             {
                 return;
             }
@@ -140,37 +140,37 @@ namespace Svg.Skia
             canvas.Save();
 
             var skMatrixTotal = canvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref _skMatrix);
+            SKMatrix.PreConcat(ref skMatrixTotal, ref Transform);
             canvas.SetMatrix(skMatrixTotal);
 
-            if (_skPathClip != null && !_skPathClip.IsEmpty)
+            if (PathClip != null && !PathClip.IsEmpty)
             {
-                canvas.ClipPath(_skPathClip, SKClipOperation.Intersect, _antialias);
+                canvas.ClipPath(PathClip, SKClipOperation.Intersect, IsAntialias);
             }
 
-            if (_skPaintOpacity != null)
+            if (PaintOpacity != null)
             {
-                canvas.SaveLayer(_skPaintOpacity);
+                canvas.SaveLayer(PaintOpacity);
             }
 
-            if (_skPaintFilter != null)
+            if (PaintFilter != null)
             {
-                canvas.SaveLayer(_skPaintFilter);
+                canvas.SaveLayer(PaintFilter);
             }
 
-            if (_skClipRect != null)
+            if (ClipRect != null)
             {
-                canvas.ClipRect(_skClipRect.Value, SKClipOperation.Intersect);
+                canvas.ClipRect(ClipRect.Value, SKClipOperation.Intersect);
             }
 
             _markerDrawable?.Draw(canvas, 0f, 0f);
 
-            if (_skPaintFilter != null)
+            if (PaintFilter != null)
             {
                 canvas.Restore();
             }
 
-            if (_skPaintOpacity != null)
+            if (PaintOpacity != null)
             {
                 canvas.Restore();
             }

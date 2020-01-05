@@ -16,24 +16,24 @@ namespace Svg.Skia
 
         public UseDrawable(SvgUse svgUse, SKRect skOwnerBounds, bool ignoreDisplay)
         {
-            _ignoreDisplay = ignoreDisplay;
-            _canDraw = CanDraw(svgUse, _ignoreDisplay);
+            IgnoreDisplay = ignoreDisplay;
+            IsDrawable = CanDraw(svgUse, IgnoreDisplay);
 
-            if (!_canDraw)
+            if (!IsDrawable)
             {
                 return;
             }
 
             if (SkiaUtil.HasRecursiveReference(svgUse, (e) => e.ReferencedElement, new HashSet<Uri>()))
             {
-                _canDraw = false;
+                IsDrawable = false;
                 return;
             }
 
             var svgReferencedElement = SkiaUtil.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
             if (svgReferencedElement == null)
             {
-                _canDraw = false;
+                IsDrawable = false;
                 return;
             }
 
@@ -76,37 +76,37 @@ namespace Svg.Skia
                 }
                 else
                 {
-                    _canDraw = false;
+                    IsDrawable = false;
                     return;
                 }
             }
 
-            _antialias = SkiaUtil.IsAntialias(svgUse);
+            IsAntialias = SkiaUtil.IsAntialias(svgUse);
 
-            _skBounds = _referencedDrawable._skBounds;
+            TransformedBounds = _referencedDrawable.TransformedBounds;
 
-            _skMatrix = SkiaUtil.GetSKMatrix(svgUse.Transforms);
+            Transform = SkiaUtil.GetSKMatrix(svgUse.Transforms);
             if (!(svgReferencedElement is SvgSymbol))
             {
                 var skMatrixTranslateXY = SKMatrix.MakeTranslation(x, y);
-                SKMatrix.PreConcat(ref _skMatrix, ref skMatrixTranslateXY);
+                SKMatrix.PreConcat(ref Transform, ref skMatrixTranslateXY);
             }
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref _skMatrix, out _skBounds, ref _skBounds);
+            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            _skPathClip = SkiaUtil.GetSvgVisualElementClipPath(svgUse, _skBounds, new HashSet<Uri>(), _disposable);
-            _skPaintOpacity = SkiaUtil.GetOpacitySKPaint(svgUse, _disposable);
-            _skPaintFilter = SkiaUtil.GetFilterSKPaint(svgUse, _disposable);
+            PathClip = SkiaUtil.GetSvgVisualElementClipPath(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SkiaUtil.GetOpacitySKPaint(svgUse, _disposable);
+            PaintFilter = SkiaUtil.GetFilterSKPaint(svgUse, _disposable);
 
             if (SkiaUtil.IsValidFill(svgUse))
             {
-                _skPaintFill = SkiaUtil.GetFillSKPaint(svgUse, _skBounds, _disposable);
+                PaintFill = SkiaUtil.GetFillSKPaint(svgUse, TransformedBounds, _disposable);
             }
 
-            if (SkiaUtil.IsValidStroke(svgUse, _skBounds))
+            if (SkiaUtil.IsValidStroke(svgUse, TransformedBounds))
             {
-                _skPaintStroke = SkiaUtil.GetStrokeSKPaint(svgUse, _skBounds, _disposable);
+                PaintStroke = SkiaUtil.GetStrokeSKPaint(svgUse, TransformedBounds, _disposable);
             }
 
             if (useParent != null)
@@ -117,45 +117,45 @@ namespace Svg.Skia
 
         protected override void OnDraw(SKCanvas canvas)
         {
-            if (!_canDraw)
+            if (!IsDrawable)
             {
                 return;
             }
 
             canvas.Save();
 
-            if (_skClipRect != null)
+            if (ClipRect != null)
             {
-                canvas.ClipRect(_skClipRect.Value, SKClipOperation.Intersect);
+                canvas.ClipRect(ClipRect.Value, SKClipOperation.Intersect);
             }
 
             var skMatrixTotal = canvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref _skMatrix);
+            SKMatrix.PreConcat(ref skMatrixTotal, ref Transform);
             canvas.SetMatrix(skMatrixTotal);
 
-            if (_skPathClip != null && !_skPathClip.IsEmpty)
+            if (PathClip != null && !PathClip.IsEmpty)
             {
-                canvas.ClipPath(_skPathClip, SKClipOperation.Intersect, _antialias);
+                canvas.ClipPath(PathClip, SKClipOperation.Intersect, IsAntialias);
             }
 
-            if (_skPaintOpacity != null)
+            if (PaintOpacity != null)
             {
-                canvas.SaveLayer(_skPaintOpacity);
+                canvas.SaveLayer(PaintOpacity);
             }
 
-            if (_skPaintFilter != null)
+            if (PaintFilter != null)
             {
-                canvas.SaveLayer(_skPaintFilter);
+                canvas.SaveLayer(PaintFilter);
             }
 
             _referencedDrawable?.Draw(canvas, 0f, 0f);
 
-            if (_skPaintFilter != null)
+            if (PaintFilter != null)
             {
                 canvas.Restore();
             }
 
-            if (_skPaintOpacity != null)
+            if (PaintOpacity != null)
             {
                 canvas.Restore();
             }
