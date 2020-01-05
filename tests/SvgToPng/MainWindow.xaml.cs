@@ -59,16 +59,32 @@ namespace SvgToPng
             this.items.SelectionChanged += Items_SelectionChanged;
             this.items.MouseDoubleClick += Items_MouseDoubleClick;
 
-            this.skElementSvg.PaintSurface += OnPaintCanvasSvg;
 #if true
+            this.skElementSvg.PaintSurface += OnPaintCanvasSvg;
             this.skElementPng.PaintSurface += OnPaintCanvasPng;
             this.skElementDiff.PaintSurface += OnPaintCanvasDiff;
 #endif
 
+#if false
             this.glHostSvg.Initialized += OnGLControlHostSvg;
-#if true
             this.glHostPng.Initialized += OnGLControlHostPng;
             this.glHostDiff.Initialized += OnGLControlHostDiff;
+#endif
+
+#if true
+            skElementSvg.Visibility = Visibility.Visible;
+            skElementPng.Visibility = Visibility.Visible;
+            skElementDiff.Visibility = Visibility.Visible;
+            glHostSvg.Visibility = Visibility.Collapsed;
+            glHostPng.Visibility = Visibility.Collapsed;
+            glHostDiff.Visibility = Visibility.Collapsed;
+#else
+            skElementSvg.Visibility = Visibility.Collapsed;
+            skElementPng.Visibility = Visibility.Collapsed;
+            skElementDiff.Visibility = Visibility.Collapsed;
+            glHostSvg.Visibility = Visibility.Visible;
+            glHostPng.Visibility = Visibility.Visible;
+            glHostDiff.Visibility = Visibility.Visible;
 #endif
 
             DataContext = this.VM;
