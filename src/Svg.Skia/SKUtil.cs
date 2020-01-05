@@ -368,6 +368,7 @@ namespace Svg.Skia
         public static SKPathEffect? CreateDash(SvgElement svgElement, SKRect skBounds)
         {
             var strokeDashArray = svgElement.StrokeDashArray;
+            var strokeDashOffset = svgElement.StrokeDashOffset;
             var count = strokeDashArray.Count;
 
             if (strokeDashArray != null && count > 0)
@@ -398,7 +399,7 @@ namespace Svg.Skia
                     return null;
                 }
 
-                float phase = svgElement.StrokeDashOffset != null ? svgElement.StrokeDashOffset.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) : 0f;
+                float phase = strokeDashOffset != null ? strokeDashOffset.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) : 0f;
 
                 return SKPathEffect.CreateDash(intervals, phase);
             }
@@ -412,7 +413,8 @@ namespace Svg.Skia
             {
                 if (child is SvgGradientStop svgGradientStop)
                 {
-                    if (svgGradientStop.StopColor is SvgColourServer stopColorSvgColourServer)
+                    var svgStopColor = svgGradientStop.StopColor;
+                    if (svgStopColor is SvgColourServer stopColorSvgColourServer)
                     {
                         var stopOpacity = AdjustSvgOpacity(svgGradientStop.StopOpacity);
                         var stopColor = GetColor(stopColorSvgColourServer, opacity * stopOpacity, false);
@@ -479,6 +481,8 @@ namespace Svg.Skia
                 return SKShader.CreateColor(skColors[0]);
             }
 
+            var svgGradientTransform = svgLinearGradientServer.GradientTransform;
+
             if (svgLinearGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
                 var skBoundingBoxTransform = new SKMatrix()
@@ -494,9 +498,9 @@ namespace Svg.Skia
                     Persp2 = 1
                 };
 
-                if (svgLinearGradientServer.GradientTransform != null && svgLinearGradientServer.GradientTransform.Count > 0)
+                if (svgGradientTransform != null && svgGradientTransform.Count > 0)
                 {
-                    var gradientTransform = GetSKMatrix(svgLinearGradientServer.GradientTransform);
+                    var gradientTransform = GetSKMatrix(svgGradientTransform);
                     SKMatrix.PreConcat(ref skBoundingBoxTransform, ref gradientTransform);
                 }
 
@@ -504,9 +508,9 @@ namespace Svg.Skia
             }
             else
             {
-                if (svgLinearGradientServer.GradientTransform != null && svgLinearGradientServer.GradientTransform.Count > 0)
+                if (svgGradientTransform != null && svgGradientTransform.Count > 0)
                 {
-                    var gradientTransform = GetSKMatrix(svgLinearGradientServer.GradientTransform);
+                    var gradientTransform = GetSKMatrix(svgGradientTransform);
                     return SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode, gradientTransform);
                 }
                 else
@@ -567,6 +571,8 @@ namespace Svg.Skia
                 return SKShader.CreateColor(skColors[0]);
             }
 
+            var svgGradientTransform = svgRadialGradientServer.GradientTransform;
+
             if (svgRadialGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
                 var skBoundingBoxTransform = new SKMatrix()
@@ -582,10 +588,9 @@ namespace Svg.Skia
                     Persp2 = 1
                 };
 
-                if (svgRadialGradientServer.GradientTransform != null
-                    && svgRadialGradientServer.GradientTransform.Count > 0)
+                if (svgGradientTransform != null && svgGradientTransform.Count > 0)
                 {
-                    var gradientTransform = GetSKMatrix(svgRadialGradientServer.GradientTransform);
+                    var gradientTransform = GetSKMatrix(svgGradientTransform);
                     SKMatrix.PreConcat(ref skBoundingBoxTransform, ref gradientTransform);
                 }
 
@@ -598,10 +603,9 @@ namespace Svg.Skia
             }
             else
             {
-                if (svgRadialGradientServer.GradientTransform != null
-                    && svgRadialGradientServer.GradientTransform.Count > 0)
+                if (svgGradientTransform != null && svgGradientTransform.Count > 0)
                 {
-                    var gradientTransform = GetSKMatrix(svgRadialGradientServer.GradientTransform);
+                    var gradientTransform = GetSKMatrix(svgGradientTransform);
                     return SKShader.CreateTwoPointConicalGradient(
                         skStart, startRadius,
                         skEnd, endRadius,
@@ -669,49 +673,56 @@ namespace Svg.Skia
                 }
                 if (firstX == null)
                 {
-                    if (p.X != null && p.X != SvgUnit.None)
+                    var pX = p.X;
+                    if (pX != null && pX != SvgUnit.None)
                     {
                         firstX = p;
                     }
                 }
                 if (firstY == null)
                 {
-                    if (p.Y != null && p.Y != SvgUnit.None)
+                    var pY = p.Y;
+                    if (pY != null && pY != SvgUnit.None)
                     {
                         firstY = p;
                     }
                 }
                 if (firstWidth == null)
                 {
-                    if (p.Width != null && p.Width != SvgUnit.None)
+                    var pWidth = p.Width;
+                    if (pWidth != null && pWidth != SvgUnit.None)
                     {
                         firstWidth = p;
                     }
                 }
                 if (firstHeight == null)
                 {
-                    if (p.Height != null && p.Height != SvgUnit.None)
+                    var pHeight = p.Height;
+                    if (pHeight != null && pHeight != SvgUnit.None)
                     {
                         firstHeight = p;
                     }
                 }
                 if (firstPatternUnit == null)
                 {
-                    if (p.PatternUnits != SvgCoordinateUnits.Inherit)
+                    var pPatternUnits = p.PatternUnits;
+                    if (pPatternUnits != SvgCoordinateUnits.Inherit)
                     {
                         firstPatternUnit = p;
                     }
                 }
                 if (firstPatternContentUnit == null)
                 {
-                    if (p.PatternContentUnits != SvgCoordinateUnits.Inherit)
+                    var pPatternContentUnits = p.PatternContentUnits;
+                    if (pPatternContentUnits != SvgCoordinateUnits.Inherit)
                     {
                         firstPatternContentUnit = p;
                     }
                 }
                 if (firstViewBox == null)
                 {
-                    if (p.ViewBox != null && p.ViewBox != SvgViewBox.Empty)
+                    var pViewBox = p.ViewBox;
+                    if (pViewBox != null && pViewBox != SvgViewBox.Empty)
                     {
                         firstViewBox = p;
                     }
@@ -769,9 +780,11 @@ namespace Svg.Skia
             SKRect skRectTransformed = SKRect.Create(x, y, width, height);
 
             var skLocalMatrix = SKMatrix.MakeIdentity();
-            if (svgPatternServer.PatternTransform != null && svgPatternServer.PatternTransform.Count > 0)
+
+            var svgPatternTransform = svgPatternServer.PatternTransform;
+            if (svgPatternTransform != null && svgPatternTransform.Count > 0)
             {
-                var patternTransform = GetSKMatrix(svgPatternServer.PatternTransform);
+                var patternTransform = GetSKMatrix(svgPatternTransform);
                 SKMatrix.PreConcat(ref skLocalMatrix, ref patternTransform);
             }
             var translateTransform = SKMatrix.MakeTranslation(skRectTransformed.Left, skRectTransformed.Top);
@@ -1195,14 +1208,17 @@ namespace Svg.Skia
 
         public static bool IsValidFill(SvgElement svgElement)
         {
-            return svgElement.Fill != null;
+            var fill = svgElement.Fill;
+            return fill != null;
         }
 
         public static bool IsValidStroke(SvgElement svgElement, SKRect skBounds)
         {
-            return svgElement.Stroke != null
-                && svgElement.Stroke != SvgPaintServer.None
-                && svgElement.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
+            var stroke = svgElement.Stroke;
+            var strokeWidth = svgElement.StrokeWidth;
+            return stroke != null
+                && stroke != SvgPaintServer.None
+                && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
         }
 
         public static SKPaint GetFillSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable)
@@ -1264,12 +1280,14 @@ namespace Svg.Skia
 
             skPaint.StrokeWidth = svgVisualElement.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgVisualElement, skBounds);
 
-            if (svgVisualElement.StrokeDashArray != null)
+            var strokeDashArray = svgVisualElement.StrokeDashArray;
+            if (strokeDashArray != null)
             {
                 SetDash(svgVisualElement, skPaint, skBounds, disposable);
             }
 
-            if (svgVisualElement.Filter != null)
+            var filter = svgVisualElement.Filter;
+            if (filter != null)
             {
                 SetFilter(svgVisualElement, skPaint, disposable);
             }
@@ -1487,11 +1505,12 @@ namespace Svg.Skia
 
         public static SKPaint? GetFilterSKPaint(SvgVisualElement svgVisualElement, CompositeDisposable disposable)
         {
-            if (svgVisualElement.Filter != null)
+            var filter = svgVisualElement.Filter;
+            if (filter != null)
             {
                 var skPaint = new SKPaint();
                 skPaint.Style = SKPaintStyle.StrokeAndFill;
-                SKUtil.SetFilter(svgVisualElement, skPaint, disposable);
+                SetFilter(svgVisualElement, skPaint, disposable);
                 disposable.Add(skPaint);
                 return skPaint;
             }
