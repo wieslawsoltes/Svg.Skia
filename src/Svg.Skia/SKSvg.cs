@@ -40,7 +40,7 @@ namespace Svg.Skia
                 }
                 if (skBounds.IsEmpty)
                 {
-                    var skFragmentBounds = svgFragment.Bounds;
+                    var skFragmentBounds = drawable.Bounds;
                     skBounds = SKRect.Create(
                         0f,
                         0f,
