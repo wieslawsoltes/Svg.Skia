@@ -107,7 +107,7 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid>
                                 <views:SKElement x:Name="skElementSvg" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
-                                <WindowsFormsHost x:Name="glHostSvg" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Collapsed" />
+                                <WindowsFormsHost x:Name="glHostSvg" Initialized="OnGLControlHostSvg" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible" />
                             </Grid>
                         </ScrollViewer>
                     </Border>
@@ -117,7 +117,7 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid>
                                 <views:SKElement x:Name="skElementPng" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
-                                <WindowsFormsHost x:Name="glHostPng" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Collapsed" />
+                                <WindowsFormsHost x:Name="glHostPng" Initialized="OnGLControlHostPng" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible" />
                             </Grid>
                         </ScrollViewer>
                     </Border>
@@ -156,7 +156,7 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid>
                                 <views:SKElement x:Name="skElementDiff" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
-                                <WindowsFormsHost x:Name="glHostDiff" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Collapsed" />
+                                <WindowsFormsHost x:Name="glHostDiff" Initialized="OnGLControlHostDiff" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible" />
                             </Grid>
                         </ScrollViewer>
                     </Border>
