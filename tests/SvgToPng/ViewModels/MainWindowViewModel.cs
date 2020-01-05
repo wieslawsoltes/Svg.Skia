@@ -6,11 +6,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Windows.Controls;
 using System.Windows.Data;
 using Newtonsoft.Json;
 using SkiaSharp;
-using SkiaSharp.Views.Desktop;
 using Svg.Skia;
 
 namespace SvgToPng.ViewModels
@@ -81,7 +79,7 @@ namespace SvgToPng.ViewModels
             }
         }
 
-        public void UpdateItem(Item item, TextBox textBoxOpen, TextBox textBoxToPicture)
+        public void UpdateItem(Item item, Action<string> textBoxOpen, Action<string> textBoxToPicture)
         {
             if (item.Svg == null)
             {
@@ -98,7 +96,7 @@ namespace SvgToPng.ViewModels
                         stopwatchOpen.Stop();
                         if (textBoxOpen != null)
                         {
-                            textBoxOpen.Text = $"{Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms";
+                            textBoxOpen($"{Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
                         }
                         Debug.WriteLine($"Open: {Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
 
@@ -109,7 +107,7 @@ namespace SvgToPng.ViewModels
                             stopwatchToPicture.Stop();
                             if (textBoxToPicture != null)
                             {
-                                textBoxToPicture.Text = $"{Math.Round(stopwatchToPicture.Elapsed.TotalMilliseconds, 3)}ms";
+                                textBoxToPicture($"{Math.Round(stopwatchToPicture.Elapsed.TotalMilliseconds, 3)}ms");
                             }
                             Debug.WriteLine($"ToPicture: {Math.Round(stopwatchToPicture.Elapsed.TotalMilliseconds, 3)}ms");
                         }
@@ -117,7 +115,7 @@ namespace SvgToPng.ViewModels
                         {
                             if (textBoxToPicture != null)
                             {
-                                textBoxToPicture.Text = $"";
+                                textBoxToPicture($"");
                             }
                         }
                     }
