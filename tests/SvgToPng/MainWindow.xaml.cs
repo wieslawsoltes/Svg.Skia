@@ -40,7 +40,7 @@ namespace SvgToPng
                     return true;
                 }
             };
-            VM.LoadItems();
+            VM.LoadItems("Items.json");
             VM.CreateItemsView();
 #if DEBUG
             VM.ReferencePaths = new ObservableCollection<string>(new string[]
@@ -92,7 +92,7 @@ namespace SvgToPng
 
         private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
-            VM.SaveItems();
+            VM.SaveItems("Items.json");
             VM.ClearItems();
         }
 
