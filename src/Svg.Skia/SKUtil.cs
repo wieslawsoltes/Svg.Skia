@@ -71,9 +71,10 @@ namespace Svg.Skia
 
         public static SKPath? ToSKPath(SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule, CompositeDisposable disposable)
         {
+            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
             var skPath = new SKPath()
             {
-                FillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding
+                FillType = fillType
             };
 
             foreach (var svgSegment in svgPathSegmentList)
@@ -82,35 +83,35 @@ namespace Svg.Skia
                 {
                     case SvgMoveToSegment svgMoveToSegment:
                         {
-                            float x = (float)svgMoveToSegment.Start.X;
-                            float y = (float)svgMoveToSegment.Start.Y;
+                            float x = svgMoveToSegment.Start.X;
+                            float y = svgMoveToSegment.Start.Y;
                             skPath.MoveTo(x, y);
                         }
                         break;
                     case SvgLineSegment svgLineSegment:
                         {
-                            float x = (float)svgLineSegment.End.X;
-                            float y = (float)svgLineSegment.End.Y;
+                            float x = svgLineSegment.End.X;
+                            float y = svgLineSegment.End.Y;
                             skPath.LineTo(x, y);
                         }
                         break;
                     case SvgCubicCurveSegment svgCubicCurveSegment:
                         {
-                            float x0 = (float)svgCubicCurveSegment.FirstControlPoint.X;
-                            float y0 = (float)svgCubicCurveSegment.FirstControlPoint.Y;
-                            float x1 = (float)svgCubicCurveSegment.SecondControlPoint.X;
-                            float y1 = (float)svgCubicCurveSegment.SecondControlPoint.Y;
-                            float x2 = (float)svgCubicCurveSegment.End.X;
-                            float y2 = (float)svgCubicCurveSegment.End.Y;
+                            float x0 = svgCubicCurveSegment.FirstControlPoint.X;
+                            float y0 = svgCubicCurveSegment.FirstControlPoint.Y;
+                            float x1 = svgCubicCurveSegment.SecondControlPoint.X;
+                            float y1 = svgCubicCurveSegment.SecondControlPoint.Y;
+                            float x2 = svgCubicCurveSegment.End.X;
+                            float y2 = svgCubicCurveSegment.End.Y;
                             skPath.CubicTo(x0, y0, x1, y1, x2, y2);
                         }
                         break;
                     case SvgQuadraticCurveSegment svgQuadraticCurveSegment:
                         {
-                            float x0 = (float)svgQuadraticCurveSegment.ControlPoint.X;
-                            float y0 = (float)svgQuadraticCurveSegment.ControlPoint.Y;
-                            float x1 = (float)svgQuadraticCurveSegment.End.X;
-                            float y1 = (float)svgQuadraticCurveSegment.End.Y;
+                            float x0 = svgQuadraticCurveSegment.ControlPoint.X;
+                            float y0 = svgQuadraticCurveSegment.ControlPoint.Y;
+                            float x1 = svgQuadraticCurveSegment.End.X;
+                            float y1 = svgQuadraticCurveSegment.End.Y;
                             skPath.QuadTo(x0, y0, x1, y1);
                         }
                         break;
@@ -121,12 +122,12 @@ namespace Svg.Skia
                             float xAxisRotate = svgArcSegment.Angle;
                             var largeArc = svgArcSegment.Size == SvgArcSize.Small ? SKPathArcSize.Small : SKPathArcSize.Large;
                             var sweep = svgArcSegment.Sweep == SvgArcSweep.Negative ? SKPathDirection.CounterClockwise : SKPathDirection.Clockwise;
-                            float x = (float)svgArcSegment.End.X;
-                            float y = (float)svgArcSegment.End.Y;
+                            float x = svgArcSegment.End.X;
+                            float y = svgArcSegment.End.Y;
                             skPath.ArcTo(rx, ry, xAxisRotate, largeArc, sweep, x, y);
                         }
                         break;
-                    case SvgClosePathSegment svgClosePathSegment:
+                    case SvgClosePathSegment _:
                         {
                             skPath.Close();
                         }
