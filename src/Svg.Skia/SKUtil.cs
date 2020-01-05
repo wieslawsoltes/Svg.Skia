@@ -1827,26 +1827,6 @@ namespace Svg.Skia
                         }
                     }
                     break;
-                case SvgGroup svgGroup:
-                    {
-                        var skPath = GetClipPath(svgGroup.Children, skBounds, uris, disposable);
-                        if (skPath != null && !skPath.IsEmpty)
-                        {
-                            var skMatrix = GetSKMatrix(svgGroup.Transforms);
-                            skPath.Transform(skMatrix);
-
-                            var skPathClip = GetSvgVisualElementClipPath(svgGroup, skPath.Bounds, uris, disposable);
-                            if (skPathClip != null && !skPathClip.IsEmpty)
-                            {
-                                var result = skPath.Op(skPathClip, SKPathOp.Intersect);
-                                disposable.Add(result);
-                                return result;
-                            }
-
-                            return skPath;
-                        }
-                    }
-                    break;
                 case SvgUse svgUse:
                     {
                         if (HasRecursiveReference(svgUse, (e) => e.ReferencedElement, new HashSet<Uri>()))
@@ -1855,14 +1835,12 @@ namespace Svg.Skia
                         }
 
                         var svgReferencedVisualElement = GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
-                        if (svgReferencedVisualElement == null)
+                        if (svgReferencedVisualElement == null || svgReferencedVisualElement is SvgSymbol)
                         {
                             break;
                         }
 
-                        if (svgReferencedVisualElement is SvgSymbol svgReferencedSymbol)
-                        {
-                            var skPath = GetClipPath(svgReferencedSymbol, skBounds, uris, disposable);
+                        var skPath = GetClipPath(svgReferencedVisualElement, skBounds, uris, disposable);
                             if (skPath != null && !skPath.IsEmpty)
                             {
                                 var skMatrix = GetSKMatrix(svgUse.Transforms);
@@ -1878,46 +1856,6 @@ namespace Svg.Skia
 
                                 return skPath;
                             }
-                        }
-                        else
-                        {
-                            var skPath = GetClipPath(svgReferencedVisualElement, skBounds, uris, disposable);
-                            if (skPath != null && !skPath.IsEmpty)
-                            {
-                                var skMatrix = GetSKMatrix(svgUse.Transforms);
-                                skPath.Transform(skMatrix);
-
-                                var skPathClip = GetSvgVisualElementClipPath(svgUse, skPath.Bounds, uris, disposable);
-                                if (skPathClip != null && !skPathClip.IsEmpty)
-                                {
-                                    var result = skPath.Op(skPathClip, SKPathOp.Intersect);
-                                    disposable.Add(result);
-                                    return result;
-                                }
-
-                                return skPath;
-                            }
-                        }
-                    }
-                    break;
-                case SvgSymbol svgSymbol:
-                    {
-                        var skPath = GetClipPath(svgSymbol.Children, skBounds, uris, disposable);
-                        if (skPath != null && !skPath.IsEmpty)
-                        {
-                            var skMatrix = GetSKMatrix(svgSymbol.Transforms);
-                            skPath.Transform(skMatrix);
-
-                            var skPathClip = GetSvgVisualElementClipPath(svgSymbol, skPath.Bounds, uris, disposable);
-                            if (skPathClip != null && !skPathClip.IsEmpty)
-                            {
-                                var result = skPath.Op(skPathClip, SKPathOp.Intersect);
-                                disposable.Add(result);
-                                return result;
-                            }
-
-                            return skPath;
-                        }
                     }
                     break;
                 case SvgText svgText:
@@ -1973,12 +1911,38 @@ namespace Svg.Skia
             var clipPathUri = GetClipPathUri(svgClipPath);
             if (clipPathUri != null)
             {
+                if (HasRecursiveReference(svgClipPath, (e) => GetClipPathUri(e), uris))
+                {
+                    return null;
+                }
+
                 var svgClipPathRef = GetReference<SvgClipPath>(svgClipPath, clipPathUri);
                 if (svgClipPathRef == null || svgClipPathRef.Children == null)
                 {
                     return null;
                 }
-                return GetClipPath(svgClipPathRef, skBounds, uris, disposable);
+
+                var clipPath = GetClipPath(svgClipPathRef, skBounds, uris, disposable);
+                if (clipPath != null && !clipPath.IsEmpty)
+                {
+                    var skMatrix = SKMatrix.MakeIdentity();
+
+                    if (svgClipPathRef.ClipPathUnits == SvgCoordinateUnits.ObjectBoundingBox)
+                    {
+                        var skScaleMatrix = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
+                        SKMatrix.PostConcat(ref skMatrix, ref skScaleMatrix);
+
+                        var skTranslateMatrix = SKMatrix.MakeTranslation(skBounds.Left, skBounds.Top);
+                        SKMatrix.PostConcat(ref skMatrix, ref skTranslateMatrix);
+                    }
+
+                    var skTransformsMatrix = GetSKMatrix(svgClipPathRef.Transforms);
+                    SKMatrix.PostConcat(ref skMatrix, ref skTransformsMatrix);
+
+                    clipPath.Transform(skMatrix);
+                }
+
+                return clipPath;
             }
             return null;
         }
@@ -1994,20 +1958,23 @@ namespace Svg.Skia
             }
 
             var clipPath = GetClipPath(svgClipPath.Children, skBounds, uris, disposable);
-            if (clipPath != null)
+            if (clipPath != null && !clipPath.IsEmpty)
             {
+                var skMatrix = SKMatrix.MakeIdentity();
+
                 if (svgClipPath.ClipPathUnits == SvgCoordinateUnits.ObjectBoundingBox)
                 {
-                    var skMatrix = SKMatrix.MakeIdentity();
-
                     var skScaleMatrix = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
                     SKMatrix.PostConcat(ref skMatrix, ref skScaleMatrix);
 
                     var skTranslateMatrix = SKMatrix.MakeTranslation(skBounds.Left, skBounds.Top);
                     SKMatrix.PostConcat(ref skMatrix, ref skTranslateMatrix);
-
-                    clipPath.Transform(skMatrix);
                 }
+
+                var skTransformsMatrix = GetSKMatrix(svgClipPath.Transforms);
+                SKMatrix.PostConcat(ref skMatrix, ref skTransformsMatrix);
+
+                clipPath.Transform(skMatrix);
 
                 if (skPathClip == null)
                 {
@@ -2118,9 +2085,13 @@ namespace Svg.Skia
             return false;
         }
 
-        public static bool HasRecursiveReference<T>(T svgElement, Func<T, Uri> getUri, HashSet<Uri> uris) where T : SvgElement
+        public static bool HasRecursiveReference<T>(T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris) where T : SvgElement
         {
             var referencedElementUri = getUri(svgElement);
+            if (referencedElementUri == null)
+            {
+                return false;
+            }
             var svgReferencedElement = GetReference<SvgElement>(svgElement, referencedElementUri);
             if (uris.Contains(referencedElementUri))
             {
