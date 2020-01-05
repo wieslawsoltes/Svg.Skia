@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 // Parts of this source file are adapted from the https://github.com/vvvv/SVG
+using System;
 using SkiaSharp;
 
 namespace Svg.Skia
@@ -68,11 +69,16 @@ namespace Svg.Skia
             //    default:
             //        if (skSize.IsEmpty)
             //        {
-            //            _skClipRect = _skBounds;
+            //            ClipRect = TransformedBounds;
+            //            ClipRect = SKRect.Create(
+            //                0f,
+            //                0f,
+            //                Math.Abs(TransformedBounds.Left) + TransformedBounds.Width,
+            //                Math.Abs(TransformedBounds.Top) + TransformedBounds.Height);
             //        }
             //        else
             //        {
-            //            _skClipRect = SKRect.Create(x, y, skSize.Width, skSize.Height);
+            //            ClipRect = SKRect.Create(x, y, skSize.Width, skSize.Height);
             //        }
             //        break;
             //}
