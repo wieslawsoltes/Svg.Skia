@@ -51,9 +51,10 @@ namespace Svg.Skia
             var pathTypes = SKUtil.GetPathTypes(skPath);
             var pathLength = pathTypes.Count;
 
-            if (svgMarkerElement.MarkerStart != null && !SKUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
+            var markerStart = svgMarkerElement.MarkerStart;
+            if (markerStart != null && !SKUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
             {
-                var marker = SKUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerStart);
+                var marker = SKUtil.GetReference<SvgMarker>(svgMarkerElement, markerStart);
                 if (marker != null)
                 {
                     var refPoint1 = pathTypes[0].Point;
@@ -67,9 +68,10 @@ namespace Svg.Skia
                 }
             }
 
-            if (svgMarkerElement.MarkerMid != null && !SKUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, new HashSet<Uri>()))
+            var markerMid = svgMarkerElement.MarkerMid;
+            if (markerMid != null && !SKUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, new HashSet<Uri>()))
             {
-                var marker = SKUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerMid);
+                var marker = SKUtil.GetReference<SvgMarker>(svgMarkerElement, markerMid);
                 if (marker != null)
                 {
                     int bezierIndex = -1;
@@ -89,9 +91,10 @@ namespace Svg.Skia
                 }
             }
 
-            if (svgMarkerElement.MarkerEnd != null && !SKUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, new HashSet<Uri>()))
+            var markerEnd = svgMarkerElement.MarkerEnd;
+            if (markerEnd != null && !SKUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, new HashSet<Uri>()))
             {
-                var marker = SKUtil.GetReference<SvgMarker>(svgMarkerElement, svgMarkerElement.MarkerEnd);
+                var marker = SKUtil.GetReference<SvgMarker>(svgMarkerElement, markerEnd);
                 if (marker != null)
                 {
                     var index = pathLength - 1;
