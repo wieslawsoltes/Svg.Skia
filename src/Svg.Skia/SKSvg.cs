@@ -32,12 +32,23 @@ namespace Svg.Skia
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
-            using (var skPictureRecorder = new SKPictureRecorder())
-            using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
             using (var drawable = DrawableFactory.Create(svgFragment, skBounds, false))
             {
-                drawable?.Draw(skCanvas, 0f, 0f);
-                return skPictureRecorder.EndRecording();
+                if (drawable == null)
+                {
+                    return null;
+                }
+                if (skBounds.IsEmpty)
+                {
+                    skSize = drawable.Bounds.Size;
+                    skBounds = SKRect.Create(skSize);
+                }
+                using (var skPictureRecorder = new SKPictureRecorder())
+                using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
+                {
+                    drawable?.Draw(skCanvas, 0f, 0f);
+                    return skPictureRecorder.EndRecording();
+                }
             }
         }
 
