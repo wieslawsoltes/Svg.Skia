@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
+using System.Runtime.Serialization;
 using SkiaSharp;
 using Svg;
 using Svg.Skia;
@@ -6,7 +7,7 @@ using Svg.Skia;
 namespace SvgToPng.ViewModels
 {
     [DataContract]
-    public class Item
+    public class Item : IDisposable
     {
         [DataMember]
         public string Name { get; set; }
@@ -27,9 +28,23 @@ namespace SvgToPng.ViewModels
         public SKPicture Picture { get; set; }
 
         [IgnoreDataMember]
+        public Drawable Drawable { get; set; }
+
+        [IgnoreDataMember]
         public SKBitmap ReferencePng { get; set; }
 
         [IgnoreDataMember]
         public SKBitmap PixelDiff { get; set; }
+
+        public void Dispose()
+        {
+            Svg = null;
+            Picture?.Dispose();
+            Picture = null;
+            Drawable?.Dispose();
+            Drawable = null;
+            ReferencePng?.Dispose();
+            PixelDiff?.Dispose();
+        }
     }
 }
