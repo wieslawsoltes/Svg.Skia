@@ -28,7 +28,7 @@ namespace Svg.Skia
             }
         }
 
-        public static SKRect GetBunds(Drawable drawable)
+        public static SKRect GetBounds(Drawable drawable)
         {
             var skBounds = drawable.Bounds;
             return SKRect.Create(
@@ -50,7 +50,7 @@ namespace Svg.Skia
                 }
                 if (skBounds.IsEmpty)
                 {
-                    skBounds = GetBunds(drawable);
+                    skBounds = GetBounds(drawable);
                 }
                 using (var skPictureRecorder = new SKPictureRecorder())
                 using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
