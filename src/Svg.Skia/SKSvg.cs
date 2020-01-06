@@ -28,6 +28,18 @@ namespace Svg.Skia
             }
         }
 
+        private static SKRect GetBunds(Drawable drawable)
+        {
+            SKRect skBounds;
+            var skFragmentBounds = drawable.Bounds;
+            skBounds = SKRect.Create(
+                0f,
+                0f,
+                Math.Abs(skFragmentBounds.Left) + skFragmentBounds.Width,
+                Math.Abs(skFragmentBounds.Top) + skFragmentBounds.Height);
+            return skBounds;
+        }
+
         public static SKPicture? ToPicture(SvgFragment svgFragment)
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
@@ -40,12 +52,7 @@ namespace Svg.Skia
                 }
                 if (skBounds.IsEmpty)
                 {
-                    var skFragmentBounds = drawable.Bounds;
-                    skBounds = SKRect.Create(
-                        0f,
-                        0f,
-                        Math.Abs(skFragmentBounds.Left) + skFragmentBounds.Width,
-                        Math.Abs(skFragmentBounds.Top) + skFragmentBounds.Height);
+                    skBounds = GetBunds(drawable);
                 }
                 using (var skPictureRecorder = new SKPictureRecorder())
                 using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
