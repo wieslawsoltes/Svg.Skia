@@ -69,8 +69,25 @@ namespace SvgToPng
             glHostSvg.Visibility = Visibility.Collapsed;
             glHostPng.Visibility = Visibility.Collapsed;
             glHostDiff.Visibility = Visibility.Collapsed;
-
+#if DEBUG
+            skElementSvg.MouseMove += Svg_MouseMove;
+#endif
             DataContext = this.VM;
+        }
+
+        private void Svg_MouseMove(object sender, MouseEventArgs e)
+        {
+            var point = e.GetPosition(skElementSvg);
+
+            if (items.SelectedItem is Item item)
+            {
+                var skPoint = new SKPoint((float)point.X, (float)point.Y);
+                var drawable = item.Drawable.HitTest(skPoint);
+                if (drawable != null)
+                {
+                    Debug.WriteLine($"{point} {drawable.GetType().Name}");
+                }
+            }
         }
 
         private bool ItemsViewFilter(object obj)
