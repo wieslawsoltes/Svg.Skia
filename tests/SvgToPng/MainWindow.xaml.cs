@@ -24,34 +24,34 @@ namespace SvgToPng
         {
             InitializeComponent();
 
-            VM = new MainWindowViewModel()
+            var vm = MainWindowViewModel.Load<MainWindowViewModel>("VM.json");
+            if (vm != null)
             {
-                Items = new ObservableCollection<Item>(),
-                ReferencePaths = new ObservableCollection<string>(),
-                ItemsFilter = (o) =>
+                VM = vm;
+                VM.ItemsViewFilter = ItemsViewFilter;
+                VM.CreateItemsView();
+            }
+            else
+            {
+                VM = new MainWindowViewModel()
                 {
-                    var name = TextItemsFilter?.Text;
-                    var isEmpty = string.IsNullOrWhiteSpace(name);
-                    if (o is Item item && !isEmpty)
-                    {
-                        var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
-                        return compareInfo.IndexOf(item.Name, name, CompareOptions.IgnoreCase) >= 0;
-                    }
-                    return true;
-                }
-            };
-            VM.LoadItems("Items.json");
-            VM.CreateItemsView();
+                    Items = new ObservableCollection<Item>(),
+                    ReferencePaths = new ObservableCollection<string>(),
+                    ItemsViewFilter = ItemsViewFilter
+                };
+                VM.CreateItemsView();
 #if DEBUG
-            VM.ReferencePaths = new ObservableCollection<string>(new string[]
-            {
+                VM.ReferencePaths = new ObservableCollection<string>(new string[]
+                {
                 @"c:\DOWNLOADS\GitHub\Svg.Skia\externals\SVG\Tests\W3CTestSuite\png\",
                 @"c:\DOWNLOADS\GitHub-Forks\resvg-test-suite\png\",
                 @"e:\Dropbox\Draw2D\SVG\vs2017-png\",
                 @"e:\Dropbox\Draw2D\SVG\W3CTestSuite-png\"
-            });
-            TextOutputPath.Text = Path.Combine(Directory.GetCurrentDirectory(), "png");
+                });
+                VM.ReferencePath = VM.ReferencePaths[0];
+                VM.OutputPath = Path.Combine(Directory.GetCurrentDirectory(), "png");
 #endif
+            }
 
             this.Closing += MainWindow_Closing;
             this.TextItemsFilter.TextChanged += TextItemsFilter_TextChanged;
@@ -90,9 +90,21 @@ namespace SvgToPng
             DataContext = this.VM;
         }
 
+        private bool ItemsViewFilter(object obj)
+        {
+            var name = TextItemsFilter.Text;
+            var isEmpty = string.IsNullOrWhiteSpace(name);
+            if (obj is Item item && !isEmpty)
+            {
+                var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
+                return compareInfo.IndexOf(item.Name, name, CompareOptions.IgnoreCase) >= 0;
+            }
+            return true;
+        }
+
         private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
-            VM.SaveItems("Items.json");
+            MainWindowViewModel.Save("VM.json", VM);
             VM.ClearItems();
         }
 
@@ -158,6 +170,12 @@ namespace SvgToPng
                     HandleDrop(paths, TextReferencePath.Text, TextOutputPath.Text);
                 }
             }
+        }
+
+        private void ButtonClearFilter_Click(object sender, RoutedEventArgs e)
+        {
+            VM.ItemsFilter = "";
+            TextItemsFilter.GetBindingExpression(TextBox.TextProperty).UpdateTarget();
         }
 
         private void ButtonClear_Click(object sender, RoutedEventArgs e)

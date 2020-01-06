@@ -19,14 +19,23 @@ namespace SvgToPng.ViewModels
         [DataMember]
         public ObservableCollection<Item> Items { get; set; }
 
-        [IgnoreDataMember]
-        public ICollectionView ItemsView { get; set; }
+        [DataMember]
+        public string OutputPath { get; set; }
+
+        [DataMember]
+        public string ReferencePath { get; set; }
 
         [DataMember]
         public ObservableCollection<string> ReferencePaths { get; set; }
 
         [IgnoreDataMember]
-        public Predicate<object> ItemsFilter { get; set; }
+        public ICollectionView ItemsView { get; set; }
+
+        [IgnoreDataMember]
+        public Predicate<object> ItemsViewFilter { get; set; }
+
+        [DataMember]
+        public string ItemsFilter { get; set; }
 
         public MainWindowViewModel()
         {
@@ -35,32 +44,21 @@ namespace SvgToPng.ViewModels
         public void CreateItemsView()
         {
             ItemsView = CollectionViewSource.GetDefaultView(Items);
-            ItemsView.Filter = ItemsFilter;
+            ItemsView.Filter = ItemsViewFilter;
         }
 
         public void LoadItems(string path)
         {
-            if (File.Exists(path))
+            var items = Load<ObservableCollection<Item>>(path);
+            if (items != null)
             {
-                var jsonSerializerSettings = new JsonSerializerSettings()
-                {
-                    Formatting = Formatting.Indented,
-                    NullValueHandling = NullValueHandling.Ignore
-                };
-                var json = File.ReadAllText(path);
-                Items = JsonConvert.DeserializeObject<ObservableCollection<Item>>(json, jsonSerializerSettings);
+                Items = items;
             }
         }
 
         public void SaveItems(string path)
         {
-            var jsonSerializerSettings = new JsonSerializerSettings()
-            {
-                Formatting = Formatting.Indented,
-                NullValueHandling = NullValueHandling.Ignore
-            };
-            string json = JsonConvert.SerializeObject(Items, jsonSerializerSettings);
-            File.WriteAllText(path, json);
+            Save(path, Items);
         }
 
         public void ClearItems()
@@ -195,6 +193,28 @@ namespace SvgToPng.ViewModels
                     }
                 }
             }
+        }
+
+        private static JsonSerializerSettings s_jsonSettings = new JsonSerializerSettings()
+        {
+            Formatting = Formatting.Indented,
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
+        public static T Load<T>(string path)
+        {
+            if (File.Exists(path))
+            {
+                var json = File.ReadAllText(path);
+                return JsonConvert.DeserializeObject<T>(json, s_jsonSettings);
+            }
+            return default;
+        }
+
+        public static void Save<T>(string path, T value)
+        {
+            string json = JsonConvert.SerializeObject(value, s_jsonSettings);
+            File.WriteAllText(path, json);
         }
 
         public static IEnumerable<string> GetFiles(string inputPath)
