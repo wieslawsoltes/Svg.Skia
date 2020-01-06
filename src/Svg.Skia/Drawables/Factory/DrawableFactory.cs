@@ -4,7 +4,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal static class DrawableFactory
+    public static class DrawableFactory
     {
         public static Drawable? Create(SvgElement svgElement, SKRect skOwnerBounds, bool ignoreDisplay)
         {

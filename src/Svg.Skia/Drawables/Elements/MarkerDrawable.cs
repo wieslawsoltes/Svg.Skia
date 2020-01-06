@@ -9,7 +9,7 @@ using Svg.DataTypes;
 
 namespace Svg.Skia
 {
-    internal class MarkerDrawable : Drawable
+    public class MarkerDrawable : Drawable
     {
         internal Drawable? _markerDrawable;
 

@@ -8,7 +8,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal class PolylineDrawable : DrawablePath
+    public class PolylineDrawable : DrawablePath
     {
         public PolylineDrawable(SvgPolyline svgPolyline, SKRect skOwnerBounds, bool ignoreDisplay)
         {

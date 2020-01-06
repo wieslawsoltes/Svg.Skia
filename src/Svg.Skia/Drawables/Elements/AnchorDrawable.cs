@@ -7,7 +7,7 @@ using SkiaSharp;
 namespace Svg.Skia
 {
 #if USE_SVG_ANCHOR
-    internal class AnchorDrawable : DrawableContainer
+    public class AnchorDrawable : DrawableContainer
     {
         public AnchorDrawable(SvgAnchor svgAnchor, SKRect skOwnerBounds, bool ignoreDisplay)
         {

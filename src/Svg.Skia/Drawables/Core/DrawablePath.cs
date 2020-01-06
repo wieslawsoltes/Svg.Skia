@@ -8,7 +8,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal abstract class DrawablePath : Drawable
+    public abstract class DrawablePath : Drawable
     {
         public SKPath? Path;
         public List<Drawable> MarkerDrawables = new List<Drawable>();

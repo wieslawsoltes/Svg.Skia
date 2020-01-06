@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Svg.Skia
 {
-    internal class CompositeDisposable : IDisposable
+    public class CompositeDisposable : IDisposable
     {
         private List<IDisposable>? _disposables;
 

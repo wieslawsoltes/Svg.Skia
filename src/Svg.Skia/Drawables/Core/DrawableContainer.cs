@@ -7,7 +7,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal abstract class DrawableContainer : Drawable
+    public abstract class DrawableContainer : Drawable
     {
         public List<Drawable> ChildrenDrawables = new List<Drawable>();
 

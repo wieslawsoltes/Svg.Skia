@@ -8,7 +8,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal class PathDrawable : DrawablePath
+    public class PathDrawable : DrawablePath
     {
         public PathDrawable(SvgPath svgPath, SKRect skOwnerBounds, bool ignoreDisplay)
         {

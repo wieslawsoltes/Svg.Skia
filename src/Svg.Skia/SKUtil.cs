@@ -18,7 +18,7 @@ using Svg.Transforms;
 namespace Svg.Skia
 {
     [Flags]
-    internal enum PathPointType : byte
+    public enum PathPointType : byte
     {
         Start = 0,
         Line = 1,
@@ -30,7 +30,7 @@ namespace Svg.Skia
         CloseSubpath = 0x80
     }
 
-    internal static partial class SKUtil
+    public static partial class SKUtil
     {
         public static T? GetReference<T>(SvgElement svgElement, Uri uri) where T : SvgElement
         {
@@ -109,7 +109,7 @@ namespace Svg.Skia
         }
     }
 
-    internal static partial class SKUtil
+    public static partial class SKUtil
     {
         public static SKMatrix ToSKMatrix(SvgMatrix svgMatrix)
         {
@@ -271,7 +271,7 @@ namespace Svg.Skia
         }
     }
 
-    internal static partial class SKUtil
+    public static partial class SKUtil
     {
         public static char[] FontFamilyTrim = new char[] { '\'' };
 
@@ -1457,7 +1457,7 @@ namespace Svg.Skia
         }
     }
 
-    internal static partial class SKUtil
+    public static partial class SKUtil
     {
         public static string ToSvgPathData(SvgPathSegmentList svgPathSegmentList)
         {
@@ -1760,7 +1760,7 @@ namespace Svg.Skia
         }
     }
 
-    internal static partial class SKUtil
+    public static partial class SKUtil
     {
         public static SKPath? GetClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {
@@ -2117,7 +2117,7 @@ namespace Svg.Skia
         }
     }
 
-    internal static partial class SKUtil
+    public static partial class SKUtil
     {
         private const string MimeTypeSvg = "image/svg+xml";
 

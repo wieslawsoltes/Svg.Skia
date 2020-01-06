@@ -10,9 +10,9 @@ using Svg.Document_Structure;
 
 namespace Svg.Skia
 {
-    internal class UseDrawable : Drawable
+    public class UseDrawable : Drawable
     {
-        internal Drawable? _referencedDrawable;
+        public Drawable? ReferencedDrawable;
 
         public UseDrawable(SvgUse svgUse, SKRect skOwnerBounds, bool ignoreDisplay)
         {
@@ -63,16 +63,16 @@ namespace Svg.Skia
 
             if (svgReferencedElement is SvgSymbol svgSymbol)
             {
-                _referencedDrawable = new SymbolDrawable(svgSymbol, x, y, width, height, skOwnerBounds, ignoreDisplay);
-                _disposable.Add(_referencedDrawable);
+                ReferencedDrawable = new SymbolDrawable(svgSymbol, x, y, width, height, skOwnerBounds, ignoreDisplay);
+                _disposable.Add(ReferencedDrawable);
             }
             else
             {
                 var drawable = DrawableFactory.Create(svgReferencedElement, skOwnerBounds, ignoreDisplay);
                 if (drawable != null)
                 {
-                    _referencedDrawable = drawable;
-                    _disposable.Add(_referencedDrawable);
+                    ReferencedDrawable = drawable;
+                    _disposable.Add(ReferencedDrawable);
                 }
                 else
                 {
@@ -83,7 +83,7 @@ namespace Svg.Skia
 
             IsAntialias = SKUtil.IsAntialias(svgUse);
 
-            TransformedBounds = _referencedDrawable.TransformedBounds;
+            TransformedBounds = ReferencedDrawable.TransformedBounds;
 
             Transform = SKUtil.GetSKMatrix(svgUse.Transforms);
             if (!(svgReferencedElement is SvgSymbol))
@@ -148,7 +148,7 @@ namespace Svg.Skia
                 canvas.SaveLayer(PaintFilter);
             }
 
-            _referencedDrawable?.Draw(canvas, 0f, 0f);
+            ReferencedDrawable?.Draw(canvas, 0f, 0f);
 
             if (PaintFilter != null)
             {

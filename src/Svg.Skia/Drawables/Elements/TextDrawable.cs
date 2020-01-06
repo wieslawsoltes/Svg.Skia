@@ -12,7 +12,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal class TextDrawable : Drawable
+    public class TextDrawable : Drawable
     {
         // TODO: Implement drawable.
 

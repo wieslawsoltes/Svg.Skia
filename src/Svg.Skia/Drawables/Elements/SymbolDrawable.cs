@@ -9,7 +9,7 @@ using Svg.Document_Structure;
 
 namespace Svg.Skia
 {
-    internal class SymbolDrawable : DrawableContainer
+    public class SymbolDrawable : DrawableContainer
     {
         public SymbolDrawable(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, bool ignoreDisplay)
         {

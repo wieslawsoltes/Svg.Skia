@@ -6,7 +6,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal class SwitchDrawable : Drawable
+    public class SwitchDrawable : Drawable
     {
         // TODO: Implement drawable.
 

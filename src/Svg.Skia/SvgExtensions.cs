@@ -7,7 +7,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    internal static class SvgExtensions
+    public static class SvgExtensions
     {
         /// <summary>
         /// Converts the current unit to one that can be used at render time.

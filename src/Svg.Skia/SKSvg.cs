@@ -28,16 +28,14 @@ namespace Svg.Skia
             }
         }
 
-        private static SKRect GetBunds(Drawable drawable)
+        public static SKRect GetBunds(Drawable drawable)
         {
-            SKRect skBounds;
-            var skFragmentBounds = drawable.Bounds;
-            skBounds = SKRect.Create(
+            var skBounds = drawable.Bounds;
+            return SKRect.Create(
                 0f,
                 0f,
-                Math.Abs(skFragmentBounds.Left) + skFragmentBounds.Width,
-                Math.Abs(skFragmentBounds.Top) + skFragmentBounds.Height);
-            return skBounds;
+                Math.Abs(skBounds.Left) + skBounds.Width,
+                Math.Abs(skBounds.Top) + skBounds.Height);
         }
 
         public static SKPicture? ToPicture(SvgFragment svgFragment)
