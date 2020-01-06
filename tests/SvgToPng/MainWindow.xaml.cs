@@ -323,7 +323,7 @@ namespace SvgToPng
         {
             canvas.Clear(SKColors.White);
 
-            if (items.SelectedItem is Item item && item.ReferencePng != null)
+            if (items.SelectedItem is Item item && item.ReferencePng != null && CheckDrawReference.IsChecked == true)
             {
                 float pwidth = item.ReferencePng.Width;
                 float pheight = item.ReferencePng.Height;
@@ -342,7 +342,7 @@ namespace SvgToPng
         {
             canvas.Clear(SKColors.White);
 
-            if (items.SelectedItem is Item item && item.PixelDiff != null)
+            if (items.SelectedItem is Item item && item.PixelDiff != null && CheckDrawDiff.IsChecked == true)
             {
                 float pwidth = item.PixelDiff.Width;
                 float pheight = item.PixelDiff.Height;
