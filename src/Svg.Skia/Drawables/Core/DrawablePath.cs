@@ -170,5 +170,18 @@ namespace Svg.Skia
 
             canvas.Restore();
         }
+
+        public override Drawable? HitTest(SKPoint skPoint)
+        {
+            foreach (var drawable in MarkerDrawables)
+            {
+                var result = drawable.HitTest(skPoint);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+            return base.HitTest(skPoint);
+        }
     }
 }
