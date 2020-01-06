@@ -44,5 +44,14 @@ namespace Svg.Skia
             base.Dispose(disposing);
             _disposable?.Dispose();
         }
+
+        public virtual Drawable? HitTest(SKPoint skPoint)
+        {
+            if (TransformedBounds.Contains(skPoint))
+            {
+                return this;
+            }
+            return null;
+        }
     }
 }
