@@ -64,6 +64,30 @@ namespace Svg.Skia
             }
         }
 
+        public static SKPicture? ToPicture(SvgFragment svgFragment, out Drawable? drawable)
+        {
+            var skSize = SvgExtensions.GetDimensions(svgFragment);
+            var skBounds = SKRect.Create(skSize);
+
+            drawable = DrawableFactory.Create(svgFragment, skBounds, false);
+            if (drawable == null)
+            {
+                return null;
+            }
+
+            if (skBounds.IsEmpty)
+            {
+                skBounds = GetBounds(drawable);
+            }
+
+            using (var skPictureRecorder = new SKPictureRecorder())
+            using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
+            {
+                drawable?.Draw(skCanvas, 0f, 0f);
+                return skPictureRecorder.EndRecording();
+            }
+        }
+
         public static Drawable? ToDrawable(SvgFragment svgFragment)
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
