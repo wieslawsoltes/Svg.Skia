@@ -143,7 +143,6 @@ namespace Svg.Skia
             var svgDocument = SvgDocument.Open<SvgDocument>(stream, null);
             if (svgDocument != null)
             {
-                svgDocument.FlushStyles(true);
                 Picture = ToPicture(svgDocument);
                 return Picture;
             }
@@ -168,7 +167,6 @@ namespace Svg.Skia
             var svgDocument = SvgDocument.FromSvg<SvgDocument>(svg);
             if (svgDocument != null)
             {
-                svgDocument.FlushStyles(true);
                 Picture = ToPicture(svgDocument);
                 return Picture;
             }
@@ -180,7 +178,6 @@ namespace Svg.Skia
             Reset();
             if (svgDocument != null)
             {
-                svgDocument.FlushStyles(true);
                 Picture = ToPicture(svgDocument);
                 return Picture;
             }
