@@ -208,7 +208,8 @@ namespace SvgToPng
                     VM.ClearItems();
                     VM.LoadItems(path);
                     VM.CreateItemsView();
-                    items.Items.Refresh();
+                    DataContext = null;
+                    DataContext = VM;
                 }
             }
         }
