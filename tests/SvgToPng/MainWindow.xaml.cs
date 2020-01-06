@@ -192,6 +192,46 @@ namespace SvgToPng
             });
         }
 
+        private void ButtonLoad_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog()
+            {
+                Filter = "Items Files (*.json)|*.json;|All Files (*.*)|*.*",
+                DefaultExt = "json",
+                FilterIndex = 0
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                var path = dlg.FileName;
+                if (path != null)
+                {
+                    VM.ClearItems();
+                    VM.LoadItems(path);
+                    VM.CreateItemsView();
+                    items.Items.Refresh();
+                }
+            }
+        }
+
+        private void ButtonSave_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.SaveFileDialog()
+            {
+                Filter = "Items Files (*.json)|*.json;|All Files (*.*)|*.*",
+                FileName = "Items",
+                DefaultExt = "json",
+                FilterIndex = 0
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                var path = dlg.FileName;
+                if (path != null)
+                {
+                    VM.SaveItems(path);
+                }
+            }
+        }
+
         private void OnGLControlHostSvg(object sender, EventArgs e)
         {
             var glControl = new SKGLControl();
