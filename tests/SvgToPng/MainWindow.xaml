@@ -67,10 +67,13 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Button x:Name="ButtonSavePng" Content="Save as Png" Padding="4" Margin="1" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Click="ButtonSavePng_Click"/>
-                <Button x:Name="ButtonClear" Content="Clear" Padding="4" Margin="1" Grid.Row="1" Grid.Column="0" Click="ButtonClear_Click"/>
-                <Button x:Name="ButtonAdd" Content="Add..." Padding="4" Margin="1" Grid.Row="1" Grid.Column="1" Click="ButtonAdd_Click"/>
+                <Button x:Name="ButtonSave" Content="Save..." Padding="2" Margin="1" Grid.Row="1" Grid.Column="0" Click="ButtonSave_Click"/>
+                <Button x:Name="ButtonLoad" Content="Load..." Padding="2" Margin="1" Grid.Row="1" Grid.Column="2" Click="ButtonLoad_Click"/>
+                <Button x:Name="ButtonClear" Content="Clear" Padding="2" Margin="1" Grid.Row="2" Grid.Column="0" Click="ButtonClear_Click"/>
+                <Button x:Name="ButtonAdd" Content="Add..." Padding="2" Margin="1" Grid.Row="2" Grid.Column="1" Click="ButtonAdd_Click"/>
             </Grid>
         </Grid>
         <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="1" Grid.Row="0"/>
