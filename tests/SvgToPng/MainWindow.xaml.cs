@@ -52,39 +52,22 @@ namespace SvgToPng
 #endif
             }
 
-            this.Closing += MainWindow_Closing;
-            this.TextItemsFilter.TextChanged += TextItemsFilter_TextChanged;
+            Closing += MainWindow_Closing;
+            TextItemsFilter.TextChanged += TextItemsFilter_TextChanged;
 
-            this.items.SelectionChanged += Items_SelectionChanged;
-            this.items.MouseDoubleClick += Items_MouseDoubleClick;
+            items.SelectionChanged += Items_SelectionChanged;
+            items.MouseDoubleClick += Items_MouseDoubleClick;
 
-#if true
-            this.skElementSvg.PaintSurface += OnPaintCanvasSvg;
-            this.skElementPng.PaintSurface += OnPaintCanvasPng;
-            this.skElementDiff.PaintSurface += OnPaintCanvasDiff;
-#endif
+            skElementSvg.PaintSurface += OnPaintCanvasSvg;
+            skElementPng.PaintSurface += OnPaintCanvasPng;
+            skElementDiff.PaintSurface += OnPaintCanvasDiff;
 
-#if false
-            this.glHostSvg.Initialized += OnGLControlHostSvg;
-            this.glHostPng.Initialized += OnGLControlHostPng;
-            this.glHostDiff.Initialized += OnGLControlHostDiff;
-#endif
-
-#if true
             skElementSvg.Visibility = Visibility.Visible;
             skElementPng.Visibility = Visibility.Visible;
             skElementDiff.Visibility = Visibility.Visible;
             glHostSvg.Visibility = Visibility.Collapsed;
             glHostPng.Visibility = Visibility.Collapsed;
             glHostDiff.Visibility = Visibility.Collapsed;
-#else
-            skElementSvg.Visibility = Visibility.Collapsed;
-            skElementPng.Visibility = Visibility.Collapsed;
-            skElementDiff.Visibility = Visibility.Collapsed;
-            glHostSvg.Visibility = Visibility.Visible;
-            glHostPng.Visibility = Visibility.Visible;
-            glHostDiff.Visibility = Visibility.Visible;
-#endif
 
             DataContext = this.VM;
         }
@@ -121,18 +104,12 @@ namespace SvgToPng
                 TextDrawTime.Text = "";
                 VM.UpdateItem(item, (text) => TextOpenTime.Text = text, (text) => TextToPictureTime.Text = text);
             }
-
             skElementSvg.InvalidateVisual();
-#if true
             skElementPng.InvalidateVisual();
             skElementDiff.InvalidateVisual();
-#endif
-
-#if true
             glHostSvg.Child?.Invalidate();
             glHostPng.Child?.Invalidate();
             glHostDiff.Child?.Invalidate();
-#endif
         }
 
         private void Items_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -186,7 +163,10 @@ namespace SvgToPng
         {
             var dlg = new Microsoft.Win32.OpenFileDialog()
             {
-                Filter = "Supported Files (*.svg;*.svgz)|*.svg;*.svgz|Svg Files (*.svg)|*.svg;|Svgz Files (*.svgz)|*.svgz|All Files (*.*)|*.*",
+                Filter = "Supported Files (*.svg;*.svgz)" +
+                         "|*.svg;*.svgz|Svg Files (*.svg)|*.svg;" +
+                         "|Svgz Files (*.svgz)|*.svgz" +
+                         "|All Files (*.*)|*.*",
                 Multiselect = true,
                 FilterIndex = 0
             };
@@ -213,7 +193,8 @@ namespace SvgToPng
         {
             var dlg = new Microsoft.Win32.OpenFileDialog()
             {
-                Filter = "Items Files (*.json)|*.json;|All Files (*.*)|*.*",
+                Filter = "Items Files (*.json)|*.json;|" +
+                         "All Files (*.*)|*.*",
                 DefaultExt = "json",
                 FilterIndex = 0
             };
@@ -235,7 +216,8 @@ namespace SvgToPng
         {
             var dlg = new Microsoft.Win32.SaveFileDialog()
             {
-                Filter = "Items Files (*.json)|*.json;|All Files (*.*)|*.*",
+                Filter = "Items Files (*.json)|*.json;" +
+                         "|All Files (*.*)|*.*",
                 FileName = "Items",
                 DefaultExt = "json",
                 FilterIndex = 0
@@ -259,6 +241,24 @@ namespace SvgToPng
             host.Child = glControl;
         }
 
+        private void OnGLControlHostPng(object sender, EventArgs e)
+        {
+            var glControl = new SKGLControl();
+            glControl.PaintSurface += OnPaintGLPng;
+            glControl.Dock = System.Windows.Forms.DockStyle.None;
+            var host = (WindowsFormsHost)sender;
+            host.Child = glControl;
+        }
+
+        private void OnGLControlHostDiff(object sender, EventArgs e)
+        {
+            var glControl = new SKGLControl();
+            glControl.PaintSurface += OnPaintGLDiff;
+            glControl.Dock = System.Windows.Forms.DockStyle.None;
+            var host = (WindowsFormsHost)sender;
+            host.Child = glControl;
+        }
+
         private void OnPaintGLSvg(object sender, SKPaintGLSurfaceEventArgs e)
         {
             OnPaintSurfaceSvg(e.Surface.Canvas, e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
@@ -267,6 +267,26 @@ namespace SvgToPng
         private void OnPaintCanvasSvg(object sender, SKPaintSurfaceEventArgs e)
         {
             OnPaintSurfaceSvg(e.Surface.Canvas, e.Info.Width, e.Info.Height);
+        }
+
+        private void OnPaintGLPng(object sender, SKPaintGLSurfaceEventArgs e)
+        {
+            OnPaintSurfacePng(e.Surface.Canvas, e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
+        }
+
+        private void OnPaintCanvasPng(object sender, SKPaintSurfaceEventArgs e)
+        {
+            OnPaintSurfacePng(e.Surface.Canvas, e.Info.Width, e.Info.Height);
+        }
+
+        private void OnPaintGLDiff(object sender, SKPaintGLSurfaceEventArgs e)
+        {
+            OnPaintSurfaceDiff(e.Surface.Canvas, e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
+        }
+
+        private void OnPaintCanvasDiff(object sender, SKPaintSurfaceEventArgs e)
+        {
+            OnPaintSurfaceDiff(e.Surface.Canvas, e.Info.Width, e.Info.Height);
         }
 
         private void OnPaintSurfaceSvg(SKCanvas canvas, int width, int height)
@@ -298,25 +318,6 @@ namespace SvgToPng
             }
         }
 
-        private void OnGLControlHostPng(object sender, EventArgs e)
-        {
-            var glControl = new SKGLControl();
-            glControl.PaintSurface += OnPaintGLPng;
-            glControl.Dock = System.Windows.Forms.DockStyle.None;
-            var host = (WindowsFormsHost)sender;
-            host.Child = glControl;
-        }
-
-        private void OnPaintGLPng(object sender, SKPaintGLSurfaceEventArgs e)
-        {
-            OnPaintSurfacePng(e.Surface.Canvas, e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
-        }
-
-        private void OnPaintCanvasPng(object sender, SKPaintSurfaceEventArgs e)
-        {
-            OnPaintSurfacePng(e.Surface.Canvas, e.Info.Width, e.Info.Height);
-        }
-
         private void OnPaintSurfacePng(SKCanvas canvas, int width, int height)
         {
             canvas.Clear(SKColors.White);
@@ -334,25 +335,6 @@ namespace SvgToPng
                     canvas.DrawBitmap(item.ReferencePng, 0f, 0f);
                 }
             }
-        }
-
-        private void OnGLControlHostDiff(object sender, EventArgs e)
-        {
-            var glControl = new SKGLControl();
-            glControl.PaintSurface += OnPaintGLDiff;
-            glControl.Dock = System.Windows.Forms.DockStyle.None;
-            var host = (WindowsFormsHost)sender;
-            host.Child = glControl;
-        }
-
-        private void OnPaintGLDiff(object sender, SKPaintGLSurfaceEventArgs e)
-        {
-            OnPaintSurfaceDiff(e.Surface.Canvas, e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
-        }
-
-        private void OnPaintCanvasDiff(object sender, SKPaintSurfaceEventArgs e)
-        {
-            OnPaintSurfaceDiff(e.Surface.Canvas, e.Info.Width, e.Info.Height);
         }
 
         private void OnPaintSurfaceDiff(SKCanvas canvas, int width, int height)
