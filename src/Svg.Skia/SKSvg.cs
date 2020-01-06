@@ -9,6 +9,16 @@ namespace Svg.Skia
 {
     public class SKSvg : IDisposable
     {
+        public static SKRect GetBounds(Drawable drawable)
+        {
+            var skBounds = drawable.Bounds;
+            return SKRect.Create(
+                0f,
+                0f,
+                Math.Abs(skBounds.Left) + skBounds.Width,
+                Math.Abs(skBounds.Top) + skBounds.Height);
+        }
+
         public static void Draw(SKCanvas skCanvas, SvgFragment svgFragment)
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
@@ -26,16 +36,6 @@ namespace Svg.Skia
             {
                 Draw(skCanvas, svgDocument);
             }
-        }
-
-        public static SKRect GetBounds(Drawable drawable)
-        {
-            var skBounds = drawable.Bounds;
-            return SKRect.Create(
-                0f,
-                0f,
-                Math.Abs(skBounds.Left) + skBounds.Width,
-                Math.Abs(skBounds.Top) + skBounds.Height);
         }
 
         public static SKPicture? ToPicture(SvgFragment svgFragment)
