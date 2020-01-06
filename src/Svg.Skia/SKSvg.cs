@@ -61,14 +61,14 @@ namespace Svg.Skia
             }
         }
 
-        public static SKDrawable? ToDrawable(SvgFragment svgFragment)
+        public static Drawable? ToDrawable(SvgFragment svgFragment)
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
             return DrawableFactory.Create(svgFragment, skBounds, false);
         }
 
-        public static SKDrawable? ToDrawable(SvgElement svgElement, SKRect skBounds, bool ignoreDisplay = false)
+        public static Drawable? ToDrawable(SvgElement svgElement, SKRect skBounds, bool ignoreDisplay = false)
         {
             return DrawableFactory.Create(svgElement, skBounds, ignoreDisplay);
         }
