@@ -42,16 +42,19 @@ namespace Svg.Skia
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
+
             using (var drawable = DrawableFactory.Create(svgFragment, skBounds, false))
             {
                 if (drawable == null)
                 {
                     return null;
                 }
+
                 if (skBounds.IsEmpty)
                 {
                     skBounds = GetBounds(drawable);
                 }
+
                 using (var skPictureRecorder = new SKPictureRecorder())
                 using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
                 {
