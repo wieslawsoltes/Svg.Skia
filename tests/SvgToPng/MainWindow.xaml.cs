@@ -166,6 +166,43 @@ namespace SvgToPng
             }
         }
 
+        private void ButtonOutputPath_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new System.Windows.Forms.FolderBrowserDialog()
+            {
+                SelectedPath = TextOutputPath.Text
+            };
+            var result = dlg.ShowDialog();
+            if (result == System.Windows.Forms.DialogResult.OK)
+            {
+                var path = dlg.SelectedPath;
+                if (path != null)
+                {
+                    VM.OutputPath = path;
+                    TextOutputPath.GetBindingExpression(TextBox.TextProperty).UpdateTarget();
+                }
+            }
+        }
+
+        private void ButtonReferencePath_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new System.Windows.Forms.FolderBrowserDialog()
+            {
+                SelectedPath = TextReferencePath.Text
+            };
+            var result = dlg.ShowDialog();
+            if (result == System.Windows.Forms.DialogResult.OK)
+            {
+                var path = dlg.SelectedPath;
+                if (path != null)
+                {
+                    VM.ReferencePaths.Add(path);
+                    VM.ReferencePath = path;
+                    TextReferencePath.GetBindingExpression(ComboBox.SelectedItemProperty).UpdateTarget();
+                }
+            }
+        }
+
         private void ButtonClearFilter_Click(object sender, RoutedEventArgs e)
         {
             VM.ItemsFilter = "";
