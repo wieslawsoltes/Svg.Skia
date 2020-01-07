@@ -1587,13 +1587,32 @@ namespace Svg.Skia
             float rx = svgRectangle.CornerRadiusX.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skOwnerBounds);
             float ry = svgRectangle.CornerRadiusY.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skOwnerBounds);
 
-            rx = Math.Abs(rx);
-            ry = Math.Abs(ry);
-
-            if (width <= 0f || height <= 0f || rx < 0f || ry < 0f)
+            if (width <= 0f || height <= 0f)
             {
                 skPath.Dispose();
                 return null;
+            }
+
+            if (rx < 0f && ry < 0f)
+            {
+                rx = 0f;
+                ry = 0f;
+            }
+
+            if (rx == 0f || ry == 0f)
+            {
+                rx = 0f;
+                ry = 0f;
+            }
+
+            if (rx < 0f)
+            {
+                rx = Math.Abs(rx);
+            }
+
+            if (ry < 0f)
+            {
+                ry = Math.Abs(ry);
             }
 
             if (rx > 0f)
