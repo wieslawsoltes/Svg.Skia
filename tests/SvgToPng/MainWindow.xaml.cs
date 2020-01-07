@@ -346,21 +346,24 @@ namespace SvgToPng
 
         private void OnPaintSurfaceSvg(SKCanvas canvas, int width, int height)
         {
-            if (items.SelectedItem is Item item && item.Picture != null)
+            if (items.SelectedItem is Item item)
             {
                 var stopwatch = Stopwatch.StartNew();
 
                 canvas.Clear(SKColors.White);
 
-                float pwidth = item.Picture.CullRect.Width;
-                float pheight = item.Picture.CullRect.Height;
-                if (pwidth > 0f && pheight > 0f)
+                if (item.Picture != null)
                 {
-                    skElementSvg.Width = pwidth;
-                    skElementSvg.Height = pheight;
-                    glHostSvg.Width = pwidth;
-                    glHostSvg.Height = pheight;
-                    canvas.DrawPicture(item.Picture);
+                    float pwidth = item.Picture.CullRect.Width;
+                    float pheight = item.Picture.CullRect.Height;
+                    if (pwidth > 0f && pheight > 0f)
+                    {
+                        skElementSvg.Width = pwidth;
+                        skElementSvg.Height = pheight;
+                        glHostSvg.Width = pwidth;
+                        glHostSvg.Height = pheight;
+                        canvas.DrawPicture(item.Picture);
+                    }
                 }
 
                 stopwatch.Stop();
