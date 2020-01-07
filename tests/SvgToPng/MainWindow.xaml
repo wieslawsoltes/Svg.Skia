@@ -144,6 +144,7 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -153,10 +154,12 @@
                             </Grid.RowDefinitions>
                             <TextBlock Text="Output path" Padding="0" Margin="2,2,2,1" Grid.Row="0" Grid.Column="0"/>
                             <TextBox x:Name="TextOutputPath" Text="{Binding OutputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="0" Margin="2,2,2,1" Grid.Row="0" Grid.Column="1"/>
+                            <Button x:Name="ButtonOutputPath" Content="..." Padding="4,1,4,1" Margin="2,2,2,1" Grid.Row="0" Grid.Column="2" Click="ButtonOutputPath_Click"/>
                             <TextBlock Text="Reference path" Padding="0" Margin="2,3,2,0" Grid.Row="1" Grid.Column="0"/>
                             <ComboBox x:Name="TextReferencePath" ItemsSource="{Binding ReferencePaths}" SelectedItem="{Binding ReferencePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" Padding="0" Margin="2,3,2,0" Grid.Row="1" Grid.Column="1"/>
-                            <CheckBox x:Name="CheckDrawReference" Content="Draw Reference" IsChecked="True" Padding="0" Margin="2,2,2,1" Grid.Row="2" Grid.Column="1"/>
-                            <CheckBox x:Name="CheckDrawDiff" Content="Draw Diff" IsChecked="True" Padding="0" Margin="2,2,2,1" Grid.Row="3" Grid.Column="1"/>
+                            <Button x:Name="ButtonReferencePath" Content="..." Padding="4,1,4,1" Margin="2,3,2,0" Grid.Row="1" Grid.Column="2" Click="ButtonReferencePath_Click"/>
+                            <CheckBox x:Name="CheckDrawReference" Content="Draw Reference" IsChecked="True" Padding="0" Margin="2,2,2,1" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"/>
+                            <CheckBox x:Name="CheckDrawDiff" Content="Draw Diff" IsChecked="True" Padding="0" Margin="2,2,2,1" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"/>
                         </Grid>
                     </Border>
                     <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"/>
