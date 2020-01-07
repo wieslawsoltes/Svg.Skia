@@ -735,8 +735,8 @@ namespace Svg.Skia
                 var viewBoxTransform = GetSvgViewBoxTransform(
                     viewBox,
                     svgPatternServer.AspectRatio,
-                    skRectTransformed.Left,
-                    skRectTransformed.Top,
+                    0f,
+                    0f,
                     skRectTransformed.Width,
                     skRectTransformed.Height);
                 SKMatrix.PreConcat(ref skPictureTransform, ref viewBoxTransform);
