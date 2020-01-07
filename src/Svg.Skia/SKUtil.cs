@@ -197,7 +197,7 @@ namespace Svg.Skia
 
             if (svgAspectRatio == null)
             {
-                svgAspectRatio = new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid, false);
+                svgAspectRatio = new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid);
             }
 
             if (svgAspectRatio.Align != SvgPreserveAspectRatio.none)
@@ -600,6 +600,7 @@ namespace Svg.Skia
             SvgPatternServer? firstPatternUnit = null;
             SvgPatternServer? firstPatternContentUnit = null;
             SvgPatternServer? firstViewBox = null;
+            SvgPatternServer? firstAspectRatio = null;
 
             foreach (var p in svgPatternServers)
             {
@@ -666,6 +667,14 @@ namespace Svg.Skia
                         firstViewBox = p;
                     }
                 }
+                if (firstAspectRatio == null)
+                {
+                    var pAspectRatio = p.AspectRatio;
+                    if (pAspectRatio != null && pAspectRatio.Align != SvgPreserveAspectRatio.xMidYMid)
+                    {
+                        firstAspectRatio = p;
+                    }
+                }
             }
 
             if (firstChildren == null || firstWidth == null || firstHeight == null)
@@ -679,6 +688,7 @@ namespace Svg.Skia
             var patternUnits = firstPatternUnit == null ? SvgCoordinateUnits.ObjectBoundingBox : firstPatternUnit.PatternUnits;
             var patternContentUnits = firstPatternContentUnit == null ? SvgCoordinateUnits.UserSpaceOnUse : firstPatternContentUnit.PatternContentUnits;
             var viewBox = firstViewBox == null ? SvgViewBox.Empty : firstViewBox.ViewBox;
+            var aspectRatio = firstAspectRatio == null ? new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid, false) : firstAspectRatio.AspectRatio;
 
             float x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgPatternServer, skBounds);
             float y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgPatternServer, skBounds);
@@ -734,7 +744,7 @@ namespace Svg.Skia
             {
                 var viewBoxTransform = GetSvgViewBoxTransform(
                     viewBox,
-                    svgPatternServer.AspectRatio,
+                    aspectRatio,
                     0f,
                     0f,
                     skRectTransformed.Width,
