@@ -25,9 +25,9 @@
 
   <!--<ItemGroup>
     <ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />
-  </ItemGroup>-->
+  </ItemGroup>
 
-  <!--<PropertyGroup>
+  <PropertyGroup>
     <DefineConstants>$(DefineConstants);USE_SVG_ANCHOR</DefineConstants>
   </PropertyGroup>-->
 
