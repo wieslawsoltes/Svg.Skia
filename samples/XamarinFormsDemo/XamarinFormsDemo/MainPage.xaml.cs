@@ -18,7 +18,7 @@ namespace XamarinFormsDemo
     [DesignTimeVisible(false)]
     public partial class MainPage : ContentPage
     {
-        private SKSvg _svg = new SKSvg();
+        private List<SKSvg> Svgs = new List<SKSvg>();
 
         public MainPage()
         {
@@ -27,11 +27,15 @@ namespace XamarinFormsDemo
             try
             {
                 var assembly = typeof(MainPage).GetTypeInfo().Assembly;
-                //var resourceNames = assembly.GetManifestResourceNames();
-                using (var stream = assembly.GetManifestResourceStream("XamarinFormsDemo.__tiger.svg"))
-                { 
-                    _svg = new SKSvg();
-                    _svg.Load(stream);
+                var resourceNames = assembly.GetManifestResourceNames();
+                foreach (var name in resourceNames)
+                {
+                    using (var stream = assembly.GetManifestResourceStream(name))
+                    {
+                        var svg = new SKSvg();
+                        svg.Load(stream);
+                        Svgs.Add(svg);
+                    }
                 }
             }
             catch (Exception ex)
@@ -45,7 +49,7 @@ namespace XamarinFormsDemo
             var scale = (float)(e.Info.Width / skiaView.Width);
             canvas.Scale(scale);
             canvas.Clear(SKColors.White);
-            canvas.DrawPicture(_svg.Picture);
+            canvas.DrawPicture(Svgs[1].Picture);
         }
     }
 }
