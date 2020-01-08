@@ -13,12 +13,17 @@ using Xamarin.Forms;
 
 namespace XamarinFormsDemo
 {
-    // Learn more about making custom code visible in the Xamarin.Forms previewer
-    // by visiting https://aka.ms/xamarinforms-previewer
+    public class Item
+    {
+        public string Name { get; set; }
+        public SKSvg Svg { get; set; }
+        public SKPicture Picture { get; set; }
+    }
+
     [DesignTimeVisible(false)]
     public partial class MainPage : ContentPage
     {
-        private List<SKSvg> Svgs = new List<SKSvg>();
+        public List<Item> Items { get; set; }
 
         public MainPage()
         {
@@ -26,21 +31,38 @@ namespace XamarinFormsDemo
 
             try
             {
+                Items = new List<Item>();
                 var assembly = typeof(MainPage).GetTypeInfo().Assembly;
                 var resourceNames = assembly.GetManifestResourceNames();
                 foreach (var name in resourceNames)
                 {
                     using (var stream = assembly.GetManifestResourceStream(name))
                     {
-                        var svg = new SKSvg();
-                        svg.Load(stream);
-                        Svgs.Add(svg);
+                        var item = new Item()
+                        {
+                            Name = name,
+                            Svg = new SKSvg()
+                        };
+                        item.Picture = item.Svg.Load(stream);
+                        Items.Add(item);
                     }
                 }
             }
             catch (Exception ex)
             {
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
             }
+
+            BindingContext = this;
+
+            picker.SelectedItem = Items.FirstOrDefault();
+            picker.SelectedIndexChanged += Picker_SelectedIndexChanged;
+        }
+
+        private void Picker_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            skiaView.InvalidateSurface();
         }
 
         private void OnPaintSurface(object sender, SKPaintSurfaceEventArgs e)
@@ -49,7 +71,10 @@ namespace XamarinFormsDemo
             var scale = (float)(e.Info.Width / skiaView.Width);
             canvas.Scale(scale);
             canvas.Clear(SKColors.White);
-            canvas.DrawPicture(Svgs[1].Picture);
+            if (Items.Count > 0 && picker.SelectedIndex >= 0)
+            {
+                canvas.DrawPicture(Items[picker.SelectedIndex].Picture);
+            }
         }
     }
 }
