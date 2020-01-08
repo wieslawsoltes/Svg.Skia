@@ -8,13 +8,21 @@
              x:Class="XamarinFormsDemo.MainPage">
     <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="400"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Picker x:Name="picker" Title="Svg" ItemsSource="{Binding Items}" ItemDisplayBinding="{Binding Name}" Grid.Column="0" Grid.Row="0" />
-        <skia:SKCanvasView x:Name="skiaView" PaintSurface="OnPaintSurface" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand" Grid.Column="0" Grid.Row="1" />
+        <ListView x:Name="listView" ItemsSource="{Binding Items}" Grid.Column="0" Grid.Row="0" >
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <Label Text="{Binding Name}" />
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <skia:SKCanvasView x:Name="skiaView" PaintSurface="OnPaintSurface" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand" Grid.Column="1" Grid.Row="0" />
     </Grid>
 </ContentPage>
