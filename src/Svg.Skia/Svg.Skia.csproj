@@ -21,15 +21,15 @@
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <Import Project="..\..\build\SkiaSharp.props" />
 
-  <Import Project="..\..\build\Svg.props" />
+  <!--<Import Project="..\..\build\Svg.props" />-->
 
-  <!--<ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />
-  </ItemGroup>-->
+  </ItemGroup>
 
-  <!--<PropertyGroup>
+  <PropertyGroup>
     <DefineConstants>$(DefineConstants);USE_SVG_ANCHOR</DefineConstants>
-  </PropertyGroup>-->
+  </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />
