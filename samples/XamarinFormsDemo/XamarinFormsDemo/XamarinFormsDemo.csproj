@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="__AJ_Digital_Camera.svg" />
     <None Remove="__tiger.svg" />
   </ItemGroup>
 
@@ -26,5 +27,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Svg.Skia\Svg.Skia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="__AJ_Digital_Camera.svg" />
   </ItemGroup>
 </Project>
