@@ -23,28 +23,48 @@ namespace XamarinFormsDemo
     [DesignTimeVisible(false)]
     public partial class MainPage : ContentPage
     {
+        private Assembly assembly;
+
         public List<Item> Items { get; set; }
 
         public MainPage()
         {
             InitializeComponent();
 
+            Items = new List<Item>();
+
+            assembly = typeof(MainPage).GetTypeInfo().Assembly;
+
+            var resourceNames = assembly.GetManifestResourceNames();
+            foreach (var name in resourceNames)
+            {
+                var item = new Item()
+                {
+                    Name = name,
+                    Svg = new SKSvg()
+                };
+                Items.Add(item);
+            }
+
+            BindingContext = this;
+
+            listView.SelectedItem = Items.FirstOrDefault();
+            listView.ItemSelected += ListView_ItemSelected;
+        }
+
+        private void ListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        {
             try
             {
-                Items = new List<Item>();
-                var assembly = typeof(MainPage).GetTypeInfo().Assembly;
-                var resourceNames = assembly.GetManifestResourceNames();
-                foreach (var name in resourceNames)
+                if (listView.SelectedItem is Item item)
                 {
-                    using (var stream = assembly.GetManifestResourceStream(name))
+                    var picture = item.Picture;
+                    if (picture == null)
                     {
-                        var item = new Item()
+                        using (var stream = assembly.GetManifestResourceStream(item.Name))
                         {
-                            Name = name,
-                            Svg = new SKSvg()
-                        };
-                        item.Picture = item.Svg.Load(stream);
-                        Items.Add(item);
+                            item.Picture = item.Svg.Load(stream);
+                        }
                     }
                 }
             }
@@ -53,15 +73,6 @@ namespace XamarinFormsDemo
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine(ex.StackTrace);
             }
-
-            BindingContext = this;
-
-            picker.SelectedItem = Items.FirstOrDefault();
-            picker.SelectedIndexChanged += Picker_SelectedIndexChanged;
-        }
-
-        private void Picker_SelectedIndexChanged(object sender, EventArgs e)
-        {
             skiaView.InvalidateSurface();
         }
 
@@ -71,9 +82,13 @@ namespace XamarinFormsDemo
             var scale = (float)(e.Info.Width / skiaView.Width);
             canvas.Scale(scale);
             canvas.Clear(SKColors.White);
-            if (Items.Count > 0 && picker.SelectedIndex >= 0)
+            if (Items.Count > 0 && listView.SelectedItem is Item item)
             {
-                canvas.DrawPicture(Items[picker.SelectedIndex].Picture);
+                var picture = item.Picture;
+                if (picture != null)
+                {
+                    canvas.DrawPicture(picture);
+                }
             }
         }
     }
