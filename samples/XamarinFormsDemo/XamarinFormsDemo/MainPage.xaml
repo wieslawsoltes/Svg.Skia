@@ -6,7 +6,12 @@
              xmlns:skia="clr-namespace:SkiaSharp.Views.Forms;assembly=SkiaSharp.Views.Forms"
              mc:Ignorable="d"
              x:Class="XamarinFormsDemo.MainPage">
-
-    <skia:SKCanvasView x:Name="skiaView" PaintSurface="OnPaintSurface" />
-
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Picker x:Name="picker" Title="Svg" ItemsSource="{Binding Items}" ItemDisplayBinding="{Binding Name}" Grid.Row="0" />
+        <skia:SKCanvasView x:Name="skiaView" PaintSurface="OnPaintSurface" Grid.Row="1" />
+    </Grid>
 </ContentPage>
