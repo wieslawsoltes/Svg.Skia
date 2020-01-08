@@ -6,7 +6,7 @@
              xmlns:skia="clr-namespace:SkiaSharp.Views.Forms;assembly=SkiaSharp.Views.Forms"
              mc:Ignorable="d"
              x:Class="XamarinFormsDemo.MainPage">
-    <Grid BackgroundColor="Red" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+    <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
