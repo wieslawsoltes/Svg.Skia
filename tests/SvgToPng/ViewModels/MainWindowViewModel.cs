@@ -37,6 +37,12 @@ namespace SvgToPng.ViewModels
         [DataMember]
         public string ItemsFilter { get; set; }
 
+        [DataMember]
+        public bool ShowPassed { get; set; }
+
+        [DataMember]
+        public bool ShowFailed { get; set; }
+
         public MainWindowViewModel()
         {
         }
