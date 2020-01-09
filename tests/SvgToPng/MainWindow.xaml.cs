@@ -37,7 +37,9 @@ namespace SvgToPng
                 {
                     Items = new ObservableCollection<Item>(),
                     ReferencePaths = new ObservableCollection<string>(),
-                    ItemsViewFilter = ItemsViewFilter
+                    ItemsViewFilter = ItemsViewFilter,
+                    ShowFailed = true,
+                    ShowPassed = true
                 };
                 VM.CreateItemsView();
 #if DEBUG
@@ -55,6 +57,8 @@ namespace SvgToPng
 
             Closing += MainWindow_Closing;
             TextItemsFilter.TextChanged += TextItemsFilter_TextChanged;
+            CheckShowPassed.Click += CheckShowPassed_Click;
+            CheckShowFailed.Click += CheckShowFailed_Click;
 
             items.SelectionChanged += Items_SelectionChanged;
             items.MouseDoubleClick += Items_MouseDoubleClick;
@@ -93,11 +97,30 @@ namespace SvgToPng
         private bool ItemsViewFilter(object obj)
         {
             var name = TextItemsFilter.Text;
+            var showPassed = CheckShowPassed.IsChecked == true;
+            var showFailed = CheckShowFailed.IsChecked == true;
             var isEmpty = string.IsNullOrWhiteSpace(name);
-            if (obj is Item item && !isEmpty)
+            if (obj is Item item)
             {
-                var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
-                return compareInfo.IndexOf(item.Name, name, CompareOptions.IgnoreCase) >= 0;
+                if (showPassed == false)
+                {
+                    if (item.Passed == true)
+                    {
+                        return false;
+                    }
+                }
+                if (showFailed == false)
+                {
+                    if (item.Passed == false)
+                    {
+                        return false;
+                    }
+                }
+                if (!isEmpty)
+                {
+                    var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
+                    return compareInfo.IndexOf(item.Name, name, CompareOptions.IgnoreCase) >= 0;
+                }
             }
             return true;
         }
@@ -109,6 +132,16 @@ namespace SvgToPng
         }
 
         private void TextItemsFilter_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            VM.ItemsView.Refresh();
+        }
+
+        private void CheckShowFailed_Click(object sender, RoutedEventArgs e)
+        {
+            VM.ItemsView.Refresh();
+        }
+
+        private void CheckShowPassed_Click(object sender, RoutedEventArgs e)
         {
             VM.ItemsView.Refresh();
         }
