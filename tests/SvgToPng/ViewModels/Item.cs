@@ -13,6 +13,9 @@ namespace SvgToPng.ViewModels
         public string Name { get; set; }
 
         [DataMember]
+        public bool Passed { get; set; }
+
+        [DataMember]
         public string SvgPath { get; set; }
 
         [DataMember]
