@@ -27,7 +27,10 @@
             <ListBox x:Name="items" ItemsSource="{Binding ItemsView}" Margin="2,2,0,2" Grid.Column="0" Grid.Row="0">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding Name}"/>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding Passed}" Margin="1"/>
+                            <TextBlock Text="{Binding Name}" Margin="1"/>
+                        </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
