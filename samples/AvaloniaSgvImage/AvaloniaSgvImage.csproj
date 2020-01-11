@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Compile Update="**\*.xaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <AvaloniaResource Include="**\*.xaml">
+      <SubType>Designer</SubType>
+    </AvaloniaResource>
+    <AvaloniaResource Include="Assets\*" />
+  </ItemGroup>
+
+  <Import Project="..\..\build\Avalonia.props" />
+  <Import Project="..\..\build\Avalonia.Desktop.props" />
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Svg.Skia.Avalonia\Svg.Skia.Avalonia.csproj" />
+  </ItemGroup>
+  
+</Project>
