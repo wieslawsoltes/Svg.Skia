@@ -25,8 +25,8 @@
             <TextBlock Classes="h1">Avalonia SvgImage</TextBlock>
             <TextBlock Classes="h2">Displays an Svg image</TextBlock>
         </StackPanel>
-        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,*" Margin="64">
-            <DockPanel Grid.Column="0" Grid.Row="1" Margin="16">
+        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,*" Margin="32">
+            <DockPanel x:Name="svgSourceDockPanel" Background="Transparent" Grid.Column="0" Grid.Row="1" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" DragDrop.AllowDrop="True">
                 <TextBlock DockPanel.Dock="Top" Classes="h3" Margin="0 8">Svg (Source)</TextBlock>
                 <ComboBox Name="svgSourceStretch" DockPanel.Dock="Top" SelectedIndex="2" SelectionChanged="SvgSourceStretchChanged">
                     <ComboBoxItem>None</ComboBoxItem>
@@ -40,7 +40,7 @@
                     </Image.Source>
                 </Image>
             </DockPanel>
-            <DockPanel Grid.Column="1" Grid.Row="1" Margin="16">
+            <DockPanel x:Name="svgResourceDockPanel" Background="Transparent" Grid.Column="1" Grid.Row="1" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" DragDrop.AllowDrop="True">
                 <DockPanel.Resources>
                     <svg:SvgImage x:Key="__tiger" Source="/Assets/__tiger.svg"/>
                 </DockPanel.Resources>
