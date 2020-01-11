@@ -17,7 +17,7 @@ namespace Svg.Skia.Avalonia
 {
     internal static class Extensions
     {
-        public static T GetService<T>(this IServiceProvider sp) => (T)sp?.GetService(typeof(T));
+        public static T GetService<T>(this IServiceProvider sp) => (T)sp?.GetService(typeof(T))!;
 
         public static Uri GetContextBaseUri(this IServiceProvider ctx) => ctx.GetService<IUriContext>().BaseUri;
     }
@@ -63,7 +63,7 @@ namespace Svg.Skia.Avalonia
         /// <summary>
         /// Gets or sets picture.
         /// </summary>
-        SKPicture Picture { get; set; }
+        SKPicture? Picture { get; set; }
     }
 
     internal class Svg : SKSvg, ISvg
@@ -114,7 +114,7 @@ namespace Svg.Skia.Avalonia
             AvaloniaProperty.Register<SvgImage, ISvg>(nameof(Source));
 
         /// <inheritdoc/>
-        public event EventHandler Invalidated;
+        public event EventHandler? Invalidated;
 
         /// <summary>
         /// Gets or sets the <see cref="ISvg"/> content.
@@ -138,7 +138,7 @@ namespace Svg.Skia.Avalonia
             BitmapInterpolationMode bitmapInterpolationMode)
         {
             var source = Source;
-            if (source == null)
+            if (source == null || source.Picture == null)
             {
                 return;
             }
