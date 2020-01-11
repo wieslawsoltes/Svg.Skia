@@ -53,7 +53,6 @@ namespace AvaloniaSgvImage
             }
         }
 
-
         private void DragOver(object sender, DragEventArgs e)
         {
             e.DragEffects = e.DragEffects & (DragDropEffects.Copy | DragDropEffects.Link);
@@ -71,7 +70,7 @@ namespace AvaloniaSgvImage
                 var fileName = e.Data.GetFileNames()?.FirstOrDefault();
                 if (!string.IsNullOrWhiteSpace(fileName))
                 {
-                    if (sender == _svgSourceDockPanel)
+                    if (e.Source == _svgSourceDockPanel)
                     {
                         var svg = new SvgSkia();
                         var picture = svg.Load(fileName);
@@ -84,7 +83,7 @@ namespace AvaloniaSgvImage
                         }
                     }
 
-                    if (sender == _svgResourceDockPanel)
+                    if (e.Source == _svgResourceDockPanel)
                     {
                         var svg = new SvgSkia();
                         var picture = svg.Load(fileName);
