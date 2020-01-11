@@ -26,7 +26,7 @@ namespace Svg.Skia.Avalonia
                 ? new Uri(s, UriKind.Relative)
                 : new Uri(s, UriKind.RelativeOrAbsolute);
 
-            var svg = new Svg();
+            var svg = new SvgSkia();
             if (uri.IsAbsoluteUri && uri.IsFile)
             {
                 svg.Load(uri.LocalPath);
