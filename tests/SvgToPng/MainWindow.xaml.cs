@@ -89,7 +89,7 @@ namespace SvgToPng
         {
             var point = e.GetPosition(skElementSvg);
 
-            if (items.SelectedItem is Item item)
+            if (items.SelectedItem is Item item && item.Drawable != null)
             {
                 var skPoint = new SKPoint((float)point.X, (float)point.Y);
                 var drawable = item.Drawable.HitTest(skPoint);
