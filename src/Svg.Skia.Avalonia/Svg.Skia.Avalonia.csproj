@@ -12,7 +12,7 @@
 
   <PropertyGroup>
     <Description>SVG image control for Avalonia.</Description>
-    <PackageId>Svg.Skia</PackageId>
+    <PackageId>Svg.Skia.Avalonia</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;control;avalonia;avaloniaui</PackageTags>
   </PropertyGroup>
@@ -21,6 +21,7 @@
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <Import Project="..\..\build\SkiaSharp.props" />
   <Import Project="..\..\build\Avalonia.props" />
+  <Import Project="..\..\build\Avalonia.Skia.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" />
