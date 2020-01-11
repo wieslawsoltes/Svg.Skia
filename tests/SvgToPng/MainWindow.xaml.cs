@@ -55,6 +55,7 @@ namespace SvgToPng
 #endif
             }
 
+            Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
             TextItemsFilter.TextChanged += TextItemsFilter_TextChanged;
             CheckShowPassed.Click += CheckShowPassed_Click;
@@ -77,6 +78,11 @@ namespace SvgToPng
             skElementSvg.MouseMove += Svg_MouseMove;
 #endif
             DataContext = this.VM;
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            VM.ItemsView.Refresh();
         }
 
         private void Svg_MouseMove(object sender, MouseEventArgs e)
