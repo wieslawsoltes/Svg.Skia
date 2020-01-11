@@ -61,7 +61,7 @@ namespace Svg.Skia.Avalonia
             using (context.PushPreTransform(translate * scale))
             {
                 context.Custom(
-                    new SKSvgCustomDrawOperation(
+                    new SvgCustomDrawOperation(
                         new Rect(0, 0, bounds.Width, bounds.Height),
                         source));
             }

@@ -7,11 +7,11 @@ using Avalonia.Skia;
 
 namespace Svg.Skia.Avalonia
 {
-    internal class SKSvgCustomDrawOperation : ICustomDrawOperation
+    internal class SvgCustomDrawOperation : ICustomDrawOperation
     {
         private readonly ISvg _svg;
 
-        public SKSvgCustomDrawOperation(Rect bounds, ISvg svg)
+        public SvgCustomDrawOperation(Rect bounds, ISvg svg)
         {
             _svg = svg;
             Bounds = bounds;
