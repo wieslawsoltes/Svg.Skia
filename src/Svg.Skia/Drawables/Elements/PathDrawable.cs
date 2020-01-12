@@ -20,26 +20,26 @@ namespace Svg.Skia
                 return;
             }
 
-            Path = SKUtil.ToSKPath(svgPath.PathData, svgPath.FillRule, _disposable);
+            Path = SKPathUtil.ToSKPath(svgPath.PathData, svgPath.FillRule, _disposable);
             if (Path == null || Path.IsEmpty)
             {
                 IsDrawable = false;
                 return;
             }
 
-            IsAntialias = SKUtil.IsAntialias(svgPath);
+            IsAntialias = SKPaintUtil.IsAntialias(svgPath);
 
             TransformedBounds = Path.Bounds;
 
-            Transform = SKUtil.GetSKMatrix(svgPath.Transforms);
+            Transform = SKMatrixUtil.GetSKMatrix(svgPath.Transforms);
 
-            PathClip = SKUtil.GetSvgVisualElementClipPath(svgPath, TransformedBounds, new HashSet<Uri>(), _disposable);
-            PaintOpacity = SKUtil.GetOpacitySKPaint(svgPath, _disposable);
-            PaintFilter = SKUtil.GetFilterSKPaint(svgPath, _disposable);
+            PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgPath, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgPath, _disposable);
+            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgPath, _disposable);
 
-            if (SKUtil.IsValidFill(svgPath))
+            if (SKPaintUtil.IsValidFill(svgPath))
             {
-                PaintFill = SKUtil.GetFillSKPaint(svgPath, TransformedBounds, _disposable);
+                PaintFill = SKPaintUtil.GetFillSKPaint(svgPath, TransformedBounds, _disposable);
                 if (PaintFill == null)
                 {
                     IsDrawable = false;
@@ -47,9 +47,9 @@ namespace Svg.Skia
                 }
             }
 
-            if (SKUtil.IsValidStroke(svgPath, TransformedBounds))
+            if (SKPaintUtil.IsValidStroke(svgPath, TransformedBounds))
             {
-                PaintStroke = SKUtil.GetStrokeSKPaint(svgPath, TransformedBounds, _disposable);
+                PaintStroke = SKPaintUtil.GetStrokeSKPaint(svgPath, TransformedBounds, _disposable);
                 if (PaintStroke == null)
                 {
                     IsDrawable = false;

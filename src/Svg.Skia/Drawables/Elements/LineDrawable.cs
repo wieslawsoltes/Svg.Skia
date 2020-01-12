@@ -20,26 +20,26 @@ namespace Svg.Skia
                 return;
             }
 
-            Path = SKUtil.ToSKPath(svgLine, svgLine.FillRule, skOwnerBounds, _disposable);
+            Path = SKPathUtil.ToSKPath(svgLine, svgLine.FillRule, skOwnerBounds, _disposable);
             if (Path == null || Path.IsEmpty)
             {
                 IsDrawable = false;
                 return;
             }
 
-            IsAntialias = SKUtil.IsAntialias(svgLine);
+            IsAntialias = SKPaintUtil.IsAntialias(svgLine);
 
             TransformedBounds = Path.Bounds;
 
-            Transform = SKUtil.GetSKMatrix(svgLine.Transforms);
+            Transform = SKMatrixUtil.GetSKMatrix(svgLine.Transforms);
 
-            PathClip = SKUtil.GetSvgVisualElementClipPath(svgLine, TransformedBounds, new HashSet<Uri>(), _disposable);
-            PaintOpacity = SKUtil.GetOpacitySKPaint(svgLine, _disposable);
-            PaintFilter = SKUtil.GetFilterSKPaint(svgLine, _disposable);
+            PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgLine, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgLine, _disposable);
+            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgLine, _disposable);
 
-            if (SKUtil.IsValidFill(svgLine))
+            if (SKPaintUtil.IsValidFill(svgLine))
             {
-                PaintFill = SKUtil.GetFillSKPaint(svgLine, TransformedBounds, _disposable);
+                PaintFill = SKPaintUtil.GetFillSKPaint(svgLine, TransformedBounds, _disposable);
                 if (PaintFill == null)
                 {
                     IsDrawable = false;
@@ -47,9 +47,9 @@ namespace Svg.Skia
                 }
             }
 
-            if (SKUtil.IsValidStroke(svgLine, TransformedBounds))
+            if (SKPaintUtil.IsValidStroke(svgLine, TransformedBounds))
             {
-                PaintStroke = SKUtil.GetStrokeSKPaint(svgLine, TransformedBounds, _disposable);
+                PaintStroke = SKPaintUtil.GetStrokeSKPaint(svgLine, TransformedBounds, _disposable);
                 if (PaintStroke == null)
                 {
                     IsDrawable = false;

@@ -67,7 +67,7 @@ namespace Svg.Skia
                 }
             }
 
-            IsAntialias = SKUtil.IsAntialias(svgSymbol);
+            IsAntialias = SKPaintUtil.IsAntialias(svgSymbol);
 
             TransformedBounds = SKRect.Empty;
 
@@ -86,13 +86,13 @@ namespace Svg.Skia
                 }
             }
 
-            Transform = SKUtil.GetSKMatrix(svgSymbol.Transforms);
-            var skMatrixViewBox = SKUtil.GetSvgViewBoxTransform(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
+            Transform = SKMatrixUtil.GetSKMatrix(svgSymbol.Transforms);
+            var skMatrixViewBox = SKMatrixUtil.GetSvgViewBoxTransform(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
             SKMatrix.PreConcat(ref Transform, ref skMatrixViewBox);
 
-            PathClip = SKUtil.GetSvgVisualElementClipPath(svgSymbol, TransformedBounds, new HashSet<Uri>(), _disposable);
-            PaintOpacity = SKUtil.GetOpacitySKPaint(svgSymbol, _disposable);
-            PaintFilter = SKUtil.GetFilterSKPaint(svgSymbol, _disposable);
+            PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgSymbol, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgSymbol, _disposable);
+            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgSymbol, _disposable);
 
             PaintFill = null;
             PaintStroke = null;

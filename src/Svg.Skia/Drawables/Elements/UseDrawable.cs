@@ -24,13 +24,13 @@ namespace Svg.Skia
                 return;
             }
 
-            if (SKUtil.HasRecursiveReference(svgUse, (e) => e.ReferencedElement, new HashSet<Uri>()))
+            if (SvgExtensions.HasRecursiveReference(svgUse, (e) => e.ReferencedElement, new HashSet<Uri>()))
             {
                 IsDrawable = false;
                 return;
             }
 
-            var svgReferencedElement = SKUtil.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
+            var svgReferencedElement = SvgExtensions.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
             if (svgReferencedElement == null)
             {
                 IsDrawable = false;
@@ -81,20 +81,20 @@ namespace Svg.Skia
                 }
             }
 
-            IsAntialias = SKUtil.IsAntialias(svgUse);
+            IsAntialias = SKPaintUtil.IsAntialias(svgUse);
 
             TransformedBounds = ReferencedDrawable.TransformedBounds;
 
-            Transform = SKUtil.GetSKMatrix(svgUse.Transforms);
+            Transform = SKMatrixUtil.GetSKMatrix(svgUse.Transforms);
             if (!(svgReferencedElement is SvgSymbol))
             {
                 var skMatrixTranslateXY = SKMatrix.MakeTranslation(x, y);
                 SKMatrix.PreConcat(ref Transform, ref skMatrixTranslateXY);
             }
 
-            PathClip = SKUtil.GetSvgVisualElementClipPath(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
-            PaintOpacity = SKUtil.GetOpacitySKPaint(svgUse, _disposable);
-            PaintFilter = SKUtil.GetFilterSKPaint(svgUse, _disposable);
+            PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgUse, _disposable);
+            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgUse, _disposable);
 
             PaintFill = null;
             PaintStroke = null;

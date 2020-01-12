@@ -3,6 +3,7 @@
 //
 // Parts of this source file are adapted from the https://github.com/vvvv/SVG
 using System;
+using System.Collections.Generic;
 using SkiaSharp;
 
 namespace Svg.Skia
@@ -180,6 +181,82 @@ namespace Svg.Skia
             }
 
             return new SKSize(w, h);
+        }
+
+        public static T? GetReference<T>(this SvgElement svgElement, Uri uri) where T : SvgElement
+        {
+            if (uri == null)
+            {
+                return null;
+            }
+
+            var svgElementById = svgElement.OwnerDocument?.GetElementById(uri.ToString());
+            if (svgElementById != null)
+            {
+                return svgElementById as T;
+            }
+
+            return null;
+        }
+
+        public static bool ElementReferencesUri<T>(this T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris, SvgElement? svgReferencedElement) where T : SvgElement
+        {
+            if (svgReferencedElement == null)
+            {
+                return false;
+            }
+
+            if (svgReferencedElement is T svgElementT)
+            {
+                var referencedElementUri = getUri(svgElementT);
+
+                if (referencedElementUri == null)
+                {
+                    return false;
+                }
+
+                if (uris.Contains(referencedElementUri))
+                {
+                    return true;
+                }
+
+                if (GetReference<T>(svgElement, referencedElementUri) != null)
+                {
+                    uris.Add(referencedElementUri);
+                }
+
+                return ElementReferencesUri(
+                    svgElementT,
+                    getUri,
+                    uris,
+                    GetReference<SvgElement>(svgElementT, referencedElementUri));
+            }
+
+            foreach (var svgChildElement in svgReferencedElement.Children)
+            {
+                if (ElementReferencesUri(svgElement, getUri, uris, svgChildElement))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool HasRecursiveReference<T>(this T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris) where T : SvgElement
+        {
+            var referencedElementUri = getUri(svgElement);
+            if (referencedElementUri == null)
+            {
+                return false;
+            }
+            var svgReferencedElement = GetReference<SvgElement>(svgElement, referencedElementUri);
+            if (uris.Contains(referencedElementUri))
+            {
+                return true;
+            }
+            uris.Add(referencedElementUri);
+            return ElementReferencesUri<T>(svgElement, getUri, uris, svgReferencedElement);
         }
     }
 }

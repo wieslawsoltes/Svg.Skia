@@ -34,7 +34,7 @@ namespace Svg.Skia
                 }
             }
 
-            IsAntialias = SKUtil.IsAntialias(svgFragment);
+            IsAntialias = SKPaintUtil.IsAntialias(svgFragment);
 
             TransformedBounds = SKRect.Empty;
 
@@ -53,8 +53,8 @@ namespace Svg.Skia
                 }
             }
 
-            Transform = SKUtil.GetSKMatrix(svgFragment.Transforms);
-            var skMatrixViewBox = SKUtil.GetSvgViewBoxTransform(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
+            Transform = SKMatrixUtil.GetSKMatrix(svgFragment.Transforms);
+            var skMatrixViewBox = SKMatrixUtil.GetSvgViewBoxTransform(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
             SKMatrix.PreConcat(ref Transform, ref skMatrixViewBox);
 
             switch (svgFragment.Overflow)
@@ -80,7 +80,7 @@ namespace Svg.Skia
             }
 
             PathClip = null;
-            PaintOpacity = SKUtil.GetOpacitySKPaint(svgFragment, _disposable);
+            PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgFragment, _disposable);
             PaintFilter = null;
 
             PaintFill = null;

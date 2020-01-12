@@ -52,9 +52,9 @@ namespace Svg.Skia
             var pathLength = pathTypes.Count;
 
             var markerStart = svgMarkerElement.MarkerStart;
-            if (markerStart != null && !SKUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
+            if (markerStart != null && !SvgExtensions.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
             {
-                var marker = SKUtil.GetReference<SvgMarker>(svgMarkerElement, markerStart);
+                var marker = SvgExtensions.GetReference<SvgMarker>(svgMarkerElement, markerStart);
                 if (marker != null)
                 {
                     var refPoint1 = pathTypes[0].Point;
@@ -69,9 +69,9 @@ namespace Svg.Skia
             }
 
             var markerMid = svgMarkerElement.MarkerMid;
-            if (markerMid != null && !SKUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, new HashSet<Uri>()))
+            if (markerMid != null && !SvgExtensions.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, new HashSet<Uri>()))
             {
-                var marker = SKUtil.GetReference<SvgMarker>(svgMarkerElement, markerMid);
+                var marker = SvgExtensions.GetReference<SvgMarker>(svgMarkerElement, markerMid);
                 if (marker != null)
                 {
                     int bezierIndex = -1;
@@ -92,9 +92,9 @@ namespace Svg.Skia
             }
 
             var markerEnd = svgMarkerElement.MarkerEnd;
-            if (markerEnd != null && !SKUtil.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, new HashSet<Uri>()))
+            if (markerEnd != null && !SvgExtensions.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, new HashSet<Uri>()))
             {
-                var marker = SKUtil.GetReference<SvgMarker>(svgMarkerElement, markerEnd);
+                var marker = SvgExtensions.GetReference<SvgMarker>(svgMarkerElement, markerEnd);
                 if (marker != null)
                 {
                     var index = pathLength - 1;
