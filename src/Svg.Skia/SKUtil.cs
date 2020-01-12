@@ -177,6 +177,8 @@ namespace Svg.Skia
                             SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrixTranslate);
                         }
                         break;
+                    default:
+                        break;
                 }
             }
 
