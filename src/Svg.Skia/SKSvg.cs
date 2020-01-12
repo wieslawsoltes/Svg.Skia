@@ -31,10 +31,8 @@ namespace Svg.Skia
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
-            using (var drawable = DrawableFactory.Create(svgFragment, skBounds, false))
-            {
-                drawable?.Draw(skCanvas, 0f, 0f);
-            }
+            using var drawable = DrawableFactory.Create(svgFragment, skBounds, false);
+            drawable?.Draw(skCanvas, 0f, 0f);
         }
 
         public static void Draw(SKCanvas skCanvas, string path)
@@ -51,25 +49,21 @@ namespace Svg.Skia
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
 
-            using (var drawable = DrawableFactory.Create(svgFragment, skBounds, false))
+            using var drawable = DrawableFactory.Create(svgFragment, skBounds, false);
+            if (drawable == null)
             {
-                if (drawable == null)
-                {
-                    return null;
-                }
-
-                if (skBounds.IsEmpty)
-                {
-                    skBounds = GetBounds(drawable);
-                }
-
-                using (var skPictureRecorder = new SKPictureRecorder())
-                using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
-                {
-                    drawable?.Draw(skCanvas, 0f, 0f);
-                    return skPictureRecorder.EndRecording();
-                }
+                return null;
             }
+
+            if (skBounds.IsEmpty)
+            {
+                skBounds = GetBounds(drawable);
+            }
+
+            using var skPictureRecorder = new SKPictureRecorder();
+            using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
+            drawable?.Draw(skCanvas, 0f, 0f);
+            return skPictureRecorder.EndRecording();
         }
 
         public static SKPicture? ToPicture(SvgFragment svgFragment, out Drawable? drawable)
@@ -88,12 +82,10 @@ namespace Svg.Skia
                 skBounds = GetBounds(drawable);
             }
 
-            using (var skPictureRecorder = new SKPictureRecorder())
-            using (var skCanvas = skPictureRecorder.BeginRecording(skBounds))
-            {
-                drawable?.Draw(skCanvas, 0f, 0f);
-                return skPictureRecorder.EndRecording();
-            }
+            using var skPictureRecorder = new SKPictureRecorder();
+            using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
+            drawable?.Draw(skCanvas, 0f, 0f);
+            return skPictureRecorder.EndRecording();
         }
 
         public static Drawable? ToDrawable(SvgFragment svgFragment)
@@ -139,14 +131,12 @@ namespace Svg.Skia
         public static SvgDocument? Open(string path)
         {
             var extension = Path.GetExtension(path);
-            switch (extension.ToLower())
+            return extension.ToLower() switch
             {
-                default:
-                case ".svg":
-                    return OpenSvg(path);
-                case ".svgz":
-                    return OpenSvgz(path);
-            }
+                ".svg" => OpenSvg(path),
+                ".svgz" => OpenSvgz(path),
+                _ => OpenSvg(path),
+            };
         }
 
         public static bool Save(Stream stream, SKPicture skPicture, SKColor background, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
@@ -157,14 +147,12 @@ namespace Svg.Skia
                 {
                     return false;
                 }
-                using (var skImage = SKImage.FromBitmap(skBitmap))
-                using (var skData = skImage.Encode(format, quality))
+                using var skImage = SKImage.FromBitmap(skBitmap);
+                using var skData = skImage.Encode(format, quality);
+                if (skData != null)
                 {
-                    if (skData != null)
-                    {
-                        skData.SaveTo(stream);
-                        return true;
-                    }
+                    skData.SaveTo(stream);
+                    return true;
                 }
             }
             return false;
@@ -232,10 +220,8 @@ namespace Svg.Skia
         {
             if (Picture != null)
             {
-                using (var stream = File.OpenWrite(path))
-                {
-                    return Save(stream, Picture, background, format, quality, scaleX, scaleY);
-                }
+                using var stream = File.OpenWrite(path);
+                return Save(stream, Picture, background, format, quality, scaleX, scaleY);
             }
             return false;
 
