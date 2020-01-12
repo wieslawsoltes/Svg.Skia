@@ -21,13 +21,13 @@ namespace Svg.Skia
 
     public static class SKPathExtensions
     {
-        public static List<(SKPoint Point, byte Type)> GetPathTypes(this SKPath path)
+        public static List<(SKPoint Point, byte Type)> GetPathTypes(this SKPath skPath)
         {
             // System.Drawing.Drawing2D.GraphicsPath.PathTypes
             // System.Drawing.Drawing2D.PathPointType
             // byte -> PathPointType
             var pathTypes = new List<(SKPoint Point, byte Type)>();
-            using (var iterator = path.CreateRawIterator())
+            using (var iterator = skPath.CreateRawIterator())
             {
                 var points = new SKPoint[4];
                 var pathVerb = SKPathVerb.Move;
