@@ -48,7 +48,7 @@ namespace Svg.Skia
 
         internal void CreateMarkers(SvgMarkerElement svgMarkerElement, SKPath skPath, SKRect skOwnerBounds)
         {
-            var pathTypes = SKUtil.GetPathTypes(skPath);
+            var pathTypes = skPath.GetPathTypes();
             var pathLength = pathTypes.Count;
 
             var markerStart = svgMarkerElement.MarkerStart;

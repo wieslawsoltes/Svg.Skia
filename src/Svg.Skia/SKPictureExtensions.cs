@@ -4,7 +4,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    public static class SKExtensions
+    public static class SKPictureExtensions
     {
         public static SKBitmap? ToBitmap(this SKPicture skPicture, SKColor background, float scaleX, float scaleY)
         {
