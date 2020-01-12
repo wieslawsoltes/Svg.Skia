@@ -79,7 +79,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XamarinFormsDemo.iOS", "sam
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Skia.Avalonia", "src\Svg.Skia.Avalonia\Svg.Skia.Avalonia.csproj", "{8BAAB509-6073-4D68-9F16-EA28986839B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaSgvImage", "samples\AvaloniaSgvImage\AvaloniaSgvImage.csproj", "{81724F00-B7C3-4E25-B473-C7433BABDC81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaSgvImage", "samples\AvaloniaSgvImage\AvaloniaSgvImage.csproj", "{81724F00-B7C3-4E25-B473-C7433BABDC81}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
