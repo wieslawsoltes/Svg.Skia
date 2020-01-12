@@ -40,11 +40,21 @@ namespace Svg.Skia
             if (SKUtil.IsValidFill(svgPolyline))
             {
                 PaintFill = SKUtil.GetFillSKPaint(svgPolyline, TransformedBounds, _disposable);
+                if (PaintFill == null)
+                {
+                    IsDrawable = false;
+                    return;
+                }
             }
 
             if (SKUtil.IsValidStroke(svgPolyline, TransformedBounds))
             {
                 PaintStroke = SKUtil.GetStrokeSKPaint(svgPolyline, TransformedBounds, _disposable);
+                if (PaintStroke == null)
+                {
+                    IsDrawable = false;
+                    return;
+                }
             }
 
             CreateMarkers(svgPolyline, Path, skOwnerBounds);

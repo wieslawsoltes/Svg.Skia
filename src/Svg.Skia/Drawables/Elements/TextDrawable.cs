@@ -132,15 +132,21 @@ namespace Svg.Skia
                     if (SKUtil.IsValidFill(svgTextPath))
                     {
                         var skPaint = SKUtil.GetFillSKPaint(svgTextPath, skBounds, _disposable);
-                        SKUtil.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
-                        _skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint);
+                        if (skPaint != null)
+                        {
+                            SKUtil.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
+                            _skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint); 
+                        }
                     }
 
                     if (SKUtil.IsValidStroke(svgTextPath, skBounds))
                     {
                         var skPaint = SKUtil.GetStrokeSKPaint(svgTextPath, skBounds, _disposable);
-                        SKUtil.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
-                        _skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint);
+                        if (skPaint != null)
+                        {
+                            SKUtil.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
+                            _skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint); 
+                        }
                     }
                 }
             }
@@ -291,15 +297,21 @@ namespace Svg.Skia
             if (SKUtil.IsValidFill(svgTextBase))
             {
                 var skPaint = SKUtil.GetFillSKPaint(svgTextBase, skBounds, _disposable);
-                SKUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
-                _skCanvas.DrawText(text, x, y, skPaint);
+                if (skPaint != null)
+                {
+                    SKUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
+                    _skCanvas.DrawText(text, x, y, skPaint); 
+                }
             }
 
             if (SKUtil.IsValidStroke(svgTextBase, skBounds))
             {
                 var skPaint = SKUtil.GetStrokeSKPaint(svgTextBase, skBounds, _disposable);
-                SKUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
-                _skCanvas.DrawText(text, x, y, skPaint);
+                if (skPaint != null)
+                {
+                    SKUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
+                    _skCanvas.DrawText(text, x, y, skPaint); 
+                }
             }
         }
 
@@ -334,15 +346,21 @@ namespace Svg.Skia
                     if (SKUtil.IsValidFill(svgTextBase))
                     {
                         var skPaint = SKUtil.GetFillSKPaint(svgTextBase, skBounds, _disposable);
-                        SKUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
-                        _skCanvas.DrawPositionedText(text, points, skPaint);
+                        if (skPaint != null)
+                        {
+                            SKUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
+                            _skCanvas.DrawPositionedText(text, points, skPaint); 
+                        }
                     }
 
                     if (SKUtil.IsValidStroke(svgTextBase, skBounds))
                     {
                         var skPaint = SKUtil.GetStrokeSKPaint(svgTextBase, skBounds, _disposable);
-                        SKUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
-                        _skCanvas.DrawPositionedText(text, points, skPaint);
+                        if (skPaint != null)
+                        {
+                            SKUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
+                            _skCanvas.DrawPositionedText(text, points, skPaint); 
+                        }
                     }
                 }
                 else

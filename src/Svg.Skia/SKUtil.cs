@@ -805,8 +805,7 @@ namespace Svg.Skia
                             }
                             else
                             {
-                                // TODO: Do not draw element.
-                                skPaint.Color = SKColors.Transparent;
+                                // Do not draw element.
                                 return false;
                             }
                         }
@@ -822,8 +821,7 @@ namespace Svg.Skia
                             }
                             else
                             {
-                                // TODO: Do not draw element.
-                                skPaint.Color = SKColors.Transparent;
+                                // Do not draw element.
                                 return false;
                             }
                         }
@@ -837,6 +835,7 @@ namespace Svg.Skia
                             }
                             else
                             {
+                                // Do not draw element.
                                 return false;
                             }
                         }
@@ -852,8 +851,7 @@ namespace Svg.Skia
                             }
                             else
                             {
-                                // TODO: Do not draw element.
-                                skPaint.Color = SKColors.Transparent;
+                                // Do not draw element.
                                 return false;
                             }
                         }
@@ -867,13 +865,14 @@ namespace Svg.Skia
                             }
                             else
                             {
+                                // Do not draw element.
                                 return false;
                             }
                         }
                     }
                     break;
                 default:
-                    // TODO: Do not draw element.
+                    // Do not draw element.
                     return false;
             }
             return true;
@@ -915,8 +914,7 @@ namespace Svg.Skia
                             }
                             else
                             {
-                                // TODO: Do not draw element.
-                                skPaint.Color = SKColors.Transparent;
+                                // Do not draw element.
                                 return false;
                             }
                         }
@@ -932,8 +930,7 @@ namespace Svg.Skia
                             }
                             else
                             {
-                                // TODO: Do not draw element.
-                                skPaint.Color = SKColors.Transparent;
+                                // Do not draw element.
                                 return false;
                             }
                         }
@@ -947,6 +944,7 @@ namespace Svg.Skia
                             }
                             else
                             {
+                                // Do not draw element.
                                 return false;
                             }
                         }
@@ -962,8 +960,7 @@ namespace Svg.Skia
                             }
                             else
                             {
-                                // TODO: Do not draw element.
-                                skPaint.Color = SKColors.Transparent;
+                                // Do not draw element.
                                 return false;
                             }
                         }
@@ -977,13 +974,14 @@ namespace Svg.Skia
                             }
                             else
                             {
+                                // Do not draw element.
                                 return false;
                             }
                         }
                     }
                     break;
                 default:
-                    // TODO: Do not draw element.
+                    // Do not draw element.
                     return false;
             }
             return true;
@@ -1172,14 +1170,17 @@ namespace Svg.Skia
                 && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
         }
 
-        public static SKPaint GetFillSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable)
+        public static SKPaint? GetFillSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable)
         {
             var skPaint = new SKPaint()
             {
                 IsAntialias = IsAntialias(svgVisualElement)
             };
 
-            SetFill(svgVisualElement, skBounds, skPaint, disposable);
+            if (SetFill(svgVisualElement, skBounds, skPaint, disposable) == false)
+            {
+                return null;
+            }
 
             if (svgVisualElement.Filter != null)
             {
@@ -1192,14 +1193,17 @@ namespace Svg.Skia
             return skPaint;
         }
 
-        public static SKPaint GetStrokeSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable)
+        public static SKPaint? GetStrokeSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable)
         {
             var skPaint = new SKPaint()
             {
                 IsAntialias = IsAntialias(svgVisualElement)
             };
 
-            SetStroke(svgVisualElement, skBounds, skPaint, disposable);
+            if (SetStroke(svgVisualElement, skBounds, skPaint, disposable) == false)
+            {
+                return null;
+            }
 
             switch (svgVisualElement.StrokeLineCap)
             {

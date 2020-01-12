@@ -40,11 +40,21 @@ namespace Svg.Skia
             if (SKUtil.IsValidFill(svgEllipse))
             {
                 PaintFill = SKUtil.GetFillSKPaint(svgEllipse, TransformedBounds, _disposable);
+                if (PaintFill == null)
+                {
+                    IsDrawable = false;
+                    return;
+                }
             }
 
             if (SKUtil.IsValidStroke(svgEllipse, TransformedBounds))
             {
                 PaintStroke = SKUtil.GetStrokeSKPaint(svgEllipse, TransformedBounds, _disposable);
+                if (PaintStroke == null)
+                {
+                    IsDrawable = false;
+                    return;
+                }
             }
 
             // TODO: Transform _skBounds using _skMatrix.

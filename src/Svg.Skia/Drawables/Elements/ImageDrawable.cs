@@ -181,15 +181,8 @@ namespace Svg.Skia
             PaintOpacity = SKUtil.GetOpacitySKPaint(svgImage, _disposable);
             PaintFilter = SKUtil.GetFilterSKPaint(svgImage, _disposable);
 
-            if (SKUtil.IsValidFill(svgImage))
-            {
-                PaintFill = SKUtil.GetFillSKPaint(svgImage, TransformedBounds, _disposable);
-            }
-
-            if (SKUtil.IsValidStroke(svgImage, TransformedBounds))
-            {
-                PaintStroke = SKUtil.GetStrokeSKPaint(svgImage, TransformedBounds, _disposable);
-            }
+            PaintFill = null;
+            PaintStroke = null;
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);

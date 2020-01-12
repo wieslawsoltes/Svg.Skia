@@ -40,11 +40,21 @@ namespace Svg.Skia
             if (SKUtil.IsValidFill(svgRectangle))
             {
                 PaintFill = SKUtil.GetFillSKPaint(svgRectangle, TransformedBounds, _disposable);
+                if (PaintFill == null)
+                {
+                    IsDrawable = false;
+                    return;
+                }
             }
 
             if (SKUtil.IsValidStroke(svgRectangle, TransformedBounds))
             {
                 PaintStroke = SKUtil.GetStrokeSKPaint(svgRectangle, TransformedBounds, _disposable);
+                if (PaintStroke == null)
+                {
+                    IsDrawable = false;
+                    return;
+                }
             }
 
             // TODO: Transform _skBounds using _skMatrix.
