@@ -27,7 +27,7 @@
     <ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />
   </ItemGroup>
   <PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_SVG_ANCHOR</DefineConstants>
+    <DefineConstants>$(DefineConstants);USE_SVG_ANCHOR;USE_SKIPGDICHECK</DefineConstants>
   </PropertyGroup>-->
 
   <ItemGroup>
