@@ -3,8 +3,11 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <IsPackable>False</IsPackable>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Compile Update="**\*.xaml.cs">
       <DependentUpon>%(Filename)</DependentUpon>
@@ -17,9 +20,9 @@
 
   <Import Project="..\..\build\Avalonia.props" />
   <Import Project="..\..\build\Avalonia.Desktop.props" />
-  
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Svg.Skia.Avalonia\Svg.Skia.Avalonia.csproj" />
   </ItemGroup>
-  
+
 </Project>
