@@ -978,6 +978,49 @@ namespace Svg.Skia
             return skPaint;
         }
 
+        public static SKPaint? GetFilterSKPaint(SvgVisualElement svgVisualElement, CompositeDisposable disposable)
+        {
+            var filter = svgVisualElement.Filter;
+            if (filter != null)
+            {
+                var skPaint = new SKPaint
+                {
+                    Style = SKPaintStyle.StrokeAndFill
+                };
+                SetFilter(svgVisualElement, skPaint, disposable);
+                disposable.Add(skPaint);
+                return skPaint;
+            }
+            return null;
+        }
+
+        public static SKPaint? GetOpacitySKPaint(float opacity)
+        {
+            if (opacity < 1f)
+            {
+                var skPaint = new SKPaint()
+                {
+                    IsAntialias = true,
+                };
+                skPaint.Color = new SKColor(255, 255, 255, (byte)Math.Round(opacity * 255));
+                skPaint.Style = SKPaintStyle.StrokeAndFill;
+                return skPaint;
+            }
+            return null;
+        }
+
+        public static SKPaint? GetOpacitySKPaint(SvgElement svgElement, CompositeDisposable disposable)
+        {
+            float opacity = AdjustSvgOpacity(svgElement.Opacity);
+            var skPaint = GetOpacitySKPaint(opacity);
+            if (skPaint != null)
+            {
+                disposable.Add(skPaint);
+                return skPaint;
+            }
+            return null;
+        }
+
         public static void SetSKPaintText(SvgTextBase svgText, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
             skPaint.LcdRenderText = true;
@@ -1156,49 +1199,6 @@ namespace Svg.Skia
                 SvgFontStyle.Italic => SKFontStyleSlant.Italic,
                 _ => SKFontStyleSlant.Upright,
             };
-        }
-
-        public static SKPaint? GetOpacitySKPaint(float opacity)
-        {
-            if (opacity < 1f)
-            {
-                var skPaint = new SKPaint()
-                {
-                    IsAntialias = true,
-                };
-                skPaint.Color = new SKColor(255, 255, 255, (byte)Math.Round(opacity * 255));
-                skPaint.Style = SKPaintStyle.StrokeAndFill;
-                return skPaint;
-            }
-            return null;
-        }
-
-        public static SKPaint? GetOpacitySKPaint(SvgElement svgElement, CompositeDisposable disposable)
-        {
-            float opacity = AdjustSvgOpacity(svgElement.Opacity);
-            var skPaint = GetOpacitySKPaint(opacity);
-            if (skPaint != null)
-            {
-                disposable.Add(skPaint);
-                return skPaint;
-            }
-            return null;
-        }
-
-        public static SKPaint? GetFilterSKPaint(SvgVisualElement svgVisualElement, CompositeDisposable disposable)
-        {
-            var filter = svgVisualElement.Filter;
-            if (filter != null)
-            {
-                var skPaint = new SKPaint
-                {
-                    Style = SKPaintStyle.StrokeAndFill
-                };
-                SetFilter(svgVisualElement, skPaint, disposable);
-                disposable.Add(skPaint);
-                return skPaint;
-            }
-            return null;
         }
     }
 }
