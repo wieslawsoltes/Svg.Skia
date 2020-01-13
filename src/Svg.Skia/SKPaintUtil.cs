@@ -15,6 +15,17 @@ namespace Svg.Skia
     {
         public static char[] s_fontFamilyTrim = new char[] { '\'' };
 
+        public static float AdjustSvgOpacity(float opacity)
+        {
+            return Math.Min(Math.Max(opacity, 0), 1);
+        }
+
+        public static SvgUnit NormalizeSvgUnit(SvgUnit svgUnit, SvgCoordinateUnits svgCoordinateUnits)
+        {
+            return svgUnit.Type == SvgUnitType.Percentage && svgCoordinateUnits == SvgCoordinateUnits.ObjectBoundingBox ?
+                    new SvgUnit(SvgUnitType.User, svgUnit.Value / 100) : svgUnit;
+        }
+
         public static SKColor GetColor(SvgColourServer svgColourServer, float opacity, bool forStroke = false)
         {
             if (svgColourServer == SvgPaintServer.None)
@@ -31,17 +42,6 @@ namespace Svg.Skia
             byte alpha = (byte)Math.Round((opacity * (svgColourServer.Colour.A / 255.0)) * 255);
 
             return new SKColor(colour.R, colour.G, colour.B, alpha);
-        }
-
-        public static float AdjustSvgOpacity(float opacity)
-        {
-            return Math.Min(Math.Max(opacity, 0), 1);
-        }
-
-        public static SvgUnit NormalizeSvgUnit(SvgUnit svgUnit, SvgCoordinateUnits svgCoordinateUnits)
-        {
-            return svgUnit.Type == SvgUnitType.Percentage && svgCoordinateUnits == SvgCoordinateUnits.ObjectBoundingBox ?
-                    new SvgUnit(SvgUnitType.User, svgUnit.Value / 100) : svgUnit;
         }
 
         public static SKPathEffect? CreateDash(SvgElement svgElement, SKRect skBounds)
@@ -132,6 +132,7 @@ namespace Svg.Skia
             var colorPos = new List<float>();
 
             GetStops(svgLinearGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity);
+
             var shaderTileMode = svgLinearGradientServer.SpreadMethod switch
             {
                 SvgGradientSpreadMethod.Reflect => SKShaderTileMode.Mirror,
@@ -212,6 +213,7 @@ namespace Svg.Skia
             var colorPos = new List<float>();
 
             GetStops(svgRadialGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity);
+
             var shaderTileMode = svgRadialGradientServer.SpreadMethod switch
             {
                 SvgGradientSpreadMethod.Reflect => SKShaderTileMode.Mirror,
