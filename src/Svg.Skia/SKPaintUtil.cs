@@ -833,11 +833,6 @@ namespace Svg.Skia
                 return null;
             }
 
-            if (svgVisualElement.Filter != null)
-            {
-                SetFilter(svgVisualElement, skPaint, disposable);
-            }
-
             disposable.Add(skPaint);
             return skPaint;
         }
@@ -855,12 +850,6 @@ namespace Svg.Skia
             if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: true, disposable) == false)
             {
                 return null;
-            }
-
-            var filter = svgVisualElement.Filter;
-            if (filter != null)
-            {
-                SetFilter(svgVisualElement, skPaint, disposable);
             }
 
             switch (svgVisualElement.StrokeLineCap)
