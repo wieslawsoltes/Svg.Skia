@@ -501,16 +501,15 @@ namespace Svg.Skia
 
         public static bool SetFill(SvgVisualElement svgVisualElement, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
+            var opacity = AdjustSvgOpacity(svgVisualElement.FillOpacity);
             var server = svgVisualElement.Fill;
-            var fallbackServer = SvgPaintServer.None;
 
+            var fallbackServer = SvgPaintServer.None;
             if (server is SvgDeferredPaintServer svgDeferredPaintServer)
             {
                 server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServer, svgVisualElement);
                 fallbackServer = svgDeferredPaintServer.FallbackServer;
             }
-
-            var opacity = AdjustSvgOpacity(svgVisualElement.FillOpacity);
 
             switch (server)
             {
@@ -610,16 +609,15 @@ namespace Svg.Skia
 
         public static bool SetStroke(SvgVisualElement svgVisualElement, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
         {
+            var opacity = AdjustSvgOpacity(svgVisualElement.StrokeOpacity);
             var server = svgVisualElement.Stroke;
-            var fallbackServer = SvgPaintServer.None;
 
+            var fallbackServer = SvgPaintServer.None;
             if (server is SvgDeferredPaintServer svgDeferredPaintServer)
             {
                 server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServer, svgVisualElement);
                 fallbackServer = svgDeferredPaintServer.FallbackServer;
             }
-
-            var opacity = AdjustSvgOpacity(svgVisualElement.StrokeOpacity);
 
             switch (server)
             {
