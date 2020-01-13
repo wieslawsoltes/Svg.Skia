@@ -633,7 +633,6 @@ namespace Svg.Skia
                 case SvgColourMatrixType.HueRotate:
                     {
                         float value = (string.IsNullOrEmpty(svgColourMatrix.Values) ? 0 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture));
-                        // TODO: Fix matrix.
                         var angle = (float)DegreeToRadian(value);
                         var a1 = Math.Cos(angle);
                         var a2 = Math.Sin(angle);
@@ -654,7 +653,6 @@ namespace Svg.Skia
                     break;
                 case SvgColourMatrixType.LuminanceToAlpha:
                     {
-                        // TODO: Fix matrix.
                         matrix = new float[]
                         {
                             0, 0, 0, 0, 0,
@@ -667,7 +665,6 @@ namespace Svg.Skia
                 case SvgColourMatrixType.Saturate:
                     {
                         float value = (string.IsNullOrEmpty(svgColourMatrix.Values) ? 1 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture));
-                        // TODO: Fix matrix.
                         matrix = new float[]
                         {
                             (float)(0.213+0.787*value), (float)(0.715-0.715*value), (float)(0.072-0.072*value), 0, 0,
@@ -680,11 +677,24 @@ namespace Svg.Skia
                 default:
                 case SvgColourMatrixType.Matrix:
                     {
-                        var parts = svgColourMatrix.Values.Split(new char[] { ' ', '\t', '\n', '\r', ',' }, StringSplitOptions.RemoveEmptyEntries);
-                        matrix = new float[20];
-                        for (int i = 0; i < 20; i++)
+                        if (string.IsNullOrEmpty(svgColourMatrix.Values))
                         {
-                            matrix[i] = float.Parse(parts[i], NumberStyles.Any, CultureInfo.InvariantCulture);
+                            matrix = new float[]
+                            {
+                                1, 0, 0, 0, 0,
+                                0, 1, 0, 0, 0,
+                                0, 0, 1, 0, 0,
+                                0, 0, 0, 1, 0
+                            };
+                        }
+                        else
+                        {
+                            var parts = svgColourMatrix.Values.Split(new char[] { ' ', '\t', '\n', '\r', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                            matrix = new float[20];
+                            for (int i = 0; i < 20; i++)
+                            {
+                                matrix[i] = float.Parse(parts[i], NumberStyles.Any, CultureInfo.InvariantCulture);
+                            }
                         }
                     }
                     break;
