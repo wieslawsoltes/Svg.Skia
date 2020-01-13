@@ -624,6 +624,17 @@ namespace Svg.Skia
             }
         }
 
+        public static float[] CreateIdentityColorMatrixArray()
+        {
+            return new float[]
+            {
+                1, 0, 0, 0, 0,
+                0, 1, 0, 0, 0,
+                0, 0, 1, 0, 0,
+                0, 0, 0, 1, 0
+            };
+        }
+
         public static SKColorFilter CreateColorMatrix(SvgColourMatrix svgColourMatrix)
         {
             float[] matrix;
@@ -679,21 +690,22 @@ namespace Svg.Skia
                     {
                         if (string.IsNullOrEmpty(svgColourMatrix.Values))
                         {
-                            matrix = new float[]
-                            {
-                                1, 0, 0, 0, 0,
-                                0, 1, 0, 0, 0,
-                                0, 0, 1, 0, 0,
-                                0, 0, 0, 1, 0
-                            };
+                            matrix = CreateIdentityColorMatrixArray();
                         }
                         else
                         {
                             var parts = svgColourMatrix.Values.Split(new char[] { ' ', '\t', '\n', '\r', ',' }, StringSplitOptions.RemoveEmptyEntries);
-                            matrix = new float[20];
-                            for (int i = 0; i < 20; i++)
+                            if (parts.Count() == 20)
                             {
-                                matrix[i] = float.Parse(parts[i], NumberStyles.Any, CultureInfo.InvariantCulture);
+                                matrix = new float[20];
+                                for (int i = 0; i < 20; i++)
+                                {
+                                    matrix[i] = float.Parse(parts[i], NumberStyles.Any, CultureInfo.InvariantCulture);
+                                }
+                            }
+                            else
+                            {
+                                matrix = CreateIdentityColorMatrixArray();
                             }
                         }
                     }
