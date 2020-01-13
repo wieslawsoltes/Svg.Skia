@@ -283,23 +283,38 @@ namespace Svg.Skia
             }
         }
 
-        public static SKPicture CreatePicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix)
+        public static SKPicture CreatePicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity)
         {
             var skSize = new SKSize(width, height);
             var skBounds = SKRect.Create(skSize);
             using var skPictureRecorder = new SKPictureRecorder();
             using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
+
             skCanvas.SetMatrix(skMatrix);
+
+            using var skPaintOpacity = GetOpacitySKPaint(opacity);
+            if (skPaintOpacity != null)
+            {
+                skCanvas.SaveLayer(skPaintOpacity);
+            }
+
             foreach (var svgElement in svgElementCollection)
             {
-                // TODO: Adjust opacity for pattern based on fill-opacity and stroke-opacity.
                 using var drawable = DrawableFactory.Create(svgElement, skBounds, false);
                 drawable?.Draw(skCanvas, 0f, 0f);
             }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
+            skCanvas.Restore();
+
             return skPictureRecorder.EndRecording();
         }
 
-        public static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, CompositeDisposable disposable)
+        public static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, CompositeDisposable disposable)
         {
             var svgPatternServers = new List<SvgPatternServer>();
             var currentPatternServer = svgPatternServer;
@@ -477,7 +492,7 @@ namespace Svg.Skia
                 }
             }
 
-            var skPicture = CreatePicture(firstChildren.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform);
+            var skPicture = CreatePicture(firstChildren.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform, opacity);
             disposable.Add(skPicture);
 
             return SKShader.CreatePicture(skPicture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, skLocalMatrix, skPicture.CullRect);
@@ -505,7 +520,7 @@ namespace Svg.Skia
                     break;
                 case SvgPatternServer svgPatternServer:
                     {
-                        var skShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, disposable);
+                        var skShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, disposable);
                         if (skShader != null)
                         {
                             disposable.Add(skShader);
@@ -614,7 +629,7 @@ namespace Svg.Skia
                     break;
                 case SvgPatternServer svgPatternServer:
                     {
-                        var skShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, disposable);
+                        var skShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, disposable);
                         if (skShader != null)
                         {
                             disposable.Add(skShader);
@@ -1143,9 +1158,8 @@ namespace Svg.Skia
             };
         }
 
-        public static SKPaint? GetOpacitySKPaint(SvgElement svgElement, CompositeDisposable disposable)
+        public static SKPaint? GetOpacitySKPaint(float opacity)
         {
-            float opacity = AdjustSvgOpacity(svgElement.Opacity);
             if (opacity < 1f)
             {
                 var skPaint = new SKPaint()
@@ -1154,6 +1168,17 @@ namespace Svg.Skia
                 };
                 skPaint.Color = new SKColor(255, 255, 255, (byte)Math.Round(opacity * 255));
                 skPaint.Style = SKPaintStyle.StrokeAndFill;
+                return skPaint;
+            }
+            return null;
+        }
+
+        public static SKPaint? GetOpacitySKPaint(SvgElement svgElement, CompositeDisposable disposable)
+        {
+            float opacity = AdjustSvgOpacity(svgElement.Opacity);
+            var skPaint = GetOpacitySKPaint(opacity);
+            if (skPaint != null)
+            {
                 disposable.Add(skPaint);
                 return skPaint;
             }
