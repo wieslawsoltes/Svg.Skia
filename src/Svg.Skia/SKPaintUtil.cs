@@ -1021,78 +1021,6 @@ namespace Svg.Skia
             return null;
         }
 
-        public static void SetSKPaintText(SvgTextBase svgText, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
-        {
-            skPaint.LcdRenderText = true;
-            skPaint.SubpixelText = true;
-            skPaint.TextEncoding = SKTextEncoding.Utf16;
-
-            var fontFamily = svgText.FontFamily;
-
-            var fontWeight = SKFontStyleWeight(svgText.FontWeight);
-
-            // TODO: Use FontStretch property.
-            svgText.TryGetAttribute("font-stretch", out string attributeFontStretch);
-            var fontWidth = ToSKFontStyleWidth(attributeFontStretch);
-
-            var fontStyle = ToSKFontStyleSlant(svgText.FontStyle);
-
-            skPaint.TextAlign = ToSKTextAlign(svgText.TextAnchor);
-
-            if (svgText.TextDecoration.HasFlag(SvgTextDecoration.Underline))
-            {
-                // TODO: Implement SvgTextDecoration.Underline
-            }
-
-            if (svgText.TextDecoration.HasFlag(SvgTextDecoration.Overline))
-            {
-                // TODO: Implement SvgTextDecoration.Overline
-            }
-
-            if (svgText.TextDecoration.HasFlag(SvgTextDecoration.LineThrough))
-            {
-                // TODO: Implement SvgTextDecoration.LineThrough
-            }
-
-            float fontSize;
-            var fontSizeUnit = svgText.FontSize;
-            if (fontSizeUnit == SvgUnit.None || fontSizeUnit == SvgUnit.Empty)
-            {
-                // TODO: Do not use implicit float conversion from SvgUnit.ToDeviceValue
-                //fontSize = new SvgUnit(SvgUnitType.Em, 1.0f);
-                // NOTE: Use default SkPaint Font_Size
-                fontSize = 12f;
-            }
-            else
-            {
-                fontSize = fontSizeUnit.ToDeviceValue(UnitRenderingType.Vertical, svgText, skBounds);
-            }
-            skPaint.TextSize = fontSize;
-
-            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
-            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
-            {
-                var defaultName = SKTypeface.Default.FamilyName;
-
-                foreach (var fontFamilyName in fontFamilyNames)
-                {
-                    var skTypeface = SKTypeface.FromFamilyName(fontFamilyName, fontWeight, fontWidth, fontStyle);
-                    if (skTypeface != null)
-                    {
-                        if (!skTypeface.FamilyName.Equals(fontFamilyName, StringComparison.Ordinal)
-                            && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
-                        {
-                            skTypeface.Dispose();
-                            continue;
-                        }
-                        disposable.Add(skTypeface);
-                        skPaint.Typeface = skTypeface;
-                        break;
-                    }
-                }
-            }
-        }
-
         public static SKFontStyleWeight SKFontStyleWeight(SvgFontWeight svgFontWeight)
         {
             var fontWeight = SkiaSharp.SKFontStyleWeight.Normal;
@@ -1176,6 +1104,8 @@ namespace Svg.Skia
                 case "ultra-expanded":
                     fontWidth = SKFontStyleWidth.UltraExpanded;
                     break;
+                default:
+                    break;
             }
 
             return fontWidth;
@@ -1199,6 +1129,78 @@ namespace Svg.Skia
                 SvgFontStyle.Italic => SKFontStyleSlant.Italic,
                 _ => SKFontStyleSlant.Upright,
             };
+        }
+
+        public static void SetSKPaintText(SvgTextBase svgText, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
+        {
+            skPaint.LcdRenderText = true;
+            skPaint.SubpixelText = true;
+            skPaint.TextEncoding = SKTextEncoding.Utf16;
+
+            var fontFamily = svgText.FontFamily;
+
+            var fontWeight = SKFontStyleWeight(svgText.FontWeight);
+
+            // TODO: Use FontStretch property.
+            svgText.TryGetAttribute("font-stretch", out string attributeFontStretch);
+            var fontWidth = ToSKFontStyleWidth(attributeFontStretch);
+
+            var fontStyle = ToSKFontStyleSlant(svgText.FontStyle);
+
+            skPaint.TextAlign = ToSKTextAlign(svgText.TextAnchor);
+
+            if (svgText.TextDecoration.HasFlag(SvgTextDecoration.Underline))
+            {
+                // TODO: Implement SvgTextDecoration.Underline
+            }
+
+            if (svgText.TextDecoration.HasFlag(SvgTextDecoration.Overline))
+            {
+                // TODO: Implement SvgTextDecoration.Overline
+            }
+
+            if (svgText.TextDecoration.HasFlag(SvgTextDecoration.LineThrough))
+            {
+                // TODO: Implement SvgTextDecoration.LineThrough
+            }
+
+            float fontSize;
+            var fontSizeUnit = svgText.FontSize;
+            if (fontSizeUnit == SvgUnit.None || fontSizeUnit == SvgUnit.Empty)
+            {
+                // TODO: Do not use implicit float conversion from SvgUnit.ToDeviceValue
+                //fontSize = new SvgUnit(SvgUnitType.Em, 1.0f);
+                // NOTE: Use default SkPaint Font_Size
+                fontSize = 12f;
+            }
+            else
+            {
+                fontSize = fontSizeUnit.ToDeviceValue(UnitRenderingType.Vertical, svgText, skBounds);
+            }
+            skPaint.TextSize = fontSize;
+
+            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
+            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
+            {
+                var defaultName = SKTypeface.Default.FamilyName;
+
+                foreach (var fontFamilyName in fontFamilyNames)
+                {
+                    var skTypeface = SKTypeface.FromFamilyName(fontFamilyName, fontWeight, fontWidth, fontStyle);
+                    if (skTypeface != null)
+                    {
+                        if (!skTypeface.FamilyName.Equals(fontFamilyName, StringComparison.Ordinal)
+                            && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
+                        {
+                            skTypeface.Dispose();
+                            continue;
+                        }
+                        disposable.Add(skTypeface);
+                        skPaint.Typeface = skTypeface;
+                        break;
+                    }
+                }
+            }
         }
     }
 }
