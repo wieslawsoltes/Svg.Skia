@@ -6,7 +6,6 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-#if USE_SVG_ANCHOR
     public class AnchorDrawable : DrawableContainer
     {
         public AnchorDrawable(SvgAnchor svgAnchor, SKRect skOwnerBounds, bool ignoreDisplay)
@@ -61,5 +60,4 @@ namespace Svg.Skia
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
         }
     }
-#endif
 }

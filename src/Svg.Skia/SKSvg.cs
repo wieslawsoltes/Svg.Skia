@@ -9,13 +9,10 @@ namespace Svg.Skia
 {
     public class SKSvg : IDisposable
     {
-#if USE_SKIPGDICHECK
-        // TODO: Enable SkipGdiPlusCapabilityCheck for next SVG library release.
         static SKSvg()
         {
             SvgDocument.SkipGdiPlusCapabilityCheck = true;
         }  
-#endif
 
         public static SKRect GetBounds(Drawable drawable)
         {
