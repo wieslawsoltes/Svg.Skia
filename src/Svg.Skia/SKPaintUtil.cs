@@ -15,6 +15,16 @@ namespace Svg.Skia
     {
         public static char[] s_fontFamilyTrim = new char[] { '\'' };
 
+        public static double DegreeToRadian(double angle)
+        {
+            return Math.PI * angle / 180.0;
+        }
+
+        private static double RadianToDegree(double angle)
+        {
+            return angle * (180.0 / Math.PI);
+        }
+
         public static float AdjustSvgOpacity(float opacity)
         {
             return Math.Min(Math.Max(opacity, 0), 1);
