@@ -183,15 +183,6 @@ namespace Svg.Skia
             return new SKSize(w, h);
         }
 
-        public static Uri? GetUri(this SvgElement svgElement, string name)
-        {
-            if (svgElement.TryGetAttribute(name, out string uriString))
-            {
-                return new Uri(uriString, UriKind.RelativeOrAbsolute);
-            }
-            return null;
-        }
-
         public static T? GetReference<T>(this SvgElement svgElement, Uri uri) where T : SvgElement
         {
             if (uri == null)
@@ -266,6 +257,35 @@ namespace Svg.Skia
             }
             uris.Add(referencedElementUri);
             return ElementReferencesUri<T>(svgElement, getUri, uris, svgReferencedElement);
+        }
+
+        public static Uri? GetUri(this SvgElement svgElement, string name)
+        {
+            if (svgElement.TryGetAttribute(name, out string uriString))
+            {
+                return new Uri(uriString, UriKind.RelativeOrAbsolute);
+            }
+            return null;
+        }
+
+        public static T? GetUriElementReference<T>(this SvgElement svgOwnerElement, string name, HashSet<Uri> uris) where T : SvgElement
+        {
+            var uri = svgOwnerElement.GetUri(name);
+            if (uri != null)
+            {
+                if (HasRecursiveReference(svgOwnerElement, (e) => e.GetUri(name), uris))
+                {
+                    return null;
+                }
+
+                var svgElement = GetReference<T>(svgOwnerElement, uri);
+                if (svgElement == null)
+                {
+                    return null;
+                }
+                return svgElement;
+            }
+            return null;
         }
     }
 }

@@ -235,43 +235,33 @@ namespace Svg.Skia
 
         public static SKPath? GetClipPathClipPath(SvgClipPath svgClipPath, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {
-            var clipPathUri = svgClipPath.GetUri("clip-path");
-            if (clipPathUri != null)
+            var svgClipPathRef = svgClipPath.GetUriElementReference<SvgClipPath>("clip-path", uris);
+            if (svgClipPathRef == null || svgClipPathRef.Children == null)
             {
-                if (SvgExtensions.HasRecursiveReference(svgClipPath, (e) => e.GetUri("clip-path"), uris))
-                {
-                    return null;
-                }
-
-                var svgClipPathRef = SvgExtensions.GetReference<SvgClipPath>(svgClipPath, clipPathUri);
-                if (svgClipPathRef == null || svgClipPathRef.Children == null)
-                {
-                    return null;
-                }
-
-                var clipPath = GetClipPath(svgClipPathRef, skBounds, uris, disposable);
-                if (clipPath != null && !clipPath.IsEmpty)
-                {
-                    var skMatrix = SKMatrix.MakeIdentity();
-
-                    if (svgClipPathRef.ClipPathUnits == SvgCoordinateUnits.ObjectBoundingBox)
-                    {
-                        var skScaleMatrix = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
-                        SKMatrix.PostConcat(ref skMatrix, ref skScaleMatrix);
-
-                        var skTranslateMatrix = SKMatrix.MakeTranslation(skBounds.Left, skBounds.Top);
-                        SKMatrix.PostConcat(ref skMatrix, ref skTranslateMatrix);
-                    }
-
-                    var skTransformsMatrix = SKMatrixUtil.GetSKMatrix(svgClipPathRef.Transforms);
-                    SKMatrix.PostConcat(ref skMatrix, ref skTransformsMatrix);
-
-                    clipPath.Transform(skMatrix);
-                }
-
-                return clipPath;
+                return null;
             }
-            return null;
+
+            var clipPath = GetClipPath(svgClipPathRef, skBounds, uris, disposable);
+            if (clipPath != null && !clipPath.IsEmpty)
+            {
+                var skMatrix = SKMatrix.MakeIdentity();
+
+                if (svgClipPathRef.ClipPathUnits == SvgCoordinateUnits.ObjectBoundingBox)
+                {
+                    var skScaleMatrix = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
+                    SKMatrix.PostConcat(ref skMatrix, ref skScaleMatrix);
+
+                    var skTranslateMatrix = SKMatrix.MakeTranslation(skBounds.Left, skBounds.Top);
+                    SKMatrix.PostConcat(ref skMatrix, ref skTranslateMatrix);
+                }
+
+                var skTransformsMatrix = SKMatrixUtil.GetSKMatrix(svgClipPathRef.Transforms);
+                SKMatrix.PostConcat(ref skMatrix, ref skTransformsMatrix);
+
+                clipPath.Transform(skMatrix);
+            }
+
+            return clipPath;
         }
 
         private static SKPath? GetClipPath(SvgClipPath svgClipPath, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)

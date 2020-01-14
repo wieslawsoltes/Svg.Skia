@@ -10,34 +10,14 @@ namespace Svg.Skia
 {
     public static class SvgMaskUtil
     {
-        public static SvgMask? GetMask(SvgVisualElement svgVisualElement, HashSet<Uri> uris, CompositeDisposable disposable)
-        {
-            var maskUri = svgVisualElement.GetUri("mask");
-            if (maskUri != null)
-            {
-                if (SvgExtensions.HasRecursiveReference(svgVisualElement, (e) => e.GetUri("mask"), uris))
-                {
-                    return null;
-                }
-
-                var svgMask = SvgExtensions.GetReference<SvgMask>(svgVisualElement, maskUri);
-                if (svgMask == null || svgMask.Children == null)
-                {
-                    return null;
-                }
-                return svgMask;
-            }
-            return null;
-        }
-
         public static SKPicture? GetSvgVisualElementMask(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {
-            var svgMask = GetMask(svgVisualElement, uris, disposable);
-            if (svgMask == null)
+            var svgMaskRef = svgVisualElement.GetUriElementReference<SvgMask>("mask", uris);
+            if (svgMaskRef == null || svgMaskRef.Children == null)
             {
                 return null;
             }
-            return SKPaintUtil.CreatePicture(svgMask, skBounds, disposable);
+            return SKPaintUtil.CreatePicture(svgMaskRef, skBounds, disposable);
         }
     }
 }
