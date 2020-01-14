@@ -183,6 +183,15 @@ namespace Svg.Skia
             return new SKSize(w, h);
         }
 
+        public static Uri? GetUri(this SvgElement svgElement, string name)
+        {
+            if (svgElement.TryGetAttribute(name, out string uriString))
+            {
+                return new Uri(uriString, UriKind.RelativeOrAbsolute);
+            }
+            return null;
+        }
+
         public static T? GetReference<T>(this SvgElement svgElement, Uri uri) where T : SvgElement
         {
             if (uri == null)

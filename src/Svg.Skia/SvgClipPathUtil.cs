@@ -12,15 +12,6 @@ namespace Svg.Skia
 {
     public static class SvgClipPathUtil
     {
-        public static Uri? GetClipPathUri(SvgClipPath svgClipPath)
-        {
-            if (svgClipPath.TryGetAttribute("clip-path", out string clipPathUrl))
-            {
-                return new Uri(clipPathUrl, UriKind.RelativeOrAbsolute);
-            }
-            return null;
-        }
-
         public static SKPath? GetClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {
             switch (svgVisualElement)
@@ -244,10 +235,10 @@ namespace Svg.Skia
 
         public static SKPath? GetClipPathClipPath(SvgClipPath svgClipPath, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {
-            var clipPathUri = GetClipPathUri(svgClipPath);
+            var clipPathUri = svgClipPath.GetUri("clip-path");
             if (clipPathUri != null)
             {
-                if (SvgExtensions.HasRecursiveReference(svgClipPath, (e) => GetClipPathUri(e), uris))
+                if (SvgExtensions.HasRecursiveReference(svgClipPath, (e) => e.GetUri("clip-path"), uris))
                 {
                     return null;
                 }

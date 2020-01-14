@@ -10,21 +10,12 @@ namespace Svg.Skia
 {
     public static class SvgMaskUtil
     {
-        public static Uri? GetMaskUri(SvgVisualElement svgVisualElement)
-        {
-            if (svgVisualElement.TryGetAttribute("mask", out string maskUrl))
-            {
-                return new Uri(maskUrl, UriKind.RelativeOrAbsolute);
-            }
-            return null;
-        }
-
         public static SvgMask? GetMask(SvgVisualElement svgVisualElement, HashSet<Uri> uris, CompositeDisposable disposable)
         {
-            var maskUri = GetMaskUri(svgVisualElement);
+            var maskUri = svgVisualElement.GetUri("mask");
             if (maskUri != null)
             {
-                if (SvgExtensions.HasRecursiveReference(svgVisualElement, (e) => GetMaskUri(e), uris))
+                if (SvgExtensions.HasRecursiveReference(svgVisualElement, (e) => e.GetUri("mask"), uris))
                 {
                     return null;
                 }
