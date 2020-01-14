@@ -91,7 +91,7 @@ namespace Svg.Skia
             SKMatrix.PreConcat(ref Transform, ref skMatrixViewBox);
 
             PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgSymbol, TransformedBounds, new HashSet<Uri>(), _disposable);
-            PictureMask = SKPaintUtil.GetSvgVisualElementMask(svgSymbol, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PictureMask = SvgMaskUtil.GetSvgVisualElementMask(svgSymbol, TransformedBounds, new HashSet<Uri>(), _disposable);
             CreateMaskPaints();
             PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgSymbol, _disposable);
             PaintFilter = SKPaintUtil.GetFilterSKPaint(svgSymbol, TransformedBounds, _disposable);

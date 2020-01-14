@@ -34,7 +34,7 @@ namespace Svg.Skia
             Transform = SKMatrixUtil.GetSKMatrix(svgPolyline.Transforms);
 
             PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgPolyline, TransformedBounds, new HashSet<Uri>(), _disposable);
-            PictureMask = SKPaintUtil.GetSvgVisualElementMask(svgPolyline, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PictureMask = SvgMaskUtil.GetSvgVisualElementMask(svgPolyline, TransformedBounds, new HashSet<Uri>(), _disposable);
             CreateMaskPaints();
             PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgPolyline, _disposable);
             PaintFilter = SKPaintUtil.GetFilterSKPaint(svgPolyline, TransformedBounds, _disposable);

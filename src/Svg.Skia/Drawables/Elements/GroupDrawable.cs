@@ -55,7 +55,7 @@ namespace Svg.Skia
             Transform = SKMatrixUtil.GetSKMatrix(svgGroup.Transforms);
 
             PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgGroup, TransformedBounds, new HashSet<Uri>(), _disposable);
-            PictureMask = SKPaintUtil.GetSvgVisualElementMask(svgGroup, TransformedBounds, new HashSet<Uri>(), _disposable);
+            PictureMask = SvgMaskUtil.GetSvgVisualElementMask(svgGroup, TransformedBounds, new HashSet<Uri>(), _disposable);
             CreateMaskPaints();
             PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgGroup, _disposable);
             PaintFilter = SKPaintUtil.GetFilterSKPaint(svgGroup, TransformedBounds, _disposable);

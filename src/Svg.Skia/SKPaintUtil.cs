@@ -36,6 +36,37 @@ namespace Svg.Skia
                     new SvgUnit(SvgUnitType.User, svgUnit.Value / 100) : svgUnit;
         }
 
+        public static SKPicture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity)
+        {
+            var skSize = new SKSize(width, height);
+            var skBounds = SKRect.Create(skSize);
+            using var skPictureRecorder = new SKPictureRecorder();
+            using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
+
+            skCanvas.SetMatrix(skMatrix);
+
+            using var skPaintOpacity = GetOpacitySKPaint(opacity);
+            if (skPaintOpacity != null)
+            {
+                skCanvas.SaveLayer(skPaintOpacity);
+            }
+
+            foreach (var svgElement in svgElementCollection)
+            {
+                using var drawable = DrawableFactory.Create(svgElement, skBounds, false);
+                drawable?.Draw(skCanvas, 0f, 0f);
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
+            skCanvas.Restore();
+
+            return skPictureRecorder.EndRecording();
+        }
+
         public static SKColor GetColor(SvgColourServer svgColourServer, float opacity, bool forStroke = false)
         {
             if (svgColourServer == SvgPaintServer.None)
@@ -294,37 +325,6 @@ namespace Svg.Skia
             }
         }
 
-        public static SKPicture CreatePicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity)
-        {
-            var skSize = new SKSize(width, height);
-            var skBounds = SKRect.Create(skSize);
-            using var skPictureRecorder = new SKPictureRecorder();
-            using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
-
-            skCanvas.SetMatrix(skMatrix);
-
-            using var skPaintOpacity = GetOpacitySKPaint(opacity);
-            if (skPaintOpacity != null)
-            {
-                skCanvas.SaveLayer(skPaintOpacity);
-            }
-
-            foreach (var svgElement in svgElementCollection)
-            {
-                using var drawable = DrawableFactory.Create(svgElement, skBounds, false);
-                drawable?.Draw(skCanvas, 0f, 0f);
-            }
-
-            if (skPaintOpacity != null)
-            {
-                skCanvas.Restore();
-            }
-
-            skCanvas.Restore();
-
-            return skPictureRecorder.EndRecording();
-        }
-
         public static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, CompositeDisposable disposable)
         {
             var svgPatternServers = new List<SvgPatternServer>();
@@ -503,7 +503,7 @@ namespace Svg.Skia
                 }
             }
 
-            var skPicture = CreatePicture(firstChildren.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform, opacity);
+            var skPicture = RecordPicture(firstChildren.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform, opacity);
             disposable.Add(skPicture);
 
             return SKShader.CreatePicture(skPicture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, skLocalMatrix, skPicture.CullRect);
@@ -1173,48 +1173,9 @@ namespace Svg.Skia
                 SKMatrix.PreConcat(ref skPictureTransform, ref skBoundsScaleTransform);
             }
 
-            var skPicture = CreatePicture(svgMask.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform, 1f);
+            var skPicture = RecordPicture(svgMask.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform, 1f);
             disposable.Add(skPicture);
             return skPicture;
-        }
-
-        public static Uri? GetMaskUri(SvgVisualElement svgVisualElement)
-        {
-            if (svgVisualElement.TryGetAttribute("mask", out string maskUrl))
-            {
-                return new Uri(maskUrl, UriKind.RelativeOrAbsolute);
-            }
-            return null;
-        }
-
-        public static SvgMask? GetMask(SvgVisualElement svgVisualElement, HashSet<Uri> uris, CompositeDisposable disposable)
-        {
-            var maskUri = GetMaskUri(svgVisualElement);
-            if (maskUri != null)
-            {
-                if (SvgExtensions.HasRecursiveReference(svgVisualElement, (e) => GetMaskUri(e), uris))
-                {
-                    return null;
-                }
-
-                var svgMask = SvgExtensions.GetReference<SvgMask>(svgVisualElement, maskUri);
-                if (svgMask == null || svgMask.Children == null)
-                {
-                    return null;
-                }
-                return svgMask;
-            }
-            return null;
-        }
-
-        public static SKPicture? GetSvgVisualElementMask(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
-        {
-            var svgMask = GetMask(svgVisualElement, uris, disposable);
-            if (svgMask == null)
-            {
-                return null;
-            }
-            return CreatePicture(svgMask, skBounds, disposable);
         }
 
         public static SKFontStyleWeight SKFontStyleWeight(SvgFontWeight svgFontWeight)
