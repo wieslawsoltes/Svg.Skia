@@ -57,13 +57,13 @@ namespace Svg.Skia
 
             PaintTransparentBlack = new SKPaint()
             {
-                IsAntialias = true,
             };
-            PaintTransparentBlack.Color = new SKColor(0, 0, 0, 0);
-            PaintTransparentBlack.Style = SKPaintStyle.StrokeAndFill;
             _disposable.Add(PaintTransparentBlack);
 
-            PaintDstIn = new SKPaint { BlendMode = SKBlendMode.DstIn };
+            PaintDstIn = new SKPaint
+            { 
+                BlendMode = SKBlendMode.DstIn 
+            };
             _disposable.Add(PaintDstIn);
         }
 
