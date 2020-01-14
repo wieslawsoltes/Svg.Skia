@@ -18,6 +18,9 @@ namespace Svg.Skia
         public SKMatrix Transform;
         public SKRect? ClipRect;
         public SKPath? PathClip;
+        public SKPicture? PictureMask;
+        public SKPaint? PaintTransparentBlack;
+        public SKPaint? PaintDstIn;
         public SKPaint? PaintOpacity;
         public SKPaint? PaintFilter;
         public SKPaint? PaintFill;
@@ -43,6 +46,25 @@ namespace Svg.Skia
         {
             base.Dispose(disposing);
             _disposable?.Dispose();
+        }
+
+        protected void CreateMaskPaints()
+        {
+            if (PictureMask == null)
+            {
+                return;
+            }
+
+            PaintTransparentBlack = new SKPaint()
+            {
+                IsAntialias = true,
+            };
+            PaintTransparentBlack.Color = new SKColor(0, 0, 0, 0);
+            PaintTransparentBlack.Style = SKPaintStyle.StrokeAndFill;
+            _disposable.Add(PaintTransparentBlack);
+
+            PaintDstIn = new SKPaint { BlendMode = SKBlendMode.DstIn };
+            _disposable.Add(PaintDstIn);
         }
 
         public virtual Drawable? HitTest(SKPoint skPoint)

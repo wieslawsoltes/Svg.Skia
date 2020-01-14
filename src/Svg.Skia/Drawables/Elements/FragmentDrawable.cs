@@ -82,6 +82,7 @@ namespace Svg.Skia
             }
 
             PathClip = null;
+            PictureMask = null;
             PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgFragment, _disposable);
             PaintFilter = null;
 

@@ -50,6 +50,7 @@ namespace Svg.Skia
             Transform = SKMatrixUtil.GetSKMatrix(svgAnchor.Transforms);
 
             PathClip = null;
+            PictureMask = null;
             PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgAnchor, _disposable);
             PaintFilter = null;
 

@@ -101,6 +101,8 @@ namespace Svg.Skia
                 _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
             }
 
+            // TODO: Add mask support.
+
             var skPaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgTextPath, _disposable);
             if (skPaintOpacity != null)
             {
@@ -194,6 +196,8 @@ namespace Svg.Skia
                 _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
             }
 
+            // TODO: Add mask support.
+
             var skPaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgTextRef, _disposable);
             if (skPaintOpacity != null)
             {
@@ -250,6 +254,8 @@ namespace Svg.Skia
                 bool antialias = SKPaintUtil.IsAntialias(svgTextSpan);
                 _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
             }
+
+            // TODO: Add mask support.
 
             var skPaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgTextSpan, _disposable);
             if (skPaintOpacity != null)
@@ -413,6 +419,8 @@ namespace Svg.Skia
                 bool antialias = SKPaintUtil.IsAntialias(svgText);
                 _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
             }
+
+            // TODO: Add mask support.
 
             var skPaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgText, _disposable);
             if (skPaintOpacity != null)

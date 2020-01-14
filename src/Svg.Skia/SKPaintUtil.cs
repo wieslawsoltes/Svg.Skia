@@ -1047,6 +1047,176 @@ namespace Svg.Skia
             return null;
         }
 
+        public static SKPicture? CreatePicture(SvgMask svgMask, SKRect skBounds, CompositeDisposable disposable)
+        {
+            var maskUnits = SvgCoordinateUnits.ObjectBoundingBox;
+            var maskContentUnits = SvgCoordinateUnits.UserSpaceOnUse;
+            var xUnit = new SvgUnit(SvgUnitType.Percentage, -10f);
+            var yUnit = new SvgUnit(SvgUnitType.Percentage, -10f);
+            var widthUnit = new SvgUnit(SvgUnitType.Percentage, 120f);
+            var heightUnit = new SvgUnit(SvgUnitType.Percentage, 120f);
+
+            if (svgMask.CustomAttributes.TryGetValue("maskUnits", out string? maskUnitsString))
+            {
+                switch (maskUnitsString)
+                {
+                    case "userSpaceOnUse":
+                        maskUnits = SvgCoordinateUnits.UserSpaceOnUse;
+                        break;
+                    default:
+                    case "objectBoundingBox":
+                        maskUnits = SvgCoordinateUnits.ObjectBoundingBox;
+                        break;
+                }
+            }
+
+            if (svgMask.CustomAttributes.TryGetValue("maskContentUnits", out string? maskContentUnitsString))
+            {
+                switch (maskContentUnitsString)
+                {
+                    default:
+                    case "userSpaceOnUse":
+                        maskContentUnits = SvgCoordinateUnits.UserSpaceOnUse;
+                        break;
+                    case "objectBoundingBox":
+                        maskContentUnits = SvgCoordinateUnits.ObjectBoundingBox;
+                        break;
+                }
+            }
+
+            if (svgMask.CustomAttributes.TryGetValue("x", out string? xString))
+            {
+                if (new SvgUnitConverter().ConvertFromString(xString) is SvgUnit _x)
+                {
+                    xUnit = _x;
+                }
+            }
+
+            if (svgMask.CustomAttributes.TryGetValue("y", out string? yString))
+            {
+                if (new SvgUnitConverter().ConvertFromString(yString) is SvgUnit _y)
+                {
+                    yUnit = _y;
+                }
+            }
+
+            if (svgMask.CustomAttributes.TryGetValue("width", out string? _widthString))
+            {
+                if (new SvgUnitConverter().ConvertFromString(_widthString) is SvgUnit _width)
+                {
+                    widthUnit = _width;
+                }
+            }
+
+            if (svgMask.CustomAttributes.TryGetValue("height", out string? heightString))
+            {
+                if (new SvgUnitConverter().ConvertFromString(heightString) is SvgUnit _height)
+                {
+                    heightUnit = _height;
+                }
+            }
+
+            float x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skBounds);
+            float y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgMask, skBounds);
+            float width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skBounds);
+            float height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgMask, skBounds);
+
+            if (width <= 0 || height <= 0)
+            {
+                return null;
+            }
+
+            if (maskUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            {
+                if (xUnit.Type != SvgUnitType.Percentage)
+                {
+                    x *= skBounds.Width;
+                }
+
+                if (yUnit.Type != SvgUnitType.Percentage)
+                {
+                    y *= skBounds.Height;
+                }
+
+                if (widthUnit.Type != SvgUnitType.Percentage)
+                {
+                    width *= skBounds.Width;
+                }
+
+                if (heightUnit.Type != SvgUnitType.Percentage)
+                {
+                    height *= skBounds.Height;
+                }
+
+                x += skBounds.Left;
+                y += skBounds.Top;
+            }
+
+            SKRect skRectTransformed = SKRect.Create(x, y, width, height);
+
+            var skLocalMatrix = SKMatrix.MakeIdentity();
+
+            var svgMaskTransform = svgMask.Transforms;
+            if (svgMaskTransform != null && svgMaskTransform.Count > 0)
+            {
+                var maskTransform = SKMatrixUtil.GetSKMatrix(svgMaskTransform);
+                SKMatrix.PreConcat(ref skLocalMatrix, ref maskTransform);
+            }
+            var translateTransform = SKMatrix.MakeTranslation(skRectTransformed.Left, skRectTransformed.Top);
+            SKMatrix.PreConcat(ref skLocalMatrix, ref translateTransform);
+
+            SKMatrix skPictureTransform = SKMatrix.MakeIdentity();
+
+            if (maskContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            {
+                var skBoundsScaleTransform = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
+                SKMatrix.PreConcat(ref skPictureTransform, ref skBoundsScaleTransform);
+            }
+
+            var skPicture = CreatePicture(svgMask.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform, 1f);
+            disposable.Add(skPicture);
+            return skPicture;
+        }
+
+        public static Uri? GetMaskUri(SvgVisualElement svgVisualElement)
+        {
+            if (svgVisualElement.TryGetAttribute("mask", out string maskUrl))
+            {
+                return new Uri(maskUrl, UriKind.RelativeOrAbsolute);
+            }
+            return null;
+        }
+
+        public static SvgMask? GetMask(SvgVisualElement svgVisualElement, HashSet<Uri> uris, CompositeDisposable disposable)
+        {
+            var maskUri = GetMaskUri(svgVisualElement);
+            if (maskUri != null)
+            {
+                if (SvgExtensions.HasRecursiveReference(svgVisualElement, (e) => GetMaskUri(e), uris))
+                {
+                    return null;
+                }
+
+                var svgMask = SvgExtensions.GetReference<SvgMask>(svgVisualElement, maskUri);
+                if (svgMask == null || svgMask.Children == null)
+                {
+                    return null;
+                }
+                return svgMask;
+            }
+            return null;
+        }
+
+        public static SKPicture? GetSvgVisualElementMask(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
+        {
+            var svgMask = GetMask(svgVisualElement, uris, disposable);
+            if (svgMask == null)
+            {
+                return null;
+            }
+            return CreatePicture(svgMask, skBounds, disposable);
+        }
+
         public static SKFontStyleWeight SKFontStyleWeight(SvgFontWeight svgFontWeight)
         {
             var fontWeight = SkiaSharp.SKFontStyleWeight.Normal;
