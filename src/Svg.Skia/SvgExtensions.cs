@@ -167,7 +167,7 @@ namespace Svg.Skia
             }
             else
             {
-                // NOTE: // Pass bounds as SKRect.Empty because percentage case is handled before.
+                // NOTE: Pass bounds as SKRect.Empty because percentage case is handled before.
                 w = svgFragment.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, SKRect.Empty);
             }
             if (isHeightperc)
@@ -176,7 +176,7 @@ namespace Svg.Skia
             }
             else
             {
-                // NOTE: // Pass bounds as SKRect.Empty because percentage case is handled before.
+                // NOTE: Pass bounds as SKRect.Empty because percentage case is handled before.
                 h = svgFragment.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, SKRect.Empty);
             }
 
