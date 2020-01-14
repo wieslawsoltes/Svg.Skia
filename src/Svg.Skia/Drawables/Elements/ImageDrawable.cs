@@ -179,7 +179,7 @@ namespace Svg.Skia
 
             PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgImage, TransformedBounds, new HashSet<Uri>(), _disposable);
             PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgImage, _disposable);
-            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgImage, _disposable);
+            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgImage, TransformedBounds, _disposable);
 
             PaintFill = null;
             PaintStroke = null;

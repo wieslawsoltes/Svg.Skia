@@ -107,7 +107,7 @@ namespace Svg.Skia
                 _skCanvas.SaveLayer(skPaintOpacity);
             }
 
-            var skPaintFilter = SKPaintUtil.GetFilterSKPaint(svgTextPath, _disposable);
+            var skPaintFilter = SKPaintUtil.GetFilterSKPaint(svgTextPath, skBounds, _disposable);
             if (skPaintFilter != null)
             {
                 _skCanvas.SaveLayer(skPaintFilter);
@@ -200,7 +200,7 @@ namespace Svg.Skia
                 _skCanvas.SaveLayer(skPaintOpacity);
             }
 
-            var skPaintFilter = SKPaintUtil.GetFilterSKPaint(svgTextRef, _disposable);
+            var skPaintFilter = SKPaintUtil.GetFilterSKPaint(svgTextRef, skBounds, _disposable);
             if (skPaintFilter != null)
             {
                 _skCanvas.SaveLayer(skPaintFilter);
@@ -257,7 +257,7 @@ namespace Svg.Skia
                 _skCanvas.SaveLayer(skPaintOpacity);
             }
 
-            var skPaintFilter = SKPaintUtil.GetFilterSKPaint(svgTextSpan, _disposable);
+            var skPaintFilter = SKPaintUtil.GetFilterSKPaint(svgTextSpan, skBounds, _disposable);
             if (skPaintFilter != null)
             {
                 _skCanvas.SaveLayer(skPaintFilter);
@@ -420,7 +420,7 @@ namespace Svg.Skia
                 _skCanvas.SaveLayer(skPaintOpacity);
             }
 
-            var skPaintFilter = SKPaintUtil.GetFilterSKPaint(svgText, _disposable);
+            var skPaintFilter = SKPaintUtil.GetFilterSKPaint(svgText, skBounds, _disposable);
             if (skPaintFilter != null)
             {
                 _skCanvas.SaveLayer(skPaintFilter);

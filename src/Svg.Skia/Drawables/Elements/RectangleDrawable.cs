@@ -35,7 +35,7 @@ namespace Svg.Skia
 
             PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgRectangle, TransformedBounds, new HashSet<Uri>(), _disposable);
             PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgRectangle, _disposable);
-            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgRectangle, _disposable);
+            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgRectangle, TransformedBounds, _disposable);
 
             if (SKPaintUtil.IsValidFill(svgRectangle))
             {

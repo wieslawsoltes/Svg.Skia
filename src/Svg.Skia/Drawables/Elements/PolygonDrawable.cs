@@ -35,7 +35,7 @@ namespace Svg.Skia
 
             PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgPolygon, TransformedBounds, new HashSet<Uri>(), _disposable);
             PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgPolygon, _disposable);
-            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgPolygon, _disposable);
+            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgPolygon, TransformedBounds, _disposable);
 
             if (SKPaintUtil.IsValidFill(svgPolygon))
             {

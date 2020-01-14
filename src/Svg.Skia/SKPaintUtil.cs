@@ -635,7 +635,7 @@ namespace Svg.Skia
             };
         }
 
-        public static SKColorFilter CreateColorMatrix(SvgColourMatrix svgColourMatrix)
+        public static SKImageFilter CreateColorMatrix(SvgVisualElement svgVisualElement, SKRect skBounds, SvgColourMatrix svgColourMatrix, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             float[] matrix;
 
@@ -712,10 +712,12 @@ namespace Svg.Skia
                     break;
             }
 
-            return SKColorFilter.CreateColorMatrix(matrix);
+            var skColorFilter = SKColorFilter.CreateColorMatrix(matrix);
+
+            return SKImageFilter.CreateColorFilter(skColorFilter, input, cropRect);
         }
 
-        public static SKImageFilter CreateBlur(SvgGaussianBlur svgGaussianBlur)
+        public static SKImageFilter CreateBlur(SvgVisualElement svgVisualElement, SKRect skBounds, SvgGaussianBlur svgGaussianBlur, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             // TODO: Calculate correct value of sigma using one value stdDeviation.
             var sigmaX = svgGaussianBlur.StdDeviation;
@@ -723,69 +725,36 @@ namespace Svg.Skia
 
             return svgGaussianBlur.BlurType switch
             {
-                BlurType.HorizontalOnly => SKImageFilter.CreateBlur(sigmaX, 0f),
-                BlurType.VerticalOnly => SKImageFilter.CreateBlur(0f, sigmaY),
-                _ => SKImageFilter.CreateBlur(sigmaX, sigmaY),
+                BlurType.HorizontalOnly => SKImageFilter.CreateBlur(sigmaX, 0f, input, cropRect),
+                BlurType.VerticalOnly => SKImageFilter.CreateBlur(0f, sigmaY, input, cropRect),
+                _ => SKImageFilter.CreateBlur(sigmaX, sigmaY, input, cropRect),
             };
         }
 
-        public static void SetFilter(SvgVisualElement svgVisualElement, SKPaint skPaint, CompositeDisposable disposable)
+        public static SKImageFilter CreateMerge(SvgVisualElement svgVisualElement, SKRect skBounds, SvgMerge svgMerge, Dictionary<string, SKImageFilter> results, SKImageFilter.CropRect? cropRect = null)
         {
-            if (SvgExtensions.HasRecursiveReference(svgVisualElement, (e) => e.Filter, new HashSet<Uri>()))
-            {
-                return;
-            }
+            var children = svgMerge.Children.OfType<SvgMergeNode>().ToList();
+            var filters = new SKImageFilter[children.Count];
 
-            var svgFilter = SvgExtensions.GetReference<SvgFilter>(svgVisualElement, svgVisualElement.Filter);
-            if (svgFilter == null)
+            for (int i = 0; i < children.Count; i++)
             {
-                return;
-            }
-
-            foreach (var child in svgFilter.Children)
-            {
-                if (child is SvgFilterPrimitive svgFilterPrimitive)
+                var child = children[i];
+                var inputKey = child.Input;
+                if (!string.IsNullOrWhiteSpace(inputKey) && results.ContainsKey(inputKey))
                 {
-                    switch (svgFilterPrimitive)
-                    {
-                        case SvgColourMatrix svgColourMatrix:
-                            {
-                                var skColorFilter = CreateColorMatrix(svgColourMatrix);
-                                if (skColorFilter != null)
-                                {
-                                    disposable.Add(skColorFilter);
-                                    skPaint.ColorFilter = skColorFilter;
-                                }
-                            }
-                            break;
-                        case SvgGaussianBlur svgGaussianBlur:
-                            {
-                                var skImageFilter = CreateBlur(svgGaussianBlur);
-                                if (skImageFilter != null)
-                                {
-                                    disposable.Add(skImageFilter);
-                                    skPaint.ImageFilter = skImageFilter;
-                                }
-                            }
-                            break;
-                        case SvgMerge svgMerge:
-                            {
-                                // TODO: Implement SvgMerge filter.
-                            }
-                            break;
-                        case SvgOffset svgOffset:
-                            {
-                                // TODO: Implement SvgOffset filter.
-                            }
-                            break;
-                        default:
-                            {
-                                // TODO: Implement other filters.
-                            }
-                            break;
-                    }
+                    filters[i] = results[inputKey];
                 }
             }
+
+            return SKImageFilter.CreateMerge(filters, cropRect);
+        }
+
+        public static SKImageFilter CreateOffset(SvgVisualElement svgVisualElement, SKRect skBounds, SvgOffset svgOffset, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        {
+            float dx = svgOffset.Dx.ToDeviceValue(UnitRenderingType.Horizontal, svgOffset, skBounds);
+            float dy = svgOffset.Dy.ToDeviceValue(UnitRenderingType.Vertical, svgOffset, skBounds);
+
+            return SKImageFilter.CreateOffset(dx, dy, input, cropRect);
         }
 
         public static bool IsAntialias(SvgElement svgElement)
@@ -892,16 +861,159 @@ namespace Svg.Skia
             return skPaint;
         }
 
-        public static SKPaint? GetFilterSKPaint(SvgVisualElement svgVisualElement, CompositeDisposable disposable)
+        public static SKPaint? GetFilterSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable)
         {
             var filter = svgVisualElement.Filter;
             if (filter != null)
             {
+                var results = new Dictionary<string, SKImageFilter>();
+                var lastResult = default(SKImageFilter);
+
                 var skPaint = new SKPaint
                 {
                     Style = SKPaintStyle.StrokeAndFill
                 };
-                SetFilter(svgVisualElement, skPaint, disposable);
+
+                if (SvgExtensions.HasRecursiveReference(svgVisualElement, (e) => e.Filter, new HashSet<Uri>()))
+                {
+                    return null;
+                }
+
+                var svgFilter = SvgExtensions.GetReference<SvgFilter>(svgVisualElement, svgVisualElement.Filter);
+                if (svgFilter == null)
+                {
+                    return null;
+                }
+
+                // TODO: Handle filterUnits and primitiveUnits.
+
+                float x = svgFilter.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFilter, skBounds);
+                float y = svgFilter.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFilter, skBounds);
+                float width = svgFilter.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFilter, skBounds);
+                float height = svgFilter.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFilter, skBounds);
+
+                if (width <= 0f || height <= 0f)
+                {
+                    // TODO: Disable visual element rendering.
+                    //return null;
+                }
+
+                var skClipRect = SKRect.Create(x, y, width, height);
+                var skCropRect = default(SKImageFilter.CropRect);
+                // TODO: var skCropRect = new SKImageFilter.CropRect(skClipRect);
+
+                foreach (var child in svgFilter.Children)
+                {
+                    if (child is SvgFilterPrimitive svgFilterPrimitive)
+                    {
+                        switch (svgFilterPrimitive)
+                        {
+                            case SvgColourMatrix svgColourMatrix:
+                                {
+                                    var inputKey = svgColourMatrix.Input;
+                                    var input = default(SKImageFilter);
+                                    if (!string.IsNullOrWhiteSpace(inputKey) && results.ContainsKey(inputKey))
+                                    {
+                                        input = results[inputKey];
+                                    }
+                                    else
+                                    {
+                                        input = lastResult;
+                                    }
+
+                                    var skImageFilter = CreateColorMatrix(svgVisualElement, skBounds, svgColourMatrix, input, skCropRect);
+                                    if (skImageFilter != null)
+                                    {
+                                        var key = svgColourMatrix.Result;
+                                        if (!string.IsNullOrWhiteSpace(key))
+                                        {
+                                            results[key] = skImageFilter;
+                                        }
+                                        lastResult = skImageFilter;
+                                        disposable.Add(skImageFilter);
+                                        skPaint.ImageFilter = skImageFilter;
+                                    }
+                                }
+                                break;
+                            case SvgGaussianBlur svgGaussianBlur:
+                                {
+                                    var inputKey = svgGaussianBlur.Input;
+                                    var input = default(SKImageFilter);
+                                    if (!string.IsNullOrWhiteSpace(inputKey) && results.ContainsKey(inputKey))
+                                    {
+                                        input = results[inputKey];
+                                    }
+                                    else
+                                    {
+                                        input = lastResult;
+                                    }
+
+                                    var skImageFilter = CreateBlur(svgVisualElement, skBounds, svgGaussianBlur, input, skCropRect);
+                                    if (skImageFilter != null)
+                                    {
+                                        var key = svgGaussianBlur.Result;
+                                        if (!string.IsNullOrWhiteSpace(key))
+                                        {
+                                            results[key] = skImageFilter;
+                                        }
+                                        lastResult = skImageFilter;
+                                        disposable.Add(skImageFilter);
+                                        skPaint.ImageFilter = skImageFilter;
+                                    }
+                                }
+                                break;
+                            case SvgMerge svgMerge:
+                                {
+                                    var skImageFilter = CreateMerge(svgVisualElement, skBounds, svgMerge, results, skCropRect);
+                                    if (skImageFilter != null)
+                                    {
+                                        var key = svgMerge.Result;
+                                        if (!string.IsNullOrWhiteSpace(key))
+                                        {
+                                            results[key] = skImageFilter;
+                                        }
+                                        lastResult = skImageFilter;
+                                        disposable.Add(skImageFilter);
+                                        skPaint.ImageFilter = skImageFilter;
+                                    }
+                                }
+                                break;
+                            case SvgOffset svgOffset:
+                                {
+                                    var inputKey = svgOffset.Input;
+                                    var input = default(SKImageFilter);
+                                    if (!string.IsNullOrWhiteSpace(inputKey) && results.ContainsKey(inputKey))
+                                    {
+                                        input = results[inputKey];
+                                    }
+                                    else
+                                    {
+                                        input = lastResult;
+                                    }
+
+                                    var skImageFilter = CreateOffset(svgVisualElement, skBounds, svgOffset, input, skCropRect);
+                                    if (skImageFilter != null)
+                                    {
+                                        var key = svgOffset.Result;
+                                        if (!string.IsNullOrWhiteSpace(key))
+                                        {
+                                            results[key] = skImageFilter;
+                                        }
+                                        lastResult = skImageFilter;
+                                        disposable.Add(skImageFilter);
+                                        skPaint.ImageFilter = skImageFilter;
+                                    }
+                                }
+                                break;
+                            default:
+                                {
+                                    // TODO: Implement other filters.
+                                }
+                                break;
+                        }
+                    }
+                }
+
                 disposable.Add(skPaint);
                 return skPaint;
             }
