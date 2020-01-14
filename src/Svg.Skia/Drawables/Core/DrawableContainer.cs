@@ -37,8 +37,6 @@ namespace Svg.Skia
             if (PictureMask != null)
             {
                 canvas.SaveLayer(PaintTransparentBlack);
-                canvas.DrawPicture(PictureMask);
-                canvas.SaveLayer(PaintDstIn);
             }
 
             if (PaintOpacity != null)
@@ -68,8 +66,10 @@ namespace Svg.Skia
 
             if (PictureMask != null)
             {
-               canvas.Restore();
-               canvas.Restore();
+                canvas.SaveLayer(PaintDstIn);
+                canvas.DrawPicture(PictureMask);
+                canvas.Restore();
+                canvas.Restore();
             }
 
             canvas.Restore();
