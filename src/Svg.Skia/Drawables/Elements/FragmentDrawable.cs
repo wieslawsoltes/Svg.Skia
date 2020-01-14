@@ -14,8 +14,10 @@ namespace Svg.Skia
             IgnoreDisplay = ignoreDisplay;
             IsDrawable = true;
 
-            float x = svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skOwnerBounds);
-            float y = svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skOwnerBounds);
+            var parent = svgFragment.Parent;
+
+            float x = parent == null ? 0f : svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skOwnerBounds);
+            float y = parent == null ? 0f : svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skOwnerBounds);
 
             var skSize = SvgExtensions.GetDimensions(svgFragment);
 
