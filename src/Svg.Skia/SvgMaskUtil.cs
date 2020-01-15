@@ -10,6 +10,25 @@ namespace Svg.Skia
 {
     public static class SvgMaskUtil
     {
+        public static SKPicture RecordPicture(SvgElementCollection svgElementCollection, SKRect skBounds, SKMatrix skMatrix)
+        {
+            using var skPictureRecorder = new SKPictureRecorder();
+            using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
+
+            skCanvas.SetMatrix(skMatrix);
+
+            foreach (var svgElement in svgElementCollection)
+            {
+                using var drawable = DrawableFactory.Create(svgElement, skBounds, false);
+                drawable?.Draw(skCanvas, 0f, 0f);
+            }
+
+            skCanvas.Restore();
+
+            return skPictureRecorder.EndRecording();
+        }
+
+
         public static SKPicture? GetMask(SvgMask svgMask, SKRect skBounds, CompositeDisposable disposable)
         {
             var maskUnits = SvgCoordinateUnits.ObjectBoundingBox;
@@ -117,27 +136,21 @@ namespace Svg.Skia
 
             SKRect skRectTransformed = SKRect.Create(x, y, width, height);
 
-            var skLocalMatrix = SKMatrix.MakeIdentity();
-
-            var svgMaskTransform = svgMask.Transforms;
-            if (svgMaskTransform != null && svgMaskTransform.Count > 0)
-            {
-                var maskTransform = SKMatrixUtil.GetSKMatrix(svgMaskTransform);
-                SKMatrix.PreConcat(ref skLocalMatrix, ref maskTransform);
-            }
-            var translateTransform = SKMatrix.MakeTranslation(skRectTransformed.Left, skRectTransformed.Top);
-            SKMatrix.PreConcat(ref skLocalMatrix, ref translateTransform);
-
-            SKMatrix skPictureTransform = SKMatrix.MakeIdentity();
+            var skPictureTransform = SKMatrix.MakeIdentity();
 
             if (maskContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
+                var skBoundsTranslateTransform = SKMatrix.MakeTranslation(skBounds.Left, skBounds.Top);
+                SKMatrix.PreConcat(ref skPictureTransform, ref skBoundsTranslateTransform);
+
                 var skBoundsScaleTransform = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
                 SKMatrix.PreConcat(ref skPictureTransform, ref skBoundsScaleTransform);
+
             }
 
-            var skPicture = SKPaintUtil.RecordPicture(svgMask.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform, 1f);
+            var skPicture = RecordPicture(svgMask.Children, skRectTransformed, skPictureTransform);
             disposable.Add(skPicture);
+
             return skPicture;
         }
 
