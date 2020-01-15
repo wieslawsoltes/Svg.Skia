@@ -10,10 +10,10 @@ namespace Svg.Skia
 {
     public class ImageDrawable : Drawable
     {
-        internal SKImage? _skImage;
-        internal FragmentDrawable? _fragmentDrawable;
-        internal SKRect _srcRect = default;
-        internal SKRect _destRect = default;
+        public SKImage? Image;
+        public FragmentDrawable? FragmentDrawable;
+        public SKRect SrcRect = default;
+        public SKRect DestRect = default;
 
         public ImageDrawable(SvgImage svgImage, SKRect skOwnerBounds, bool ignoreDisplay)
         {
@@ -58,27 +58,27 @@ namespace Svg.Skia
                 _disposable.Add(skImage);
             }
 
-            _srcRect = default;
+            SrcRect = default;
 
             if (skImage != null)
             {
-                _srcRect = SKRect.Create(0f, 0f, skImage.Width, skImage.Height);
+                SrcRect = SKRect.Create(0f, 0f, skImage.Width, skImage.Height);
             }
 
             if (svgFragment != null)
             {
                 var skSize = SvgExtensions.GetDimensions(svgFragment);
-                _srcRect = SKRect.Create(0f, 0f, skSize.Width, skSize.Height);
+                SrcRect = SKRect.Create(0f, 0f, skSize.Width, skSize.Height);
             }
 
             var destClip = SKRect.Create(location.X, location.Y, width, height);
-            _destRect = destClip;
+            DestRect = destClip;
 
             var aspectRatio = svgImage.AspectRatio;
             if (aspectRatio.Align != SvgPreserveAspectRatio.none)
             {
-                var fScaleX = destClip.Width / _srcRect.Width;
-                var fScaleY = destClip.Height / _srcRect.Height;
+                var fScaleX = destClip.Width / SrcRect.Width;
+                var fScaleY = destClip.Height / SrcRect.Height;
                 var xOffset = 0f;
                 var yOffset = 0f;
 
@@ -98,38 +98,38 @@ namespace Svg.Skia
                     case SvgPreserveAspectRatio.xMinYMin:
                         break;
                     case SvgPreserveAspectRatio.xMidYMin:
-                        xOffset = (destClip.Width - _srcRect.Width * fScaleX) / 2;
+                        xOffset = (destClip.Width - SrcRect.Width * fScaleX) / 2;
                         break;
                     case SvgPreserveAspectRatio.xMaxYMin:
-                        xOffset = (destClip.Width - _srcRect.Width * fScaleX);
+                        xOffset = (destClip.Width - SrcRect.Width * fScaleX);
                         break;
                     case SvgPreserveAspectRatio.xMinYMid:
-                        yOffset = (destClip.Height - _srcRect.Height * fScaleY) / 2;
+                        yOffset = (destClip.Height - SrcRect.Height * fScaleY) / 2;
                         break;
                     case SvgPreserveAspectRatio.xMidYMid:
-                        xOffset = (destClip.Width - _srcRect.Width * fScaleX) / 2;
-                        yOffset = (destClip.Height - _srcRect.Height * fScaleY) / 2;
+                        xOffset = (destClip.Width - SrcRect.Width * fScaleX) / 2;
+                        yOffset = (destClip.Height - SrcRect.Height * fScaleY) / 2;
                         break;
                     case SvgPreserveAspectRatio.xMaxYMid:
-                        xOffset = (destClip.Width - _srcRect.Width * fScaleX);
-                        yOffset = (destClip.Height - _srcRect.Height * fScaleY) / 2;
+                        xOffset = (destClip.Width - SrcRect.Width * fScaleX);
+                        yOffset = (destClip.Height - SrcRect.Height * fScaleY) / 2;
                         break;
                     case SvgPreserveAspectRatio.xMinYMax:
-                        yOffset = (destClip.Height - _srcRect.Height * fScaleY);
+                        yOffset = (destClip.Height - SrcRect.Height * fScaleY);
                         break;
                     case SvgPreserveAspectRatio.xMidYMax:
-                        xOffset = (destClip.Width - _srcRect.Width * fScaleX) / 2;
-                        yOffset = (destClip.Height - _srcRect.Height * fScaleY);
+                        xOffset = (destClip.Width - SrcRect.Width * fScaleX) / 2;
+                        yOffset = (destClip.Height - SrcRect.Height * fScaleY);
                         break;
                     case SvgPreserveAspectRatio.xMaxYMax:
-                        xOffset = (destClip.Width - _srcRect.Width * fScaleX);
-                        yOffset = (destClip.Height - _srcRect.Height * fScaleY);
+                        xOffset = (destClip.Width - SrcRect.Width * fScaleX);
+                        yOffset = (destClip.Height - SrcRect.Height * fScaleY);
                         break;
                 }
 
-                _destRect = SKRect.Create(
+                DestRect = SKRect.Create(
                     destClip.Left + xOffset, destClip.Top + yOffset,
-                    _srcRect.Width * fScaleX, _srcRect.Height * fScaleY);
+                    SrcRect.Width * fScaleX, SrcRect.Height * fScaleY);
             }
 
             ClipRect = destClip;
@@ -142,35 +142,35 @@ namespace Svg.Skia
 
             if (skImage != null)
             {
-                _skImage = skImage;
+                Image = skImage;
             }
 
             if (svgFragment != null)
             {
-                _fragmentDrawable = new FragmentDrawable(svgFragment, skOwnerBounds, ignoreDisplay);
-                _disposable.Add(_fragmentDrawable);
+                FragmentDrawable = new FragmentDrawable(svgFragment, skOwnerBounds, ignoreDisplay);
+                _disposable.Add(FragmentDrawable);
             }
 
             IsAntialias = SKPaintUtil.IsAntialias(svgImage);
 
-            if (_skImage != null)
+            if (Image != null)
             {
-                TransformedBounds = _destRect;
+                TransformedBounds = DestRect;
             }
 
-            if (_fragmentDrawable != null)
+            if (FragmentDrawable != null)
             {
                 //_skBounds = _fragmentDrawable._skBounds;
-                TransformedBounds = _destRect;
+                TransformedBounds = DestRect;
             }
 
             Transform = SKMatrixUtil.GetSKMatrix(svgImage.Transforms);
-            if (_fragmentDrawable != null)
+            if (FragmentDrawable != null)
             {
-                float dx = _destRect.Left;
-                float dy = _destRect.Top;
-                float sx = _destRect.Width / _srcRect.Width;
-                float sy = _destRect.Height / _srcRect.Height;
+                float dx = DestRect.Left;
+                float dy = DestRect.Top;
+                float sx = DestRect.Width / SrcRect.Width;
+                float sy = DestRect.Height / SrcRect.Height;
                 var skTranslationMatrix = SKMatrix.MakeTranslation(dx, dy);
                 var skScaleMatrix = SKMatrix.MakeScale(sx, sy);
                 SKMatrix.PreConcat(ref skTranslationMatrix, ref skScaleMatrix);
@@ -190,73 +190,39 @@ namespace Svg.Skia
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
         }
 
-        protected override void OnDraw(SKCanvas canvas)
+        protected override void Draw(SKCanvas canvas)
         {
-            if (!IsDrawable)
+            if (Image != null)
             {
-                return;
+                canvas.DrawImage(Image, SrcRect, DestRect);
             }
 
-            canvas.Save();
-
-            if (ClipRect != null)
+            if (FragmentDrawable != null)
             {
-                canvas.ClipRect(ClipRect.Value, SKClipOperation.Intersect);
+                FragmentDrawable.Draw(canvas, 0f, 0f);
+            }
+        }
+
+        public override Drawable? HitTest(SKPoint skPoint)
+        {
+            if (Image != null)
+            {
+                if (DestRect.Contains(skPoint))
+                {
+                    return this;
+                }
             }
 
-            var skMatrixTotal = canvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref Transform);
-            canvas.SetMatrix(skMatrixTotal);
-
-            if (PathClip != null && !PathClip.IsEmpty)
+            if (FragmentDrawable != null)
             {
-                canvas.ClipPath(PathClip, SKClipOperation.Intersect, IsAntialias);
+                var result = FragmentDrawable?.HitTest(skPoint);
+                if (result != null)
+                {
+                    return result;
+                }
             }
 
-            if (PictureMask != null)
-            {
-                canvas.SaveLayer(PaintTransparentBlack);
-            }
-
-            if (PaintOpacity != null)
-            {
-                canvas.SaveLayer(PaintOpacity);
-            }
-
-            if (PaintFilter != null)
-            {
-                canvas.SaveLayer(PaintFilter);
-            }
-
-            if (_skImage != null)
-            {
-                canvas.DrawImage(_skImage, _srcRect, _destRect);
-            }
-
-            if (_fragmentDrawable != null)
-            {
-                _fragmentDrawable.Draw(canvas, 0f, 0f);
-            }
-
-            if (PaintFilter != null)
-            {
-                canvas.Restore();
-            }
-
-            if (PaintOpacity != null)
-            {
-                canvas.Restore();
-            }
-
-            if (PictureMask != null)
-            {
-                canvas.SaveLayer(PaintDstIn);
-                canvas.DrawPicture(PictureMask);
-                canvas.Restore();
-                canvas.Restore();
-            }
-
-            canvas.Restore();
+            return base.HitTest(skPoint);
         }
     }
 }

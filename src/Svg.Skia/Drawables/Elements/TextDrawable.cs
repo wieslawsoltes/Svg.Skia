@@ -483,5 +483,10 @@ namespace Svg.Skia
             // TODO:
             DrawText(_svgText, _skOwnerBounds, IgnoreDisplay, canvas);
         }
+
+        protected override void Draw(SKCanvas canvas)
+        {
+            // TODO:
+        }
     }
 }

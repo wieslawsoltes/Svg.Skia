@@ -11,7 +11,8 @@ namespace Svg.Skia
 {
     public class MarkerDrawable : Drawable
     {
-        internal Drawable? _markerDrawable;
+        public Drawable? MarkerElementDrawable;
+        public SKRect? MarkerClipRect;
 
         public MarkerDrawable(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds)
         {
@@ -78,7 +79,7 @@ namespace Svg.Skia
                     break;
             }
 
-            ClipRect = SKRect.Create(
+            MarkerClipRect = SKRect.Create(
                 svgMarker.ViewBox.MinX,
                 svgMarker.ViewBox.MinY,
                 markerWidth / viewBoxToMarkerUnitsScaleX,
@@ -87,8 +88,8 @@ namespace Svg.Skia
             var drawable = DrawableFactory.Create(markerElement, skOwnerBounds, true);
             if (drawable != null)
             {
-                _markerDrawable = drawable;
-                _disposable.Add(_markerDrawable);
+                MarkerElementDrawable = drawable;
+                _disposable.Add(MarkerElementDrawable);
             }
             else
             {
@@ -98,7 +99,7 @@ namespace Svg.Skia
 
             IsAntialias = SKPaintUtil.IsAntialias(svgMarker);
 
-            TransformedBounds = _markerDrawable.TransformedBounds;
+            TransformedBounds = MarkerElementDrawable.TransformedBounds;
 
             Transform = SKMatrixUtil.GetSKMatrix(svgMarker.Transforms);
             SKMatrix.PreConcat(ref Transform, ref skMarkerMatrix);
@@ -132,52 +133,24 @@ namespace Svg.Skia
             return markerElement;
         }
 
-        protected override void OnDraw(SKCanvas canvas)
+        protected override void Draw(SKCanvas canvas)
         {
-            if (!IsDrawable)
+            if (MarkerClipRect != null)
             {
-                return;
+                canvas.ClipRect(MarkerClipRect.Value, SKClipOperation.Intersect);
             }
 
-            canvas.Save();
+            MarkerElementDrawable?.Draw(canvas, 0f, 0f);
+        }
 
-            var skMatrixTotal = canvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref Transform);
-            canvas.SetMatrix(skMatrixTotal);
-
-            if (PathClip != null && !PathClip.IsEmpty)
+        public override Drawable? HitTest(SKPoint skPoint)
+        {
+            var result = MarkerElementDrawable?.HitTest(skPoint);
+            if (result != null)
             {
-                canvas.ClipPath(PathClip, SKClipOperation.Intersect, IsAntialias);
+                return result;
             }
-
-            if (PaintOpacity != null)
-            {
-                canvas.SaveLayer(PaintOpacity);
-            }
-
-            if (PaintFilter != null)
-            {
-                canvas.SaveLayer(PaintFilter);
-            }
-
-            if (ClipRect != null)
-            {
-                canvas.ClipRect(ClipRect.Value, SKClipOperation.Intersect);
-            }
-
-            _markerDrawable?.Draw(canvas, 0f, 0f);
-
-            if (PaintFilter != null)
-            {
-                canvas.Restore();
-            }
-
-            if (PaintOpacity != null)
-            {
-                canvas.Restore();
-            }
-
-            canvas.Restore();
+            return base.HitTest(skPoint);
         }
     }
 }

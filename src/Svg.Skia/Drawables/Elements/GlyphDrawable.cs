@@ -12,5 +12,10 @@ namespace Svg.Skia
         {
             // TODO: Implement drawable.
         }
+
+        protected override void Draw(SKCanvas canvas)
+        {
+            // TODO:
+        }
     }
 }
