@@ -95,7 +95,7 @@ namespace Svg.Skia
             SKMatrix.PreConcat(ref skMatrixTotal, ref Transform);
             canvas.SetMatrix(skMatrixTotal);
 
-            if (PathClip != null && !PathClip.IsEmpty)
+            if (PathClip != null)
             {
                 canvas.ClipPath(PathClip, SKClipOperation.Intersect, IsAntialias);
             }
