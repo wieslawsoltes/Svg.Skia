@@ -62,7 +62,15 @@ namespace Svg.Skia
 
             PaintDstIn = new SKPaint
             {
-                BlendMode = SKBlendMode.DstIn
+                BlendMode = SKBlendMode.DstIn,
+                ColorFilter = SKColorFilter.CreateColorMatrix(
+                    new float[]
+                    {
+                        0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0,
+                        0.2125f, 0.7154f, 0.0721f, 0, 0
+                    })
             };
             _disposable.Add(PaintDstIn);
         }
