@@ -19,7 +19,7 @@ namespace Svg.Skia
         public SKRect? ClipRect;
         public SKPath? PathClip;
         public SKPicture? PictureMask;
-        public SKPaint? PaintTransparentBlack;
+        public SKPaint? PaintMask;
         public SKPaint? PaintDstIn;
         public SKPaint? PaintOpacity;
         public SKPaint? PaintFilter;
@@ -55,16 +55,14 @@ namespace Svg.Skia
                 return;
             }
 
-            PaintTransparentBlack = new SKPaint()
+            PaintMask = new SKPaint()
             {
-                Style = SKPaintStyle.StrokeAndFill
             };
-            _disposable.Add(PaintTransparentBlack);
+            _disposable.Add(PaintMask);
 
             PaintDstIn = new SKPaint
             {
-                BlendMode = SKBlendMode.DstIn,
-                Style = SKPaintStyle.StrokeAndFill
+                BlendMode = SKBlendMode.DstIn
             };
             _disposable.Add(PaintDstIn);
         }
@@ -96,7 +94,7 @@ namespace Svg.Skia
 
             if (PictureMask != null)
             {
-                canvas.SaveLayer(PaintTransparentBlack);
+                canvas.SaveLayer(PaintMask);
             }
 
             if (PaintOpacity != null)
