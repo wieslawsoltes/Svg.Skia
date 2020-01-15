@@ -100,7 +100,7 @@ namespace Svg.Skia
                 canvas.ClipPath(PathClip, SKClipOperation.Intersect, IsAntialias);
             }
 
-            if (PictureMask != null)
+            if (PictureMask != null && PaintOpacity == null)
             {
                 canvas.SaveLayer(PaintMask);
             }
@@ -122,7 +122,7 @@ namespace Svg.Skia
                 canvas.Restore();
             }
 
-            if (PaintOpacity != null)
+            if (PaintOpacity != null && PictureMask == null)
             {
                 canvas.Restore();
             }
