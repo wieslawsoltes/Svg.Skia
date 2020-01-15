@@ -69,15 +69,6 @@ namespace Svg.Skia
             _disposable.Add(PaintDstIn);
         }
 
-        public virtual Drawable? HitTest(SKPoint skPoint)
-        {
-            if (TransformedBounds.Contains(skPoint))
-            {
-                return this;
-            }
-            return null;
-        }
-
         protected abstract void Draw(SKCanvas canvas);
 
         protected override void OnDraw(SKCanvas canvas)
@@ -139,6 +130,15 @@ namespace Svg.Skia
             }
 
             canvas.Restore();
+        }
+
+        public virtual Drawable? HitTest(SKPoint skPoint)
+        {
+            if (TransformedBounds.Contains(skPoint))
+            {
+                return this;
+            }
+            return null;
         }
     }
 }
