@@ -284,7 +284,7 @@ namespace Svg.Skia
             return clipPath;
         }
 
-        private static SKPath? GetClipPath(SvgClipPath svgClipPath, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
+        public static SKPath? GetClipPath(SvgClipPath svgClipPath, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {
             var skPathClip = default(SKPath);
 
