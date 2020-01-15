@@ -36,37 +36,6 @@ namespace Svg.Skia
                     new SvgUnit(SvgUnitType.User, svgUnit.Value / 100) : svgUnit;
         }
 
-        public static SKPicture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity)
-        {
-            var skSize = new SKSize(width, height);
-            var skBounds = SKRect.Create(skSize);
-            using var skPictureRecorder = new SKPictureRecorder();
-            using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
-
-            skCanvas.SetMatrix(skMatrix);
-
-            using var skPaintOpacity = GetOpacitySKPaint(opacity);
-            if (skPaintOpacity != null)
-            {
-                skCanvas.SaveLayer(skPaintOpacity);
-            }
-
-            foreach (var svgElement in svgElementCollection)
-            {
-                using var drawable = DrawableFactory.Create(svgElement, skBounds, false);
-                drawable?.Draw(skCanvas, 0f, 0f);
-            }
-
-            if (skPaintOpacity != null)
-            {
-                skCanvas.Restore();
-            }
-
-            skCanvas.Restore();
-
-            return skPictureRecorder.EndRecording();
-        }
-
         public static SKColor GetColor(SvgColourServer svgColourServer, float opacity, bool forStroke = false)
         {
             if (svgColourServer == SvgPaintServer.None)
@@ -325,6 +294,37 @@ namespace Svg.Skia
             }
         }
 
+        public static SKPicture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity)
+        {
+            var skSize = new SKSize(width, height);
+            var skBounds = SKRect.Create(skSize);
+            using var skPictureRecorder = new SKPictureRecorder();
+            using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
+
+            skCanvas.SetMatrix(skMatrix);
+
+            using var skPaintOpacity = GetOpacitySKPaint(opacity);
+            if (skPaintOpacity != null)
+            {
+                skCanvas.SaveLayer(skPaintOpacity);
+            }
+
+            foreach (var svgElement in svgElementCollection)
+            {
+                using var drawable = DrawableFactory.Create(svgElement, skBounds, false);
+                drawable?.Draw(skCanvas, 0f, 0f);
+            }
+
+            if (skPaintOpacity != null)
+            {
+                skCanvas.Restore();
+            }
+
+            skCanvas.Restore();
+
+            return skPictureRecorder.EndRecording();
+        }
+
         public static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, CompositeDisposable disposable)
         {
             var svgPatternServers = new List<SvgPatternServer>();
@@ -471,16 +471,13 @@ namespace Svg.Skia
 
             SKRect skRectTransformed = SKRect.Create(x, y, width, height);
 
-            var skLocalMatrix = SKMatrix.MakeIdentity();
+            var skMatrix = SKMatrix.MakeIdentity();
 
-            var svgPatternTransform = svgPatternServer.PatternTransform;
-            if (svgPatternTransform != null && svgPatternTransform.Count > 0)
-            {
-                var patternTransform = SKMatrixUtil.GetSKMatrix(svgPatternTransform);
-                SKMatrix.PreConcat(ref skLocalMatrix, ref patternTransform);
-            }
+            var skPatternTransformMatrix = SKMatrixUtil.GetSKMatrix(svgPatternServer.PatternTransform);
+            SKMatrix.PreConcat(ref skMatrix, ref skPatternTransformMatrix);
+
             var translateTransform = SKMatrix.MakeTranslation(skRectTransformed.Left, skRectTransformed.Top);
-            SKMatrix.PreConcat(ref skLocalMatrix, ref translateTransform);
+            SKMatrix.PreConcat(ref skMatrix, ref translateTransform);
 
             SKMatrix skPictureTransform = SKMatrix.MakeIdentity();
             if (!viewBox.Equals(SvgViewBox.Empty))
@@ -506,7 +503,7 @@ namespace Svg.Skia
             var skPicture = RecordPicture(firstChildren.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform, opacity);
             disposable.Add(skPicture);
 
-            return SKShader.CreatePicture(skPicture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, skLocalMatrix, skPicture.CullRect);
+            return SKShader.CreatePicture(skPicture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, skMatrix, skPicture.CullRect);
         }
 
         private static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, SKRect skBounds, SKPaint skPaint, bool forStroke, CompositeDisposable disposable)
