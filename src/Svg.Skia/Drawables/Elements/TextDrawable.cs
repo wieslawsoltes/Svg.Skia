@@ -95,7 +95,7 @@ namespace Svg.Skia
             _skCanvas.SetMatrix(skMatrixTotal);
 
             var skPathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgTextPath, skBounds, new HashSet<Uri>(), _disposable);
-            if (skPathClip != null && !skPathClip.IsEmpty)
+            if (skPathClip != null)
             {
                 bool antialias = SKPaintUtil.IsAntialias(svgTextPath);
                 _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
@@ -190,7 +190,7 @@ namespace Svg.Skia
             _skCanvas.SetMatrix(skMatrixTotal);
 
             var skPathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgTextRef, skBounds, new HashSet<Uri>(), _disposable);
-            if (skPathClip != null && !skPathClip.IsEmpty)
+            if (skPathClip != null)
             {
                 bool antialias = SKPaintUtil.IsAntialias(svgTextRef);
                 _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
@@ -249,7 +249,7 @@ namespace Svg.Skia
             _skCanvas.SetMatrix(skMatrixTotal);
 
             var skPathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgTextSpan, skBounds, new HashSet<Uri>(), _disposable);
-            if (skPathClip != null && !skPathClip.IsEmpty)
+            if (skPathClip != null)
             {
                 bool antialias = SKPaintUtil.IsAntialias(svgTextSpan);
                 _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
@@ -414,7 +414,7 @@ namespace Svg.Skia
             _skCanvas.SetMatrix(skMatrixTotal);
 
             var skPathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgText, skBounds, new HashSet<Uri>(), _disposable);
-            if (skPathClip != null && !skPathClip.IsEmpty)
+            if (skPathClip != null)
             {
                 bool antialias = SKPaintUtil.IsAntialias(svgText);
                 _skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
