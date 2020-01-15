@@ -3,6 +3,7 @@
 //
 // Parts of this source file are adapted from the https://github.com/vvvv/SVG
 using System;
+using System.Collections.Generic;
 using SkiaSharp;
 
 namespace Svg.Skia
@@ -81,7 +82,17 @@ namespace Svg.Skia
                     break;
             }
 
-            PathClip = null;
+            var clipPathUris = new HashSet<Uri>();
+            var svgClipPath = svgFragment.GetUriElementReference<SvgClipPath>("clip-path", clipPathUris);
+            if (svgClipPath != null && svgClipPath.Children != null)
+            {
+                PathClip = SvgClipPathUtil.GetClipPath(svgClipPath, TransformedBounds, clipPathUris, _disposable);
+            }
+            else
+            {
+                PathClip = null;
+            }
+
             PictureMask = null;
             PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgFragment, _disposable);
             PaintFilter = null;
