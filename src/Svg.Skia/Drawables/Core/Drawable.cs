@@ -61,8 +61,8 @@ namespace Svg.Skia
             _disposable.Add(PaintTransparentBlack);
 
             PaintDstIn = new SKPaint
-            { 
-                BlendMode = SKBlendMode.DstIn 
+            {
+                BlendMode = SKBlendMode.DstIn
             };
             _disposable.Add(PaintDstIn);
         }
