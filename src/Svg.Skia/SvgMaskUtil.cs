@@ -10,10 +10,12 @@ namespace Svg.Skia
 {
     public static class SvgMaskUtil
     {
-        public static SKPicture RecordPicture(SvgElementCollection svgElementCollection, SKRect skBounds, SKMatrix skMatrix)
+        public static SKPicture RecordPicture(SvgElementCollection svgElementCollection, SKRect skRectTransformed, SKRect skBounds, SKMatrix skMatrix)
         {
             using var skPictureRecorder = new SKPictureRecorder();
-            using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
+            using var skCanvas = skPictureRecorder.BeginRecording(skRectTransformed);
+
+            skCanvas.ClipRect(skRectTransformed, SKClipOperation.Intersect);
 
             skCanvas.SetMatrix(skMatrix);
 
@@ -140,15 +142,14 @@ namespace Svg.Skia
 
             if (maskContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
-                var skBoundsTranslateTransform = SKMatrix.MakeTranslation(skBounds.Left, skBounds.Top);
-                SKMatrix.PreConcat(ref skPictureTransform, ref skBoundsTranslateTransform);
-
                 var skBoundsScaleTransform = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
                 SKMatrix.PreConcat(ref skPictureTransform, ref skBoundsScaleTransform);
 
+                var skBoundsTranslateTransform = SKMatrix.MakeTranslation(skBounds.Left, skBounds.Top);
+                SKMatrix.PreConcat(ref skPictureTransform, ref skBoundsTranslateTransform);
             }
 
-            var skPicture = RecordPicture(svgMask.Children, skRectTransformed, skPictureTransform);
+            var skPicture = RecordPicture(svgMask.Children, skRectTransformed, skBounds, skPictureTransform);
             disposable.Add(skPicture);
 
             return skPicture;
