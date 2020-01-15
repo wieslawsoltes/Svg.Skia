@@ -30,7 +30,6 @@ namespace Svg.Skia
             return skPictureRecorder.EndRecording();
         }
 
-
         public static SKPicture? GetMask(SvgMask svgMask, SKRect skBounds, CompositeDisposable disposable)
         {
             var maskUnits = SvgCoordinateUnits.ObjectBoundingBox;
@@ -144,9 +143,6 @@ namespace Svg.Skia
             {
                 var skBoundsScaleTransform = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
                 SKMatrix.PreConcat(ref skPictureTransform, ref skBoundsScaleTransform);
-
-                var skBoundsTranslateTransform = SKMatrix.MakeTranslation(skBounds.Left, skBounds.Top);
-                SKMatrix.PreConcat(ref skPictureTransform, ref skBoundsTranslateTransform);
             }
 
             var skPicture = RecordPicture(svgMask.Children, skRectTransformed, skBounds, skPictureTransform);
