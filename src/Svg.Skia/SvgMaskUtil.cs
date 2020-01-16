@@ -15,7 +15,9 @@ namespace Svg.Skia
             {
                 return null;
             }
-            return new MaskDrawable(svgMaskRef, skBounds, IgnoreAttributes.None);
+            var maskDrawable = new MaskDrawable(svgMaskRef, skBounds, IgnoreAttributes.None);
+            disposable.Add(maskDrawable);
+            return maskDrawable;
         }
     }
 }
