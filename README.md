@@ -128,4 +128,6 @@ The `Svg.Skia` library is using code from the https://github.com/vvvv/SVG
 
 ## License
 
+Parts of Svg.Skia source code are adapted from the https://github.com/vvvv/SVG
+
 Svg.Skia is licensed under the [MIT license](LICENSE.TXT).
