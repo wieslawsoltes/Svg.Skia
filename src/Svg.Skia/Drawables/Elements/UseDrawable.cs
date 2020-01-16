@@ -12,10 +12,10 @@ namespace Svg.Skia
     {
         public Drawable? ReferencedDrawable;
 
-        public UseDrawable(SvgUse svgUse, SKRect skOwnerBounds, bool ignoreDisplay)
+        public UseDrawable(SvgUse svgUse, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
         {
-            IgnoreDisplay = ignoreDisplay;
-            IsDrawable = CanDraw(svgUse, IgnoreDisplay);
+            IgnoreAttributes = ignoreAttributes;
+            IsDrawable = CanDraw(svgUse, IgnoreAttributes);
 
             if (!IsDrawable)
             {
@@ -61,12 +61,12 @@ namespace Svg.Skia
 
             if (svgReferencedElement is SvgSymbol svgSymbol)
             {
-                ReferencedDrawable = new SymbolDrawable(svgSymbol, x, y, width, height, skOwnerBounds, ignoreDisplay);
+                ReferencedDrawable = new SymbolDrawable(svgSymbol, x, y, width, height, skOwnerBounds, ignoreAttributes);
                 _disposable.Add(ReferencedDrawable);
             }
             else
             {
-                var drawable = DrawableFactory.Create(svgReferencedElement, skOwnerBounds, ignoreDisplay);
+                var drawable = DrawableFactory.Create(svgReferencedElement, skOwnerBounds, ignoreAttributes);
                 if (drawable != null)
                 {
                     ReferencedDrawable = drawable;
@@ -93,8 +93,8 @@ namespace Svg.Skia
             PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
             PictureMask = SvgMaskUtil.GetSvgVisualElementMask(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
             CreateMaskPaints();
-            PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgUse, _disposable);
-            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgUse, TransformedBounds, _disposable);
+            PaintOpacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgUse, _disposable);
+            PaintFilter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SKPaintUtil.GetFilterSKPaint(svgUse, TransformedBounds, _disposable);
 
             PaintFill = null;
             PaintStroke = null;

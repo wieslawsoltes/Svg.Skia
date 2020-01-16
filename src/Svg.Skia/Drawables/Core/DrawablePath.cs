@@ -11,7 +11,7 @@ namespace Svg.Skia
         public SKPath? Path;
         public List<Drawable> MarkerDrawables = new List<Drawable>();
 
-        internal void CreateMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skOwnerBounds)
+        internal void CreateMarker(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
         {
             float fAngle1 = 0f;
             if (svgMarker.Orient.IsAuto)
@@ -25,7 +25,7 @@ namespace Svg.Skia
                 }
             }
 
-            var markerDrawable = new MarkerDrawable(svgMarker, pOwner, pRefPoint, fAngle1, skOwnerBounds);
+            var markerDrawable = new MarkerDrawable(svgMarker, pOwner, pRefPoint, fAngle1, skOwnerBounds, ignoreAttributes);
             MarkerDrawables.Add(markerDrawable);
             _disposable.Add(markerDrawable);
         }

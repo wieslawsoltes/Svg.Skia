@@ -28,7 +28,7 @@ namespace Svg.Skia
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
-            using var drawable = DrawableFactory.Create(svgFragment, skBounds, false);
+            using var drawable = DrawableFactory.Create(svgFragment, skBounds, IgnoreAttributes.None);
             drawable?.Draw(skCanvas, 0f, 0f);
         }
 
@@ -46,7 +46,7 @@ namespace Svg.Skia
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
 
-            using var drawable = DrawableFactory.Create(svgFragment, skBounds, false);
+            using var drawable = DrawableFactory.Create(svgFragment, skBounds, IgnoreAttributes.None);
             if (drawable == null)
             {
                 return null;
@@ -68,7 +68,7 @@ namespace Svg.Skia
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
 
-            drawable = DrawableFactory.Create(svgFragment, skBounds, false);
+            drawable = DrawableFactory.Create(svgFragment, skBounds, IgnoreAttributes.None);
             if (drawable == null)
             {
                 return null;
@@ -89,12 +89,12 @@ namespace Svg.Skia
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
-            return DrawableFactory.Create(svgFragment, skBounds, false);
+            return DrawableFactory.Create(svgFragment, skBounds, IgnoreAttributes.None);
         }
 
-        public static Drawable? ToDrawable(SvgElement svgElement, SKRect skBounds, bool ignoreDisplay = false)
+        public static Drawable? ToDrawable(SvgElement svgElement, SKRect skBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
         {
-            return DrawableFactory.Create(svgElement, skBounds, ignoreDisplay);
+            return DrawableFactory.Create(svgElement, skBounds, ignoreAttributes);
         }
 
         public static SvgDocument? OpenSvg(string path)

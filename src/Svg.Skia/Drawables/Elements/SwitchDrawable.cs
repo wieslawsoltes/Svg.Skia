@@ -6,7 +6,7 @@ namespace Svg.Skia
 {
     public class SwitchDrawable : Drawable
     {
-        public SwitchDrawable(SvgSwitch svgSwitch, SKRect skOwnerBounds, bool ignoreDisplay)
+        public SwitchDrawable(SvgSwitch svgSwitch, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
         {
             // TODO: Implement drawable.
         }

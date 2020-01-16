@@ -8,10 +8,10 @@ namespace Svg.Skia
 {
     public class LineDrawable : DrawablePath
     {
-        public LineDrawable(SvgLine svgLine, SKRect skOwnerBounds, bool ignoreDisplay)
+        public LineDrawable(SvgLine svgLine, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
         {
-            IgnoreDisplay = ignoreDisplay;
-            IsDrawable = CanDraw(svgLine, IgnoreDisplay);
+            IgnoreAttributes = ignoreAttributes;
+            IsDrawable = CanDraw(svgLine, IgnoreAttributes);
 
             if (!IsDrawable)
             {
@@ -34,12 +34,12 @@ namespace Svg.Skia
             PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgLine, TransformedBounds, new HashSet<Uri>(), _disposable);
             PictureMask = SvgMaskUtil.GetSvgVisualElementMask(svgLine, TransformedBounds, new HashSet<Uri>(), _disposable);
             CreateMaskPaints();
-            PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgLine, _disposable);
-            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgLine, TransformedBounds, _disposable);
+            PaintOpacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgLine, _disposable);
+            PaintFilter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SKPaintUtil.GetFilterSKPaint(svgLine, TransformedBounds, _disposable);
 
             if (SKPaintUtil.IsValidFill(svgLine))
             {
-                PaintFill = SKPaintUtil.GetFillSKPaint(svgLine, TransformedBounds, _disposable);
+                PaintFill = SKPaintUtil.GetFillSKPaint(svgLine, TransformedBounds, ignoreAttributes, _disposable);
                 if (PaintFill == null)
                 {
                     IsDrawable = false;
@@ -49,7 +49,7 @@ namespace Svg.Skia
 
             if (SKPaintUtil.IsValidStroke(svgLine, TransformedBounds))
             {
-                PaintStroke = SKPaintUtil.GetStrokeSKPaint(svgLine, TransformedBounds, _disposable);
+                PaintStroke = SKPaintUtil.GetStrokeSKPaint(svgLine, TransformedBounds, ignoreAttributes, _disposable);
                 if (PaintStroke == null)
                 {
                     IsDrawable = false;

@@ -10,15 +10,18 @@ namespace Svg.Skia
     {
         public static SKPicture RecordPicture(SvgElementCollection svgElementCollection, SKRect skRectTransformed, SKRect skBounds, SKMatrix skMatrix)
         {
+            var ignoreAttributes = IgnoreAttributes.None; // IgnoreAttributes.Opacity | IgnoreAttributes.Display | IgnoreAttributes.Filter;
+
             using var skPictureRecorder = new SKPictureRecorder();
             using var skCanvas = skPictureRecorder.BeginRecording(skRectTransformed);
 
+            skCanvas.Clear(new SKColor(0, 0, 0, 0));
             skCanvas.ClipRect(skRectTransformed, SKClipOperation.Intersect);
             skCanvas.SetMatrix(skMatrix);
 
             foreach (var svgElement in svgElementCollection)
             {
-                using var drawable = DrawableFactory.Create(svgElement, skBounds, false);
+                using var drawable = DrawableFactory.Create(svgElement, skRectTransformed, ignoreAttributes);
                 drawable?.Draw(skCanvas, 0f, 0f);
             }
 

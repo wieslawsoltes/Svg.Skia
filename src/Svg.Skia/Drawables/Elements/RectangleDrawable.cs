@@ -8,10 +8,10 @@ namespace Svg.Skia
 {
     public class RectangleDrawable : DrawablePath
     {
-        public RectangleDrawable(SvgRectangle svgRectangle, SKRect skOwnerBounds, bool ignoreDisplay)
+        public RectangleDrawable(SvgRectangle svgRectangle, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
         {
-            IgnoreDisplay = ignoreDisplay;
-            IsDrawable = CanDraw(svgRectangle, IgnoreDisplay);
+            IgnoreAttributes = ignoreAttributes;
+            IsDrawable = CanDraw(svgRectangle, IgnoreAttributes);
 
             if (!IsDrawable)
             {
@@ -34,12 +34,12 @@ namespace Svg.Skia
             PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgRectangle, TransformedBounds, new HashSet<Uri>(), _disposable);
             PictureMask = SvgMaskUtil.GetSvgVisualElementMask(svgRectangle, TransformedBounds, new HashSet<Uri>(), _disposable);
             CreateMaskPaints();
-            PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgRectangle, _disposable);
-            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgRectangle, TransformedBounds, _disposable);
+            PaintOpacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgRectangle, _disposable);
+            PaintFilter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SKPaintUtil.GetFilterSKPaint(svgRectangle, TransformedBounds, _disposable);
 
             if (SKPaintUtil.IsValidFill(svgRectangle))
             {
-                PaintFill = SKPaintUtil.GetFillSKPaint(svgRectangle, TransformedBounds, _disposable);
+                PaintFill = SKPaintUtil.GetFillSKPaint(svgRectangle, TransformedBounds, ignoreAttributes, _disposable);
                 if (PaintFill == null)
                 {
                     IsDrawable = false;
@@ -49,7 +49,7 @@ namespace Svg.Skia
 
             if (SKPaintUtil.IsValidStroke(svgRectangle, TransformedBounds))
             {
-                PaintStroke = SKPaintUtil.GetStrokeSKPaint(svgRectangle, TransformedBounds, _disposable);
+                PaintStroke = SKPaintUtil.GetStrokeSKPaint(svgRectangle, TransformedBounds, ignoreAttributes, _disposable);
                 if (PaintStroke == null)
                 {
                     IsDrawable = false;

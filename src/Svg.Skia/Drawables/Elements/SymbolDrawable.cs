@@ -9,10 +9,10 @@ namespace Svg.Skia
 {
     public class SymbolDrawable : DrawableContainer
     {
-        public SymbolDrawable(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, bool ignoreDisplay)
+        public SymbolDrawable(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes)
         {
-            IgnoreDisplay = ignoreDisplay;
-            IsDrawable = CanDraw(svgSymbol, IgnoreDisplay);
+            IgnoreAttributes = ignoreAttributes;
+            IsDrawable = CanDraw(svgSymbol, IgnoreAttributes);
 
             if (!IsDrawable)
             {
@@ -57,7 +57,7 @@ namespace Svg.Skia
 
             foreach (var svgElement in svgSymbol.Children)
             {
-                var drawable = DrawableFactory.Create(svgElement, skOwnerBounds, ignoreDisplay);
+                var drawable = DrawableFactory.Create(svgElement, skOwnerBounds, ignoreAttributes);
                 if (drawable != null)
                 {
                     ChildrenDrawables.Add(drawable);
@@ -91,8 +91,8 @@ namespace Svg.Skia
             PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgSymbol, TransformedBounds, new HashSet<Uri>(), _disposable);
             PictureMask = SvgMaskUtil.GetSvgVisualElementMask(svgSymbol, TransformedBounds, new HashSet<Uri>(), _disposable);
             CreateMaskPaints();
-            PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgSymbol, _disposable);
-            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgSymbol, TransformedBounds, _disposable);
+            PaintOpacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgSymbol, _disposable);
+            PaintFilter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SKPaintUtil.GetFilterSKPaint(svgSymbol, TransformedBounds, _disposable);
 
             PaintFill = null;
             PaintStroke = null;

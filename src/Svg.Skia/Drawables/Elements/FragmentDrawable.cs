@@ -8,9 +8,9 @@ namespace Svg.Skia
 {
     public class FragmentDrawable : DrawableContainer
     {
-        public FragmentDrawable(SvgFragment svgFragment, SKRect skOwnerBounds, bool ignoreDisplay)
+        public FragmentDrawable(SvgFragment svgFragment, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
         {
-            IgnoreDisplay = ignoreDisplay;
+            IgnoreAttributes = ignoreAttributes;
             IsDrawable = true;
 
             var parent = svgFragment.Parent;
@@ -27,7 +27,7 @@ namespace Svg.Skia
 
             foreach (var svgElement in svgFragment.Children)
             {
-                var drawable = DrawableFactory.Create(svgElement, skOwnerBounds, ignoreDisplay);
+                var drawable = DrawableFactory.Create(svgElement, skOwnerBounds, ignoreAttributes);
                 if (drawable != null)
                 {
                     ChildrenDrawables.Add(drawable);
@@ -92,7 +92,7 @@ namespace Svg.Skia
             }
 
             PictureMask = null;
-            PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgFragment, _disposable);
+            PaintOpacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgFragment, _disposable);
             PaintFilter = null;
 
             PaintFill = null;

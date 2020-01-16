@@ -6,7 +6,7 @@ namespace Svg.Skia
 {
     public class GlyphDrawable : Drawable
     {
-        public GlyphDrawable(SvgGlyph svgGlyph, SKRect skOwnerBounds, bool ignoreDisplay)
+        public GlyphDrawable(SvgGlyph svgGlyph, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
         {
             // TODO: Implement drawable.
         }

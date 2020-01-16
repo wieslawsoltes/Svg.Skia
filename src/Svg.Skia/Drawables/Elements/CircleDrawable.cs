@@ -8,10 +8,10 @@ namespace Svg.Skia
 {
     public class CircleDrawable : DrawablePath
     {
-        public CircleDrawable(SvgCircle svgCircle, SKRect skOwnerBounds, bool ignoreDisplay)
+        public CircleDrawable(SvgCircle svgCircle, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
         {
-            IgnoreDisplay = ignoreDisplay;
-            IsDrawable = CanDraw(svgCircle, IgnoreDisplay);
+            IgnoreAttributes = ignoreAttributes;
+            IsDrawable = CanDraw(svgCircle, IgnoreAttributes);
 
             if (!IsDrawable)
             {
@@ -34,12 +34,12 @@ namespace Svg.Skia
             PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
             PictureMask = SvgMaskUtil.GetSvgVisualElementMask(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
             CreateMaskPaints();
-            PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgCircle, _disposable);
-            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgCircle, TransformedBounds, _disposable);
+            PaintOpacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgCircle, _disposable);
+            PaintFilter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SKPaintUtil.GetFilterSKPaint(svgCircle, TransformedBounds, _disposable);
 
             if (SKPaintUtil.IsValidFill(svgCircle))
             {
-                PaintFill = SKPaintUtil.GetFillSKPaint(svgCircle, TransformedBounds, _disposable);
+                PaintFill = SKPaintUtil.GetFillSKPaint(svgCircle, TransformedBounds, ignoreAttributes, _disposable);
                 if (PaintFill == null)
                 {
                     IsDrawable = false;
@@ -49,7 +49,7 @@ namespace Svg.Skia
 
             if (SKPaintUtil.IsValidStroke(svgCircle, TransformedBounds))
             {
-                PaintStroke = SKPaintUtil.GetStrokeSKPaint(svgCircle, TransformedBounds, _disposable);
+                PaintStroke = SKPaintUtil.GetStrokeSKPaint(svgCircle, TransformedBounds, ignoreAttributes, _disposable);
                 if (PaintStroke == null)
                 {
                     IsDrawable = false;

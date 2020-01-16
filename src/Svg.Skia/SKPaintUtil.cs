@@ -34,7 +34,7 @@ namespace Svg.Skia
                     new SvgUnit(SvgUnitType.User, svgUnit.Value / 100) : svgUnit;
         }
 
-        public static SKColor GetColor(SvgColourServer svgColourServer, float opacity, bool forStroke = false)
+        public static SKColor GetColor(SvgColourServer svgColourServer, float opacity, IgnoreAttributes ignoreAttributes, bool forStroke = false)
         {
             if (svgColourServer == SvgPaintServer.None)
             {
@@ -47,7 +47,9 @@ namespace Svg.Skia
             }
 
             var colour = svgColourServer.Colour;
-            byte alpha = (byte)Math.Round((opacity * (svgColourServer.Colour.A / 255.0)) * 255);
+            byte alpha = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? 
+                svgColourServer.Colour.A : 
+                (byte)Math.Round((opacity * (svgColourServer.Colour.A / 255.0)) * 255);
 
             return new SKColor(colour.R, colour.G, colour.B, alpha);
         }
@@ -94,7 +96,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static void GetStops(SvgGradientServer svgGradientServer, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity)
+        public static void GetStops(SvgGradientServer svgGradientServer, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, IgnoreAttributes ignoreAttributes)
         {
             foreach (var child in svgGradientServer.Children)
             {
@@ -104,7 +106,7 @@ namespace Svg.Skia
                     if (svgStopColor is SvgColourServer stopColorSvgColourServer)
                     {
                         var stopOpacity = AdjustSvgOpacity(svgGradientStop.StopOpacity);
-                        var stopColor = GetColor(stopColorSvgColourServer, opacity * stopOpacity, false);
+                        var stopColor = GetColor(stopColorSvgColourServer, opacity * stopOpacity, ignoreAttributes, false);
                         float offset = svgGradientStop.Offset.ToDeviceValue(UnitRenderingType.Horizontal, svgGradientServer, skBounds);
                         offset /= skBounds.Width;
                         offset = (float)Math.Round(offset, 1, MidpointRounding.AwayFromZero);
@@ -117,11 +119,11 @@ namespace Svg.Skia
             var inheritGradient = SvgDeferredPaintServer.TryGet<SvgGradientServer>(svgGradientServer.InheritGradient, svgVisualElement);
             if (colors.Count == 0 && inheritGradient != null)
             {
-                GetStops(inheritGradient, skBounds, colors, colorPos, svgVisualElement, opacity);
+                GetStops(inheritGradient, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
             }
         }
 
-        public static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity)
+        public static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, IgnoreAttributes ignoreAttributes)
         {
             var normilizedX1 = NormalizeSvgUnit(svgLinearGradientServer.X1, svgLinearGradientServer.GradientUnits);
             var normilizedY1 = NormalizeSvgUnit(svgLinearGradientServer.Y1, svgLinearGradientServer.GradientUnits);
@@ -139,7 +141,7 @@ namespace Svg.Skia
             var colors = new List<SKColor>();
             var colorPos = new List<float>();
 
-            GetStops(svgLinearGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity);
+            GetStops(svgLinearGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
 
             var shaderTileMode = svgLinearGradientServer.SpreadMethod switch
             {
@@ -198,7 +200,7 @@ namespace Svg.Skia
             }
         }
 
-        public static SKShader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity)
+        public static SKShader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, IgnoreAttributes ignoreAttributes)
         {
             var normilizedCenterX = NormalizeSvgUnit(svgRadialGradientServer.CenterX, svgRadialGradientServer.GradientUnits);
             var normilizedCenterY = NormalizeSvgUnit(svgRadialGradientServer.CenterY, svgRadialGradientServer.GradientUnits);
@@ -220,7 +222,7 @@ namespace Svg.Skia
             var colors = new List<SKColor>();
             var colorPos = new List<float>();
 
-            GetStops(svgRadialGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity);
+            GetStops(svgRadialGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
 
             var shaderTileMode = svgRadialGradientServer.SpreadMethod switch
             {
@@ -292,7 +294,7 @@ namespace Svg.Skia
             }
         }
 
-        public static SKPicture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity)
+        public static SKPicture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity, IgnoreAttributes ignoreAttributes)
         {
             var skSize = new SKSize(width, height);
             var skBounds = SKRect.Create(skSize);
@@ -301,7 +303,7 @@ namespace Svg.Skia
 
             skCanvas.SetMatrix(skMatrix);
 
-            using var skPaintOpacity = GetOpacitySKPaint(opacity);
+            using var skPaintOpacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : GetOpacitySKPaint(opacity);
             if (skPaintOpacity != null)
             {
                 skCanvas.SaveLayer(skPaintOpacity);
@@ -309,7 +311,7 @@ namespace Svg.Skia
 
             foreach (var svgElement in svgElementCollection)
             {
-                using var drawable = DrawableFactory.Create(svgElement, skBounds, false);
+                using var drawable = DrawableFactory.Create(svgElement, skBounds, ignoreAttributes);
                 drawable?.Draw(skCanvas, 0f, 0f);
             }
 
@@ -323,7 +325,7 @@ namespace Svg.Skia
             return skPictureRecorder.EndRecording();
         }
 
-        public static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, CompositeDisposable disposable)
+        public static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, IgnoreAttributes ignoreAttributes, CompositeDisposable disposable)
         {
             var svgPatternServers = new List<SvgPatternServer>();
             var currentPatternServer = svgPatternServer;
@@ -498,13 +500,13 @@ namespace Svg.Skia
                 }
             }
 
-            var skPicture = RecordPicture(firstChildren.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform, opacity);
+            var skPicture = RecordPicture(firstChildren.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform, opacity, ignoreAttributes);
             disposable.Add(skPicture);
 
             return SKShader.CreatePicture(skPicture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, skMatrix, skPicture.CullRect);
         }
 
-        private static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, SKRect skBounds, SKPaint skPaint, bool forStroke, CompositeDisposable disposable)
+        private static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, SKRect skBounds, SKPaint skPaint, bool forStroke, IgnoreAttributes ignoreAttributes, CompositeDisposable disposable)
         {
             var fallbackServer = SvgPaintServer.None;
             if (server is SvgDeferredPaintServer svgDeferredPaintServer)
@@ -517,12 +519,12 @@ namespace Svg.Skia
             {
                 case SvgColourServer svgColourServer:
                     {
-                        skPaint.Color = GetColor(svgColourServer, opacity, forStroke);
+                        skPaint.Color = GetColor(svgColourServer, opacity, ignoreAttributes, forStroke);
                     }
                     break;
                 case SvgPatternServer svgPatternServer:
                     {
-                        var skShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, disposable);
+                        var skShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, ignoreAttributes, disposable);
                         if (skShader != null)
                         {
                             disposable.Add(skShader);
@@ -532,7 +534,7 @@ namespace Svg.Skia
                         {
                             if (fallbackServer is SvgColourServer svgColourServerFallback)
                             {
-                                skPaint.Color = GetColor(svgColourServerFallback, opacity, forStroke);
+                                skPaint.Color = GetColor(svgColourServerFallback, opacity, ignoreAttributes, forStroke);
                             }
                             else
                             {
@@ -548,7 +550,7 @@ namespace Svg.Skia
                         {
                             if (fallbackServer is SvgColourServer svgColourServerFallback)
                             {
-                                skPaint.Color = GetColor(svgColourServerFallback, opacity, forStroke);
+                                skPaint.Color = GetColor(svgColourServerFallback, opacity, ignoreAttributes, forStroke);
                             }
                             else
                             {
@@ -558,7 +560,7 @@ namespace Svg.Skia
                         }
                         else
                         {
-                            var skShader = CreateLinearGradient(svgLinearGradientServer, skBounds, svgVisualElement, opacity);
+                            var skShader = CreateLinearGradient(svgLinearGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes);
                             if (skShader != null)
                             {
                                 disposable.Add(skShader);
@@ -578,7 +580,7 @@ namespace Svg.Skia
                         {
                             if (fallbackServer is SvgColourServer svgColourServerFallback)
                             {
-                                skPaint.Color = GetColor(svgColourServerFallback, opacity, forStroke);
+                                skPaint.Color = GetColor(svgColourServerFallback, opacity, ignoreAttributes, forStroke);
                             }
                             else
                             {
@@ -588,7 +590,7 @@ namespace Svg.Skia
                         }
                         else
                         {
-                            var skShader = CreateTwoPointConicalGradient(svgRadialGradientServer, skBounds, svgVisualElement, opacity);
+                            var skShader = CreateTwoPointConicalGradient(svgRadialGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes);
                             if (skShader != null)
                             {
                                 disposable.Add(skShader);
@@ -782,7 +784,7 @@ namespace Svg.Skia
                 && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
         }
 
-        public static SKPaint? GetFillSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable)
+        public static SKPaint? GetFillSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, IgnoreAttributes ignoreAttributes, CompositeDisposable disposable)
         {
             var skPaint = new SKPaint()
             {
@@ -792,7 +794,7 @@ namespace Svg.Skia
 
             var server = svgVisualElement.Fill;
             var opacity = AdjustSvgOpacity(svgVisualElement.FillOpacity);
-            if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: false, disposable) == false)
+            if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: false, ignoreAttributes, disposable) == false)
             {
                 return null;
             }
@@ -801,7 +803,7 @@ namespace Svg.Skia
             return skPaint;
         }
 
-        public static SKPaint? GetStrokeSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable)
+        public static SKPaint? GetStrokeSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, IgnoreAttributes ignoreAttributes, CompositeDisposable disposable)
         {
             var skPaint = new SKPaint()
             {
@@ -811,7 +813,7 @@ namespace Svg.Skia
 
             var server = svgVisualElement.Stroke;
             var opacity = AdjustSvgOpacity(svgVisualElement.StrokeOpacity);
-            if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: true, disposable) == false)
+            if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: true, ignoreAttributes, disposable) == false)
             {
                 return null;
             }

@@ -10,16 +10,16 @@ namespace Svg.Skia
 {
     public static class SvgClipPathUtil
     {
-        public static bool CanDraw(SvgVisualElement svgVisualElement, bool ignoreDisplay)
+        public static bool CanDraw(SvgVisualElement svgVisualElement, IgnoreAttributes ignoreAttributes)
         {
             bool visible = svgVisualElement.Visible == true;
-            bool display = ignoreDisplay ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
+            bool display = ignoreAttributes.HasFlag(IgnoreAttributes.Display) ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
             return visible && display;
         }
 
         public static SKPath? GetClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {
-            if (!CanDraw(svgVisualElement, false))
+            if (!CanDraw(svgVisualElement, IgnoreAttributes.None))
             {
                 return null;
             }
@@ -185,7 +185,7 @@ namespace Svg.Skia
                             break;
                         }
 
-                        if (!CanDraw(svgReferencedVisualElement, false))
+                        if (!CanDraw(svgReferencedVisualElement, IgnoreAttributes.None))
                         {
                             break;
                         }
@@ -227,7 +227,7 @@ namespace Svg.Skia
             {
                 if (svgElement is SvgVisualElement visualChild)
                 {
-                    if (!CanDraw(visualChild, false))
+                    if (!CanDraw(visualChild, IgnoreAttributes.None))
                     {
                         continue;
                     }

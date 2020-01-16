@@ -6,9 +6,9 @@ namespace Svg.Skia
 {
     public class AnchorDrawable : DrawableContainer
     {
-        public AnchorDrawable(SvgAnchor svgAnchor, SKRect skOwnerBounds, bool ignoreDisplay)
+        public AnchorDrawable(SvgAnchor svgAnchor, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
         {
-            IgnoreDisplay = ignoreDisplay;
+            IgnoreAttributes = ignoreAttributes;
             IsDrawable = true;
 
             if (!IsDrawable)
@@ -18,7 +18,7 @@ namespace Svg.Skia
 
             foreach (var svgElement in svgAnchor.Children)
             {
-                var drawable = DrawableFactory.Create(svgElement, skOwnerBounds, ignoreDisplay);
+                var drawable = DrawableFactory.Create(svgElement, skOwnerBounds, ignoreAttributes);
                 if (drawable != null)
                 {
                     ChildrenDrawables.Add(drawable);
@@ -49,7 +49,7 @@ namespace Svg.Skia
 
             PathClip = null;
             PictureMask = null;
-            PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgAnchor, _disposable);
+            PaintOpacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgAnchor, _disposable);
             PaintFilter = null;
 
             PaintFill = null;

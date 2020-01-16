@@ -8,10 +8,10 @@ namespace Svg.Skia
 {
     public class EllipseDrawable : DrawablePath
     {
-        public EllipseDrawable(SvgEllipse svgEllipse, SKRect skOwnerBounds, bool ignoreDisplay)
+        public EllipseDrawable(SvgEllipse svgEllipse, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
         {
-            IgnoreDisplay = ignoreDisplay;
-            IsDrawable = CanDraw(svgEllipse, IgnoreDisplay);
+            IgnoreAttributes = ignoreAttributes;
+            IsDrawable = CanDraw(svgEllipse, IgnoreAttributes);
 
             if (!IsDrawable)
             {
@@ -34,12 +34,12 @@ namespace Svg.Skia
             PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgEllipse, TransformedBounds, new HashSet<Uri>(), _disposable);
             PictureMask = SvgMaskUtil.GetSvgVisualElementMask(svgEllipse, TransformedBounds, new HashSet<Uri>(), _disposable);
             CreateMaskPaints();
-            PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgEllipse, _disposable);
-            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgEllipse, TransformedBounds, _disposable);
+            PaintOpacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgEllipse, _disposable);
+            PaintFilter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SKPaintUtil.GetFilterSKPaint(svgEllipse, TransformedBounds, _disposable);
 
             if (SKPaintUtil.IsValidFill(svgEllipse))
             {
-                PaintFill = SKPaintUtil.GetFillSKPaint(svgEllipse, TransformedBounds, _disposable);
+                PaintFill = SKPaintUtil.GetFillSKPaint(svgEllipse, TransformedBounds, ignoreAttributes, _disposable);
                 if (PaintFill == null)
                 {
                     IsDrawable = false;
@@ -49,7 +49,7 @@ namespace Svg.Skia
 
             if (SKPaintUtil.IsValidStroke(svgEllipse, TransformedBounds))
             {
-                PaintStroke = SKPaintUtil.GetStrokeSKPaint(svgEllipse, TransformedBounds, _disposable);
+                PaintStroke = SKPaintUtil.GetStrokeSKPaint(svgEllipse, TransformedBounds, ignoreAttributes, _disposable);
                 if (PaintStroke == null)
                 {
                     IsDrawable = false;

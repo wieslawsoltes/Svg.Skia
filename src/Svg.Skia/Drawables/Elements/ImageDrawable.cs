@@ -13,10 +13,10 @@ namespace Svg.Skia
         public SKRect SrcRect = default;
         public SKRect DestRect = default;
 
-        public ImageDrawable(SvgImage svgImage, SKRect skOwnerBounds, bool ignoreDisplay)
+        public ImageDrawable(SvgImage svgImage, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
         {
-            IgnoreDisplay = ignoreDisplay;
-            IsDrawable = CanDraw(svgImage, IgnoreDisplay);
+            IgnoreAttributes = ignoreAttributes;
+            IsDrawable = CanDraw(svgImage, IgnoreAttributes);
 
             if (!IsDrawable)
             {
@@ -145,7 +145,7 @@ namespace Svg.Skia
 
             if (svgFragment != null)
             {
-                FragmentDrawable = new FragmentDrawable(svgFragment, skOwnerBounds, ignoreDisplay);
+                FragmentDrawable = new FragmentDrawable(svgFragment, skOwnerBounds, ignoreAttributes);
                 _disposable.Add(FragmentDrawable);
             }
 
@@ -178,8 +178,8 @@ namespace Svg.Skia
             PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgImage, TransformedBounds, new HashSet<Uri>(), _disposable);
             PictureMask = SvgMaskUtil.GetSvgVisualElementMask(svgImage, TransformedBounds, new HashSet<Uri>(), _disposable);
             CreateMaskPaints();
-            PaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgImage, _disposable);
-            PaintFilter = SKPaintUtil.GetFilterSKPaint(svgImage, TransformedBounds, _disposable);
+            PaintOpacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgImage, _disposable);
+            PaintFilter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SKPaintUtil.GetFilterSKPaint(svgImage, TransformedBounds, _disposable);
 
             PaintFill = null;
             PaintStroke = null;

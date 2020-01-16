@@ -10,7 +10,7 @@ namespace Svg.Skia
         internal CompositeDisposable _disposable = new CompositeDisposable();
 
         public bool IsDrawable;
-        public bool IgnoreDisplay;
+        public IgnoreAttributes IgnoreAttributes;
         public bool IsAntialias;
         public SKRect TransformedBounds;
         public SKMatrix Transform;
@@ -24,10 +24,10 @@ namespace Svg.Skia
         public SKPaint? PaintFill;
         public SKPaint? PaintStroke;
 
-        protected bool CanDraw(SvgVisualElement svgVisualElement, bool ignoreDisplay)
+        protected bool CanDraw(SvgVisualElement svgVisualElement, IgnoreAttributes ignoreAttributes)
         {
             bool visible = svgVisualElement.Visible == true;
-            bool display = ignoreDisplay ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
+            bool display = ignoreAttributes.HasFlag(IgnoreAttributes.Display) ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
             return visible && display;
         }
 
