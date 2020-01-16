@@ -31,16 +31,16 @@ namespace Svg.Skia
 
             Transform = SKMatrixUtil.GetSKMatrix(svgLine.Transforms);
 
-            PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgLine, TransformedBounds, new HashSet<Uri>(), _disposable);
-            PictureMask = SvgMaskUtil.GetSvgVisualElementMask(svgLine, TransformedBounds, new HashSet<Uri>(), _disposable);
+            ClipPath = SvgClipPathUtil.GetSvgVisualElementClipPath(svgLine, TransformedBounds, new HashSet<Uri>(), _disposable);
+            MaskDrawable = SvgMaskUtil.GetSvgVisualElementMask(svgLine, TransformedBounds, new HashSet<Uri>(), _disposable);
             CreateMaskPaints();
-            PaintOpacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgLine, _disposable);
-            PaintFilter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SKPaintUtil.GetFilterSKPaint(svgLine, TransformedBounds, _disposable);
+            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgLine, _disposable);
+            Filter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SKPaintUtil.GetFilterSKPaint(svgLine, TransformedBounds, _disposable);
 
             if (SKPaintUtil.IsValidFill(svgLine))
             {
-                PaintFill = SKPaintUtil.GetFillSKPaint(svgLine, TransformedBounds, ignoreAttributes, _disposable);
-                if (PaintFill == null)
+                Fill = SKPaintUtil.GetFillSKPaint(svgLine, TransformedBounds, ignoreAttributes, _disposable);
+                if (Fill == null)
                 {
                     IsDrawable = false;
                     return;
@@ -49,8 +49,8 @@ namespace Svg.Skia
 
             if (SKPaintUtil.IsValidStroke(svgLine, TransformedBounds))
             {
-                PaintStroke = SKPaintUtil.GetStrokeSKPaint(svgLine, TransformedBounds, ignoreAttributes, _disposable);
-                if (PaintStroke == null)
+                Stroke = SKPaintUtil.GetStrokeSKPaint(svgLine, TransformedBounds, ignoreAttributes, _disposable);
+                if (Stroke == null)
                 {
                     IsDrawable = false;
                     return;

@@ -67,7 +67,7 @@ namespace Svg.Skia
                 default:
                     if (skSize.IsEmpty)
                     {
-                        ClipRect = SKRect.Create(
+                        Clip = SKRect.Create(
                             0f,
                             0f,
                             Math.Abs(TransformedBounds.Left) + TransformedBounds.Width,
@@ -75,7 +75,7 @@ namespace Svg.Skia
                     }
                     else
                     {
-                        ClipRect = SKRect.Create(x, y, skSize.Width, skSize.Height);
+                        Clip = SKRect.Create(x, y, skSize.Width, skSize.Height);
                     }
                     break;
             }
@@ -84,19 +84,19 @@ namespace Svg.Skia
             var svgClipPath = svgFragment.GetUriElementReference<SvgClipPath>("clip-path", clipPathUris);
             if (svgClipPath != null && svgClipPath.Children != null)
             {
-                PathClip = SvgClipPathUtil.GetClipPath(svgClipPath, TransformedBounds, clipPathUris, _disposable);
+                ClipPath = SvgClipPathUtil.GetClipPath(svgClipPath, TransformedBounds, clipPathUris, _disposable);
             }
             else
             {
-                PathClip = null;
+                ClipPath = null;
             }
 
-            PictureMask = null;
-            PaintOpacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgFragment, _disposable);
-            PaintFilter = null;
+            MaskDrawable = null;
+            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgFragment, _disposable);
+            Filter = null;
 
-            PaintFill = null;
-            PaintStroke = null;
+            Fill = null;
+            Stroke = null;
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);

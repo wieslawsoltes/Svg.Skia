@@ -31,16 +31,16 @@ namespace Svg.Skia
 
             Transform = SKMatrixUtil.GetSKMatrix(svgPolyline.Transforms);
 
-            PathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgPolyline, TransformedBounds, new HashSet<Uri>(), _disposable);
-            PictureMask = SvgMaskUtil.GetSvgVisualElementMask(svgPolyline, TransformedBounds, new HashSet<Uri>(), _disposable);
+            ClipPath = SvgClipPathUtil.GetSvgVisualElementClipPath(svgPolyline, TransformedBounds, new HashSet<Uri>(), _disposable);
+            MaskDrawable = SvgMaskUtil.GetSvgVisualElementMask(svgPolyline, TransformedBounds, new HashSet<Uri>(), _disposable);
             CreateMaskPaints();
-            PaintOpacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgPolyline, _disposable);
-            PaintFilter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SKPaintUtil.GetFilterSKPaint(svgPolyline, TransformedBounds, _disposable);
+            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgPolyline, _disposable);
+            Filter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SKPaintUtil.GetFilterSKPaint(svgPolyline, TransformedBounds, _disposable);
 
             if (SKPaintUtil.IsValidFill(svgPolyline))
             {
-                PaintFill = SKPaintUtil.GetFillSKPaint(svgPolyline, TransformedBounds, ignoreAttributes, _disposable);
-                if (PaintFill == null)
+                Fill = SKPaintUtil.GetFillSKPaint(svgPolyline, TransformedBounds, ignoreAttributes, _disposable);
+                if (Fill == null)
                 {
                     IsDrawable = false;
                     return;
@@ -49,8 +49,8 @@ namespace Svg.Skia
 
             if (SKPaintUtil.IsValidStroke(svgPolyline, TransformedBounds))
             {
-                PaintStroke = SKPaintUtil.GetStrokeSKPaint(svgPolyline, TransformedBounds, ignoreAttributes, _disposable);
-                if (PaintStroke == null)
+                Stroke = SKPaintUtil.GetStrokeSKPaint(svgPolyline, TransformedBounds, ignoreAttributes, _disposable);
+                if (Stroke == null)
                 {
                     IsDrawable = false;
                     return;

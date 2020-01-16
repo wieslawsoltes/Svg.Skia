@@ -47,13 +47,13 @@ namespace Svg.Skia
 
             Transform = SKMatrixUtil.GetSKMatrix(svgAnchor.Transforms);
 
-            PathClip = null;
-            PictureMask = null;
-            PaintOpacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgAnchor, _disposable);
-            PaintFilter = null;
+            ClipPath = null;
+            MaskDrawable = null;
+            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgAnchor, _disposable);
+            Filter = null;
 
-            PaintFill = null;
-            PaintStroke = null;
+            Fill = null;
+            Stroke = null;
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);

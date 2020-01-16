@@ -110,14 +110,14 @@ namespace Svg.Skia
 
         protected override void Draw(SKCanvas canvas)
         {
-            if (PaintFill != null)
+            if (Fill != null)
             {
-                canvas.DrawPath(Path, PaintFill);
+                canvas.DrawPath(Path, Fill);
             }
 
-            if (PaintStroke != null)
+            if (Stroke != null)
             {
-                canvas.DrawPath(Path, PaintStroke);
+                canvas.DrawPath(Path, Stroke);
             }
 
             foreach (var drawable in MarkerDrawables)

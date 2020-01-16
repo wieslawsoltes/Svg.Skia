@@ -14,15 +14,15 @@ namespace Svg.Skia
         public bool IsAntialias;
         public SKRect TransformedBounds;
         public SKMatrix Transform;
-        public SKRect? ClipRect;
-        public SKPath? PathClip;
-        public SKPicture? PictureMask;
-        public SKPaint? PaintMask;
-        public SKPaint? PaintDstIn;
-        public SKPaint? PaintOpacity;
-        public SKPaint? PaintFilter;
-        public SKPaint? PaintFill;
-        public SKPaint? PaintStroke;
+        public SKRect? Clip;
+        public SKPath? ClipPath;
+        public MaskDrawable? MaskDrawable;
+        public SKPaint? Mask;
+        public SKPaint? MaskDstIn;
+        public SKPaint? Opacity;
+        public SKPaint? Filter;
+        public SKPaint? Fill;
+        public SKPaint? Stroke;
 
         protected bool CanDraw(SvgVisualElement svgVisualElement, IgnoreAttributes ignoreAttributes)
         {
@@ -48,17 +48,17 @@ namespace Svg.Skia
 
         protected void CreateMaskPaints()
         {
-            if (PictureMask == null)
+            if (MaskDrawable == null)
             {
                 return;
             }
 
-            PaintMask = new SKPaint()
+            Mask = new SKPaint()
             {
             };
-            _disposable.Add(PaintMask);
+            _disposable.Add(Mask);
 
-            PaintDstIn = new SKPaint
+            MaskDstIn = new SKPaint
             {
                 BlendMode = SKBlendMode.DstIn,
                 ColorFilter = SKColorFilter.CreateColorMatrix(
@@ -70,7 +70,7 @@ namespace Svg.Skia
                         0.2125f, 0.7154f, 0.0721f, 0, 0
                     })
             };
-            _disposable.Add(PaintDstIn);
+            _disposable.Add(MaskDstIn);
         }
 
         protected abstract void Draw(SKCanvas canvas);
@@ -84,51 +84,51 @@ namespace Svg.Skia
 
             canvas.Save();
 
-            if (ClipRect != null)
+            if (Clip != null)
             {
-                canvas.ClipRect(ClipRect.Value, SKClipOperation.Intersect);
+                canvas.ClipRect(Clip.Value, SKClipOperation.Intersect);
             }
 
             var skMatrixTotal = canvas.TotalMatrix;
             SKMatrix.PreConcat(ref skMatrixTotal, ref Transform);
             canvas.SetMatrix(skMatrixTotal);
 
-            if (PathClip != null)
+            if (ClipPath != null)
             {
-                canvas.ClipPath(PathClip, SKClipOperation.Intersect, IsAntialias);
+                canvas.ClipPath(ClipPath, SKClipOperation.Intersect, IsAntialias);
             }
 
-            if (PictureMask != null && PaintOpacity == null)
+            if (MaskDrawable != null && Opacity == null)
             {
-                canvas.SaveLayer(PaintMask);
+                canvas.SaveLayer(Mask);
             }
 
-            if (PaintOpacity != null)
+            if (Opacity != null)
             {
-                canvas.SaveLayer(PaintOpacity);
+                canvas.SaveLayer(Opacity);
             }
 
-            if (PaintFilter != null)
+            if (Filter != null)
             {
-                canvas.SaveLayer(PaintFilter);
+                canvas.SaveLayer(Filter);
             }
 
             Draw(canvas);
 
-            if (PaintFilter != null)
+            if (Filter != null)
             {
                 canvas.Restore();
             }
 
-            if (PaintOpacity != null && PictureMask == null)
+            if (Opacity != null && MaskDrawable == null)
             {
                 canvas.Restore();
             }
 
-            if (PictureMask != null)
+            if (MaskDrawable != null)
             {
-                canvas.SaveLayer(PaintDstIn);
-                canvas.DrawPicture(PictureMask);
+                canvas.SaveLayer(MaskDstIn);
+                MaskDrawable.Draw(canvas, 0f, 0f);
                 canvas.Restore();
                 canvas.Restore();
             }
