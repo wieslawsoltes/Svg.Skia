@@ -15,6 +15,7 @@ namespace Svg.Skia
             using var skPictureRecorder = new SKPictureRecorder();
             using var skCanvas = skPictureRecorder.BeginRecording(skRectTransformed);
 
+            skCanvas.Save();
             skCanvas.Clear(new SKColor(0, 0, 0, 0));
             skCanvas.ClipRect(skRectTransformed, SKClipOperation.Intersect);
             skCanvas.SetMatrix(skMatrix);
@@ -24,6 +25,8 @@ namespace Svg.Skia
                 using var drawable = DrawableFactory.Create(svgElement, skRectTransformed, ignoreAttributes);
                 drawable?.Draw(skCanvas, 0f, 0f);
             }
+
+            skCanvas.Restore();
 
             return skPictureRecorder.EndRecording();
         }
