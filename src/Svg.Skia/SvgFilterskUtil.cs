@@ -292,8 +292,11 @@ namespace Svg.Skia
             }
 
             var skClipRect = SKRect.Create(x, y, width, height);
+#if USE_NEW_FILTERS
+            var skCropRect = new SKImageFilter.CropRect(skClipRect);
+#else
             var skCropRect = default(SKImageFilter.CropRect);
-            // TODO: var skCropRect = new SKImageFilter.CropRect(skClipRect);
+#endif
 
             var skPaint = new SKPaint
             {
