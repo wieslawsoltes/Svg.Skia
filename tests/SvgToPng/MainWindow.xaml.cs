@@ -65,6 +65,7 @@ namespace SvgToPng
 
             items.SelectionChanged += Items_SelectionChanged;
             items.MouseDoubleClick += Items_MouseDoubleClick;
+            items.KeyDown += Items_KeyDown;
 
             skElementSvg.PaintSurface += OnPaintCanvasSvg;
             skElementPng.PaintSurface += OnPaintCanvasPng;
@@ -191,6 +192,17 @@ namespace SvgToPng
                 if (e.RightButton == MouseButtonState.Pressed)
                 {
                     Process.Start("explorer", item.SvgPath);
+                }
+            }
+        }
+
+        private void Items_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (items.SelectedItem is Item item)
+            {
+                if (e.Key == Key.Delete)
+                {
+                    VM.RemoveItem(item);
                 }
             }
         }
