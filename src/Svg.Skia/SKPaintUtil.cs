@@ -741,6 +741,10 @@ namespace Svg.Skia
                 {
                     filters[i] = results[inputKey];
                 }
+                else
+                {
+                    return null;
+                }
             }
 
             return SKImageFilter.CreateMerge(filters, cropRect);
