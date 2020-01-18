@@ -295,11 +295,6 @@ namespace Svg.Skia
             // TOOD: FilterUnits and PrimitiveUnits
 
             var skFilterRegion = SKRect.Create(x, y, width, height);
-#if USE_NEW_FILTERS
-            var skCropRect = new SKImageFilter.CropRect(skFilterRegion);
-#else
-            var skCropRect = default(SKImageFilter.CropRect);
-#endif
 
             var skPaint = new SKPaint
             {
@@ -317,9 +312,12 @@ namespace Svg.Skia
                     float heightChild = svgFilterPrimitive.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFilterPrimitive, skFilterRegion);
 
                     var skFilterPrimitiveRegion = SKRect.Create(xChild, yChild, widthChild, heightChild);
+                    var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
 #else
                     var skFilterPrimitiveRegion = SKRect.Create(skFilterRegion.Left, skFilterRegion.Top, skFilterRegion.Width, skFilterRegion.Height);
+                    var skCropRect = default(SKImageFilter.CropRect);
 #endif
+
                     switch (svgFilterPrimitive)
                     {
 #if USE_NEW_FILTERS
