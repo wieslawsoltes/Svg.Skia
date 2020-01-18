@@ -51,15 +51,15 @@ namespace Svg.Skia
                 height = new SvgUnit(SvgUnitType.Percentage, 100f).ToDeviceValue(UnitRenderingType.Vertical, svgUse, skOwnerBounds);
             }
 
-            var originalParent = svgUse.Parent;
-            var useParent = default(FieldInfo);
+            var originalReferencedElementParent = svgReferencedElement.Parent;
+            var referencedElementParent = default(FieldInfo);
 
             try
             {
-                useParent = svgUse.GetType().GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
-                if (useParent != null)
+                referencedElementParent = svgReferencedElement.GetType().GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (referencedElementParent != null)
                 {
-                    useParent.SetValue(svgReferencedElement, svgUse);
+                    referencedElementParent.SetValue(svgReferencedElement, svgUse);
                 }
             }
             catch (Exception ex)
@@ -118,9 +118,9 @@ namespace Svg.Skia
 
             try
             {
-                if (useParent != null)
+                if (referencedElementParent != null)
                 {
-                    useParent.SetValue(svgReferencedElement, originalParent);
+                    referencedElementParent.SetValue(svgReferencedElement, originalReferencedElementParent);
                 }
             }
             catch (Exception ex)
