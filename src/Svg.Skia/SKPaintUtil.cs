@@ -869,160 +869,161 @@ namespace Svg.Skia
         public static SKPaint? GetFilterSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable)
         {
             var filter = svgVisualElement.Filter;
-            if (filter != null)
+            if (filter == null)
             {
-                var results = new Dictionary<string, SKImageFilter>();
-                var lastResult = default(SKImageFilter);
+                return null;
+            }
 
-                var skPaint = new SKPaint
+            var results = new Dictionary<string, SKImageFilter>();
+            var lastResult = default(SKImageFilter);
+
+            var skPaint = new SKPaint
+            {
+                Style = SKPaintStyle.StrokeAndFill
+            };
+
+            if (SvgExtensions.HasRecursiveReference(svgVisualElement, (e) => e.Filter, new HashSet<Uri>()))
+            {
+                return null;
+            }
+
+            var svgFilter = SvgExtensions.GetReference<SvgFilter>(svgVisualElement, svgVisualElement.Filter);
+            if (svgFilter == null)
+            {
+                return null;
+            }
+
+            // TODO: Handle filterUnits and primitiveUnits.
+
+            float x = svgFilter.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFilter, skBounds);
+            float y = svgFilter.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFilter, skBounds);
+            float width = svgFilter.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFilter, skBounds);
+            float height = svgFilter.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFilter, skBounds);
+
+            if (width <= 0f || height <= 0f)
+            {
+                // TODO: Disable visual element rendering.
+                //return null;
+            }
+
+            var skClipRect = SKRect.Create(x, y, width, height);
+            var skCropRect = default(SKImageFilter.CropRect);
+            // TODO: var skCropRect = new SKImageFilter.CropRect(skClipRect);
+
+            foreach (var child in svgFilter.Children)
+            {
+                if (child is SvgFilterPrimitive svgFilterPrimitive)
                 {
-                    Style = SKPaintStyle.StrokeAndFill
-                };
-
-                if (SvgExtensions.HasRecursiveReference(svgVisualElement, (e) => e.Filter, new HashSet<Uri>()))
-                {
-                    return null;
-                }
-
-                var svgFilter = SvgExtensions.GetReference<SvgFilter>(svgVisualElement, svgVisualElement.Filter);
-                if (svgFilter == null)
-                {
-                    return null;
-                }
-
-                // TODO: Handle filterUnits and primitiveUnits.
-
-                float x = svgFilter.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFilter, skBounds);
-                float y = svgFilter.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFilter, skBounds);
-                float width = svgFilter.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFilter, skBounds);
-                float height = svgFilter.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFilter, skBounds);
-
-                if (width <= 0f || height <= 0f)
-                {
-                    // TODO: Disable visual element rendering.
-                    //return null;
-                }
-
-                var skClipRect = SKRect.Create(x, y, width, height);
-                var skCropRect = default(SKImageFilter.CropRect);
-                // TODO: var skCropRect = new SKImageFilter.CropRect(skClipRect);
-
-                foreach (var child in svgFilter.Children)
-                {
-                    if (child is SvgFilterPrimitive svgFilterPrimitive)
+                    switch (svgFilterPrimitive)
                     {
-                        switch (svgFilterPrimitive)
-                        {
-                            case SvgColourMatrix svgColourMatrix:
+                        case SvgColourMatrix svgColourMatrix:
+                            {
+                                var inputKey = svgColourMatrix.Input;
+                                var input = default(SKImageFilter);
+                                if (!string.IsNullOrWhiteSpace(inputKey) && results.ContainsKey(inputKey))
                                 {
-                                    var inputKey = svgColourMatrix.Input;
-                                    var input = default(SKImageFilter);
-                                    if (!string.IsNullOrWhiteSpace(inputKey) && results.ContainsKey(inputKey))
-                                    {
-                                        input = results[inputKey];
-                                    }
-                                    else
-                                    {
-                                        input = lastResult;
-                                    }
+                                    input = results[inputKey];
+                                }
+                                else
+                                {
+                                    input = lastResult;
+                                }
 
-                                    var skImageFilter = CreateColorMatrix(svgVisualElement, skBounds, svgColourMatrix, input, skCropRect);
-                                    if (skImageFilter != null)
-                                    {
-                                        var key = svgColourMatrix.Result;
-                                        if (!string.IsNullOrWhiteSpace(key))
-                                        {
-                                            results[key] = skImageFilter;
-                                        }
-                                        lastResult = skImageFilter;
-                                        disposable.Add(skImageFilter);
-                                        skPaint.ImageFilter = skImageFilter;
-                                    }
-                                }
-                                break;
-                            case SvgGaussianBlur svgGaussianBlur:
+                                var skImageFilter = CreateColorMatrix(svgVisualElement, skBounds, svgColourMatrix, input, skCropRect);
+                                if (skImageFilter != null)
                                 {
-                                    var inputKey = svgGaussianBlur.Input;
-                                    var input = default(SKImageFilter);
-                                    if (!string.IsNullOrWhiteSpace(inputKey) && results.ContainsKey(inputKey))
+                                    var key = svgColourMatrix.Result;
+                                    if (!string.IsNullOrWhiteSpace(key))
                                     {
-                                        input = results[inputKey];
+                                        results[key] = skImageFilter;
                                     }
-                                    else
-                                    {
-                                        input = lastResult;
-                                    }
+                                    lastResult = skImageFilter;
+                                    disposable.Add(skImageFilter);
+                                    skPaint.ImageFilter = skImageFilter;
+                                }
+                            }
+                            break;
+                        case SvgGaussianBlur svgGaussianBlur:
+                            {
+                                var inputKey = svgGaussianBlur.Input;
+                                var input = default(SKImageFilter);
+                                if (!string.IsNullOrWhiteSpace(inputKey) && results.ContainsKey(inputKey))
+                                {
+                                    input = results[inputKey];
+                                }
+                                else
+                                {
+                                    input = lastResult;
+                                }
 
-                                    var skImageFilter = CreateBlur(svgVisualElement, skBounds, svgGaussianBlur, input, skCropRect);
-                                    if (skImageFilter != null)
-                                    {
-                                        var key = svgGaussianBlur.Result;
-                                        if (!string.IsNullOrWhiteSpace(key))
-                                        {
-                                            results[key] = skImageFilter;
-                                        }
-                                        lastResult = skImageFilter;
-                                        disposable.Add(skImageFilter);
-                                        skPaint.ImageFilter = skImageFilter;
-                                    }
-                                }
-                                break;
-                            case SvgMerge svgMerge:
+                                var skImageFilter = CreateBlur(svgVisualElement, skBounds, svgGaussianBlur, input, skCropRect);
+                                if (skImageFilter != null)
                                 {
-                                    var skImageFilter = CreateMerge(svgVisualElement, skBounds, svgMerge, results, skCropRect);
-                                    if (skImageFilter != null)
+                                    var key = svgGaussianBlur.Result;
+                                    if (!string.IsNullOrWhiteSpace(key))
                                     {
-                                        var key = svgMerge.Result;
-                                        if (!string.IsNullOrWhiteSpace(key))
-                                        {
-                                            results[key] = skImageFilter;
-                                        }
-                                        lastResult = skImageFilter;
-                                        disposable.Add(skImageFilter);
-                                        skPaint.ImageFilter = skImageFilter;
+                                        results[key] = skImageFilter;
                                     }
+                                    lastResult = skImageFilter;
+                                    disposable.Add(skImageFilter);
+                                    skPaint.ImageFilter = skImageFilter;
                                 }
-                                break;
-                            case SvgOffset svgOffset:
+                            }
+                            break;
+                        case SvgMerge svgMerge:
+                            {
+                                var skImageFilter = CreateMerge(svgVisualElement, skBounds, svgMerge, results, skCropRect);
+                                if (skImageFilter != null)
                                 {
-                                    var inputKey = svgOffset.Input;
-                                    var input = default(SKImageFilter);
-                                    if (!string.IsNullOrWhiteSpace(inputKey) && results.ContainsKey(inputKey))
+                                    var key = svgMerge.Result;
+                                    if (!string.IsNullOrWhiteSpace(key))
                                     {
-                                        input = results[inputKey];
+                                        results[key] = skImageFilter;
                                     }
-                                    else
-                                    {
-                                        input = lastResult;
-                                    }
+                                    lastResult = skImageFilter;
+                                    disposable.Add(skImageFilter);
+                                    skPaint.ImageFilter = skImageFilter;
+                                }
+                            }
+                            break;
+                        case SvgOffset svgOffset:
+                            {
+                                var inputKey = svgOffset.Input;
+                                var input = default(SKImageFilter);
+                                if (!string.IsNullOrWhiteSpace(inputKey) && results.ContainsKey(inputKey))
+                                {
+                                    input = results[inputKey];
+                                }
+                                else
+                                {
+                                    input = lastResult;
+                                }
 
-                                    var skImageFilter = CreateOffset(svgVisualElement, skBounds, svgOffset, input, skCropRect);
-                                    if (skImageFilter != null)
-                                    {
-                                        var key = svgOffset.Result;
-                                        if (!string.IsNullOrWhiteSpace(key))
-                                        {
-                                            results[key] = skImageFilter;
-                                        }
-                                        lastResult = skImageFilter;
-                                        disposable.Add(skImageFilter);
-                                        skPaint.ImageFilter = skImageFilter;
-                                    }
-                                }
-                                break;
-                            default:
+                                var skImageFilter = CreateOffset(svgVisualElement, skBounds, svgOffset, input, skCropRect);
+                                if (skImageFilter != null)
                                 {
-                                    // TODO: Implement other filters.
+                                    var key = svgOffset.Result;
+                                    if (!string.IsNullOrWhiteSpace(key))
+                                    {
+                                        results[key] = skImageFilter;
+                                    }
+                                    lastResult = skImageFilter;
+                                    disposable.Add(skImageFilter);
+                                    skPaint.ImageFilter = skImageFilter;
                                 }
-                                break;
-                        }
+                            }
+                            break;
+                        default:
+                            {
+                                // TODO: Implement other filters.
+                            }
+                            break;
                     }
                 }
-
-                disposable.Add(skPaint);
-                return skPaint;
             }
-            return null;
+
+            disposable.Add(skPaint);
+            return skPaint;
         }
 
         public static SKPaint? GetOpacitySKPaint(float opacity)
