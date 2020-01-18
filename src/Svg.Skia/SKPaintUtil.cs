@@ -634,7 +634,7 @@ namespace Svg.Skia
 
         public static SKImageFilter? CreateColorMatrix(SvgVisualElement svgVisualElement, SKRect skBounds, SvgColourMatrix svgColourMatrix, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            var skColorFilter = default(SKColorFilter);
+            SKColorFilter skColorFilter;
 
             switch (svgColourMatrix.Type)
             {
