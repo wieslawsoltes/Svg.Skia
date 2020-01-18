@@ -291,9 +291,11 @@ namespace Svg.Skia
                 //return null;
             }
 
-            var skClipRect = SKRect.Create(x, y, width, height);
+            // TOOD: FilterUnits and PrimitiveUnits
+
+            var skFilterRegion = SKRect.Create(x, y, width, height);
 #if USE_NEW_FILTERS
-            var skCropRect = new SKImageFilter.CropRect(skClipRect);
+            var skCropRect = new SKImageFilter.CropRect(skFilterRegion);
 #else
             var skCropRect = default(SKImageFilter.CropRect);
 #endif
@@ -307,6 +309,16 @@ namespace Svg.Skia
             {
                 if (child is FilterEffects.SvgFilterPrimitive svgFilterPrimitive)
                 {
+#if USE_NEW_FILTERS
+                    float xChild = svgFilter.X.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilterPrimitive, skFilterRegion);
+                    float yChild = svgFilter.Y.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilterPrimitive, skFilterRegion);
+                    float widthChild = svgFilter.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFilterPrimitive, skFilterRegion);
+                    float heightChild = svgFilter.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFilterPrimitive, skFilterRegion);
+
+                    var skFilterPrimitiveRegion = SKRect.Create(xChild, yChild, widthChild, heightChild);
+#else
+                    var skFilterPrimitiveRegion = SKRect.Create(skFilterRegion.Left, skFilterRegion.Top, skFilterRegion.Width, skFilterRegion.Height);
+#endif
                     switch (svgFilterPrimitive)
                     {
 #if USE_NEW_FILTERS
@@ -320,7 +332,7 @@ namespace Svg.Skia
                                 {
                                     break;
                                 }
-                                var skImageFilter = CreateBlend(svgVisualElement, skBounds, svgBlend, input2Filter, input1Filter, skCropRect);
+                                var skImageFilter = CreateBlend(svgVisualElement, skFilterPrimitiveRegion, svgBlend, input2Filter, input1Filter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgBlend, skPaint, skImageFilter, results, disposable);
@@ -332,7 +344,7 @@ namespace Svg.Skia
                             {
                                 var inputKey = svgColourMatrix.Input;
                                 var inputFilter = GetInputFilter(inputKey, results, lastResult);
-                                var skImageFilter = CreateColorMatrix(svgVisualElement, skBounds, svgColourMatrix, inputFilter, skCropRect);
+                                var skImageFilter = CreateColorMatrix(svgVisualElement, skFilterPrimitiveRegion, svgColourMatrix, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgColourMatrix, skPaint, skImageFilter, results, disposable);
@@ -374,7 +386,7 @@ namespace Svg.Skia
                             {
                                 var inputKey = svgFlood.Input;
                                 var inputFilter = GetInputFilter(inputKey, results, lastResult);
-                                var skImageFilter = CreateFlood(svgVisualElement, skBounds, svgFlood, disposable, inputFilter, skCropRect);
+                                var skImageFilter = CreateFlood(svgVisualElement, skFilterPrimitiveRegion, svgFlood, disposable, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgFlood, skPaint, skImageFilter, results, disposable);
@@ -406,7 +418,7 @@ namespace Svg.Skia
                             {
                                 var inputKey = svgGaussianBlur.Input;
                                 var inputFilter = GetInputFilter(inputKey, results, lastResult);
-                                var skImageFilter = CreateBlur(svgVisualElement, skBounds, svgGaussianBlur, inputFilter, skCropRect);
+                                var skImageFilter = CreateBlur(svgVisualElement, skFilterPrimitiveRegion, svgGaussianBlur, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgGaussianBlur, skPaint, skImageFilter, results, disposable);
@@ -423,7 +435,7 @@ namespace Svg.Skia
 #endif
                         case FilterEffects.SvgMerge svgMerge:
                             {
-                                var skImageFilter = CreateMerge(svgVisualElement, skBounds, svgMerge, results, skCropRect);
+                                var skImageFilter = CreateMerge(svgVisualElement, skFilterPrimitiveRegion, svgMerge, results, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgMerge, skPaint, skImageFilter, results, disposable);
@@ -441,7 +453,7 @@ namespace Svg.Skia
                             {
                                 var inputKey = svgOffset.Input;
                                 var inputFilter = GetInputFilter(inputKey, results, lastResult);
-                                var skImageFilter = CreateOffset(svgVisualElement, skBounds, svgOffset, inputFilter, skCropRect);
+                                var skImageFilter = CreateOffset(svgVisualElement, skFilterPrimitiveRegion, svgOffset, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgOffset, skPaint, skImageFilter, results, disposable);
@@ -468,7 +480,7 @@ namespace Svg.Skia
                             {
                                 var inputKey = svgTile.Input;
                                 var inputFilter = GetInputFilter(inputKey, results, lastResult);
-                                var skImageFilter = CreateTile(svgVisualElement, skBounds, svgTile, inputFilter, skCropRect);
+                                var skImageFilter = CreateTile(svgVisualElement, skFilterPrimitiveRegion, svgTile, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgTile, skPaint, skImageFilter, results, disposable);
