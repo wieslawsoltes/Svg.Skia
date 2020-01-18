@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using SkiaSharp;
 using Svg.Document_Structure;
@@ -51,10 +52,20 @@ namespace Svg.Skia
             }
 
             var originalParent = svgUse.Parent;
-            var useParent = svgUse.GetType().GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
-            if (useParent != null)
+            var useParent = default(FieldInfo);
+
+            try
             {
-                useParent.SetValue(svgReferencedElement, svgUse);
+                useParent = svgUse.GetType().GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (useParent != null)
+                {
+                    useParent.SetValue(svgReferencedElement, svgUse);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
             }
 
             svgReferencedElement.InvalidateChildPaths();
@@ -105,9 +116,17 @@ namespace Svg.Skia
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            if (useParent != null)
+            try
             {
-                useParent.SetValue(svgReferencedElement, originalParent);
+                if (useParent != null)
+                {
+                    useParent.SetValue(svgReferencedElement, originalParent);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
             }
         }
 
