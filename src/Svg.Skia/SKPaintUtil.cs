@@ -632,7 +632,7 @@ namespace Svg.Skia
             };
         }
 
-        public static SKImageFilter CreateColorMatrix(SvgVisualElement svgVisualElement, SKRect skBounds, SvgColourMatrix svgColourMatrix, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateColorMatrix(SvgVisualElement svgVisualElement, SKRect skBounds, SvgColourMatrix svgColourMatrix, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             float[] matrix;
 
@@ -714,7 +714,7 @@ namespace Svg.Skia
             return SKImageFilter.CreateColorFilter(skColorFilter, input, cropRect);
         }
 
-        public static SKImageFilter CreateBlur(SvgVisualElement svgVisualElement, SKRect skBounds, SvgGaussianBlur svgGaussianBlur, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateBlur(SvgVisualElement svgVisualElement, SKRect skBounds, SvgGaussianBlur svgGaussianBlur, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             // TODO: Calculate correct value of sigma using one value stdDeviation.
             var sigmaX = svgGaussianBlur.StdDeviation;
@@ -728,7 +728,7 @@ namespace Svg.Skia
             };
         }
 
-        public static SKImageFilter CreateMerge(SvgVisualElement svgVisualElement, SKRect skBounds, SvgMerge svgMerge, Dictionary<string, SKImageFilter> results, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateMerge(SvgVisualElement svgVisualElement, SKRect skBounds, SvgMerge svgMerge, Dictionary<string, SKImageFilter> results, SKImageFilter.CropRect? cropRect = null)
         {
             var children = svgMerge.Children.OfType<SvgMergeNode>().ToList();
             var filters = new SKImageFilter[children.Count];
@@ -746,7 +746,7 @@ namespace Svg.Skia
             return SKImageFilter.CreateMerge(filters, cropRect);
         }
 
-        public static SKImageFilter CreateOffset(SvgVisualElement svgVisualElement, SKRect skBounds, SvgOffset svgOffset, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateOffset(SvgVisualElement svgVisualElement, SKRect skBounds, SvgOffset svgOffset, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             float dx = svgOffset.Dx.ToDeviceValue(UnitRenderingType.Horizontal, svgOffset, skBounds);
             float dy = svgOffset.Dy.ToDeviceValue(UnitRenderingType.Vertical, svgOffset, skBounds);
