@@ -866,6 +866,22 @@ namespace Svg.Skia
             return skPaint;
         }
 
+        private static SKImageFilter? GetInputFilter(string inputKey, Dictionary<string, SKImageFilter> results, SKImageFilter? lastResult)
+        {
+            SKImageFilter? inputFilter;
+
+            if (!string.IsNullOrWhiteSpace(inputKey) && results.ContainsKey(inputKey))
+            {
+                inputFilter = results[inputKey];
+            }
+            else
+            {
+                inputFilter = lastResult;
+            }
+
+            return inputFilter;
+        }
+
         public static SKPaint? GetFilterSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable)
         {
             var filter = svgVisualElement.Filter;
@@ -919,17 +935,8 @@ namespace Svg.Skia
                         case SvgColourMatrix svgColourMatrix:
                             {
                                 var inputKey = svgColourMatrix.Input;
-                                var input = default(SKImageFilter);
-                                if (!string.IsNullOrWhiteSpace(inputKey) && results.ContainsKey(inputKey))
-                                {
-                                    input = results[inputKey];
-                                }
-                                else
-                                {
-                                    input = lastResult;
-                                }
-
-                                var skImageFilter = CreateColorMatrix(svgVisualElement, skBounds, svgColourMatrix, input, skCropRect);
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var skImageFilter = CreateColorMatrix(svgVisualElement, skBounds, svgColourMatrix, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     var key = svgColourMatrix.Result;
@@ -946,17 +953,8 @@ namespace Svg.Skia
                         case SvgGaussianBlur svgGaussianBlur:
                             {
                                 var inputKey = svgGaussianBlur.Input;
-                                var input = default(SKImageFilter);
-                                if (!string.IsNullOrWhiteSpace(inputKey) && results.ContainsKey(inputKey))
-                                {
-                                    input = results[inputKey];
-                                }
-                                else
-                                {
-                                    input = lastResult;
-                                }
-
-                                var skImageFilter = CreateBlur(svgVisualElement, skBounds, svgGaussianBlur, input, skCropRect);
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var skImageFilter = CreateBlur(svgVisualElement, skBounds, svgGaussianBlur, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     var key = svgGaussianBlur.Result;
@@ -989,17 +987,8 @@ namespace Svg.Skia
                         case SvgOffset svgOffset:
                             {
                                 var inputKey = svgOffset.Input;
-                                var input = default(SKImageFilter);
-                                if (!string.IsNullOrWhiteSpace(inputKey) && results.ContainsKey(inputKey))
-                                {
-                                    input = results[inputKey];
-                                }
-                                else
-                                {
-                                    input = lastResult;
-                                }
-
-                                var skImageFilter = CreateOffset(svgVisualElement, skBounds, svgOffset, input, skCropRect);
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var skImageFilter = CreateOffset(svgVisualElement, skBounds, svgOffset, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     var key = svgOffset.Result;
