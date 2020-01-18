@@ -60,6 +60,7 @@ namespace Svg.Skia
                 IsAntialias = true,
                 Style = SKPaintStyle.StrokeAndFill,
                 BlendMode = SKBlendMode.DstIn,
+                Color = new SKColor(0, 0, 0, 255),
                 ColorFilter = SKColorFilter.CreateColorMatrix(
                     new float[]
                     {
@@ -68,7 +69,6 @@ namespace Svg.Skia
                         0, 0, 0, 0, 0,
                         0.2125f, 0.7154f, 0.0721f, 0, 0
                     })
-                Color = new SKColor(0, 0, 0, 255),
             };
             _disposable.Add(MaskDstIn);
         }
