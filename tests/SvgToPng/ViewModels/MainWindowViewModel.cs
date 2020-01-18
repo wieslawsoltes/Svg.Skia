@@ -79,6 +79,12 @@ namespace SvgToPng.ViewModels
             }
         }
 
+        public void RemoveItem(Item item)
+        {
+            Items.Remove(item);
+            item.Dispose();
+        }
+
         public void UpdateItem(Item item, Action<string> textBoxOpen, Action<string> textBoxToPicture)
         {
             if (item.Svg == null)
