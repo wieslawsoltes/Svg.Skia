@@ -280,10 +280,10 @@ namespace Svg.Skia
 
             // TODO: Handle filterUnits and primitiveUnits.
 
-            float x = svgFilter.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFilter, skBounds);
-            float y = svgFilter.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFilter, skBounds);
-            float width = svgFilter.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFilter, skBounds);
-            float height = svgFilter.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFilter, skBounds);
+            float x = svgFilter.X.ToDeviceValue(UnitRenderingType.Horizontal, svgVisualElement, skBounds);
+            float y = svgFilter.Y.ToDeviceValue(UnitRenderingType.Vertical, svgVisualElement, skBounds);
+            float width = svgFilter.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgVisualElement, skBounds);
+            float height = svgFilter.Height.ToDeviceValue(UnitRenderingType.Vertical, svgVisualElement, skBounds);
 
             if (width <= 0f || height <= 0f)
             {
