@@ -38,11 +38,11 @@ namespace Svg.Skia
 
 
             float? _deviceValue = null;
-            if (value == 0.0f)
-            {
-                _deviceValue = 0.0f;
-                return _deviceValue.Value;
-            }
+            //if (value == 0.0f)
+            //{
+            //    _deviceValue = 0.0f;
+            //    return _deviceValue.Value;
+            //}
 
             float points;
 
