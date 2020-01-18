@@ -31,7 +31,26 @@ namespace Svg.Skia
                 0, 0, 0, 1, 0
             };
         }
+#if USE_NEW_FILTERS
+        public static SKBlendMode GetSKBlendMode(FilterEffects.SvgBlendMode svgBlendMode)
+        {
+            return svgBlendMode switch
+            {
+                FilterEffects.SvgBlendMode.Normal => SKBlendMode.SrcOver,
+                FilterEffects.SvgBlendMode.Multiply => SKBlendMode.Multiply,
+                FilterEffects.SvgBlendMode.Screen => SKBlendMode.Screen,
+                FilterEffects.SvgBlendMode.Darken => SKBlendMode.Darken,
+                FilterEffects.SvgBlendMode.Lighten => SKBlendMode.Lighten,
+                _ => SKBlendMode.SrcOver,
+            };
+        }
 
+        public static SKImageFilter? CreateBlend(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgBlend svgBlend, SKImageFilter? foreground = null, SKImageFilter? background = null, SKImageFilter.CropRect? cropRect = null)
+        {
+            var mode = GetSKBlendMode(svgBlend.Mode);
+            return SKImageFilter.CreateBlendMode(mode, background, foreground, cropRect);
+        }
+#endif
         public static SKImageFilter? CreateColorMatrix(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgColourMatrix svgColourMatrix, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             SKColorFilter skColorFilter;
@@ -243,7 +262,15 @@ namespace Svg.Skia
 #if USE_NEW_FILTERS
                         case FilterEffects.SvgBlend svgBlend:
                             {
-                                // TODO:
+                                var input1Key = svgBlend.Input;
+                                var input1Filter = GetInputFilter(input1Key, results, lastResult);
+                                var input2Key = svgBlend.Input2;
+                                var input2Filter = GetInputFilter(input2Key, results, lastResult);
+                                var skImageFilter = CreateBlend(svgVisualElement, skBounds, svgBlend, input1Filter, input2Filter, skCropRect);
+                                if (skImageFilter != null)
+                                {
+                                    lastResult = SetImageFilter(svgBlend, skPaint, skImageFilter, results, disposable);
+                                }
                             }
                             break;
 #endif
