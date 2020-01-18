@@ -50,11 +50,15 @@ namespace Svg.Skia
         {
             Mask = new SKPaint()
             {
+                IsAntialias = true,
+                Style = SKPaintStyle.StrokeAndFill
             };
             _disposable.Add(Mask);
 
             MaskDstIn = new SKPaint
             {
+                IsAntialias = true,
+                Style = SKPaintStyle.StrokeAndFill,
                 BlendMode = SKBlendMode.DstIn,
                 ColorFilter = SKColorFilter.CreateColorMatrix(
                     new float[]
