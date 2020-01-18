@@ -634,7 +634,7 @@ namespace Svg.Skia
 
         public static SKImageFilter? CreateColorMatrix(SvgVisualElement svgVisualElement, SKRect skBounds, SvgColourMatrix svgColourMatrix, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            float[] matrix;
+            var skColorFilter = default(SKColorFilter);
 
             switch (svgColourMatrix.Type)
             {
@@ -644,7 +644,7 @@ namespace Svg.Skia
                         var angle = (float)DegreeToRadian(value);
                         var a1 = Math.Cos(angle);
                         var a2 = Math.Sin(angle);
-                        matrix = new float[]
+                        float[] matrix = new float[]
                         {
                             (float)(0.213 + a1 * +0.787 + a2 * -0.213),
                             (float)(0.715 + a1 * -0.715 + a2 * -0.715),
@@ -657,34 +657,39 @@ namespace Svg.Skia
                             (float)(0.072 + a1 * +0.928 + a2 * +0.072), 0, 0,
                             0, 0, 0, 1, 0
                         };
+                        skColorFilter = SKColorFilter.CreateColorMatrix(matrix);
                     }
                     break;
                 case SvgColourMatrixType.LuminanceToAlpha:
                     {
-                        matrix = new float[]
+                        float[] matrix = new float[]
                         {
                             0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0,
                             0.2125f, 0.7154f, 0.0721f, 0, 0
                         };
+                        skColorFilter = SKColorFilter.CreateColorMatrix(matrix);
+                        //skColorFilter = SKColorFilter.CreateLumaColor();
                     }
                     break;
                 case SvgColourMatrixType.Saturate:
                     {
                         float value = (string.IsNullOrEmpty(svgColourMatrix.Values) ? 1 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture));
-                        matrix = new float[]
+                        float[] matrix = new float[]
                         {
                             (float)(0.213+0.787*value), (float)(0.715-0.715*value), (float)(0.072-0.072*value), 0, 0,
                             (float)(0.213-0.213*value), (float)(0.715+0.285*value), (float)(0.072-0.072*value), 0, 0,
                             (float)(0.213-0.213*value), (float)(0.715-0.715*value), (float)(0.072+0.928*value), 0, 0,
                             0, 0, 0, 1, 0
                         };
+                        skColorFilter = SKColorFilter.CreateColorMatrix(matrix);
                     };
                     break;
                 default:
                 case SvgColourMatrixType.Matrix:
                     {
+                        float[] matrix;
                         if (string.IsNullOrEmpty(svgColourMatrix.Values))
                         {
                             matrix = CreateIdentityColorMatrixArray();
@@ -705,11 +710,10 @@ namespace Svg.Skia
                                 matrix = CreateIdentityColorMatrixArray();
                             }
                         }
+                        skColorFilter = SKColorFilter.CreateColorMatrix(matrix);
                     }
                     break;
             }
-
-            var skColorFilter = SKColorFilter.CreateColorMatrix(matrix);
 
             return SKImageFilter.CreateColorFilter(skColorFilter, input, cropRect);
         }
