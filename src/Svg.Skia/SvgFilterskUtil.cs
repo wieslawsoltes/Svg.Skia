@@ -196,8 +196,8 @@ namespace Svg.Skia
 
         public static SKImageFilter? CreateOffset(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgOffset svgOffset, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            float dx = svgOffset.Dx.ToDeviceValue(UnitRenderingType.Horizontal, svgOffset, skBounds);
-            float dy = svgOffset.Dy.ToDeviceValue(UnitRenderingType.Vertical, svgOffset, skBounds);
+            float dx = svgOffset.Dx.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgOffset, skBounds);
+            float dy = svgOffset.Dy.ToDeviceValue(UnitRenderingType.VerticalOffset, svgOffset, skBounds);
 
             return SKImageFilter.CreateOffset(dx, dy, input, cropRect);
         }
