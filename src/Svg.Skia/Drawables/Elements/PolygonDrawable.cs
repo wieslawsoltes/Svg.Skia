@@ -38,7 +38,7 @@ namespace Svg.Skia
                 CreateMaskPaints();
             }
             Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgPolygon, _disposable);
-            Filter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SKPaintUtil.GetFilterSKPaint(svgPolygon, TransformedBounds, _disposable);
+            Filter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFilterskUtil.GetFilterSKPaint(svgPolygon, TransformedBounds, _disposable);
 
             if (SKPaintUtil.IsValidFill(svgPolygon))
             {

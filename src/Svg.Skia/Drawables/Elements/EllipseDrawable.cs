@@ -38,7 +38,7 @@ namespace Svg.Skia
                 CreateMaskPaints();
             }
             Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgEllipse, _disposable);
-            Filter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SKPaintUtil.GetFilterSKPaint(svgEllipse, TransformedBounds, _disposable);
+            Filter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFilterskUtil.GetFilterSKPaint(svgEllipse, TransformedBounds, _disposable);
 
             if (SKPaintUtil.IsValidFill(svgEllipse))
             {

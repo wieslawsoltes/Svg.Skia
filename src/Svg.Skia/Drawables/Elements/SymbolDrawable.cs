@@ -95,7 +95,7 @@ namespace Svg.Skia
                 CreateMaskPaints();
             }
             Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgSymbol, _disposable);
-            Filter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SKPaintUtil.GetFilterSKPaint(svgSymbol, TransformedBounds, _disposable);
+            Filter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFilterskUtil.GetFilterSKPaint(svgSymbol, TransformedBounds, _disposable);
 
             Fill = null;
             Stroke = null;
