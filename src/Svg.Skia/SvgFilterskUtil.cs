@@ -277,6 +277,7 @@ namespace Svg.Skia
 
             var results = new Dictionary<string, SKImageFilter>();
             var lastResult = default(SKImageFilter);
+            var prevoiusFilterPrimitiveRegion = SKRect.Empty;
 
             // TODO: Handle filterUnits and primitiveUnits.
 
@@ -310,10 +311,10 @@ namespace Svg.Skia
                 if (child is FilterEffects.SvgFilterPrimitive svgFilterPrimitive)
                 {
 #if USE_NEW_FILTERS
-                    float xChild = svgFilter.X.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilterPrimitive, skFilterRegion);
-                    float yChild = svgFilter.Y.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilterPrimitive, skFilterRegion);
-                    float widthChild = svgFilter.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFilterPrimitive, skFilterRegion);
-                    float heightChild = svgFilter.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFilterPrimitive, skFilterRegion);
+                    float xChild = svgFilterPrimitive.X.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilterPrimitive, skFilterRegion);
+                    float yChild = svgFilterPrimitive.Y.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilterPrimitive, skFilterRegion);
+                    float widthChild = svgFilterPrimitive.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFilterPrimitive, skFilterRegion);
+                    float heightChild = svgFilterPrimitive.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFilterPrimitive, skFilterRegion);
 
                     var skFilterPrimitiveRegion = SKRect.Create(xChild, yChild, widthChild, heightChild);
 #else
@@ -425,7 +426,6 @@ namespace Svg.Skia
                                 }
                             }
                             break;
-
 #if USE_NEW_FILTERS
                         case FilterEffects.SvgImage svgImage:
                             {
@@ -480,7 +480,7 @@ namespace Svg.Skia
                             {
                                 var inputKey = svgTile.Input;
                                 var inputFilter = GetInputFilter(inputKey, results, lastResult);
-                                var skImageFilter = CreateTile(svgVisualElement, skFilterPrimitiveRegion, svgTile, inputFilter, skCropRect);
+                                var skImageFilter = CreateTile(svgVisualElement, prevoiusFilterPrimitiveRegion, svgTile, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgTile, skPaint, skImageFilter, results, disposable);
@@ -499,6 +499,8 @@ namespace Svg.Skia
                             }
                             break;
                     }
+
+                    prevoiusFilterPrimitiveRegion = skFilterPrimitiveRegion;
                 }
             }
 
