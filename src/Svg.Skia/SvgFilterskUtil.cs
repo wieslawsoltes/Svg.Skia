@@ -150,6 +150,11 @@ namespace Svg.Skia
 
             SKPaintUtil.SetColorOrShader(svgVisualElement, floodColor, floodOpacity, skBounds, skPaint, false, IgnoreAttributes.None, disposable);
 
+            if (cropRect == null)
+            {
+                cropRect = new SKImageFilter.CropRect(skBounds);
+            }
+
             return SKImageFilter.CreatePaint(skPaint, cropRect);
         }
 #endif
