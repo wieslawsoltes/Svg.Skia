@@ -1028,9 +1028,9 @@ namespace Svg.Skia
                 var skPaint = new SKPaint()
                 {
                     IsAntialias = true,
+                    Color = new SKColor(255, 255, 255, (byte)Math.Round(opacity * 255)),
+                    Style = SKPaintStyle.StrokeAndFill
                 };
-                skPaint.Color = new SKColor(255, 255, 255, (byte)Math.Round(opacity * 255));
-                skPaint.Style = SKPaintStyle.StrokeAndFill;
                 return skPaint;
             }
             return null;
