@@ -45,7 +45,7 @@ namespace Svg.Skia
             };
         }
 
-        public static SKImageFilter? CreateBlend(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgBlend svgBlend, SKImageFilter? foreground = null, SKImageFilter? background = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateBlend(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgBlend svgBlend, SKImageFilter background, SKImageFilter? foreground = null, SKImageFilter.CropRect? cropRect = null)
         {
             var mode = GetSKBlendMode(svgBlend.Mode);
             return SKImageFilter.CreateBlendMode(mode, background, foreground, cropRect);
@@ -136,7 +136,23 @@ namespace Svg.Skia
 
             return SKImageFilter.CreateColorFilter(skColorFilter, input, cropRect);
         }
+#if USE_NEW_FILTERS
+        public static SKImageFilter? CreateFlood(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgFlood svgFlood, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        {
+            var floodColor = svgFlood.FloodColor;
+            var floodOpacity = svgFlood.FloodOpacity;
 
+            var skPaint = new SKPaint()
+            {
+                Style = SKPaintStyle.StrokeAndFill
+            };
+            disposable.Add(skPaint);
+
+            SKPaintUtil.SetColorOrShader(svgVisualElement, floodColor, floodOpacity, skBounds, skPaint, false, IgnoreAttributes.None, disposable);
+
+            return SKImageFilter.CreatePaint(skPaint, cropRect);
+        }
+#endif
         public static SKImageFilter? CreateBlur(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgGaussianBlur svgGaussianBlur, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             // TODO: Calculate correct value of sigma using one value stdDeviation.
@@ -180,21 +196,47 @@ namespace Svg.Skia
 
             return SKImageFilter.CreateOffset(dx, dy, input, cropRect);
         }
-
+#if USE_NEW_FILTERS
+        public static SKImageFilter? CreateTile(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgTile svgTile, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        {
+            return SKImageFilter.CreateTile(skBounds, cropRect != null ? cropRect.Rect : skBounds, input);
+        }
+#endif
         private static SKImageFilter? GetInputFilter(string inputKey, Dictionary<string, SKImageFilter> results, SKImageFilter? lastResult)
         {
-            SKImageFilter? inputFilter;
-
-            if (!string.IsNullOrWhiteSpace(inputKey) && results.ContainsKey(inputKey))
+            if (string.IsNullOrWhiteSpace(inputKey))
             {
-                inputFilter = results[inputKey];
-            }
-            else
-            {
-                inputFilter = lastResult;
+                return lastResult;
             }
 
-            return inputFilter;
+            if (results.ContainsKey(inputKey))
+            {
+                return results[inputKey];
+            }
+
+            switch (inputKey)
+            {
+                case "SourceGraphic":
+                    // TODO:
+                    break;
+                case "SourceAlpha":
+                    // TODO:
+                    break;
+                case "BackgroundImage":
+                    // TODO:
+                    break;
+                case "BackgroundAlpha":
+                    // TODO:
+                    break;
+                case "FillPaint":
+                    // TODO:
+                    break;
+                case "StrokePaint":
+                    // TODO:
+                    break;
+            }
+
+            return null;
         }
 
         private static SKImageFilter? SetImageFilter(FilterEffects.SvgFilterPrimitive svgFilterPrimitive, SKPaint skPaint, SKImageFilter skImageFilter, Dictionary<string, SKImageFilter> results, CompositeDisposable disposable)
@@ -266,7 +308,11 @@ namespace Svg.Skia
                                 var input1Filter = GetInputFilter(input1Key, results, lastResult);
                                 var input2Key = svgBlend.Input2;
                                 var input2Filter = GetInputFilter(input2Key, results, lastResult);
-                                var skImageFilter = CreateBlend(svgVisualElement, skBounds, svgBlend, input1Filter, input2Filter, skCropRect);
+                                if (input2Filter == null)
+                                {
+                                    break;
+                                }
+                                var skImageFilter = CreateBlend(svgVisualElement, skBounds, svgBlend, input2Filter, input1Filter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgBlend, skPaint, skImageFilter, results, disposable);
@@ -318,7 +364,13 @@ namespace Svg.Skia
                             break;
                         case FilterEffects.SvgFlood svgFlood:
                             {
-                                // TODO:
+                                var inputKey = svgFlood.Input;
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var skImageFilter = CreateFlood(svgVisualElement, skBounds, svgFlood, disposable, inputFilter, skCropRect);
+                                if (skImageFilter != null)
+                                {
+                                    lastResult = SetImageFilter(svgFlood, skPaint, skImageFilter, results, disposable);
+                                }
                             }
                             break;
                         case FilterEffects.SvgFuncA svgFuncA:
@@ -406,7 +458,13 @@ namespace Svg.Skia
                             break;
                         case FilterEffects.SvgTile svgTile:
                             {
-                                // TODO:
+                                var inputKey = svgTile.Input;
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var skImageFilter = CreateTile(svgVisualElement, skBounds, svgTile, inputFilter, skCropRect);
+                                if (skImageFilter != null)
+                                {
+                                    lastResult = SetImageFilter(svgTile, skPaint, skImageFilter, results, disposable);
+                                }
                             }
                             break;
                         case FilterEffects.SvgTurbulence svgTurbulence:
