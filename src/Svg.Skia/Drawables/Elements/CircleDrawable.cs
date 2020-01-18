@@ -33,7 +33,10 @@ namespace Svg.Skia
 
             ClipPath = SvgClipPathUtil.GetSvgVisualElementClipPath(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
             MaskDrawable = SvgMaskUtil.GetSvgVisualElementMask(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
-            CreateMaskPaints();
+            if (MaskDrawable != null)
+            {
+                CreateMaskPaints();
+            }
             Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgCircle, _disposable);
             Filter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SKPaintUtil.GetFilterSKPaint(svgCircle, TransformedBounds, _disposable);
 

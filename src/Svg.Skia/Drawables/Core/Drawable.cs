@@ -48,11 +48,6 @@ namespace Svg.Skia
 
         protected void CreateMaskPaints()
         {
-            if (MaskDrawable == null)
-            {
-                return;
-            }
-
             Mask = new SKPaint()
             {
             };

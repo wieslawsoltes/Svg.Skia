@@ -155,7 +155,10 @@ namespace Svg.Skia
 
             ClipPath = null;
             MaskDrawable = SvgMaskUtil.GetSvgVisualElementMask(svgMask, TransformedBounds, new HashSet<Uri>(), _disposable);
-            CreateMaskPaints();
+            if (MaskDrawable != null)
+            {
+                CreateMaskPaints();
+            }
             Opacity = null;
             Filter = null;
 
