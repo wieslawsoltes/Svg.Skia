@@ -61,14 +61,7 @@ namespace Svg.Skia
                 Style = SKPaintStyle.StrokeAndFill,
                 BlendMode = SKBlendMode.DstIn,
                 Color = new SKColor(0, 0, 0, 255),
-                ColorFilter = SKColorFilter.CreateColorMatrix(
-                    new float[]
-                    {
-                        0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0,
-                        0.2125f, 0.7154f, 0.0721f, 0, 0
-                    })
+                ColorFilter = SKColorFilter.CreateLumaColor()
             };
             _disposable.Add(MaskDstIn);
         }
