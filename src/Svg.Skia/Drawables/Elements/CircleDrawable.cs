@@ -18,7 +18,7 @@ namespace Svg.Skia
                 return;
             }
 
-            Path = SKPathUtil.ToSKPath(svgCircle, svgCircle.FillRule, skOwnerBounds, _disposable);
+            Path = svgCircle.ToSKPath(svgCircle.FillRule, skOwnerBounds, _disposable);
             if (Path == null || Path.IsEmpty)
             {
                 IsDrawable = false;
@@ -29,7 +29,7 @@ namespace Svg.Skia
 
             TransformedBounds = Path.Bounds;
 
-            Transform = SKMatrixUtil.GetSKMatrix(svgCircle.Transforms);
+            Transform = SvgMatrixUtil.ToSKMatrix(svgCircle.Transforms);
 
             ClipPath = SvgClipPathUtil.GetSvgVisualElementClipPath(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
             MaskDrawable = SvgMaskUtil.GetSvgVisualElementMask(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);

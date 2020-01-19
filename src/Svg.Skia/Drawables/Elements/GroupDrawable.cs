@@ -50,7 +50,7 @@ namespace Svg.Skia
                 }
             }
 
-            Transform = SKMatrixUtil.GetSKMatrix(svgGroup.Transforms);
+            Transform = SvgMatrixUtil.ToSKMatrix(svgGroup.Transforms);
 
             ClipPath = SvgClipPathUtil.GetSvgVisualElementClipPath(svgGroup, TransformedBounds, new HashSet<Uri>(), _disposable);
             MaskDrawable = SvgMaskUtil.GetSvgVisualElementMask(svgGroup, TransformedBounds, new HashSet<Uri>(), _disposable);

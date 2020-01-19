@@ -84,8 +84,8 @@ namespace Svg.Skia
                 }
             }
 
-            Transform = SKMatrixUtil.GetSKMatrix(svgSymbol.Transforms);
-            var skMatrixViewBox = SKMatrixUtil.GetSvgViewBoxTransform(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
+            Transform = SvgMatrixUtil.ToSKMatrix(svgSymbol.Transforms);
+            var skMatrixViewBox = SvgMatrixUtil.ToSKMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
             SKMatrix.PreConcat(ref Transform, ref skMatrixViewBox);
 
             ClipPath = SvgClipPathUtil.GetSvgVisualElementClipPath(svgSymbol, TransformedBounds, new HashSet<Uri>(), _disposable);

@@ -28,10 +28,10 @@ namespace Svg.Skia
                 case SvgPath svgPath:
                     {
                         var fillRule = (svgPath.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
-                        var skPath = SKPathUtil.ToSKPath(svgPath.PathData, fillRule, disposable);
+                        var skPath = svgPath.PathData?.ToSKPath(fillRule, disposable);
                         if (skPath != null)
                         {
-                            var skMatrix = SKMatrixUtil.GetSKMatrix(svgPath.Transforms);
+                            var skMatrix = SvgMatrixUtil.ToSKMatrix(svgPath.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgPath, skPath.Bounds, uris, disposable);
@@ -49,10 +49,10 @@ namespace Svg.Skia
                 case SvgRectangle svgRectangle:
                     {
                         var fillRule = (svgRectangle.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
-                        var skPath = SKPathUtil.ToSKPath(svgRectangle, fillRule, skBounds, disposable);
+                        var skPath = svgRectangle.ToSKPath(fillRule, skBounds, disposable);
                         if (skPath != null)
                         {
-                            var skMatrix = SKMatrixUtil.GetSKMatrix(svgRectangle.Transforms);
+                            var skMatrix = SvgMatrixUtil.ToSKMatrix(svgRectangle.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgRectangle, skPath.Bounds, uris, disposable);
@@ -70,10 +70,10 @@ namespace Svg.Skia
                 case SvgCircle svgCircle:
                     {
                         var fillRule = (svgCircle.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
-                        var skPath = SKPathUtil.ToSKPath(svgCircle, fillRule, skBounds, disposable);
+                        var skPath = svgCircle.ToSKPath(fillRule, skBounds, disposable);
                         if (skPath != null)
                         {
-                            var skMatrix = SKMatrixUtil.GetSKMatrix(svgCircle.Transforms);
+                            var skMatrix = SvgMatrixUtil.ToSKMatrix(svgCircle.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgCircle, skPath.Bounds, uris, disposable);
@@ -91,10 +91,10 @@ namespace Svg.Skia
                 case SvgEllipse svgEllipse:
                     {
                         var fillRule = (svgEllipse.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
-                        var skPath = SKPathUtil.ToSKPath(svgEllipse, fillRule, skBounds, disposable);
+                        var skPath = svgEllipse.ToSKPath(fillRule, skBounds, disposable);
                         if (skPath != null)
                         {
-                            var skMatrix = SKMatrixUtil.GetSKMatrix(svgEllipse.Transforms);
+                            var skMatrix = SvgMatrixUtil.ToSKMatrix(svgEllipse.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgEllipse, skPath.Bounds, uris, disposable);
@@ -112,10 +112,10 @@ namespace Svg.Skia
                 case SvgLine svgLine:
                     {
                         var fillRule = (svgLine.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
-                        var skPath = SKPathUtil.ToSKPath(svgLine, fillRule, skBounds, disposable);
+                        var skPath = svgLine.ToSKPath(fillRule, skBounds, disposable);
                         if (skPath != null)
                         {
-                            var skMatrix = SKMatrixUtil.GetSKMatrix(svgLine.Transforms);
+                            var skMatrix = SvgMatrixUtil.ToSKMatrix(svgLine.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgLine, skPath.Bounds, uris, disposable);
@@ -133,10 +133,10 @@ namespace Svg.Skia
                 case SvgPolyline svgPolyline:
                     {
                         var fillRule = (svgPolyline.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
-                        var skPath = SKPathUtil.ToSKPath(svgPolyline.Points, fillRule, false, skBounds, disposable);
+                        var skPath = svgPolyline.Points?.ToSKPath(fillRule, false, skBounds, disposable);
                         if (skPath != null)
                         {
-                            var skMatrix = SKMatrixUtil.GetSKMatrix(svgPolyline.Transforms);
+                            var skMatrix = SvgMatrixUtil.ToSKMatrix(svgPolyline.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgPolyline, skPath.Bounds, uris, disposable);
@@ -154,10 +154,10 @@ namespace Svg.Skia
                 case SvgPolygon svgPolygon:
                     {
                         var fillRule = (svgPolygon.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
-                        var skPath = SKPathUtil.ToSKPath(svgPolygon.Points, fillRule, true, skBounds, disposable);
+                        var skPath = svgPolygon.Points?.ToSKPath(fillRule, true, skBounds, disposable);
                         if (skPath != null)
                         {
-                            var skMatrix = SKMatrixUtil.GetSKMatrix(svgPolygon.Transforms);
+                            var skMatrix = SvgMatrixUtil.ToSKMatrix(svgPolygon.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgPolygon, skPath.Bounds, uris, disposable);
@@ -193,7 +193,7 @@ namespace Svg.Skia
                         var skPath = GetClipPath(svgReferencedVisualElement, skBounds, uris, disposable);
                         if (skPath != null)
                         {
-                            var skMatrix = SKMatrixUtil.GetSKMatrix(svgUse.Transforms);
+                            var skMatrix = SvgMatrixUtil.ToSKMatrix(svgUse.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgUse, skPath.Bounds, uris, disposable);
@@ -273,7 +273,7 @@ namespace Svg.Skia
                     SKMatrix.PostConcat(ref skMatrix, ref skTranslateMatrix);
                 }
 
-                var skTransformsMatrix = SKMatrixUtil.GetSKMatrix(svgClipPathRef.Transforms);
+                var skTransformsMatrix = SvgMatrixUtil.ToSKMatrix(svgClipPathRef.Transforms);
                 SKMatrix.PostConcat(ref skMatrix, ref skTransformsMatrix);
 
                 clipPath.Transform(skMatrix);
@@ -306,7 +306,7 @@ namespace Svg.Skia
                     SKMatrix.PostConcat(ref skMatrix, ref skTranslateMatrix);
                 }
 
-                var skTransformsMatrix = SKMatrixUtil.GetSKMatrix(svgClipPath.Transforms);
+                var skTransformsMatrix = SvgMatrixUtil.ToSKMatrix(svgClipPath.Transforms);
                 SKMatrix.PostConcat(ref skMatrix, ref skTransformsMatrix);
 
                 clipPath.Transform(skMatrix);

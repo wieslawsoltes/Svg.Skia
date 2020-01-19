@@ -6,9 +6,9 @@ using Svg.Transforms;
 
 namespace Svg.Skia
 {
-    public static class SKMatrixUtil
+    public static class SvgMatrixUtil
     {
-        public static SKMatrix ToSKMatrix(SvgMatrix svgMatrix)
+        public static SKMatrix ToSKMatrix(this SvgMatrix svgMatrix)
         {
             return new SKMatrix()
             {
@@ -24,7 +24,7 @@ namespace Svg.Skia
             };
         }
 
-        public static SKMatrix GetSKMatrix(SvgTransformCollection svgTransformCollection)
+        public static SKMatrix ToSKMatrix(this SvgTransformCollection svgTransformCollection)
         {
             var skMatrixTotal = SKMatrix.MakeIdentity();
 
@@ -39,7 +39,7 @@ namespace Svg.Skia
                 {
                     case SvgMatrix svgMatrix:
                         {
-                            var skMatrix = ToSKMatrix(svgMatrix);
+                            var skMatrix = svgMatrix.ToSKMatrix();
                             SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
                         }
                         break;
@@ -82,7 +82,7 @@ namespace Svg.Skia
             return skMatrixTotal;
         }
 
-        public static SKMatrix GetSvgViewBoxTransform(SvgViewBox svgViewBox, SvgAspectRatio svgAspectRatio, float x, float y, float width, float height)
+        public static SKMatrix ToSKMatrix(this SvgViewBox svgViewBox, SvgAspectRatio svgAspectRatio, float x, float y, float width, float height)
         {
             if (svgViewBox.Equals(SvgViewBox.Empty))
             {

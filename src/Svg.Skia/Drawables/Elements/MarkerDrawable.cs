@@ -99,7 +99,7 @@ namespace Svg.Skia
 
             TransformedBounds = MarkerElementDrawable.TransformedBounds;
 
-            Transform = SKMatrixUtil.GetSKMatrix(svgMarker.Transforms);
+            Transform = SvgMatrixUtil.ToSKMatrix(svgMarker.Transforms);
             SKMatrix.PreConcat(ref Transform, ref skMarkerMatrix);
 
             ClipPath = SvgClipPathUtil.GetSvgVisualElementClipPath(svgMarker, TransformedBounds, new HashSet<Uri>(), _disposable);

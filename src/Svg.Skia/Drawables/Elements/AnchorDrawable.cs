@@ -45,7 +45,7 @@ namespace Svg.Skia
                 }
             }
 
-            Transform = SKMatrixUtil.GetSKMatrix(svgAnchor.Transforms);
+            Transform = SvgMatrixUtil.ToSKMatrix(svgAnchor.Transforms);
 
             ClipPath = null;
             MaskDrawable = null;
