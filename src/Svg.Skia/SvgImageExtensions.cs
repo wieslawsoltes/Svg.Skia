@@ -51,13 +51,19 @@ namespace Svg.Skia
                 using (var stream = webResponse.GetResponseStream())
                 {
                     if (stream.CanSeek)
+                    {
                         stream.Position = 0;
+                    }
 
                     if (webResponse.ContentType.StartsWith(MimeTypeSvg, StringComparison.InvariantCultureIgnoreCase) ||
                         uri.LocalPath.EndsWith(".svg", StringComparison.InvariantCultureIgnoreCase))
+                    {
                         return LoadSvg(stream, uri);
+                    }
                     else
+                    {
                         return SKImage.FromEncodedData(stream);
+                    }
                 }
             }
         }
@@ -67,7 +73,9 @@ namespace Svg.Skia
             var headerStartIndex = 5;
             var headerEndIndex = uriString.IndexOf(",", headerStartIndex);
             if (headerEndIndex < 0 || headerEndIndex + 1 >= uriString.Length)
+            {
                 throw new Exception("Invalid data URI");
+            }
 
             var mimeType = "text/plain";
             var charset = "US-ASCII";
@@ -91,11 +99,15 @@ namespace Svg.Skia
             {
                 var p = param.Split('=');
                 if (p.Length < 2)
+                {
                     continue;
+                }
 
                 var attribute = p[0].Trim();
                 if (attribute.Equals("charset", StringComparison.InvariantCultureIgnoreCase))
+                {
                     charset = p[1].Trim();
+                }
             }
 
             var data = uriString.Substring(headerEndIndex + 1);
@@ -121,7 +133,9 @@ namespace Svg.Skia
                 }
             }
             else
+            {
                 return null;
+            }
         }
 
         public static SvgDocument LoadSvg(Stream stream, Uri baseUri)
