@@ -36,7 +36,6 @@ namespace Svg.Skia
             var type = svgUnit.Type;
             var value = svgUnit.Value;
 
-
             float? _deviceValue = null;
             //if (value == 0.0f)
             //{
