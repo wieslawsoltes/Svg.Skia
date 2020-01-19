@@ -129,7 +129,7 @@ namespace Svg.Skia
                         if (skPaint != null)
                         {
                             SvgTextExtensions.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
-                            skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint); 
+                            skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint);
                         }
                     }
 
@@ -139,7 +139,7 @@ namespace Svg.Skia
                         if (skPaint != null)
                         {
                             SvgTextExtensions.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
-                            skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint); 
+                            skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint);
                         }
                     }
                 }
@@ -298,7 +298,7 @@ namespace Svg.Skia
                 if (skPaint != null)
                 {
                     SvgTextExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
-                    skCanvas.DrawText(text, x, y, skPaint); 
+                    skCanvas.DrawText(text, x, y, skPaint);
                 }
             }
 
@@ -308,7 +308,7 @@ namespace Svg.Skia
                 if (skPaint != null)
                 {
                     SvgTextExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
-                    skCanvas.DrawText(text, x, y, skPaint); 
+                    skCanvas.DrawText(text, x, y, skPaint);
                 }
             }
         }
@@ -347,7 +347,7 @@ namespace Svg.Skia
                         if (skPaint != null)
                         {
                             SvgTextExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
-                            skCanvas.DrawPositionedText(text, points, skPaint); 
+                            skCanvas.DrawPositionedText(text, points, skPaint);
                         }
                     }
 
@@ -357,7 +357,7 @@ namespace Svg.Skia
                         if (skPaint != null)
                         {
                             SvgTextExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
-                            skCanvas.DrawPositionedText(text, points, skPaint); 
+                            skCanvas.DrawPositionedText(text, points, skPaint);
                         }
                     }
                 }
