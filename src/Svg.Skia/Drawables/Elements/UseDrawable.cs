@@ -105,7 +105,7 @@ namespace Svg.Skia
             MaskDrawable = SvgClippingExtensions.GetSvgVisualElementMask(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
             if (MaskDrawable != null)
             {
-                CreateMaskPaints(); 
+                CreateMaskPaints();
             }
             Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgUse, _disposable);
             Filter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgUse, TransformedBounds, _disposable);
