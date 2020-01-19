@@ -12,7 +12,7 @@ namespace Svg.Skia
         static SKSvg()
         {
             SvgDocument.SkipGdiPlusCapabilityCheck = true;
-        }  
+        }
 
         public static SKRect GetBounds(Drawable drawable)
         {
