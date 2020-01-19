@@ -20,7 +20,7 @@ namespace Svg.Skia
         CloseSubpath = 0x80
     }
 
-    public static class SKPathExtensions
+    public static class SvgPathingExtensions
     {
         public static List<(SKPoint Point, byte Type)> GetPathTypes(this SKPath skPath)
         {

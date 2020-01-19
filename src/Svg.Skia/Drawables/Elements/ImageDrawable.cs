@@ -132,7 +132,7 @@ namespace Svg.Skia
 
             Clip = destClip;
 
-            var skClipRect = SvgClipPathExtensions.GetClipRect(svgImage, destClip);
+            var skClipRect = SvgClippingExtensions.GetClipRect(svgImage, destClip);
             if (skClipRect != null)
             {
                 Clip = skClipRect;
@@ -149,7 +149,7 @@ namespace Svg.Skia
                 _disposable.Add(FragmentDrawable);
             }
 
-            IsAntialias = SKPaintExtensions.IsAntialias(svgImage);
+            IsAntialias = SvgPaintingExtensions.IsAntialias(svgImage);
 
             if (Image != null)
             {
@@ -162,7 +162,7 @@ namespace Svg.Skia
                 TransformedBounds = DestRect;
             }
 
-            Transform = SKMatrixExtensions.ToSKMatrix(svgImage.Transforms);
+            Transform = SvgTransformsExtensions.ToSKMatrix(svgImage.Transforms);
             if (FragmentDrawable != null)
             {
                 float dx = DestRect.Left;
@@ -175,13 +175,13 @@ namespace Svg.Skia
                 SKMatrix.PreConcat(ref Transform, ref skTranslationMatrix);
             }
 
-            ClipPath = SvgClipPathExtensions.GetSvgVisualElementClipPath(svgImage, TransformedBounds, new HashSet<Uri>(), _disposable);
-            MaskDrawable = SvgMaskExtensions.GetSvgVisualElementMask(svgImage, TransformedBounds, new HashSet<Uri>(), _disposable);
+            ClipPath = SvgClippingExtensions.GetSvgVisualElementClipPath(svgImage, TransformedBounds, new HashSet<Uri>(), _disposable);
+            MaskDrawable = SvgClippingExtensions.GetSvgVisualElementMask(svgImage, TransformedBounds, new HashSet<Uri>(), _disposable);
             if (MaskDrawable != null)
             {
                 CreateMaskPaints();
             }
-            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintExtensions.GetOpacitySKPaint(svgImage, _disposable);
+            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgImage, _disposable);
             Filter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgImage, TransformedBounds, _disposable);
 
             Fill = null;

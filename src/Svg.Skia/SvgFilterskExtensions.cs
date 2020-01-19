@@ -148,7 +148,7 @@ namespace Svg.Skia
             };
             disposable.Add(skPaint);
 
-            SKPaintExtensions.SetColorOrShader(svgVisualElement, floodColor, floodOpacity, skBounds, skPaint, false, IgnoreAttributes.None, disposable);
+            SvgPaintingExtensions.SetColorOrShader(svgVisualElement, floodColor, floodOpacity, skBounds, skPaint, false, IgnoreAttributes.None, disposable);
 
             if (cropRect == null)
             {

@@ -25,24 +25,24 @@ namespace Svg.Skia
                 return;
             }
 
-            IsAntialias = SKPaintExtensions.IsAntialias(svgCircle);
+            IsAntialias = SvgPaintingExtensions.IsAntialias(svgCircle);
 
             TransformedBounds = Path.Bounds;
 
-            Transform = SKMatrixExtensions.ToSKMatrix(svgCircle.Transforms);
+            Transform = SvgTransformsExtensions.ToSKMatrix(svgCircle.Transforms);
 
-            ClipPath = SvgClipPathExtensions.GetSvgVisualElementClipPath(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
-            MaskDrawable = SvgMaskExtensions.GetSvgVisualElementMask(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
+            ClipPath = SvgClippingExtensions.GetSvgVisualElementClipPath(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
+            MaskDrawable = SvgClippingExtensions.GetSvgVisualElementMask(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
             if (MaskDrawable != null)
             {
                 CreateMaskPaints();
             }
-            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintExtensions.GetOpacitySKPaint(svgCircle, _disposable);
+            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgCircle, _disposable);
             Filter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgCircle, TransformedBounds, _disposable);
 
-            if (SKPaintExtensions.IsValidFill(svgCircle))
+            if (SvgPaintingExtensions.IsValidFill(svgCircle))
             {
-                Fill = SKPaintExtensions.GetFillSKPaint(svgCircle, TransformedBounds, ignoreAttributes, _disposable);
+                Fill = SvgPaintingExtensions.GetFillSKPaint(svgCircle, TransformedBounds, ignoreAttributes, _disposable);
                 if (Fill == null)
                 {
                     IsDrawable = false;
@@ -50,9 +50,9 @@ namespace Svg.Skia
                 }
             }
 
-            if (SKPaintExtensions.IsValidStroke(svgCircle, TransformedBounds))
+            if (SvgPaintingExtensions.IsValidStroke(svgCircle, TransformedBounds))
             {
-                Stroke = SKPaintExtensions.GetStrokeSKPaint(svgCircle, TransformedBounds, ignoreAttributes, _disposable);
+                Stroke = SvgPaintingExtensions.GetStrokeSKPaint(svgCircle, TransformedBounds, ignoreAttributes, _disposable);
                 if (Stroke == null)
                 {
                     IsDrawable = false;

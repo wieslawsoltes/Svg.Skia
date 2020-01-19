@@ -25,24 +25,24 @@ namespace Svg.Skia
                 return;
             }
 
-            IsAntialias = SKPaintExtensions.IsAntialias(svgPolygon);
+            IsAntialias = SvgPaintingExtensions.IsAntialias(svgPolygon);
 
             TransformedBounds = Path.Bounds;
 
-            Transform = SKMatrixExtensions.ToSKMatrix(svgPolygon.Transforms);
+            Transform = SvgTransformsExtensions.ToSKMatrix(svgPolygon.Transforms);
 
-            ClipPath = SvgClipPathExtensions.GetSvgVisualElementClipPath(svgPolygon, TransformedBounds, new HashSet<Uri>(), _disposable);
-            MaskDrawable = SvgMaskExtensions.GetSvgVisualElementMask(svgPolygon, TransformedBounds, new HashSet<Uri>(), _disposable);
+            ClipPath = SvgClippingExtensions.GetSvgVisualElementClipPath(svgPolygon, TransformedBounds, new HashSet<Uri>(), _disposable);
+            MaskDrawable = SvgClippingExtensions.GetSvgVisualElementMask(svgPolygon, TransformedBounds, new HashSet<Uri>(), _disposable);
             if (MaskDrawable != null)
             {
                 CreateMaskPaints();
             }
-            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintExtensions.GetOpacitySKPaint(svgPolygon, _disposable);
+            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgPolygon, _disposable);
             Filter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgPolygon, TransformedBounds, _disposable);
 
-            if (SKPaintExtensions.IsValidFill(svgPolygon))
+            if (SvgPaintingExtensions.IsValidFill(svgPolygon))
             {
-                Fill = SKPaintExtensions.GetFillSKPaint(svgPolygon, TransformedBounds, ignoreAttributes, _disposable);
+                Fill = SvgPaintingExtensions.GetFillSKPaint(svgPolygon, TransformedBounds, ignoreAttributes, _disposable);
                 if (Fill == null)
                 {
                     IsDrawable = false;
@@ -50,9 +50,9 @@ namespace Svg.Skia
                 }
             }
 
-            if (SKPaintExtensions.IsValidStroke(svgPolygon, TransformedBounds))
+            if (SvgPaintingExtensions.IsValidStroke(svgPolygon, TransformedBounds))
             {
-                Stroke = SKPaintExtensions.GetStrokeSKPaint(svgPolygon, TransformedBounds, ignoreAttributes, _disposable);
+                Stroke = SvgPaintingExtensions.GetStrokeSKPaint(svgPolygon, TransformedBounds, ignoreAttributes, _disposable);
                 if (Stroke == null)
                 {
                     IsDrawable = false;

@@ -8,7 +8,7 @@ using Svg.Document_Structure;
 
 namespace Svg.Skia
 {
-    public static class SvgClipPathExtensions
+    public static class SvgClippingExtensions
     {
         public static bool CanDraw(SvgVisualElement svgVisualElement, IgnoreAttributes ignoreAttributes)
         {
@@ -31,7 +31,7 @@ namespace Svg.Skia
                         var skPath = svgPath.PathData?.ToSKPath(fillRule, disposable);
                         if (skPath != null)
                         {
-                            var skMatrix = SKMatrixExtensions.ToSKMatrix(svgPath.Transforms);
+                            var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgPath.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgPath, skPath.Bounds, uris, disposable);
@@ -52,7 +52,7 @@ namespace Svg.Skia
                         var skPath = svgRectangle.ToSKPath(fillRule, skBounds, disposable);
                         if (skPath != null)
                         {
-                            var skMatrix = SKMatrixExtensions.ToSKMatrix(svgRectangle.Transforms);
+                            var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgRectangle.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgRectangle, skPath.Bounds, uris, disposable);
@@ -73,7 +73,7 @@ namespace Svg.Skia
                         var skPath = svgCircle.ToSKPath(fillRule, skBounds, disposable);
                         if (skPath != null)
                         {
-                            var skMatrix = SKMatrixExtensions.ToSKMatrix(svgCircle.Transforms);
+                            var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgCircle.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgCircle, skPath.Bounds, uris, disposable);
@@ -94,7 +94,7 @@ namespace Svg.Skia
                         var skPath = svgEllipse.ToSKPath(fillRule, skBounds, disposable);
                         if (skPath != null)
                         {
-                            var skMatrix = SKMatrixExtensions.ToSKMatrix(svgEllipse.Transforms);
+                            var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgEllipse.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgEllipse, skPath.Bounds, uris, disposable);
@@ -115,7 +115,7 @@ namespace Svg.Skia
                         var skPath = svgLine.ToSKPath(fillRule, skBounds, disposable);
                         if (skPath != null)
                         {
-                            var skMatrix = SKMatrixExtensions.ToSKMatrix(svgLine.Transforms);
+                            var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgLine.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgLine, skPath.Bounds, uris, disposable);
@@ -136,7 +136,7 @@ namespace Svg.Skia
                         var skPath = svgPolyline.Points?.ToSKPath(fillRule, false, skBounds, disposable);
                         if (skPath != null)
                         {
-                            var skMatrix = SKMatrixExtensions.ToSKMatrix(svgPolyline.Transforms);
+                            var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgPolyline.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgPolyline, skPath.Bounds, uris, disposable);
@@ -157,7 +157,7 @@ namespace Svg.Skia
                         var skPath = svgPolygon.Points?.ToSKPath(fillRule, true, skBounds, disposable);
                         if (skPath != null)
                         {
-                            var skMatrix = SKMatrixExtensions.ToSKMatrix(svgPolygon.Transforms);
+                            var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgPolygon.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgPolygon, skPath.Bounds, uris, disposable);
@@ -193,7 +193,7 @@ namespace Svg.Skia
                         var skPath = GetClipPath(svgReferencedVisualElement, skBounds, uris, disposable);
                         if (skPath != null)
                         {
-                            var skMatrix = SKMatrixExtensions.ToSKMatrix(svgUse.Transforms);
+                            var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgUse.Transforms);
                             skPath.Transform(skMatrix);
 
                             var skPathClip = GetSvgVisualElementClipPath(svgUse, skPath.Bounds, uris, disposable);
@@ -273,7 +273,7 @@ namespace Svg.Skia
                     SKMatrix.PostConcat(ref skMatrix, ref skTranslateMatrix);
                 }
 
-                var skTransformsMatrix = SKMatrixExtensions.ToSKMatrix(svgClipPathRef.Transforms);
+                var skTransformsMatrix = SvgTransformsExtensions.ToSKMatrix(svgClipPathRef.Transforms);
                 SKMatrix.PostConcat(ref skMatrix, ref skTransformsMatrix);
 
                 clipPath.Transform(skMatrix);
@@ -306,7 +306,7 @@ namespace Svg.Skia
                     SKMatrix.PostConcat(ref skMatrix, ref skTranslateMatrix);
                 }
 
-                var skTransformsMatrix = SKMatrixExtensions.ToSKMatrix(svgClipPath.Transforms);
+                var skTransformsMatrix = SvgTransformsExtensions.ToSKMatrix(svgClipPath.Transforms);
                 SKMatrix.PostConcat(ref skMatrix, ref skTransformsMatrix);
 
                 clipPath.Transform(skMatrix);
@@ -373,6 +373,18 @@ namespace Svg.Skia
                 return skClipRect;
             }
             return null;
+        }
+
+        public static MaskDrawable? GetSvgVisualElementMask(SvgElement svgElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
+        {
+            var svgMaskRef = svgElement.GetUriElementReference<SvgMask>("mask", uris);
+            if (svgMaskRef == null || svgMaskRef.Children == null)
+            {
+                return null;
+            }
+            var maskDrawable = new MaskDrawable(svgMaskRef, skBounds, IgnoreAttributes.None);
+            disposable.Add(maskDrawable);
+            return maskDrawable;
         }
     }
 }

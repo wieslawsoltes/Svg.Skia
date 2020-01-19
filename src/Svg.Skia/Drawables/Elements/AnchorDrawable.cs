@@ -26,7 +26,7 @@ namespace Svg.Skia
                 }
             }
 
-            IsAntialias = SKPaintExtensions.IsAntialias(svgAnchor);
+            IsAntialias = SvgPaintingExtensions.IsAntialias(svgAnchor);
 
             TransformedBounds = SKRect.Empty;
 
@@ -45,11 +45,11 @@ namespace Svg.Skia
                 }
             }
 
-            Transform = SKMatrixExtensions.ToSKMatrix(svgAnchor.Transforms);
+            Transform = SvgTransformsExtensions.ToSKMatrix(svgAnchor.Transforms);
 
             ClipPath = null;
             MaskDrawable = null;
-            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintExtensions.GetOpacitySKPaint(svgAnchor, _disposable);
+            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgAnchor, _disposable);
             Filter = null;
 
             Fill = null;
