@@ -168,17 +168,9 @@ namespace SvgToPng
         {
             if (items.SelectedItem is Item item)
             {
-                TextOpenTime.Text = "";
-                TextToPictureTime.Text = "";
-                TextDrawTime.Text = "";
-                VM.UpdateItem(item, (text) => TextOpenTime.Text = text, (text) => TextToPictureTime.Text = text);
+                Update(item);
             }
-            skElementSvg.InvalidateVisual();
-            skElementPng.InvalidateVisual();
-            skElementDiff.InvalidateVisual();
-            glHostSvg.Child?.Invalidate();
-            glHostPng.Child?.Invalidate();
-            glHostDiff.Child?.Invalidate();
+            Invalidate();
         }
 
         private void Items_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -203,6 +195,13 @@ namespace SvgToPng
                 if (e.Key == Key.Delete)
                 {
                     VM.RemoveItem(item);
+                    Invalidate();
+                }
+                else if (e.Key == Key.Insert)
+                {
+                    VM.ResetItem(item);
+                    Update(item);
+                    Invalidate();
                 }
             }
         }
@@ -274,6 +273,7 @@ namespace SvgToPng
         private void ButtonClear_Click(object sender, RoutedEventArgs e)
         {
             VM.ClearItems();
+            Invalidate();
         }
 
         private void ButtonAdd_Click(object sender, RoutedEventArgs e)
@@ -347,6 +347,24 @@ namespace SvgToPng
                     VM.SaveItems(path);
                 }
             }
+        }
+
+        private void Update(Item item)
+        {
+            TextOpenTime.Text = "";
+            TextToPictureTime.Text = "";
+            TextDrawTime.Text = "";
+            VM.UpdateItem(item, (text) => TextOpenTime.Text = text, (text) => TextToPictureTime.Text = text);
+        }
+
+        private void Invalidate()
+        {
+            skElementSvg.InvalidateVisual();
+            skElementPng.InvalidateVisual();
+            skElementDiff.InvalidateVisual();
+            glHostSvg.Child?.Invalidate();
+            glHostPng.Child?.Invalidate();
+            glHostDiff.Child?.Invalidate();
         }
 
         private void OnGLControlHostSvg(object sender, EventArgs e)
