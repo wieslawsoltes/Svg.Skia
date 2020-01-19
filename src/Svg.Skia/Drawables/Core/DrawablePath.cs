@@ -77,9 +77,13 @@ namespace Svg.Skia
                     {
                         // for Bezier curves, the marker shall only been shown at the last point
                         if ((pathTypes[i].Type & (byte)PathPointType.PathTypeMask) == (byte)PathPointType.Bezier)
+                        {
                             bezierIndex = (bezierIndex + 1) % 3;
+                        }
                         else
+                        {
                             bezierIndex = -1;
+                        }
 
                         if (bezierIndex == -1 || bezierIndex == 2)
                         {
