@@ -149,7 +149,7 @@ namespace Svg.Skia.Converter
             rootCommand.AddOption(optionLoadConfig);
             rootCommand.AddOption(optionSaveConfig);
 
-            rootCommand.Handler = CommandHandler.Create((ConverterSettings converterSettings, FileInfo loadConfig, FileInfo saveConfig) => 
+            rootCommand.Handler = CommandHandler.Create((ConverterSettings converterSettings, FileInfo loadConfig, FileInfo saveConfig) =>
             {
                 if (loadConfig != null)
                 {
