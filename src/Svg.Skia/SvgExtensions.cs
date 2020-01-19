@@ -139,6 +139,12 @@ namespace Svg.Skia
             return _deviceValue.Value;
         }
 
+        public static SvgUnit Normalize(this SvgUnit svgUnit, SvgCoordinateUnits svgCoordinateUnits)
+        {
+            return svgUnit.Type == SvgUnitType.Percentage && svgCoordinateUnits == SvgCoordinateUnits.ObjectBoundingBox ?
+                    new SvgUnit(SvgUnitType.User, svgUnit.Value / 100) : svgUnit;
+        }
+
         public static SKSize GetDimensions(SvgFragment svgFragment)
         {
             float w, h;
