@@ -521,6 +521,11 @@ namespace Svg.Skia
                 fallbackServer = deferredServer.FallbackServer;
             }
 
+            if (server == SvgPaintServer.None)
+            {
+                return false;
+            }
+
             switch (server)
             {
                 case SvgColourServer svgColourServer:
