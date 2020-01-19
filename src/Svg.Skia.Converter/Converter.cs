@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using SkiaSharp;
-using Svg;
 
 namespace Svg.Skia.Converter
 {
