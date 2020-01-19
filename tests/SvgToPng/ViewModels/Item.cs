@@ -39,7 +39,7 @@ namespace SvgToPng.ViewModels
         [IgnoreDataMember]
         public SKBitmap PixelDiff { get; set; }
 
-        public void Dispose()
+        public void Reset()
         {
             Svg = null;
             Picture?.Dispose();
@@ -47,7 +47,14 @@ namespace SvgToPng.ViewModels
             Drawable?.Dispose();
             Drawable = null;
             ReferencePng?.Dispose();
+            ReferencePng = null;
             PixelDiff?.Dispose();
+            PixelDiff = null;
+        }
+
+        public void Dispose()
+        {
+            Reset();
         }
     }
 }
