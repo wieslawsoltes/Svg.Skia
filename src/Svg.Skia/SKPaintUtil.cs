@@ -84,8 +84,15 @@ namespace Svg.Skia
             {
                 if (child is SvgGradientStop svgGradientStop)
                 {
-                    var svgStopColor = svgGradientStop.StopColor;
-                    if (svgStopColor is SvgColourServer stopColorSvgColourServer)
+                    var server = svgGradientStop.StopColor;
+                    var fallbackServer = SvgPaintServer.None;
+                    if (server is SvgDeferredPaintServer svgDeferredPaintServer)
+                    {
+                        server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServer, svgVisualElement);
+                        fallbackServer = svgDeferredPaintServer.FallbackServer;
+                    }
+
+                    if (server is SvgColourServer stopColorSvgColourServer)
                     {
                         var stopOpacity = AdjustSvgOpacity(svgGradientStop.StopOpacity);
                         var stopColor = GetColor(stopColorSvgColourServer, opacity * stopOpacity, ignoreAttributes, false);
