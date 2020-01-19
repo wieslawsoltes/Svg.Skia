@@ -7,7 +7,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    public static class SKPaintUtil
+    public static class SKPaintExtensions
     {
         public static char[] s_fontFamilyTrim = new char[] { '\'' };
 

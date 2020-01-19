@@ -92,30 +92,30 @@ namespace Svg.Skia
             SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
             skCanvas.SetMatrix(skMatrixTotal);
 
-            var skPathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgTextPath, skBounds, new HashSet<Uri>(), _disposable);
+            var skPathClip = SvgClipPathExtensions.GetSvgVisualElementClipPath(svgTextPath, skBounds, new HashSet<Uri>(), _disposable);
             if (skPathClip != null)
             {
-                bool antialias = SKPaintUtil.IsAntialias(svgTextPath);
+                bool antialias = SKPaintExtensions.IsAntialias(svgTextPath);
                 skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
             }
 
             // TODO: Add mask support.
 
-            var skPaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgTextPath, _disposable);
+            var skPaintOpacity = SKPaintExtensions.GetOpacitySKPaint(svgTextPath, _disposable);
             if (skPaintOpacity != null)
             {
                 skCanvas.SaveLayer(skPaintOpacity);
             }
 
-            var skPaintFilter = SvgFilterskUtil.GetFilterSKPaint(svgTextPath, skBounds, _disposable);
+            var skPaintFilter = SvgFiltersExtensions.GetFilterSKPaint(svgTextPath, skBounds, _disposable);
             if (skPaintFilter != null)
             {
                 skCanvas.SaveLayer(skPaintFilter);
             }
 
             // TODO: Fix SvgTextPath rendering.
-            bool isValidFill = SKPaintUtil.IsValidFill(svgTextPath);
-            bool isValidStroke = SKPaintUtil.IsValidStroke(svgTextPath, skBounds);
+            bool isValidFill = SKPaintExtensions.IsValidFill(svgTextPath);
+            bool isValidStroke = SKPaintExtensions.IsValidStroke(svgTextPath, skBounds);
 
             if (isValidFill || isValidStroke)
             {
@@ -123,22 +123,22 @@ namespace Svg.Skia
                 {
                     var text = PrepareText(svgTextPath, svgTextPath.Text);
 
-                    if (SKPaintUtil.IsValidFill(svgTextPath))
+                    if (SKPaintExtensions.IsValidFill(svgTextPath))
                     {
-                        var skPaint = SKPaintUtil.GetFillSKPaint(svgTextPath, skBounds, ignoreAttributes, _disposable);
+                        var skPaint = SKPaintExtensions.GetFillSKPaint(svgTextPath, skBounds, ignoreAttributes, _disposable);
                         if (skPaint != null)
                         {
-                            SKPaintUtil.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
+                            SKPaintExtensions.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
                             skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint); 
                         }
                     }
 
-                    if (SKPaintUtil.IsValidStroke(svgTextPath, skBounds))
+                    if (SKPaintExtensions.IsValidStroke(svgTextPath, skBounds))
                     {
-                        var skPaint = SKPaintUtil.GetStrokeSKPaint(svgTextPath, skBounds, ignoreAttributes, _disposable);
+                        var skPaint = SKPaintExtensions.GetStrokeSKPaint(svgTextPath, skBounds, ignoreAttributes, _disposable);
                         if (skPaint != null)
                         {
-                            SKPaintUtil.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
+                            SKPaintExtensions.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
                             skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint); 
                         }
                     }
@@ -187,22 +187,22 @@ namespace Svg.Skia
             SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
             skCanvas.SetMatrix(skMatrixTotal);
 
-            var skPathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgTextRef, skBounds, new HashSet<Uri>(), _disposable);
+            var skPathClip = SvgClipPathExtensions.GetSvgVisualElementClipPath(svgTextRef, skBounds, new HashSet<Uri>(), _disposable);
             if (skPathClip != null)
             {
-                bool antialias = SKPaintUtil.IsAntialias(svgTextRef);
+                bool antialias = SKPaintExtensions.IsAntialias(svgTextRef);
                 skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
             }
 
             // TODO: Add mask support.
 
-            var skPaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgTextRef, _disposable);
+            var skPaintOpacity = SKPaintExtensions.GetOpacitySKPaint(svgTextRef, _disposable);
             if (skPaintOpacity != null)
             {
                 skCanvas.SaveLayer(skPaintOpacity);
             }
 
-            var skPaintFilter = SvgFilterskUtil.GetFilterSKPaint(svgTextRef, skBounds, _disposable);
+            var skPaintFilter = SvgFiltersExtensions.GetFilterSKPaint(svgTextRef, skBounds, _disposable);
             if (skPaintFilter != null)
             {
                 skCanvas.SaveLayer(skPaintFilter);
@@ -246,22 +246,22 @@ namespace Svg.Skia
             SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
             skCanvas.SetMatrix(skMatrixTotal);
 
-            var skPathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgTextSpan, skBounds, new HashSet<Uri>(), _disposable);
+            var skPathClip = SvgClipPathExtensions.GetSvgVisualElementClipPath(svgTextSpan, skBounds, new HashSet<Uri>(), _disposable);
             if (skPathClip != null)
             {
-                bool antialias = SKPaintUtil.IsAntialias(svgTextSpan);
+                bool antialias = SKPaintExtensions.IsAntialias(svgTextSpan);
                 skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
             }
 
             // TODO: Add mask support.
 
-            var skPaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgTextSpan, _disposable);
+            var skPaintOpacity = SKPaintExtensions.GetOpacitySKPaint(svgTextSpan, _disposable);
             if (skPaintOpacity != null)
             {
                 skCanvas.SaveLayer(skPaintOpacity);
             }
 
-            var skPaintFilter = SvgFilterskUtil.GetFilterSKPaint(svgTextSpan, skBounds, _disposable);
+            var skPaintFilter = SvgFiltersExtensions.GetFilterSKPaint(svgTextSpan, skBounds, _disposable);
             if (skPaintFilter != null)
             {
                 skCanvas.SaveLayer(skPaintFilter);
@@ -292,22 +292,22 @@ namespace Svg.Skia
             // TODO: Calculate correct bounds.
             var skBounds = skOwnerBounds;
 
-            if (SKPaintUtil.IsValidFill(svgTextBase))
+            if (SKPaintExtensions.IsValidFill(svgTextBase))
             {
-                var skPaint = SKPaintUtil.GetFillSKPaint(svgTextBase, skBounds, ignoreAttributes, _disposable);
+                var skPaint = SKPaintExtensions.GetFillSKPaint(svgTextBase, skBounds, ignoreAttributes, _disposable);
                 if (skPaint != null)
                 {
-                    SKPaintUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
+                    SKPaintExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
                     skCanvas.DrawText(text, x, y, skPaint); 
                 }
             }
 
-            if (SKPaintUtil.IsValidStroke(svgTextBase, skBounds))
+            if (SKPaintExtensions.IsValidStroke(svgTextBase, skBounds))
             {
-                var skPaint = SKPaintUtil.GetStrokeSKPaint(svgTextBase, skBounds, ignoreAttributes, _disposable);
+                var skPaint = SKPaintExtensions.GetStrokeSKPaint(svgTextBase, skBounds, ignoreAttributes, _disposable);
                 if (skPaint != null)
                 {
-                    SKPaintUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
+                    SKPaintExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
                     skCanvas.DrawText(text, x, y, skPaint); 
                 }
             }
@@ -316,8 +316,8 @@ namespace Svg.Skia
         internal void DrawTextBase(SvgTextBase svgTextBase, string? text, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
         {
             // TODO: Fix SvgTextBase rendering.
-            bool isValidFill = SKPaintUtil.IsValidFill(svgTextBase);
-            bool isValidStroke = SKPaintUtil.IsValidStroke(svgTextBase, skOwnerBounds);
+            bool isValidFill = SKPaintExtensions.IsValidFill(svgTextBase);
+            bool isValidStroke = SKPaintExtensions.IsValidStroke(svgTextBase, skOwnerBounds);
 
             if ((isValidFill || isValidStroke) && text != null && !string.IsNullOrEmpty(text))
             {
@@ -341,22 +341,22 @@ namespace Svg.Skia
                     // TODO: Calculate correct bounds.
                     var skBounds = skOwnerBounds;
 
-                    if (SKPaintUtil.IsValidFill(svgTextBase))
+                    if (SKPaintExtensions.IsValidFill(svgTextBase))
                     {
-                        var skPaint = SKPaintUtil.GetFillSKPaint(svgTextBase, skBounds, ignoreAttributes, _disposable);
+                        var skPaint = SKPaintExtensions.GetFillSKPaint(svgTextBase, skBounds, ignoreAttributes, _disposable);
                         if (skPaint != null)
                         {
-                            SKPaintUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
+                            SKPaintExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
                             skCanvas.DrawPositionedText(text, points, skPaint); 
                         }
                     }
 
-                    if (SKPaintUtil.IsValidStroke(svgTextBase, skBounds))
+                    if (SKPaintExtensions.IsValidStroke(svgTextBase, skBounds))
                     {
-                        var skPaint = SKPaintUtil.GetStrokeSKPaint(svgTextBase, skBounds, ignoreAttributes, _disposable);
+                        var skPaint = SKPaintExtensions.GetStrokeSKPaint(svgTextBase, skBounds, ignoreAttributes, _disposable);
                         if (skPaint != null)
                         {
-                            SKPaintUtil.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
+                            SKPaintExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
                             skCanvas.DrawPositionedText(text, points, skPaint); 
                         }
                     }
@@ -411,22 +411,22 @@ namespace Svg.Skia
             SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
             skCanvas.SetMatrix(skMatrixTotal);
 
-            var skPathClip = SvgClipPathUtil.GetSvgVisualElementClipPath(svgText, skBounds, new HashSet<Uri>(), _disposable);
+            var skPathClip = SvgClipPathExtensions.GetSvgVisualElementClipPath(svgText, skBounds, new HashSet<Uri>(), _disposable);
             if (skPathClip != null)
             {
-                bool antialias = SKPaintUtil.IsAntialias(svgText);
+                bool antialias = SKPaintExtensions.IsAntialias(svgText);
                 skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
             }
 
             // TODO: Add mask support.
 
-            var skPaintOpacity = SKPaintUtil.GetOpacitySKPaint(svgText, _disposable);
+            var skPaintOpacity = SKPaintExtensions.GetOpacitySKPaint(svgText, _disposable);
             if (skPaintOpacity != null)
             {
                 skCanvas.SaveLayer(skPaintOpacity);
             }
 
-            var skPaintFilter = SvgFilterskUtil.GetFilterSKPaint(svgText, skBounds, _disposable);
+            var skPaintFilter = SvgFiltersExtensions.GetFilterSKPaint(svgText, skBounds, _disposable);
             if (skPaintFilter != null)
             {
                 skCanvas.SaveLayer(skPaintFilter);

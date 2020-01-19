@@ -9,7 +9,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    public static class SvgImageUtil
+    public static class SvgImageExtensions
     {
         private const string MimeTypeSvg = "image/svg+xml";
 

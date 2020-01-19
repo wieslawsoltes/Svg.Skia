@@ -8,7 +8,7 @@ using Svg.Document_Structure;
 
 namespace Svg.Skia
 {
-    public static class SvgClipPathUtil
+    public static class SvgClipPathExtensions
     {
         public static bool CanDraw(SvgVisualElement svgVisualElement, IgnoreAttributes ignoreAttributes)
         {

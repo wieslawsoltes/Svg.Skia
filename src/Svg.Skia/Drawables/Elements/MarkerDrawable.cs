@@ -95,21 +95,21 @@ namespace Svg.Skia
                 return;
             }
 
-            IsAntialias = SKPaintUtil.IsAntialias(svgMarker);
+            IsAntialias = SKPaintExtensions.IsAntialias(svgMarker);
 
             TransformedBounds = MarkerElementDrawable.TransformedBounds;
 
             Transform = SKMatrixExtensions.ToSKMatrix(svgMarker.Transforms);
             SKMatrix.PreConcat(ref Transform, ref skMarkerMatrix);
 
-            ClipPath = SvgClipPathUtil.GetSvgVisualElementClipPath(svgMarker, TransformedBounds, new HashSet<Uri>(), _disposable);
-            MaskDrawable = SvgMaskUtil.GetSvgVisualElementMask(svgMarker, TransformedBounds, new HashSet<Uri>(), _disposable);
+            ClipPath = SvgClipPathExtensions.GetSvgVisualElementClipPath(svgMarker, TransformedBounds, new HashSet<Uri>(), _disposable);
+            MaskDrawable = SvgMaskExtensions.GetSvgVisualElementMask(svgMarker, TransformedBounds, new HashSet<Uri>(), _disposable);
             if (MaskDrawable != null)
             {
                 CreateMaskPaints();
             }
-            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgMarker, _disposable);
-            Filter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFilterskUtil.GetFilterSKPaint(svgMarker, TransformedBounds, _disposable);
+            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintExtensions.GetOpacitySKPaint(svgMarker, _disposable);
+            Filter = ignoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgMarker, TransformedBounds, _disposable);
 
             Fill = null;
             Stroke = null;

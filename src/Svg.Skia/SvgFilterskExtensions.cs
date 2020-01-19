@@ -9,7 +9,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    public static class SvgFilterskUtil
+    public static class SvgFiltersExtensions
     {
         public static double DegreeToRadian(double angle)
         {
@@ -148,7 +148,7 @@ namespace Svg.Skia
             };
             disposable.Add(skPaint);
 
-            SKPaintUtil.SetColorOrShader(svgVisualElement, floodColor, floodOpacity, skBounds, skPaint, false, IgnoreAttributes.None, disposable);
+            SKPaintExtensions.SetColorOrShader(svgVisualElement, floodColor, floodOpacity, skBounds, skPaint, false, IgnoreAttributes.None, disposable);
 
             if (cropRect == null)
             {

@@ -26,7 +26,7 @@ namespace Svg.Skia
                 }
             }
 
-            IsAntialias = SKPaintUtil.IsAntialias(svgAnchor);
+            IsAntialias = SKPaintExtensions.IsAntialias(svgAnchor);
 
             TransformedBounds = SKRect.Empty;
 
@@ -49,7 +49,7 @@ namespace Svg.Skia
 
             ClipPath = null;
             MaskDrawable = null;
-            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgAnchor, _disposable);
+            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintExtensions.GetOpacitySKPaint(svgAnchor, _disposable);
             Filter = null;
 
             Fill = null;

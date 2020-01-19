@@ -6,7 +6,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    public static class SvgMaskUtil
+    public static class SvgMaskExtensions
     {
         public static MaskDrawable? GetSvgVisualElementMask(SvgElement svgElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {

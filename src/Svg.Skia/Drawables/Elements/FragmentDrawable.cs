@@ -35,7 +35,7 @@ namespace Svg.Skia
                 }
             }
 
-            IsAntialias = SKPaintUtil.IsAntialias(svgFragment);
+            IsAntialias = SKPaintExtensions.IsAntialias(svgFragment);
 
             TransformedBounds = SKRect.Empty;
 
@@ -84,7 +84,7 @@ namespace Svg.Skia
             var svgClipPath = svgFragment.GetUriElementReference<SvgClipPath>("clip-path", clipPathUris);
             if (svgClipPath != null && svgClipPath.Children != null)
             {
-                ClipPath = SvgClipPathUtil.GetClipPath(svgClipPath, TransformedBounds, clipPathUris, _disposable);
+                ClipPath = SvgClipPathExtensions.GetClipPath(svgClipPath, TransformedBounds, clipPathUris, _disposable);
             }
             else
             {
@@ -92,7 +92,7 @@ namespace Svg.Skia
             }
 
             MaskDrawable = null;
-            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintUtil.GetOpacitySKPaint(svgFragment, _disposable);
+            Opacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SKPaintExtensions.GetOpacitySKPaint(svgFragment, _disposable);
             Filter = null;
 
             Fill = null;

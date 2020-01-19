@@ -157,14 +157,14 @@ namespace Svg.Skia
 
             Clip = skRectTransformed;
 
-            IsAntialias = SKPaintUtil.IsAntialias(svgMask);
+            IsAntialias = SKPaintExtensions.IsAntialias(svgMask);
 
             TransformedBounds = skRectTransformed;
 
             Transform = skMatrix;
 
             ClipPath = null;
-            MaskDrawable = SvgMaskUtil.GetSvgVisualElementMask(svgMask, TransformedBounds, new HashSet<Uri>(), _disposable);
+            MaskDrawable = SvgMaskExtensions.GetSvgVisualElementMask(svgMask, TransformedBounds, new HashSet<Uri>(), _disposable);
             if (MaskDrawable != null)
             {
                 CreateMaskPaints();
