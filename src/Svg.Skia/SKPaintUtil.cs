@@ -647,7 +647,8 @@ namespace Svg.Skia
         public static bool IsValidFill(SvgElement svgElement)
         {
             var fill = svgElement.Fill;
-            return fill != null;
+            return fill != null
+                && fill != SvgPaintServer.None;
         }
 
         public static bool IsValidStroke(SvgElement svgElement, SKRect skBounds)
