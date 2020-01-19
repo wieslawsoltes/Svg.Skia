@@ -29,8 +29,8 @@ namespace Svg.Skia
             }
 
             var colour = svgColourServer.Colour;
-            byte alpha = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? 
-                svgColourServer.Colour.A : 
+            byte alpha = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ?
+                svgColourServer.Colour.A :
                 (byte)Math.Round((opacity * (svgColourServer.Colour.A / 255.0)) * 255);
 
             return new SKColor(colour.R, colour.G, colour.B, alpha);
