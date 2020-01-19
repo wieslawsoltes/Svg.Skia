@@ -85,6 +85,11 @@ namespace SvgToPng.ViewModels
             item.Dispose();
         }
 
+        public void ResetItem(Item item)
+        {
+            item.Reset();
+        }
+
         public void UpdateItem(Item item, Action<string> textBoxOpen, Action<string> textBoxToPicture)
         {
             if (item.Svg == null)
