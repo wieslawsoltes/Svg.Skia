@@ -515,10 +515,10 @@ namespace Svg.Skia
         public static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, SKRect skBounds, SKPaint skPaint, bool forStroke, IgnoreAttributes ignoreAttributes, CompositeDisposable disposable)
         {
             var fallbackServer = SvgPaintServer.None;
-            if (server is SvgDeferredPaintServer svgDeferredPaintServer)
+            if (server is SvgDeferredPaintServer deferredServer)
             {
-                server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServer, svgVisualElement);
-                fallbackServer = svgDeferredPaintServer.FallbackServer;
+                server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(deferredServer, svgVisualElement);
+                fallbackServer = deferredServer.FallbackServer;
             }
 
             switch (server)
@@ -610,6 +610,8 @@ namespace Svg.Skia
                         }
                     }
                     break;
+                case SvgDeferredPaintServer svgDeferredPaintServer:
+                    return SetColorOrShader(svgVisualElement, svgDeferredPaintServer, opacity, skBounds, skPaint, forStroke, ignoreAttributes, disposable);
                 default:
                     // Do not draw element.
                     return false;
