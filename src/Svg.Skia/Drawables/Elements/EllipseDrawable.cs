@@ -29,7 +29,7 @@ namespace Svg.Skia
 
             TransformedBounds = Path.Bounds;
 
-            Transform = SvgMatrixUtil.ToSKMatrix(svgEllipse.Transforms);
+            Transform = SKMatrixExtensions.ToSKMatrix(svgEllipse.Transforms);
 
             ClipPath = SvgClipPathUtil.GetSvgVisualElementClipPath(svgEllipse, TransformedBounds, new HashSet<Uri>(), _disposable);
             MaskDrawable = SvgMaskUtil.GetSvgVisualElementMask(svgEllipse, TransformedBounds, new HashSet<Uri>(), _disposable);

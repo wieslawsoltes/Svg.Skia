@@ -162,7 +162,7 @@ namespace Svg.Skia
                 TransformedBounds = DestRect;
             }
 
-            Transform = SvgMatrixUtil.ToSKMatrix(svgImage.Transforms);
+            Transform = SKMatrixExtensions.ToSKMatrix(svgImage.Transforms);
             if (FragmentDrawable != null)
             {
                 float dx = DestRect.Left;

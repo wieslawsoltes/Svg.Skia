@@ -185,7 +185,7 @@ namespace Svg.Skia
 
                 if (svgGradientTransform != null && svgGradientTransform.Count > 0)
                 {
-                    var gradientTransform = SvgMatrixUtil.ToSKMatrix(svgGradientTransform);
+                    var gradientTransform = SKMatrixExtensions.ToSKMatrix(svgGradientTransform);
                     SKMatrix.PreConcat(ref skBoundingBoxTransform, ref gradientTransform);
                 }
 
@@ -195,7 +195,7 @@ namespace Svg.Skia
             {
                 if (svgGradientTransform != null && svgGradientTransform.Count > 0)
                 {
-                    var gradientTransform = SvgMatrixUtil.ToSKMatrix(svgGradientTransform);
+                    var gradientTransform = SKMatrixExtensions.ToSKMatrix(svgGradientTransform);
                     return SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode, gradientTransform);
                 }
                 else
@@ -267,7 +267,7 @@ namespace Svg.Skia
 
                 if (svgGradientTransform != null && svgGradientTransform.Count > 0)
                 {
-                    var gradientTransform = SvgMatrixUtil.ToSKMatrix(svgGradientTransform);
+                    var gradientTransform = SKMatrixExtensions.ToSKMatrix(svgGradientTransform);
                     SKMatrix.PreConcat(ref skBoundingBoxTransform, ref gradientTransform);
                 }
 
@@ -282,7 +282,7 @@ namespace Svg.Skia
             {
                 if (svgGradientTransform != null && svgGradientTransform.Count > 0)
                 {
-                    var gradientTransform = SvgMatrixUtil.ToSKMatrix(svgGradientTransform);
+                    var gradientTransform = SKMatrixExtensions.ToSKMatrix(svgGradientTransform);
                     return SKShader.CreateTwoPointConicalGradient(
                         skStart, startRadius,
                         skEnd, endRadius,
@@ -479,7 +479,7 @@ namespace Svg.Skia
 
             var skMatrix = SKMatrix.MakeIdentity();
 
-            var skPatternTransformMatrix = SvgMatrixUtil.ToSKMatrix(svgPatternServer.PatternTransform);
+            var skPatternTransformMatrix = SKMatrixExtensions.ToSKMatrix(svgPatternServer.PatternTransform);
             SKMatrix.PreConcat(ref skMatrix, ref skPatternTransformMatrix);
 
             var translateTransform = SKMatrix.MakeTranslation(skRectTransformed.Left, skRectTransformed.Top);
@@ -488,7 +488,7 @@ namespace Svg.Skia
             SKMatrix skPictureTransform = SKMatrix.MakeIdentity();
             if (!viewBox.Equals(SvgViewBox.Empty))
             {
-                var viewBoxTransform = SvgMatrixUtil.ToSKMatrix(
+                var viewBoxTransform = SKMatrixExtensions.ToSKMatrix(
                     viewBox,
                     aspectRatio,
                     0f,

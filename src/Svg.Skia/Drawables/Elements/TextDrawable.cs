@@ -75,7 +75,7 @@ namespace Svg.Skia
                 return;
             }
 
-            var skMatrixPath = SvgMatrixUtil.ToSKMatrix(svgPath.Transforms);
+            var skMatrixPath = SKMatrixExtensions.ToSKMatrix(svgPath.Transforms);
             skPath.Transform(skMatrixPath);
 
             // TODO: Implement StartOffset
@@ -86,7 +86,7 @@ namespace Svg.Skia
 
             skCanvas.Save();
 
-            var skMatrix = SvgMatrixUtil.ToSKMatrix(svgTextPath.Transforms);
+            var skMatrix = SKMatrixExtensions.ToSKMatrix(svgTextPath.Transforms);
 
             var skMatrixTotal = skCanvas.TotalMatrix;
             SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
@@ -181,7 +181,7 @@ namespace Svg.Skia
 
             skCanvas.Save();
 
-            var skMatrix = SvgMatrixUtil.ToSKMatrix(svgTextRef.Transforms);
+            var skMatrix = SKMatrixExtensions.ToSKMatrix(svgTextRef.Transforms);
 
             var skMatrixTotal = skCanvas.TotalMatrix;
             SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
@@ -240,7 +240,7 @@ namespace Svg.Skia
 
             skCanvas.Save();
 
-            var skMatrix = SvgMatrixUtil.ToSKMatrix(svgTextSpan.Transforms);
+            var skMatrix = SKMatrixExtensions.ToSKMatrix(svgTextSpan.Transforms);
 
             var skMatrixTotal = skCanvas.TotalMatrix;
             SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
@@ -405,7 +405,7 @@ namespace Svg.Skia
 
             skCanvas.Save();
 
-            var skMatrix = SvgMatrixUtil.ToSKMatrix(svgText.Transforms);
+            var skMatrix = SKMatrixExtensions.ToSKMatrix(svgText.Transforms);
 
             var skMatrixTotal = skCanvas.TotalMatrix;
             SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);

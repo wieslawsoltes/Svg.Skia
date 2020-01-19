@@ -6,7 +6,7 @@ using Svg.Transforms;
 
 namespace Svg.Skia
 {
-    public static class SvgMatrixUtil
+    public static class SKMatrixExtensions
     {
         public static SKMatrix ToSKMatrix(this SvgMatrix svgMatrix)
         {

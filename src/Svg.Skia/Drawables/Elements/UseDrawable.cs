@@ -94,7 +94,7 @@ namespace Svg.Skia
 
             TransformedBounds = ReferencedDrawable.TransformedBounds;
 
-            Transform = SvgMatrixUtil.ToSKMatrix(svgUse.Transforms);
+            Transform = SKMatrixExtensions.ToSKMatrix(svgUse.Transforms);
             if (!(svgReferencedElement is SvgSymbol))
             {
                 var skMatrixTranslateXY = SKMatrix.MakeTranslation(x, y);
