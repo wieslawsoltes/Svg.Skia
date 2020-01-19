@@ -16,12 +16,6 @@ namespace Svg.Skia
             return Math.Min(Math.Max(opacity, 0), 1);
         }
 
-        public static SvgUnit NormalizeSvgUnit(SvgUnit svgUnit, SvgCoordinateUnits svgCoordinateUnits)
-        {
-            return svgUnit.Type == SvgUnitType.Percentage && svgCoordinateUnits == SvgCoordinateUnits.ObjectBoundingBox ?
-                    new SvgUnit(SvgUnitType.User, svgUnit.Value / 100) : svgUnit;
-        }
-
         public static SKColor GetColor(SvgColourServer svgColourServer, float opacity, IgnoreAttributes ignoreAttributes, bool forStroke = false)
         {
             if (svgColourServer == SvgPaintServer.None)
@@ -113,10 +107,10 @@ namespace Svg.Skia
 
         public static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, IgnoreAttributes ignoreAttributes)
         {
-            var normilizedX1 = NormalizeSvgUnit(svgLinearGradientServer.X1, svgLinearGradientServer.GradientUnits);
-            var normilizedY1 = NormalizeSvgUnit(svgLinearGradientServer.Y1, svgLinearGradientServer.GradientUnits);
-            var normilizedX2 = NormalizeSvgUnit(svgLinearGradientServer.X2, svgLinearGradientServer.GradientUnits);
-            var normilizedY2 = NormalizeSvgUnit(svgLinearGradientServer.Y2, svgLinearGradientServer.GradientUnits);
+            var normilizedX1 = svgLinearGradientServer.X1.Normalize(svgLinearGradientServer.GradientUnits);
+            var normilizedY1 = svgLinearGradientServer.Y1.Normalize(svgLinearGradientServer.GradientUnits);
+            var normilizedX2 = svgLinearGradientServer.X2.Normalize(svgLinearGradientServer.GradientUnits);
+            var normilizedY2 = svgLinearGradientServer.Y2.Normalize(svgLinearGradientServer.GradientUnits);
 
             float x1 = normilizedX1.ToDeviceValue(UnitRenderingType.Horizontal, svgLinearGradientServer, skBounds);
             float y1 = normilizedY1.ToDeviceValue(UnitRenderingType.Vertical, svgLinearGradientServer, skBounds);
@@ -190,11 +184,11 @@ namespace Svg.Skia
 
         public static SKShader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, IgnoreAttributes ignoreAttributes)
         {
-            var normilizedCenterX = NormalizeSvgUnit(svgRadialGradientServer.CenterX, svgRadialGradientServer.GradientUnits);
-            var normilizedCenterY = NormalizeSvgUnit(svgRadialGradientServer.CenterY, svgRadialGradientServer.GradientUnits);
-            var normilizedFocalX = NormalizeSvgUnit(svgRadialGradientServer.FocalX, svgRadialGradientServer.GradientUnits);
-            var normilizedFocalY = NormalizeSvgUnit(svgRadialGradientServer.FocalY, svgRadialGradientServer.GradientUnits);
-            var normilizedRadius = NormalizeSvgUnit(svgRadialGradientServer.Radius, svgRadialGradientServer.GradientUnits);
+            var normilizedCenterX = svgRadialGradientServer.CenterX.Normalize(svgRadialGradientServer.GradientUnits);
+            var normilizedCenterY = svgRadialGradientServer.CenterY.Normalize(svgRadialGradientServer.GradientUnits);
+            var normilizedFocalX = svgRadialGradientServer.FocalX.Normalize(svgRadialGradientServer.GradientUnits);
+            var normilizedFocalY = svgRadialGradientServer.FocalY.Normalize(svgRadialGradientServer.GradientUnits);
+            var normilizedRadius = svgRadialGradientServer.Radius.Normalize(svgRadialGradientServer.GradientUnits);
 
             float centerX = normilizedCenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
             float centerY = normilizedCenterY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
