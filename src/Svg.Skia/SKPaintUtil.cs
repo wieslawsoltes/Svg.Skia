@@ -110,6 +110,23 @@ namespace Svg.Skia
             }
         }
 
+        private static void AdjustStopColorPos(List<float> colorPos)
+        {
+            float maxPos = float.MinValue;
+            for (int i = 0; i < colorPos.Count; i++)
+            {
+                float pos = colorPos[i];
+                if (pos > maxPos)
+                {
+                    maxPos = pos;
+                }
+                else if (pos < maxPos)
+                {
+                    colorPos[i] = maxPos;
+                }
+            }
+        }
+
         public static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, IgnoreAttributes ignoreAttributes)
         {
             var normalizedX1 = svgLinearGradientServer.X1.Normalize(svgLinearGradientServer.GradientUnits);
@@ -129,6 +146,7 @@ namespace Svg.Skia
             var colorPos = new List<float>();
 
             GetStops(svgLinearGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
+            AdjustStopColorPos(colorPos);
 
             var shaderTileMode = svgLinearGradientServer.SpreadMethod switch
             {
@@ -210,6 +228,7 @@ namespace Svg.Skia
             var colorPos = new List<float>();
 
             GetStops(svgRadialGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
+            AdjustStopColorPos(colorPos);
 
             var shaderTileMode = svgRadialGradientServer.SpreadMethod switch
             {
