@@ -48,7 +48,7 @@ namespace Svg.Skia
             switch (type)
             {
                 case SvgUnitType.Em:
-                    points = (float)(value * 9);
+                    points = value * 9;
                     _deviceValue = (points / 72.0f) * ppi;
                     // TODO: Implement GetFont for Skia.
                     //using (var currFont = GetFont(renderer, owner))
@@ -65,7 +65,7 @@ namespace Svg.Skia
                     //}
                     break;
                 case SvgUnitType.Ex:
-                    points = (float)(value * 9);
+                    points = value * 9;
                     _deviceValue = (points * 0.5f / 72.0f) * ppi;
                     // TODO: Implement GetFont for Skia.
                     //using (var currFont = GetFont(renderer, owner))
@@ -83,13 +83,13 @@ namespace Svg.Skia
                     //}
                     break;
                 case SvgUnitType.Centimeter:
-                    _deviceValue = (float)((value / cmInInch) * ppi);
+                    _deviceValue = (value / cmInInch) * ppi;
                     break;
                 case SvgUnitType.Inch:
                     _deviceValue = value * ppi;
                     break;
                 case SvgUnitType.Millimeter:
-                    _deviceValue = (float)((value / 10) / cmInInch) * ppi;
+                    _deviceValue = (value / 10) / cmInInch * ppi;
                     break;
                 case SvgUnitType.Pica:
                     _deviceValue = ((value * 12) / 72) * ppi;
@@ -128,7 +128,10 @@ namespace Svg.Skia
                                 _deviceValue = (float)(Math.Sqrt(Math.Pow(owner.OwnerDocument.ViewBox.Width, 2) + Math.Pow(owner.OwnerDocument.ViewBox.Height, 2)) / Math.Sqrt(2) * value / 100.0);
                             }
                             else
+                            {
                                 _deviceValue = (float)(Math.Sqrt(Math.Pow(size.Width, 2) + Math.Pow(size.Height, 2)) / Math.Sqrt(2) * value / 100.0);
+                            }
+
                             break;
                     }
                     break;
