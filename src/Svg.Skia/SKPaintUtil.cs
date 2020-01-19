@@ -97,7 +97,6 @@ namespace Svg.Skia
                         var stopColor = GetColor(stopColorSvgColourServer, opacity * stopOpacity, ignoreAttributes, false);
                         float offset = svgGradientStop.Offset.ToDeviceValue(UnitRenderingType.Horizontal, svgGradientServer, skBounds);
                         offset /= skBounds.Width;
-                        offset = (float)Math.Round(offset, 1, MidpointRounding.AwayFromZero);
                         colors.Add(stopColor);
                         colorPos.Add(offset);
                     }
