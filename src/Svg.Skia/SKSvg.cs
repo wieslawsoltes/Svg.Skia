@@ -136,25 +136,6 @@ namespace Svg.Skia
             };
         }
 
-        public static bool Save(Stream stream, SKPicture skPicture, SKColor background, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
-        {
-            using (var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY))
-            {
-                if (skBitmap == null)
-                {
-                    return false;
-                }
-                using var skImage = SKImage.FromBitmap(skBitmap);
-                using var skData = skImage.Encode(format, quality);
-                if (skData != null)
-                {
-                    skData.SaveTo(stream);
-                    return true;
-                }
-            }
-            return false;
-        }
-
         public SKPicture? Picture { get; set; }
 
         public SKPicture? Load(Stream stream)
@@ -208,7 +189,7 @@ namespace Svg.Skia
         {
             if (Picture != null)
             {
-                return Save(stream, Picture, background, format, quality, scaleX, scaleY);
+                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY);
             }
             return false;
         }
@@ -218,7 +199,7 @@ namespace Svg.Skia
             if (Picture != null)
             {
                 using var stream = File.OpenWrite(path);
-                return Save(stream, Picture, background, format, quality, scaleX, scaleY);
+                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY);
             }
             return false;
 
