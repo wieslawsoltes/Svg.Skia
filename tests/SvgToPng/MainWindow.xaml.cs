@@ -358,18 +358,9 @@ namespace SvgToPng
                     Filter = "Png Files (*.png)|*.png;" +
                              "|Jpg Files (*.jpg)|*.jpg;" +
                              "|Jpeg Files (*.jpeg)|*.jpeg;" +
+                             "|Webp Files (*.webp)|*.webp;" +
                              "|Pdf Files (*.pdf)|*.pdf;" +
                              "|Xps Files (*.xps)|*.xps;" +
-                             "|Bmp Files (*.bmp)|*.bmp;" +
-                             "|Gif Files (*.gif)|*.gif;" +
-                             "|Ico Files (*.ico)|*.ico;" +
-                             "|Wbmp Files (*.wbmp)|*.wbmp;" +
-                             "|Webp Files (*.webp)|*.webp;" +
-                             "|Pkm Files (*.pkm)|*.pkm;" +
-                             "|Ktx Files (*.ktx)|*.ktx;" +
-                             "|Astc Files (*.astc)|*.astc;" +
-                             "|Dng Files (*.dng)|*.dng;" +
-                             "|Heif Files (*.heif)|*.heif;" +
                              "|Svg Files (*.svg)|*.svg;" +
                              "|All Files (*.*)|*.*",
                     FileName = item.Name,
