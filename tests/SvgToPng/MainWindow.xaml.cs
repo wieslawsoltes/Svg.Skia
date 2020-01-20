@@ -351,7 +351,7 @@ namespace SvgToPng
 
         private void ItemExport_Click(object sender, RoutedEventArgs e)
         {
-            if (items.SelectedIndex > 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
+            if (items.SelectedIndex >= 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
             {
                 var dlg = new Microsoft.Win32.SaveFileDialog()
                 {
