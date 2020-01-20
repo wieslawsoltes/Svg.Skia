@@ -206,7 +206,7 @@ namespace SvgToPng.ViewModels
                 {
                     using (var stream = File.OpenWrite(item.OutputPngPath))
                     {
-                        SKSvg.Save(stream, item.Picture, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1f, 1f);
+                        item.Picture.ToImage(stream, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1f, 1f);
                     }
                 }
             }
