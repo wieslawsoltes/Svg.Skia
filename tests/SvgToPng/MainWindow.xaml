@@ -25,6 +25,22 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <ListBox x:Name="items" ItemsSource="{Binding ItemsView}" Margin="2,2,0,2" Grid.Column="0" Grid.Row="0">
+                <ListBox.Resources>
+                    <ContextMenu x:Key="ListBoxItemMenu">
+                        <MenuItem x:Name="ItemExport" Header="_Export..." Click="ItemExport_Click"/>
+                        <Separator/>
+                        <MenuItem x:Name="ItemReload" Header="_Reload" InputGestureText="Insert" Click="ItemReload_Click"/>
+                        <Separator/>
+                        <MenuItem x:Name="Item_Delete" Header="_Delete" InputGestureText="Delete" Click="Item_Delete_Click"/>
+                        <Separator/>
+                        <MenuItem x:Name="ItemOpenNotepad" Header="Open in _Notepad..." Click="ItemOpenNotepad_Click"/>
+                        <Separator/>
+                        <MenuItem x:Name="ItemOpenExplorer" Header="Open in E_xplorer..." Click="ItemOpenExplorer_Click"/>
+                    </ContextMenu>
+                    <Style TargetType="{x:Type ListBoxItem}">
+                        <Setter Property="ContextMenu" Value="{StaticResource ListBoxItemMenu}"/>
+                    </Style>
+                </ListBox.Resources>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
