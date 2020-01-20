@@ -202,8 +202,6 @@ namespace SvgToPng.ViewModels
 
             if (string.Compare(extension, ".pdf", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                UpdateItem(item, null, null);
-
                 if (item.Picture != null)
                 {
                     item.Picture.ToPdf(path, SKColors.Empty, 1f, 1f);
@@ -211,8 +209,6 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".xps", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                UpdateItem(item, null, null);
-
                 if (item.Picture != null)
                 {
                     item.Picture.ToXps(path, SKColors.Empty, 1f, 1f);
@@ -220,8 +216,6 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".svg", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                UpdateItem(item, null, null);
-
                 if (item.Picture != null)
                 {
                     item.Picture.ToSvg(path, SKColors.Empty, 1f, 1f);
@@ -229,8 +223,6 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".bmp", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                UpdateItem(item, null, null);
-
                 if (item.Picture != null)
                 {
                     using (var stream = File.OpenWrite(path))
@@ -241,8 +233,6 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".gif", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                UpdateItem(item, null, null);
-
                 if (item.Picture != null)
                 {
                     using (var stream = File.OpenWrite(path))
@@ -253,8 +243,6 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".ico", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                UpdateItem(item, null, null);
-
                 if (item.Picture != null)
                 {
                     using (var stream = File.OpenWrite(path))
@@ -265,8 +253,6 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".jpeg", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                UpdateItem(item, null, null);
-
                 if (item.Picture != null)
                 {
                     using (var stream = File.OpenWrite(path))
@@ -277,8 +263,6 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".jpg", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                UpdateItem(item, null, null);
-
                 if (item.Picture != null)
                 {
                     using (var stream = File.OpenWrite(path))
@@ -289,8 +273,6 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".png", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                UpdateItem(item, null, null);
-
                 if (item.Picture != null)
                 {
                     using (var stream = File.OpenWrite(path))
@@ -301,8 +283,6 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".wbmp", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                UpdateItem(item, null, null);
-
                 if (item.Picture != null)
                 {
                     using (var stream = File.OpenWrite(path))
@@ -313,8 +293,6 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".webp", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                UpdateItem(item, null, null);
-
                 if (item.Picture != null)
                 {
                     using (var stream = File.OpenWrite(path))
@@ -325,8 +303,6 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".pkm", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                UpdateItem(item, null, null);
-
                 if (item.Picture != null)
                 {
                     using (var stream = File.OpenWrite(path))
@@ -337,8 +313,6 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".ktx", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                UpdateItem(item, null, null);
-
                 if (item.Picture != null)
                 {
                     using (var stream = File.OpenWrite(path))
@@ -349,8 +323,6 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".astc", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                UpdateItem(item, null, null);
-
                 if (item.Picture != null)
                 {
                     using (var stream = File.OpenWrite(path))
@@ -361,8 +333,6 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".dng", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                UpdateItem(item, null, null);
-
                 if (item.Picture != null)
                 {
                     using (var stream = File.OpenWrite(path))
@@ -373,8 +343,6 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".heif", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                UpdateItem(item, null, null);
-
                 if (item.Picture != null)
                 {
                     using (var stream = File.OpenWrite(path))
