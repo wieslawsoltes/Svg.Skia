@@ -13,18 +13,8 @@ namespace Svg.Skia
             return Math.Min(Math.Max(opacity, 0), 1);
         }
 
-        public static SKColor GetColor(SvgColourServer svgColourServer, float opacity, IgnoreAttributes ignoreAttributes, bool forStroke = false)
+        public static SKColor GetColor(SvgColourServer svgColourServer, float opacity, IgnoreAttributes ignoreAttributes)
         {
-            if (svgColourServer == SvgPaintServer.None)
-            {
-                return SKColors.Transparent;
-            }
-
-            if (svgColourServer == SvgPaintServer.NotSet && forStroke)
-            {
-                return SKColors.Transparent;
-            }
-
             var colour = svgColourServer.Colour;
             byte alpha = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ?
                 svgColourServer.Colour.A :
@@ -91,7 +81,7 @@ namespace Svg.Skia
                     if (server is SvgColourServer stopColorSvgColourServer)
                     {
                         var stopOpacity = AdjustSvgOpacity(svgGradientStop.StopOpacity);
-                        var stopColor = GetColor(stopColorSvgColourServer, opacity * stopOpacity, ignoreAttributes, false);
+                        var stopColor = GetColor(stopColorSvgColourServer, opacity * stopOpacity, ignoreAttributes);
                         float offset = svgGradientStop.Offset.ToDeviceValue(UnitRenderingType.Horizontal, svgGradientServer, skBounds);
                         offset /= skBounds.Width;
                         colors.Add(stopColor);
@@ -527,7 +517,7 @@ namespace Svg.Skia
             {
                 case SvgColourServer svgColourServer:
                     {
-                        skPaint.Color = GetColor(svgColourServer, opacity, ignoreAttributes, forStroke);
+                        skPaint.Color = GetColor(svgColourServer, opacity, ignoreAttributes);
                     }
                     break;
                 case SvgPatternServer svgPatternServer:
@@ -542,7 +532,7 @@ namespace Svg.Skia
                         {
                             if (fallbackServer is SvgColourServer svgColourServerFallback)
                             {
-                                skPaint.Color = GetColor(svgColourServerFallback, opacity, ignoreAttributes, forStroke);
+                                skPaint.Color = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
                             }
                             else
                             {
@@ -558,7 +548,7 @@ namespace Svg.Skia
                         {
                             if (fallbackServer is SvgColourServer svgColourServerFallback)
                             {
-                                skPaint.Color = GetColor(svgColourServerFallback, opacity, ignoreAttributes, forStroke);
+                                skPaint.Color = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
                             }
                             else
                             {
@@ -588,7 +578,7 @@ namespace Svg.Skia
                         {
                             if (fallbackServer is SvgColourServer svgColourServerFallback)
                             {
-                                skPaint.Color = GetColor(svgColourServerFallback, opacity, ignoreAttributes, forStroke);
+                                skPaint.Color = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
                             }
                             else
                             {
