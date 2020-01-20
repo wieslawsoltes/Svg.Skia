@@ -196,6 +196,195 @@ namespace SvgToPng.ViewModels
             }
         }
 
+        public void ExportItem(Item item, string path)
+        {
+            var extension = Path.GetExtension(path);
+
+            if (string.Compare(extension, ".pdf", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                UpdateItem(item, null, null);
+
+                if (item.Picture != null)
+                {
+                    item.Picture.ToPdf(path, SKColors.Empty, 1f, 1f);
+                }
+            }
+            else if (string.Compare(extension, ".xps", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                UpdateItem(item, null, null);
+
+                if (item.Picture != null)
+                {
+                    item.Picture.ToXps(path, SKColors.Empty, 1f, 1f);
+                }
+            }
+            else if (string.Compare(extension, ".svg", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                UpdateItem(item, null, null);
+
+                if (item.Picture != null)
+                {
+                    item.Picture.ToSvg(path, SKColors.Empty, 1f, 1f);
+                }
+            }
+            else if (string.Compare(extension, ".bmp", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                UpdateItem(item, null, null);
+
+                if (item.Picture != null)
+                {
+                    using (var stream = File.OpenWrite(path))
+                    {
+                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Bmp, 100, 1f, 1f);
+                    }
+                }
+            }
+            else if (string.Compare(extension, ".gif", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                UpdateItem(item, null, null);
+
+                if (item.Picture != null)
+                {
+                    using (var stream = File.OpenWrite(path))
+                    {
+                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Gif, 100, 1f, 1f);
+                    }
+                }
+            }
+            else if (string.Compare(extension, ".ico", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                UpdateItem(item, null, null);
+
+                if (item.Picture != null)
+                {
+                    using (var stream = File.OpenWrite(path))
+                    {
+                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Ico, 100, 1f, 1f);
+                    }
+                }
+            }
+            else if (string.Compare(extension, ".jpeg", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                UpdateItem(item, null, null);
+
+                if (item.Picture != null)
+                {
+                    using (var stream = File.OpenWrite(path))
+                    {
+                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Jpeg, 100, 1f, 1f);
+                    }
+                }
+            }
+            else if (string.Compare(extension, ".jpg", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                UpdateItem(item, null, null);
+
+                if (item.Picture != null)
+                {
+                    using (var stream = File.OpenWrite(path))
+                    {
+                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Jpeg, 100, 1f, 1f);
+                    }
+                }
+            }
+            else if (string.Compare(extension, ".png", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                UpdateItem(item, null, null);
+
+                if (item.Picture != null)
+                {
+                    using (var stream = File.OpenWrite(path))
+                    {
+                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Png, 100, 1f, 1f);
+                    }
+                }
+            }
+            else if (string.Compare(extension, ".wbmp", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                UpdateItem(item, null, null);
+
+                if (item.Picture != null)
+                {
+                    using (var stream = File.OpenWrite(path))
+                    {
+                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Wbmp, 100, 1f, 1f);
+                    }
+                }
+            }
+            else if (string.Compare(extension, ".webp", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                UpdateItem(item, null, null);
+
+                if (item.Picture != null)
+                {
+                    using (var stream = File.OpenWrite(path))
+                    {
+                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Webp, 100, 1f, 1f);
+                    }
+                }
+            }
+            else if (string.Compare(extension, ".pkm", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                UpdateItem(item, null, null);
+
+                if (item.Picture != null)
+                {
+                    using (var stream = File.OpenWrite(path))
+                    {
+                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Pkm, 100, 1f, 1f);
+                    }
+                }
+            }
+            else if (string.Compare(extension, ".ktx", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                UpdateItem(item, null, null);
+
+                if (item.Picture != null)
+                {
+                    using (var stream = File.OpenWrite(path))
+                    {
+                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Ktx, 100, 1f, 1f);
+                    }
+                }
+            }
+            else if (string.Compare(extension, ".astc", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                UpdateItem(item, null, null);
+
+                if (item.Picture != null)
+                {
+                    using (var stream = File.OpenWrite(path))
+                    {
+                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Astc, 100, 1f, 1f);
+                    }
+                }
+            }
+            else if (string.Compare(extension, ".dng", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                UpdateItem(item, null, null);
+
+                if (item.Picture != null)
+                {
+                    using (var stream = File.OpenWrite(path))
+                    {
+                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Dng, 100, 1f, 1f);
+                    }
+                }
+            }
+            else if (string.Compare(extension, ".heif", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                UpdateItem(item, null, null);
+
+                if (item.Picture != null)
+                {
+                    using (var stream = File.OpenWrite(path))
+                    {
+                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Heif, 100, 1f, 1f);
+                    }
+                }
+            }
+        }
+
         public void SaveItemsAsPng(IList<Item> items)
         {
             foreach (var item in items)
