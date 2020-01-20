@@ -184,6 +184,8 @@ Options:
   --version                          Display version information
 ```
 
+Supported formats: png, jpg, jpeg, webp, pdf, xps
+
 ## Build
 
 To build the projects you need to install [.NET Core 3.0](https://dotnet.microsoft.com/download/dotnet-core/3.0) version `SDK 3.0.100`.
