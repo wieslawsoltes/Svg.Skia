@@ -38,10 +38,17 @@ and install the package like this:
 
 ### Library
 
+#### Install Package
+
 ```
 dotnet add package Svg.Skia
 ```
 
+```
+Install-Package Svg.Skia
+```
+
+#### Draw on Canvas
 
 ```C#
 using SkiaSharp;
@@ -54,6 +61,8 @@ svg.Load("image.svg");
 SKCanvas canvas = ...
 canvas.DrawPicture(svg.Picture);
 ```
+
+#### Save as Png
 
 ```C#
 using SkiaSharp;
@@ -69,6 +78,23 @@ using (var svg = new SKSvg())
 ```
 
 ```C#
+using System.IO;
+using SkiaSharp;
+using Svg.Skia;
+
+using (var svg = new SKSvg())
+{
+    if (svg.Load("image.svg") != null)
+    {
+        using (var stream = File.OpenWrite("image.png"))
+        {
+            svg.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Png, 100, 1f, 1f);
+        }
+    }
+}
+```
+
+```C#
 using SkiaSharp;
 using Svg.Skia;
 
@@ -77,6 +103,53 @@ using (var svg = new SKSvg())
     if (svg.Load("image.svgz") != null)
     {
         svg.Save("image.png", SKEncodedImageFormat.Png, 100, 1f, 1f);
+    }
+}
+```
+
+```C#
+using System.IO;
+using SkiaSharp;
+using Svg.Skia;
+
+using (var svg = new SKSvg())
+{
+    if (svg.Load("image.svgz") != null)
+    {
+        using (var stream = File.OpenWrite("image.png"))
+        {
+            svg.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Png, 100, 1f, 1f);
+        }
+    }
+}
+```
+
+#### Save as Pdf
+
+```C#
+using SkiaSharp;
+using Svg.Skia;
+
+using (var svg = new SKSvg())
+{
+    if (svg.Load("image.svg") != null)
+    {
+        svg.Picture.ToPdf("image.pdf", SKColors.Empty, 1f, 1f);
+    }
+}
+```
+
+#### Save as Xps
+
+```C#
+using SkiaSharp;
+using Svg.Skia;
+
+using (var svg = new SKSvg())
+{
+    if (svg.Load("image.svg") != null)
+    {
+        svg.Picture.ToXps("image.xps", SKColors.Empty, 1f, 1f);
     }
 }
 ```
