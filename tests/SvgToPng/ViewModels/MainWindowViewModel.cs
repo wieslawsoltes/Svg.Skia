@@ -148,7 +148,7 @@ namespace SvgToPng.ViewModels
                             float scaleX = referencePng.Width / item.Picture.CullRect.Width;
                             float scaleY = referencePng.Height / item.Picture.CullRect.Height;
 
-                            using (var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY))
+                            using (var svgBitmap = item.Picture.ToBitmap(SKColors.Empty, scaleX, scaleY))
                             {
                                 if (svgBitmap.Width == referencePng.Width && svgBitmap.Height == referencePng.Height)
                                 {
@@ -206,7 +206,7 @@ namespace SvgToPng.ViewModels
                 {
                     using (var stream = File.OpenWrite(item.OutputPngPath))
                     {
-                        item.Picture.ToImage(stream, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1f, 1f);
+                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Png, 100, 1f, 1f);
                     }
                 }
             }
