@@ -47,17 +47,35 @@ namespace Svg.Skia.Converter
                 {
                     if (svg.Load(path.FullName) != null)
                     {
-                        if (Enum.TryParse<SKEncodedImageFormat>(format, true, out var skEncodedImageFormat))
+                        if (string.Compare(format, "pdf", StringComparison.OrdinalIgnoreCase) == 0)
                         {
                             if (SKColor.TryParse(background, out var skBackgroundColor))
                             {
                                 if (scale != 1f)
                                 {
-                                    svg.Save(imagePath, skBackgroundColor, skEncodedImageFormat, quality, scale, scale);
+                                    svg.Picture?.ToPdf(imagePath, skBackgroundColor, scale, scale);
                                 }
                                 else
                                 {
-                                    svg.Save(imagePath, skBackgroundColor, skEncodedImageFormat, quality, scaleX, scaleY);
+                                    svg.Picture?.ToPdf(imagePath, skBackgroundColor, scaleX, scaleY);
+                                }
+                            }
+                            else
+                            {
+                                throw new ArgumentException($"Invalid output image background.", nameof(background));
+                            }
+                        }
+                        else if (string.Compare(format, "xps", StringComparison.OrdinalIgnoreCase) == 0)
+                        {
+                            if (SKColor.TryParse(background, out var skBackgroundColor))
+                            {
+                                if (scale != 1f)
+                                {
+                                    svg.Picture?.ToXps(imagePath, skBackgroundColor, scale, scale);
+                                }
+                                else
+                                {
+                                    svg.Picture?.ToXps(imagePath, skBackgroundColor, scaleX, scaleY);
                                 }
                             }
                             else
@@ -67,7 +85,28 @@ namespace Svg.Skia.Converter
                         }
                         else
                         {
-                            throw new ArgumentException($"Invalid output image format.", nameof(format));
+                            if (Enum.TryParse<SKEncodedImageFormat>(format, true, out var skEncodedImageFormat))
+                            {
+                                if (SKColor.TryParse(background, out var skBackgroundColor))
+                                {
+                                    if (scale != 1f)
+                                    {
+                                        svg.Save(imagePath, skBackgroundColor, skEncodedImageFormat, quality, scale, scale);
+                                    }
+                                    else
+                                    {
+                                        svg.Save(imagePath, skBackgroundColor, skEncodedImageFormat, quality, scaleX, scaleY);
+                                    }
+                                }
+                                else
+                                {
+                                    throw new ArgumentException($"Invalid output image background.", nameof(background));
+                                }
+                            }
+                            else
+                            {
+                                throw new ArgumentException($"Invalid output image format.", nameof(format));
+                            }
                         }
                     }
                 }
