@@ -380,6 +380,7 @@ namespace SvgToPng
                 {
                     if (dlg.FileName != null)
                     {
+                        VM.UpdateItem(item, null, null);
                         VM.ExportItem(item, dlg.FileName); 
                     }
                 }
