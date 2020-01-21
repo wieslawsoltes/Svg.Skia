@@ -330,7 +330,7 @@ namespace SvgToPng
                 return;
             }
 
-            var textBackground = TextOutputBackgroud.Text;
+            var textBackground = TextOutputBackground.Text;
             var textScaleX = TextOutputScaleX.Text;
             var textScaleY = TextOutputScaleY.Text;
 
@@ -433,7 +433,7 @@ namespace SvgToPng
                 };
                 if (dlg.ShowDialog() == true && dlg.FileName != null)
                 {
-                    var textBackground = TextOutputBackgroud.Text;
+                    var textBackground = TextOutputBackground.Text;
                     var textScaleX = TextOutputScaleX.Text;
                     var textScaleY = TextOutputScaleY.Text;
 
