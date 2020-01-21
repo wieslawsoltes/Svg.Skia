@@ -12,7 +12,7 @@ namespace Svg.Skia.Converter
         public string? Pattern { get; set; }
         public string Format { get; set; } = "png";
         public int Quality { get; set; } = 100;
-        public string Background { get; set; } = "#00000000";
+        public string Background { get; set; } = "#00FFFFFF";
         public float Scale { get; set; } = 1f;
         public float ScaleX { get; set; } = 1f;
         public float ScaleY { get; set; } = 1f;
