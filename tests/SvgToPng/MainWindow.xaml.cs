@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -295,13 +296,55 @@ namespace SvgToPng
             }
         }
 
-        private async void ButtonSavePng_Click(object sender, RoutedEventArgs e)
+        private async void ButtonExport_Click(object sender, RoutedEventArgs e)
         {
             string outputPath = TextOutputPath.Text;
-            await Task.Factory.StartNew(() =>
+            var outputFormats = new List<string>();
+
+            if (CheckFormatPng.IsChecked == true)
             {
-                VM.SaveItemsAsPng(VM.Items);
-            });
+                outputFormats.Add("png");
+            }
+
+            if (CheckFormatJpg.IsChecked == true)
+            {
+                outputFormats.Add("jpg");
+            }
+
+            if (CheckFormatWebp.IsChecked == true)
+            {
+                outputFormats.Add("webp");
+            }
+
+            if (CheckFormatPdf.IsChecked == true)
+            {
+                outputFormats.Add("pdf");
+            }
+
+            if (CheckFormatXps.IsChecked == true)
+            {
+                outputFormats.Add("xps");
+            }
+
+            if (outputFormats.Count > 0)
+            {
+                var items = new List<Item>();
+                foreach (var obj in VM.ItemsView)
+                {
+                    if (obj is Item item)
+                    {
+                        items.Add(item);
+                    }
+                }
+
+                if (items.Count > 0)
+                {
+                    await Task.Factory.StartNew(() =>
+                    {
+                        VM.ExportItems(items, outputPath, outputFormats);
+                    });
+                }
+            }
         }
 
         private void ButtonLoad_Click(object sender, RoutedEventArgs e)
