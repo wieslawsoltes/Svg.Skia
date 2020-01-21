@@ -346,7 +346,7 @@ namespace SvgToPng.ViewModels
 
         unsafe public static SKBitmap PixelDiff(SKBitmap a, SKBitmap b)
         {
-            SKBitmap output = new SKBitmap(a.Width, a.Height, SKColorType.Bgra8888, SKAlphaType.Unpremul);
+            SKBitmap output = new SKBitmap(a.Width, a.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             byte* aPtr = (byte*)a.GetPixels().ToPointer();
             byte* bPtr = (byte*)b.GetPixels().ToPointer();
             byte* outputPtr = (byte*)output.GetPixels().ToPointer();
