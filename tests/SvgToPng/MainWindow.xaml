@@ -204,8 +204,8 @@
                             <TextBox x:Name="TextOutputScaleX" Text="1" Padding="0" Margin="2,2,2,1" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"/>
                             <TextBlock Text="Output ScaleY" Padding="0" Margin="2,2,2,1" Grid.Row="3" Grid.Column="0"/>
                             <TextBox x:Name="TextOutputScaleY" Text="1" Padding="0" Margin="2,2,2,1" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"/>
-                            <TextBlock Text="Output Backgroud" Padding="0" Margin="2,2,2,1" Grid.Row="4" Grid.Column="0"/>
-                            <TextBox x:Name="TextOutputBackgroud" Text="#00FFFFFF" Padding="0" Margin="2,2,2,1" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"/>
+                            <TextBlock Text="Output Background" Padding="0" Margin="2,2,2,1" Grid.Row="4" Grid.Column="0"/>
+                            <TextBox x:Name="TextOutputBackground" Text="#00FFFFFF" Padding="0" Margin="2,2,2,1" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"/>
                             <TextBlock Text="Reference path" Padding="0" Margin="2,3,2,0" Grid.Row="5" Grid.Column="0"/>
                             <ComboBox x:Name="TextReferencePath" ItemsSource="{Binding ReferencePaths}" SelectedItem="{Binding ReferencePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" Padding="0" Margin="2,3,2,0" Grid.Row="5" Grid.Column="1"/>
                             <Button x:Name="ButtonReferencePath" Content="..." Padding="4,1,4,1" Margin="2,3,2,0" Grid.Row="5" Grid.Column="2" Click="ButtonReferencePath_Click"/>
