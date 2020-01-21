@@ -9,11 +9,7 @@ namespace Svg.Skia
     {
         public static void Draw(this SKPicture skPicture, SKColor background, float scaleX, float scaleY, SKCanvas skCanvas)
         {
-            skCanvas.Clear(SKColors.Transparent);
-            if (background != SKColor.Empty)
-            {
-                skCanvas.DrawColor(background);
-            }
+            skCanvas.DrawColor(background);
             skCanvas.Save();
             skCanvas.Scale(scaleX, scaleY);
             skCanvas.DrawPicture(skPicture);
