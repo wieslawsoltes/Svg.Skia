@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -326,44 +325,49 @@ namespace SvgToPng
                 outputFormats.Add("xps");
             }
 
+            if (outputFormats.Count <= 0)
+            {
+                return;
+            }
+
             var textBackground = TextOutputBackgroud.Text;
             var textScaleX = TextOutputScaleX.Text;
             var textScaleY = TextOutputScaleY.Text;
 
-            if (outputFormats.Count > 0)
+            if (SKColor.TryParse(textBackground, out var skBackgroundColor) == false)
             {
-                var items = new List<Item>();
-                foreach (var obj in VM.ItemsView)
-                {
-                    if (obj is Item item)
-                    {
-                        items.Add(item);
-                    }
-                }
+                return;
+            }
 
-                if (SKColor.TryParse(textBackground, out var skBackgroundColor) == false)
-                {
-                    return;
-                }
+            if (float.TryParse(textScaleX, out var scaleX) == false)
+            {
+                return;
+            }
 
-                if (float.TryParse(textScaleX, out var scaleX) == false)
-                {
-                    return;
-                }
+            if (float.TryParse(textScaleY, out var scaleY) == false)
+            {
+                return;
+            }
 
-                if (float.TryParse(textScaleY, out var scaleY) == false)
-                {
-                    return;
-                }
+            var items = new List<Item>();
 
-                if (items.Count > 0)
+            foreach (var obj in VM.ItemsView)
+            {
+                if (obj is Item item)
                 {
-                    await Task.Factory.StartNew(() =>
-                    {
-                        VM.ExportItems(items, outputPath, outputFormats, skBackgroundColor, scaleX, scaleY);
-                    });
+                    items.Add(item);
                 }
             }
+
+            if (items.Count <= 0)
+            {
+                return;
+            }
+
+            await Task.Factory.StartNew(() =>
+            {
+                VM.ExportItems(items, outputPath, outputFormats, skBackgroundColor, scaleX, scaleY);
+            });
         }
 
         private void ButtonLoad_Click(object sender, RoutedEventArgs e)
@@ -427,32 +431,28 @@ namespace SvgToPng
                     DefaultExt = "png",
                     FilterIndex = 0
                 };
-                if (dlg.ShowDialog() == true)
+                if (dlg.ShowDialog() == true && dlg.FileName != null)
                 {
-                    if (dlg.FileName != null)
+                    var textBackground = TextOutputBackgroud.Text;
+                    var textScaleX = TextOutputScaleX.Text;
+                    var textScaleY = TextOutputScaleY.Text;
+
+                    if (SKColor.TryParse(textBackground, out var skBackgroundColor) == false)
                     {
-                        var textBackground = TextOutputBackgroud.Text;
-                        var textScaleX = TextOutputScaleX.Text;
-                        var textScaleY = TextOutputScaleY.Text;
-
-                        if (SKColor.TryParse(textBackground, out var skBackgroundColor) == false)
-                        {
-                            return;
-                        }
-
-                        if (float.TryParse(textScaleX, out var scaleX) == false)
-                        {
-                            return;
-                        }
-
-                        if (float.TryParse(textScaleY, out var scaleY) == false)
-                        {
-                            return;
-                        }
-
-                        VM.UpdateItem(item, null, null);
-                        VM.ExportItem(item, dlg.FileName, skBackgroundColor, scaleX, scaleY); 
+                        return;
                     }
+
+                    if (float.TryParse(textScaleX, out var scaleX) == false)
+                    {
+                        return;
+                    }
+
+                    if (float.TryParse(textScaleY, out var scaleY) == false)
+                    {
+                        return;
+                    }
+
+                    VM.ExportItem(item.SvgPath, dlg.FileName, skBackgroundColor, scaleX, scaleY);
                 }
             }
         }
