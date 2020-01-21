@@ -21,9 +21,6 @@ namespace SvgToPng.ViewModels
         [DataMember]
         public string ReferencePngPath { get; set; }
 
-        [DataMember]
-        public string OutputPngPath { get; set; }
-
         [IgnoreDataMember]
         public SvgDocument Svg { get; set; }
 
