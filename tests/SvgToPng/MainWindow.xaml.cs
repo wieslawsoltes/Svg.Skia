@@ -326,6 +326,10 @@ namespace SvgToPng
                 outputFormats.Add("xps");
             }
 
+            var textBackground = TextOutputBackgroud.Text;
+            var textScaleX = TextOutputScaleX.Text;
+            var textScaleY = TextOutputScaleY.Text;
+
             if (outputFormats.Count > 0)
             {
                 var items = new List<Item>();
@@ -337,11 +341,26 @@ namespace SvgToPng
                     }
                 }
 
+                if (SKColor.TryParse(textBackground, out var skBackgroundColor) == false)
+                {
+                    return;
+                }
+
+                if (float.TryParse(textScaleX, out var scaleX) == false)
+                {
+                    return;
+                }
+
+                if (float.TryParse(textScaleY, out var scaleY) == false)
+                {
+                    return;
+                }
+
                 if (items.Count > 0)
                 {
                     await Task.Factory.StartNew(() =>
                     {
-                        VM.ExportItems(items, outputPath, outputFormats);
+                        VM.ExportItems(items, outputPath, outputFormats, skBackgroundColor, scaleX, scaleY);
                     });
                 }
             }
@@ -412,8 +431,27 @@ namespace SvgToPng
                 {
                     if (dlg.FileName != null)
                     {
+                        var textBackground = TextOutputBackgroud.Text;
+                        var textScaleX = TextOutputScaleX.Text;
+                        var textScaleY = TextOutputScaleY.Text;
+
+                        if (SKColor.TryParse(textBackground, out var skBackgroundColor) == false)
+                        {
+                            return;
+                        }
+
+                        if (float.TryParse(textScaleX, out var scaleX) == false)
+                        {
+                            return;
+                        }
+
+                        if (float.TryParse(textScaleY, out var scaleY) == false)
+                        {
+                            return;
+                        }
+
                         VM.UpdateItem(item, null, null);
-                        VM.ExportItem(item, dlg.FileName); 
+                        VM.ExportItem(item, dlg.FileName, skBackgroundColor, scaleX, scaleY); 
                     }
                 }
             }
