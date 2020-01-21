@@ -22,8 +22,7 @@ namespace Svg.Skia
             float height = skPicture.CullRect.Height * scaleY;
             if (width > 0 && height > 0)
             {
-                var skImageInfo = new SKImageInfo((int)width, (int)height);
-                var skBitmap = new SKBitmap(skImageInfo);
+                var skBitmap = new SKBitmap((int)width, (int)height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
                 using var skCanvas = new SKCanvas(skBitmap);
                 Draw(skPicture, background, scaleX, scaleY, skCanvas);
                 return skBitmap;
