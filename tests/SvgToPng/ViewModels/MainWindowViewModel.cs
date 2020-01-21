@@ -133,7 +133,6 @@ namespace SvgToPng.ViewModels
                 Directory.SetCurrentDirectory(currentDirectory);
             }
 
-#if true
             if (item.ReferencePng == null)
             {
                 try
@@ -166,7 +165,6 @@ namespace SvgToPng.ViewModels
                     Debug.WriteLine(ex.StackTrace);
                 }
             } 
-#endif
         }
 
         public void AddItems(List<string> paths, IList<Item> items, string referencePath, string outputPath)
@@ -177,7 +175,6 @@ namespace SvgToPng.ViewModels
             {
                 string inputName = Path.GetFileNameWithoutExtension(path);
                 string referencePng = string.Empty;
-                string outputPng = Path.Combine(outputPath, inputName + ".png");
 
                 if (!string.IsNullOrWhiteSpace(fullReferencePath))
                 {
@@ -188,8 +185,7 @@ namespace SvgToPng.ViewModels
                 {
                     Name = inputName,
                     SvgPath = path,
-                    ReferencePngPath = referencePng,
-                    OutputPngPath = outputPng
+                    ReferencePngPath = referencePng
                 };
 
                 items.Add(item);
@@ -263,7 +259,7 @@ namespace SvgToPng.ViewModels
             }
         }
 
-        public void SaveItemsAsPng(IList<Item> items)
+        public void ExportItems(IList<Item> items, string outputPath, List<string> outputFormats)
         {
             foreach (var item in items)
             {
@@ -271,9 +267,10 @@ namespace SvgToPng.ViewModels
 
                 if (item.Picture != null)
                 {
-                    using (var stream = File.OpenWrite(item.OutputPngPath))
+                    foreach (var format in outputFormats)
                     {
-                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Png, 100, 1f, 1f);
+                        string path = Path.Combine(outputPath, item.Name + "." + format);
+                        ExportItem(item, path);
                     }
                 }
             }
