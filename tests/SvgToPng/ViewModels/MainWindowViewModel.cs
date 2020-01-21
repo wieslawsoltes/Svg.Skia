@@ -147,7 +147,7 @@ namespace SvgToPng.ViewModels
                             float scaleX = referencePng.Width / item.Picture.CullRect.Width;
                             float scaleY = referencePng.Height / item.Picture.CullRect.Height;
 
-                            using (var svgBitmap = item.Picture.ToBitmap(SKColors.Empty, scaleX, scaleY))
+                            using (var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY))
                             {
                                 if (svgBitmap.Width == referencePng.Width && svgBitmap.Height == referencePng.Height)
                                 {
@@ -200,21 +200,21 @@ namespace SvgToPng.ViewModels
             {
                 if (item.Picture != null)
                 {
-                    item.Picture.ToPdf(path, SKColors.Empty, 1f, 1f);
+                    item.Picture.ToPdf(path, SKColors.Transparent, 1f, 1f);
                 }
             }
             else if (string.Compare(extension, ".xps", StringComparison.OrdinalIgnoreCase) == 0)
             {
                 if (item.Picture != null)
                 {
-                    item.Picture.ToXps(path, SKColors.Empty, 1f, 1f);
+                    item.Picture.ToXps(path, SKColors.Transparent, 1f, 1f);
                 }
             }
             else if (string.Compare(extension, ".svg", StringComparison.OrdinalIgnoreCase) == 0)
             {
                 if (item.Picture != null)
                 {
-                    item.Picture.ToSvg(path, SKColors.Empty, 1f, 1f);
+                    item.Picture.ToSvg(path, SKColors.Transparent, 1f, 1f);
                 }
             }
             else if (string.Compare(extension, ".jpeg", StringComparison.OrdinalIgnoreCase) == 0)
@@ -223,7 +223,7 @@ namespace SvgToPng.ViewModels
                 {
                     using (var stream = File.OpenWrite(path))
                     {
-                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Jpeg, 100, 1f, 1f);
+                        item.Picture.ToImage(stream, SKColors.Transparent, SKEncodedImageFormat.Jpeg, 100, 1f, 1f);
                     }
                 }
             }
@@ -233,7 +233,7 @@ namespace SvgToPng.ViewModels
                 {
                     using (var stream = File.OpenWrite(path))
                     {
-                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Jpeg, 100, 1f, 1f);
+                        item.Picture.ToImage(stream, SKColors.Transparent, SKEncodedImageFormat.Jpeg, 100, 1f, 1f);
                     }
                 }
             }
@@ -243,7 +243,7 @@ namespace SvgToPng.ViewModels
                 {
                     using (var stream = File.OpenWrite(path))
                     {
-                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Png, 100, 1f, 1f);
+                        item.Picture.ToImage(stream, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1f, 1f);
                     }
                 }
             }
@@ -253,7 +253,7 @@ namespace SvgToPng.ViewModels
                 {
                     using (var stream = File.OpenWrite(path))
                     {
-                        item.Picture.ToImage(stream, SKColors.Empty, SKEncodedImageFormat.Webp, 100, 1f, 1f);
+                        item.Picture.ToImage(stream, SKColors.Transparent, SKEncodedImageFormat.Webp, 100, 1f, 1f);
                     }
                 }
             }
