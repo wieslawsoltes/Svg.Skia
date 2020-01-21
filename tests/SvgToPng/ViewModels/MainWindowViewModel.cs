@@ -192,86 +192,98 @@ namespace SvgToPng.ViewModels
             }
         }
 
-        public void ExportItem(Item item, string path, SKColor background, float scaleX, float scaleY)
+        public void ExportItem(string svgPath, string outputPath, SKColor background, float scaleX, float scaleY)
         {
-            var extension = Path.GetExtension(path);
+            if (!File.Exists(svgPath))
+            {
+                return;
+            }
+
+            var currentDirectory = Directory.GetCurrentDirectory();
+            Directory.SetCurrentDirectory(Path.GetDirectoryName(svgPath));
+
+            var extension = Path.GetExtension(outputPath);
 
             if (string.Compare(extension, ".pdf", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                if (item.Picture != null)
+                var svg = SKSvg.Open(svgPath);
+                using var picture = SKSvg.ToPicture(svg);
+                if (picture != null)
                 {
-                    item.Picture.ToPdf(path, background, scaleX, scaleY);
+                    picture.ToPdf(outputPath, background, scaleX, scaleY);
                 }
+
             }
             else if (string.Compare(extension, ".xps", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                if (item.Picture != null)
+                var svg = SKSvg.Open(svgPath);
+                using var picture = SKSvg.ToPicture(svg);
+                if (picture != null)
                 {
-                    item.Picture.ToXps(path, background, scaleX, scaleY);
+                    picture.ToXps(outputPath, background, scaleX, scaleY);
                 }
             }
             else if (string.Compare(extension, ".svg", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                if (item.Picture != null)
+                var svg = SKSvg.Open(svgPath);
+                using var picture = SKSvg.ToPicture(svg);
+                if (picture != null)
                 {
-                    item.Picture.ToSvg(path, background, scaleX, scaleY);
+                    picture.ToSvg(outputPath, background, scaleX, scaleY);
                 }
             }
             else if (string.Compare(extension, ".jpeg", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                if (item.Picture != null)
+                var svg = SKSvg.Open(svgPath);
+                using var picture = SKSvg.ToPicture(svg);
+                if (picture != null)
                 {
-                    using (var stream = File.OpenWrite(path))
-                    {
-                        item.Picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY);
-                    }
+                    using var stream = File.OpenWrite(outputPath);
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY);
                 }
             }
             else if (string.Compare(extension, ".jpg", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                if (item.Picture != null)
+                var svg = SKSvg.Open(svgPath);
+                using var picture = SKSvg.ToPicture(svg);
+                if (picture != null)
                 {
-                    using (var stream = File.OpenWrite(path))
-                    {
-                        item.Picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY);
-                    }
+                    using var stream = File.OpenWrite(outputPath);
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY);
                 }
             }
             else if (string.Compare(extension, ".png", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                if (item.Picture != null)
+                var svg = SKSvg.Open(svgPath);
+                using var picture = SKSvg.ToPicture(svg);
+                if (picture != null)
                 {
-                    using (var stream = File.OpenWrite(path))
-                    {
-                        item.Picture.ToImage(stream, background, SKEncodedImageFormat.Png, 100, scaleX, scaleY);
-                    }
+                    using var stream = File.OpenWrite(outputPath);
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Png, 100, scaleX, scaleY);
                 }
             }
             else if (string.Compare(extension, ".webp", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                if (item.Picture != null)
+                var svg = SKSvg.Open(svgPath);
+                using var picture = SKSvg.ToPicture(svg);
+                if (picture != null)
                 {
-                    using (var stream = File.OpenWrite(path))
-                    {
-                        item.Picture.ToImage(stream, background, SKEncodedImageFormat.Webp, 100, scaleX, scaleY);
-                    }
+                    using var stream = File.OpenWrite(outputPath);
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Webp, 100, scaleX, scaleY);
                 }
             }
+
+            Directory.SetCurrentDirectory(currentDirectory);
         }
 
         public void ExportItems(IList<Item> items, string outputPath, List<string> outputFormats, SKColor background, float scaleX, float scaleY)
         {
             foreach (var item in items)
             {
-                UpdateItem(item, null, null);
-
-                if (item.Picture != null)
+                foreach (var format in outputFormats)
                 {
-                    foreach (var format in outputFormats)
-                    {
-                        string path = Path.Combine(outputPath, item.Name + "." + format);
-                        ExportItem(item, path, background, scaleX, scaleY);
-                    }
+                    string path = Path.Combine(outputPath, item.Name + "." + format);
+                    ExportItem(item.SvgPath, path, background, scaleX, scaleY);
                 }
             }
         }
