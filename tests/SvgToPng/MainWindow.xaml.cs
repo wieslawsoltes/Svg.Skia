@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,7 +12,6 @@ using System.Windows.Forms.Integration;
 using System.Windows.Input;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
-using Svg.Skia;
 using SvgToPng.ViewModels;
 
 namespace SvgToPng
