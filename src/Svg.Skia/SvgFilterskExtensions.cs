@@ -196,10 +196,24 @@ namespace Svg.Skia
             return null;
         }
 
-        public static SKImageFilter? CreateDisplacementMap(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgDisplacementMap svgDisplacementMap, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKDisplacementMapEffectChannelSelectorType GetSKDisplacementMapEffectChannelSelectorType(SvgChannelSelector svgChannelSelector)
         {
-            // TODO:
-            return null;
+            return svgChannelSelector switch
+            {
+                SvgChannelSelector.R => SKDisplacementMapEffectChannelSelectorType.R,
+                SvgChannelSelector.G => SKDisplacementMapEffectChannelSelectorType.G,
+                SvgChannelSelector.B => SKDisplacementMapEffectChannelSelectorType.B,
+                SvgChannelSelector.A => SKDisplacementMapEffectChannelSelectorType.A,
+                _ => SKDisplacementMapEffectChannelSelectorType.A
+            };
+        }
+
+        public static SKImageFilter? CreateDisplacementMap(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgDisplacementMap svgDisplacementMap, SKImageFilter displacement, SKImageFilter? inout = null, SKImageFilter.CropRect? cropRect = null)
+        {
+            var xChannelSelector = GetSKDisplacementMapEffectChannelSelectorType(svgDisplacementMap.XChannelSelector);
+            var yChannelSelector = GetSKDisplacementMapEffectChannelSelectorType(svgDisplacementMap.YChannelSelector);
+            var scale = svgDisplacementMap.Scale;
+            return SKImageFilter.CreateDisplacementMapEffect(xChannelSelector, yChannelSelector, scale, displacement, inout, cropRect);
         }
 
         public static SKImageFilter? CreateFlood(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgFlood svgFlood, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
@@ -306,8 +320,33 @@ namespace Svg.Skia
 #if USE_NEW_FILTERS
         public static SKImageFilter? CreateMorphology(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgMorphology svgMorphology, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            // TODO:
-            return null;
+            if (svgMorphology.Radius == null)
+            {
+                return null;
+            }
+            int radiusX;
+            int radiusY;
+            if (svgMorphology.Radius.Count == 1)
+            {
+                radiusX = (int)svgMorphology.Radius[0];
+                radiusY = radiusX;
+            }
+            else if (svgMorphology.Radius.Count == 2)
+            {
+                radiusX = (int)svgMorphology.Radius[0];
+                radiusY = (int)svgMorphology.Radius[1];
+            }
+            else
+            {
+                return null;
+            }
+
+            return svgMorphology.Operator switch
+            {
+                SvgMorphologyOperator.Dilate => SKImageFilter.CreateDilate(radiusX, radiusY, input, cropRect),
+                SvgMorphologyOperator.Erode => SKImageFilter.CreateErode(radiusX, radiusY, input, cropRect),
+                _ => null,
+            };
         }
 #endif
         public static SKImageFilter? CreateOffset(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgOffset svgOffset, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
@@ -346,8 +385,70 @@ namespace Svg.Skia
 
         public static SKImageFilter? CreateTurbulence(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgTurbulence svgTurbulence, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            // TODO:
-            return null;
+            if (svgTurbulence.BaseFrequency == null)
+            {
+                return null;
+            }
+            int baseFrequencyX;
+            int baseFrequencyY;
+            if (svgTurbulence.BaseFrequency.Count == 1)
+            {
+                baseFrequencyX = (int)svgTurbulence.BaseFrequency[0];
+                baseFrequencyY = baseFrequencyX;
+            }
+            else if (svgTurbulence.BaseFrequency.Count == 2)
+            {
+                baseFrequencyX = (int)svgTurbulence.BaseFrequency[0];
+                baseFrequencyY = (int)svgTurbulence.BaseFrequency[1];
+            }
+            else
+            {
+                return null;
+            }
+
+            var numOctaves = svgTurbulence.NumOctaves;
+            var seed = svgTurbulence.Seed;
+
+            var skPaint = new SKPaint()
+            {
+                Style = SKPaintStyle.StrokeAndFill
+            };
+            disposable.Add(skPaint);
+
+            SKPointI tileSize;
+            switch (svgTurbulence.StitchTiles)
+            {
+                default:
+                case SvgStitchType.NoStitch:
+                    tileSize = SKPointI.Empty;
+                    break;
+                case SvgStitchType.Stitch:
+                    // TODO:
+                    tileSize = new SKPointI();
+                    break;
+            }
+
+            SKShader skShader;
+            switch (svgTurbulence.Type)
+            {
+                default:
+                case SvgTurbulenceType.FractalNoise:
+                    skShader = SKShader.CreatePerlinNoiseFractalNoise(baseFrequencyX, baseFrequencyY, numOctaves, seed, tileSize);
+                    break;
+                case SvgTurbulenceType.Turbulence:
+                    skShader = SKShader.CreatePerlinNoiseTurbulence(baseFrequencyX, baseFrequencyY, numOctaves, seed, tileSize);
+                    break;
+            }
+
+            skPaint.Shader = skShader;
+            disposable.Add(skShader);
+
+            if (cropRect == null)
+            {
+                cropRect = new SKImageFilter.CropRect(skBounds);
+            }
+
+            return SKImageFilter.CreatePaint(skPaint, cropRect);
         }
 #endif
         private static SKImageFilter? GetInputFilter(string inputKey, Dictionary<string, SKImageFilter> results, SKImageFilter? lastResult)
@@ -545,9 +646,15 @@ namespace Svg.Skia
                         case FilterEffects.SvgDisplacementMap svgDisplacementMap:
                             {
                                 // TODO:
-                                var inputKey = svgDisplacementMap.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
-                                var skImageFilter = CreateDisplacementMap(svgVisualElement, skFilterPrimitiveRegion, svgDisplacementMap, disposable, inputFilter, skCropRect);
+                                var input1Key = svgDisplacementMap.Input;
+                                var input1Filter = GetInputFilter(input1Key, results, lastResult);
+                                var input2Key = svgDisplacementMap.Input2;
+                                var input2Filter = GetInputFilter(input2Key, results, lastResult);
+                                if (input2Filter == null)
+                                {
+                                    break;
+                                }
+                                var skImageFilter = CreateDisplacementMap(svgVisualElement, skFilterPrimitiveRegion, svgDisplacementMap, input2Filter, input1Filter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgDisplacementMap, skPaint, skImageFilter, results, disposable);
