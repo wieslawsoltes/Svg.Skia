@@ -239,7 +239,7 @@ namespace Svg.Skia
 #if USE_NEW_FILTERS
         public static SKImageFilter? CreateImage(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgImage svgImage, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            var SrcRect = default(SKRect);
+            var srcRect = default(SKRect);
             var image = SvgImageExtensions.GetImage(svgImage.Href, svgImage.OwnerDocument);
             var skImage = image as SKImage;
             var svgFragment = image as SvgFragment;
@@ -250,19 +250,19 @@ namespace Svg.Skia
 
             if (skImage != null)
             {
-                SrcRect = SKRect.Create(0f, 0f, skImage.Width, skImage.Height);
+                srcRect = SKRect.Create(0f, 0f, skImage.Width, skImage.Height);
             }
 
             if (svgFragment != null)
             {
                 var skSize = SvgExtensions.GetDimensions(svgFragment);
-                SrcRect = SKRect.Create(0f, 0f, skSize.Width, skSize.Height);
+                srcRect = SKRect.Create(0f, 0f, skSize.Width, skSize.Height);
             }
 
             if (skImage != null)
             {
                 disposable.Add(skImage);
-                return SKImageFilter.CreateImage(skImage, SrcRect, skBounds, SKFilterQuality.None);
+                return SKImageFilter.CreateImage(skImage, srcRect, skBounds, SKFilterQuality.None);
             }
 
             if (svgFragment != null)
