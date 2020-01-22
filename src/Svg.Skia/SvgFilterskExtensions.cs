@@ -177,17 +177,26 @@ namespace Svg.Skia
 
         public static SKImageFilter? CreateDiffuseLighting(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgDiffuseLighting svgDiffuseLighting, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
+            switch (svgDiffuseLighting.LightSource)
+            {
+                case SvgDistantLight svgDistantLight:
+                    // TODO:
+                    break;
+                case SvgPointLight svgPointLight:
+                    // TODO:
+                    break;
+                case SvgSpotLight svgSpotLight:
+                    // TODO:
+                    break;
+                default:
+                    // TODO:
+                    break;
+            }
             // TODO:
             return null;
         }
 
         public static SKImageFilter? CreateDisplacementMap(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgDisplacementMap svgDisplacementMap, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
-        {
-            // TODO:
-            return null;
-        }
-
-        public static SKImageFilter? CreateDistantLight(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgDistantLight svgDistantLight, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             // TODO:
             return null;
@@ -270,20 +279,23 @@ namespace Svg.Skia
             return SKImageFilter.CreateOffset(dx, dy, input, cropRect);
         }
 #if USE_NEW_FILTERS
-        public static SKImageFilter? CreatePointLight(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgPointLight svgPointLight, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
-        {
-            // TODO:
-            return null;
-        }
-
         public static SKImageFilter? CreateSpecularLighting(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgSpecularLighting svgSpecularLighting, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            // TODO:
-            return null;
-        }
-
-        public static SKImageFilter? CreateSpotLight(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgSpotLight svgSpotLight, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
-        {
+            switch (svgSpecularLighting.LightSource)
+            {
+                case SvgDistantLight svgDistantLight:
+                    // TODO:
+                    break;
+                case SvgPointLight svgPointLight:
+                    // TODO:
+                    break;
+                case SvgSpotLight svgSpotLight:
+                    // TODO:
+                    break;
+                default:
+                    // TODO:
+                    break;
+            }
             // TODO:
             return null;
         }
@@ -503,18 +515,6 @@ namespace Svg.Skia
                                 }
                             }
                             break;
-                        case FilterEffects.SvgDistantLight svgDistantLight:
-                            {
-                                // TODO:
-                                var inputKey = svgDistantLight.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
-                                var skImageFilter = CreateDistantLight(svgVisualElement, skFilterPrimitiveRegion, svgDistantLight, disposable, inputFilter, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgDistantLight, skPaint, skImageFilter, results, disposable);
-                                }
-                            }
-                            break;
                         case FilterEffects.SvgFlood svgFlood:
                             {
                                 var inputKey = svgFlood.Input;
@@ -587,18 +587,6 @@ namespace Svg.Skia
                             }
                             break;
 #if USE_NEW_FILTERS
-                        case FilterEffects.SvgPointLight svgPointLight:
-                            {
-                                // TODO:
-                                var inputKey = svgPointLight.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
-                                var skImageFilter = CreatePointLight(svgVisualElement, skFilterPrimitiveRegion, svgPointLight, disposable, inputFilter, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgPointLight, skPaint, skImageFilter, results, disposable);
-                                }
-                            }
-                            break;
                         case FilterEffects.SvgSpecularLighting svgSpecularLighting:
                             {
                                 // TODO:
@@ -608,18 +596,6 @@ namespace Svg.Skia
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgSpecularLighting, skPaint, skImageFilter, results, disposable);
-                                }
-                            }
-                            break;
-                        case FilterEffects.SvgSpotLight svgSpotLight:
-                            {
-                                // TODO:
-                                var inputKey = svgSpotLight.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
-                                var skImageFilter = CreateSpotLight(svgVisualElement, skFilterPrimitiveRegion, svgSpotLight, disposable, inputFilter, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgSpotLight, skPaint, skImageFilter, results, disposable);
                                 }
                             }
                             break;
