@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-#define USE_NEW_FILTERS
+//#define USE_NEW_FILTERS
 using System;
 using System.Collections.Generic;
 using System.Globalization;
