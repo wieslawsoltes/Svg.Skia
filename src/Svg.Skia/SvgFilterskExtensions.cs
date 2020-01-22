@@ -389,17 +389,17 @@ namespace Svg.Skia
             {
                 return null;
             }
-            int baseFrequencyX;
-            int baseFrequencyY;
+            float baseFrequencyX;
+            float baseFrequencyY;
             if (svgTurbulence.BaseFrequency.Count == 1)
             {
-                baseFrequencyX = (int)svgTurbulence.BaseFrequency[0];
+                baseFrequencyX = svgTurbulence.BaseFrequency[0];
                 baseFrequencyY = baseFrequencyX;
             }
             else if (svgTurbulence.BaseFrequency.Count == 2)
             {
-                baseFrequencyX = (int)svgTurbulence.BaseFrequency[0];
-                baseFrequencyY = (int)svgTurbulence.BaseFrequency[1];
+                baseFrequencyX = svgTurbulence.BaseFrequency[0];
+                baseFrequencyY = svgTurbulence.BaseFrequency[1];
             }
             else
             {
