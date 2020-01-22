@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-//#define USE_NEW_FILTERS
+#define USE_NEW_FILTERS
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using SkiaSharp;
+using Svg.FilterEffects;
 
 namespace Svg.Skia
 {
@@ -156,6 +157,31 @@ namespace Svg.Skia
             }
 
             return SKImageFilter.CreatePaint(skPaint, cropRect);
+        }
+
+        private static SKImageFilter? CreateComponentTransfer(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgComponentTransfer svgComponentTransfer, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        {
+            foreach (var child in svgComponentTransfer.Children)
+            {
+                switch (child)
+                {
+                    case SvgFuncA svgFuncA:
+                        // TODO:
+                        break;
+                    case SvgFuncB svgFuncB:
+                        // TODO:
+                        break;
+                    case SvgFuncG svgFuncG:
+                        // TODO:
+                        break;
+                    case SvgFuncR svgFuncR:
+                        // TODO:
+                        break;
+                }
+            }
+
+            // TODO:
+            return null;
         }
 #endif
         public static SKImageFilter? CreateBlur(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgGaussianBlur svgGaussianBlur, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
@@ -353,7 +379,13 @@ namespace Svg.Skia
 #if USE_NEW_FILTERS
                         case FilterEffects.SvgComponentTransfer svgComponentTransfer:
                             {
-                                // TODO:
+                                var inputKey = svgComponentTransfer.Input;
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var skImageFilter = CreateComponentTransfer(svgVisualElement, skFilterPrimitiveRegion, svgComponentTransfer, disposable, inputFilter, skCropRect);
+                                if (skImageFilter != null)
+                                {
+                                    lastResult = SetImageFilter(svgComponentTransfer, skPaint, skImageFilter, results, disposable);
+                                }
                             }
                             break;
                         case FilterEffects.SvgComposite svgComposite:
@@ -390,26 +422,6 @@ namespace Svg.Skia
                                 {
                                     lastResult = SetImageFilter(svgFlood, skPaint, skImageFilter, results, disposable);
                                 }
-                            }
-                            break;
-                        case FilterEffects.SvgFuncA svgFuncA:
-                            {
-                                // TODO:
-                            }
-                            break;
-                        case FilterEffects.SvgFuncB svgFuncB:
-                            {
-                                // TODO:
-                            }
-                            break;
-                        case FilterEffects.SvgFuncG svgFuncG:
-                            {
-                                // TODO:
-                            }
-                            break;
-                        case FilterEffects.SvgFuncR svgFuncR:
-                            {
-                                // TODO:
                             }
                             break;
 #endif
