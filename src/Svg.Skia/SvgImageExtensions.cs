@@ -13,7 +13,7 @@ namespace Svg.Skia
     {
         private const string MimeTypeSvg = "image/svg+xml";
 
-        public static object? GetImage(SvgImage svgImage, string uriString)
+        public static object? GetImage(string uriString, SvgDocument svgOwnerDocument)
         {
             try
             {
@@ -25,12 +25,12 @@ namespace Svg.Skia
                 // handle data/uri embedded images (http://en.wikipedia.org/wiki/Data_URI_scheme)
                 if (uri.IsAbsoluteUri && uri.Scheme == "data")
                 {
-                    return GetImageFromDataUri(svgImage, uriString);
+                    return GetImageFromDataUri(uriString, svgOwnerDocument);
                 }
 
                 if (!uri.IsAbsoluteUri)
                 {
-                    uri = new Uri(svgImage.OwnerDocument.BaseUri, uri);
+                    uri = new Uri(svgOwnerDocument.BaseUri, uri);
                 }
 
                 return GetImageFromWeb(uri);
@@ -68,7 +68,7 @@ namespace Svg.Skia
             }
         }
 
-        public static object? GetImageFromDataUri(SvgImage svgImage, string uriString)
+        public static object? GetImageFromDataUri(string uriString, SvgDocument svgOwnerDocument)
         {
             var headerStartIndex = 5;
             var headerEndIndex = uriString.IndexOf(",", headerStartIndex);
@@ -120,7 +120,7 @@ namespace Svg.Skia
                 }
                 using (var stream = new MemoryStream(Encoding.Default.GetBytes(data)))
                 {
-                    return LoadSvg(stream, svgImage.OwnerDocument.BaseUri);
+                    return LoadSvg(stream, svgOwnerDocument.BaseUri);
                 }
             }
             // support nonstandard "img" spelling of mimetype
