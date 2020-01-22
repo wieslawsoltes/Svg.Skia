@@ -42,7 +42,7 @@ namespace Svg.Skia
             //    return;
             //}
 
-            var image = SvgImageExtensions.GetImage(svgImage, svgImage.Href);
+            var image = SvgImageExtensions.GetImage(svgImage.Href, svgImage.OwnerDocument);
             var skImage = image as SKImage;
             var svgFragment = image as SvgFragment;
             if (skImage == null && svgFragment == null)
