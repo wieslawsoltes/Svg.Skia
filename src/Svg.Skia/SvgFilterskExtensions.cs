@@ -239,7 +239,46 @@ namespace Svg.Skia
 #if USE_NEW_FILTERS
         public static SKImageFilter? CreateImage(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgImage svgImage, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            // TODO:
+            var SrcRect = default(SKRect);
+            var image = SvgImageExtensions.GetImage(svgImage.Href, svgImage.OwnerDocument);
+            var skImage = image as SKImage;
+            var svgFragment = image as SvgFragment;
+            if (skImage == null && svgFragment == null)
+            {
+                return null;
+            }
+
+            if (skImage != null)
+            {
+                SrcRect = SKRect.Create(0f, 0f, skImage.Width, skImage.Height);
+            }
+
+            if (svgFragment != null)
+            {
+                var skSize = SvgExtensions.GetDimensions(svgFragment);
+                SrcRect = SKRect.Create(0f, 0f, skSize.Width, skSize.Height);
+            }
+
+            if (skImage != null)
+            {
+                disposable.Add(skImage);
+                return SKImageFilter.CreateImage(skImage, SrcRect, skBounds, SKFilterQuality.None);
+            }
+
+            if (svgFragment != null)
+            {
+                using var fragmentDrawable = new FragmentDrawable(svgFragment, skBounds, IgnoreAttributes.None);
+                var skPicture = fragmentDrawable.Snapshot();
+                disposable.Add(skPicture);
+
+                if (cropRect == null)
+                {
+                    cropRect = new SKImageFilter.CropRect(skBounds);
+                }
+
+                SKImageFilter.CreatePicture(skPicture, cropRect.Rect);
+            }
+
             return null;
         }
 #endif
