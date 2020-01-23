@@ -209,7 +209,14 @@ namespace Svg.Skia
             // TODO:
 
             SKSizeI kernelSize = new SKSizeI((int)orderX, (int)orderY);
-            float[] kernel = svgConvolveMatrix.KernelMatrix.ToArray();
+            var kernelMatrix = svgConvolveMatrix.KernelMatrix;
+            float[] kernel = new float[kernelMatrix.Count];
+
+            int count = kernelMatrix.Count;
+            for (int i = 0; i < count; ++i)
+            {
+                kernel[i] = kernelMatrix[count - 1 - i];
+            }
 
             float divisor = svgConvolveMatrix.Divisor;
             if (divisor == 0f)
@@ -224,8 +231,8 @@ namespace Svg.Skia
                 }
             }
 
-            float gain = divisor;
-            float bias = svgConvolveMatrix.Bias;
+            float gain = 1f / divisor;
+            float bias = svgConvolveMatrix.Bias * 255f;
             SKPointI kernelOffset = new SKPointI(svgConvolveMatrix.TargetX, svgConvolveMatrix.TargetY);
             SKMatrixConvolutionTileMode tileMode = svgConvolveMatrix.EdgeMode switch
             {
@@ -234,7 +241,7 @@ namespace Svg.Skia
                 SvgEdgeMode.None => SKMatrixConvolutionTileMode.ClampToBlack,
                 _ => SKMatrixConvolutionTileMode.Clamp
             };
-            bool convolveAlpha = svgConvolveMatrix.PreserveAlpha;
+            bool convolveAlpha = !svgConvolveMatrix.PreserveAlpha;
 
             return SKImageFilter.CreateMatrixConvolution(kernelSize, kernel, gain, bias, kernelOffset, tileMode, convolveAlpha);
         }
