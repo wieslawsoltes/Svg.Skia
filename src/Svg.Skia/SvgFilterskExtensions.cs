@@ -12,6 +12,7 @@ namespace Svg.Skia
 {
     public static class SvgFiltersExtensions
     {
+#if USE_NEW_FILTERS
         public static void GetOptionalNumbers(SvgNumberCollection svgNumberCollection, float defaultValue1, float defaultValue2, out float value1, out float value2)
         {
             value1 = defaultValue1;
@@ -31,7 +32,7 @@ namespace Svg.Skia
                 value2 = svgNumberCollection[1];
             }
         }
-
+#endif
         public static double DegreeToRadian(double angle)
         {
             return Math.PI * angle / 180.0;
