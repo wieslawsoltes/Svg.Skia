@@ -203,8 +203,23 @@ namespace Svg.Skia
 
         public static SKImageFilter? CreateConvolveMatrix(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgConvolveMatrix svgConvolveMatrix, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            // TODO:
-            return null;
+            GetOptionalNumbers(svgConvolveMatrix.Order, 3f, 3f, out var orderX, out var orderY);
+
+            SKSizeI kernelSize = new SKSizeI((int)orderX, (int)orderY);
+            float[] kernel = svgConvolveMatrix.KernelMatrix.ToArray();
+            float gain = svgConvolveMatrix.Divisor;
+            float bias = svgConvolveMatrix.Bias;
+            SKPointI kernelOffset = new SKPointI(svgConvolveMatrix.TargetX, svgConvolveMatrix.TargetY);
+            SKMatrixConvolutionTileMode tileMode = svgConvolveMatrix.EdgeMode switch
+            {
+                SvgEdgeMode.Duplicate => SKMatrixConvolutionTileMode.Clamp,
+                SvgEdgeMode.Wrap => SKMatrixConvolutionTileMode.Repeat,
+                SvgEdgeMode.None => SKMatrixConvolutionTileMode.ClampToBlack,
+                _ => SKMatrixConvolutionTileMode.Clamp
+            };
+            bool convolveAlpha = svgConvolveMatrix.PreserveAlpha;
+
+            return SKImageFilter.CreateMatrixConvolution(kernelSize, kernel, gain, bias, kernelOffset, tileMode, convolveAlpha);
         }
 
         public static SKImageFilter? CreateDiffuseLighting(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgDiffuseLighting svgDiffuseLighting, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
