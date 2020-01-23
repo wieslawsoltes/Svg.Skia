@@ -38,7 +38,7 @@ namespace Svg.Skia
             return Math.PI * angle / 180.0;
         }
 
-        private static double RadianToDegree(double angle)
+        public static double RadianToDegree(double angle)
         {
             return angle * (180.0 / Math.PI);
         }
