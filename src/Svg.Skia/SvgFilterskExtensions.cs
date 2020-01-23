@@ -174,29 +174,160 @@ namespace Svg.Skia
             return SKImageFilter.CreateColorFilter(skColorFilter, input, cropRect);
         }
 #if USE_NEW_FILTERS
-        private static SKImageFilter? CreateComponentTransfer(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgComponentTransfer svgComponentTransfer, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+
+        public static SvgFuncA s_IdentitySvgFuncA = new SvgFuncA()
         {
+            Type = SvgComponentTransferType.Identity,
+            TableValues = new SvgNumberCollection()
+        };
+
+        public static SvgFuncR s_IdentitySvgFuncR = new SvgFuncR()
+        {
+            Type = SvgComponentTransferType.Identity,
+            TableValues = new SvgNumberCollection()
+        };
+
+        public static SvgFuncG s_IdentitySvgFuncG = new SvgFuncG()
+        {
+            Type = SvgComponentTransferType.Identity,
+            TableValues = new SvgNumberCollection()
+        };
+
+        public static SvgFuncB s_IdentitySvgFuncB = new SvgFuncB()
+        {
+            Type = SvgComponentTransferType.Identity,
+            TableValues = new SvgNumberCollection()
+        };
+
+        public static void Identity(byte[] values, SvgComponentTransferFunction transferFunction)
+        {
+        }
+
+        public static void Table(byte[] values, SvgComponentTransferFunction transferFunction)
+        {
+            var tableValues = transferFunction.TableValues;
+            byte n = (byte)tableValues.Count;
+            if (n < 1)
+            {
+                return;
+            }
+            for (byte i = 0; i <= 255; ++i)
+            {
+                double c = i / 255.0;
+                byte k = (byte)(c * (n - 1));
+                double v1 = tableValues[k];
+                double v2 = tableValues[Math.Min((k + 1), (n - 1))];
+                double val = 255.0 * (v1 + (c * (n - 1) - k) * (v2 - v1));
+                val = Math.Max(0.0, Math.Min(255.0, val));
+                values[i] = (byte)val;
+            }
+        }
+
+        public static void Discrete(byte[] values, SvgComponentTransferFunction transferFunction)
+        {
+            var tableValues = transferFunction.TableValues;
+            byte n = (byte)tableValues.Count;
+            if (n < 1)
+            {
+                return;
+            }
+            for (byte i = 0; i <= 255; ++i)
+            {
+                byte k = (byte)((i * n) / 255.0);
+                k = (byte)Math.Min(k, n - 1);
+                double val = 255 * tableValues[k];
+                val = Math.Max(0.0, Math.Min(255.0, val));
+                values[i] = (byte)val;
+            }
+        }
+
+        public static void Linear(byte[] values, SvgComponentTransferFunction transferFunction)
+        {
+            for (byte i = 0; i <= 255; ++i)
+            {
+                double val = transferFunction.Slope * i + 255 * transferFunction.Intercept;
+                val = Math.Max(0.0, Math.Min(255.0, val));
+                values[i] = (byte)val;
+            }
+        }
+
+        public static void Gamma(byte[] values, SvgComponentTransferFunction transferFunction)
+        {
+            for (byte i = 0; i <= 255; ++i)
+            {
+                double exponent = transferFunction.Exponent;
+                double val = 255.0 * (transferFunction.Amplitude * Math.Pow((i / 255.0), exponent) + transferFunction.Offset);
+                val = Math.Max(0.0, Math.Min(255.0, val));
+                values[i] = (byte)val;
+            }
+        }
+
+        public static void Apply(byte[] values, SvgComponentTransferFunction transferFunction)
+        {
+            switch (transferFunction.Type)
+            {
+                case SvgComponentTransferType.Identity:
+                    Identity(values, transferFunction);
+                    break;
+                case SvgComponentTransferType.Table:
+                    Table(values, transferFunction);
+                    break;
+                case SvgComponentTransferType.Discrete:
+                    Discrete(values, transferFunction);
+                    break;
+                case SvgComponentTransferType.Linear:
+                    Linear(values, transferFunction);
+                    break;
+                case SvgComponentTransferType.Gamma:
+                    Gamma(values, transferFunction);
+                    break;
+            }
+        }
+
+        public static SKImageFilter? CreateComponentTransfer(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgComponentTransfer svgComponentTransfer, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        {
+            SvgFuncA? svgFuncA = s_IdentitySvgFuncA;
+            SvgFuncR? svgFuncR = s_IdentitySvgFuncR;
+            SvgFuncG? svgFuncG = s_IdentitySvgFuncG;
+            SvgFuncB? svgFuncB = s_IdentitySvgFuncB;
+
             foreach (var child in svgComponentTransfer.Children)
             {
                 switch (child)
                 {
-                    case SvgFuncA svgFuncA:
-                        // TODO:
+                    case SvgFuncA a:
+                        svgFuncA = a;
                         break;
-                    case SvgFuncB svgFuncB:
-                        // TODO:
+                    case SvgFuncR r:
+                        svgFuncR = r;
                         break;
-                    case SvgFuncG svgFuncG:
-                        // TODO:
+                    case SvgFuncG g:
+                        svgFuncG = g;
                         break;
-                    case SvgFuncR svgFuncR:
-                        // TODO:
+                    case SvgFuncB b:
+                        svgFuncB = b;
                         break;
                 }
             }
 
-            // TODO:
-            return null;
+            byte[] tableA = new byte[256];
+            byte[] tableR = new byte[256];
+            byte[] tableG = new byte[256];
+            byte[] tableB = new byte[256];
+
+            for (byte i = 0; i <= 255; ++i)
+            {
+                tableA[i] = tableR[i] = tableG[i] = tableB[i] = i;
+            }
+
+            Apply(tableA, s_IdentitySvgFuncA);
+            Apply(tableR, s_IdentitySvgFuncR);
+            Apply(tableG, s_IdentitySvgFuncG);
+            Apply(tableB, s_IdentitySvgFuncB);
+
+            var cf = SKColorFilter.CreateTable(tableA, tableR, tableG, tableB);
+
+            return SKImageFilter.CreateColorFilter(cf, input, cropRect);
         }
 
         public static SKImageFilter? CreateComposite(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgComposite svgComposite, SKImageFilter background, SKImageFilter? foreground = null, SKImageFilter.CropRect? cropRect = null)
