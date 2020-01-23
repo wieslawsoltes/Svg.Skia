@@ -267,7 +267,7 @@ namespace Svg.Skia
             return SKImageFilter.CreateMatrixConvolution(kernelSize, kernel, gain, bias, kernelOffset, tileMode, convolveAlpha);
         }
 
-        private static SKPoint3 GetDirection(SvgDistantLight svgDistantLight)
+        public static SKPoint3 GetDirection(SvgDistantLight svgDistantLight)
         {
             float azimuth = svgDistantLight.Azimuth;
             float elevation = svgDistantLight.Elevation;
@@ -574,7 +574,7 @@ namespace Svg.Skia
             return SKImageFilter.CreatePaint(skPaint, cropRect);
         }
 #endif
-        private static SKImageFilter? GetInputFilter(string inputKey, Dictionary<string, SKImageFilter> results, SKImageFilter? lastResult)
+        public static SKImageFilter? GetInputFilter(string inputKey, Dictionary<string, SKImageFilter> results, SKImageFilter? lastResult)
         {
             if (string.IsNullOrWhiteSpace(inputKey))
             {
@@ -611,7 +611,7 @@ namespace Svg.Skia
             return null;
         }
 
-        private static SKImageFilter? SetImageFilter(FilterEffects.SvgFilterPrimitive svgFilterPrimitive, SKPaint skPaint, SKImageFilter skImageFilter, Dictionary<string, SKImageFilter> results, CompositeDisposable disposable)
+        public static SKImageFilter? SetImageFilter(FilterEffects.SvgFilterPrimitive svgFilterPrimitive, SKPaint skPaint, SKImageFilter skImageFilter, Dictionary<string, SKImageFilter> results, CompositeDisposable disposable)
         {
             var key = svgFilterPrimitive.Result;
             if (!string.IsNullOrWhiteSpace(key))
