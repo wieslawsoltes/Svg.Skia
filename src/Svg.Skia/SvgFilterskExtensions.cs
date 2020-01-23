@@ -205,9 +205,25 @@ namespace Svg.Skia
         {
             GetOptionalNumbers(svgConvolveMatrix.Order, 3f, 3f, out var orderX, out var orderY);
 
+            // TODO:
+
             SKSizeI kernelSize = new SKSizeI((int)orderX, (int)orderY);
             float[] kernel = svgConvolveMatrix.KernelMatrix.ToArray();
-            float gain = svgConvolveMatrix.Divisor;
+
+            float divisor = svgConvolveMatrix.Divisor;
+            if (divisor == 0f)
+            {
+                foreach (var value in kernel)
+                {
+                    divisor += value;
+                }
+                if (divisor == 0f)
+                {
+                    divisor = 1f;
+                }
+            }
+
+            float gain = divisor;
             float bias = svgConvolveMatrix.Bias;
             SKPointI kernelOffset = new SKPointI(svgConvolveMatrix.TargetX, svgConvolveMatrix.TargetY);
             SKMatrixConvolutionTileMode tileMode = svgConvolveMatrix.EdgeMode switch
