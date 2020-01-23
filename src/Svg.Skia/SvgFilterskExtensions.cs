@@ -94,20 +94,20 @@ namespace Svg.Skia
                 case FilterEffects.SvgColourMatrixType.HueRotate:
                     {
                         float value = (string.IsNullOrEmpty(svgColourMatrix.Values) ? 0 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture));
-                        var angle = (float)DegreeToRadian(value);
-                        var a1 = Math.Cos(angle);
-                        var a2 = Math.Sin(angle);
+                        var hue = (float)DegreeToRadian(value);
+                        var cosHue = Math.Cos(hue);
+                        var sinHue = Math.Sin(hue);
                         float[] matrix = new float[]
                         {
-                            (float)(0.213 + a1 * +0.787 + a2 * -0.213),
-                            (float)(0.715 + a1 * -0.715 + a2 * -0.715),
-                            (float)(0.072 + a1 * -0.072 + a2 * +0.928), 0, 0,
-                            (float)(0.213 + a1 * -0.213 + a2 * +0.143),
-                            (float)(0.715 + a1 * +0.285 + a2 * +0.140),
-                            (float)(0.072 + a1 * -0.072 + a2 * -0.283), 0, 0,
-                            (float)(0.213 + a1 * -0.213 + a2 * -0.787),
-                            (float)(0.715 + a1 * -0.715 + a2 * +0.715),
-                            (float)(0.072 + a1 * +0.928 + a2 * +0.072), 0, 0,
+                            (float)(0.213 + cosHue * 0.787 - sinHue * 0.213),
+                            (float)(0.715 - cosHue * 0.715 - sinHue * 0.715),
+                            (float)(0.072 - cosHue * 0.072 + sinHue * 0.928), 0, 0,
+                            (float)(0.213 - cosHue * 0.213 + sinHue * 0.143),
+                            (float)(0.715 + cosHue * 0.285 + sinHue * 0.140),
+                            (float)(0.072 - cosHue * 0.072 - sinHue * 0.283), 0, 0,
+                            (float)(0.213 - cosHue * 0.213 - sinHue * 0.787),
+                            (float)(0.715 - cosHue * 0.715 + sinHue * 0.715),
+                            (float)(0.072 + cosHue * 0.928 + sinHue * 0.072), 0, 0,
                             0, 0, 0, 1, 0
                         };
                         skColorFilter = SKColorFilter.CreateColorMatrix(matrix);
