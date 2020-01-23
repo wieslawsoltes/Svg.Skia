@@ -206,8 +206,6 @@ namespace Svg.Skia
         {
             GetOptionalNumbers(svgConvolveMatrix.Order, 3f, 3f, out var orderX, out var orderY);
 
-            // TODO:
-
             SKSizeI kernelSize = new SKSizeI((int)orderX, (int)orderY);
             var kernelMatrix = svgConvolveMatrix.KernelMatrix;
             float[] kernel = new float[kernelMatrix.Count];
