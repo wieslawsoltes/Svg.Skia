@@ -460,7 +460,7 @@ namespace SvgToPng
 
         private void ItemReload_Click(object sender, RoutedEventArgs e)
         {
-            if (items.SelectedIndex > 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
+            if (items.SelectedIndex >= 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
             {
                 VM.ResetItem(item);
                 Update(item);
@@ -470,7 +470,7 @@ namespace SvgToPng
 
         private void Item_Delete_Click(object sender, RoutedEventArgs e)
         {
-            if (items.SelectedIndex > 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
+            if (items.SelectedIndex >= 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
             {
                 VM.RemoveItem(item);
                 Invalidate();
@@ -479,7 +479,7 @@ namespace SvgToPng
 
         private void ItemOpenNotepad_Click(object sender, RoutedEventArgs e)
         {
-            if (items.SelectedIndex > 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
+            if (items.SelectedIndex >= 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
             {
                 Process.Start("notepad", item.SvgPath);
             }
@@ -487,7 +487,7 @@ namespace SvgToPng
 
         private void ItemOpenExplorer_Click(object sender, RoutedEventArgs e)
         {
-            if (items.SelectedIndex > 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
+            if (items.SelectedIndex >= 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
             {
                 Process.Start("explorer", item.SvgPath);
             }
