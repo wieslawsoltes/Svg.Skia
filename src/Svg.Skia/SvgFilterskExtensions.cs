@@ -22,16 +22,6 @@ namespace Svg.Skia
             return angle * (180.0 / Math.PI);
         }
 
-        public static float[] CreateIdentityColorMatrixArray()
-        {
-            return new float[]
-            {
-                1, 0, 0, 0, 0,
-                0, 1, 0, 0, 0,
-                0, 0, 1, 0, 0,
-                0, 0, 0, 1, 0
-            };
-        }
 #if USE_NEW_FILTERS
         public static SKBlendMode GetSKBlendMode(FilterEffects.SvgBlendMode svgBlendMode)
         {
@@ -63,6 +53,17 @@ namespace Svg.Skia
             return SKImageFilter.CreateBlendMode(mode, background, foreground, cropRect);
         }
 #endif
+        public static float[] CreateIdentityColorMatrixArray()
+        {
+            return new float[]
+            {
+                1, 0, 0, 0, 0,
+                0, 1, 0, 0, 0,
+                0, 0, 1, 0, 0,
+                0, 0, 0, 1, 0
+            };
+        }
+
         public static SKImageFilter? CreateColorMatrix(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgColourMatrix svgColourMatrix, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             SKColorFilter skColorFilter;
