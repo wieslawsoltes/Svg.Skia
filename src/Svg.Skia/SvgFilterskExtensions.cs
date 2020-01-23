@@ -156,6 +156,10 @@ namespace Svg.Skia
                                 {
                                     matrix[i] = float.Parse(parts[i], NumberStyles.Any, CultureInfo.InvariantCulture);
                                 }
+                                matrix[4] *= 255;
+                                matrix[9] *= 255;
+                                matrix[14] *= 255;
+                                matrix[19] *= 255;
                             }
                             else
                             {
