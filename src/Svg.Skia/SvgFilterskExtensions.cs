@@ -239,24 +239,72 @@ namespace Svg.Skia
             return SKImageFilter.CreateMatrixConvolution(kernelSize, kernel, gain, bias, kernelOffset, tileMode, convolveAlpha);
         }
 
+        private static SKPoint3 GetDirection(SvgDistantLight svgDistantLight)
+        {
+            float azimuth = svgDistantLight.Azimuth;
+            float elevation = svgDistantLight.Elevation;
+            double azimuthRad = DegreeToRadian(azimuth);
+            double elevationRad = DegreeToRadian(elevation);
+            SKPoint3 direction = new SKPoint3(
+                (float)(Math.Cos(azimuthRad) * Math.Cos(elevationRad)),
+                (float)(Math.Sin(azimuthRad) * Math.Cos(elevationRad)),
+                (float)Math.Sin(elevationRad));
+            return direction;
+        }
+
+        public static SKColor? GetColor(SvgVisualElement svgVisualElement, SvgPaintServer server)
+        {
+            if (server is SvgDeferredPaintServer svgDeferredPaintServer)
+            {
+                server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServer, svgVisualElement);
+            }
+
+            if (server is SvgColourServer stopColorSvgColourServer)
+            {
+               return SvgPaintingExtensions.GetColor(stopColorSvgColourServer, 1f, IgnoreAttributes.None);
+            }
+
+            // TODO:
+            return null;
+        }
+
         public static SKImageFilter? CreateDiffuseLighting(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgDiffuseLighting svgDiffuseLighting, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
+            var lightColor = GetColor(svgVisualElement, svgDiffuseLighting.LightingColor);
+            if (lightColor == null)
+            {
+                return null;
+            }
+
+            var surfaceScale = svgDiffuseLighting.SurfaceScale;
+            var diffuseConstant = svgDiffuseLighting.DiffuseConstant;
+            // TODO: svgDiffuseLighting.KernelUnitLength
+
             switch (svgDiffuseLighting.LightSource)
             {
                 case SvgDistantLight svgDistantLight:
-                    // TODO:
-                    break;
+                    {
+                        var direction = GetDirection(svgDistantLight);
+                        return SKImageFilter.CreateDistantLitDiffuse(direction, lightColor.Value, surfaceScale, diffuseConstant, input, cropRect);
+                    }
                 case SvgPointLight svgPointLight:
-                    // TODO:
-                    break;
+                    {
+                        var location = new SKPoint3(svgPointLight.X, svgPointLight.Y, svgPointLight.Z);
+                        return SKImageFilter.CreatePointLitDiffuse(location, lightColor.Value, surfaceScale, diffuseConstant, input, cropRect);
+                    }
                 case SvgSpotLight svgSpotLight:
-                    // TODO:
-                    break;
-                default:
-                    // TODO:
-                    break;
+                    {
+                        var location = new SKPoint3(svgSpotLight.X, svgSpotLight.Y, svgSpotLight.Z);
+                        var target = new SKPoint3(svgSpotLight.PointsAtX, svgSpotLight.PointsAtY, svgSpotLight.PointsAtZ);
+                        float specularExponentSpotLight = svgSpotLight.SpecularExponent;
+                        float limitingConeAngle = svgSpotLight.LlimitingConeAngle;
+                        if (float.IsNaN(limitingConeAngle) || limitingConeAngle > 90f || limitingConeAngle < -90f)
+                        {
+                            limitingConeAngle = 90f;
+                        }
+                        return SKImageFilter.CreateSpotLitDiffuse(location, target, specularExponentSpotLight, limitingConeAngle, lightColor.Value, surfaceScale, diffuseConstant, input, cropRect);
+                    }
             }
-            // TODO:
             return null;
         }
 
@@ -405,22 +453,42 @@ namespace Svg.Skia
 #if USE_NEW_FILTERS
         public static SKImageFilter? CreateSpecularLighting(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgSpecularLighting svgSpecularLighting, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
+            var lightColor = GetColor(svgVisualElement, svgSpecularLighting.LightingColor);
+            if (lightColor == null)
+            {
+                return null;
+            }
+
+            var surfaceScale = svgSpecularLighting.SurfaceScale;
+            var specularConstant = svgSpecularLighting.SpecularConstant;
+            var specularExponent = svgSpecularLighting.SpecularExponent;
+            // TODO: svgSpecularLighting.KernelUnitLength
+
             switch (svgSpecularLighting.LightSource)
             {
                 case SvgDistantLight svgDistantLight:
-                    // TODO:
-                    break;
+                    {
+                        var direction = GetDirection(svgDistantLight);
+                        return SKImageFilter.CreateDistantLitSpecular(direction, lightColor.Value, surfaceScale, specularConstant, specularExponent, input, cropRect);
+                    }
                 case SvgPointLight svgPointLight:
-                    // TODO:
-                    break;
+                    {
+                        var location = new SKPoint3(svgPointLight.X, svgPointLight.Y, svgPointLight.Z);
+                        return SKImageFilter.CreatePointLitSpecular(location, lightColor.Value, surfaceScale, specularConstant, specularExponent, input, cropRect);
+                    }
                 case SvgSpotLight svgSpotLight:
-                    // TODO:
-                    break;
-                default:
-                    // TODO:
-                    break;
+                    {
+                        var location = new SKPoint3(svgSpotLight.X, svgSpotLight.Y, svgSpotLight.Z);
+                        var target = new SKPoint3(svgSpotLight.PointsAtX, svgSpotLight.PointsAtY, svgSpotLight.PointsAtZ);
+                        float specularExponentSpotLight = svgSpotLight.SpecularExponent;
+                        float limitingConeAngle = svgSpotLight.LlimitingConeAngle;
+                        if (float.IsNaN(limitingConeAngle) || limitingConeAngle > 90f || limitingConeAngle < -90f)
+                        {
+                            limitingConeAngle = 90f;
+                        }
+                        return SKImageFilter.CreateSpotLitSpecular(location, target, specularExponentSpotLight, limitingConeAngle, lightColor.Value, surfaceScale, specularConstant, specularExponent, input, cropRect);
+                    }
             }
-            // TODO:
             return null;
         }
 
