@@ -211,7 +211,7 @@ namespace Svg.Skia
             {
                 return;
             }
-            for (byte i = 0; i <= 255; ++i)
+            for (int i = 0; i < 256; i++)
             {
                 double c = i / 255.0;
                 byte k = (byte)(c * (n - 1));
@@ -231,7 +231,7 @@ namespace Svg.Skia
             {
                 return;
             }
-            for (byte i = 0; i <= 255; ++i)
+            for (int i = 0; i < 256; i++)
             {
                 byte k = (byte)((i * n) / 255.0);
                 k = (byte)Math.Min(k, n - 1);
@@ -243,7 +243,7 @@ namespace Svg.Skia
 
         public static void Linear(byte[] values, SvgComponentTransferFunction transferFunction)
         {
-            for (byte i = 0; i <= 255; ++i)
+            for (int i = 0; i < 256; i++)
             {
                 double val = transferFunction.Slope * i + 255 * transferFunction.Intercept;
                 val = Math.Max(0.0, Math.Min(255.0, val));
@@ -253,7 +253,7 @@ namespace Svg.Skia
 
         public static void Gamma(byte[] values, SvgComponentTransferFunction transferFunction)
         {
-            for (byte i = 0; i <= 255; ++i)
+            for (int i = 0; i < 256; i++)
             {
                 double exponent = transferFunction.Exponent;
                 double val = 255.0 * (transferFunction.Amplitude * Math.Pow((i / 255.0), exponent) + transferFunction.Offset);
@@ -315,9 +315,9 @@ namespace Svg.Skia
             byte[] tableG = new byte[256];
             byte[] tableB = new byte[256];
 
-            for (byte i = 0; i <= 255; ++i)
+            for (int i = 0; i < 256; i++)
             {
-                tableA[i] = tableR[i] = tableG[i] = tableB[i] = i;
+                tableA[i] = tableR[i] = tableG[i] = tableB[i] = (byte)i;
             }
 
             Apply(tableA, s_IdentitySvgFuncA);
@@ -365,7 +365,7 @@ namespace Svg.Skia
             float[] kernel = new float[kernelMatrix.Count];
 
             int count = kernelMatrix.Count;
-            for (int i = 0; i < count; ++i)
+            for (int i = 0; i < count; i++)
             {
                 kernel[i] = kernelMatrix[count - 1 - i];
             }
