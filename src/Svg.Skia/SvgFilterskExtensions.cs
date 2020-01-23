@@ -199,10 +199,30 @@ namespace Svg.Skia
             return null;
         }
 
-        public static SKImageFilter? CreateComposite(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgComposite svgComposite, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateComposite(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgComposite svgComposite, SKImageFilter background, SKImageFilter? foreground = null, SKImageFilter.CropRect? cropRect = null)
         {
-            // TODO:
-            return null;
+            var oper = svgComposite.Operator;
+            if (oper == SvgCompositeOperator.Arithmetic)
+            {
+                var k1 = svgComposite.K1;
+                var k2 = svgComposite.K2;
+                var k3 = svgComposite.K3;
+                var k4 = svgComposite.K4;
+                return SKImageFilter.CreateArithmetic(k1, k2, k3, k4, false, background, foreground, cropRect);
+            }
+            else
+            {
+                var mode = oper switch
+                {
+                    FilterEffects.SvgCompositeOperator.Over => SKBlendMode.SrcOver,
+                    FilterEffects.SvgCompositeOperator.In => SKBlendMode.SrcIn,
+                    FilterEffects.SvgCompositeOperator.Out => SKBlendMode.SrcOut,
+                    FilterEffects.SvgCompositeOperator.Atop => SKBlendMode.SrcATop,
+                    FilterEffects.SvgCompositeOperator.Xor => SKBlendMode.Xor,
+                    _ => SKBlendMode.SrcOver,
+                };
+                return SKImageFilter.CreateBlendMode(mode, background, foreground, cropRect);
+            }
         }
 
         public static SKImageFilter? CreateConvolveMatrix(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgConvolveMatrix svgConvolveMatrix, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
@@ -711,9 +731,15 @@ namespace Svg.Skia
                             break;
                         case FilterEffects.SvgComposite svgComposite:
                             {
-                                var inputKey = svgComposite.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
-                                var skImageFilter = CreateComposite(svgVisualElement, skFilterPrimitiveRegion, svgComposite, disposable, inputFilter, skCropRect);
+                                var input1Key = svgComposite.Input;
+                                var input1Filter = GetInputFilter(input1Key, results, lastResult);
+                                var input2Key = svgComposite.Input2;
+                                var input2Filter = GetInputFilter(input2Key, results, lastResult);
+                                if (input2Filter == null)
+                                {
+                                    break;
+                                }
+                                var skImageFilter = CreateComposite(svgVisualElement, skFilterPrimitiveRegion, svgComposite, input2Filter, input1Filter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgComposite, skPaint, skImageFilter, results, disposable);
