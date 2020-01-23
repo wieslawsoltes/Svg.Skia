@@ -206,7 +206,7 @@ namespace Svg.Skia
         public static void Table(byte[] values, SvgComponentTransferFunction transferFunction)
         {
             var tableValues = transferFunction.TableValues;
-            byte n = (byte)tableValues.Count;
+            int n = tableValues.Count;
             if (n < 1)
             {
                 return;
@@ -226,7 +226,7 @@ namespace Svg.Skia
         public static void Discrete(byte[] values, SvgComponentTransferFunction transferFunction)
         {
             var tableValues = transferFunction.TableValues;
-            byte n = (byte)tableValues.Count;
+            int n = tableValues.Count;
             if (n < 1)
             {
                 return;
@@ -320,10 +320,10 @@ namespace Svg.Skia
                 tableA[i] = tableR[i] = tableG[i] = tableB[i] = (byte)i;
             }
 
-            Apply(tableA, s_IdentitySvgFuncA);
-            Apply(tableR, s_IdentitySvgFuncR);
-            Apply(tableG, s_IdentitySvgFuncG);
-            Apply(tableB, s_IdentitySvgFuncB);
+            Apply(tableA, svgFuncA);
+            Apply(tableR, svgFuncR);
+            Apply(tableG, svgFuncG);
+            Apply(tableB, svgFuncB);
 
             var cf = SKColorFilter.CreateTable(tableA, tableR, tableG, tableB);
 
