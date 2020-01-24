@@ -705,6 +705,47 @@ namespace Svg.Skia
             return SKImageFilter.CreatePaint(skPaint, cropRect);
         }
 #endif
+        public static SKImageFilter? GetSourceGraphic(SKPicture skPicture, CompositeDisposable disposable)
+        {
+            var skImageFilter = SKImageFilter.CreatePicture(skPicture, skPicture.CullRect);
+            disposable.Add(skImageFilter);
+            return skImageFilter;
+        }
+
+        public static SKImageFilter? GetSourceAlpha(SKPicture skPicture, CompositeDisposable disposable)
+        {
+            var sourceGraphic = GetSourceGraphic(skPicture, disposable);
+
+            var matrix = new float[20]
+            {
+                0f, 0f, 0f, 0f, 0f,
+                0f, 0f, 0f, 0f, 0f,
+                0f, 0f, 0f, 0f, 0f,
+                0f, 0f, 0f, 1f, 0f
+            };
+
+            var skColorFilter =  SKColorFilter.CreateColorMatrix(matrix);
+            disposable.Add(skColorFilter);
+
+            var skImageFilter = SKImageFilter.CreateColorFilter(skColorFilter, sourceGraphic);
+            disposable.Add(skImageFilter);
+            return skImageFilter;
+        }
+
+        public static SKImageFilter? GetFillPaint(SKPaint skFillPaint, CompositeDisposable disposable)
+        {
+            var skImageFilter = SKImageFilter.CreatePaint(skFillPaint);
+            disposable.Add(skImageFilter);
+            return skImageFilter;
+        }
+
+        public static SKImageFilter? GetStrokePaint(SKPaint skStrokePaint, CompositeDisposable disposable)
+        {
+            var skImageFilter = SKImageFilter.CreatePaint(skStrokePaint);
+            disposable.Add(skImageFilter);
+            return skImageFilter;
+        }
+
         public static SKImageFilter? GetInputFilter(string inputKey, Dictionary<string, SKImageFilter> results, SKImageFilter? lastResult)
         {
             if (string.IsNullOrWhiteSpace(inputKey))
