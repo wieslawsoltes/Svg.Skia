@@ -420,7 +420,7 @@ namespace Svg.Skia
 
             if (server is SvgColourServer stopColorSvgColourServer)
             {
-               return SvgPaintingExtensions.GetColor(stopColorSvgColourServer, 1f, IgnoreAttributes.None);
+                return SvgPaintingExtensions.GetColor(stopColorSvgColourServer, 1f, IgnoreAttributes.None);
             }
 
             // TODO:
