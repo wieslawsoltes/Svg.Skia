@@ -627,11 +627,11 @@ namespace Svg.Skia
             {
                 case SvgShapeRendering.Inherit:
                 case SvgShapeRendering.Auto:
+                case SvgShapeRendering.GeometricPrecision:
                 default:
                     return true;
                 case SvgShapeRendering.OptimizeSpeed:
                 case SvgShapeRendering.CrispEdges:
-                case SvgShapeRendering.GeometricPrecision:
                     return false;
             }
         }
