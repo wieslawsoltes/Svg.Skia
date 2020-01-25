@@ -291,6 +291,9 @@ namespace Svg.Skia
             // TODO: Implement StartOffset
             var startOffset = svgTextPath.StartOffset.ToDeviceValue(UnitRenderingType.Other, svgTextPath, skOwnerBounds);
 
+            float hOffset = currentX + startOffset;
+            float vOffset = currentY;
+
             // TODO: Calculate correct bounds.
             var skBounds = skOwnerBounds;
 
@@ -314,7 +317,7 @@ namespace Svg.Skia
                         if (skPaint != null)
                         {
                             SvgTextExtensions.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
-                            skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint);
+                            skCanvas.DrawTextOnPath(text, skPath, hOffset, vOffset, skPaint);
                         }
                     }
 
@@ -324,7 +327,7 @@ namespace Svg.Skia
                         if (skPaint != null)
                         {
                             SvgTextExtensions.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
-                            skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint);
+                            skCanvas.DrawTextOnPath(text, skPath, hOffset, vOffset, skPaint);
                         }
                     }
                 }
