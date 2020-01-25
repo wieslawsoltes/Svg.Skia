@@ -8,8 +8,10 @@ namespace Svg.Skia
     public enum IgnoreAttributes
     {
         None = 0,
-        Opacity = 1,
-        Display = 2,
-        Filter = 4
+        Display = 1,
+        Opacity = 2,
+        Filter = 4,
+        Clip = 8,
+        Mask = 16
     }
 }
