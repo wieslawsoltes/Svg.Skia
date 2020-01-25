@@ -31,21 +31,6 @@ namespace Svg.Skia
             return visible && display;
         }
 
-        protected override SKRect OnGetBounds()
-        {
-            if (IsDrawable)
-            {
-                return TransformedBounds;
-            }
-            return SKRect.Empty;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            _disposable?.Dispose();
-        }
-
         protected void CreateMaskPaints()
         {
             Mask = new SKPaint()
@@ -129,6 +114,15 @@ namespace Svg.Skia
             canvas.Restore();
         }
 
+        protected override SKRect OnGetBounds()
+        {
+            if (IsDrawable)
+            {
+                return TransformedBounds;
+            }
+            return SKRect.Empty;
+        }
+
         public virtual Drawable? HitTest(SKPoint skPoint)
         {
             if (TransformedBounds.Contains(skPoint))
@@ -136,6 +130,12 @@ namespace Svg.Skia
                 return this;
             }
             return null;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            _disposable?.Dispose();
         }
     }
 }
