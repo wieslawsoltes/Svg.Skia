@@ -746,7 +746,7 @@ namespace Svg.Skia
             return skImageFilter;
         }
 
-        public static SKImageFilter? GetInputFilter(string inputKey, Dictionary<string, SKImageFilter> results, SKImageFilter? lastResult)
+        public static SKImageFilter? GetInputFilter(string inputKey, Dictionary<string, SKImageFilter> results, SKImageFilter? lastResult, IFilterSource filterSource, CompositeDisposable disposable)
         {
             if (string.IsNullOrWhiteSpace(inputKey))
             {
@@ -761,10 +761,22 @@ namespace Svg.Skia
             switch (inputKey)
             {
                 case "SourceGraphic":
-                    // TODO:
+                    {
+                        var skPicture = filterSource.SourceGraphic();
+                        if (skPicture != null)
+                        {
+                            GetSourceGraphic(skPicture, disposable);
+                        }
+                    }
                     break;
                 case "SourceAlpha":
-                    // TODO:
+                    {
+                        var skPicture = filterSource.SourceGraphic();
+                        if (skPicture != null)
+                        {
+                            GetSourceAlpha(skPicture, disposable);
+                        }
+                    }
                     break;
                 case "BackgroundImage":
                     // TODO:
@@ -773,10 +785,22 @@ namespace Svg.Skia
                     // TODO:
                     break;
                 case "FillPaint":
-                    // TODO:
+                    {
+                        var skPaint = filterSource.FillPaint();
+                        if (skPaint != null)
+                        {
+                            GetFillPaint(skPaint, disposable);
+                        }
+                    }
                     break;
                 case "StrokePaint":
-                    // TODO:
+                    {
+                        var skPaint = filterSource.StrokePaint();
+                        if (skPaint != null)
+                        {
+                            GetStrokePaint(skPaint, disposable);
+                        }
+                    }
                     break;
             }
 
@@ -795,7 +819,7 @@ namespace Svg.Skia
             return skImageFilter;
         }
 
-        public static SKPaint? GetFilterSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable)
+        public static SKPaint? GetFilterSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, IFilterSource filterSource, CompositeDisposable disposable)
         {
             var filter = svgVisualElement.Filter;
             if (filter == null)
@@ -863,9 +887,9 @@ namespace Svg.Skia
                         case FilterEffects.SvgBlend svgBlend:
                             {
                                 var input1Key = svgBlend.Input;
-                                var input1Filter = GetInputFilter(input1Key, results, lastResult);
+                                var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, disposable);
                                 var input2Key = svgBlend.Input2;
-                                var input2Filter = GetInputFilter(input2Key, results, lastResult);
+                                var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, disposable);
                                 if (input2Filter == null)
                                 {
                                     break;
@@ -881,7 +905,7 @@ namespace Svg.Skia
                         case FilterEffects.SvgColourMatrix svgColourMatrix:
                             {
                                 var inputKey = svgColourMatrix.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable);
                                 var skImageFilter = CreateColorMatrix(svgVisualElement, skFilterPrimitiveRegion, svgColourMatrix, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
@@ -893,7 +917,7 @@ namespace Svg.Skia
                         case FilterEffects.SvgComponentTransfer svgComponentTransfer:
                             {
                                 var inputKey = svgComponentTransfer.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable);
                                 var skImageFilter = CreateComponentTransfer(svgVisualElement, skFilterPrimitiveRegion, svgComponentTransfer, disposable, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
@@ -904,9 +928,9 @@ namespace Svg.Skia
                         case FilterEffects.SvgComposite svgComposite:
                             {
                                 var input1Key = svgComposite.Input;
-                                var input1Filter = GetInputFilter(input1Key, results, lastResult);
+                                var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, disposable);
                                 var input2Key = svgComposite.Input2;
-                                var input2Filter = GetInputFilter(input2Key, results, lastResult);
+                                var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, disposable);
                                 if (input2Filter == null)
                                 {
                                     break;
@@ -921,7 +945,7 @@ namespace Svg.Skia
                         case FilterEffects.SvgConvolveMatrix svgConvolveMatrix:
                             {
                                 var inputKey = svgConvolveMatrix.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable);
                                 var skImageFilter = CreateConvolveMatrix(svgVisualElement, skFilterPrimitiveRegion, svgConvolveMatrix, disposable, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
@@ -932,7 +956,7 @@ namespace Svg.Skia
                         case FilterEffects.SvgDiffuseLighting svgDiffuseLighting:
                             {
                                 var inputKey = svgDiffuseLighting.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable);
                                 var skImageFilter = CreateDiffuseLighting(svgVisualElement, skFilterPrimitiveRegion, svgDiffuseLighting, disposable, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
@@ -943,9 +967,9 @@ namespace Svg.Skia
                         case FilterEffects.SvgDisplacementMap svgDisplacementMap:
                             {
                                 var input1Key = svgDisplacementMap.Input;
-                                var input1Filter = GetInputFilter(input1Key, results, lastResult);
+                                var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, disposable);
                                 var input2Key = svgDisplacementMap.Input2;
-                                var input2Filter = GetInputFilter(input2Key, results, lastResult);
+                                var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, disposable);
                                 if (input2Filter == null)
                                 {
                                     break;
@@ -960,7 +984,7 @@ namespace Svg.Skia
                         case FilterEffects.SvgFlood svgFlood:
                             {
                                 var inputKey = svgFlood.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable);
                                 var skImageFilter = CreateFlood(svgVisualElement, skFilterPrimitiveRegion, svgFlood, disposable, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
@@ -972,7 +996,7 @@ namespace Svg.Skia
                         case FilterEffects.SvgGaussianBlur svgGaussianBlur:
                             {
                                 var inputKey = svgGaussianBlur.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable);
                                 var skImageFilter = CreateBlur(svgVisualElement, skFilterPrimitiveRegion, svgGaussianBlur, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
@@ -984,7 +1008,7 @@ namespace Svg.Skia
                         case FilterEffects.SvgImage svgImage:
                             {
                                 var inputKey = svgImage.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable);
                                 var skImageFilter = CreateImage(svgVisualElement, skFilterPrimitiveRegion, svgImage, disposable, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
@@ -1006,7 +1030,7 @@ namespace Svg.Skia
                         case FilterEffects.SvgMorphology svgMorphology:
                             {
                                 var inputKey = svgMorphology.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable);
                                 var skImageFilter = CreateMorphology(svgVisualElement, skFilterPrimitiveRegion, svgMorphology, disposable, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
@@ -1018,7 +1042,7 @@ namespace Svg.Skia
                         case FilterEffects.SvgOffset svgOffset:
                             {
                                 var inputKey = svgOffset.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable);
                                 var skImageFilter = CreateOffset(svgVisualElement, skFilterPrimitiveRegion, svgOffset, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
@@ -1030,7 +1054,7 @@ namespace Svg.Skia
                         case FilterEffects.SvgSpecularLighting svgSpecularLighting:
                             {
                                 var inputKey = svgSpecularLighting.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable);
                                 var skImageFilter = CreateSpecularLighting(svgVisualElement, skFilterPrimitiveRegion, svgSpecularLighting, disposable, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
@@ -1041,7 +1065,7 @@ namespace Svg.Skia
                         case FilterEffects.SvgTile svgTile:
                             {
                                 var inputKey = svgTile.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable);
                                 var skImageFilter = CreateTile(svgVisualElement, prevoiusFilterPrimitiveRegion, svgTile, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
@@ -1052,7 +1076,7 @@ namespace Svg.Skia
                         case FilterEffects.SvgTurbulence svgTurbulence:
                             {
                                 var inputKey = svgTurbulence.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult);
+                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable);
                                 var skImageFilter = CreateTurbulence(svgVisualElement, skFilterPrimitiveRegion, svgTurbulence, disposable, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
