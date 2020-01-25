@@ -762,19 +762,21 @@ namespace Svg.Skia
             {
                 case "SourceGraphic":
                     {
+                        // TODO: Cache image filter.
                         var skPicture = filterSource.SourceGraphic();
                         if (skPicture != null)
                         {
-                            GetSourceGraphic(skPicture, disposable);
+                            return GetSourceGraphic(skPicture, disposable);
                         }
                     }
                     break;
                 case "SourceAlpha":
                     {
+                        // TODO: Cache image filter.
                         var skPicture = filterSource.SourceGraphic();
                         if (skPicture != null)
                         {
-                            GetSourceAlpha(skPicture, disposable);
+                            return GetSourceAlpha(skPicture, disposable);
                         }
                     }
                     break;
@@ -786,19 +788,21 @@ namespace Svg.Skia
                     break;
                 case "FillPaint":
                     {
+                        // TODO: Cache image filter.
                         var skPaint = filterSource.FillPaint();
                         if (skPaint != null)
                         {
-                            GetFillPaint(skPaint, disposable);
+                            return GetFillPaint(skPaint, disposable);
                         }
                     }
                     break;
                 case "StrokePaint":
                     {
+                        // TODO: Cache image filter.
                         var skPaint = filterSource.StrokePaint();
                         if (skPaint != null)
                         {
-                            GetStrokePaint(skPaint, disposable);
+                            return GetStrokePaint(skPaint, disposable);
                         }
                     }
                     break;
