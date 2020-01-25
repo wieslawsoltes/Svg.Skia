@@ -705,16 +705,16 @@ namespace Svg.Skia
             return SKImageFilter.CreatePaint(skPaint, cropRect);
         }
 #endif
-        public static SKImageFilter? GetSourceGraphic(SKPicture skPicture, CompositeDisposable disposable)
+        public static SKImageFilter? GetGraphic(SKPicture skPicture, CompositeDisposable disposable)
         {
             var skImageFilter = SKImageFilter.CreatePicture(skPicture, skPicture.CullRect);
             disposable.Add(skImageFilter);
             return skImageFilter;
         }
 
-        public static SKImageFilter? GetSourceAlpha(SKPicture skPicture, CompositeDisposable disposable)
+        public static SKImageFilter? GetAlpha(SKPicture skPicture, CompositeDisposable disposable)
         {
-            var sourceGraphic = GetSourceGraphic(skPicture, disposable);
+            var skImageFilterGraphic = GetGraphic(skPicture, disposable);
 
             var matrix = new float[20]
             {
@@ -727,24 +727,24 @@ namespace Svg.Skia
             var skColorFilter =  SKColorFilter.CreateColorMatrix(matrix);
             disposable.Add(skColorFilter);
 
-            var skImageFilter = SKImageFilter.CreateColorFilter(skColorFilter, sourceGraphic);
+            var skImageFilter = SKImageFilter.CreateColorFilter(skColorFilter, skImageFilterGraphic);
             disposable.Add(skImageFilter);
             return skImageFilter;
         }
 
-        public static SKImageFilter? GetFillPaint(SKPaint skFillPaint, CompositeDisposable disposable)
+        public static SKImageFilter? GetPaint(SKPaint skPaint, CompositeDisposable disposable)
         {
-            var skImageFilter = SKImageFilter.CreatePaint(skFillPaint);
+            var skImageFilter = SKImageFilter.CreatePaint(skPaint);
             disposable.Add(skImageFilter);
             return skImageFilter;
         }
 
-        public static SKImageFilter? GetStrokePaint(SKPaint skStrokePaint, CompositeDisposable disposable)
-        {
-            var skImageFilter = SKImageFilter.CreatePaint(skStrokePaint);
-            disposable.Add(skImageFilter);
-            return skImageFilter;
-        }
+        public const string SourceGraphic = "SourceGraphic";
+        public const string SourceAlpha = "SourceAlpha";
+        public const string BackgroundImage = "BackgroundImage";
+        public const string BackgroundAlpha = "BackgroundAlpha";
+        public const string FillPaint = "FillPaint";
+        public const string StrokePaint = "StrokePaint";
 
         public static SKImageFilter? GetInputFilter(string inputKey, Dictionary<string, SKImageFilter> results, SKImageFilter? lastResult, IFilterSource filterSource, CompositeDisposable disposable)
         {
@@ -760,49 +760,87 @@ namespace Svg.Skia
 
             switch (inputKey)
             {
-                case "SourceGraphic":
+                case SourceGraphic:
                     {
-                        // TODO: Cache image filter.
                         var skPicture = filterSource.SourceGraphic();
                         if (skPicture != null)
                         {
-                            return GetSourceGraphic(skPicture, disposable);
+                            var skImageFilter = GetGraphic(skPicture, disposable);
+                            if (skImageFilter != null)
+                            {
+                                results[SourceGraphic] = skImageFilter;
+                                return skImageFilter; 
+                            }
                         }
                     }
                     break;
-                case "SourceAlpha":
+                case SourceAlpha:
                     {
-                        // TODO: Cache image filter.
                         var skPicture = filterSource.SourceGraphic();
                         if (skPicture != null)
                         {
-                            return GetSourceAlpha(skPicture, disposable);
+                            var skImageFilter = GetAlpha(skPicture, disposable);
+                            if (skImageFilter != null)
+                            {
+                                results[SourceAlpha] = skImageFilter;
+                                return skImageFilter;
+                            }
                         }
                     }
                     break;
-                case "BackgroundImage":
-                    // TODO:
-                    break;
-                case "BackgroundAlpha":
-                    // TODO:
-                    break;
-                case "FillPaint":
+                case BackgroundImage:
                     {
-                        // TODO: Cache image filter.
+                        var skPicture = filterSource.BackgroundImage();
+                        if (skPicture != null)
+                        {
+                            var skImageFilter = GetGraphic(skPicture, disposable);
+                            if (skImageFilter != null)
+                            {
+                                results[BackgroundImage] = skImageFilter;
+                                return skImageFilter;
+                            }
+                        }
+                    }
+                    break;
+                case BackgroundAlpha:
+                    {
+                        var skPicture = filterSource.BackgroundImage();
+                        if (skPicture != null)
+                        {
+                            var skImageFilter = GetAlpha(skPicture, disposable);
+                            if (skImageFilter != null)
+                            {
+                                results[BackgroundAlpha] = skImageFilter;
+                                return skImageFilter;
+                            }
+                        }
+                    }
+                    break;
+                case FillPaint:
+                    {
                         var skPaint = filterSource.FillPaint();
                         if (skPaint != null)
                         {
-                            return GetFillPaint(skPaint, disposable);
+                            var skImageFilter = GetPaint(skPaint, disposable);
+                            if (skImageFilter != null)
+                            {
+                                results[FillPaint] = skImageFilter;
+                                return skImageFilter;
+                            }
                         }
                     }
                     break;
-                case "StrokePaint":
+                case StrokePaint:
                     {
-                        // TODO: Cache image filter.
                         var skPaint = filterSource.StrokePaint();
                         if (skPaint != null)
                         {
-                            return GetStrokePaint(skPaint, disposable);
+                            var skImageFilter = GetPaint(skPaint, disposable);
+                            if (skImageFilter != null)
+                            {
+                                results[StrokePaint] = skImageFilter;
+                                return skImageFilter;
+                            }
                         }
                     }
                     break;
