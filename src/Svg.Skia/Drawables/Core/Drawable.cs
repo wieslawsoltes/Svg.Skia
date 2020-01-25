@@ -159,6 +159,7 @@ namespace Svg.Skia
 
         SKPicture? IFilterSource.BackgroundImage()
         {
+            // TODO:
             return null;
         }
 
