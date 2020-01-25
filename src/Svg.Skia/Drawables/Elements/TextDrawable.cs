@@ -26,6 +26,46 @@ namespace Svg.Skia
             IgnoreAttributes = ignoreAttributes;
         }
 
+        internal void GetPositionsX(SvgTextBase svgTextBase, SKRect skBounds, List<float> xs)
+        {
+            var _x = svgTextBase.X;
+
+            for (int i = 0; i < _x.Count; i++)
+            {
+                xs.Add(_x[i].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, skBounds));
+            }
+        }
+
+        internal void GetPositionsY(SvgTextBase svgTextBase, SKRect skBounds, List<float> ys)
+        {
+            var _y = svgTextBase.Y;
+
+            for (int i = 0; i < _y.Count; i++)
+            {
+                ys.Add(_y[i].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, skBounds));
+            }
+        }
+
+        internal void GetPositionsDX(SvgTextBase svgTextBase, SKRect skBounds, List<float> dxs)
+        {
+            var _dx = svgTextBase.Dx;
+
+            for (int i = 0; i < _dx.Count; i++)
+            {
+                dxs.Add(_dx[i].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, skBounds));
+            }
+        }
+
+        internal void GetPositionsDY(SvgTextBase svgTextBase, SKRect skBounds, List<float> dys)
+        {
+            var _dy = svgTextBase.Dy;
+
+            for (int i = 0; i < _dy.Count; i++)
+            {
+                dys.Add(_dy[i].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, skBounds));
+            }
+        }
+
         internal virtual IEnumerable<ISvgNode> GetContentNodes(SvgTextBase svgTextBase)
         {
             return svgTextBase.Nodes == null || svgTextBase.Nodes.Count < 1 ?
@@ -160,77 +200,63 @@ namespace Svg.Skia
             bool isValidFill = SvgPaintingExtensions.IsValidFill(svgTextBase);
             bool isValidStroke = SvgPaintingExtensions.IsValidStroke(svgTextBase, skOwnerBounds);
 
-            if ((isValidFill || isValidStroke) && text != null && !string.IsNullOrEmpty(text))
+            if ((!isValidFill && !isValidStroke) || text == null || string.IsNullOrEmpty(text))
             {
-                var xCount = svgTextBase.X.Count;
-                var yCount = svgTextBase.Y.Count;
-                var dxCount = svgTextBase.Dx.Count;
-                var dyCount = svgTextBase.Dy.Count;
+                return;
+            }
 
-                if (xCount >= 1 && yCount >= 1 && xCount == yCount && xCount == text.Length)
+            var xs = new List<float>();
+            var ys = new List<float>();
+            var dxs = new List<float>();
+            var dys = new List<float>();
+            GetPositionsX(svgTextBase, skOwnerBounds, xs);
+            GetPositionsY(svgTextBase, skOwnerBounds, ys);
+            GetPositionsDX(svgTextBase, skOwnerBounds, dxs);
+            GetPositionsDY(svgTextBase, skOwnerBounds, dys);
+
+            if (xs.Count >= 1 && ys.Count >= 1 && xs.Count == ys.Count && xs.Count == text.Length)
+            {
+                // TODO: Fix text position rendering.
+                var points = new SKPoint[xs.Count];
+
+                for (int i = 0; i < xs.Count; i++)
                 {
-                    // TODO: Fix text position rendering.
-                    var points = new SKPoint[xCount];
+                    float x = xs[i];
+                    float y = ys[i];
+                    points[i] = new SKPoint(x, y);
+                }
 
-                    for (int i = 0; i < xCount; i++)
+                // TODO: Calculate correct bounds.
+                var skBounds = skOwnerBounds;
+
+                if (SvgPaintingExtensions.IsValidFill(svgTextBase))
+                {
+                    var skPaint = SvgPaintingExtensions.GetFillSKPaint(svgTextBase, skBounds, ignoreAttributes, _disposable);
+                    if (skPaint != null)
                     {
-                        float x = svgTextBase.X[i].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, skOwnerBounds);
-                        float y = svgTextBase.Y[i].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, skOwnerBounds);
-                        points[i] = new SKPoint(x, y);
-                    }
-
-                    // TODO: Calculate correct bounds.
-                    var skBounds = skOwnerBounds;
-
-                    if (SvgPaintingExtensions.IsValidFill(svgTextBase))
-                    {
-                        var skPaint = SvgPaintingExtensions.GetFillSKPaint(svgTextBase, skBounds, ignoreAttributes, _disposable);
-                        if (skPaint != null)
-                        {
-                            SvgTextExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
-                            skCanvas.DrawPositionedText(text, points, skPaint);
-                        }
-                    }
-
-                    if (SvgPaintingExtensions.IsValidStroke(svgTextBase, skBounds))
-                    {
-                        var skPaint = SvgPaintingExtensions.GetStrokeSKPaint(svgTextBase, skBounds, ignoreAttributes, _disposable);
-                        if (skPaint != null)
-                        {
-                            SvgTextExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
-                            skCanvas.DrawPositionedText(text, points, skPaint);
-                        }
+                        SvgTextExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
+                        skCanvas.DrawPositionedText(text, points, skPaint);
                     }
                 }
-                else
+
+                if (SvgPaintingExtensions.IsValidStroke(svgTextBase, skBounds))
                 {
-                    float x = 0f;
-                    float y = 0f;
-                    float dx = 0f;
-                    float dy = 0f;
-
-                    if (xCount >= 1)
+                    var skPaint = SvgPaintingExtensions.GetStrokeSKPaint(svgTextBase, skBounds, ignoreAttributes, _disposable);
+                    if (skPaint != null)
                     {
-                        x = svgTextBase.X[0].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, skOwnerBounds);
+                        SvgTextExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
+                        skCanvas.DrawPositionedText(text, points, skPaint);
                     }
-
-                    if (yCount >= 1)
-                    {
-                        y = svgTextBase.Y[0].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, skOwnerBounds);
-                    }
-
-                    if (dxCount >= 1)
-                    {
-                        dx = svgTextBase.Dx[0].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, skOwnerBounds);
-                    }
-
-                    if (dyCount >= 1)
-                    {
-                        dy = svgTextBase.Dy[0].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, skOwnerBounds);
-                    }
-
-                    DrawTextString(svgTextBase, text, x + dx, y + dy, skOwnerBounds, ignoreAttributes, skCanvas);
                 }
+            }
+            else
+            {
+                float x = (xs.Count >= 1) ? xs[0] : 0f;
+                float y = (ys.Count >= 1) ? ys[0] : 0f;
+                float dx = (dxs.Count >= 1) ? dxs[0] : 0f;
+                float dy = (dys.Count >= 1) ? dys[0] : 0f;
+
+                DrawTextString(svgTextBase, text, x + dx, y + dy, skOwnerBounds, ignoreAttributes, skCanvas);
             }
         }
 
@@ -365,7 +391,7 @@ namespace Svg.Skia
             EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
         }
 
-        public void DrawText(SvgText svgText, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
+        internal void DrawText(SvgText svgText, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
         {
             if (!CanDraw(svgText, ignoreAttributes))
             {
