@@ -60,7 +60,7 @@ namespace Svg.Skia
                 }
             }
 
-            CreateMarkers(svgLine, Path, skOwnerBounds);
+            SvgMarkerExtensions.CreateMarkers(svgLine, Path, skOwnerBounds, ref MarkerDrawables, _disposable);
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
