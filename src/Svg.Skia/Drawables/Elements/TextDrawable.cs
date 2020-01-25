@@ -12,6 +12,8 @@ namespace Svg.Skia
 {
     public class TextDrawable : Drawable
     {
+        private static readonly Regex s_multipleSpaces = new Regex(@" {2,}", RegexOptions.Compiled);
+
         // TODO: Implement drawable.
 
         private readonly SvgText _svgText;
@@ -31,16 +33,14 @@ namespace Svg.Skia
                 svgTextBase.Nodes;
         }
 
-        private static readonly Regex s_multipleSpaces = new Regex(@" {2,}", RegexOptions.Compiled);
-
-        protected string PrepareText(SvgTextBase svgTextBase, string value)
+        internal string PrepareText(SvgTextBase svgTextBase, string value)
         {
             value = ApplyTransformation(svgTextBase, value);
             value = new StringBuilder(value).Replace("\r\n", " ").Replace('\r', ' ').Replace('\n', ' ').Replace('\t', ' ').ToString();
             return svgTextBase.SpaceHandling == XmlSpaceHandling.preserve ? value : s_multipleSpaces.Replace(value.Trim(), " ");
         }
 
-        private string ApplyTransformation(SvgTextBase svgTextBase, string value)
+        internal string ApplyTransformation(SvgTextBase svgTextBase, string value)
         {
             return svgTextBase.TextTransformation switch
             {
@@ -51,135 +51,81 @@ namespace Svg.Skia
             };
         }
 
-        internal void DrawTextPath(SvgTextPath svgTextPath, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
+        internal void BeginDraw(SvgTextBase svgTextBase, SKCanvas skCanvas, SKRect skBounds, IgnoreAttributes ignoreAttributes, CompositeDisposable disposable, out MaskDrawable? maskDrawable, out SKPaint? maskDstIn, out SKPaint? skPaintOpacity, out SKPaint? skPaintFilter)
         {
-            if (!CanDraw(svgTextPath, ignoreAttributes))
+            skCanvas.Save();
+
+            var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgTextBase.Transforms);
+
+            var skMatrixTotal = skCanvas.TotalMatrix;
+            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
+            skCanvas.SetMatrix(skMatrixTotal);
+
+            var skPathClip = SvgClippingExtensions.GetSvgVisualElementClipPath(svgTextBase, skBounds, new HashSet<Uri>(), disposable);
+            if (skPathClip != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Clip))
             {
-                return;
+                bool antialias = SvgPaintingExtensions.IsAntialias(svgTextBase);
+                skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
             }
 
-            if (SvgExtensions.HasRecursiveReference(svgTextPath, (e) => e.ReferencedPath, new HashSet<Uri>()))
+            var mask = default(SKPaint);
+            maskDstIn = default(SKPaint);
+            maskDrawable = SvgClippingExtensions.GetSvgVisualElementMask(svgTextBase, skBounds, new HashSet<Uri>(), disposable);
+            if (maskDrawable != null)
             {
-                return;
-            }
-
-            var svgPath = SvgExtensions.GetReference<SvgPath>(svgTextPath, svgTextPath.ReferencedPath);
-            if (svgPath == null)
-            {
-                return;
-            }
-
-            var skPath = svgPath.PathData?.ToSKPath(svgPath.FillRule, _disposable);
-            if (skPath == null || skPath.IsEmpty)
-            {
-                return;
-            }
-
-            var skMatrixPath = SvgTransformsExtensions.ToSKMatrix(svgPath.Transforms);
-            skPath.Transform(skMatrixPath);
-
-            // TODO: Implement StartOffset
-            var startOffset = svgTextPath.StartOffset.ToDeviceValue(UnitRenderingType.Other, svgTextPath, skOwnerBounds);
-
-            // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
-
-            SKPaint? maskDstIn, skPaintOpacity, skPaintFilter;
-            MaskDrawable? maskDrawable;
-            BeginDraw(svgTextPath, skCanvas, skBounds, ignoreAttributes, TransformedBounds, _disposable, out maskDrawable, out maskDstIn, out skPaintOpacity, out skPaintFilter);
-
-            // TODO: Fix SvgTextPath rendering.
-            bool isValidFill = SvgPaintingExtensions.IsValidFill(svgTextPath);
-            bool isValidStroke = SvgPaintingExtensions.IsValidStroke(svgTextPath, skBounds);
-
-            if (isValidFill || isValidStroke)
-            {
-                if (!string.IsNullOrEmpty(svgTextPath.Text))
+                mask = new SKPaint()
                 {
-                    var text = PrepareText(svgTextPath, svgTextPath.Text);
+                    IsAntialias = true,
+                    Style = SKPaintStyle.StrokeAndFill
+                };
+                disposable.Add(mask);
 
-                    if (SvgPaintingExtensions.IsValidFill(svgTextPath))
-                    {
-                        var skPaint = SvgPaintingExtensions.GetFillSKPaint(svgTextPath, skBounds, ignoreAttributes, _disposable);
-                        if (skPaint != null)
-                        {
-                            SvgTextExtensions.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
-                            skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint);
-                        }
-                    }
-
-                    if (SvgPaintingExtensions.IsValidStroke(svgTextPath, skBounds))
-                    {
-                        var skPaint = SvgPaintingExtensions.GetStrokeSKPaint(svgTextPath, skBounds, ignoreAttributes, _disposable);
-                        if (skPaint != null)
-                        {
-                            SvgTextExtensions.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
-                            skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint);
-                        }
-                    }
-                }
+                maskDstIn = new SKPaint
+                {
+                    IsAntialias = true,
+                    Style = SKPaintStyle.StrokeAndFill,
+                    BlendMode = SKBlendMode.DstIn,
+                    Color = new SKColor(0, 0, 0, 255),
+                    ColorFilter = SKColorFilter.CreateLumaColor()
+                };
+                disposable.Add(maskDstIn);
+                skCanvas.SaveLayer(mask);
             }
 
-            EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
+            skPaintOpacity = SvgPaintingExtensions.GetOpacitySKPaint(svgTextBase, disposable);
+            if (skPaintOpacity != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Opacity))
+            {
+                skCanvas.SaveLayer(skPaintOpacity);
+            }
+
+            skPaintFilter = SvgFiltersExtensions.GetFilterSKPaint(svgTextBase, skBounds, disposable);
+            if (skPaintFilter != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Filter))
+            {
+                skCanvas.SaveLayer(skPaintFilter);
+            }
         }
 
-        internal void DrawTextRef(SvgTextRef svgTextRef, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
+        internal void EndDraw(SKCanvas skCanvas, MaskDrawable? maskDrawable, SKPaint? maskDstIn, SKPaint? skPaintOpacity, SKPaint? skPaintFilter)
         {
-            if (!CanDraw(svgTextRef, ignoreAttributes))
+            if (skPaintFilter != null)
             {
-                return;
+                skCanvas.Restore();
             }
 
-            if (SvgExtensions.HasRecursiveReference(svgTextRef, (e) => e.ReferencedElement, new HashSet<Uri>()))
+            if (skPaintOpacity != null)
             {
-                return;
+                skCanvas.Restore();
             }
 
-            var svgReferencedText = SvgExtensions.GetReference<SvgText>(svgTextRef, svgTextRef.ReferencedElement);
-            if (svgReferencedText == null)
+            if (maskDrawable != null)
             {
-                return;
+                skCanvas.SaveLayer(maskDstIn);
+                maskDrawable.Draw(skCanvas, 0f, 0f);
+                skCanvas.Restore();
+                skCanvas.Restore();
             }
 
-            // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
-
-            SKPaint? maskDstIn, skPaintOpacity, skPaintFilter;
-            MaskDrawable? maskDrawable;
-            BeginDraw(svgTextRef, skCanvas, skBounds, ignoreAttributes, TransformedBounds, _disposable, out maskDrawable, out maskDstIn, out skPaintOpacity, out skPaintFilter);
-
-            // TODO: Draw svgReferencedText
-            if (!string.IsNullOrEmpty(svgReferencedText.Text))
-            {
-                var text = PrepareText(svgReferencedText, svgReferencedText.Text);
-                DrawTextBase(svgReferencedText, svgReferencedText.Text, skOwnerBounds, ignoreAttributes, skCanvas);
-            }
-
-            EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
-        }
-
-        internal void DrawTextSpan(SvgTextSpan svgTextSpan, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
-        {
-            if (!CanDraw(svgTextSpan, ignoreAttributes))
-            {
-                return;
-            }
-
-            // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
-
-            SKPaint? maskDstIn, skPaintOpacity, skPaintFilter;
-            MaskDrawable? maskDrawable;
-            BeginDraw(svgTextSpan, skCanvas, skBounds, ignoreAttributes, TransformedBounds, _disposable, out maskDrawable, out maskDstIn, out skPaintOpacity, out skPaintFilter);
-
-            // TODO: Implement SvgTextSpan drawing.
-            if (!string.IsNullOrEmpty(svgTextSpan.Text))
-            {
-                var text = PrepareText(svgTextSpan, svgTextSpan.Text);
-                DrawTextBase(svgTextSpan, text, skOwnerBounds, ignoreAttributes, skCanvas);
-            }
-
-            EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
+            skCanvas.Restore();
         }
 
         internal void DrawTextString(SvgTextBase svgTextBase, string text, float x, float y, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
@@ -288,6 +234,137 @@ namespace Svg.Skia
             }
         }
 
+        internal void DrawTextPath(SvgTextPath svgTextPath, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
+        {
+            if (!CanDraw(svgTextPath, ignoreAttributes))
+            {
+                return;
+            }
+
+            if (SvgExtensions.HasRecursiveReference(svgTextPath, (e) => e.ReferencedPath, new HashSet<Uri>()))
+            {
+                return;
+            }
+
+            var svgPath = SvgExtensions.GetReference<SvgPath>(svgTextPath, svgTextPath.ReferencedPath);
+            if (svgPath == null)
+            {
+                return;
+            }
+
+            var skPath = svgPath.PathData?.ToSKPath(svgPath.FillRule, _disposable);
+            if (skPath == null || skPath.IsEmpty)
+            {
+                return;
+            }
+
+            var skMatrixPath = SvgTransformsExtensions.ToSKMatrix(svgPath.Transforms);
+            skPath.Transform(skMatrixPath);
+
+            // TODO: Implement StartOffset
+            var startOffset = svgTextPath.StartOffset.ToDeviceValue(UnitRenderingType.Other, svgTextPath, skOwnerBounds);
+
+            // TODO: Calculate correct bounds.
+            var skBounds = skOwnerBounds;
+
+            SKPaint? maskDstIn, skPaintOpacity, skPaintFilter;
+            MaskDrawable? maskDrawable;
+            BeginDraw(svgTextPath, skCanvas, skBounds, ignoreAttributes, _disposable, out maskDrawable, out maskDstIn, out skPaintOpacity, out skPaintFilter);
+
+            // TODO: Fix SvgTextPath rendering.
+            bool isValidFill = SvgPaintingExtensions.IsValidFill(svgTextPath);
+            bool isValidStroke = SvgPaintingExtensions.IsValidStroke(svgTextPath, skBounds);
+
+            if (isValidFill || isValidStroke)
+            {
+                if (!string.IsNullOrEmpty(svgTextPath.Text))
+                {
+                    var text = PrepareText(svgTextPath, svgTextPath.Text);
+
+                    if (SvgPaintingExtensions.IsValidFill(svgTextPath))
+                    {
+                        var skPaint = SvgPaintingExtensions.GetFillSKPaint(svgTextPath, skBounds, ignoreAttributes, _disposable);
+                        if (skPaint != null)
+                        {
+                            SvgTextExtensions.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
+                            skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint);
+                        }
+                    }
+
+                    if (SvgPaintingExtensions.IsValidStroke(svgTextPath, skBounds))
+                    {
+                        var skPaint = SvgPaintingExtensions.GetStrokeSKPaint(svgTextPath, skBounds, ignoreAttributes, _disposable);
+                        if (skPaint != null)
+                        {
+                            SvgTextExtensions.SetSKPaintText(svgTextPath, skBounds, skPaint, _disposable);
+                            skCanvas.DrawTextOnPath(text, skPath, startOffset, 0f, skPaint);
+                        }
+                    }
+                }
+            }
+
+            EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
+        }
+
+        internal void DrawTextRef(SvgTextRef svgTextRef, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
+        {
+            if (!CanDraw(svgTextRef, ignoreAttributes))
+            {
+                return;
+            }
+
+            if (SvgExtensions.HasRecursiveReference(svgTextRef, (e) => e.ReferencedElement, new HashSet<Uri>()))
+            {
+                return;
+            }
+
+            var svgReferencedText = SvgExtensions.GetReference<SvgText>(svgTextRef, svgTextRef.ReferencedElement);
+            if (svgReferencedText == null)
+            {
+                return;
+            }
+
+            // TODO: Calculate correct bounds.
+            var skBounds = skOwnerBounds;
+
+            SKPaint? maskDstIn, skPaintOpacity, skPaintFilter;
+            MaskDrawable? maskDrawable;
+            BeginDraw(svgTextRef, skCanvas, skBounds, ignoreAttributes, _disposable, out maskDrawable, out maskDstIn, out skPaintOpacity, out skPaintFilter);
+
+            // TODO: Draw svgReferencedText
+            if (!string.IsNullOrEmpty(svgReferencedText.Text))
+            {
+                var text = PrepareText(svgReferencedText, svgReferencedText.Text);
+                DrawTextBase(svgReferencedText, svgReferencedText.Text, skOwnerBounds, ignoreAttributes, skCanvas);
+            }
+
+            EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
+        }
+
+        internal void DrawTextSpan(SvgTextSpan svgTextSpan, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
+        {
+            if (!CanDraw(svgTextSpan, ignoreAttributes))
+            {
+                return;
+            }
+
+            // TODO: Calculate correct bounds.
+            var skBounds = skOwnerBounds;
+
+            SKPaint? maskDstIn, skPaintOpacity, skPaintFilter;
+            MaskDrawable? maskDrawable;
+            BeginDraw(svgTextSpan, skCanvas, skBounds, ignoreAttributes, _disposable, out maskDrawable, out maskDstIn, out skPaintOpacity, out skPaintFilter);
+
+            // TODO: Implement SvgTextSpan drawing.
+            if (!string.IsNullOrEmpty(svgTextSpan.Text))
+            {
+                var text = PrepareText(svgTextSpan, svgTextSpan.Text);
+                DrawTextBase(svgTextSpan, text, skOwnerBounds, ignoreAttributes, skCanvas);
+            }
+
+            EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
+        }
+
         public void DrawText(SvgText svgText, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
         {
             if (!CanDraw(svgText, ignoreAttributes))
@@ -300,7 +377,7 @@ namespace Svg.Skia
 
             SKPaint? maskDstIn, skPaintOpacity, skPaintFilter;
             MaskDrawable? maskDrawable;
-            BeginDraw(svgText, skCanvas, skBounds, ignoreAttributes, TransformedBounds, _disposable, out maskDrawable, out maskDstIn, out skPaintOpacity, out skPaintFilter);
+            BeginDraw(svgText, skCanvas, skBounds, ignoreAttributes, _disposable, out maskDrawable, out maskDstIn, out skPaintOpacity, out skPaintFilter);
 
             foreach (var node in GetContentNodes(svgText))
             {
@@ -332,83 +409,6 @@ namespace Svg.Skia
             }
 
             EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
-        }
-
-        private static void BeginDraw(SvgTextBase svgTextBase, SKCanvas skCanvas, SKRect skBounds, IgnoreAttributes ignoreAttributes, SKRect transformedBounds, CompositeDisposable disposable, out MaskDrawable? maskDrawable, out SKPaint? maskDstIn, out SKPaint? skPaintOpacity, out SKPaint? skPaintFilter)
-        {
-            skCanvas.Save();
-
-            var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgTextBase.Transforms);
-
-            var skMatrixTotal = skCanvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
-            skCanvas.SetMatrix(skMatrixTotal);
-
-            var skPathClip = SvgClippingExtensions.GetSvgVisualElementClipPath(svgTextBase, skBounds, new HashSet<Uri>(), disposable);
-            if (skPathClip != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Clip))
-            {
-                bool antialias = SvgPaintingExtensions.IsAntialias(svgTextBase);
-                skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
-            }
-
-            var mask = default(SKPaint);
-            maskDstIn = default(SKPaint);
-            maskDrawable = SvgClippingExtensions.GetSvgVisualElementMask(svgTextBase, transformedBounds, new HashSet<Uri>(), disposable);
-            if (maskDrawable != null)
-            {
-                mask = new SKPaint()
-                {
-                    IsAntialias = true,
-                    Style = SKPaintStyle.StrokeAndFill
-                };
-                disposable.Add(mask);
-
-                maskDstIn = new SKPaint
-                {
-                    IsAntialias = true,
-                    Style = SKPaintStyle.StrokeAndFill,
-                    BlendMode = SKBlendMode.DstIn,
-                    Color = new SKColor(0, 0, 0, 255),
-                    ColorFilter = SKColorFilter.CreateLumaColor()
-                };
-                disposable.Add(maskDstIn);
-                skCanvas.SaveLayer(mask);
-            }
-
-            skPaintOpacity = SvgPaintingExtensions.GetOpacitySKPaint(svgTextBase, disposable);
-            if (skPaintOpacity != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Opacity))
-            {
-                skCanvas.SaveLayer(skPaintOpacity);
-            }
-
-            skPaintFilter = SvgFiltersExtensions.GetFilterSKPaint(svgTextBase, skBounds, disposable);
-            if (skPaintFilter != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Filter))
-            {
-                skCanvas.SaveLayer(skPaintFilter);
-            }
-        }
-
-        private static void EndDraw(SKCanvas skCanvas, MaskDrawable? maskDrawable, SKPaint? maskDstIn, SKPaint? skPaintOpacity, SKPaint? skPaintFilter)
-        {
-            if (skPaintFilter != null)
-            {
-                skCanvas.Restore();
-            }
-
-            if (skPaintOpacity != null)
-            {
-                skCanvas.Restore();
-            }
-
-            if (maskDrawable != null)
-            {
-                skCanvas.SaveLayer(maskDstIn);
-                maskDrawable.Draw(skCanvas, 0f, 0f);
-                skCanvas.Restore();
-                skCanvas.Restore();
-            }
-
-            skCanvas.Restore();
         }
 
         protected override void OnDraw(SKCanvas canvas)
