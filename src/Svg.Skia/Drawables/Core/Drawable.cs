@@ -5,7 +5,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    public abstract class Drawable : SKDrawable
+    public abstract class Drawable : SKDrawable, IFilterSource
     {
         internal CompositeDisposable _disposable = new CompositeDisposable();
 
@@ -60,10 +60,10 @@ namespace Svg.Skia
                 return;
             }
 
-            var enableClip = !IgnoreAttributes.HasFlag(IgnoreAttributes.Clip);
-            var enableMask = !IgnoreAttributes.HasFlag(IgnoreAttributes.Mask);
-            var enableOpacity = !IgnoreAttributes.HasFlag(IgnoreAttributes.Opacity);
-            var enableFilter = !IgnoreAttributes.HasFlag(IgnoreAttributes.Filter);
+            var enableClip = !ignoreAttributes.HasFlag(IgnoreAttributes.Clip);
+            var enableMask = !ignoreAttributes.HasFlag(IgnoreAttributes.Mask);
+            var enableOpacity = !ignoreAttributes.HasFlag(IgnoreAttributes.Opacity);
+            var enableFilter = !ignoreAttributes.HasFlag(IgnoreAttributes.Filter);
 
             canvas.Save();
 
@@ -146,6 +146,30 @@ namespace Svg.Skia
         {
             base.Dispose(disposing);
             _disposable?.Dispose();
+        }
+
+        SKPicture? IFilterSource.SourceGraphic()
+        {
+            var ignoreAttributes = IgnoreAttributes.Clip | IgnoreAttributes.Mask | IgnoreAttributes.Opacity | IgnoreAttributes.Filter;
+            using var skPictureRecorder = new SKPictureRecorder();
+            using var skCanvas = skPictureRecorder.BeginRecording(TransformedBounds);
+            RecordPicture(skCanvas, ignoreAttributes);
+            return skPictureRecorder.EndRecording();
+        }
+
+        SKPicture? IFilterSource.BackgroundImage()
+        {
+            return null;
+        }
+
+        SKPaint? IFilterSource.FillPaint()
+        {
+            return Fill;
+        }
+
+        SKPaint? IFilterSource.StrokePaint()
+        {
+            return Stroke;
         }
     }
 }
