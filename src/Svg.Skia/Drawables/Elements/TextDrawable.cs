@@ -84,56 +84,9 @@ namespace Svg.Skia
             // TODO: Calculate correct bounds.
             var skBounds = skOwnerBounds;
 
-            skCanvas.Save();
-
-            var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgTextPath.Transforms);
-
-            var skMatrixTotal = skCanvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
-            skCanvas.SetMatrix(skMatrixTotal);
-
-            var skPathClip = SvgClippingExtensions.GetSvgVisualElementClipPath(svgTextPath, skBounds, new HashSet<Uri>(), _disposable);
-            if (skPathClip != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Clip))
-            {
-                bool antialias = SvgPaintingExtensions.IsAntialias(svgTextPath);
-                skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
-            }
-
-            var mask = default(SKPaint);
-            var maskDstIn = default(SKPaint);
-            var maskDrawable = SvgClippingExtensions.GetSvgVisualElementMask(svgTextPath, TransformedBounds, new HashSet<Uri>(), _disposable);
-            if (maskDrawable != null)
-            {
-                mask = new SKPaint()
-                {
-                    IsAntialias = true,
-                    Style = SKPaintStyle.StrokeAndFill
-                };
-                _disposable.Add(mask);
-
-                maskDstIn = new SKPaint
-                {
-                    IsAntialias = true,
-                    Style = SKPaintStyle.StrokeAndFill,
-                    BlendMode = SKBlendMode.DstIn,
-                    Color = new SKColor(0, 0, 0, 255),
-                    ColorFilter = SKColorFilter.CreateLumaColor()
-                };
-                _disposable.Add(maskDstIn);
-                skCanvas.SaveLayer(mask);
-            }
-
-            var skPaintOpacity = SvgPaintingExtensions.GetOpacitySKPaint(svgTextPath, _disposable);
-            if (skPaintOpacity != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Opacity))
-            {
-                skCanvas.SaveLayer(skPaintOpacity);
-            }
-
-            var skPaintFilter = SvgFiltersExtensions.GetFilterSKPaint(svgTextPath, skBounds, _disposable);
-            if (skPaintFilter != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Filter))
-            {
-                skCanvas.SaveLayer(skPaintFilter);
-            }
+            SKPaint? maskDstIn, skPaintOpacity, skPaintFilter;
+            MaskDrawable? maskDrawable;
+            BeginDraw(svgTextPath, skCanvas, skBounds, ignoreAttributes, TransformedBounds, _disposable, out maskDrawable, out maskDstIn, out skPaintOpacity, out skPaintFilter);
 
             // TODO: Fix SvgTextPath rendering.
             bool isValidFill = SvgPaintingExtensions.IsValidFill(svgTextPath);
@@ -167,25 +120,7 @@ namespace Svg.Skia
                 }
             }
 
-            if (skPaintFilter != null)
-            {
-                skCanvas.Restore();
-            }
-
-            if (skPaintOpacity != null)
-            {
-                skCanvas.Restore();
-            }
-
-            if (maskDrawable != null)
-            {
-                skCanvas.SaveLayer(maskDstIn);
-                maskDrawable.Draw(skCanvas, 0f, 0f);
-                skCanvas.Restore();
-                skCanvas.Restore();
-            }
-
-            skCanvas.Restore();
+            EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
         }
 
         internal void DrawTextRef(SvgTextRef svgTextRef, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
@@ -209,56 +144,9 @@ namespace Svg.Skia
             // TODO: Calculate correct bounds.
             var skBounds = skOwnerBounds;
 
-            skCanvas.Save();
-
-            var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgTextRef.Transforms);
-
-            var skMatrixTotal = skCanvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
-            skCanvas.SetMatrix(skMatrixTotal);
-
-            var skPathClip = SvgClippingExtensions.GetSvgVisualElementClipPath(svgTextRef, skBounds, new HashSet<Uri>(), _disposable);
-            if (skPathClip != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Clip))
-            {
-                bool antialias = SvgPaintingExtensions.IsAntialias(svgTextRef);
-                skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
-            }
-
-            var mask = default(SKPaint);
-            var maskDstIn = default(SKPaint);
-            var maskDrawable = SvgClippingExtensions.GetSvgVisualElementMask(svgTextRef, TransformedBounds, new HashSet<Uri>(), _disposable);
-            if (maskDrawable != null)
-            {
-                mask = new SKPaint()
-                {
-                    IsAntialias = true,
-                    Style = SKPaintStyle.StrokeAndFill
-                };
-                _disposable.Add(mask);
-
-                maskDstIn = new SKPaint
-                {
-                    IsAntialias = true,
-                    Style = SKPaintStyle.StrokeAndFill,
-                    BlendMode = SKBlendMode.DstIn,
-                    Color = new SKColor(0, 0, 0, 255),
-                    ColorFilter = SKColorFilter.CreateLumaColor()
-                };
-                _disposable.Add(maskDstIn);
-                skCanvas.SaveLayer(mask);
-            }
-
-            var skPaintOpacity = SvgPaintingExtensions.GetOpacitySKPaint(svgTextRef, _disposable);
-            if (skPaintOpacity != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Opacity))
-            {
-                skCanvas.SaveLayer(skPaintOpacity);
-            }
-
-            var skPaintFilter = SvgFiltersExtensions.GetFilterSKPaint(svgTextRef, skBounds, _disposable);
-            if (skPaintFilter != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Filter))
-            {
-                skCanvas.SaveLayer(skPaintFilter);
-            }
+            SKPaint? maskDstIn, skPaintOpacity, skPaintFilter;
+            MaskDrawable? maskDrawable;
+            BeginDraw(svgTextRef, skCanvas, skBounds, ignoreAttributes, TransformedBounds, _disposable, out maskDrawable, out maskDstIn, out skPaintOpacity, out skPaintFilter);
 
             // TODO: Draw svgReferencedText
             if (!string.IsNullOrEmpty(svgReferencedText.Text))
@@ -267,25 +155,7 @@ namespace Svg.Skia
                 DrawTextBase(svgReferencedText, svgReferencedText.Text, skOwnerBounds, ignoreAttributes, skCanvas);
             }
 
-            if (skPaintFilter != null)
-            {
-                skCanvas.Restore();
-            }
-
-            if (skPaintOpacity != null)
-            {
-                skCanvas.Restore();
-            }
-
-            if (maskDrawable != null)
-            {
-                skCanvas.SaveLayer(maskDstIn);
-                maskDrawable.Draw(skCanvas, 0f, 0f);
-                skCanvas.Restore();
-                skCanvas.Restore();
-            }
-
-            skCanvas.Restore();
+            EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
         }
 
         internal void DrawTextSpan(SvgTextSpan svgTextSpan, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
@@ -298,56 +168,9 @@ namespace Svg.Skia
             // TODO: Calculate correct bounds.
             var skBounds = skOwnerBounds;
 
-            skCanvas.Save();
-
-            var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgTextSpan.Transforms);
-
-            var skMatrixTotal = skCanvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
-            skCanvas.SetMatrix(skMatrixTotal);
-
-            var skPathClip = SvgClippingExtensions.GetSvgVisualElementClipPath(svgTextSpan, skBounds, new HashSet<Uri>(), _disposable);
-            if (skPathClip != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Clip))
-            {
-                bool antialias = SvgPaintingExtensions.IsAntialias(svgTextSpan);
-                skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
-            }
-
-            var mask = default(SKPaint);
-            var maskDstIn = default(SKPaint);
-            var maskDrawable = SvgClippingExtensions.GetSvgVisualElementMask(svgTextSpan, TransformedBounds, new HashSet<Uri>(), _disposable);
-            if (maskDrawable != null)
-            {
-                mask = new SKPaint()
-                {
-                    IsAntialias = true,
-                    Style = SKPaintStyle.StrokeAndFill
-                };
-                _disposable.Add(mask);
-
-                maskDstIn = new SKPaint
-                {
-                    IsAntialias = true,
-                    Style = SKPaintStyle.StrokeAndFill,
-                    BlendMode = SKBlendMode.DstIn,
-                    Color = new SKColor(0, 0, 0, 255),
-                    ColorFilter = SKColorFilter.CreateLumaColor()
-                };
-                _disposable.Add(maskDstIn);
-                skCanvas.SaveLayer(mask);
-            }
-
-            var skPaintOpacity = SvgPaintingExtensions.GetOpacitySKPaint(svgTextSpan, _disposable);
-            if (skPaintOpacity != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Opacity))
-            {
-                skCanvas.SaveLayer(skPaintOpacity);
-            }
-
-            var skPaintFilter = SvgFiltersExtensions.GetFilterSKPaint(svgTextSpan, skBounds, _disposable);
-            if (skPaintFilter != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Filter))
-            {
-                skCanvas.SaveLayer(skPaintFilter);
-            }
+            SKPaint? maskDstIn, skPaintOpacity, skPaintFilter;
+            MaskDrawable? maskDrawable;
+            BeginDraw(svgTextSpan, skCanvas, skBounds, ignoreAttributes, TransformedBounds, _disposable, out maskDrawable, out maskDstIn, out skPaintOpacity, out skPaintFilter);
 
             // TODO: Implement SvgTextSpan drawing.
             if (!string.IsNullOrEmpty(svgTextSpan.Text))
@@ -356,25 +179,7 @@ namespace Svg.Skia
                 DrawTextBase(svgTextSpan, text, skOwnerBounds, ignoreAttributes, skCanvas);
             }
 
-            if (skPaintFilter != null)
-            {
-                skCanvas.Restore();
-            }
-
-            if (skPaintOpacity != null)
-            {
-                skCanvas.Restore();
-            }
-
-            if (maskDrawable != null)
-            {
-                skCanvas.SaveLayer(maskDstIn);
-                maskDrawable.Draw(skCanvas, 0f, 0f);
-                skCanvas.Restore();
-                skCanvas.Restore();
-            }
-
-            skCanvas.Restore();
+            EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
         }
 
         internal void DrawTextString(SvgTextBase svgTextBase, string text, float x, float y, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
@@ -493,38 +298,11 @@ namespace Svg.Skia
             // TODO: Calculate correct bounds.
             var skBounds = skOwnerBounds;
 
-            skCanvas.Save();
+            SKPaint? maskDstIn, skPaintOpacity, skPaintFilter;
+            MaskDrawable? maskDrawable;
+            BeginDraw(svgText, skCanvas, skBounds, ignoreAttributes, TransformedBounds, _disposable, out maskDrawable, out maskDstIn, out skPaintOpacity, out skPaintFilter);
 
-            var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgText.Transforms);
-
-            var skMatrixTotal = skCanvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
-            skCanvas.SetMatrix(skMatrixTotal);
-
-            var skPathClip = SvgClippingExtensions.GetSvgVisualElementClipPath(svgText, skBounds, new HashSet<Uri>(), _disposable);
-            if (skPathClip != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Clip))
-            {
-                bool antialias = SvgPaintingExtensions.IsAntialias(svgText);
-                skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
-            }
-
-            // TODO: Add mask support.
-
-            var skPaintOpacity = SvgPaintingExtensions.GetOpacitySKPaint(svgText, _disposable);
-            if (skPaintOpacity != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Opacity))
-            {
-                skCanvas.SaveLayer(skPaintOpacity);
-            }
-
-            var skPaintFilter = SvgFiltersExtensions.GetFilterSKPaint(svgText, skBounds, _disposable);
-            if (skPaintFilter != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Filter))
-            {
-                skCanvas.SaveLayer(skPaintFilter);
-            }
-
-            var nodes = GetContentNodes(svgText);
-
-            foreach (var node in nodes)
+            foreach (var node in GetContentNodes(svgText))
             {
                 if (!(node is SvgTextBase textNode))
                 {
@@ -553,6 +331,65 @@ namespace Svg.Skia
                 }
             }
 
+            EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
+        }
+
+        private static void BeginDraw(SvgTextBase svgTextBase, SKCanvas skCanvas, SKRect skBounds, IgnoreAttributes ignoreAttributes, SKRect transformedBounds, CompositeDisposable disposable, out MaskDrawable? maskDrawable, out SKPaint? maskDstIn, out SKPaint? skPaintOpacity, out SKPaint? skPaintFilter)
+        {
+            skCanvas.Save();
+
+            var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgTextBase.Transforms);
+
+            var skMatrixTotal = skCanvas.TotalMatrix;
+            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
+            skCanvas.SetMatrix(skMatrixTotal);
+
+            var skPathClip = SvgClippingExtensions.GetSvgVisualElementClipPath(svgTextBase, skBounds, new HashSet<Uri>(), disposable);
+            if (skPathClip != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Clip))
+            {
+                bool antialias = SvgPaintingExtensions.IsAntialias(svgTextBase);
+                skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
+            }
+
+            var mask = default(SKPaint);
+            maskDstIn = default(SKPaint);
+            maskDrawable = SvgClippingExtensions.GetSvgVisualElementMask(svgTextBase, transformedBounds, new HashSet<Uri>(), disposable);
+            if (maskDrawable != null)
+            {
+                mask = new SKPaint()
+                {
+                    IsAntialias = true,
+                    Style = SKPaintStyle.StrokeAndFill
+                };
+                disposable.Add(mask);
+
+                maskDstIn = new SKPaint
+                {
+                    IsAntialias = true,
+                    Style = SKPaintStyle.StrokeAndFill,
+                    BlendMode = SKBlendMode.DstIn,
+                    Color = new SKColor(0, 0, 0, 255),
+                    ColorFilter = SKColorFilter.CreateLumaColor()
+                };
+                disposable.Add(maskDstIn);
+                skCanvas.SaveLayer(mask);
+            }
+
+            skPaintOpacity = SvgPaintingExtensions.GetOpacitySKPaint(svgTextBase, disposable);
+            if (skPaintOpacity != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Opacity))
+            {
+                skCanvas.SaveLayer(skPaintOpacity);
+            }
+
+            skPaintFilter = SvgFiltersExtensions.GetFilterSKPaint(svgTextBase, skBounds, disposable);
+            if (skPaintFilter != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Filter))
+            {
+                skCanvas.SaveLayer(skPaintFilter);
+            }
+        }
+
+        private static void EndDraw(SKCanvas skCanvas, MaskDrawable? maskDrawable, SKPaint? maskDstIn, SKPaint? skPaintOpacity, SKPaint? skPaintFilter)
+        {
             if (skPaintFilter != null)
             {
                 skCanvas.Restore();
@@ -560,6 +397,14 @@ namespace Svg.Skia
 
             if (skPaintOpacity != null)
             {
+                skCanvas.Restore();
+            }
+
+            if (maskDrawable != null)
+            {
+                skCanvas.SaveLayer(maskDstIn);
+                maskDrawable.Draw(skCanvas, 0f, 0f);
+                skCanvas.Restore();
                 skCanvas.Restore();
             }
 
