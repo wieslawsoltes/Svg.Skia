@@ -145,15 +145,7 @@ namespace Svg.Skia
                 SKMatrix.PreConcat(ref skMatrix, ref skBoundsScaleTransform);
             }
 
-            foreach (var svgElement in svgMask.Children)
-            {
-                var drawable = DrawableFactory.Create(svgElement, skOwnerBounds, ignoreAttributes);
-                if (drawable != null)
-                {
-                    ChildrenDrawables.Add(drawable);
-                    _disposable.Add(drawable);
-                }
-            }
+            CreateChildren(svgMask, skOwnerBounds, ignoreAttributes);
 
             Clip = skRectTransformed;
 

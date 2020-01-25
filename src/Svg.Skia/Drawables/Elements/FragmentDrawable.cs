@@ -25,34 +25,13 @@ namespace Svg.Skia
                 skOwnerBounds = SKRect.Create(x, y, skSize.Width, skSize.Height);
             }
 
-            foreach (var svgElement in svgFragment.Children)
-            {
-                var drawable = DrawableFactory.Create(svgElement, skOwnerBounds, ignoreAttributes);
-                if (drawable != null)
-                {
-                    ChildrenDrawables.Add(drawable);
-                    _disposable.Add(drawable);
-                }
-            }
+            CreateChildren(svgFragment, skOwnerBounds, ignoreAttributes);
 
             IsAntialias = SvgPaintingExtensions.IsAntialias(svgFragment);
 
             TransformedBounds = SKRect.Empty;
 
-            foreach (var drawable in ChildrenDrawables)
-            {
-                if (TransformedBounds.IsEmpty)
-                {
-                    TransformedBounds = drawable.TransformedBounds;
-                }
-                else
-                {
-                    if (!drawable.TransformedBounds.IsEmpty)
-                    {
-                        TransformedBounds = SKRect.Union(TransformedBounds, drawable.TransformedBounds);
-                    }
-                }
-            }
+            CreateTransformedBounds();
 
             Transform = SvgTransformsExtensions.ToSKMatrix(svgFragment.Transforms);
             var skMatrixViewBox = SvgTransformsExtensions.ToSKMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);

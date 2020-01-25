@@ -16,34 +16,13 @@ namespace Svg.Skia
                 return;
             }
 
-            foreach (var svgElement in svgAnchor.Children)
-            {
-                var drawable = DrawableFactory.Create(svgElement, skOwnerBounds, ignoreAttributes);
-                if (drawable != null)
-                {
-                    ChildrenDrawables.Add(drawable);
-                    _disposable.Add(drawable);
-                }
-            }
+            CreateChildren(svgAnchor, skOwnerBounds, ignoreAttributes);
 
             IsAntialias = SvgPaintingExtensions.IsAntialias(svgAnchor);
 
             TransformedBounds = SKRect.Empty;
 
-            foreach (var drawable in ChildrenDrawables)
-            {
-                if (TransformedBounds.IsEmpty)
-                {
-                    TransformedBounds = drawable.TransformedBounds;
-                }
-                else
-                {
-                    if (!drawable.TransformedBounds.IsEmpty)
-                    {
-                        TransformedBounds = SKRect.Union(TransformedBounds, drawable.TransformedBounds);
-                    }
-                }
-            }
+            CreateTransformedBounds();
 
             Transform = SvgTransformsExtensions.ToSKMatrix(svgAnchor.Transforms);
 

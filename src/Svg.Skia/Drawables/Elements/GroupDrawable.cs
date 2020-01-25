@@ -21,34 +21,13 @@ namespace Svg.Skia
             // TODO: Call AddMarkers only once.
             AddMarkers(svgGroup);
 
-            foreach (var svgElement in svgGroup.Children)
-            {
-                var drawable = DrawableFactory.Create(svgElement, skOwnerBounds, ignoreAttributes);
-                if (drawable != null)
-                {
-                    ChildrenDrawables.Add(drawable);
-                    _disposable.Add(drawable);
-                }
-            }
+            CreateChildren(svgGroup, skOwnerBounds, ignoreAttributes);
 
             IsAntialias = SvgPaintingExtensions.IsAntialias(svgGroup);
 
             TransformedBounds = SKRect.Empty;
 
-            foreach (var drawable in ChildrenDrawables)
-            {
-                if (TransformedBounds.IsEmpty)
-                {
-                    TransformedBounds = drawable.TransformedBounds;
-                }
-                else
-                {
-                    if (!drawable.TransformedBounds.IsEmpty)
-                    {
-                        TransformedBounds = SKRect.Union(TransformedBounds, drawable.TransformedBounds);
-                    }
-                }
-            }
+            CreateTransformedBounds();
 
             Transform = SvgTransformsExtensions.ToSKMatrix(svgGroup.Transforms);
 

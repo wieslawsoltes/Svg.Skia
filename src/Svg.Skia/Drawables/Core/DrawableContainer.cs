@@ -9,6 +9,37 @@ namespace Svg.Skia
     {
         public List<Drawable> ChildrenDrawables = new List<Drawable>();
 
+        protected void CreateChildren(SvgElement svgElement, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes)
+        {
+            foreach (var child in svgElement.Children)
+            {
+                var drawable = DrawableFactory.Create(child, skOwnerBounds, ignoreAttributes);
+                if (drawable != null)
+                {
+                    ChildrenDrawables.Add(drawable);
+                    _disposable.Add(drawable);
+                }
+            }
+        }
+
+        protected void CreateTransformedBounds()
+        {
+            foreach (var drawable in ChildrenDrawables)
+            {
+                if (TransformedBounds.IsEmpty)
+                {
+                    TransformedBounds = drawable.TransformedBounds;
+                }
+                else
+                {
+                    if (!drawable.TransformedBounds.IsEmpty)
+                    {
+                        TransformedBounds = SKRect.Union(TransformedBounds, drawable.TransformedBounds);
+                    }
+                }
+            }
+        }
+
         protected override void Draw(SKCanvas canvas)
         {
             foreach (var drawable in ChildrenDrawables)
