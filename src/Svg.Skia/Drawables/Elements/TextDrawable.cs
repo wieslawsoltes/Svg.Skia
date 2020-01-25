@@ -102,7 +102,7 @@ namespace Svg.Skia
             skCanvas.SetMatrix(skMatrixTotal);
 
             var skPathClip = SvgClippingExtensions.GetSvgVisualElementClipPath(svgTextBase, skBounds, new HashSet<Uri>(), disposable);
-            if (skPathClip != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Clip))
+            if (skPathClip != null && !IgnoreAttributes.HasFlag(IgnoreAttributes.Clip))
             {
                 bool antialias = SvgPaintingExtensions.IsAntialias(svgTextBase);
                 skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
@@ -133,13 +133,13 @@ namespace Svg.Skia
             }
 
             skPaintOpacity = SvgPaintingExtensions.GetOpacitySKPaint(svgTextBase, disposable);
-            if (skPaintOpacity != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Opacity))
+            if (skPaintOpacity != null && !IgnoreAttributes.HasFlag(IgnoreAttributes.Opacity))
             {
                 skCanvas.SaveLayer(skPaintOpacity);
             }
 
             skPaintFilter = SvgFiltersExtensions.GetFilterSKPaint(svgTextBase, skBounds, disposable);
-            if (skPaintFilter != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Filter))
+            if (skPaintFilter != null && !IgnoreAttributes.HasFlag(IgnoreAttributes.Filter))
             {
                 skCanvas.SaveLayer(skPaintFilter);
             }
