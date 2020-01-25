@@ -194,7 +194,7 @@ namespace Svg.Skia
             }
         }
 
-        internal void DrawTextBase(SvgTextBase svgTextBase, string? text, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
+        internal void DrawTextBase(SvgTextBase svgTextBase, string? text, float currentX, float currentY, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
         {
             // TODO: Fix SvgTextBase rendering.
             bool isValidFill = SvgPaintingExtensions.IsValidFill(svgTextBase);
@@ -209,6 +209,7 @@ namespace Svg.Skia
             var ys = new List<float>();
             var dxs = new List<float>();
             var dys = new List<float>();
+
             GetPositionsX(svgTextBase, skOwnerBounds, xs);
             GetPositionsY(svgTextBase, skOwnerBounds, ys);
             GetPositionsDX(svgTextBase, skOwnerBounds, dxs);
@@ -251,8 +252,8 @@ namespace Svg.Skia
             }
             else
             {
-                float x = (xs.Count >= 1) ? xs[0] : 0f;
-                float y = (ys.Count >= 1) ? ys[0] : 0f;
+                float x = (xs.Count >= 1) ? xs[0] : currentX;
+                float y = (ys.Count >= 1) ? ys[0] : currentY;
                 float dx = (dxs.Count >= 1) ? dxs[0] : 0f;
                 float dy = (dys.Count >= 1) ? dys[0] : 0f;
 
@@ -260,7 +261,7 @@ namespace Svg.Skia
             }
         }
 
-        internal void DrawTextPath(SvgTextPath svgTextPath, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
+        internal void DrawTextPath(SvgTextPath svgTextPath, float currentX, float currentY, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
         {
             if (!CanDraw(svgTextPath, ignoreAttributes))
             {
@@ -332,7 +333,7 @@ namespace Svg.Skia
             EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
         }
 
-        internal void DrawTextRef(SvgTextRef svgTextRef, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
+        internal void DrawTextRef(SvgTextRef svgTextRef, float currentX, float currentY, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
         {
             if (!CanDraw(svgTextRef, ignoreAttributes))
             {
@@ -361,13 +362,13 @@ namespace Svg.Skia
             if (!string.IsNullOrEmpty(svgReferencedText.Text))
             {
                 var text = PrepareText(svgReferencedText, svgReferencedText.Text);
-                DrawTextBase(svgReferencedText, svgReferencedText.Text, skOwnerBounds, ignoreAttributes, skCanvas);
+                DrawTextBase(svgReferencedText, svgReferencedText.Text, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas);
             }
 
             EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
         }
 
-        internal void DrawTextSpan(SvgTextSpan svgTextSpan, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
+        internal void DrawTextSpan(SvgTextSpan svgTextSpan, float currentX, float currentY, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
         {
             if (!CanDraw(svgTextSpan, ignoreAttributes))
             {
@@ -385,7 +386,7 @@ namespace Svg.Skia
             if (!string.IsNullOrEmpty(svgTextSpan.Text))
             {
                 var text = PrepareText(svgTextSpan, svgTextSpan.Text);
-                DrawTextBase(svgTextSpan, text, skOwnerBounds, ignoreAttributes, skCanvas);
+                DrawTextBase(svgTextSpan, text, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas);
             }
 
             EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
@@ -405,6 +406,23 @@ namespace Svg.Skia
             MaskDrawable? maskDrawable;
             BeginDraw(svgText, skCanvas, skBounds, ignoreAttributes, _disposable, out maskDrawable, out maskDstIn, out skPaintOpacity, out skPaintFilter);
 
+            var xs = new List<float>();
+            var ys = new List<float>();
+            var dxs = new List<float>();
+            var dys = new List<float>();
+            GetPositionsX(svgText, skOwnerBounds, xs);
+            GetPositionsY(svgText, skOwnerBounds, ys);
+            GetPositionsDX(svgText, skOwnerBounds, dxs);
+            GetPositionsDY(svgText, skOwnerBounds, dys);
+
+            float x = (xs.Count >= 1) ? xs[0] : 0f;
+            float y = (ys.Count >= 1) ? ys[0] : 0f;
+            float dx = (dxs.Count >= 1) ? dxs[0] : 0f;
+            float dy = (dys.Count >= 1) ? dys[0] : 0f;
+
+            float currentX = x + dx;
+            float currentY = y + dy;
+
             foreach (var node in GetContentNodes(svgText))
             {
                 if (!(node is SvgTextBase textNode))
@@ -412,7 +430,7 @@ namespace Svg.Skia
                     if (!string.IsNullOrEmpty(node.Content))
                     {
                         var text = PrepareText(svgText, node.Content);
-                        DrawTextBase(svgText, text, skOwnerBounds, ignoreAttributes, skCanvas);
+                        DrawTextBase(svgText, text, 0f, 0f, skOwnerBounds, ignoreAttributes, skCanvas);
                     }
                 }
                 else
@@ -420,13 +438,13 @@ namespace Svg.Skia
                     switch (textNode)
                     {
                         case SvgTextPath svgTextPath:
-                            DrawTextPath(svgTextPath, skOwnerBounds, ignoreAttributes, skCanvas);
+                            DrawTextPath(svgTextPath, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas);
                             break;
                         case SvgTextRef svgTextRef:
-                            DrawTextRef(svgTextRef, skOwnerBounds, ignoreAttributes, skCanvas);
+                            DrawTextRef(svgTextRef, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas);
                             break;
                         case SvgTextSpan svgTextSpan:
-                            DrawTextSpan(svgTextSpan, skOwnerBounds, ignoreAttributes, skCanvas);
+                            DrawTextSpan(svgTextSpan, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas);
                             break;
                         default:
                             break;
