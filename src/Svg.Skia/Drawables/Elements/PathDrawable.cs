@@ -31,15 +31,6 @@ namespace Svg.Skia
 
             Transform = SvgTransformsExtensions.ToSKMatrix(svgPath.Transforms);
 
-            ClipPath = IgnoreAttributes.HasFlag(IgnoreAttributes.Clip) ? null : SvgClippingExtensions.GetSvgVisualElementClipPath(svgPath, TransformedBounds, new HashSet<Uri>(), _disposable);
-            MaskDrawable = IgnoreAttributes.HasFlag(IgnoreAttributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgPath, TransformedBounds, new HashSet<Uri>(), _disposable);
-            if (MaskDrawable != null)
-            {
-                CreateMaskPaints();
-            }
-            Opacity = IgnoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgPath, _disposable);
-            Filter = IgnoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgPath, TransformedBounds, _disposable);
-
             if (SvgPaintingExtensions.IsValidFill(svgPath))
             {
                 Fill = SvgPaintingExtensions.GetFillSKPaint(svgPath, TransformedBounds, ignoreAttributes, _disposable);
@@ -61,6 +52,15 @@ namespace Svg.Skia
             }
 
             SvgMarkerExtensions.CreateMarkers(svgPath, Path, skOwnerBounds, ref MarkerDrawables, _disposable);
+
+            ClipPath = IgnoreAttributes.HasFlag(IgnoreAttributes.Clip) ? null : SvgClippingExtensions.GetSvgVisualElementClipPath(svgPath, TransformedBounds, new HashSet<Uri>(), _disposable);
+            MaskDrawable = IgnoreAttributes.HasFlag(IgnoreAttributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgPath, TransformedBounds, new HashSet<Uri>(), _disposable);
+            if (MaskDrawable != null)
+            {
+                CreateMaskPaints();
+            }
+            Opacity = IgnoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgPath, _disposable);
+            Filter = IgnoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgPath, TransformedBounds, _disposable);
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);

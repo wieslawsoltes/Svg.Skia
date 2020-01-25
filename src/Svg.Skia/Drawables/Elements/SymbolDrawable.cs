@@ -67,6 +67,9 @@ namespace Svg.Skia
             var skMatrixViewBox = SvgTransformsExtensions.ToSKMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
             SKMatrix.PreConcat(ref Transform, ref skMatrixViewBox);
 
+            Fill = null;
+            Stroke = null;
+
             ClipPath = IgnoreAttributes.HasFlag(IgnoreAttributes.Clip) ? null : SvgClippingExtensions.GetSvgVisualElementClipPath(svgSymbol, TransformedBounds, new HashSet<Uri>(), _disposable);
             MaskDrawable = IgnoreAttributes.HasFlag(IgnoreAttributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgSymbol, TransformedBounds, new HashSet<Uri>(), _disposable);
             if (MaskDrawable != null)
@@ -75,9 +78,6 @@ namespace Svg.Skia
             }
             Opacity = IgnoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgSymbol, _disposable);
             Filter = IgnoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgSymbol, TransformedBounds, _disposable);
-
-            Fill = null;
-            Stroke = null;
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);

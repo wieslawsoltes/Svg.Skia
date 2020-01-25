@@ -11,9 +11,9 @@ namespace Svg.Skia
             // TODO: Implement drawable.
         }
 
-        protected override void Draw(SKCanvas canvas)
+        protected override void Record(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
         {
-            // TODO:
+            // TODO: Implement drawable Record().
         }
     }
 }

@@ -101,6 +101,9 @@ namespace Svg.Skia
                 SKMatrix.PreConcat(ref Transform, ref skMatrixTranslateXY);
             }
 
+            Fill = null;
+            Stroke = null;
+
             ClipPath = IgnoreAttributes.HasFlag(IgnoreAttributes.Clip) ? null : SvgClippingExtensions.GetSvgVisualElementClipPath(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
             MaskDrawable = IgnoreAttributes.HasFlag(IgnoreAttributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
             if (MaskDrawable != null)
@@ -109,9 +112,6 @@ namespace Svg.Skia
             }
             Opacity = IgnoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgUse, _disposable);
             Filter = IgnoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgUse, TransformedBounds, _disposable);
-
-            Fill = null;
-            Stroke = null;
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
@@ -130,9 +130,9 @@ namespace Svg.Skia
             }
         }
 
-        protected override void Draw(SKCanvas canvas)
+        protected override void Record(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
         {
-            ReferencedDrawable?.Draw(canvas, 0f, 0f);
+            ReferencedDrawable?.RecordPicture(canvas, ignoreAttributes);
         }
 
         public override Drawable? HitTest(SKPoint skPoint)

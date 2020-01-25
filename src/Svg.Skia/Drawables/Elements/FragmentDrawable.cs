@@ -70,12 +70,12 @@ namespace Svg.Skia
                 ClipPath = null;
             }
 
+            Fill = null;
+            Stroke = null;
+
             MaskDrawable = null;
             Opacity = IgnoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgFragment, _disposable);
             Filter = null;
-
-            Fill = null;
-            Stroke = null;
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);

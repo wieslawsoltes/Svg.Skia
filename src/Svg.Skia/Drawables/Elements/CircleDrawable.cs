@@ -31,15 +31,6 @@ namespace Svg.Skia
 
             Transform = SvgTransformsExtensions.ToSKMatrix(svgCircle.Transforms);
 
-            ClipPath = IgnoreAttributes.HasFlag(IgnoreAttributes.Clip) ? null : SvgClippingExtensions.GetSvgVisualElementClipPath(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
-            MaskDrawable = IgnoreAttributes.HasFlag(IgnoreAttributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
-            if (MaskDrawable != null)
-            {
-                CreateMaskPaints();
-            }
-            Opacity = IgnoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgCircle, _disposable);
-            Filter = IgnoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgCircle, TransformedBounds, _disposable);
-
             if (SvgPaintingExtensions.IsValidFill(svgCircle))
             {
                 Fill = SvgPaintingExtensions.GetFillSKPaint(svgCircle, TransformedBounds, ignoreAttributes, _disposable);
@@ -59,6 +50,15 @@ namespace Svg.Skia
                     return;
                 }
             }
+
+            ClipPath = IgnoreAttributes.HasFlag(IgnoreAttributes.Clip) ? null : SvgClippingExtensions.GetSvgVisualElementClipPath(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
+            MaskDrawable = IgnoreAttributes.HasFlag(IgnoreAttributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgCircle, TransformedBounds, new HashSet<Uri>(), _disposable);
+            if (MaskDrawable != null)
+            {
+                CreateMaskPaints();
+            }
+            Opacity = IgnoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgCircle, _disposable);
+            Filter = IgnoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgCircle, TransformedBounds, _disposable);
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);

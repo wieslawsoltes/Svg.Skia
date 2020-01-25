@@ -145,7 +145,7 @@ namespace Svg.Skia
             }
         }
 
-        internal void EndDraw(SKCanvas skCanvas, MaskDrawable? maskDrawable, SKPaint? maskDstIn, SKPaint? skPaintOpacity, SKPaint? skPaintFilter)
+        internal void EndDraw(SKCanvas skCanvas, IgnoreAttributes ignoreAttributes, MaskDrawable? maskDrawable, SKPaint? maskDstIn, SKPaint? skPaintOpacity, SKPaint? skPaintFilter)
         {
             if (skPaintFilter != null)
             {
@@ -160,7 +160,7 @@ namespace Svg.Skia
             if (maskDrawable != null)
             {
                 skCanvas.SaveLayer(maskDstIn);
-                maskDrawable.Draw(skCanvas, 0f, 0f);
+                maskDrawable.RecordPicture(skCanvas, ignoreAttributes);
                 skCanvas.Restore();
                 skCanvas.Restore();
             }
@@ -333,7 +333,7 @@ namespace Svg.Skia
                 }
             }
 
-            EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
+            EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
         }
 
         internal void DrawTextRef(SvgTextRef svgTextRef, float currentX, float currentY, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
@@ -368,7 +368,7 @@ namespace Svg.Skia
                 DrawTextBase(svgReferencedText, svgReferencedText.Text, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas);
             }
 
-            EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
+            EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
         }
 
         internal void DrawTextSpan(SvgTextSpan svgTextSpan, float currentX, float currentY, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
@@ -392,7 +392,7 @@ namespace Svg.Skia
                 DrawTextBase(svgTextSpan, text, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas);
             }
 
-            EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
+            EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
         }
 
         internal void DrawText(SvgText svgText, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes, SKCanvas skCanvas)
@@ -455,18 +455,23 @@ namespace Svg.Skia
                 }
             }
 
-            EndDraw(skCanvas, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
+            EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
+        }
+
+        protected override void Record(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
+        {
+            // TODO: Currently using custom OnDraw override.
+        }
+
+        public override void RecordPicture(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
+        {
+            DrawText(_svgText, _skOwnerBounds, IgnoreAttributes, canvas);
         }
 
         protected override void OnDraw(SKCanvas canvas)
         {
             // TODO:
-            DrawText(_svgText, _skOwnerBounds, IgnoreAttributes, canvas);
-        }
-
-        protected override void Draw(SKCanvas canvas)
-        {
-            // TODO:
+            RecordPicture(canvas, IgnoreAttributes);
         }
     }
 }

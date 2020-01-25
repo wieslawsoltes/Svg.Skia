@@ -155,6 +155,9 @@ namespace Svg.Skia
 
             Transform = skMatrix;
 
+            Fill = null;
+            Stroke = null;
+
             ClipPath = null;
             MaskDrawable = IgnoreAttributes.HasFlag(IgnoreAttributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgMask, TransformedBounds, new HashSet<Uri>(), _disposable);
             if (MaskDrawable != null)
@@ -163,9 +166,6 @@ namespace Svg.Skia
             }
             Opacity = null;
             Filter = null;
-
-            Fill = null;
-            Stroke = null;
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);

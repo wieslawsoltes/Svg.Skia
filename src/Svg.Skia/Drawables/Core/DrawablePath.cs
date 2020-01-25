@@ -10,7 +10,7 @@ namespace Svg.Skia
         public SKPath? Path;
         public List<Drawable>? MarkerDrawables;
 
-        protected override void Draw(SKCanvas canvas)
+        protected override void Record(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
         {
             if (Fill != null)
             {
@@ -26,7 +26,7 @@ namespace Svg.Skia
             {
                 foreach (var drawable in MarkerDrawables)
                 {
-                    drawable.Draw(canvas, 0f, 0f);
+                    drawable.RecordPicture(canvas, ignoreAttributes);
                 } 
             }
         }

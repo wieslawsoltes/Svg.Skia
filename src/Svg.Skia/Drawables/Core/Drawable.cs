@@ -51,14 +51,19 @@ namespace Svg.Skia
             _disposable.Add(MaskDstIn);
         }
 
-        protected abstract void Draw(SKCanvas canvas);
+        protected abstract void Record(SKCanvas canvas, IgnoreAttributes ignoreAttributes);
 
-        protected override void OnDraw(SKCanvas canvas)
+        public virtual void RecordPicture(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
         {
             if (!IsDrawable)
             {
                 return;
             }
+
+            var enableClip = !IgnoreAttributes.HasFlag(IgnoreAttributes.Clip);
+            var enableMask = !IgnoreAttributes.HasFlag(IgnoreAttributes.Mask);
+            var enableOpacity = !IgnoreAttributes.HasFlag(IgnoreAttributes.Opacity);
+            var enableFilter = !IgnoreAttributes.HasFlag(IgnoreAttributes.Filter);
 
             canvas.Save();
 
@@ -71,47 +76,52 @@ namespace Svg.Skia
             SKMatrix.PreConcat(ref skMatrixTotal, ref Transform);
             canvas.SetMatrix(skMatrixTotal);
 
-            if (ClipPath != null)
+            if (ClipPath != null && enableClip == true)
             {
                 canvas.ClipPath(ClipPath, SKClipOperation.Intersect, IsAntialias);
             }
 
-            if (MaskDrawable != null)
+            if (MaskDrawable != null && enableMask == true)
             {
                 canvas.SaveLayer(Mask);
             }
 
-            if (Opacity != null)
+            if (Opacity != null && enableOpacity == true)
             {
                 canvas.SaveLayer(Opacity);
             }
 
-            if (Filter != null)
+            if (Filter != null && enableFilter == true)
             {
                 canvas.SaveLayer(Filter);
             }
 
-            Draw(canvas);
+            Record(canvas, ignoreAttributes);
 
-            if (Filter != null)
+            if (Filter != null && enableFilter == true)
             {
                 canvas.Restore();
             }
 
-            if (Opacity != null)
+            if (Opacity != null && enableOpacity == true)
             {
                 canvas.Restore();
             }
 
-            if (MaskDrawable != null)
+            if (MaskDrawable != null && enableMask == true)
             {
                 canvas.SaveLayer(MaskDstIn);
-                MaskDrawable.Draw(canvas, 0f, 0f);
+                MaskDrawable.RecordPicture(canvas, ignoreAttributes);
                 canvas.Restore();
                 canvas.Restore();
             }
 
             canvas.Restore();
+        }
+
+        protected override void OnDraw(SKCanvas canvas)
+        {
+            RecordPicture(canvas, IgnoreAttributes);
         }
 
         protected override SKRect OnGetBounds()

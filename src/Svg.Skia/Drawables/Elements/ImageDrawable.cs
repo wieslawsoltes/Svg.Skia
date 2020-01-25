@@ -191,7 +191,7 @@ namespace Svg.Skia
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
         }
 
-        protected override void Draw(SKCanvas canvas)
+        protected override void Record(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
         {
             if (Image != null)
             {
@@ -200,7 +200,7 @@ namespace Svg.Skia
 
             if (FragmentDrawable != null)
             {
-                FragmentDrawable.Draw(canvas, 0f, 0f);
+                FragmentDrawable.RecordPicture(canvas, ignoreAttributes);
             }
         }
 

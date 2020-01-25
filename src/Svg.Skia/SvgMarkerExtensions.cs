@@ -8,6 +8,65 @@ namespace Svg.Skia
 {
     public static class SvgMarkerExtensions
     {
+        public static void AddMarkers(this SvgGroup svgGroup)
+        {
+            Uri? marker = null;
+            // TODO: The marker can not be set as presentation attribute.
+            //if (svgGroup.TryGetAttribute("marker", out string markerUrl))
+            //{
+            //    marker = new Uri(markerUrl, UriKind.RelativeOrAbsolute);
+            //}
+
+            var groupMarkerStart = svgGroup.MarkerStart;
+            var groupMarkerMid = svgGroup.MarkerMid;
+            var groupMarkerEnd = svgGroup.MarkerEnd;
+
+            if (groupMarkerStart == null && groupMarkerMid == null && groupMarkerEnd == null && marker == null)
+            {
+                return;
+            }
+
+            foreach (var svgElement in svgGroup.Children)
+            {
+                if (svgElement is SvgMarkerElement svgMarkerElement)
+                {
+                    if (svgMarkerElement.MarkerStart == null)
+                    {
+                        if (groupMarkerStart != null)
+                        {
+                            svgMarkerElement.MarkerStart = groupMarkerStart;
+                        }
+                        else if (marker != null)
+                        {
+                            svgMarkerElement.MarkerStart = marker;
+                        }
+                    }
+                    if (svgMarkerElement.MarkerMid == null)
+                    {
+                        if (groupMarkerMid != null)
+                        {
+                            svgMarkerElement.MarkerMid = groupMarkerMid;
+                        }
+                        else if (marker != null)
+                        {
+                            svgMarkerElement.MarkerMid = marker;
+                        }
+                    }
+                    if (svgMarkerElement.MarkerEnd == null)
+                    {
+                        if (groupMarkerEnd != null)
+                        {
+                            svgMarkerElement.MarkerEnd = groupMarkerEnd;
+                        }
+                        else if (marker != null)
+                        {
+                            svgMarkerElement.MarkerEnd = marker;
+                        }
+                    }
+                }
+            }
+        }
+
         public static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skOwnerBounds, ref List<Drawable>? markerDrawables, CompositeDisposable disposable, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
         {
             float fAngle1 = 0f;

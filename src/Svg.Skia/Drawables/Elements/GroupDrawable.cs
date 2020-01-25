@@ -19,7 +19,7 @@ namespace Svg.Skia
             }
 
             // TODO: Call AddMarkers only once.
-            AddMarkers(svgGroup);
+            SvgMarkerExtensions.AddMarkers(svgGroup);
 
             CreateChildren(svgGroup, skOwnerBounds, ignoreAttributes);
 
@@ -31,6 +31,9 @@ namespace Svg.Skia
 
             Transform = SvgTransformsExtensions.ToSKMatrix(svgGroup.Transforms);
 
+            Fill = null;
+            Stroke = null;
+
             ClipPath = IgnoreAttributes.HasFlag(IgnoreAttributes.Clip) ? null : SvgClippingExtensions.GetSvgVisualElementClipPath(svgGroup, TransformedBounds, new HashSet<Uri>(), _disposable);
             MaskDrawable = IgnoreAttributes.HasFlag(IgnoreAttributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgGroup, TransformedBounds, new HashSet<Uri>(), _disposable);
             if (MaskDrawable != null)
@@ -40,70 +43,8 @@ namespace Svg.Skia
             Opacity = IgnoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgGroup, _disposable);
             Filter = IgnoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgGroup, TransformedBounds, _disposable);
 
-            Fill = null;
-            Stroke = null;
-
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
-        }
-
-        internal void AddMarkers(SvgGroup svgGroup)
-        {
-            Uri? marker = null;
-            // TODO: The marker can not be set as presentation attribute.
-            //if (svgGroup.TryGetAttribute("marker", out string markerUrl))
-            //{
-            //    marker = new Uri(markerUrl, UriKind.RelativeOrAbsolute);
-            //}
-
-            var groupMarkerStart = svgGroup.MarkerStart;
-            var groupMarkerMid = svgGroup.MarkerMid;
-            var groupMarkerEnd = svgGroup.MarkerEnd;
-
-            if (groupMarkerStart == null && groupMarkerMid == null && groupMarkerEnd == null && marker == null)
-            {
-                return;
-            }
-
-            foreach (var svgElement in svgGroup.Children)
-            {
-                if (svgElement is SvgMarkerElement svgMarkerElement)
-                {
-                    if (svgMarkerElement.MarkerStart == null)
-                    {
-                        if (groupMarkerStart != null)
-                        {
-                            svgMarkerElement.MarkerStart = groupMarkerStart;
-                        }
-                        else if (marker != null)
-                        {
-                            svgMarkerElement.MarkerStart = marker;
-                        }
-                    }
-                    if (svgMarkerElement.MarkerMid == null)
-                    {
-                        if (groupMarkerMid != null)
-                        {
-                            svgMarkerElement.MarkerMid = groupMarkerMid;
-                        }
-                        else if (marker != null)
-                        {
-                            svgMarkerElement.MarkerMid = marker;
-                        }
-                    }
-                    if (svgMarkerElement.MarkerEnd == null)
-                    {
-                        if (groupMarkerEnd != null)
-                        {
-                            svgMarkerElement.MarkerEnd = groupMarkerEnd;
-                        }
-                        else if (marker != null)
-                        {
-                            svgMarkerElement.MarkerEnd = marker;
-                        }
-                    }
-                }
-            }
         }
     }
 }
