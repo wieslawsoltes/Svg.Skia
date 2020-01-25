@@ -40,11 +40,11 @@ namespace Svg.Skia
             }
         }
 
-        protected override void Record(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
+        public override void OnDraw(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
         {
             foreach (var drawable in ChildrenDrawables)
             {
-                drawable.RecordPicture(canvas, ignoreAttributes);
+                drawable.Draw(canvas, ignoreAttributes);
             }
         }
 

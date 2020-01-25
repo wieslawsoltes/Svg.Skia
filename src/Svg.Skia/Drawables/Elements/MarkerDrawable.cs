@@ -134,14 +134,14 @@ namespace Svg.Skia
             return markerElement;
         }
 
-        protected override void Record(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
+        public override void OnDraw(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
         {
             if (MarkerClipRect != null)
             {
                 canvas.ClipRect(MarkerClipRect.Value, SKClipOperation.Intersect);
             }
 
-            MarkerElementDrawable?.RecordPicture(canvas, ignoreAttributes);
+            MarkerElementDrawable?.Draw(canvas, ignoreAttributes);
         }
 
         public override Drawable? HitTest(SKPoint skPoint)

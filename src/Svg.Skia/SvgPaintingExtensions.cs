@@ -305,7 +305,7 @@ namespace Svg.Skia
             foreach (var svgElement in svgElementCollection)
             {
                 using var drawable = DrawableFactory.Create(svgElement, skBounds, ignoreAttributes);
-                drawable?.RecordPicture(skCanvas, ignoreAttributes);
+                drawable?.Draw(skCanvas, ignoreAttributes);
             }
 
             if (skPaintOpacity != null)

@@ -130,9 +130,9 @@ namespace Svg.Skia
             }
         }
 
-        protected override void Record(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
+        public override void OnDraw(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
         {
-            ReferencedDrawable?.RecordPicture(canvas, ignoreAttributes);
+            ReferencedDrawable?.Draw(canvas, ignoreAttributes);
         }
 
         public override Drawable? HitTest(SKPoint skPoint)

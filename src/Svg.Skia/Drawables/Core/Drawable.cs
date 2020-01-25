@@ -5,7 +5,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    public abstract class Drawable : SKDrawable, IFilterSource
+    public abstract class Drawable : SKDrawable, IFilterSource, IPictureSource
     {
         internal CompositeDisposable _disposable = new CompositeDisposable();
 
@@ -23,6 +23,35 @@ namespace Svg.Skia
         public SKPaint? Filter;
         public SKPaint? Fill;
         public SKPaint? Stroke;
+
+        protected override void OnDraw(SKCanvas canvas)
+        {
+            Draw(canvas, IgnoreAttributes);
+        }
+
+        protected override SKRect OnGetBounds()
+        {
+            if (IsDrawable)
+            {
+                return TransformedBounds;
+            }
+            return SKRect.Empty;
+        }
+
+        public virtual Drawable? HitTest(SKPoint skPoint)
+        {
+            if (TransformedBounds.Contains(skPoint))
+            {
+                return this;
+            }
+            return null;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            _disposable?.Dispose();
+        }
 
         protected bool CanDraw(SvgVisualElement svgVisualElement, IgnoreAttributes ignoreAttributes)
         {
@@ -51,9 +80,9 @@ namespace Svg.Skia
             _disposable.Add(MaskDstIn);
         }
 
-        protected abstract void Record(SKCanvas canvas, IgnoreAttributes ignoreAttributes);
+        public abstract void OnDraw(SKCanvas canvas, IgnoreAttributes ignoreAttributes);
 
-        public virtual void RecordPicture(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
+        public virtual void Draw(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
         {
             if (!IsDrawable)
             {
@@ -96,7 +125,7 @@ namespace Svg.Skia
                 canvas.SaveLayer(Filter);
             }
 
-            Record(canvas, ignoreAttributes);
+            OnDraw(canvas, ignoreAttributes);
 
             if (Filter != null && enableFilter == true)
             {
@@ -111,7 +140,7 @@ namespace Svg.Skia
             if (MaskDrawable != null && enableMask == true)
             {
                 canvas.SaveLayer(MaskDstIn);
-                MaskDrawable.RecordPicture(canvas, ignoreAttributes);
+                MaskDrawable.Draw(canvas, ignoreAttributes);
                 canvas.Restore();
                 canvas.Restore();
             }
@@ -119,41 +148,12 @@ namespace Svg.Skia
             canvas.Restore();
         }
 
-        protected override void OnDraw(SKCanvas canvas)
-        {
-            RecordPicture(canvas, IgnoreAttributes);
-        }
-
-        protected override SKRect OnGetBounds()
-        {
-            if (IsDrawable)
-            {
-                return TransformedBounds;
-            }
-            return SKRect.Empty;
-        }
-
-        public virtual Drawable? HitTest(SKPoint skPoint)
-        {
-            if (TransformedBounds.Contains(skPoint))
-            {
-                return this;
-            }
-            return null;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            _disposable?.Dispose();
-        }
-
         SKPicture? IFilterSource.SourceGraphic()
         {
             var ignoreAttributes = IgnoreAttributes.Clip | IgnoreAttributes.Mask | IgnoreAttributes.Opacity | IgnoreAttributes.Filter;
             using var skPictureRecorder = new SKPictureRecorder();
             using var skCanvas = skPictureRecorder.BeginRecording(TransformedBounds);
-            RecordPicture(skCanvas, ignoreAttributes);
+            Draw(skCanvas, ignoreAttributes);
             return skPictureRecorder.EndRecording();
         }
 

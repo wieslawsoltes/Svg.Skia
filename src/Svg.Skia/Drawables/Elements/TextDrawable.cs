@@ -194,7 +194,7 @@ namespace Svg.Skia
             if (maskDrawable != null && enableMask == true)
             {
                 skCanvas.SaveLayer(maskDstIn);
-                maskDrawable.RecordPicture(skCanvas, ignoreAttributes);
+                maskDrawable.Draw(skCanvas, ignoreAttributes);
                 skCanvas.Restore();
                 skCanvas.Restore();
             }
@@ -492,12 +492,12 @@ namespace Svg.Skia
             EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter);
         }
 
-        protected override void Record(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
+        public override void OnDraw(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
         {
             // TODO: Currently using custom OnDraw override.
         }
 
-        public override void RecordPicture(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
+        public override void Draw(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
         {
             DrawText(_svgText, _skOwnerBounds, ignoreAttributes, canvas);
         }
@@ -505,7 +505,7 @@ namespace Svg.Skia
         protected override void OnDraw(SKCanvas canvas)
         {
             // TODO:
-            RecordPicture(canvas, IgnoreAttributes);
+            Draw(canvas, IgnoreAttributes);
         }
     }
 }
