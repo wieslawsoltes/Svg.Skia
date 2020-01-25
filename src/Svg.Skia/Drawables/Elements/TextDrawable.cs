@@ -99,7 +99,29 @@ namespace Svg.Skia
                 skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
             }
 
-            // TODO: Add mask support.
+            var mask = default(SKPaint);
+            var maskDstIn = default(SKPaint);
+            var maskDrawable = SvgClippingExtensions.GetSvgVisualElementMask(svgTextPath, TransformedBounds, new HashSet<Uri>(), _disposable);
+            if (maskDrawable != null)
+            {
+                mask = new SKPaint()
+                {
+                    IsAntialias = true,
+                    Style = SKPaintStyle.StrokeAndFill
+                };
+                _disposable.Add(mask);
+
+                maskDstIn = new SKPaint
+                {
+                    IsAntialias = true,
+                    Style = SKPaintStyle.StrokeAndFill,
+                    BlendMode = SKBlendMode.DstIn,
+                    Color = new SKColor(0, 0, 0, 255),
+                    ColorFilter = SKColorFilter.CreateLumaColor()
+                };
+                _disposable.Add(maskDstIn);
+                skCanvas.SaveLayer(mask);
+            }
 
             var skPaintOpacity = SvgPaintingExtensions.GetOpacitySKPaint(svgTextPath, _disposable);
             if (skPaintOpacity != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Opacity))
@@ -155,6 +177,14 @@ namespace Svg.Skia
                 skCanvas.Restore();
             }
 
+            if (maskDrawable != null)
+            {
+                skCanvas.SaveLayer(maskDstIn);
+                maskDrawable.Draw(skCanvas, 0f, 0f);
+                skCanvas.Restore();
+                skCanvas.Restore();
+            }
+
             skCanvas.Restore();
         }
 
@@ -194,7 +224,29 @@ namespace Svg.Skia
                 skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
             }
 
-            // TODO: Add mask support.
+            var mask = default(SKPaint);
+            var maskDstIn = default(SKPaint);
+            var maskDrawable = SvgClippingExtensions.GetSvgVisualElementMask(svgTextRef, TransformedBounds, new HashSet<Uri>(), _disposable);
+            if (maskDrawable != null)
+            {
+                mask = new SKPaint()
+                {
+                    IsAntialias = true,
+                    Style = SKPaintStyle.StrokeAndFill
+                };
+                _disposable.Add(mask);
+
+                maskDstIn = new SKPaint
+                {
+                    IsAntialias = true,
+                    Style = SKPaintStyle.StrokeAndFill,
+                    BlendMode = SKBlendMode.DstIn,
+                    Color = new SKColor(0, 0, 0, 255),
+                    ColorFilter = SKColorFilter.CreateLumaColor()
+                };
+                _disposable.Add(maskDstIn);
+                skCanvas.SaveLayer(mask);
+            }
 
             var skPaintOpacity = SvgPaintingExtensions.GetOpacitySKPaint(svgTextRef, _disposable);
             if (skPaintOpacity != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Opacity))
@@ -222,6 +274,14 @@ namespace Svg.Skia
 
             if (skPaintOpacity != null)
             {
+                skCanvas.Restore();
+            }
+
+            if (maskDrawable != null)
+            {
+                skCanvas.SaveLayer(maskDstIn);
+                maskDrawable.Draw(skCanvas, 0f, 0f);
+                skCanvas.Restore();
                 skCanvas.Restore();
             }
 
@@ -253,7 +313,29 @@ namespace Svg.Skia
                 skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
             }
 
-            // TODO: Add mask support.
+            var mask = default(SKPaint);
+            var maskDstIn = default(SKPaint);
+            var maskDrawable = SvgClippingExtensions.GetSvgVisualElementMask(svgTextSpan, TransformedBounds, new HashSet<Uri>(), _disposable);
+            if (maskDrawable != null)
+            {
+                mask = new SKPaint()
+                {
+                    IsAntialias = true,
+                    Style = SKPaintStyle.StrokeAndFill
+                };
+                _disposable.Add(mask);
+
+                maskDstIn = new SKPaint
+                {
+                    IsAntialias = true,
+                    Style = SKPaintStyle.StrokeAndFill,
+                    BlendMode = SKBlendMode.DstIn,
+                    Color = new SKColor(0, 0, 0, 255),
+                    ColorFilter = SKColorFilter.CreateLumaColor()
+                };
+                _disposable.Add(maskDstIn);
+                skCanvas.SaveLayer(mask);
+            }
 
             var skPaintOpacity = SvgPaintingExtensions.GetOpacitySKPaint(svgTextSpan, _disposable);
             if (skPaintOpacity != null && !ignoreAttributes.HasFlag(IgnoreAttributes.Opacity))
@@ -281,6 +363,14 @@ namespace Svg.Skia
 
             if (skPaintOpacity != null)
             {
+                skCanvas.Restore();
+            }
+
+            if (maskDrawable != null)
+            {
+                skCanvas.SaveLayer(maskDstIn);
+                maskDrawable.Draw(skCanvas, 0f, 0f);
+                skCanvas.Restore();
                 skCanvas.Restore();
             }
 
