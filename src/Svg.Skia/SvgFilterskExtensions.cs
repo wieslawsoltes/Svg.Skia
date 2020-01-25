@@ -175,25 +175,25 @@ namespace Svg.Skia
         }
 #if USE_NEW_FILTERS
 
-        public static SvgFuncA s_IdentitySvgFuncA = new SvgFuncA()
+        public static SvgFuncA s_identitySvgFuncA = new SvgFuncA()
         {
             Type = SvgComponentTransferType.Identity,
             TableValues = new SvgNumberCollection()
         };
 
-        public static SvgFuncR s_IdentitySvgFuncR = new SvgFuncR()
+        public static SvgFuncR s_identitySvgFuncR = new SvgFuncR()
         {
             Type = SvgComponentTransferType.Identity,
             TableValues = new SvgNumberCollection()
         };
 
-        public static SvgFuncG s_IdentitySvgFuncG = new SvgFuncG()
+        public static SvgFuncG s_identitySvgFuncG = new SvgFuncG()
         {
             Type = SvgComponentTransferType.Identity,
             TableValues = new SvgNumberCollection()
         };
 
-        public static SvgFuncB s_IdentitySvgFuncB = new SvgFuncB()
+        public static SvgFuncB s_identitySvgFuncB = new SvgFuncB()
         {
             Type = SvgComponentTransferType.Identity,
             TableValues = new SvgNumberCollection()
@@ -286,10 +286,10 @@ namespace Svg.Skia
 
         public static SKImageFilter? CreateComponentTransfer(SvgVisualElement svgVisualElement, SKRect skBounds, FilterEffects.SvgComponentTransfer svgComponentTransfer, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            SvgFuncA? svgFuncA = s_IdentitySvgFuncA;
-            SvgFuncR? svgFuncR = s_IdentitySvgFuncR;
-            SvgFuncG? svgFuncG = s_IdentitySvgFuncG;
-            SvgFuncB? svgFuncB = s_IdentitySvgFuncB;
+            SvgFuncA? svgFuncA = s_identitySvgFuncA;
+            SvgFuncR? svgFuncR = s_identitySvgFuncR;
+            SvgFuncG? svgFuncG = s_identitySvgFuncG;
+            SvgFuncB? svgFuncB = s_identitySvgFuncB;
 
             foreach (var child in svgComponentTransfer.Children)
             {
