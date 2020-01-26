@@ -220,7 +220,7 @@ namespace Svg.Skia
             }
         }
 
-        public SKPicture? Record(Drawable? drawable, Drawable? unitl, Attributes ignoreAttributes)
+        public SKPicture? Record(Drawable? drawable, Drawable? until, Attributes ignoreAttributes)
         {
             if (drawable == null)
             {
@@ -228,7 +228,7 @@ namespace Svg.Skia
             }
             using var skPictureRecorder = new SKPictureRecorder();
             using var skCanvas = skPictureRecorder.BeginRecording(drawable.TransformedBounds);
-            drawable.Draw(skCanvas, ignoreAttributes, unitl);
+            drawable.Draw(skCanvas, ignoreAttributes, until);
             return skPictureRecorder.EndRecording();
         }
 
