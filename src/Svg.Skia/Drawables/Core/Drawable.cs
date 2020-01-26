@@ -161,7 +161,7 @@ namespace Svg.Skia
             canvas.Restore();
         }
 
-        SKPicture? Record(Drawable? drawable, Drawable? unitl)
+        SKPicture? Record(Drawable? drawable, Drawable? parent, Drawable? unitl)
         {
             if (drawable == null)
             {
@@ -171,12 +171,16 @@ namespace Svg.Skia
             using var skPictureRecorder = new SKPictureRecorder();
             using var skCanvas = skPictureRecorder.BeginRecording(drawable.TransformedBounds);
             drawable.Draw(skCanvas, ignoreAttributes, unitl);
+            if (parent != null)
+            {
+                parent.Draw(skCanvas, ignoreAttributes, this);
+            }
             return skPictureRecorder.EndRecording();
         }
 
-        SKPicture? IFilterSource.SourceGraphic() => Record(this, null);
+        SKPicture? IFilterSource.SourceGraphic() => Record(this, null, null);
 
-        SKPicture? IFilterSource.BackgroundImage() => Record(Root, this);
+        SKPicture? IFilterSource.BackgroundImage() => Record(Root, Parent, this);
 
         SKPaint? IFilterSource.FillPaint() => Fill;
 
