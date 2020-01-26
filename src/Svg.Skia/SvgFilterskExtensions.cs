@@ -521,6 +521,7 @@ namespace Svg.Skia
 #endif
         public static SKImageFilter? CreateBlur(FilterEffects.SvgGaussianBlur svgGaussianBlur, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
+#if true
             // TODO: Calculate correct value of sigma using one value stdDeviation.
             var sigmaX = svgGaussianBlur.StdDeviation;
             var sigmaY = svgGaussianBlur.StdDeviation;
@@ -531,6 +532,10 @@ namespace Svg.Skia
                 FilterEffects.BlurType.VerticalOnly => SKImageFilter.CreateBlur(0f, sigmaY, input, cropRect),
                 _ => SKImageFilter.CreateBlur(sigmaX, sigmaY, input, cropRect),
             };
+#else
+            GetOptionalNumbers(svgGaussianBlur.StdDeviation, 0f, 0f, out var sigmaX, out var sigmaY);
+            return SKImageFilter.CreateBlur(sigmaX, sigmaY, input, cropRect);
+#endif
         }
 #if USE_NEW_FILTERS
         public static SKImageFilter? CreateImage(SKRect skBounds, FilterEffects.SvgImage svgImage, CompositeDisposable disposable, SKImageFilter.CropRect? cropRect = null)
