@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using SkiaSharp;
 using Svg.Document_Structure;
 
@@ -242,8 +243,10 @@ namespace Svg.Skia
             }
         }
 
-        public Drawable? FindContainerParentBackground(Drawable? drawable)
+        public Drawable? FindContainerParentBackground(Drawable? drawable, out SKRect skClipRect)
         {
+            skClipRect = SKRect.Empty;
+
             if (drawable == null)
             {
                 return null;
@@ -259,12 +262,30 @@ namespace Svg.Skia
             {
                 if (element.TryGetAttribute("enable-background", out string enableBackground))
                 {
+                    enableBackground = enableBackground.Trim();
+
                     if (enableBackground == "accumulate")
                     {
                         // TODO:
                     }
                     else if (enableBackground.StartsWith("new"))
                     {
+                        if (enableBackground.Length > 3)
+                        {
+                            var values = new List<float>();
+                            var parts = enableBackground.Substring(4, enableBackground.Length - 4).Split(' ');
+                            foreach (var o in parts)
+                            {
+                                values.Add(float.Parse(o.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture));
+                            }
+
+                            if (values.Count != 4)
+                            {
+                                return null;
+                            }
+
+                            skClipRect = SKRect.Create(values[0], values[1], values[2], values[3]);
+                        }
                         return drawable;
                     }
                 }
@@ -273,7 +294,7 @@ namespace Svg.Skia
             var parent = drawable.Parent;
             if (parent != null)
             {
-                return FindContainerParentBackground(parent);
+                return FindContainerParentBackground(parent, out skClipRect);
             }
 
             return null;
@@ -286,11 +307,15 @@ namespace Svg.Skia
                 return null;
             }
 
-            var container = FindContainerParentBackground(drawable);
+            var container = FindContainerParentBackground(drawable, out var skClipRect);
             if (container != null)
             {
                 using var skPictureRecorder = new SKPictureRecorder();
                 using var skCanvas = skPictureRecorder.BeginRecording(container.TransformedBounds);
+                if (!skClipRect.IsEmpty)
+                {
+                    skCanvas.ClipRect(skClipRect, SKClipOperation.Intersect);
+                }
                 container.Draw(skCanvas, ignoreAttributes, until);
                 return skPictureRecorder.EndRecording();
             }
