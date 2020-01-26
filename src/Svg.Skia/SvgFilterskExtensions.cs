@@ -724,7 +724,7 @@ namespace Svg.Skia
                 0f, 0f, 0f, 1f, 0f
             };
 
-            var skColorFilter =  SKColorFilter.CreateColorMatrix(matrix);
+            var skColorFilter = SKColorFilter.CreateColorMatrix(matrix);
             disposable.Add(skColorFilter);
 
             var skImageFilter = SKImageFilter.CreateColorFilter(skColorFilter, skImageFilterGraphic);
@@ -811,7 +811,7 @@ namespace Svg.Skia
                             if (skImageFilter != null)
                             {
                                 results[SourceGraphic] = skImageFilter;
-                                return skImageFilter; 
+                                return skImageFilter;
                             }
                         }
                     }
