@@ -79,7 +79,7 @@ namespace Svg.Skia
         }
 
         public MaskDrawable(SvgMask svgMask, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
-            : base(root, parent)
+            : base(svgMask, root, parent)
         {
             IgnoreAttributes = ignoreAttributes;
             IsDrawable = true;
@@ -161,15 +161,36 @@ namespace Svg.Skia
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
+        }
+
+        public override void PostProcess()
+        {
+            var element = Element;
+            if (element == null)
+            {
+                return;
+            }
+
+            var enableMask = !IgnoreAttributes.HasFlag(Attributes.Mask);
 
             ClipPath = null;
-            MaskDrawable = IgnoreAttributes.HasFlag(Attributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgMask, TransformedBounds, new HashSet<Uri>(), _disposable);
-            if (MaskDrawable != null)
+
+            if (enableMask == true)
             {
-                CreateMaskPaints();
+                MaskDrawable = SvgClippingExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), _disposable);
+                if (MaskDrawable != null)
+                {
+                    CreateMaskPaints();
+                }
             }
+            else
+            {
+                MaskDrawable = null;
+            }
+
             Opacity = null;
             Filter = null;
         }
+
     }
 }

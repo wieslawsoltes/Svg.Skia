@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 using System;
+using System.Collections.Generic;
 using SkiaSharp;
 
 namespace Svg.Skia
@@ -9,6 +10,7 @@ namespace Svg.Skia
     {
         internal CompositeDisposable _disposable = new CompositeDisposable();
 
+        public SvgElement? Element;
         public Drawable? Root;
         public Drawable? Parent;
         public bool IsDrawable;
@@ -26,8 +28,9 @@ namespace Svg.Skia
         public SKPaint? Fill;
         public SKPaint? Stroke;
 
-        public Drawable(Drawable? root, Drawable? parent)
+        public Drawable(SvgElement? element, Drawable? root, Drawable? parent)
         {
+            Element = element;
             Root = root;
             Parent = parent;
         }
@@ -161,26 +164,79 @@ namespace Svg.Skia
             canvas.Restore();
         }
 
-        SKPicture? Record(Drawable? drawable, Drawable? parent, Drawable? unitl)
+        public virtual void PostProcess()
+        {
+            var element = Element;
+            if (element == null)
+            {
+                return;
+            }
+
+            var visualElement = element as SvgVisualElement;
+
+            var enableClip = !IgnoreAttributes.HasFlag(Attributes.ClipPath);
+            var enableMask = !IgnoreAttributes.HasFlag(Attributes.Mask);
+            var enableOpacity = !IgnoreAttributes.HasFlag(Attributes.Opacity);
+            var enableFilter = !IgnoreAttributes.HasFlag(Attributes.Filter);
+
+            if (visualElement != null && enableClip == true)
+            {
+                ClipPath =  SvgClippingExtensions.GetSvgVisualElementClipPath(visualElement, TransformedBounds, new HashSet<Uri>(), _disposable);
+            }
+            else
+            {
+                ClipPath = null;
+            }
+
+            if (enableMask == true)
+            {
+                MaskDrawable = SvgClippingExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), _disposable);
+                if (MaskDrawable != null)
+                {
+                    CreateMaskPaints();
+                }
+            }
+            else
+            {
+                MaskDrawable = null;
+            }
+
+            if (enableOpacity == true)
+            {
+                Opacity = SvgPaintingExtensions.GetOpacitySKPaint(element, _disposable);
+            }
+            else
+            {
+                Opacity = null;
+            }
+
+            if (visualElement != null && enableFilter == true)
+            {
+                Filter = SvgFiltersExtensions.GetFilterSKPaint(visualElement, TransformedBounds, this, _disposable);
+            }
+            else
+            {
+                Filter = null;
+            }
+        }
+
+        public SKPicture? Record(Drawable? drawable, Drawable? unitl, Attributes ignoreAttributes)
         {
             if (drawable == null)
             {
                 return null;
             }
-            var ignoreAttributes = Attributes.ClipPath | Attributes.Mask | Attributes.Opacity | Attributes.Filter;
             using var skPictureRecorder = new SKPictureRecorder();
             using var skCanvas = skPictureRecorder.BeginRecording(drawable.TransformedBounds);
             drawable.Draw(skCanvas, ignoreAttributes, unitl);
-            if (parent != null)
-            {
-                parent.Draw(skCanvas, ignoreAttributes, this);
-            }
             return skPictureRecorder.EndRecording();
         }
 
-        SKPicture? IFilterSource.SourceGraphic() => Record(this, null, null);
+        public const Attributes FilterInput = Attributes.ClipPath | Attributes.Mask | Attributes.Opacity | Attributes.Filter;
 
-        SKPicture? IFilterSource.BackgroundImage() => Record(Root, Parent, this);
+        SKPicture? IFilterSource.SourceGraphic() => Record(this, null, FilterInput);
+
+        SKPicture? IFilterSource.BackgroundImage() => Record(Root, this, FilterInput);
 
         SKPaint? IFilterSource.FillPaint() => Fill;
 

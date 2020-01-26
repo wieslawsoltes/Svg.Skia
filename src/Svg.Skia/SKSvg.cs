@@ -29,6 +29,7 @@ namespace Svg.Skia
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
             using var drawable = DrawableFactory.Create(svgFragment, skBounds, null, null, Attributes.None);
+            drawable?.PostProcess();
             drawable?.Draw(skCanvas, 0f, 0f);
         }
 
@@ -52,6 +53,8 @@ namespace Svg.Skia
                 return null;
             }
 
+            drawable.PostProcess();
+
             if (skBounds.IsEmpty)
             {
                 skBounds = GetBounds(drawable);
@@ -74,6 +77,8 @@ namespace Svg.Skia
                 return null;
             }
 
+            drawable.PostProcess();
+
             if (skBounds.IsEmpty)
             {
                 skBounds = GetBounds(drawable);
@@ -89,12 +94,16 @@ namespace Svg.Skia
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
-            return DrawableFactory.Create(svgFragment, skBounds, null, null, Attributes.None);
+            var drawable = DrawableFactory.Create(svgFragment, skBounds, null, null, Attributes.None);
+            drawable?.PostProcess();
+            return drawable;
         }
 
         public static Drawable? ToDrawable(SvgElement svgElement, SKRect skBounds, Attributes ignoreAttributes = Attributes.None)
         {
-            return DrawableFactory.Create(svgElement, skBounds, null, null, ignoreAttributes);
+            var drawable = DrawableFactory.Create(svgElement, skBounds, null, null, ignoreAttributes);
+            drawable?.PostProcess();
+            return drawable;
         }
 
         public static SvgDocument? OpenSvg(string path)

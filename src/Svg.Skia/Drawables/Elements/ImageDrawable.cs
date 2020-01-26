@@ -14,7 +14,7 @@ namespace Svg.Skia
         public SKRect DestRect = default;
 
         public ImageDrawable(SvgImage svgImage, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
-            : base(root, parent)
+            : base(svgImage, root, parent)
         {
             IgnoreAttributes = ignoreAttributes;
             IsDrawable = CanDraw(svgImage, IgnoreAttributes);
@@ -181,15 +181,6 @@ namespace Svg.Skia
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
-
-            ClipPath = IgnoreAttributes.HasFlag(Attributes.ClipPath) ? null : SvgClippingExtensions.GetSvgVisualElementClipPath(svgImage, TransformedBounds, new HashSet<Uri>(), _disposable);
-            MaskDrawable = IgnoreAttributes.HasFlag(Attributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgImage, TransformedBounds, new HashSet<Uri>(), _disposable);
-            if (MaskDrawable != null)
-            {
-                CreateMaskPaints();
-            }
-            Opacity = IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgImage, _disposable);
-            Filter = IgnoreAttributes.HasFlag(Attributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgImage, TransformedBounds, this, _disposable);
         }
 
         public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
@@ -208,6 +199,12 @@ namespace Svg.Skia
             {
                 FragmentDrawable.Draw(canvas, ignoreAttributes, until);
             }
+        }
+
+        public override void PostProcess()
+        {
+            base.PostProcess();
+            FragmentDrawable?.PostProcess();
         }
 
         public override Drawable? HitTest(SKPoint skPoint)

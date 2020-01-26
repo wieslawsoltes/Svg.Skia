@@ -20,7 +20,7 @@ namespace Svg.Skia
         private SKRect _skOwnerBounds;
 
         public TextDrawable(SvgText svgText, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
-            : base(root, parent)
+            : base(svgText, root, parent)
         {
             _svgText = svgText;
             _skOwnerBounds = skOwnerBounds;
@@ -121,7 +121,7 @@ namespace Svg.Skia
             {
                 var mask = default(SKPaint);
                 maskDstIn = default(SKPaint);
-                maskDrawable = SvgClippingExtensions.GetSvgVisualElementMask(svgTextBase, skBounds, new HashSet<Uri>(), disposable);
+                maskDrawable = SvgClippingExtensions.GetSvgElementMask(svgTextBase, skBounds, new HashSet<Uri>(), disposable);
                 if (maskDrawable != null)
                 {
                     mask = new SKPaint()
@@ -517,6 +517,11 @@ namespace Svg.Skia
         {
             // TODO:
             Draw(canvas, IgnoreAttributes, null);
+        }
+
+        public override void PostProcess()
+        {
+            // TODO:
         }
     }
 }

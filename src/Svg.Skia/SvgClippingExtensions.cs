@@ -376,7 +376,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static MaskDrawable? GetSvgVisualElementMask(SvgElement svgElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
+        public static MaskDrawable? GetSvgElementMask(SvgElement svgElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {
             var svgMaskRef = svgElement.GetUriElementReference<SvgMask>("mask", uris);
             if (svgMaskRef == null || svgMaskRef.Children == null)

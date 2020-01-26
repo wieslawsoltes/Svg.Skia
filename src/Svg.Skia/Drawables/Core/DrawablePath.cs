@@ -10,8 +10,8 @@ namespace Svg.Skia
         public SKPath? Path;
         public List<Drawable>? MarkerDrawables;
 
-        public DrawablePath(Drawable? root, Drawable? parent)
-            : base(root, parent)
+        public DrawablePath(SvgElement? element, Drawable? root, Drawable? parent)
+            : base(element, root, parent)
         {
         }
 
@@ -37,7 +37,20 @@ namespace Svg.Skia
                 foreach (var drawable in MarkerDrawables)
                 {
                     drawable.Draw(canvas, ignoreAttributes, until);
-                } 
+                }
+            }
+        }
+
+        public override void PostProcess()
+        {
+            base.PostProcess();
+
+            if (MarkerDrawables != null)
+            {
+                foreach (var drawable in MarkerDrawables)
+                {
+                    drawable.PostProcess();
+                }
             }
         }
 
@@ -52,7 +65,7 @@ namespace Svg.Skia
                     {
                         return result;
                     }
-                } 
+                }
             }
             return base.HitTest(skPoint);
         }

@@ -14,7 +14,7 @@ namespace Svg.Skia
         public Drawable? ReferencedDrawable;
 
         public UseDrawable(SvgUse svgUse, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
-            : base(root, parent)
+            : base(svgUse, root, parent)
         {
             IgnoreAttributes = ignoreAttributes;
             IsDrawable = CanDraw(svgUse, IgnoreAttributes);
@@ -108,6 +108,8 @@ namespace Svg.Skia
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
+            // TODO: Fix PostProcess() using corrent ReferencedElement Parent.
+            /*
             ClipPath = IgnoreAttributes.HasFlag(Attributes.ClipPath) ? null : SvgClippingExtensions.GetSvgVisualElementClipPath(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
             MaskDrawable = IgnoreAttributes.HasFlag(Attributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
             if (MaskDrawable != null)
@@ -116,6 +118,7 @@ namespace Svg.Skia
             }
             Opacity = IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgUse, _disposable);
             Filter = IgnoreAttributes.HasFlag(Attributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgUse, TransformedBounds, this, _disposable);
+            */
 
             try
             {
@@ -139,6 +142,13 @@ namespace Svg.Skia
             }
 
             ReferencedDrawable?.Draw(canvas, ignoreAttributes, until);
+        }
+
+        public override void PostProcess()
+        {
+            base.PostProcess();
+            // TODO: Fix PostProcess() using corrent ReferencedElement Parent.
+            ReferencedDrawable?.PostProcess();
         }
 
         public override Drawable? HitTest(SKPoint skPoint)

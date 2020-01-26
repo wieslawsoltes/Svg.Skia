@@ -9,8 +9,8 @@ namespace Svg.Skia
     {
         public List<Drawable> ChildrenDrawables = new List<Drawable>();
 
-        public DrawableContainer(Drawable? root, Drawable? parent)
-            : base(root, parent)
+        public DrawableContainer(SvgElement? element, Drawable? root, Drawable? parent)
+            : base(element, root, parent)
         {
         }
 
@@ -59,6 +59,16 @@ namespace Svg.Skia
                     break;
                 }
                 drawable.Draw(canvas, ignoreAttributes, until);
+            }
+        }
+
+        public override void PostProcess()
+        {
+            base.PostProcess();
+
+            foreach (var child in ChildrenDrawables)
+            {
+                child.PostProcess();
             }
         }
 

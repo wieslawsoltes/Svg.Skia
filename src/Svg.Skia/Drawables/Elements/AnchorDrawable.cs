@@ -7,7 +7,7 @@ namespace Svg.Skia
     public class AnchorDrawable : DrawableContainer
     {
         public AnchorDrawable(SvgAnchor svgAnchor, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
-            : base(root, parent)
+            : base(svgAnchor, root, parent)
         {
             IgnoreAttributes = ignoreAttributes;
             IsDrawable = true;
@@ -37,6 +37,36 @@ namespace Svg.Skia
             MaskDrawable = null;
             Opacity = IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgAnchor, _disposable);
             Filter = null;
+        }
+
+        public override void PostProcess()
+        {
+            var element = Element;
+            if (element == null)
+            {
+                return;
+            }
+
+            var enableOpacity = !IgnoreAttributes.HasFlag(Attributes.Opacity);
+
+            ClipPath = null;
+            MaskDrawable = null;
+
+            if (enableOpacity == true)
+            {
+                Opacity = SvgPaintingExtensions.GetOpacitySKPaint(element, _disposable);
+            }
+            else
+            {
+                Opacity = null;
+            }
+
+            Filter = null;
+
+            foreach (var child in ChildrenDrawables)
+            {
+                child.PostProcess();
+            }
         }
     }
 }

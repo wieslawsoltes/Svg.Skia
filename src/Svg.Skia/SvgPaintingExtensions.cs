@@ -305,6 +305,7 @@ namespace Svg.Skia
             foreach (var svgElement in svgElementCollection)
             {
                 using var drawable = DrawableFactory.Create(svgElement, skBounds, null, null, ignoreAttributes);
+                drawable?.PostProcess();
                 drawable?.Draw(skCanvas, ignoreAttributes, null);
             }
 

@@ -9,7 +9,7 @@ namespace Svg.Skia
     public class FragmentDrawable : DrawableContainer
     {
         public FragmentDrawable(SvgFragment svgFragment, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
-            : base(root, parent)
+            : base(svgFragment, root, parent)
         {
             IgnoreAttributes = ignoreAttributes;
             IsDrawable = true;
@@ -73,13 +73,39 @@ namespace Svg.Skia
 
             Fill = null;
             Stroke = null;
-            Filter = null;
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
+        }
 
+        public override void PostProcess()
+        {
+            var element = Element;
+            if (element == null)
+            {
+                return;
+            }
+
+            var enableOpacity = !IgnoreAttributes.HasFlag(Attributes.Opacity);
+
+            ClipPath = null;
             MaskDrawable = null;
-            Opacity = IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgFragment, _disposable);
+
+            if (enableOpacity == true)
+            {
+                Opacity = SvgPaintingExtensions.GetOpacitySKPaint(element, _disposable);
+            }
+            else
+            {
+                Opacity = null;
+            }
+
+            Filter = null;
+
+            foreach (var child in ChildrenDrawables)
+            {
+                child.PostProcess();
+            }
         }
     }
 }
