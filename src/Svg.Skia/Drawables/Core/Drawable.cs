@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using SkiaSharp;
+using Svg.Document_Structure;
 
 namespace Svg.Skia
 {
@@ -220,23 +221,88 @@ namespace Svg.Skia
             }
         }
 
+        public bool IsContainerElement(SvgElement svgElement)
+        {
+            switch (svgElement)
+            {
+                case SvgAnchor svgAnchor:
+                case SvgDefinitionList svgDefinitionList:
+                case SvgMissingGlyph svgMissingGlyph:
+                case SvgGlyph svgGlyph:
+                case SvgGroup svgGroup:
+                case SvgMarker svgMarker:
+                case SvgMask svgMask:
+                case SvgPatternServer svgPatternServer:
+                case SvgFragment svgFragment:
+                case SvgSwitch svgSwitch:
+                case SvgSymbol svgSymbol:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public Drawable? FindContainerParentBackground(Drawable? drawable)
+        {
+            if (drawable == null)
+            {
+                return null;
+            }
+
+            var element = drawable.Element;
+            if (element == null)
+            {
+                return null;
+            }
+
+            if (IsContainerElement(element))
+            {
+                if (element.TryGetAttribute("enable-background", out string enableBackground))
+                {
+                    if (enableBackground == "accumulate")
+                    {
+                        // TODO:
+                    }
+                    else if (enableBackground.StartsWith("new"))
+                    {
+                        return drawable;
+                    }
+                }
+            }
+
+            var parent = drawable.Parent;
+            if (parent != null)
+            {
+                return FindContainerParentBackground(parent);
+            }
+
+            return null;
+        }
+
         public SKPicture? Record(Drawable? drawable, Drawable? until, Attributes ignoreAttributes)
         {
             if (drawable == null)
             {
                 return null;
             }
-            using var skPictureRecorder = new SKPictureRecorder();
-            using var skCanvas = skPictureRecorder.BeginRecording(drawable.TransformedBounds);
-            drawable.Draw(skCanvas, ignoreAttributes, until);
-            return skPictureRecorder.EndRecording();
+
+            var container = FindContainerParentBackground(drawable);
+            if (container != null)
+            {
+                using var skPictureRecorder = new SKPictureRecorder();
+                using var skCanvas = skPictureRecorder.BeginRecording(container.TransformedBounds);
+                container.Draw(skCanvas, ignoreAttributes, until);
+                return skPictureRecorder.EndRecording();
+            }
+
+            return null;
         }
 
         public const Attributes FilterInput = Attributes.ClipPath | Attributes.Mask | Attributes.Opacity | Attributes.Filter;
 
         SKPicture? IFilterSource.SourceGraphic() => Record(this, null, FilterInput);
 
-        SKPicture? IFilterSource.BackgroundImage() => Record(Root, this, FilterInput);
+        SKPicture? IFilterSource.BackgroundImage() => Record(this, this, FilterInput);
 
         SKPaint? IFilterSource.FillPaint() => Fill;
 
