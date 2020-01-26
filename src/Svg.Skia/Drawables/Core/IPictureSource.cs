@@ -6,7 +6,7 @@ namespace Svg.Skia
 {
     public interface IPictureSource
     {
-        void OnDraw(SKCanvas canvas, IgnoreAttributes ignoreAttributes);
-        void Draw(SKCanvas canvas, IgnoreAttributes ignoreAttributes);
+        void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until);
+        void Draw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until);
     }
 }

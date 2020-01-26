@@ -9,7 +9,8 @@ namespace Svg.Skia
 {
     public class SymbolDrawable : DrawableContainer
     {
-        public SymbolDrawable(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes)
+        public SymbolDrawable(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes)
+            : base(root, parent)
         {
             IgnoreAttributes = ignoreAttributes;
             IsDrawable = CanDraw(svgSymbol, IgnoreAttributes);
@@ -55,7 +56,7 @@ namespace Svg.Skia
                     break;
             }
 
-            CreateChildren(svgSymbol, skOwnerBounds, ignoreAttributes);
+            CreateChildren(svgSymbol, skOwnerBounds, root, this, ignoreAttributes);
 
             IsAntialias = SvgPaintingExtensions.IsAntialias(svgSymbol);
 
@@ -70,14 +71,14 @@ namespace Svg.Skia
             Fill = null;
             Stroke = null;
 
-            ClipPath = IgnoreAttributes.HasFlag(IgnoreAttributes.Clip) ? null : SvgClippingExtensions.GetSvgVisualElementClipPath(svgSymbol, TransformedBounds, new HashSet<Uri>(), _disposable);
-            MaskDrawable = IgnoreAttributes.HasFlag(IgnoreAttributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgSymbol, TransformedBounds, new HashSet<Uri>(), _disposable);
+            ClipPath = IgnoreAttributes.HasFlag(Attributes.ClipPath) ? null : SvgClippingExtensions.GetSvgVisualElementClipPath(svgSymbol, TransformedBounds, new HashSet<Uri>(), _disposable);
+            MaskDrawable = IgnoreAttributes.HasFlag(Attributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgSymbol, TransformedBounds, new HashSet<Uri>(), _disposable);
             if (MaskDrawable != null)
             {
                 CreateMaskPaints();
             }
-            Opacity = IgnoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgSymbol, _disposable);
-            Filter = IgnoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgSymbol, TransformedBounds, this, _disposable);
+            Opacity = IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgSymbol, _disposable);
+            Filter = IgnoreAttributes.HasFlag(Attributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgSymbol, TransformedBounds, this, _disposable);
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);

@@ -6,7 +6,8 @@ namespace Svg.Skia
 {
     public class AnchorDrawable : DrawableContainer
     {
-        public AnchorDrawable(SvgAnchor svgAnchor, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
+        public AnchorDrawable(SvgAnchor svgAnchor, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+            : base(root, parent)
         {
             IgnoreAttributes = ignoreAttributes;
             IsDrawable = true;
@@ -16,7 +17,7 @@ namespace Svg.Skia
                 return;
             }
 
-            CreateChildren(svgAnchor, skOwnerBounds, ignoreAttributes);
+            CreateChildren(svgAnchor, skOwnerBounds, root, this, ignoreAttributes);
 
             IsAntialias = SvgPaintingExtensions.IsAntialias(svgAnchor);
 
@@ -31,7 +32,7 @@ namespace Svg.Skia
 
             ClipPath = null;
             MaskDrawable = null;
-            Opacity = IgnoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgAnchor, _disposable);
+            Opacity = IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgAnchor, _disposable);
             Filter = null;
 
             // TODO: Transform _skBounds using _skMatrix.

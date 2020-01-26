@@ -12,9 +12,10 @@ namespace Svg.Skia
         public Drawable? MarkerElementDrawable;
         public SKRect? MarkerClipRect;
 
-        public MarkerDrawable(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
+        public MarkerDrawable(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+            : base(root, parent)
         {
-            IgnoreAttributes = IgnoreAttributes.Display | ignoreAttributes;
+            IgnoreAttributes = Attributes.Display | ignoreAttributes;
             IsDrawable = true;
 
             if (!IsDrawable)
@@ -83,7 +84,7 @@ namespace Svg.Skia
                 markerWidth / viewBoxToMarkerUnitsScaleX,
                 markerHeight / viewBoxToMarkerUnitsScaleY);
 
-            var drawable = DrawableFactory.Create(markerElement, skOwnerBounds, IgnoreAttributes.Display);
+            var drawable = DrawableFactory.Create(markerElement, skOwnerBounds, root, this, Attributes.Display);
             if (drawable != null)
             {
                 MarkerElementDrawable = drawable;
@@ -105,14 +106,14 @@ namespace Svg.Skia
             Fill = null;
             Stroke = null;
 
-            ClipPath = IgnoreAttributes.HasFlag(IgnoreAttributes.Clip) ? null : SvgClippingExtensions.GetSvgVisualElementClipPath(svgMarker, TransformedBounds, new HashSet<Uri>(), _disposable);
-            MaskDrawable = IgnoreAttributes.HasFlag(IgnoreAttributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgMarker, TransformedBounds, new HashSet<Uri>(), _disposable);
+            ClipPath = IgnoreAttributes.HasFlag(Attributes.ClipPath) ? null : SvgClippingExtensions.GetSvgVisualElementClipPath(svgMarker, TransformedBounds, new HashSet<Uri>(), _disposable);
+            MaskDrawable = IgnoreAttributes.HasFlag(Attributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgMarker, TransformedBounds, new HashSet<Uri>(), _disposable);
             if (MaskDrawable != null)
             {
                 CreateMaskPaints();
             }
-            Opacity = IgnoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgMarker, _disposable);
-            Filter = IgnoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgMarker, TransformedBounds, this, _disposable);
+            Opacity = IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgMarker, _disposable);
+            Filter = IgnoreAttributes.HasFlag(Attributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgMarker, TransformedBounds, this, _disposable);
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
@@ -134,14 +135,19 @@ namespace Svg.Skia
             return markerElement;
         }
 
-        public override void OnDraw(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
         {
+            if (until != null && this == until)
+            {
+                return;
+            }
+
             if (MarkerClipRect != null)
             {
                 canvas.ClipRect(MarkerClipRect.Value, SKClipOperation.Intersect);
             }
 
-            MarkerElementDrawable?.Draw(canvas, ignoreAttributes);
+            MarkerElementDrawable?.Draw(canvas, ignoreAttributes, until);
         }
 
         public override Drawable? HitTest(SKPoint skPoint)

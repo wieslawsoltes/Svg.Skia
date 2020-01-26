@@ -5,13 +5,13 @@ using System;
 namespace Svg.Skia
 {
     [Flags]
-    public enum IgnoreAttributes
+    public enum Attributes
     {
         None = 0,
         Display = 1,
         Opacity = 2,
         Filter = 4,
-        Clip = 8,
+        ClipPath = 8,
         Mask = 16
     }
 }

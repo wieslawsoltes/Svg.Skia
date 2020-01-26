@@ -13,10 +13,10 @@ namespace Svg.Skia
             return Math.Min(Math.Max(opacity, 0), 1);
         }
 
-        public static SKColor GetColor(SvgColourServer svgColourServer, float opacity, IgnoreAttributes ignoreAttributes)
+        public static SKColor GetColor(SvgColourServer svgColourServer, float opacity, Attributes ignoreAttributes)
         {
             var colour = svgColourServer.Colour;
-            byte alpha = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ?
+            byte alpha = ignoreAttributes.HasFlag(Attributes.Opacity) ?
                 svgColourServer.Colour.A :
                 (byte)Math.Round((opacity * (svgColourServer.Colour.A / 255.0)) * 255);
 
@@ -65,7 +65,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static void GetStops(SvgGradientServer svgGradientServer, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, IgnoreAttributes ignoreAttributes)
+        public static void GetStops(SvgGradientServer svgGradientServer, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
         {
             foreach (var child in svgGradientServer.Children)
             {
@@ -114,7 +114,7 @@ namespace Svg.Skia
             }
         }
 
-        public static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, IgnoreAttributes ignoreAttributes)
+        public static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
         {
             var normalizedX1 = svgLinearGradientServer.X1.Normalize(svgLinearGradientServer.GradientUnits);
             var normalizedY1 = svgLinearGradientServer.Y1.Normalize(svgLinearGradientServer.GradientUnits);
@@ -192,7 +192,7 @@ namespace Svg.Skia
             }
         }
 
-        public static SKShader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, IgnoreAttributes ignoreAttributes)
+        public static SKShader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
         {
             var normalizedCenterX = svgRadialGradientServer.CenterX.Normalize(svgRadialGradientServer.GradientUnits);
             var normalizedCenterY = svgRadialGradientServer.CenterY.Normalize(svgRadialGradientServer.GradientUnits);
@@ -287,7 +287,7 @@ namespace Svg.Skia
             }
         }
 
-        public static SKPicture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity, IgnoreAttributes ignoreAttributes)
+        public static SKPicture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity, Attributes ignoreAttributes)
         {
             var skSize = new SKSize(width, height);
             var skBounds = SKRect.Create(skSize);
@@ -296,7 +296,7 @@ namespace Svg.Skia
 
             skCanvas.SetMatrix(skMatrix);
 
-            using var skPaintOpacity = ignoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : GetOpacitySKPaint(opacity);
+            using var skPaintOpacity = ignoreAttributes.HasFlag(Attributes.Opacity) ? null : GetOpacitySKPaint(opacity);
             if (skPaintOpacity != null)
             {
                 skCanvas.SaveLayer(skPaintOpacity);
@@ -304,8 +304,8 @@ namespace Svg.Skia
 
             foreach (var svgElement in svgElementCollection)
             {
-                using var drawable = DrawableFactory.Create(svgElement, skBounds, ignoreAttributes);
-                drawable?.Draw(skCanvas, ignoreAttributes);
+                using var drawable = DrawableFactory.Create(svgElement, skBounds, null, null, ignoreAttributes);
+                drawable?.Draw(skCanvas, ignoreAttributes, null);
             }
 
             if (skPaintOpacity != null)
@@ -318,7 +318,7 @@ namespace Svg.Skia
             return skPictureRecorder.EndRecording();
         }
 
-        public static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, IgnoreAttributes ignoreAttributes, CompositeDisposable disposable)
+        public static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes, CompositeDisposable disposable)
         {
             var svgPatternServers = new List<SvgPatternServer>();
             var currentPatternServer = svgPatternServer;
@@ -499,7 +499,7 @@ namespace Svg.Skia
             return SKShader.CreatePicture(skPicture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, skMatrix, skPicture.CullRect);
         }
 
-        public static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, SKRect skBounds, SKPaint skPaint, bool forStroke, IgnoreAttributes ignoreAttributes, CompositeDisposable disposable)
+        public static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, SKRect skBounds, SKPaint skPaint, bool forStroke, Attributes ignoreAttributes, CompositeDisposable disposable)
         {
             var fallbackServer = SvgPaintServer.None;
             if (server is SvgDeferredPaintServer deferredServer)
@@ -652,7 +652,7 @@ namespace Svg.Skia
                 && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
         }
 
-        public static SKPaint? GetFillSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, IgnoreAttributes ignoreAttributes, CompositeDisposable disposable)
+        public static SKPaint? GetFillSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, Attributes ignoreAttributes, CompositeDisposable disposable)
         {
             var skPaint = new SKPaint()
             {
@@ -671,7 +671,7 @@ namespace Svg.Skia
             return skPaint;
         }
 
-        public static SKPaint? GetStrokeSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, IgnoreAttributes ignoreAttributes, CompositeDisposable disposable)
+        public static SKPaint? GetStrokeSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, Attributes ignoreAttributes, CompositeDisposable disposable)
         {
             var skPaint = new SKPaint()
             {

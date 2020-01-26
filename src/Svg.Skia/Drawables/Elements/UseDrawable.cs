@@ -13,7 +13,8 @@ namespace Svg.Skia
     {
         public Drawable? ReferencedDrawable;
 
-        public UseDrawable(SvgUse svgUse, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
+        public UseDrawable(SvgUse svgUse, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+            : base(root, parent)
         {
             IgnoreAttributes = ignoreAttributes;
             IsDrawable = CanDraw(svgUse, IgnoreAttributes);
@@ -72,12 +73,12 @@ namespace Svg.Skia
 
             if (svgReferencedElement is SvgSymbol svgSymbol)
             {
-                ReferencedDrawable = new SymbolDrawable(svgSymbol, x, y, width, height, skOwnerBounds, ignoreAttributes);
+                ReferencedDrawable = new SymbolDrawable(svgSymbol, x, y, width, height, skOwnerBounds, root, this, ignoreAttributes);
                 _disposable.Add(ReferencedDrawable);
             }
             else
             {
-                var drawable = DrawableFactory.Create(svgReferencedElement, skOwnerBounds, ignoreAttributes);
+                var drawable = DrawableFactory.Create(svgReferencedElement, skOwnerBounds, root, this, ignoreAttributes);
                 if (drawable != null)
                 {
                     ReferencedDrawable = drawable;
@@ -104,14 +105,14 @@ namespace Svg.Skia
             Fill = null;
             Stroke = null;
 
-            ClipPath = IgnoreAttributes.HasFlag(IgnoreAttributes.Clip) ? null : SvgClippingExtensions.GetSvgVisualElementClipPath(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
-            MaskDrawable = IgnoreAttributes.HasFlag(IgnoreAttributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
+            ClipPath = IgnoreAttributes.HasFlag(Attributes.ClipPath) ? null : SvgClippingExtensions.GetSvgVisualElementClipPath(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
+            MaskDrawable = IgnoreAttributes.HasFlag(Attributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
             if (MaskDrawable != null)
             {
                 CreateMaskPaints();
             }
-            Opacity = IgnoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgUse, _disposable);
-            Filter = IgnoreAttributes.HasFlag(IgnoreAttributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgUse, TransformedBounds, this, _disposable);
+            Opacity = IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgUse, _disposable);
+            Filter = IgnoreAttributes.HasFlag(Attributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgUse, TransformedBounds, this, _disposable);
 
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
@@ -130,9 +131,14 @@ namespace Svg.Skia
             }
         }
 
-        public override void OnDraw(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
         {
-            ReferencedDrawable?.Draw(canvas, ignoreAttributes);
+            if (until != null && this == until)
+            {
+                return;
+            }
+
+            ReferencedDrawable?.Draw(canvas, ignoreAttributes, until);
         }
 
         public override Drawable? HitTest(SKPoint skPoint)

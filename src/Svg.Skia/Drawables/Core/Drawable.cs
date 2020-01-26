@@ -9,8 +9,10 @@ namespace Svg.Skia
     {
         internal CompositeDisposable _disposable = new CompositeDisposable();
 
+        public Drawable? Root;
+        public Drawable? Parent;
         public bool IsDrawable;
-        public IgnoreAttributes IgnoreAttributes;
+        public Attributes IgnoreAttributes;
         public bool IsAntialias;
         public SKRect TransformedBounds;
         public SKMatrix Transform;
@@ -24,9 +26,15 @@ namespace Svg.Skia
         public SKPaint? Fill;
         public SKPaint? Stroke;
 
+        public Drawable(Drawable? root, Drawable? parent)
+        {
+            Root = root;
+            Parent = parent;
+        }
+
         protected override void OnDraw(SKCanvas canvas)
         {
-            Draw(canvas, IgnoreAttributes);
+            Draw(canvas, IgnoreAttributes, null);
         }
 
         protected override SKRect OnGetBounds()
@@ -73,26 +81,31 @@ namespace Svg.Skia
             _disposable.Add(MaskDstIn);
         }
 
-        protected bool CanDraw(SvgVisualElement svgVisualElement, IgnoreAttributes ignoreAttributes)
+        protected bool CanDraw(SvgVisualElement svgVisualElement, Attributes ignoreAttributes)
         {
             bool visible = svgVisualElement.Visible == true;
-            bool display = ignoreAttributes.HasFlag(IgnoreAttributes.Display) ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
+            bool display = ignoreAttributes.HasFlag(Attributes.Display) ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
             return visible && display;
         }
 
-        public abstract void OnDraw(SKCanvas canvas, IgnoreAttributes ignoreAttributes);
+        public abstract void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until);
 
-        public virtual void Draw(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
+        public virtual void Draw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
         {
             if (!IsDrawable)
             {
                 return;
             }
 
-            var enableClip = !ignoreAttributes.HasFlag(IgnoreAttributes.Clip);
-            var enableMask = !ignoreAttributes.HasFlag(IgnoreAttributes.Mask);
-            var enableOpacity = !ignoreAttributes.HasFlag(IgnoreAttributes.Opacity);
-            var enableFilter = !ignoreAttributes.HasFlag(IgnoreAttributes.Filter);
+            if (until != null && this == until)
+            {
+                return;
+            }
+
+            var enableClip = !ignoreAttributes.HasFlag(Attributes.ClipPath);
+            var enableMask = !ignoreAttributes.HasFlag(Attributes.Mask);
+            var enableOpacity = !ignoreAttributes.HasFlag(Attributes.Opacity);
+            var enableFilter = !ignoreAttributes.HasFlag(Attributes.Filter);
 
             canvas.Save();
 
@@ -125,7 +138,7 @@ namespace Svg.Skia
                 canvas.SaveLayer(Filter);
             }
 
-            OnDraw(canvas, ignoreAttributes);
+            OnDraw(canvas, ignoreAttributes, until);
 
             if (Filter != null && enableFilter == true)
             {
@@ -140,7 +153,7 @@ namespace Svg.Skia
             if (MaskDrawable != null && enableMask == true)
             {
                 canvas.SaveLayer(MaskDstIn);
-                MaskDrawable.Draw(canvas, ignoreAttributes);
+                MaskDrawable.Draw(canvas, ignoreAttributes, until);
                 canvas.Restore();
                 canvas.Restore();
             }
@@ -148,29 +161,25 @@ namespace Svg.Skia
             canvas.Restore();
         }
 
-        SKPicture? IFilterSource.SourceGraphic()
+        SKPicture? Record(Drawable? drawable, Drawable? unitl)
         {
-            var ignoreAttributes = IgnoreAttributes.Clip | IgnoreAttributes.Mask | IgnoreAttributes.Opacity | IgnoreAttributes.Filter;
+            if (drawable == null)
+            {
+                return null;
+            }
+            var ignoreAttributes = Attributes.ClipPath | Attributes.Mask | Attributes.Opacity | Attributes.Filter;
             using var skPictureRecorder = new SKPictureRecorder();
-            using var skCanvas = skPictureRecorder.BeginRecording(TransformedBounds);
-            Draw(skCanvas, ignoreAttributes);
+            using var skCanvas = skPictureRecorder.BeginRecording(drawable.TransformedBounds);
+            drawable.Draw(skCanvas, ignoreAttributes, unitl);
             return skPictureRecorder.EndRecording();
         }
 
-        SKPicture? IFilterSource.BackgroundImage()
-        {
-            // TODO:
-            return null;
-        }
+        SKPicture? IFilterSource.SourceGraphic() => Record(this, null);
 
-        SKPaint? IFilterSource.FillPaint()
-        {
-            return Fill;
-        }
+        SKPicture? IFilterSource.BackgroundImage() => Record(Root, this);
 
-        SKPaint? IFilterSource.StrokePaint()
-        {
-            return Stroke;
-        }
+        SKPaint? IFilterSource.FillPaint() => Fill;
+
+        SKPaint? IFilterSource.StrokePaint() => Stroke;
     }
 }

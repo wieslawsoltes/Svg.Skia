@@ -9,11 +9,16 @@ namespace Svg.Skia
     {
         public List<Drawable> ChildrenDrawables = new List<Drawable>();
 
-        protected void CreateChildren(SvgElement svgElement, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes)
+        public DrawableContainer(Drawable? root, Drawable? parent)
+            : base(root, parent)
+        {
+        }
+
+        protected void CreateChildren(SvgElement svgElement, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes)
         {
             foreach (var child in svgElement.Children)
             {
-                var drawable = DrawableFactory.Create(child, skOwnerBounds, ignoreAttributes);
+                var drawable = DrawableFactory.Create(child, skOwnerBounds, root, parent, ignoreAttributes);
                 if (drawable != null)
                 {
                     ChildrenDrawables.Add(drawable);
@@ -40,11 +45,20 @@ namespace Svg.Skia
             }
         }
 
-        public override void OnDraw(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
         {
+            if (until != null && this == until)
+            {
+                return;
+            }
+
             foreach (var drawable in ChildrenDrawables)
             {
-                drawable.Draw(canvas, ignoreAttributes);
+                if (until != null && drawable == until)
+                {
+                    break;
+                }
+                drawable.Draw(canvas, ignoreAttributes, until);
             }
         }
 

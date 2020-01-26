@@ -28,7 +28,7 @@ namespace Svg.Skia
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
-            using var drawable = DrawableFactory.Create(svgFragment, skBounds, IgnoreAttributes.None);
+            using var drawable = DrawableFactory.Create(svgFragment, skBounds, null, null, Attributes.None);
             drawable?.Draw(skCanvas, 0f, 0f);
         }
 
@@ -46,7 +46,7 @@ namespace Svg.Skia
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
 
-            using var drawable = DrawableFactory.Create(svgFragment, skBounds, IgnoreAttributes.None);
+            using var drawable = DrawableFactory.Create(svgFragment, skBounds, null, null, Attributes.None);
             if (drawable == null)
             {
                 return null;
@@ -68,7 +68,7 @@ namespace Svg.Skia
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
 
-            drawable = DrawableFactory.Create(svgFragment, skBounds, IgnoreAttributes.None);
+            drawable = DrawableFactory.Create(svgFragment, skBounds, null, null, Attributes.None);
             if (drawable == null)
             {
                 return null;
@@ -89,12 +89,12 @@ namespace Svg.Skia
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
-            return DrawableFactory.Create(svgFragment, skBounds, IgnoreAttributes.None);
+            return DrawableFactory.Create(svgFragment, skBounds, null, null, Attributes.None);
         }
 
-        public static Drawable? ToDrawable(SvgElement svgElement, SKRect skBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
+        public static Drawable? ToDrawable(SvgElement svgElement, SKRect skBounds, Attributes ignoreAttributes = Attributes.None)
         {
-            return DrawableFactory.Create(svgElement, skBounds, ignoreAttributes);
+            return DrawableFactory.Create(svgElement, skBounds, null, null, ignoreAttributes);
         }
 
         public static SvgDocument? OpenSvg(string path)

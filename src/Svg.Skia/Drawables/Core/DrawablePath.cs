@@ -10,8 +10,18 @@ namespace Svg.Skia
         public SKPath? Path;
         public List<Drawable>? MarkerDrawables;
 
-        public override void OnDraw(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
+        public DrawablePath(Drawable? root, Drawable? parent)
+            : base(root, parent)
         {
+        }
+
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
+        {
+            if (until != null && this == until)
+            {
+                return;
+            }
+
             if (Fill != null)
             {
                 canvas.DrawPath(Path, Fill);
@@ -26,7 +36,7 @@ namespace Svg.Skia
             {
                 foreach (var drawable in MarkerDrawables)
                 {
-                    drawable.Draw(canvas, ignoreAttributes);
+                    drawable.Draw(canvas, ignoreAttributes, until);
                 } 
             }
         }

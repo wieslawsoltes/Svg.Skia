@@ -10,16 +10,17 @@ namespace Svg.Skia
 {
     public static class SvgClippingExtensions
     {
-        public static bool CanDraw(SvgVisualElement svgVisualElement, IgnoreAttributes ignoreAttributes)
+        public static bool CanDraw(SvgVisualElement svgVisualElement, Attributes ignoreAttributes)
         {
             bool visible = svgVisualElement.Visible == true;
-            bool display = ignoreAttributes.HasFlag(IgnoreAttributes.Display) ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
+            bool ignoreDisplay = ignoreAttributes.HasFlag(Attributes.Display);
+            bool display = ignoreDisplay ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
             return visible && display;
         }
 
         public static SKPath? GetClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {
-            if (!CanDraw(svgVisualElement, IgnoreAttributes.None))
+            if (!CanDraw(svgVisualElement, Attributes.None))
             {
                 return null;
             }
@@ -185,7 +186,7 @@ namespace Svg.Skia
                             break;
                         }
 
-                        if (!CanDraw(svgReferencedVisualElement, IgnoreAttributes.None))
+                        if (!CanDraw(svgReferencedVisualElement, Attributes.None))
                         {
                             break;
                         }
@@ -227,7 +228,7 @@ namespace Svg.Skia
             {
                 if (svgElement is SvgVisualElement visualChild)
                 {
-                    if (!CanDraw(visualChild, IgnoreAttributes.None))
+                    if (!CanDraw(visualChild, Attributes.None))
                     {
                         continue;
                     }
@@ -382,7 +383,7 @@ namespace Svg.Skia
             {
                 return null;
             }
-            var maskDrawable = new MaskDrawable(svgMaskRef, skBounds, IgnoreAttributes.None);
+            var maskDrawable = new MaskDrawable(svgMaskRef, skBounds, null, null, Attributes.None);
             disposable.Add(maskDrawable);
             return maskDrawable;
         }

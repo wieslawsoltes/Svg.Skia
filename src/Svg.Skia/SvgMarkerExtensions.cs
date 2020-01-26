@@ -67,7 +67,7 @@ namespace Svg.Skia
             }
         }
 
-        public static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skOwnerBounds, ref List<Drawable>? markerDrawables, CompositeDisposable disposable, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
+        public static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skOwnerBounds, ref List<Drawable>? markerDrawables, CompositeDisposable disposable, Attributes ignoreAttributes = Attributes.None)
         {
             float fAngle1 = 0f;
             if (svgMarker.Orient.IsAuto)
@@ -81,7 +81,7 @@ namespace Svg.Skia
                 }
             }
 
-            var markerDrawable = new MarkerDrawable(svgMarker, pOwner, pRefPoint, fAngle1, skOwnerBounds, ignoreAttributes);
+            var markerDrawable = new MarkerDrawable(svgMarker, pOwner, pRefPoint, fAngle1, skOwnerBounds, null, null, ignoreAttributes);
             if (markerDrawables == null)
             {
                 markerDrawables = new List<Drawable>();
@@ -99,7 +99,7 @@ namespace Svg.Skia
             yDiff = pMarkerPoint3.Y - pMarkerPoint2.Y;
             float fAngle2 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
 
-            var markerDrawable = new MarkerDrawable(svgMarker, pOwner, pRefPoint, (fAngle1 + fAngle2) / 2, skOwnerBounds);
+            var markerDrawable = new MarkerDrawable(svgMarker, pOwner, pRefPoint, (fAngle1 + fAngle2) / 2, skOwnerBounds, null, null);
             if (markerDrawables == null)
             {
                 markerDrawables = new List<Drawable>();

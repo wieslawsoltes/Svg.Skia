@@ -6,13 +6,19 @@ namespace Svg.Skia
 {
     public class GlyphDrawable : Drawable
     {
-        public GlyphDrawable(SvgGlyph svgGlyph, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
+        public GlyphDrawable(SvgGlyph svgGlyph, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+            : base(root, parent)
         {
             // TODO: Implement drawable.
         }
 
-        public override void OnDraw(SKCanvas canvas, IgnoreAttributes ignoreAttributes)
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
         {
+            if (until != null && this == until)
+            {
+                return;
+            }
+
             // TODO: Implement drawable Record().
         }
     }

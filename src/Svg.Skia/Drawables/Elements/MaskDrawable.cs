@@ -78,7 +78,8 @@ namespace Svg.Skia
             return new SvgUnit(SvgUnitType.Percentage, 120f);
         }
 
-        public MaskDrawable(SvgMask svgMask, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
+        public MaskDrawable(SvgMask svgMask, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+            : base(root, parent)
         {
             IgnoreAttributes = ignoreAttributes;
             IsDrawable = true;
@@ -145,7 +146,7 @@ namespace Svg.Skia
                 SKMatrix.PreConcat(ref skMatrix, ref skBoundsScaleTransform);
             }
 
-            CreateChildren(svgMask, skOwnerBounds, ignoreAttributes);
+            CreateChildren(svgMask, skOwnerBounds, root, this, ignoreAttributes);
 
             Clip = skRectTransformed;
 
@@ -159,7 +160,7 @@ namespace Svg.Skia
             Stroke = null;
 
             ClipPath = null;
-            MaskDrawable = IgnoreAttributes.HasFlag(IgnoreAttributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgMask, TransformedBounds, new HashSet<Uri>(), _disposable);
+            MaskDrawable = IgnoreAttributes.HasFlag(Attributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgMask, TransformedBounds, new HashSet<Uri>(), _disposable);
             if (MaskDrawable != null)
             {
                 CreateMaskPaints();

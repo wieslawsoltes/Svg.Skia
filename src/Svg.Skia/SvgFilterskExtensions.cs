@@ -420,7 +420,7 @@ namespace Svg.Skia
 
             if (server is SvgColourServer stopColorSvgColourServer)
             {
-                return SvgPaintingExtensions.GetColor(stopColorSvgColourServer, 1f, IgnoreAttributes.None);
+                return SvgPaintingExtensions.GetColor(stopColorSvgColourServer, 1f, Attributes.None);
             }
 
             // TODO:
@@ -498,7 +498,7 @@ namespace Svg.Skia
             };
             disposable.Add(skPaint);
 
-            SvgPaintingExtensions.SetColorOrShader(svgVisualElement, floodColor, floodOpacity, skBounds, skPaint, false, IgnoreAttributes.None, disposable);
+            SvgPaintingExtensions.SetColorOrShader(svgVisualElement, floodColor, floodOpacity, skBounds, skPaint, false, Attributes.None, disposable);
 
             if (cropRect == null)
             {
@@ -552,7 +552,7 @@ namespace Svg.Skia
 
             if (svgFragment != null)
             {
-                using var fragmentDrawable = new FragmentDrawable(svgFragment, skBounds, IgnoreAttributes.None);
+                using var fragmentDrawable = new FragmentDrawable(svgFragment, skBounds, null, null, Attributes.None);
                 var skPicture = fragmentDrawable.Snapshot();
                 disposable.Add(skPicture);
 

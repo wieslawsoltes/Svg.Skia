@@ -8,15 +8,16 @@ namespace Svg.Skia
 {
     public class FragmentDrawable : DrawableContainer
     {
-        public FragmentDrawable(SvgFragment svgFragment, SKRect skOwnerBounds, IgnoreAttributes ignoreAttributes = IgnoreAttributes.None)
+        public FragmentDrawable(SvgFragment svgFragment, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+            : base(root, parent)
         {
             IgnoreAttributes = ignoreAttributes;
             IsDrawable = true;
 
-            var parent = svgFragment.Parent;
+            var svgFragmentParent = svgFragment.Parent;
 
-            float x = parent == null ? 0f : svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skOwnerBounds);
-            float y = parent == null ? 0f : svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skOwnerBounds);
+            float x = svgFragmentParent == null ? 0f : svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skOwnerBounds);
+            float y = svgFragmentParent == null ? 0f : svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skOwnerBounds);
 
             var skSize = SvgExtensions.GetDimensions(svgFragment);
 
@@ -25,7 +26,7 @@ namespace Svg.Skia
                 skOwnerBounds = SKRect.Create(x, y, skSize.Width, skSize.Height);
             }
 
-            CreateChildren(svgFragment, skOwnerBounds, ignoreAttributes);
+            CreateChildren(svgFragment, skOwnerBounds, this, this, ignoreAttributes);
 
             IsAntialias = SvgPaintingExtensions.IsAntialias(svgFragment);
 
@@ -63,7 +64,7 @@ namespace Svg.Skia
             var svgClipPath = svgFragment.GetUriElementReference<SvgClipPath>("clip-path", clipPathUris);
             if (svgClipPath != null && svgClipPath.Children != null)
             {
-                ClipPath = IgnoreAttributes.HasFlag(IgnoreAttributes.Clip) ? null : SvgClippingExtensions.GetClipPath(svgClipPath, TransformedBounds, clipPathUris, _disposable);
+                ClipPath = IgnoreAttributes.HasFlag(Attributes.ClipPath) ? null : SvgClippingExtensions.GetClipPath(svgClipPath, TransformedBounds, clipPathUris, _disposable);
             }
             else
             {
@@ -74,7 +75,7 @@ namespace Svg.Skia
             Stroke = null;
 
             MaskDrawable = null;
-            Opacity = IgnoreAttributes.HasFlag(IgnoreAttributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgFragment, _disposable);
+            Opacity = IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgFragment, _disposable);
             Filter = null;
 
             // TODO: Transform _skBounds using _skMatrix.
