@@ -966,17 +966,21 @@ namespace Svg.Skia
                 if (child is FilterEffects.SvgFilterPrimitive svgFilterPrimitive)
                 {
 #if USE_NEW_FILTERS
-                    float xChild = svgFilterPrimitive.X.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilterPrimitive, skBounds);
-                    float yChild = svgFilterPrimitive.Y.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilterPrimitive, skBounds);
-                    float widthChild = svgFilterPrimitive.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFilterPrimitive, skBounds);
-                    float heightChild = svgFilterPrimitive.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFilterPrimitive, skBounds);
+                    // TOOD: PrimitiveUnits
+
+                    var skPrimitiveBounds = skBounds;
+
+                    if (svgFilter.PrimitiveUnits == SvgCoordinateUnits.UserSpaceOnUse)
+                    {
+                        skPrimitiveBounds = skFilterRegion;
+                    }
+
+                    float xChild = svgFilterPrimitive.X.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilterPrimitive, skPrimitiveBounds);
+                    float yChild = svgFilterPrimitive.Y.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilterPrimitive, skPrimitiveBounds);
+                    float widthChild = svgFilterPrimitive.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFilterPrimitive, skPrimitiveBounds);
+                    float heightChild = svgFilterPrimitive.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFilterPrimitive, skPrimitiveBounds);
 
                     var skFilterPrimitiveRegion = SKRect.Create(xChild, yChild, widthChild, heightChild);
-
-                    if (svgFilter.PrimitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
-                    {
-                        // TOOD: rimitiveUnits
-                    }
 
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
 #else
