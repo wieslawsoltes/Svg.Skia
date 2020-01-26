@@ -108,18 +108,6 @@ namespace Svg.Skia
             // TODO: Transform _skBounds using _skMatrix.
             SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
 
-            // TODO: Fix PostProcess() using corrent ReferencedElement Parent.
-            /*
-            ClipPath = IgnoreAttributes.HasFlag(Attributes.ClipPath) ? null : SvgClippingExtensions.GetSvgVisualElementClipPath(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
-            MaskDrawable = IgnoreAttributes.HasFlag(Attributes.Mask) ? null : SvgClippingExtensions.GetSvgVisualElementMask(svgUse, TransformedBounds, new HashSet<Uri>(), _disposable);
-            if (MaskDrawable != null)
-            {
-                CreateMaskPaints();
-            }
-            Opacity = IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgPaintingExtensions.GetOpacitySKPaint(svgUse, _disposable);
-            Filter = IgnoreAttributes.HasFlag(Attributes.Filter) ? null : SvgFiltersExtensions.GetFilterSKPaint(svgUse, TransformedBounds, this, _disposable);
-            */
-
             try
             {
                 if (referencedElementParent != null)
