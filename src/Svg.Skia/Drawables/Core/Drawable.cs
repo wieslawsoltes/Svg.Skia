@@ -53,13 +53,6 @@ namespace Svg.Skia
             _disposable?.Dispose();
         }
 
-        protected bool CanDraw(SvgVisualElement svgVisualElement, IgnoreAttributes ignoreAttributes)
-        {
-            bool visible = svgVisualElement.Visible == true;
-            bool display = ignoreAttributes.HasFlag(IgnoreAttributes.Display) ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
-            return visible && display;
-        }
-
         protected void CreateMaskPaints()
         {
             Mask = new SKPaint()
@@ -78,6 +71,13 @@ namespace Svg.Skia
                 ColorFilter = SKColorFilter.CreateLumaColor()
             };
             _disposable.Add(MaskDstIn);
+        }
+
+        protected bool CanDraw(SvgVisualElement svgVisualElement, IgnoreAttributes ignoreAttributes)
+        {
+            bool visible = svgVisualElement.Visible == true;
+            bool display = ignoreAttributes.HasFlag(IgnoreAttributes.Display) ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
+            return visible && display;
         }
 
         public abstract void OnDraw(SKCanvas canvas, IgnoreAttributes ignoreAttributes);
