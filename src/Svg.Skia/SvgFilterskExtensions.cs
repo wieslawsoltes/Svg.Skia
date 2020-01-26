@@ -739,6 +739,48 @@ namespace Svg.Skia
             return skImageFilter;
         }
 
+        public static SKImageFilter GetTransparentBlackImage(CompositeDisposable disposable)
+        {
+            var skPaint = new SKPaint()
+            {
+                Style = SKPaintStyle.StrokeAndFill,
+                Color = new SKColor(0, 0, 0, 0)
+            };
+            disposable.Add(skPaint);
+
+            var skImageFilter = SKImageFilter.CreatePaint(skPaint);
+            disposable.Add(skImageFilter);
+            return skImageFilter;
+        }
+
+        public static SKImageFilter GetTransparentBlackAlpha(CompositeDisposable disposable)
+        {
+            var skPaint = new SKPaint()
+            {
+                Style = SKPaintStyle.StrokeAndFill,
+                Color = new SKColor(0, 0, 0, 0)
+            };
+            disposable.Add(skPaint);
+
+            var skImageFilterGraphic = SKImageFilter.CreatePaint(skPaint);
+            disposable.Add(skImageFilterGraphic);
+
+            var matrix = new float[20]
+            {
+                0f, 0f, 0f, 0f, 0f,
+                0f, 0f, 0f, 0f, 0f,
+                0f, 0f, 0f, 0f, 0f,
+                0f, 0f, 0f, 1f, 0f
+            };
+
+            var skColorFilter = SKColorFilter.CreateColorMatrix(matrix);
+            disposable.Add(skColorFilter);
+
+            var skImageFilter = SKImageFilter.CreateColorFilter(skColorFilter, skImageFilterGraphic);
+            disposable.Add(skImageFilter);
+            return skImageFilter;
+        }
+
         public const string SourceGraphic = "SourceGraphic";
         public const string SourceAlpha = "SourceAlpha";
         public const string BackgroundImage = "BackgroundImage";
@@ -800,6 +842,12 @@ namespace Svg.Skia
                                 return skImageFilter;
                             }
                         }
+                        else
+                        {
+                            var skImageFilter = GetTransparentBlackImage(disposable);
+                            results[BackgroundImage] = skImageFilter;
+                            return skImageFilter;
+                        }
                     }
                     break;
                 case BackgroundAlpha:
@@ -813,6 +861,12 @@ namespace Svg.Skia
                                 results[BackgroundAlpha] = skImageFilter;
                                 return skImageFilter;
                             }
+                        }
+                        else
+                        {
+                            var skImageFilter = GetTransparentBlackAlpha(disposable);
+                            results[BackgroundImage] = skImageFilter;
+                            return skImageFilter;
                         }
                     }
                     break;
