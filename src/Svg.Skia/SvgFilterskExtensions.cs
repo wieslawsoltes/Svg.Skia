@@ -396,8 +396,8 @@ namespace Svg.Skia
 
             float gain = 1f / divisor;
             float bias = svgConvolveMatrix.Bias * 255f;
-            SKPointI kernelOffset = new SKPointI(svgConvolveMatrix.TargetX, svgConvolveMatrix.TargetY);
-            SKMatrixConvolutionTileMode tileMode = svgConvolveMatrix.EdgeMode switch
+            var kernelOffset = new SKPointI(svgConvolveMatrix.TargetX, svgConvolveMatrix.TargetY);
+            var tileMode = svgConvolveMatrix.EdgeMode switch
             {
                 SvgEdgeMode.Duplicate => SKMatrixConvolutionTileMode.Clamp,
                 SvgEdgeMode.Wrap => SKMatrixConvolutionTileMode.Repeat,
