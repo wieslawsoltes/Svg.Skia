@@ -300,13 +300,24 @@ namespace Svg.Skia
             return null;
         }
 
-        public SKPicture? Record(Drawable? drawable, Drawable? until, Attributes ignoreAttributes)
+        public SKPicture? RecordGraphic(Drawable? drawable, Attributes ignoreAttributes)
         {
             if (drawable == null)
             {
                 return null;
             }
+            using var skPictureRecorder = new SKPictureRecorder();
+            using var skCanvas = skPictureRecorder.BeginRecording(drawable.TransformedBounds);
+            drawable.Draw(skCanvas, ignoreAttributes, null);
+            return skPictureRecorder.EndRecording();
+        }
 
+        public SKPicture? RecordBackground(Drawable? drawable, Attributes ignoreAttributes)
+        {
+            if (drawable == null)
+            {
+                return null;
+            }
             var container = FindContainerParentBackground(drawable, out var skClipRect);
             if (container != null)
             {
@@ -316,18 +327,17 @@ namespace Svg.Skia
                 {
                     skCanvas.ClipRect(skClipRect, SKClipOperation.Intersect);
                 }
-                container.Draw(skCanvas, ignoreAttributes, until);
+                container.Draw(skCanvas, ignoreAttributes, drawable);
                 return skPictureRecorder.EndRecording();
             }
-
             return null;
         }
 
         public const Attributes FilterInput = Attributes.ClipPath | Attributes.Mask | Attributes.Opacity | Attributes.Filter;
 
-        SKPicture? IFilterSource.SourceGraphic() => Record(this, null, FilterInput);
+        SKPicture? IFilterSource.SourceGraphic() => RecordGraphic(this, FilterInput);
 
-        SKPicture? IFilterSource.BackgroundImage() => Record(this, this, FilterInput);
+        SKPicture? IFilterSource.BackgroundImage() => RecordBackground(this, FilterInput);
 
         SKPaint? IFilterSource.FillPaint() => Fill;
 
