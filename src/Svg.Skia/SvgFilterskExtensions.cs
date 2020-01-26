@@ -960,10 +960,12 @@ namespace Svg.Skia
                 //return null;
             }
 
+#if USE_NEW_FILTERS
             if (svgFilter.FilterUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
                 // TOOD: FilterUnits
             }
+#endif
 
             var skFilterRegion = SKRect.Create(x, y, width, height);
 
