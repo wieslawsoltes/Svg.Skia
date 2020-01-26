@@ -133,7 +133,7 @@ namespace SvgToPng.ViewModels
                 Directory.SetCurrentDirectory(currentDirectory);
             }
 
-            if (item.ReferencePng == null)
+            if (item.ReferencePng == null && item.Picture != null)
             {
                 try
                 {
