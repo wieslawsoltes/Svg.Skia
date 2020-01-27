@@ -758,7 +758,7 @@ namespace Svg.Skia
             var skPaint = new SKPaint()
             {
                 Style = SKPaintStyle.StrokeAndFill,
-                Color = new SKColor(0, 0, 0, 0)
+                Color = SvgPaintingExtensions.TransparentBlack
             };
             disposable.Add(skPaint);
 
@@ -772,7 +772,7 @@ namespace Svg.Skia
             var skPaint = new SKPaint()
             {
                 Style = SKPaintStyle.StrokeAndFill,
-                Color = new SKColor(0, 0, 0, 0)
+                Color = SvgPaintingExtensions.TransparentBlack
             };
             disposable.Add(skPaint);
 

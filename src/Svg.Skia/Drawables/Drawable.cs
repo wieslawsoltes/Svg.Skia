@@ -75,13 +75,16 @@ namespace Svg.Skia
             };
             _disposable.Add(Mask);
 
+            var lumaColor = SKColorFilter.CreateLumaColor();
+            _disposable.Add(lumaColor);
+
             MaskDstIn = new SKPaint
             {
                 IsAntialias = true,
                 Style = SKPaintStyle.StrokeAndFill,
                 BlendMode = SKBlendMode.DstIn,
-                Color = new SKColor(0, 0, 0, 255),
-                ColorFilter = SKColorFilter.CreateLumaColor()
+                Color = SvgPaintingExtensions.TransparentBlack,
+                ColorFilter = lumaColor
             };
             _disposable.Add(MaskDstIn);
         }

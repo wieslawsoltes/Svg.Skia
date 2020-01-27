@@ -8,6 +8,8 @@ namespace Svg.Skia
 {
     public static class SvgPaintingExtensions
     {
+        public static SKColor TransparentBlack = new SKColor(0, 0, 0, 255);
+
         public static float AdjustSvgOpacity(float opacity)
         {
             return Math.Min(Math.Max(opacity, 0), 1);
