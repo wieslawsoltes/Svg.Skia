@@ -20,12 +20,19 @@
   <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <Import Project="..\..\build\SkiaSharp.props" />
+
+  <!-- Use Svg from NuGet -->
   <!--<Import Project="..\..\build\Svg.props" />-->
 
+  <!-- Use Svg from externals/SVG -->
   <!--<ItemGroup>
     <ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />
   </ItemGroup>-->
 
+  <!-- Use Svg custom build -->
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);USE_NEW_FILTERS;USE_NEW_STDDEVIATION</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
   </ItemGroup>
