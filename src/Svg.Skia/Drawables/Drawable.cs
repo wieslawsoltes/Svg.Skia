@@ -80,7 +80,7 @@ namespace Svg.Skia
                 IsAntialias = true,
                 Style = SKPaintStyle.StrokeAndFill,
                 BlendMode = SKBlendMode.DstIn,
-                Color = new SKColor(0, 0, 0, 255),
+                Color = new SKColor(0, 0, 0, 0),
                 ColorFilter = SKColorFilter.CreateLumaColor()
             };
             _disposable.Add(MaskDstIn);
