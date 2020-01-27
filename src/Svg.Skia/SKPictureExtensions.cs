@@ -16,13 +16,13 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public static SKBitmap? ToBitmap(this SKPicture skPicture, SKColor background, float scaleX, float scaleY)
+        public static SKBitmap? ToBitmap(this SKPicture skPicture, SKColor background, float scaleX, float scaleY, SKColorType skColorType, SKAlphaType skAlphaType)
         {
             float width = skPicture.CullRect.Width * scaleX;
             float height = skPicture.CullRect.Height * scaleY;
             if (width > 0 && height > 0)
             {
-                var skBitmap = new SKBitmap((int)width, (int)height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
+                var skBitmap = new SKBitmap((int)width, (int)height, skColorType, skAlphaType);
                 using var skCanvas = new SKCanvas(skBitmap);
                 Draw(skPicture, background, scaleX, scaleY, skCanvas);
                 return skBitmap;
@@ -32,7 +32,7 @@ namespace Svg.Skia
 
         public static bool ToImage(this SKPicture skPicture, Stream stream, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY)
         {
-            using (var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY))
+            using (var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul))
             {
                 if (skBitmap == null)
                 {
