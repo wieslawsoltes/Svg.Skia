@@ -81,7 +81,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Skia.Avalonia", "src\Sv
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaSgvImage", "samples\AvaloniaSgvImage\AvaloniaSgvImage.csproj", "{81724F00-B7C3-4E25-B473-C7433BABDC81}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Svg.Custom", "src\Svg.Custom\Svg.Custom.csproj", "{CFA46E73-0050-4C57-85CE-6C5868A2483C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Custom", "src\Svg.Custom\Svg.Custom.csproj", "{CFA46E73-0050-4C57-85CE-6C5868A2483C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
