@@ -83,7 +83,7 @@ namespace Svg.Skia
             };
         }
 
-        public static SKImageFilter? CreateColorMatrix(FilterEffects.SvgColourMatrix svgColourMatrix, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateColorMatrix(FilterEffects.SvgColourMatrix svgColourMatrix, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             SKColorFilter skColorFilter;
 
@@ -109,6 +109,7 @@ namespace Svg.Skia
                             0, 0, 0, 1, 0
                         };
                         skColorFilter = SKColorFilter.CreateColorMatrix(matrix);
+                        disposable.Add(skColorFilter);
                     }
                     break;
                 case FilterEffects.SvgColourMatrixType.LuminanceToAlpha:
@@ -121,6 +122,7 @@ namespace Svg.Skia
                             0.2125f, 0.7154f, 0.0721f, 0, 0
                         };
                         skColorFilter = SKColorFilter.CreateColorMatrix(matrix);
+                        disposable.Add(skColorFilter);
                     }
                     break;
                 case FilterEffects.SvgColourMatrixType.Saturate:
@@ -134,6 +136,7 @@ namespace Svg.Skia
                             0, 0, 0, 1, 0
                         };
                         skColorFilter = SKColorFilter.CreateColorMatrix(matrix);
+                        disposable.Add(skColorFilter);
                     };
                     break;
                 default:
@@ -165,6 +168,7 @@ namespace Svg.Skia
                             }
                         }
                         skColorFilter = SKColorFilter.CreateColorMatrix(matrix);
+                        disposable.Add(skColorFilter);
                     }
                     break;
             }
@@ -1029,7 +1033,7 @@ namespace Svg.Skia
                             {
                                 var inputKey = svgColourMatrix.Input;
                                 var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable);
-                                var skImageFilter = CreateColorMatrix(svgColourMatrix, inputFilter, skCropRect);
+                                var skImageFilter = CreateColorMatrix(svgColourMatrix, disposable, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgColourMatrix, skPaint, skImageFilter, results, disposable);
