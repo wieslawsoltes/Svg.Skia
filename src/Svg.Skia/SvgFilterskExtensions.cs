@@ -579,7 +579,7 @@ namespace Svg.Skia
                     cropRect = new SKImageFilter.CropRect(skBounds);
                 }
 
-                SKImageFilter.CreatePicture(skPicture, cropRect.Rect);
+                return SKImageFilter.CreatePicture(skPicture, cropRect.Rect);
             }
 
             return null;
