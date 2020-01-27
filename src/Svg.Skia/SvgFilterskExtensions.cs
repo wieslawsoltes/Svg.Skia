@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-//#define USE_NEW_FILTERS
+#define USE_NEW_FILTERS
+#define USE_NEW_STDDEVIATION
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -521,7 +522,10 @@ namespace Svg.Skia
 #endif
         public static SKImageFilter? CreateBlur(FilterEffects.SvgGaussianBlur svgGaussianBlur, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-#if true
+#if USE_NEW_STDDEVIATION
+            GetOptionalNumbers(svgGaussianBlur.StdDeviation, 0f, 0f, out var sigmaX, out var sigmaY);
+            return SKImageFilter.CreateBlur(sigmaX, sigmaY, input, cropRect);
+#else
             // TODO: Calculate correct value of sigma using one value stdDeviation.
             var sigmaX = svgGaussianBlur.StdDeviation;
             var sigmaY = svgGaussianBlur.StdDeviation;
@@ -532,9 +536,6 @@ namespace Svg.Skia
                 FilterEffects.BlurType.VerticalOnly => SKImageFilter.CreateBlur(0f, sigmaY, input, cropRect),
                 _ => SKImageFilter.CreateBlur(sigmaX, sigmaY, input, cropRect),
             };
-#else
-            GetOptionalNumbers(svgGaussianBlur.StdDeviation, 0f, 0f, out var sigmaX, out var sigmaY);
-            return SKImageFilter.CreateBlur(sigmaX, sigmaY, input, cropRect);
 #endif
         }
 #if USE_NEW_FILTERS
