@@ -172,7 +172,6 @@ namespace Svg.Skia
             return SKImageFilter.CreateColorFilter(skColorFilter, input, cropRect);
         }
 #if USE_NEW_FILTERS
-
         public static SvgFuncA s_identitySvgFuncA = new SvgFuncA()
         {
             Type = SvgComponentTransferType.Identity,
@@ -616,7 +615,6 @@ namespace Svg.Skia
                 _ => null,
             };
         }
-
 #endif
         public static SKImageFilter? CreateOffset(SKRect skBounds, FilterEffects.SvgOffset svgOffset, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
