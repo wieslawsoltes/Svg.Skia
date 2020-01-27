@@ -437,7 +437,7 @@ namespace Svg.Skia
             }
 
             // TODO:
-            return null;
+            return SKColors.Black;
         }
 
         public static SKImageFilter? CreateDiffuseLighting(SvgVisualElement svgVisualElement, FilterEffects.SvgDiffuseLighting svgDiffuseLighting, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
