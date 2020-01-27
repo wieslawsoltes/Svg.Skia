@@ -31,7 +31,8 @@
 
   <!-- Use Svg custom build -->
   <PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_NEW_FILTERS;USE_NEW_STDDEVIATION</DefineConstants>
+    <DefineConstants>$(DefineConstants);USE_NEW_FILTERS</DefineConstants>
+    <DefineConstants>$(DefineConstants);USE_NEW_STDDEVIATION</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
