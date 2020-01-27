@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Description>Converts a svg file to an encoded bitmap image.</Description>
+    <Description>An SVG to encoded bitmap image converter.</Description>
     <PackageId>Svg.Skia.Converter</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>svg;convert;converter;png;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia</PackageTags>
