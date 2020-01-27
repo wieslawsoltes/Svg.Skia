@@ -229,17 +229,17 @@ namespace Svg.Skia
         {
             switch (svgElement)
             {
-                case SvgAnchor svgAnchor:
-                case SvgDefinitionList svgDefinitionList:
-                case SvgMissingGlyph svgMissingGlyph:
-                case SvgGlyph svgGlyph:
-                case SvgGroup svgGroup:
-                case SvgMarker svgMarker:
-                case SvgMask svgMask:
-                case SvgPatternServer svgPatternServer:
-                case SvgFragment svgFragment:
-                case SvgSwitch svgSwitch:
-                case SvgSymbol svgSymbol:
+                case SvgAnchor _:
+                case SvgDefinitionList _:
+                case SvgMissingGlyph _:
+                case SvgGlyph _:
+                case SvgGroup _:
+                case SvgMarker _:
+                case SvgMask _:
+                case SvgPatternServer _:
+                case SvgFragment _:
+                case SvgSwitch _:
+                case SvgSymbol _:
                     return true;
                 default:
                     return false;
