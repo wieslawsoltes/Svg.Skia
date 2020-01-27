@@ -11,11 +11,25 @@
 [![GitHub release](https://img.shields.io/github/release/wieslawsoltes/svg.skia.svg)](https://github.com/wieslawsoltes/svg.skia)
 [![Github Releases](https://img.shields.io/github/downloads/wieslawsoltes/svg.skia/latest/total.svg)](https://github.com/wieslawsoltes/svg.skia)
 
-Skia SVG rendering library.
+*Svg.Skia* is an [SVG](https://en.wikipedia.org/wiki/Scalable_Vector_Graphics) rendering library.
 
 ## About
 
-The `Svg.Skia` is using internally [SVG](https://github.com/vvvv/SVG) library from [NuGet](https://www.nuget.org/packages/Svg) to load `Svg` object model. The original `Svg` library provides only `System.Drawing` rendering backend. The `Svg.Skia` library is providing rendering backend implementation using `SkiaSharp` that aims to be at least on par or more complete then original `System.Drawing` implementation and also more performant. The `Svg.Skia` can be also be used in same way as the [SkiaSharp.Extended.Svg](https://github.com/mono/SkiaSharp.Extended/tree/master/SkiaSharp.Extended.Svg)  (load `svg` files as `SKPicture`). The `Svg` library has more complete implementation of `Svg` document model then [SkiaSharp.Extended.Svg](https://github.com/mono/SkiaSharp.Extended/tree/master/SkiaSharp.Extended.Svg) and the `Svg.Skia` renderer will provide more complete rendering subsystem implementation.
+*Svg.Skia* can be used as a .NET library or as a CLI application
+to render SVG files based on a [static](http://www.w3.org/TR/SVG11/feature#SVG-static)
+[SVG Full 1.1](https://www.w3.org/TR/SVG/Overview.html) subset to raster images or
+to a backend's canvas.
+
+The `Svg.Skia` is using [SVG](https://github.com/vvvv/SVG) library to load `Svg` object model. 
+
+The `Svg.Skia` library is implemented using `SkiaSharp` rendering backend that aims to be on par 
+or more complete then original `System.Drawing` implementation and more performant and cross-platform.
+
+The `Svg.Skia` can be used in same way as the [SkiaSharp.Extended.Svg](https://github.com/mono/SkiaSharp.Extended/tree/master/SkiaSharp.Extended.Svg) 
+(load `svg` files as `SKPicture`). 
+
+The `Svg` library has more complete implementation of `Svg` document model then [SkiaSharp.Extended.Svg](https://github.com/mono/SkiaSharp.Extended/tree/master/SkiaSharp.Extended.Svg)
+and the `Svg.Skia` renderer will provide more complete rendering subsystem implementation.
 
 ## NuGet
 
