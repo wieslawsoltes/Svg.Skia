@@ -732,34 +732,25 @@ namespace Svg.Skia
 
         public static SKImageFilter? CreateFlood(FilterEffects.SvgFlood svgFlood, SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            var floodColor = svgFlood.FloodColor;
-            var floodOpacity = svgFlood.FloodOpacity;
-
-            var skPaint = new SKPaint()
+            var floodColor = GetColor(svgVisualElement, svgFlood.FloodColor);
+            if (floodColor == null)
             {
-                Style = SKPaintStyle.StrokeAndFill
-            };
-            disposable.Add(skPaint);
+                return null;
+            }
 
-            SvgPaintingExtensions.SetColorOrShader(svgVisualElement, floodColor, floodOpacity, skBounds, skPaint, false, Attributes.None, disposable);
+            var floodOpacity = svgFlood.FloodOpacity;
+            var floodAlpha = SvgPaintingExtensions.CombineWithOpacity(floodColor.Value.Alpha, floodOpacity);
+            floodColor = floodColor.Value.WithAlpha(floodAlpha);
 
             if (cropRect == null)
             {
                 cropRect = new SKImageFilter.CropRect(skBounds);
             }
 
-            var skImageFilterPaint = SKImageFilter.CreatePaint(skPaint, cropRect);
+            var cf = SKColorFilter.CreateBlendMode(floodColor.Value, SKBlendMode.Src);
+            disposable.Add(cf);
 
-            if (input != null)
-            {
-                var skImageFilterMerge = SKImageFilter.CreateMerge(input, skImageFilterPaint, cropRect);
-                disposable.Add(skImageFilterPaint);
-                return skImageFilterMerge;
-            }
-            else
-            {
-                return skImageFilterPaint;
-            }
+            return SKImageFilter.CreateColorFilter(cf, input, cropRect);
         }
 #endif
         public static SKImageFilter? CreateBlur(FilterEffects.SvgGaussianBlur svgGaussianBlur, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)

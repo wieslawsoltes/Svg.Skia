@@ -15,12 +15,17 @@ namespace Svg.Skia
             return Math.Min(Math.Max(opacity, 0), 1);
         }
 
+        public static byte CombineWithOpacity(byte alpha, float opacity)
+        {
+            return (byte)Math.Round((opacity * (alpha  / 255.0)) * 255);
+        }
+
         public static SKColor GetColor(SvgColourServer svgColourServer, float opacity, Attributes ignoreAttributes)
         {
             var colour = svgColourServer.Colour;
             byte alpha = ignoreAttributes.HasFlag(Attributes.Opacity) ?
                 svgColourServer.Colour.A :
-                (byte)Math.Round((opacity * (svgColourServer.Colour.A / 255.0)) * 255);
+                CombineWithOpacity(svgColourServer.Colour.A, opacity);
 
             return new SKColor(colour.R, colour.G, colour.B, alpha);
         }
