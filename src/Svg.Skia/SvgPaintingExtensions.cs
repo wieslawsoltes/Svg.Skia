@@ -551,11 +551,11 @@ namespace Svg.Skia
                     break;
                 case SvgPatternServer svgPatternServer:
                     {
-                        var skShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, ignoreAttributes, disposable);
-                        if (skShader != null)
+                        var skPatternShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, ignoreAttributes, disposable);
+                        if (skPatternShader != null)
                         {
-                            disposable.Add(skShader);
-                            skPaint.Shader = skShader;
+                            disposable.Add(skPatternShader);
+                            skPaint.Shader = skPatternShader;
                         }
                         else
                         {
@@ -599,11 +599,11 @@ namespace Svg.Skia
                         }
                         else
                         {
-                            var skShader = CreateLinearGradient(svgLinearGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes);
-                            if (skShader != null)
+                            var skLinearGradientShader = CreateLinearGradient(svgLinearGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes);
+                            if (skLinearGradientShader != null)
                             {
-                                disposable.Add(skShader);
-                                skPaint.Shader = skShader;
+                                disposable.Add(skLinearGradientShader);
+                                skPaint.Shader = skLinearGradientShader;
                             }
                             else
                             {
@@ -635,11 +635,11 @@ namespace Svg.Skia
                         }
                         else
                         {
-                            var skShader = CreateTwoPointConicalGradient(svgRadialGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes);
-                            if (skShader != null)
+                            var skRadialGradientShader = CreateTwoPointConicalGradient(svgRadialGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes);
+                            if (skRadialGradientShader != null)
                             {
-                                disposable.Add(skShader);
-                                skPaint.Shader = skShader;
+                                disposable.Add(skRadialGradientShader);
+                                skPaint.Shader = skRadialGradientShader;
                             }
                             else
                             {
