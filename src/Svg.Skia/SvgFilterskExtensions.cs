@@ -604,7 +604,7 @@ namespace Svg.Skia
             {
                 return null;
             }
-            
+
             float[] kernel = new float[kernelMatrix.Count];
 
             int count = kernelMatrix.Count;
