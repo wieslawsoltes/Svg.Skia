@@ -540,7 +540,13 @@ namespace Svg.Skia
             {
                 case SvgColourServer svgColourServer:
                     {
-                        skPaint.Color = GetColor(svgColourServer, opacity, ignoreAttributes);
+                        var skColor = GetColor(svgColourServer, opacity, ignoreAttributes);
+                        var skColorShader = SKShader.CreateColor(skColor);
+                        if (skColorShader != null)
+                        {
+                            disposable.Add(skColorShader);
+                            skPaint.Shader = skColorShader;
+                        }
                     }
                     break;
                 case SvgPatternServer svgPatternServer:
@@ -555,7 +561,13 @@ namespace Svg.Skia
                         {
                             if (fallbackServer is SvgColourServer svgColourServerFallback)
                             {
-                                skPaint.Color = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
+                                var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
+                                var skColorShader = SKShader.CreateColor(skColor);
+                                if (skColorShader != null)
+                                {
+                                    disposable.Add(skColorShader);
+                                    skPaint.Shader = skColorShader;
+                                }
                             }
                             else
                             {
@@ -571,7 +583,13 @@ namespace Svg.Skia
                         {
                             if (fallbackServer is SvgColourServer svgColourServerFallback)
                             {
-                                skPaint.Color = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
+                                var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
+                                var skColorShader = SKShader.CreateColor(skColor);
+                                if (skColorShader != null)
+                                {
+                                    disposable.Add(skColorShader);
+                                    skPaint.Shader = skColorShader;
+                                }
                             }
                             else
                             {
@@ -601,7 +619,13 @@ namespace Svg.Skia
                         {
                             if (fallbackServer is SvgColourServer svgColourServerFallback)
                             {
-                                skPaint.Color = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
+                                var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
+                                var skColorShader = SKShader.CreateColor(skColor);
+                                if (skColorShader != null)
+                                {
+                                    disposable.Add(skColorShader);
+                                    skPaint.Shader = skColorShader;
+                                }
                             }
                             else
                             {
