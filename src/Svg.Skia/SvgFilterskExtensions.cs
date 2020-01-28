@@ -730,7 +730,7 @@ namespace Svg.Skia
             return SKImageFilter.CreateDisplacementMapEffect(xChannelSelector, yChannelSelector, scale, displacement, inout, cropRect);
         }
 
-        public static SKImageFilter? CreateFlood(FilterEffects.SvgFlood svgFlood, SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateFlood(FilterEffects.SvgFlood svgFlood, SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             var floodColor = svgFlood.FloodColor;
             var floodOpacity = svgFlood.FloodOpacity;
@@ -748,7 +748,18 @@ namespace Svg.Skia
                 cropRect = new SKImageFilter.CropRect(skBounds);
             }
 
-            return SKImageFilter.CreatePaint(skPaint, cropRect);
+            var skImageFilterPaint = SKImageFilter.CreatePaint(skPaint, cropRect);
+
+            if (input != null)
+            {
+                var skImageFilterMerge = SKImageFilter.CreateMerge(input, skImageFilterPaint, cropRect);
+                disposable.Add(skImageFilterPaint);
+                return skImageFilterMerge;
+            }
+            else
+            {
+                return skImageFilterPaint;
+            }
         }
 #endif
         public static SKImageFilter? CreateBlur(FilterEffects.SvgGaussianBlur svgGaussianBlur, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
@@ -1136,7 +1147,7 @@ namespace Svg.Skia
                             {
                                 var inputKey = svgFlood.Input;
                                 var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateFlood(svgFlood, svgVisualElement, skFilterPrimitiveRegion, disposable, skCropRect);
+                                var skImageFilter = CreateFlood(svgFlood, svgVisualElement, skFilterPrimitiveRegion, disposable, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgFlood, skPaint, skImageFilter, results, disposable);
