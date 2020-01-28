@@ -117,6 +117,21 @@ namespace Svg.Skia
 
             canvas.Save();
 
+            if (MaskDrawable != null && enableMask == true)
+            {
+                canvas.SaveLayer(Mask);
+            }
+
+            if (Opacity != null && enableOpacity == true)
+            {
+                canvas.SaveLayer(Opacity);
+            }
+
+            if (Filter != null && enableFilter == true)
+            {
+                canvas.SaveLayer(Filter);
+            }
+
             if (Clip != null)
             {
                 canvas.ClipRect(Clip.Value, SKClipOperation.Intersect);
@@ -131,38 +146,23 @@ namespace Svg.Skia
                 canvas.ClipPath(ClipPath, SKClipOperation.Intersect, IsAntialias);
             }
 
-            if (Opacity != null && enableOpacity == true)
-            {
-                canvas.SaveLayer(Opacity);
-            }
+            OnDraw(canvas, ignoreAttributes, until);
 
             if (Filter != null && enableFilter == true)
             {
-                canvas.SaveLayer(Filter);
+                canvas.Restore();
             }
 
-            if (MaskDrawable != null && enableMask == true)
+            if (Opacity != null && enableOpacity == true)
             {
-                canvas.SaveLayer(Mask);
+                canvas.Restore();
             }
-
-            OnDraw(canvas, ignoreAttributes, until);
 
             if (MaskDrawable != null && enableMask == true)
             {
                 canvas.SaveLayer(MaskDstIn);
                 MaskDrawable.Draw(canvas, ignoreAttributes, until);
                 canvas.Restore();
-                canvas.Restore();
-            }
-
-            if (Filter != null && enableFilter == true)
-            {
-                canvas.Restore();
-            }
-
-            if (Opacity != null && enableOpacity == true)
-            {
                 canvas.Restore();
             }
 
