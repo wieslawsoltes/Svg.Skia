@@ -135,7 +135,7 @@ namespace Svg.Skia
         public override void PostProcess()
         {
             base.PostProcess();
-            // TODO: Fix PostProcess() using corrent ReferencedElement Parent.
+            // TODO: Fix PostProcess() using correct ReferencedElement Parent.
             ReferencedDrawable?.PostProcess();
         }
 
