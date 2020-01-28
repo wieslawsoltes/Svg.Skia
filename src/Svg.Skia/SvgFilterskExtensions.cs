@@ -654,25 +654,9 @@ namespace Svg.Skia
             return direction;
         }
 
-        public static SKColor? GetColor(SvgVisualElement svgVisualElement, SvgPaintServer server)
-        {
-            if (server is SvgDeferredPaintServer svgDeferredPaintServer)
-            {
-                server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServer, svgVisualElement);
-            }
-
-            if (server is SvgColourServer stopColorSvgColourServer)
-            {
-                return SvgPaintingExtensions.GetColor(stopColorSvgColourServer, 1f, Attributes.None);
-            }
-
-            // TODO:
-            return SKColors.Black;
-        }
-
         public static SKImageFilter? CreateDiffuseLighting(FilterEffects.SvgDiffuseLighting svgDiffuseLighting, SvgVisualElement svgVisualElement, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            var lightColor = GetColor(svgVisualElement, svgDiffuseLighting.LightingColor);
+            var lightColor = SvgPaintingExtensions.GetColor(svgVisualElement, svgDiffuseLighting.LightingColor);
             if (lightColor == null)
             {
                 return null;
@@ -732,7 +716,7 @@ namespace Svg.Skia
 
         public static SKImageFilter? CreateFlood(FilterEffects.SvgFlood svgFlood, SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            var floodColor = GetColor(svgVisualElement, svgFlood.FloodColor);
+            var floodColor = SvgPaintingExtensions.GetColor(svgVisualElement, svgFlood.FloodColor);
             if (floodColor == null)
             {
                 return null;
@@ -862,7 +846,7 @@ namespace Svg.Skia
 #if USE_NEW_FILTERS
         public static SKImageFilter? CreateSpecularLighting(FilterEffects.SvgSpecularLighting svgSpecularLighting, SvgVisualElement svgVisualElement, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            var lightColor = GetColor(svgVisualElement, svgSpecularLighting.LightingColor);
+            var lightColor = SvgPaintingExtensions.GetColor(svgVisualElement, svgSpecularLighting.LightingColor);
             if (lightColor == null)
             {
                 return null;
