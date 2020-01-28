@@ -17,7 +17,7 @@ namespace Svg.Skia
 
         public static byte CombineWithOpacity(byte alpha, float opacity)
         {
-            return (byte)Math.Round((opacity * (alpha  / 255.0)) * 255);
+            return (byte)Math.Round((opacity * (alpha / 255.0)) * 255);
         }
 
         public static SKColor GetColor(SvgColourServer svgColourServer, float opacity, Attributes ignoreAttributes)
