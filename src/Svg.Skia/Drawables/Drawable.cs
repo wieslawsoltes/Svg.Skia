@@ -305,18 +305,39 @@ namespace Svg.Skia
 
         public SKPicture? RecordGraphic(Drawable? drawable, Attributes ignoreAttributes)
         {
+            // TODO: Record using SKColorSpace.CreateSrgbLinear because .color-interpolation-filters. is by default linearRGB.
             if (drawable == null)
+            {
+                return null;
+            }
+            if (drawable.TransformedBounds.Width <= 0f && drawable.TransformedBounds.Height <= 0f)
             {
                 return null;
             }
             using var skPictureRecorder = new SKPictureRecorder();
             using var skCanvas = skPictureRecorder.BeginRecording(drawable.TransformedBounds);
+#if true
             drawable.Draw(skCanvas, ignoreAttributes, null);
+#else
+            // TODO: Remove debug code.
+            var skColorSpaceLinear = SKColorSpace.CreateSrgbLinear();
+            var skImageInfo = new SKImageInfo(
+                (int)drawable.TransformedBounds.Width,
+                (int)drawable.TransformedBounds.Height,
+                SKColorType.RgbaF16,
+                SKAlphaType.Premul,
+                skColorSpaceLinear);
+            var skSurface = SKSurface.Create(skImageInfo);
+            skSurface.Canvas.Clear(new SKColor(0, 0, 0, 0));
+            drawable.Draw(skSurface.Canvas, ignoreAttributes, null);
+            skCanvas.DrawSurface(skSurface, 0f, 0f);
+#endif
             return skPictureRecorder.EndRecording();
         }
 
         public SKPicture? RecordBackground(Drawable? drawable, Attributes ignoreAttributes)
         {
+            // TODO: Record using SKColorSpace.CreateSrgbLinear because 'color-interpolation-filters' is by default linearRGB.
             if (drawable == null)
             {
                 return null;
