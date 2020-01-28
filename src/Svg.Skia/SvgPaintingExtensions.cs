@@ -30,6 +30,22 @@ namespace Svg.Skia
             return new SKColor(colour.R, colour.G, colour.B, alpha);
         }
 
+        public static SKColor? GetColor(SvgVisualElement svgVisualElement, SvgPaintServer server)
+        {
+            if (server is SvgDeferredPaintServer svgDeferredPaintServer)
+            {
+                server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServer, svgVisualElement);
+            }
+
+            if (server is SvgColourServer stopColorSvgColourServer)
+            {
+                return GetColor(stopColorSvgColourServer, 1f, Attributes.None);
+            }
+
+            // TODO:
+            return SKColors.Black;
+        }
+
         public static SKPathEffect? CreateDash(SvgElement svgElement, SKRect skBounds)
         {
             var strokeDashArray = svgElement.StrokeDashArray;
