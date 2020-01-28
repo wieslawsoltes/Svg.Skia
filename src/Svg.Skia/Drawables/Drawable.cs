@@ -117,20 +117,6 @@ namespace Svg.Skia
 
             canvas.Save();
 
-            if (Clip != null)
-            {
-                canvas.ClipRect(Clip.Value, SKClipOperation.Intersect);
-            }
-
-            var skMatrixTotal = canvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref Transform);
-            canvas.SetMatrix(skMatrixTotal);
-
-            if (ClipPath != null && enableClip == true)
-            {
-                canvas.ClipPath(ClipPath, SKClipOperation.Intersect, IsAntialias);
-            }
-
             if (MaskDrawable != null && enableMask == true)
             {
                 canvas.SaveLayer(Mask);
@@ -144,6 +130,20 @@ namespace Svg.Skia
             if (Filter != null && enableFilter == true)
             {
                 canvas.SaveLayer(Filter);
+            }
+
+            if (Clip != null)
+            {
+                canvas.ClipRect(Clip.Value, SKClipOperation.Intersect);
+            }
+
+            var skMatrixTotal = canvas.TotalMatrix;
+            SKMatrix.PreConcat(ref skMatrixTotal, ref Transform);
+            canvas.SetMatrix(skMatrixTotal);
+
+            if (ClipPath != null && enableClip == true)
+            {
+                canvas.ClipPath(ClipPath, SKClipOperation.Intersect, IsAntialias);
             }
 
             OnDraw(canvas, ignoreAttributes, until);
