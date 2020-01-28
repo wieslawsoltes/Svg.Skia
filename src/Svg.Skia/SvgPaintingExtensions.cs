@@ -42,7 +42,6 @@ namespace Svg.Skia
                 return GetColor(stopColorSvgColourServer, 1f, Attributes.None);
             }
 
-            // TODO:
             return SKColors.Black;
         }
 
