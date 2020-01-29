@@ -992,14 +992,11 @@ namespace Svg.Skia
             {
                 if (child is FilterEffects.SvgFilterPrimitive svgFilterPrimitive)
                 {
-#if USE_NEW_FILTERS
-                    // TOOD: PrimitiveUnits
-
                     count++;
                     bool isFirst = count == 1;
-
                     var skPrimitiveBounds = skBounds;
-
+#if USE_NEW_FILTERS
+                    // TOOD: PrimitiveUnits
                     if (svgFilter.PrimitiveUnits == SvgCoordinateUnits.UserSpaceOnUse)
                     {
                         skPrimitiveBounds = skFilterRegion;
