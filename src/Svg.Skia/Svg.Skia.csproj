@@ -33,9 +33,15 @@
   <!--<ItemGroup>
     <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
   </ItemGroup>-->
+
   <!--<PropertyGroup>
     <DefineConstants>$(DefineConstants);USE_NEW_FILTERS</DefineConstants>
+  </PropertyGroup>-->
+  <!--<PropertyGroup>
     <DefineConstants>$(DefineConstants);USE_NEW_STDDEVIATION</DefineConstants>
+  </PropertyGroup>-->
+  <!--<PropertyGroup>
+    <DefineConstants>$(DefineConstants);USE_EXPERIMENTAL_LINEAR_RGB</DefineConstants>
   </PropertyGroup>-->
 
   <ItemGroup>
