@@ -368,16 +368,19 @@ namespace Svg.Skia
 
             using var skPictureRecorder = new SKPictureRecorder();
             using var skCanvas = skPictureRecorder.BeginRecording(drawable.TransformedBounds);
-
+#if false
             // TODO:
-            //using var skPaint = new SKPaint();
-            //using var skColorFilter = SKColorFilter.CreateTable(null, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB);
-            //using var skImageFilter = SKImageFilter.CreateColorFilter(skColorFilter);
-            //skPaint.ImageFilter = skImageFilter;
-            //skCanvas.SaveLayer(skPaint);
+            using var skPaint = new SKPaint();
+            using var skColorFilter = SKColorFilter.CreateTable(null, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB);
+            using var skImageFilter = SKImageFilter.CreateColorFilter(skColorFilter);
+            skPaint.ImageFilter = skImageFilter;
+            skCanvas.SaveLayer(skPaint);
+#endif
             drawable.Draw(skCanvas, ignoreAttributes, null);
-            //skCanvas.Restore();
-
+#if false
+            // TODO:
+            skCanvas.Restore();
+#endif
             return skPictureRecorder.EndRecording();
         }
 
