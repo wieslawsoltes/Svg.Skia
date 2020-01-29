@@ -302,7 +302,7 @@ namespace Svg.Skia
 
             return null;
         }
-#if false
+#if USE_EXPERIMENTAL_LINEAR_RGB
         // Precomputed sRGB to LinearRGB table.
         // if (C_srgb <= 0.04045)
         //     C_lin = C_srgb / 12.92;
@@ -368,7 +368,8 @@ namespace Svg.Skia
 
             using var skPictureRecorder = new SKPictureRecorder();
             using var skCanvas = skPictureRecorder.BeginRecording(drawable.TransformedBounds);
-#if false
+
+#if USE_EXPERIMENTAL_LINEAR_RGB
             // TODO:
             using var skPaint = new SKPaint();
             using var skColorFilter = SKColorFilter.CreateTable(null, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB);
@@ -376,11 +377,14 @@ namespace Svg.Skia
             skPaint.ImageFilter = skImageFilter;
             skCanvas.SaveLayer(skPaint);
 #endif
+
             drawable.Draw(skCanvas, ignoreAttributes, null);
-#if false
+
+#if USE_EXPERIMENTAL_LINEAR_RGB
             // TODO:
             skCanvas.Restore();
 #endif
+
             return skPictureRecorder.EndRecording();
         }
 
@@ -403,14 +407,21 @@ namespace Svg.Skia
                     skCanvas.ClipRect(skClipRect, SKClipOperation.Intersect);
                 }
 
+#if USE_EXPERIMENTAL_LINEAR_RGB
                 // TODO:
-                //using var skPaint = new SKPaint();
-                //using var skColorFilter = SKColorFilter.CreateTable(null, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB);
-                //using var skImageFilter = SKImageFilter.CreateColorFilter(skColorFilter);
-                //skPaint.ImageFilter = skImageFilter;
-                //skCanvas.SaveLayer(skPaint);
+                using var skPaint = new SKPaint();
+                using var skColorFilter = SKColorFilter.CreateTable(null, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB);
+                using var skImageFilter = SKImageFilter.CreateColorFilter(skColorFilter);
+                skPaint.ImageFilter = skImageFilter;
+                skCanvas.SaveLayer(skPaint);
+#endif
+
                 container.Draw(skCanvas, ignoreAttributes, drawable);
-                //skCanvas.Restore();
+
+#if USE_EXPERIMENTAL_LINEAR_RGB
+                // TODO:
+                skCanvas.Restore();
+#endif
 
                 return skPictureRecorder.EndRecording();
             }
