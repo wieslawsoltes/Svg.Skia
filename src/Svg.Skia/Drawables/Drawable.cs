@@ -186,7 +186,7 @@ namespace Svg.Skia
 
             if (visualElement != null && enableClip == true)
             {
-                ClipPath =  SvgClippingExtensions.GetSvgVisualElementClipPath(visualElement, TransformedBounds, new HashSet<Uri>(), _disposable);
+                ClipPath = SvgClippingExtensions.GetSvgVisualElementClipPath(visualElement, TransformedBounds, new HashSet<Uri>(), _disposable);
             }
             else
             {
