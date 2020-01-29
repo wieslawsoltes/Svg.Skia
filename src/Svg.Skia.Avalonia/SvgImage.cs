@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 using System;
 using Avalonia;
+using Avalonia.Data;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Visuals.Media.Imaging;
@@ -68,11 +69,11 @@ namespace Svg.Skia.Avalonia
         }
 
         /// <inheritdoc/>
-        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e)
+        protected override void OnPropertyChanged<T>(AvaloniaProperty<T> property, Optional<T> oldValue, BindingValue<T> newValue, BindingPriority priority)
         {
-            base.OnPropertyChanged(e);
+            base.OnPropertyChanged(property, oldValue, newValue, priority);
 
-            if (e.Property == SourceProperty)
+            if (property == SourceProperty)
             {
                 RaiseInvalidated(EventArgs.Empty);
             }
