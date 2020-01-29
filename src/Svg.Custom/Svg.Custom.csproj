@@ -7,7 +7,7 @@
     <EnableDefaultItems>False</EnableDefaultItems>
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
     <NoWarn>CS1591</NoWarn>
-    <IsPackable>True</IsPackable>
+    <IsPackable>False</IsPackable>
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
