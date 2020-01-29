@@ -5,22 +5,16 @@
     <TargetFrameworks>netcoreapp3.0;net461</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
-    <LangVersion>8.0</LangVersion>
+    <IsPackable>True</IsPackable>
     <Nullable>disable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup>
-    <VersionPrefix>1.0.0</VersionPrefix>
-    <VersionSuffix>preview1</VersionSuffix>
-    <Authors>Wiesław Šoltés</Authors>
-    <Company>Wiesław Šoltés</Company>
     <Description>A tool to convert svg to png.</Description>
-    <Copyright>Copyright © Wiesław Šoltés 2019</Copyright>
     <PackageId>SvgToPng</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/wieslawsoltes/SvgToPng</PackageProjectUrl>
-    <PackageTags>svg;png;convert</PackageTags>
+    <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;png;convert</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -30,6 +24,7 @@
     <ApplicationIcon>SvgToPng.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <Import Project="..\..\build\SkiaSharp.props" />
   <Import Project="..\..\build\SkiaSharp.Views.props" />
