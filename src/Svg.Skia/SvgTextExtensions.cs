@@ -58,7 +58,54 @@ namespace Svg.Skia
 
             return fontWeight;
         }
+#if USE_NEW_FONT_STRETCH_PROP
+        public static SKFontStyleWidth ToSKFontStyleWidth(SvgFontStretch svgFontStretch)
+        {
+            var fontWidth = SKFontStyleWidth.Normal;
 
+            switch (svgFontStretch)
+            {
+                case SvgFontStretch.Inherit:
+                    // TODO: Implement SvgFontStretch.Inherit
+                    break;
+                case SvgFontStretch.Normal:
+                    fontWidth = SKFontStyleWidth.Normal;
+                    break;
+                case SvgFontStretch.Wider:
+                    // TODO: Implement SvgFontStretch.Wider
+                    break;
+                case SvgFontStretch.Narrower:
+                    // TODO: Implement SvgFontStretch.Narrower
+                    break;
+                case SvgFontStretch.UltraCondensed:
+                    fontWidth = SKFontStyleWidth.UltraCondensed;
+                    break;
+                case SvgFontStretch.ExtraCondensed:
+                    fontWidth = SKFontStyleWidth.ExtraCondensed;
+                    break;
+                case SvgFontStretch.Condensed:
+                    fontWidth = SKFontStyleWidth.Condensed;
+                    break;
+                case SvgFontStretch.SemiCondensed:
+                    fontWidth = SKFontStyleWidth.SemiCondensed;
+                    break;
+                case SvgFontStretch.SemiExpanded:
+                    fontWidth = SKFontStyleWidth.SemiExpanded;
+                    break;
+                case SvgFontStretch.Expanded:
+                    fontWidth = SKFontStyleWidth.Expanded;
+                    break;
+                case SvgFontStretch.ExtraExpanded:
+                    fontWidth = SKFontStyleWidth.ExtraExpanded;
+                    break;
+                case SvgFontStretch.UltraExpanded:
+                    fontWidth = SKFontStyleWidth.UltraExpanded;
+                    break;
+            }
+
+            return fontWidth;
+        }
+#else
         public static SKFontStyleWidth ToSKFontStyleWidth(string attributeFontStretch)
         {
             var fontWidth = SKFontStyleWidth.Normal;
@@ -101,7 +148,7 @@ namespace Svg.Skia
 
             return fontWidth;
         }
-
+#endif
         public static SKTextAlign ToSKTextAlign(SvgTextAnchor textAnchor)
         {
             return textAnchor switch
@@ -126,10 +173,13 @@ namespace Svg.Skia
         {
             var fontWeight = SKFontStyleWeight(svgText.FontWeight);
 
+#if USE_NEW_FONT_STRETCH_PROP
+            var fontWidth = ToSKFontStyleWidth(svgText.FontStretch);
+#else
             // TODO: Use FontStretch property.
             svgText.TryGetAttribute("font-stretch", out string attributeFontStretch);
             var fontWidth = ToSKFontStyleWidth(attributeFontStretch);
-
+#endif
             var fontStyle = ToSKFontStyleSlant(svgText.FontStyle);
 
             var fontFamily = svgText.FontFamily;
