@@ -12,15 +12,24 @@ namespace Svg.Skia
             IgnoreAttributes = ignoreAttributes;
             IsDrawable = CanDraw(svgGroup, IgnoreAttributes);
 
+            // NOTE: Call AddMarkers only once.
+            SvgMarkerExtensions.AddMarkers(svgGroup);
+
+            CreateChildren(svgGroup, skOwnerBounds, root, this, ignoreAttributes);
+
+            foreach (var child in ChildrenDrawables)
+            {
+                if (child.IsDrawable)
+                {
+                    IsDrawable = true;
+                    break;
+                }
+            }
+
             if (!IsDrawable)
             {
                 return;
             }
-
-            // TODO: Call AddMarkers only once.
-            SvgMarkerExtensions.AddMarkers(svgGroup);
-
-            CreateChildren(svgGroup, skOwnerBounds, root, this, ignoreAttributes);
 
             IsAntialias = SvgPaintingExtensions.IsAntialias(svgGroup);
 
