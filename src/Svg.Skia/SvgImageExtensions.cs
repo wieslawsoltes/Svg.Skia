@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Text;
 using SkiaSharp;
@@ -12,6 +13,7 @@ namespace Svg.Skia
     public static class SvgImageExtensions
     {
         private const string MimeTypeSvg = "image/svg+xml";
+        private static byte[] s_gZipMagicHeaderBytes = { 0x1f, 0x8b };
 
         public static object? GetImage(string uriString, SvgDocument svgOwnerDocument)
         {
@@ -59,6 +61,11 @@ namespace Svg.Skia
                         uri.LocalPath.EndsWith(".svg", StringComparison.InvariantCultureIgnoreCase))
                     {
                         return LoadSvg(stream, uri);
+                    }
+                    if (webResponse.ContentType.StartsWith(MimeTypeSvg, StringComparison.InvariantCultureIgnoreCase) ||
+                        uri.LocalPath.EndsWith(".svgz", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return LoadSvgz(stream, uri);
                     }
                     else
                     {
@@ -115,8 +122,20 @@ namespace Svg.Skia
             {
                 if (base64)
                 {
+                    var bytes = Convert.FromBase64String(data);
+
+                    if (bytes.Length > 2)
+                    {
+                        bool isCompressed = bytes[0] == s_gZipMagicHeaderBytes[0] && bytes[1] == s_gZipMagicHeaderBytes[1];
+                        if (isCompressed)
+                        {
+                            using var bytesStream = new MemoryStream(bytes);
+                            return LoadSvgz(bytesStream, svgOwnerDocument.BaseUri);
+                        }
+                    }
+
                     var encoding = string.IsNullOrEmpty(charset) ? Encoding.UTF8 : Encoding.GetEncoding(charset);
-                    data = encoding.GetString(Convert.FromBase64String(data));
+                    data = encoding.GetString(bytes);
                 }
                 using (var stream = new MemoryStream(Encoding.Default.GetBytes(data)))
                 {
@@ -140,9 +159,21 @@ namespace Svg.Skia
 
         public static SvgDocument LoadSvg(Stream stream, Uri baseUri)
         {
-            var document = SvgDocument.Open<SvgDocument>(stream);
-            document.BaseUri = baseUri;
-            return document;
+            var svgDocument = SvgDocument.Open<SvgDocument>(stream);
+            svgDocument.BaseUri = baseUri;
+            return svgDocument;
+        }
+
+        public static SvgDocument LoadSvgz(Stream stream, Uri baseUri)
+        {
+            using var gzipStream = new GZipStream(stream, CompressionMode.Decompress);
+            using var memoryStream = new MemoryStream();
+            gzipStream.CopyTo(memoryStream);
+            memoryStream.Position = 0;
+
+            var svgDocument = SvgDocument.Open<SvgDocument>(memoryStream);
+            svgDocument.BaseUri = baseUri;
+            return svgDocument;
         }
     }
 }
