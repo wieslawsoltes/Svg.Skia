@@ -17,14 +17,15 @@ namespace Svg.Skia
 
             CreateChildren(svgGroup, skOwnerBounds, root, this, ignoreAttributes);
 
-            foreach (var child in ChildrenDrawables)
-            {
-                if (child.IsDrawable)
-                {
-                    IsDrawable = true;
-                    break;
-                }
-            }
+            // TODO: Check if children are explicitly set to be visible.
+            //foreach (var child in ChildrenDrawables)
+            //{
+            //    if (child.IsDrawable)
+            //    {
+            //        IsDrawable = true;
+            //        break;
+            //    }
+            //}
 
             if (!IsDrawable)
             {
