@@ -8,6 +8,7 @@ namespace Svg.Skia
 {
     public class MaskDrawable : DrawableContainer
     {
+#if !USE_NEW_MASK_PROPS
         public static SvgCoordinateUnits GetMaskUnits(SvgMask svgMask)
         {
             svgMask.CustomAttributes.TryGetValue("maskUnits", out string? maskUnitsString);
@@ -77,7 +78,7 @@ namespace Svg.Skia
             }
             return new SvgUnit(SvgUnitType.Percentage, 120f);
         }
-
+#endif
         public MaskDrawable(SvgMask svgMask, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
             : base(svgMask, root, parent)
         {
@@ -88,14 +89,21 @@ namespace Svg.Skia
             {
                 return;
             }
-
+#if USE_NEW_MASK_PROPS
+            var maskUnits = svgMask.MaskUnits;
+            var maskContentUnits = svgMask.MaskContentUnits;
+            var xUnit = svgMask.X;
+            var yUnit = svgMask.Y;
+            var widthUnit = svgMask.Width;
+            var heightUnit = svgMask.Height;
+#else
             var maskUnits = GetMaskUnits(svgMask);
             var maskContentUnits = GetMaskContentUnits(svgMask);
             var xUnit = GetX(svgMask);
             var yUnit = GetY(svgMask);
             var widthUnit = GetWidth(svgMask);
             var heightUnit = GetHeight(svgMask);
-
+#endif
             float x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skOwnerBounds);
             float y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgMask, skOwnerBounds);
             float width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skOwnerBounds);
