@@ -90,83 +90,96 @@ namespace SvgToPng.ViewModels
             item.Reset();
         }
 
-        public void UpdateItem(Item item, Action<string> textBoxOpen, Action<string> textBoxToPicture)
+        private void LoadSvg(Item item, Action<string> statusOpen, Action<string> statusToPicture)
+        {
+            var currentDirectory = Directory.GetCurrentDirectory();
+
+            try
+            {
+                if (!File.Exists(item.SvgPath))
+                {
+                    return;
+                }
+
+                Directory.SetCurrentDirectory(Path.GetDirectoryName(item.SvgPath));
+
+                var stopwatchOpen = Stopwatch.StartNew();
+                item.Svg = SKSvg.Open(item.SvgPath);
+                stopwatchOpen.Stop();
+                statusOpen?.Invoke($"{Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
+                Debug.WriteLine($"Open: {Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
+
+                if (item.Svg != null)
+                {
+                    var stopwatchToPicture = Stopwatch.StartNew();
+                    item.Picture = SKSvg.ToPicture(item.Svg, out var drawable);
+                    item.Drawable = drawable;
+                    stopwatchToPicture.Stop();
+                    statusToPicture?.Invoke($"{Math.Round(stopwatchToPicture.Elapsed.TotalMilliseconds, 3)}ms");
+                    Debug.WriteLine($"ToPicture: {Math.Round(stopwatchToPicture.Elapsed.TotalMilliseconds, 3)}ms");
+                }
+                else
+                {
+                    statusToPicture?.Invoke($"");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to load svg file: {item.SvgPath}");
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
+            }
+
+            Directory.SetCurrentDirectory(currentDirectory);
+        }
+
+        private void LoadPng(Item item)
+        {
+            try
+            {
+                if (File.Exists(item.ReferencePngPath))
+                {
+                }
+
+                using var codec = SKCodec.Create(new SKFileStream(item.ReferencePngPath));
+                var referenceBitmap = new SKBitmap(codec.Info.Width, codec.Info.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
+                codec.GetPixels(referenceBitmap.Info, referenceBitmap.GetPixels());
+                if (referenceBitmap == null)
+                {
+                    return;
+                }
+
+                item.ReferencePng = referenceBitmap;
+
+                float scaleX = referenceBitmap.Width / item.Picture.CullRect.Width;
+                float scaleY = referenceBitmap.Height / item.Picture.CullRect.Height;
+
+                using var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
+                if (svgBitmap.Width == referenceBitmap.Width && svgBitmap.Height == referenceBitmap.Height)
+                {
+                    var pixelDiff = PixelDiff(referenceBitmap, svgBitmap);
+                    item.PixelDiff = pixelDiff;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to load reference png: {item.ReferencePngPath}");
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
+            }
+        }
+
+        public void UpdateItem(Item item, Action<string> statusOpen, Action<string> statusToPicture)
         {
             if (item.Svg == null)
             {
-                var currentDirectory = Directory.GetCurrentDirectory();
-
-                try
-                {
-                    if (File.Exists(item.SvgPath))
-                    {
-                        Directory.SetCurrentDirectory(Path.GetDirectoryName(item.SvgPath));
-
-                        var stopwatchOpen = Stopwatch.StartNew();
-                        item.Svg = SKSvg.Open(item.SvgPath);
-                        stopwatchOpen.Stop();
-                        textBoxOpen?.Invoke($"{Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
-                        Debug.WriteLine($"Open: {Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
-
-                        if (item.Svg != null)
-                        {
-                            var stopwatchToPicture = Stopwatch.StartNew();
-                            item.Picture = SKSvg.ToPicture(item.Svg, out var drawable);
-                            item.Drawable = drawable;
-                            stopwatchToPicture.Stop();
-                            textBoxToPicture?.Invoke($"{Math.Round(stopwatchToPicture.Elapsed.TotalMilliseconds, 3)}ms");
-                            Debug.WriteLine($"ToPicture: {Math.Round(stopwatchToPicture.Elapsed.TotalMilliseconds, 3)}ms");
-                        }
-                        else
-                        {
-                            textBoxToPicture?.Invoke($"");
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Failed to load svg file: {item.SvgPath}");
-                    Debug.WriteLine(ex.Message);
-                    Debug.WriteLine(ex.StackTrace);
-                }
-
-                Directory.SetCurrentDirectory(currentDirectory);
+                LoadSvg(item, statusOpen, statusToPicture);
             }
 
             if (item.ReferencePng == null && item.Picture != null)
             {
-                try
-                {
-                    if (File.Exists(item.ReferencePngPath))
-                    {
-                        using var codec = SKCodec.Create(new SKFileStream(item.ReferencePngPath));
-                        var referenceBitmap = new SKBitmap(codec.Info.Width, codec.Info.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
-                        codec.GetPixels(referenceBitmap.Info, referenceBitmap.GetPixels());
-                        if (referenceBitmap != null)
-                        {
-                            item.ReferencePng = referenceBitmap;
-
-                            float scaleX = referenceBitmap.Width / item.Picture.CullRect.Width;
-                            float scaleY = referenceBitmap.Height / item.Picture.CullRect.Height;
-
-                            using (var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul))
-                            {
-                                if (svgBitmap.Width == referenceBitmap.Width && svgBitmap.Height == referenceBitmap.Height)
-                                {
-                                    var pixelDiff = PixelDiff(referenceBitmap, svgBitmap);
-                                    item.PixelDiff = pixelDiff;
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Failed to load reference png: {item.ReferencePngPath}");
-                    Debug.WriteLine(ex.Message);
-                    Debug.WriteLine(ex.StackTrace);
-                }
-            } 
+                LoadPng(item);
+            }
         }
 
         public void AddItems(List<string> paths, IList<Item> items, string referencePath, string outputPath)
