@@ -124,7 +124,7 @@ jobs:
         dotnet-version: 3.0.100
     - name: Publish
       if: github.event_name != 'pull_request'
-      run: dotnet publish -c Release -f net461 -r win7-x64 -o ./artifacts/SvgToPng-net461-win7-x64 ./tests/SvgToPng/SvgToPng.csproj
+      run: dotnet publish -c Release -f net461 -r win7-x64 -o ./artifacts/SvgToPng-net461-win7-x64 ./src/SvgToPng/SvgToPng.csproj
     - name: Artifacts
       if: github.event_name != 'pull_request'
       uses: actions/upload-artifact@master
