@@ -61,6 +61,7 @@ namespace SvgToPng
             TextItemsFilter.TextChanged += TextItemsFilter_TextChanged;
             CheckShowPassed.Click += CheckShowPassed_Click;
             CheckShowFailed.Click += CheckShowFailed_Click;
+            CheckOpenGL.Click += CheckOpenGL_Click;
 
             items.SelectionChanged += Items_SelectionChanged;
             items.MouseDoubleClick += Items_MouseDoubleClick;
@@ -70,12 +71,10 @@ namespace SvgToPng
             skElementPng.PaintSurface += OnPaintCanvasPng;
             skElementDiff.PaintSurface += OnPaintCanvasDiff;
 
-            skElementSvg.Visibility = Visibility.Visible;
-            skElementPng.Visibility = Visibility.Visible;
-            skElementDiff.Visibility = Visibility.Visible;
-            glHostSvg.Visibility = Visibility.Collapsed;
-            glHostPng.Visibility = Visibility.Collapsed;
-            glHostDiff.Visibility = Visibility.Collapsed;
+            bool useOpenGL = false;
+            ToggleOpenGL(useOpenGL);
+            CheckOpenGL.IsChecked = useOpenGL;
+
 #if DEBUG
             skElementSvg.MouseMove += Svg_MouseMove;
 #endif
@@ -151,6 +150,11 @@ namespace SvgToPng
         private void TextItemsFilter_TextChanged(object sender, TextChangedEventArgs e)
         {
             VM.ItemsView.Refresh();
+        }
+
+        private void CheckOpenGL_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleOpenGL(CheckOpenGL.IsChecked == true);
         }
 
         private void CheckShowFailed_Click(object sender, RoutedEventArgs e)
@@ -499,6 +503,28 @@ namespace SvgToPng
             TextToPictureTime.Text = "";
             TextDrawTime.Text = "";
             VM.UpdateItem(item, (text) => TextOpenTime.Text = text, (text) => TextToPictureTime.Text = text);
+        }
+
+        private void ToggleOpenGL(bool useOpenGL)
+        {
+            if (useOpenGL)
+            {
+                skElementSvg.Visibility = Visibility.Collapsed;
+                skElementPng.Visibility = Visibility.Collapsed;
+                skElementDiff.Visibility = Visibility.Collapsed;
+                glHostSvg.Visibility = Visibility.Visible;
+                glHostPng.Visibility = Visibility.Visible;
+                glHostDiff.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                skElementSvg.Visibility = Visibility.Visible;
+                skElementPng.Visibility = Visibility.Visible;
+                skElementDiff.Visibility = Visibility.Visible;
+                glHostSvg.Visibility = Visibility.Collapsed;
+                glHostPng.Visibility = Visibility.Collapsed;
+                glHostDiff.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void Invalidate()
