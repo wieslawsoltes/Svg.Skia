@@ -7,6 +7,12 @@ namespace Svg.Skia
 {
     public static class SKPictureExtensions
     {
+        public static SKAlphaType s_alphaType = SKAlphaType.Unpremul;
+
+        public static SKColorType s_colorType = SKImageInfo.PlatformColorType;
+
+        public static SKColorSpace s_colorSpace = SKColorSpace.CreateSrgb();
+
         public static void Draw(this SKPicture skPicture, SKColor background, float scaleX, float scaleY, SKCanvas skCanvas)
         {
             skCanvas.DrawColor(background);
@@ -23,7 +29,7 @@ namespace Svg.Skia
             if (width > 0 && height > 0)
             {
 #if USE_COLORSPACE
-                var skImageInfo = new SKImageInfo((int)width, (int)height, skColorType, skAlphaType, SvgPaintingExtensions.s_sRGB);
+                var skImageInfo = new SKImageInfo((int)width, (int)height, skColorType, skAlphaType, s_colorSpace);
 #else
                 var skImageInfo = new SKImageInfo((int)width, (int)height, skColorType, skAlphaType);
 #endif
@@ -37,7 +43,7 @@ namespace Svg.Skia
 
         public static bool ToImage(this SKPicture skPicture, Stream stream, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY)
         {
-            using (var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul))
+            using (var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY, s_colorType, s_alphaType))
             {
                 if (skBitmap == null)
                 {
