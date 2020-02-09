@@ -20,6 +20,7 @@ namespace Svg.Skia
         public bool IsAntialias;
         public SKRect TransformedBounds;
         public SKMatrix Transform;
+        public SKRect? Overflow;
         public SKRect? Clip;
         public SKPath? ClipPath;
         public MaskDrawable? MaskDrawable;
@@ -117,14 +118,19 @@ namespace Svg.Skia
 
             canvas.Save();
 
-            if (Clip != null)
+            if (Overflow != null)
             {
-                canvas.ClipRect(Clip.Value, SKClipOperation.Intersect);
+                canvas.ClipRect(Overflow.Value, SKClipOperation.Intersect);
             }
 
             var skMatrixTotal = canvas.TotalMatrix;
             SKMatrix.PreConcat(ref skMatrixTotal, ref Transform);
             canvas.SetMatrix(skMatrixTotal);
+
+            if (Clip != null)
+            {
+                canvas.ClipRect(Clip.Value, SKClipOperation.Intersect);
+            }
 
             if (ClipPath != null && enableClip == true)
             {
