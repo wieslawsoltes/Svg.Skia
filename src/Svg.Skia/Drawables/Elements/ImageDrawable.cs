@@ -12,6 +12,7 @@ namespace Svg.Skia
         public FragmentDrawable? FragmentDrawable;
         public SKRect SrcRect = default;
         public SKRect DestRect = default;
+        public SKMatrix FragmentTransform;
 
         public ImageDrawable(SvgImage svgImage, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
             : base(svgImage, root, parent)
@@ -131,7 +132,7 @@ namespace Svg.Skia
                     SrcRect.Width * fScaleX, SrcRect.Height * fScaleY);
             }
 
-            Overflow = destClip; // TODO: Use Clip ?
+            Clip = destClip; // TODO: Use Clip ?
 
             var skClipRect = SvgClippingExtensions.GetClipRect(svgImage, destClip);
             if (skClipRect != null)
@@ -164,6 +165,7 @@ namespace Svg.Skia
             }
 
             Transform = SvgTransformsExtensions.ToSKMatrix(svgImage.Transforms);
+            FragmentTransform = SKMatrix.MakeIdentity();
             if (FragmentDrawable != null)
             {
                 float dx = DestRect.Left;
@@ -172,8 +174,8 @@ namespace Svg.Skia
                 float sy = DestRect.Height / SrcRect.Height;
                 var skTranslationMatrix = SKMatrix.MakeTranslation(dx, dy);
                 var skScaleMatrix = SKMatrix.MakeScale(sx, sy);
-                SKMatrix.PreConcat(ref Transform, ref skTranslationMatrix);
-                SKMatrix.PreConcat(ref Transform, ref skScaleMatrix);
+                SKMatrix.PreConcat(ref FragmentTransform, ref skTranslationMatrix);
+                SKMatrix.PreConcat(ref FragmentTransform, ref skScaleMatrix);
             }
 
             Fill = null;
@@ -197,7 +199,15 @@ namespace Svg.Skia
 
             if (FragmentDrawable != null)
             {
+                canvas.Save();
+
+                var skMatrixTotal = canvas.TotalMatrix;
+                SKMatrix.PreConcat(ref skMatrixTotal, ref FragmentTransform);
+                canvas.SetMatrix(skMatrixTotal);
+
                 FragmentDrawable.Draw(canvas, ignoreAttributes, until);
+
+                canvas.Restore();
             }
         }
 
