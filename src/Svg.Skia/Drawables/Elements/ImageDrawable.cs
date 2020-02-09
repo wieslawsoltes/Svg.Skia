@@ -194,7 +194,12 @@ namespace Svg.Skia
 
             if (Image != null)
             {
-                canvas.DrawImage(Image, SrcRect, DestRect);
+                using var skImagePaint = new SKPaint()
+                {
+                    IsAntialias = true,
+                    FilterQuality = SKFilterQuality.High
+                };
+                canvas.DrawImage(Image, SrcRect, DestRect, skImagePaint);
             }
 
             if (FragmentDrawable != null)
