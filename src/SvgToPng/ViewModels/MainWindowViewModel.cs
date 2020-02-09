@@ -137,8 +137,9 @@ namespace SvgToPng.ViewModels
         {
             try
             {
-                if (File.Exists(item.ReferencePngPath))
+                if (!File.Exists(item.ReferencePngPath))
                 {
+                    return;
                 }
 
                 using var codec = SKCodec.Create(new SKFileStream(item.ReferencePngPath));
