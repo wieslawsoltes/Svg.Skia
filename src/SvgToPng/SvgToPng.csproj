@@ -35,4 +35,8 @@
     <ProjectReference Include="..\..\src\Svg.Skia\Svg.Skia.csproj" />
   </ItemGroup>
 
+  <!--<PropertyGroup>
+    <DefineConstants>$(DefineConstants);USE_COLORSPACE</DefineConstants>
+  </PropertyGroup>-->
+
 </Project>
