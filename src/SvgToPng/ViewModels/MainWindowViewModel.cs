@@ -159,8 +159,11 @@ namespace SvgToPng.ViewModels
 
                 float scaleX = skReferenceBitmap.Width / item.Picture.CullRect.Width;
                 float scaleY = skReferenceBitmap.Height / item.Picture.CullRect.Height;
-
+#if USE_COLORSPACE
                 using var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
+#else
+                using var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
+#endif
                 if (svgBitmap.Width == skReferenceBitmap.Width && svgBitmap.Height == skReferenceBitmap.Height)
                 {
                     var pixelDiff = PixelDiff(skReferenceBitmap, svgBitmap);
