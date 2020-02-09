@@ -144,7 +144,7 @@ namespace SvgToPng.ViewModels
 
                 using var codec = SKCodec.Create(new SKFileStream(item.ReferencePngPath));
 #if USE_COLORSPACE
-                var skImageInfo = new SKImageInfo(codec.Info.Width, codec.Info.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul, SvgPaintingExtensions.s_sRGB);
+                var skImageInfo = new SKImageInfo(codec.Info.Width, codec.Info.Height, SKPictureExtensions.s_colorType, SKPictureExtensions.s_alphaType, SKPictureExtensions.s_colorSpace);
 #else
                 var skImageInfo = new SKImageInfo(codec.Info.Width, codec.Info.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
 #endif
@@ -160,9 +160,9 @@ namespace SvgToPng.ViewModels
                 float scaleX = skReferenceBitmap.Width / item.Picture.CullRect.Width;
                 float scaleY = skReferenceBitmap.Height / item.Picture.CullRect.Height;
 #if USE_COLORSPACE
-                using var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
+                using var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKPictureExtensions.s_colorType, SKPictureExtensions.s_alphaType);
 #else
-                using var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
+                using var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKPictureExtensions.s_colorType, SKPictureExtensions.s_alphaType);
 #endif
                 if (svgBitmap.Width == skReferenceBitmap.Width && svgBitmap.Height == skReferenceBitmap.Height)
                 {
@@ -383,9 +383,9 @@ namespace SvgToPng.ViewModels
         unsafe public static SKBitmap PixelDiff(SKBitmap referenceBitmap, SKBitmap svgBitmap)
         {
 #if USE_COLORSPACE
-            var skImageInfo = new SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul, SvgPaintingExtensions.s_sRGB);
+            var skImageInfo = new SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, SKPictureExtensions.s_colorType, SKPictureExtensions.s_alphaType, SKPictureExtensions.s_colorSpace);
 #else
-            var skImageInfo = new SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
+            var skImageInfo = new SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, SKPictureExtensions.s_colorType, SKPictureExtensions.s_alphaType);
 #endif
             var output = new SKBitmap(skImageInfo);
             byte* aPtr = (byte*)referenceBitmap.GetPixels().ToPointer();
