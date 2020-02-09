@@ -10,9 +10,9 @@ namespace Svg.Skia
         public static SKAlphaType s_alphaType = SKAlphaType.Unpremul;
 
         public static SKColorType s_colorType = SKImageInfo.PlatformColorType;
-
+#if USE_COLORSPACE
         public static SKColorSpace s_colorSpace = SKColorSpace.CreateSrgb();
-
+#endif
         public static void Draw(this SKPicture skPicture, SKColor background, float scaleX, float scaleY, SKCanvas skCanvas)
         {
             skCanvas.DrawColor(background);
