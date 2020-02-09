@@ -217,7 +217,7 @@ namespace Svg.Skia
                 }
                 else
                 {
-                    return SKShader.CreateColor(skColors[0]);
+                    return SKShader.CreateColor(skColors[0], s_sRGB);
                 }
 #else
                 return SKShader.CreateColor(skColors[0]);
@@ -248,14 +248,14 @@ namespace Svg.Skia
                 }
 
 #if USE_COLORSPACE
+                var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
                 if (colorInterpolation == SvgColourInterpolation.LinearRGB)
                 {
-                    var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
                     return SKShader.CreateLinearGradient(skStart, skEnd, skColorsF, s_linearRGB, skColorPos, shaderTileMode, skBoundingBoxTransform);
                 }
                 else
                 {
-                    return SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode, skBoundingBoxTransform);
+                    return SKShader.CreateLinearGradient(skStart, skEnd, skColorsF, s_sRGB, skColorPos, shaderTileMode, skBoundingBoxTransform);
                 }
 #else
                 return SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode, skBoundingBoxTransform);
@@ -267,14 +267,14 @@ namespace Svg.Skia
                 {
                     var gradientTransform = SvgTransformsExtensions.ToSKMatrix(svgGradientTransform);
 #if USE_COLORSPACE
+                    var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
                     if (colorInterpolation == SvgColourInterpolation.LinearRGB)
                     {
-                        var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
                         return SKShader.CreateLinearGradient(skStart, skEnd, skColorsF, s_linearRGB, skColorPos, shaderTileMode, gradientTransform);
                     }
                     else
                     {
-                        return SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode, gradientTransform);
+                        return SKShader.CreateLinearGradient(skStart, skEnd, skColorsF, s_sRGB, skColorPos, shaderTileMode, gradientTransform);
                     }
 #else
                     return SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode, gradientTransform);
@@ -283,14 +283,14 @@ namespace Svg.Skia
                 else
                 {
 #if USE_COLORSPACE
+                    var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
                     if (colorInterpolation == SvgColourInterpolation.LinearRGB)
                     {
-                        var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
                         return SKShader.CreateLinearGradient(skStart, skEnd, skColorsF, s_linearRGB, skColorPos, shaderTileMode);
                     }
                     else
                     {
-                        return SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode);
+                        return SKShader.CreateLinearGradient(skStart, skEnd, skColorsF, s_sRGB, skColorPos, shaderTileMode);
                     }
 #else
                     return SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode);
@@ -350,7 +350,7 @@ namespace Svg.Skia
                 }
                 else
                 {
-                    return SKShader.CreateColor(skColors[0]);
+                    return SKShader.CreateColor(skColors[0], s_sRGB);
                 }
 #else
                 return SKShader.CreateColor(skColors[0]);
@@ -381,9 +381,9 @@ namespace Svg.Skia
                 }
 
 #if USE_COLORSPACE
+                var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
                 if (colorInterpolation == SvgColourInterpolation.LinearRGB)
                 {
-                    var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
                     return SKShader.CreateTwoPointConicalGradient(
                         skStart, startRadius,
                         skEnd, endRadius,
@@ -396,7 +396,7 @@ namespace Svg.Skia
                     return SKShader.CreateTwoPointConicalGradient(
                         skStart, startRadius,
                         skEnd, endRadius,
-                        skColors, skColorPos,
+                        skColorsF, s_sRGB, skColorPos,
                         shaderTileMode,
                         skBoundingBoxTransform);
                 }
@@ -415,9 +415,9 @@ namespace Svg.Skia
                 {
                     var gradientTransform = SvgTransformsExtensions.ToSKMatrix(svgGradientTransform);
 #if USE_COLORSPACE
+                    var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
                     if (colorInterpolation == SvgColourInterpolation.LinearRGB)
                     {
-                        var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
                         return SKShader.CreateTwoPointConicalGradient(
                             skStart, startRadius,
                             skEnd, endRadius,
@@ -429,7 +429,7 @@ namespace Svg.Skia
                         return SKShader.CreateTwoPointConicalGradient(
                             skStart, startRadius,
                             skEnd, endRadius,
-                            skColors, skColorPos,
+                            skColorsF, s_sRGB, skColorPos,
                             shaderTileMode, gradientTransform);
                     }
 #else
@@ -443,9 +443,9 @@ namespace Svg.Skia
                 else
                 {
 #if USE_COLORSPACE
+                    var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
                     if (colorInterpolation == SvgColourInterpolation.LinearRGB)
                     {
-                        var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
                         return SKShader.CreateTwoPointConicalGradient(
                             skStart, startRadius,
                             skEnd, endRadius,
@@ -457,7 +457,7 @@ namespace Svg.Skia
                         return SKShader.CreateTwoPointConicalGradient(
                             skStart, startRadius,
                             skEnd, endRadius,
-                            skColors, skColorPos,
+                            skColorsF, s_sRGB, skColorPos,
                             shaderTileMode);
                     }
 #else
@@ -709,7 +709,7 @@ namespace Svg.Skia
                         Debug.WriteLine($"1 {colorInterpolation} -> {svgColourServer} ({svgVisualElement.GetType().Name})");
                         var skColorShader = colorInterpolation == SvgColourInterpolation.LinearRGB ?
                             SKShader.CreateColor(skColor, s_linearRGB) :
-                            SKShader.CreateColor(skColor);
+                            SKShader.CreateColor(skColor, s_sRGB);
 #else
                         var skColorShader = SKShader.CreateColor(skColor);
 #endif
@@ -740,7 +740,7 @@ namespace Svg.Skia
                                 Debug.WriteLine($"2 {colorInterpolation} -> {svgColourServerFallback} ({svgVisualElement.GetType().Name})");
                                 var skColorShader = colorInterpolation == SvgColourInterpolation.LinearRGB ?
                                     SKShader.CreateColor(skColor, s_linearRGB) :
-                                    SKShader.CreateColor(skColor);
+                                    SKShader.CreateColor(skColor, s_sRGB);
 #else
                                 var skColorShader = SKShader.CreateColor(skColor);
 #endif
@@ -771,7 +771,7 @@ namespace Svg.Skia
                                 Debug.WriteLine($"3 {colorInterpolation} -> {svgColourServerFallback} ({svgVisualElement.GetType().Name})");
                                 var skColorShader = colorInterpolation == SvgColourInterpolation.LinearRGB ?
                                     SKShader.CreateColor(skColor, s_linearRGB) :
-                                    SKShader.CreateColor(skColor);
+                                    SKShader.CreateColor(skColor, s_sRGB);
 #else
                                 var skColorShader = SKShader.CreateColor(skColor);
 #endif
@@ -817,7 +817,7 @@ namespace Svg.Skia
                                 Debug.WriteLine($"4 {colorInterpolation} -> {svgColourServerFallback} ({svgVisualElement.GetType().Name})");
                                 var skColorShader = colorInterpolation == SvgColourInterpolation.LinearRGB ?
                                     SKShader.CreateColor(skColor, s_linearRGB) :
-                                    SKShader.CreateColor(skColor);
+                                    SKShader.CreateColor(skColor, s_sRGB);
 #else
                                 var skColorShader = SKShader.CreateColor(skColor);
 #endif
