@@ -47,15 +47,15 @@ namespace Svg.Skia
                 default:
                     if (skSize.IsEmpty)
                     {
-                        Clip = SKRect.Create(
-                            0f,
-                            0f,
+                        Overflow = SKRect.Create(
+                            x,
+                            y,
                             Math.Abs(TransformedBounds.Left) + TransformedBounds.Width,
                             Math.Abs(TransformedBounds.Top) + TransformedBounds.Height);
                     }
                     else
                     {
-                        Clip = SKRect.Create(x, y, skSize.Width, skSize.Height);
+                        Overflow = SKRect.Create(x, y, skSize.Width, skSize.Height);
                     }
                     break;
             }
