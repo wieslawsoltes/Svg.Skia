@@ -52,7 +52,7 @@ namespace Svg.Skia
                 case SvgOverflow.Inherit:
                     break;
                 default:
-                    Clip = SKRect.Create(x, y, width, height);
+                    Overflow = SKRect.Create(x, y, width, height);
                     break;
             }
 
