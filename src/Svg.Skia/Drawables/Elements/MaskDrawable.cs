@@ -156,7 +156,7 @@ namespace Svg.Skia
 
             CreateChildren(svgMask, skOwnerBounds, root, this, ignoreAttributes);
 
-            Overflow = skRectTransformed; // TODO: Use Overflow ?
+            Overflow = skRectTransformed;
 
             IsAntialias = SvgPaintingExtensions.IsAntialias(svgMask);
 
