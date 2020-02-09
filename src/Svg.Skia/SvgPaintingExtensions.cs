@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using SkiaSharp;
 using Svg.DataTypes;
@@ -174,6 +175,7 @@ namespace Svg.Skia
         {
 #if USE_COLORSPACE
             var colorInterpolation = GetColorInterpolation(svgLinearGradientServer);
+            Debug.WriteLine($"{colorInterpolation} -> {svgLinearGradientServer}");
 #endif
             var normalizedX1 = svgLinearGradientServer.X1.Normalize(svgLinearGradientServer.GradientUnits);
             var normalizedY1 = svgLinearGradientServer.Y1.Normalize(svgLinearGradientServer.GradientUnits);
@@ -301,6 +303,7 @@ namespace Svg.Skia
         {
 #if USE_COLORSPACE
             var colorInterpolation = GetColorInterpolation(svgRadialGradientServer);
+            Debug.WriteLine($"{colorInterpolation} -> {svgRadialGradientServer}");
 #endif
             var normalizedCenterX = svgRadialGradientServer.CenterX.Normalize(svgRadialGradientServer.GradientUnits);
             var normalizedCenterY = svgRadialGradientServer.CenterY.Normalize(svgRadialGradientServer.GradientUnits);
@@ -703,6 +706,7 @@ namespace Svg.Skia
                         var skColor = GetColor(svgColourServer, opacity, ignoreAttributes);
 #if USE_COLORSPACE
                         var colorInterpolation = GetColorInterpolation(svgColourServer);
+                        Debug.WriteLine($"{colorInterpolation} -> {svgColourServer}");
                         var skColorShader = colorInterpolation == SvgColourInterpolation.LinearRGB ?
                             SKShader.CreateColor(skColor, s_linearRGB) :
                             SKShader.CreateColor(skColor);
@@ -731,6 +735,7 @@ namespace Svg.Skia
                                 var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
 #if USE_COLORSPACE
                                 var colorInterpolation = GetColorInterpolation(svgColourServerFallback);
+                                Debug.WriteLine($"{colorInterpolation} -> {svgColourServerFallback}");
                                 var skColorShader = colorInterpolation == SvgColourInterpolation.LinearRGB ?
                                     SKShader.CreateColor(skColor, s_linearRGB) :
                                     SKShader.CreateColor(skColor);
@@ -760,6 +765,7 @@ namespace Svg.Skia
                                 var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
 #if USE_COLORSPACE
                                 var colorInterpolation = GetColorInterpolation(svgColourServerFallback);
+                                Debug.WriteLine($"{colorInterpolation} -> {svgColourServerFallback}");
                                 var skColorShader = colorInterpolation == SvgColourInterpolation.LinearRGB ?
                                     SKShader.CreateColor(skColor, s_linearRGB) :
                                     SKShader.CreateColor(skColor);
@@ -803,6 +809,7 @@ namespace Svg.Skia
                                 var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
 #if USE_COLORSPACE
                                 var colorInterpolation = GetColorInterpolation(svgColourServerFallback);
+                                Debug.WriteLine($"{colorInterpolation} -> {svgColourServerFallback}");
                                 var skColorShader = colorInterpolation == SvgColourInterpolation.LinearRGB ?
                                     SKShader.CreateColor(skColor, s_linearRGB) :
                                     SKShader.CreateColor(skColor);
