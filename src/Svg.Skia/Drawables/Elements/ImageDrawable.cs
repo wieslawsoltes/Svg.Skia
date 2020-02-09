@@ -172,8 +172,8 @@ namespace Svg.Skia
                 float sy = DestRect.Height / SrcRect.Height;
                 var skTranslationMatrix = SKMatrix.MakeTranslation(dx, dy);
                 var skScaleMatrix = SKMatrix.MakeScale(sx, sy);
-                SKMatrix.PreConcat(ref skTranslationMatrix, ref skScaleMatrix);
                 SKMatrix.PreConcat(ref Transform, ref skTranslationMatrix);
+                SKMatrix.PreConcat(ref Transform, ref skScaleMatrix);
             }
 
             Fill = null;
