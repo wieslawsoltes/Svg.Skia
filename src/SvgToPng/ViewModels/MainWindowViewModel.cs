@@ -143,22 +143,27 @@ namespace SvgToPng.ViewModels
                 }
 
                 using var codec = SKCodec.Create(new SKFileStream(item.ReferencePngPath));
-                var referenceBitmap = new SKBitmap(codec.Info.Width, codec.Info.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
-                codec.GetPixels(referenceBitmap.Info, referenceBitmap.GetPixels());
-                if (referenceBitmap == null)
+#if USE_COLORSPACE
+                var skImageInfo = new SKImageInfo(codec.Info.Width, codec.Info.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul, SvgPaintingExtensions.s_sRGB);
+#else
+                var skImageInfo = new SKImageInfo(codec.Info.Width, codec.Info.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
+#endif
+                var skReferenceBitmap = new SKBitmap(skImageInfo);
+                codec.GetPixels(skReferenceBitmap.Info, skReferenceBitmap.GetPixels());
+                if (skReferenceBitmap == null)
                 {
                     return;
                 }
 
-                item.ReferencePng = referenceBitmap;
+                item.ReferencePng = skReferenceBitmap;
 
-                float scaleX = referenceBitmap.Width / item.Picture.CullRect.Width;
-                float scaleY = referenceBitmap.Height / item.Picture.CullRect.Height;
+                float scaleX = skReferenceBitmap.Width / item.Picture.CullRect.Width;
+                float scaleY = skReferenceBitmap.Height / item.Picture.CullRect.Height;
 
                 using var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
-                if (svgBitmap.Width == referenceBitmap.Width && svgBitmap.Height == referenceBitmap.Height)
+                if (svgBitmap.Width == skReferenceBitmap.Width && svgBitmap.Height == skReferenceBitmap.Height)
                 {
-                    var pixelDiff = PixelDiff(referenceBitmap, svgBitmap);
+                    var pixelDiff = PixelDiff(skReferenceBitmap, svgBitmap);
                     item.PixelDiff = pixelDiff;
                 }
             }
@@ -374,7 +379,12 @@ namespace SvgToPng.ViewModels
 
         unsafe public static SKBitmap PixelDiff(SKBitmap referenceBitmap, SKBitmap svgBitmap)
         {
-            SKBitmap output = new SKBitmap(referenceBitmap.Width, referenceBitmap.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
+#if USE_COLORSPACE
+            var skImageInfo = new SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul, SvgPaintingExtensions.s_sRGB);
+#else
+            var skImageInfo = new SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
+#endif
+            var output = new SKBitmap(skImageInfo);
             byte* aPtr = (byte*)referenceBitmap.GetPixels().ToPointer();
             byte* bPtr = (byte*)svgBitmap.GetPixels().ToPointer();
             byte* outputPtr = (byte*)output.GetPixels().ToPointer();
