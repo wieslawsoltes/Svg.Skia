@@ -132,7 +132,7 @@ namespace Svg.Skia
                     SrcRect.Width * fScaleX, SrcRect.Height * fScaleY);
             }
 
-            Clip = destClip; // TODO: Use Clip ?
+            Clip = destClip;
 
             var skClipRect = SvgClippingExtensions.GetClipRect(svgImage, destClip);
             if (skClipRect != null)
