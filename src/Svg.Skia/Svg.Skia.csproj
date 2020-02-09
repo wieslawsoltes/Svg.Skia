@@ -47,6 +47,9 @@
     <DefineConstants>$(DefineConstants);USE_NEW_MASK_PROPS</DefineConstants>
     <DefineConstants>$(DefineConstants);USE_NEW_FONT_STRETCH_PROP</DefineConstants>
   </PropertyGroup>-->
+  <!--<PropertyGroup>
+    <DefineConstants>$(DefineConstants);USE_COLORSPACE</DefineConstants>
+  </PropertyGroup>-->
 
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />
