@@ -464,7 +464,6 @@ namespace Svg.Skia
                         skColors, skColorPos,
                         shaderTileMode);
 #endif
-
                 }
             }
         }
