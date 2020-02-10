@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Forms.Integration;
 using System.Windows.Input;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
@@ -61,7 +60,6 @@ namespace SvgToPng
             TextItemsFilter.TextChanged += TextItemsFilter_TextChanged;
             CheckShowPassed.Click += CheckShowPassed_Click;
             CheckShowFailed.Click += CheckShowFailed_Click;
-            CheckOpenGL.Click += CheckOpenGL_Click;
 
             items.SelectionChanged += Items_SelectionChanged;
             items.MouseDoubleClick += Items_MouseDoubleClick;
@@ -70,11 +68,6 @@ namespace SvgToPng
             skElementSvg.PaintSurface += OnPaintCanvasSvg;
             skElementPng.PaintSurface += OnPaintCanvasPng;
             skElementDiff.PaintSurface += OnPaintCanvasDiff;
-
-            bool useOpenGL = false;
-            ToggleOpenGL(useOpenGL);
-            CheckOpenGL.IsChecked = useOpenGL;
-
 #if DEBUG
             skElementSvg.MouseMove += Svg_MouseMove;
 #endif
@@ -150,11 +143,6 @@ namespace SvgToPng
         private void TextItemsFilter_TextChanged(object sender, TextChangedEventArgs e)
         {
             VM.ItemsView.Refresh();
-        }
-
-        private void CheckOpenGL_Click(object sender, RoutedEventArgs e)
-        {
-            ToggleOpenGL(CheckOpenGL.IsChecked == true);
         }
 
         private void CheckShowFailed_Click(object sender, RoutedEventArgs e)
@@ -505,68 +493,11 @@ namespace SvgToPng
             VM.UpdateItem(item, (text) => TextOpenTime.Text = text, (text) => TextToPictureTime.Text = text);
         }
 
-        private void ToggleOpenGL(bool useOpenGL)
-        {
-            if (useOpenGL)
-            {
-                skElementSvg.Visibility = Visibility.Collapsed;
-                skElementPng.Visibility = Visibility.Collapsed;
-                skElementDiff.Visibility = Visibility.Collapsed;
-                glHostSvg.Visibility = Visibility.Visible;
-                glHostPng.Visibility = Visibility.Visible;
-                glHostDiff.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                skElementSvg.Visibility = Visibility.Visible;
-                skElementPng.Visibility = Visibility.Visible;
-                skElementDiff.Visibility = Visibility.Visible;
-                glHostSvg.Visibility = Visibility.Collapsed;
-                glHostPng.Visibility = Visibility.Collapsed;
-                glHostDiff.Visibility = Visibility.Collapsed;
-            }
-        }
-
         private void Invalidate()
         {
             skElementSvg.InvalidateVisual();
             skElementPng.InvalidateVisual();
             skElementDiff.InvalidateVisual();
-            glHostSvg.Child?.Invalidate();
-            glHostPng.Child?.Invalidate();
-            glHostDiff.Child?.Invalidate();
-        }
-
-        private void OnGLControlHostSvg(object sender, EventArgs e)
-        {
-            var glControl = new SKGLControl();
-            glControl.PaintSurface += OnPaintGLSvg;
-            glControl.Dock = System.Windows.Forms.DockStyle.None;
-            var host = (WindowsFormsHost)sender;
-            host.Child = glControl;
-        }
-
-        private void OnGLControlHostPng(object sender, EventArgs e)
-        {
-            var glControl = new SKGLControl();
-            glControl.PaintSurface += OnPaintGLPng;
-            glControl.Dock = System.Windows.Forms.DockStyle.None;
-            var host = (WindowsFormsHost)sender;
-            host.Child = glControl;
-        }
-
-        private void OnGLControlHostDiff(object sender, EventArgs e)
-        {
-            var glControl = new SKGLControl();
-            glControl.PaintSurface += OnPaintGLDiff;
-            glControl.Dock = System.Windows.Forms.DockStyle.None;
-            var host = (WindowsFormsHost)sender;
-            host.Child = glControl;
-        }
-
-        private void OnPaintGLSvg(object sender, SKPaintGLSurfaceEventArgs e)
-        {
-            OnPaintSurfaceSvg(e.Surface.Canvas, e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
         }
 
         private void OnPaintCanvasSvg(object sender, SKPaintSurfaceEventArgs e)
@@ -574,19 +505,9 @@ namespace SvgToPng
             OnPaintSurfaceSvg(e.Surface.Canvas, e.Info.Width, e.Info.Height);
         }
 
-        private void OnPaintGLPng(object sender, SKPaintGLSurfaceEventArgs e)
-        {
-            OnPaintSurfacePng(e.Surface.Canvas, e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
-        }
-
         private void OnPaintCanvasPng(object sender, SKPaintSurfaceEventArgs e)
         {
             OnPaintSurfacePng(e.Surface.Canvas, e.Info.Width, e.Info.Height);
-        }
-
-        private void OnPaintGLDiff(object sender, SKPaintGLSurfaceEventArgs e)
-        {
-            OnPaintSurfaceDiff(e.Surface.Canvas, e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
         }
 
         private void OnPaintCanvasDiff(object sender, SKPaintSurfaceEventArgs e)
@@ -610,8 +531,6 @@ namespace SvgToPng
                     {
                         skElementSvg.Width = pwidth;
                         skElementSvg.Height = pheight;
-                        glHostSvg.Width = pwidth;
-                        glHostSvg.Height = pheight;
                         canvas.DrawPicture(item.Picture);
                     }
                 }
@@ -638,8 +557,6 @@ namespace SvgToPng
                 {
                     skElementPng.Width = pwidth;
                     skElementPng.Height = pheight;
-                    glHostPng.Width = pwidth;
-                    glHostPng.Height = pheight;
                     canvas.DrawBitmap(item.ReferencePng, 0f, 0f);
                 }
             }
@@ -657,8 +574,6 @@ namespace SvgToPng
                 {
                     skElementDiff.Width = pwidth;
                     skElementDiff.Height = pheight;
-                    glHostDiff.Width = pwidth;
-                    glHostDiff.Height = pheight;
                     canvas.DrawBitmap(item.PixelDiff, 0f, 0f);
                 }
             }
