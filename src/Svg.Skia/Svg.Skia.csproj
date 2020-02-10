@@ -35,20 +35,16 @@
   </ItemGroup>-->
 
   <!--<PropertyGroup>
+    <DefineConstants>$(DefineConstants);USE_NEW_MASK_PROPS</DefineConstants>
+    <DefineConstants>$(DefineConstants);USE_NEW_FONT_STRETCH_PROP</DefineConstants>
+    <DefineConstants>$(DefineConstants);USE_NEW_STDDEVIATION</DefineConstants>
     <DefineConstants>$(DefineConstants);USE_NEW_FILTERS</DefineConstants>
   </PropertyGroup>-->
   <!--<PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_NEW_STDDEVIATION</DefineConstants>
+    <DefineConstants>$(DefineConstants);USE_COLORSPACE</DefineConstants>
   </PropertyGroup>-->
   <!--<PropertyGroup>
     <DefineConstants>$(DefineConstants);USE_EXPERIMENTAL_LINEAR_RGB</DefineConstants>
-  </PropertyGroup>-->
-  <!--<PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_NEW_MASK_PROPS</DefineConstants>
-    <DefineConstants>$(DefineConstants);USE_NEW_FONT_STRETCH_PROP</DefineConstants>
-  </PropertyGroup>-->
-  <!--<PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_COLORSPACE</DefineConstants>
   </PropertyGroup>-->
 
   <ItemGroup>
