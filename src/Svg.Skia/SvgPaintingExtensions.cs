@@ -566,13 +566,13 @@ namespace Svg.Skia
                 }
                 if (firstPatternUnit == null)
                 {
-                    var pPatternUnits = p.PatternUnits;
 #if USE_PATTERN_UNITS_FIX
                     if (p.HasPatternUnits())
                     {
                         firstPatternUnit = p;
                     }
 #else
+                    var pPatternUnits = p.PatternUnits;
                     if (pPatternUnits != SvgCoordinateUnits.Inherit)
                     {
                         firstPatternUnit = p;
@@ -581,13 +581,13 @@ namespace Svg.Skia
                 }
                 if (firstPatternContentUnit == null)
                 {
-                    var pPatternContentUnits = p.PatternContentUnits;
 #if USE_PATTERN_UNITS_FIX
                     if (p.HasPatternContentUnits())
                     {
                         firstPatternContentUnit = p;
                     }
 #else
+                    var pPatternContentUnits = p.PatternContentUnits;
                     if (pPatternContentUnits != SvgCoordinateUnits.Inherit)
                     {
                         firstPatternContentUnit = p;
