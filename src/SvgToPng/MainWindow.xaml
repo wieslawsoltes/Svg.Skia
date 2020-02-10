@@ -133,7 +133,6 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid>
                                 <views:SKElement x:Name="skElementSvg" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
-                                <WindowsFormsHost x:Name="glHostSvg" Initialized="OnGLControlHostSvg" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible" />
                             </Grid>
                         </ScrollViewer>
                     </Border>
@@ -143,7 +142,6 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid>
                                 <views:SKElement x:Name="skElementPng" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
-                                <WindowsFormsHost x:Name="glHostPng" Initialized="OnGLControlHostPng" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible" />
                             </Grid>
                         </ScrollViewer>
                     </Border>
@@ -168,7 +166,6 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
@@ -212,7 +209,6 @@
                             <Button x:Name="ButtonReferencePath" Content="..." Padding="4,1,4,1" Margin="2,3,2,0" Grid.Row="5" Grid.Column="2" Click="ButtonReferencePath_Click"/>
                             <CheckBox x:Name="CheckDrawReference" Content="Draw Reference" IsChecked="True" Padding="0" Margin="2,2,2,1" Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2"/>
                             <CheckBox x:Name="CheckDrawDiff" Content="Draw Diff" IsChecked="True" Padding="0" Margin="2,2,2,1" Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2"/>
-                            <CheckBox x:Name="CheckOpenGL" Content="Use OpenGL" IsChecked="False" Padding="0" Margin="2,2,2,1" Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2"/>
                         </Grid>
                     </Border>
                     <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"/>
@@ -221,7 +217,6 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid>
                                 <views:SKElement x:Name="skElementDiff" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
-                                <WindowsFormsHost x:Name="glHostDiff" Initialized="OnGLControlHostDiff" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible" />
                             </Grid>
                         </ScrollViewer>
                     </Border>
