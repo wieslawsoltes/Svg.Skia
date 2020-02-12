@@ -7,12 +7,6 @@ namespace Svg.Skia
 {
     public static class SKPictureExtensions
     {
-        public static SKAlphaType s_alphaType = SKAlphaType.Unpremul;
-
-        public static SKColorType s_colorType = SKImageInfo.PlatformColorType;
-#if USE_COLORSPACE
-        public static SKColorSpace s_colorSpace = SKColorSpace.CreateSrgb();
-#endif
         public static void Draw(this SKPicture skPicture, SKColor background, float scaleX, float scaleY, SKCanvas skCanvas)
         {
             skCanvas.DrawColor(background);
@@ -22,14 +16,14 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        public static SKBitmap? ToBitmap(this SKPicture skPicture, SKColor background, float scaleX, float scaleY, SKColorType skColorType, SKAlphaType skAlphaType)
+        public static SKBitmap? ToBitmap(this SKPicture skPicture, SKColor background, float scaleX, float scaleY, SKColorType skColorType, SKAlphaType skAlphaType, SKColorSpace skColorSpace)
         {
             float width = skPicture.CullRect.Width * scaleX;
             float height = skPicture.CullRect.Height * scaleY;
             if (width > 0 && height > 0)
             {
 #if USE_COLORSPACE
-                var skImageInfo = new SKImageInfo((int)width, (int)height, skColorType, skAlphaType, s_colorSpace);
+                var skImageInfo = new SKImageInfo((int)width, (int)height, skColorType, skAlphaType, skColorSpace);
 #else
                 var skImageInfo = new SKImageInfo((int)width, (int)height, skColorType, skAlphaType);
 #endif
@@ -41,9 +35,9 @@ namespace Svg.Skia
             return null;
         }
 
-        public static bool ToImage(this SKPicture skPicture, Stream stream, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY)
+        public static bool ToImage(this SKPicture skPicture, Stream stream, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY, SKColorType skColorType, SKAlphaType skAlphaType, SKColorSpace skColorSpace)
         {
-            using (var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY, s_colorType, s_alphaType))
+            using (var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY, skColorType, skAlphaType, skColorSpace))
             {
                 if (skBitmap == null)
                 {

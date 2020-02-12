@@ -9,6 +9,12 @@ namespace Svg.Skia
 {
     public class SKSvg : IDisposable
     {
+        public static SKAlphaType s_alphaType = SKAlphaType.Unpremul;
+
+        public static SKColorType s_colorType = SKImageInfo.PlatformColorType;
+
+        public static SKColorSpace s_colorSpace = SKColorSpace.CreateSrgb();
+
         static SKSvg()
         {
             SvgDocument.SkipGdiPlusCapabilityCheck = true;
@@ -198,7 +204,7 @@ namespace Svg.Skia
         {
             if (Picture != null)
             {
-                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY);
+                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SvgPaintingExtensions.s_sRGB);
             }
             return false;
         }
@@ -208,7 +214,7 @@ namespace Svg.Skia
             if (Picture != null)
             {
                 using var stream = File.OpenWrite(path);
-                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY);
+                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SvgPaintingExtensions.s_sRGB);
             }
             return false;
 

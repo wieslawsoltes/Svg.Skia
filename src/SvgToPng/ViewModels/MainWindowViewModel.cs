@@ -144,9 +144,9 @@ namespace SvgToPng.ViewModels
 
                 using var codec = SKCodec.Create(new SKFileStream(item.ReferencePngPath));
 #if USE_COLORSPACE
-                var skImageInfo = new SKImageInfo(codec.Info.Width, codec.Info.Height, SKPictureExtensions.s_colorType, SKPictureExtensions.s_alphaType, SKPictureExtensions.s_colorSpace);
+                var skImageInfo = new SKImageInfo(codec.Info.Width, codec.Info.Height, SKSvg.s_colorType, SKSvg.s_alphaType, SKSvg.s_colorSpace);
 #else
-                var skImageInfo = new SKImageInfo(codec.Info.Width, codec.Info.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
+                var skImageInfo = new SKImageInfo(codec.Info.Width, codec.Info.Height, SKSvg.s_colorType, SKSvg.s_alphaType);
 #endif
                 var skReferenceBitmap = new SKBitmap(skImageInfo);
                 codec.GetPixels(skReferenceBitmap.Info, skReferenceBitmap.GetPixels());
@@ -160,9 +160,9 @@ namespace SvgToPng.ViewModels
                 float scaleX = skReferenceBitmap.Width / item.Picture.CullRect.Width;
                 float scaleY = skReferenceBitmap.Height / item.Picture.CullRect.Height;
 #if USE_COLORSPACE
-                using var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKPictureExtensions.s_colorType, SKPictureExtensions.s_alphaType);
+                using var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType, SKSvg.s_colorSpace);
 #else
-                using var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKPictureExtensions.s_colorType, SKPictureExtensions.s_alphaType);
+                using var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType);
 #endif
                 if (svgBitmap.Width == skReferenceBitmap.Width && svgBitmap.Height == skReferenceBitmap.Height)
                 {
@@ -263,7 +263,7 @@ namespace SvgToPng.ViewModels
                 if (picture != null)
                 {
                     using var stream = File.OpenWrite(outputPath);
-                    picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY);
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType, SKSvg.s_colorSpace);
                 }
             }
             else if (string.Compare(extension, ".jpg", StringComparison.OrdinalIgnoreCase) == 0)
@@ -273,7 +273,7 @@ namespace SvgToPng.ViewModels
                 if (picture != null)
                 {
                     using var stream = File.OpenWrite(outputPath);
-                    picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY);
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType, SKSvg.s_colorSpace);
                 }
             }
             else if (string.Compare(extension, ".png", StringComparison.OrdinalIgnoreCase) == 0)
@@ -283,7 +283,7 @@ namespace SvgToPng.ViewModels
                 if (picture != null)
                 {
                     using var stream = File.OpenWrite(outputPath);
-                    picture.ToImage(stream, background, SKEncodedImageFormat.Png, 100, scaleX, scaleY);
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Png, 100, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType, SKSvg.s_colorSpace);
                 }
             }
             else if (string.Compare(extension, ".webp", StringComparison.OrdinalIgnoreCase) == 0)
@@ -293,7 +293,7 @@ namespace SvgToPng.ViewModels
                 if (picture != null)
                 {
                     using var stream = File.OpenWrite(outputPath);
-                    picture.ToImage(stream, background, SKEncodedImageFormat.Webp, 100, scaleX, scaleY);
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Webp, 100, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType, SKSvg.s_colorSpace);
                 }
             }
 
@@ -383,9 +383,9 @@ namespace SvgToPng.ViewModels
         unsafe public static SKBitmap PixelDiff(SKBitmap referenceBitmap, SKBitmap svgBitmap)
         {
 #if USE_COLORSPACE
-            var skImageInfo = new SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, SKPictureExtensions.s_colorType, SKPictureExtensions.s_alphaType, SKPictureExtensions.s_colorSpace);
+            var skImageInfo = new SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, SKSvg.s_colorType, SKSvg.s_alphaType, SKSvg.s_colorSpace);
 #else
-            var skImageInfo = new SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, SKPictureExtensions.s_colorType, SKPictureExtensions.s_alphaType);
+            var skImageInfo = new SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, SKSvg.s_colorType, SKSvg.s_alphaType);
 #endif
             var output = new SKBitmap(skImageInfo);
             byte* aPtr = (byte*)referenceBitmap.GetPixels().ToPointer();
