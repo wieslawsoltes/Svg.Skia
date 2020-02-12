@@ -263,7 +263,11 @@ namespace SvgToPng.ViewModels
                 if (picture != null)
                 {
                     using var stream = File.OpenWrite(outputPath);
+#if USE_COLORSPACE
                     picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType, SKSvg.s_colorSpace);
+#else
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType);
+#endif
                 }
             }
             else if (string.Compare(extension, ".jpg", StringComparison.OrdinalIgnoreCase) == 0)
@@ -273,7 +277,11 @@ namespace SvgToPng.ViewModels
                 if (picture != null)
                 {
                     using var stream = File.OpenWrite(outputPath);
+#if USE_COLORSPACE
                     picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType, SKSvg.s_colorSpace);
+#else
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType);
+#endif
                 }
             }
             else if (string.Compare(extension, ".png", StringComparison.OrdinalIgnoreCase) == 0)
@@ -283,7 +291,11 @@ namespace SvgToPng.ViewModels
                 if (picture != null)
                 {
                     using var stream = File.OpenWrite(outputPath);
+#if USE_COLORSPACE
                     picture.ToImage(stream, background, SKEncodedImageFormat.Png, 100, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType, SKSvg.s_colorSpace);
+#else
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Png, 100, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType);
+#endif
                 }
             }
             else if (string.Compare(extension, ".webp", StringComparison.OrdinalIgnoreCase) == 0)
@@ -293,7 +305,11 @@ namespace SvgToPng.ViewModels
                 if (picture != null)
                 {
                     using var stream = File.OpenWrite(outputPath);
+#if USE_COLORSPACE
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Webp, 100, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType);
+#else
                     picture.ToImage(stream, background, SKEncodedImageFormat.Webp, 100, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType, SKSvg.s_colorSpace);
+#endif
                 }
             }
 
