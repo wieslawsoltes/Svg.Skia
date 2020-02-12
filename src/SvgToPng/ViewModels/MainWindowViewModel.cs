@@ -306,9 +306,9 @@ namespace SvgToPng.ViewModels
                 {
                     using var stream = File.OpenWrite(outputPath);
 #if USE_COLORSPACE
-                    picture.ToImage(stream, background, SKEncodedImageFormat.Webp, 100, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType);
-#else
                     picture.ToImage(stream, background, SKEncodedImageFormat.Webp, 100, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType, SKSvg.s_colorSpace);
+#else
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Webp, 100, scaleX, scaleY, SKSvg.s_colorType, SKSvg.s_alphaType);
 #endif
                 }
             }
