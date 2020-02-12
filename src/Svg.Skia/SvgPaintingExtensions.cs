@@ -11,6 +11,10 @@ namespace Svg.Skia
 {
     public static class SvgPaintingExtensions
     {
+        public static SKColorSpace s_linearRGB = SKColorSpace.CreateSrgbLinear();
+
+        public static SKColorSpace s_sRGB = SKColorSpace.CreateSrgb();
+
         public static SKColor TransparentBlack = new SKColor(0, 0, 0, 255);
 
         public static float AdjustSvgOpacity(float opacity)
@@ -166,10 +170,6 @@ namespace Svg.Skia
             }
             return SvgColourInterpolation.LinearRGB;
         }
-
-        public static SKColorSpace s_linearRGB = SKColorSpace.CreateSrgbLinear();
-
-        public static SKColorSpace s_sRGB = SKColorSpace.CreateSrgb();
 #endif
         public static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
         {
