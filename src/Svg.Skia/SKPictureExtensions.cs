@@ -15,8 +15,11 @@ namespace Svg.Skia
             skCanvas.DrawPicture(skPicture);
             skCanvas.Restore();
         }
-
+#if USE_COLORSPACE
         public static SKBitmap? ToBitmap(this SKPicture skPicture, SKColor background, float scaleX, float scaleY, SKColorType skColorType, SKAlphaType skAlphaType, SKColorSpace skColorSpace)
+#else
+        public static SKBitmap? ToBitmap(this SKPicture skPicture, SKColor background, float scaleX, float scaleY, SKColorType skColorType, SKAlphaType skAlphaType)
+#endif
         {
             float width = skPicture.CullRect.Width * scaleX;
             float height = skPicture.CullRect.Height * scaleY;
