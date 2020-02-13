@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
+        xmlns:local="clr-namespace:SvgToPng"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen" WindowState="Maximized"
         UseLayoutRounding="True" SnapsToDevicePixels="True"
@@ -132,7 +133,7 @@
                     <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="0" Grid.Row="1">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid>
-                                <views:SKElement x:Name="skElementSvg" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
+                                <local:SKElement x:Name="skElementSvg" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
                             </Grid>
                         </ScrollViewer>
                     </Border>
@@ -141,7 +142,7 @@
                     <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="2" Grid.Row="1">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid>
-                                <views:SKElement x:Name="skElementPng" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
+                                <local:SKElement x:Name="skElementPng" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
                             </Grid>
                         </ScrollViewer>
                     </Border>
@@ -216,7 +217,7 @@
                     <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="2" Grid.Row="1">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid>
-                                <views:SKElement x:Name="skElementDiff" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
+                                <local:SKElement x:Name="skElementDiff" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
                             </Grid>
                         </ScrollViewer>
                     </Border>
