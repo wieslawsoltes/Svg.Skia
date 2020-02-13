@@ -9,11 +9,11 @@ namespace Svg.Skia
 {
     public class SKSvg : IDisposable
     {
-        public static SKAlphaType s_alphaType = SKAlphaType.Unpremul;
+        public static SKAlphaType s_alphaType = SKAlphaType.Unpremul; // SKAlphaType.Unpremul, SKAlphaType.Premul
 
-        public static SKColorType s_colorType = SKImageInfo.PlatformColorType;
+        public static SKColorType s_colorType = SKImageInfo.PlatformColorType; // SKImageInfo.PlatformColorType, SKColorType.RgbaF16
 
-        public static SKColorSpace s_colorSpace = SKColorSpace.CreateSrgb();
+        public static SKColorSpace s_colorSpace = SKColorSpace.CreateSrgb(); // SKColorSpace.CreateSrgbLinear(), SKColorSpace.CreateSrgb()
 
         static SKSvg()
         {
@@ -68,7 +68,19 @@ namespace Svg.Skia
 
             using var skPictureRecorder = new SKPictureRecorder();
             using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
+#if USE_EXPERIMENTAL_LINEAR_RGB
+            // TODO:
+            using var skPaint = new SKPaint();
+            using var skColorFilter = SKColorFilter.CreateTable(null, Drawable.s_LinearRGBtoSRGB, Drawable.s_LinearRGBtoSRGB, Drawable.s_LinearRGBtoSRGB);
+            using var skImageFilter = SKImageFilter.CreateColorFilter(skColorFilter);
+            skPaint.ImageFilter = skImageFilter;
+            skCanvas.SaveLayer(skPaint);
+#endif
             drawable?.Draw(skCanvas, 0f, 0f);
+#if USE_EXPERIMENTAL_LINEAR_RGB
+            // TODO:
+            skCanvas.Restore();
+#endif
             return skPictureRecorder.EndRecording();
         }
 
@@ -205,7 +217,7 @@ namespace Svg.Skia
             if (Picture != null)
             {
 #if USE_COLORSPACE
-                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SvgPaintingExtensions.s_sRGB);
+                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Unpremul, SvgPaintingExtensions.Srgb);
 #else
                 return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul);
 #endif
@@ -219,7 +231,7 @@ namespace Svg.Skia
             {
                 using var stream = File.OpenWrite(path);
 #if USE_COLORSPACE
-                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SvgPaintingExtensions.s_sRGB);
+                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Unpremul, SvgPaintingExtensions.Srgb);
 #else
                 return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul);
 #endif
