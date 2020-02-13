@@ -10,9 +10,9 @@ namespace Svg.Skia
 {
     public static class SvgPaintingExtensions
     {
-        public static SKColorSpace SrgbLinear = SKColorSpace.CreateSrgbLinear();
+        public static SKColorSpace SrgbLinear = SKColorSpace.CreateRgb(SKColorSpaceRenderTargetGamma.Linear, SKColorSpaceGamut.Srgb);
 
-        public static SKColorSpace Srgb = SKColorSpace.CreateSrgb();
+        public static SKColorSpace Srgb = SKColorSpace.CreateRgb(SKColorSpaceRenderTargetGamma.Srgb, SKColorSpaceGamut.Srgb);
 
         public static SKColor TransparentBlack = new SKColor(0, 0, 0, 255);
 
