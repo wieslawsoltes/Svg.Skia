@@ -11,7 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using SkiaSharp;
-using SkiaSharp.Views.Desktop;
+//using SkiaSharp.Views.Desktop;
 using SvgToPng.ViewModels;
 
 namespace SvgToPng
