@@ -13,8 +13,6 @@ namespace Svg.Skia
 
         public static SKColorType s_colorType = SKImageInfo.PlatformColorType; // SKImageInfo.PlatformColorType, SKColorType.RgbaF16
 
-        public static SKColorSpace s_colorSpace = SKColorSpace.CreateSrgb(); // SKColorSpace.CreateSrgbLinear(), SKColorSpace.CreateSrgb()
-
         static SKSvg()
         {
             SvgDocument.SkipGdiPlusCapabilityCheck = true;
@@ -217,7 +215,7 @@ namespace Svg.Skia
             if (Picture != null)
             {
 #if USE_COLORSPACE
-                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Unpremul, SvgPaintingExtensions.Srgb);
+                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SvgPaintingExtensions.Srgb);
 #else
                 return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul);
 #endif
@@ -231,7 +229,7 @@ namespace Svg.Skia
             {
                 using var stream = File.OpenWrite(path);
 #if USE_COLORSPACE
-                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Unpremul, SvgPaintingExtensions.Srgb);
+                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SvgPaintingExtensions.Srgb);
 #else
                 return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul);
 #endif
