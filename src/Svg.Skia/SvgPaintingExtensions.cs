@@ -798,14 +798,14 @@ namespace Svg.Skia
 #endif
                             if (skLinearGradientShader != null)
                             {
-#if USE_COLORSPACE
-                                if (!isLinearRGB)
-                                {
-                                    var skColorFilter = SKColorFilter.CreateTable(null, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB);
-                                    disposable.Add(skColorFilter);
-                                    skPaint.ColorFilter = skColorFilter;
-                                }
-#endif
+//#if USE_COLORSPACE
+//                                if (!isLinearRGB)
+//                                {
+//                                    var skColorFilter = SKColorFilter.CreateTable(null, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB);
+//                                    disposable.Add(skColorFilter);
+//                                    skPaint.ColorFilter = skColorFilter;
+//                                }
+//#endif
                                 disposable.Add(skLinearGradientShader);
                                 skPaint.Shader = skLinearGradientShader;
                                 return true;
@@ -857,14 +857,14 @@ namespace Svg.Skia
 #endif
                             if (skRadialGradientShader != null)
                             {
-#if USE_COLORSPACE
-                                if (!isLinearRGB)
-                                {
-                                    var skColorFilter = SKColorFilter.CreateTable(null, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB);
-                                    disposable.Add(skColorFilter);
-                                    skPaint.ColorFilter = skColorFilter;
-                                }
-#endif
+//#if USE_COLORSPACE
+//                                if (!isLinearRGB)
+//                                {
+//                                    var skColorFilter = SKColorFilter.CreateTable(null, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB);
+//                                    disposable.Add(skColorFilter);
+//                                    skPaint.ColorFilter = skColorFilter;
+//                                }
+//#endif
                                 disposable.Add(skRadialGradientShader);
                                 skPaint.Shader = skRadialGradientShader;
                                 return true;
