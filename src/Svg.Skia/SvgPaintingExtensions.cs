@@ -176,7 +176,10 @@ namespace Svg.Skia
                     if (server is SvgDeferredPaintServer svgDeferredPaintServer)
                     {
                         server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServer, svgVisualElement);
-                        // TODO: server is sometimes null with currentColor
+                        if (server == null)
+                        {
+                            // TODO: server is sometimes null with currentColor
+                        }
                     }
 
                     if (server is SvgColourServer stopColorSvgColourServer)
