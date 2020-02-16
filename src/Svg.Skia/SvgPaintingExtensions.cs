@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using SkiaSharp;
 using Svg.DataTypes;
 
@@ -192,6 +191,18 @@ namespace Svg.Skia
             }
         }
 #if USE_COLORSPACE
+        public static SKColorF[] ToSkColorF(this SKColor[] skColors)
+        {
+            var skColorsF = new SKColorF[skColors.Length];
+
+            for (int i = 0; i < skColors.Length; i++)
+            {
+                skColorsF[i] = (SKColorF)skColors[i];
+            }
+
+            return skColorsF;
+        }
+
         public static SvgColourInterpolation GetColorInterpolation(SvgElement svgElement)
         {
             switch (svgElement.ColorInterpolation)
@@ -295,7 +306,7 @@ namespace Svg.Skia
                 }
 
 #if USE_COLORSPACE
-                var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
+                var skColorsF = ToSkColorF(skColors);
                 return SKShader.CreateLinearGradient(skStart, skEnd, skColorsF, skColorSpace, skColorPos, shaderTileMode, skBoundingBoxTransform);
 #else
                 return SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode, skBoundingBoxTransform);
@@ -307,7 +318,7 @@ namespace Svg.Skia
                 {
                     var gradientTransform = SvgTransformsExtensions.ToSKMatrix(svgGradientTransform);
 #if USE_COLORSPACE
-                    var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
+                    var skColorsF = ToSkColorF(skColors);
                     return SKShader.CreateLinearGradient(skStart, skEnd, skColorsF, skColorSpace, skColorPos, shaderTileMode, gradientTransform);
 #else
                     return SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode, gradientTransform);
@@ -316,7 +327,7 @@ namespace Svg.Skia
                 else
                 {
 #if USE_COLORSPACE
-                    var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
+                    var skColorsF = ToSkColorF(skColors);
                     return SKShader.CreateLinearGradient(skStart, skEnd, skColorsF, skColorSpace, skColorPos, shaderTileMode);
 #else
                     return SKShader.CreateLinearGradient(skStart, skEnd, skColors, skColorPos, shaderTileMode);
@@ -404,7 +415,7 @@ namespace Svg.Skia
                 }
 
 #if USE_COLORSPACE
-                var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
+                var skColorsF = ToSkColorF(skColors);
                 return SKShader.CreateTwoPointConicalGradient(
                     skStart, startRadius,
                     skEnd, endRadius,
@@ -426,7 +437,7 @@ namespace Svg.Skia
                 {
                     var gradientTransform = SvgTransformsExtensions.ToSKMatrix(svgGradientTransform);
 #if USE_COLORSPACE
-                    var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
+                    var skColorsF = ToSkColorF(skColors);
                     return SKShader.CreateTwoPointConicalGradient(
                         skStart, startRadius,
                         skEnd, endRadius,
@@ -443,7 +454,7 @@ namespace Svg.Skia
                 else
                 {
 #if USE_COLORSPACE
-                    var skColorsF = skColors.Select(c => (SKColorF)c).ToArray();
+                    var skColorsF = ToSkColorF(skColors);
                     return SKShader.CreateTwoPointConicalGradient(
                         skStart, startRadius,
                         skEnd, endRadius,
