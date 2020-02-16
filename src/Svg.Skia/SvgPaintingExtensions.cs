@@ -650,6 +650,7 @@ namespace Svg.Skia
             {
                 return null;
             }
+
             var xUnit = firstX == null ? new SvgUnit(0f) : firstX.X;
             var yUnit = firstY == null ? new SvgUnit(0f) : firstY.Y;
             var widthUnit = firstWidth.Width;
