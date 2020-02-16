@@ -142,7 +142,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static List<SvgPatternServer> GetLinkedPatternServer(SvgPatternServer svgPatternServer, SvgVisualElement svgVisualElement)
+        private static List<SvgPatternServer> GetLinkedPatternServer(SvgPatternServer svgPatternServer, SvgVisualElement svgVisualElement)
         {
             var svgPatternServers = new List<SvgPatternServer>();
             var currentPatternServer = svgPatternServer;
@@ -154,7 +154,7 @@ namespace Svg.Skia
             return svgPatternServers;
         }
 
-        public static List<SvgGradientServer> GetLinkedGradientServer(SvgGradientServer svgGradientServer, SvgVisualElement svgVisualElement)
+        private static List<SvgGradientServer> GetLinkedGradientServer(SvgGradientServer svgGradientServer, SvgVisualElement svgVisualElement)
         {
             var svgGradientServers = new List<SvgGradientServer>();
             var currentGradientServer = svgGradientServer;
