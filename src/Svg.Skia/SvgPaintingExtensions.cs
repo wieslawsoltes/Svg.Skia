@@ -273,20 +273,90 @@ namespace Svg.Skia
         {
             var svgReferencedGradientServers = GetLinkedGradientServer(svgLinearGradientServer, svgVisualElement);
 
-            var svgSpreadMethod = svgLinearGradientServer.SpreadMethod;
-            var svgGradientTransform = svgLinearGradientServer.GradientTransform;
-            var svgGradientUnits = svgLinearGradientServer.GradientUnits;
-            var x1Unit = svgLinearGradientServer.X1;
-            var y1Unit = svgLinearGradientServer.Y1;
-            var x2Unit = svgLinearGradientServer.X2;
-            var y2Unit = svgLinearGradientServer.Y2;
+            SvgGradientServer? firstSpreadMethod = null;
+            SvgGradientServer? firstGradientTransform = null;
+            SvgGradientServer? firstGradientUnits = null;
+            SvgLinearGradientServer? firstX1 = null;
+            SvgLinearGradientServer? firstY1 = null;
+            SvgLinearGradientServer? firstX2 = null;
+            SvgLinearGradientServer? firstY2 = null;
 
-            // TODO: Handle referenced gradient servers properties.
+            foreach (var p in svgReferencedGradientServers)
+            {
+                if (firstSpreadMethod == null)
+                {
+                    var pSpreadMethod = p.SpreadMethod;
+                    if (pSpreadMethod != SvgGradientSpreadMethod.Pad)
+                    {
+                        firstSpreadMethod = p;
+                    }
+                }
+                if (firstGradientTransform == null)
+                {
+                    var pGradientTransform = p.GradientTransform;
+                    if (pGradientTransform != null && pGradientTransform.Count > 0)
+                    {
+                        firstGradientTransform = p;
+                    }
+                }
+                if (firstGradientUnits == null)
+                {
+                    var pGradientUnits = p.GradientUnits;
+                    if (pGradientUnits != SvgCoordinateUnits.ObjectBoundingBox)
+                    {
+                        firstGradientUnits = p;
+                    }
+                }
 
-            var normalizedX1 = x1Unit.Normalize(svgLinearGradientServer.GradientUnits);
-            var normalizedY1 = y1Unit.Normalize(svgLinearGradientServer.GradientUnits);
-            var normalizedX2 = x2Unit.Normalize(svgLinearGradientServer.GradientUnits);
-            var normalizedY2 = y2Unit.Normalize(svgLinearGradientServer.GradientUnits);
+                if (p is SvgLinearGradientServer svgLinearGradientServerHref)
+                {
+                    if (firstX1 == null)
+                    {
+                        var pX1 = svgLinearGradientServerHref.X1;
+                        if (pX1 != null && pX1 != SvgUnit.None && svgLinearGradientServerHref.GetAttribute("x1", out _) == true)
+                        {
+                            firstX1 = svgLinearGradientServerHref;
+                        }
+                    }
+                    if (firstY1 == null)
+                    {
+                        var pY1 = svgLinearGradientServerHref.Y1;
+                        if (pY1 != null && pY1 != SvgUnit.None && svgLinearGradientServerHref.GetAttribute("y1", out _) == true)
+                        {
+                            firstY1 = svgLinearGradientServerHref;
+                        }
+                    }
+                    if (firstX2 == null)
+                    {
+                        var pX2 = svgLinearGradientServerHref.X2;
+                        if (pX2 != null && pX2 != SvgUnit.None && svgLinearGradientServerHref.GetAttribute("x2", out _) == true)
+                        {
+                            firstX2 = svgLinearGradientServerHref;
+                        }
+                    }
+                    if (firstY2 == null)
+                    {
+                        var pY2 = svgLinearGradientServerHref.Y2;
+                        if (pY2 != null && pY2 != SvgUnit.None && svgLinearGradientServerHref.GetAttribute("y2", out _) == true)
+                        {
+                            firstY2 = svgLinearGradientServerHref;
+                        }
+                    }
+                }
+            }
+
+            var svgSpreadMethod = firstSpreadMethod == null ? SvgGradientSpreadMethod.Pad : firstSpreadMethod.SpreadMethod;
+            var svgGradientTransform = firstGradientTransform?.GradientTransform;
+            var svgGradientUnits = firstGradientUnits == null ? SvgCoordinateUnits.ObjectBoundingBox : firstGradientUnits.GradientUnits;
+            var x1Unit = firstX1 == null ? new SvgUnit(SvgUnitType.Percentage, 0f) : firstX1.X1;
+            var y1Unit = firstY1 == null ? new SvgUnit(SvgUnitType.Percentage, 0f) : firstY1.Y1;
+            var x2Unit = firstX2 == null ? new SvgUnit(SvgUnitType.Percentage, 100f) : firstX2.X2;
+            var y2Unit = firstY2 == null ? new SvgUnit(SvgUnitType.Percentage, 0f) : firstY2.Y2;
+
+            var normalizedX1 = x1Unit.Normalize(svgGradientUnits);
+            var normalizedY1 = y1Unit.Normalize(svgGradientUnits);
+            var normalizedX2 = x2Unit.Normalize(svgGradientUnits);
+            var normalizedY2 = y2Unit.Normalize(svgGradientUnits);
 
             float x1 = normalizedX1.ToDeviceValue(UnitRenderingType.Horizontal, svgLinearGradientServer, skBounds);
             float y1 = normalizedY1.ToDeviceValue(UnitRenderingType.Vertical, svgLinearGradientServer, skBounds);
@@ -387,33 +457,113 @@ namespace Svg.Skia
         {
             var svgReferencedGradientServers = GetLinkedGradientServer(svgRadialGradientServer, svgVisualElement);
 
-            var svgSpreadMethod = svgRadialGradientServer.SpreadMethod;
-            var svgGradientTransform = svgRadialGradientServer.GradientTransform;
-            var svgGradientUnits = svgRadialGradientServer.GradientUnits;
-            var centerXUnit = svgRadialGradientServer.CenterX;
-            var centerYUnit = svgRadialGradientServer.CenterY;
-            var focalXUnit = svgRadialGradientServer.FocalX;
-            var focalYUnit = svgRadialGradientServer.FocalY;
-            var radiusUnit = svgRadialGradientServer.Radius;
+            SvgGradientServer? firstSpreadMethod = null;
+            SvgGradientServer? firstGradientTransform = null;
+            SvgGradientServer? firstGradientUnits = null;
+            SvgRadialGradientServer? firstCenterX = null;
+            SvgRadialGradientServer? firstCenterY = null;
+            SvgRadialGradientServer? firstRadius = null;
+            SvgRadialGradientServer? firstFocalX = null;
+            SvgRadialGradientServer? firstFocalY = null;
 
-            // TODO: Handle referenced gradient servers properties.
+            foreach (var p in svgReferencedGradientServers)
+            {
+                if (firstSpreadMethod == null)
+                {
+                    var pSpreadMethod = p.SpreadMethod;
+                    if (pSpreadMethod != SvgGradientSpreadMethod.Pad)
+                    {
+                        firstSpreadMethod = p;
+                    }
+                }
+                if (firstGradientTransform == null)
+                {
+                    var pGradientTransform = p.GradientTransform;
+                    if (pGradientTransform != null && pGradientTransform.Count > 0)
+                    {
+                        firstGradientTransform = p;
+                    }
+                }
+                if (firstGradientUnits == null)
+                {
+                    var pGradientUnits = p.GradientUnits;
+                    if (pGradientUnits != SvgCoordinateUnits.ObjectBoundingBox)
+                    {
+                        firstGradientUnits = p;
+                    }
+                }
 
-            var normalizedCenterX = centerXUnit.Normalize(svgRadialGradientServer.GradientUnits);
-            var normalizedCenterY = centerYUnit.Normalize(svgRadialGradientServer.GradientUnits);
-            var normalizedFocalX = focalXUnit.Normalize(svgRadialGradientServer.GradientUnits);
-            var normalizedFocalY = focalYUnit.Normalize(svgRadialGradientServer.GradientUnits);
-            var normalizedRadius = radiusUnit.Normalize(svgRadialGradientServer.GradientUnits);
+                if (p is SvgRadialGradientServer svgRadialGradientServerHref)
+                {
+                    if (firstCenterX == null)
+                    {
+                        var pCenterX = svgRadialGradientServerHref.CenterX;
+                        if (pCenterX != null && pCenterX != SvgUnit.None && svgRadialGradientServerHref.GetAttribute("cx", out _) == true)
+                        {
+                            firstCenterX = svgRadialGradientServerHref;
+                        }
+                    }
+                    if (firstCenterY == null)
+                    {
+                        var pCenterY = svgRadialGradientServerHref.CenterY;
+                        if (pCenterY != null && pCenterY != SvgUnit.None && svgRadialGradientServerHref.GetAttribute("cy", out _) == true)
+                        {
+                            firstCenterY = svgRadialGradientServerHref;
+                        }
+                    }
+                    if (firstRadius == null)
+                    {
+                        var pRadius = svgRadialGradientServerHref.Radius;
+                        if (pRadius != null && pRadius != SvgUnit.None && svgRadialGradientServerHref.GetAttribute("r", out _) == true)
+                        {
+                            firstRadius = svgRadialGradientServerHref;
+                        }
+                    }
+                    if (firstFocalX == null)
+                    {
+                        var pFocalX = svgRadialGradientServerHref.FocalX;
+                        if (pFocalX != null && pFocalX != SvgUnit.None && svgRadialGradientServerHref.GetAttribute("fx", out _) == true)
+                        {
+                            firstFocalX = svgRadialGradientServerHref;
+                        }
+                    }
+                    if (firstFocalY == null)
+                    {
+                        var pFocalY = svgRadialGradientServerHref.FocalY;
+                        if (pFocalY != null && pFocalY != SvgUnit.None && svgRadialGradientServerHref.GetAttribute("fy", out _) == true)
+                        {
+                            firstFocalY = svgRadialGradientServerHref;
+                        }
+                    }
+                }
+            }
+
+            var svgSpreadMethod = firstSpreadMethod == null ? SvgGradientSpreadMethod.Pad : firstSpreadMethod.SpreadMethod;
+            var svgGradientTransform = firstGradientTransform?.GradientTransform;
+            var svgGradientUnits = firstGradientUnits == null ? SvgCoordinateUnits.ObjectBoundingBox : firstGradientUnits.GradientUnits;
+            var centerXUnit = firstCenterX == null ? new SvgUnit(SvgUnitType.Percentage, 50f) : firstCenterX.CenterX;
+            var centerYUnit = firstCenterY == null ? new SvgUnit(SvgUnitType.Percentage, 50f) : firstCenterY.CenterY;
+            var radiusUnit = firstRadius == null ? new SvgUnit(SvgUnitType.Percentage, 50f) : firstRadius.Radius;
+            var focalXUnit = firstFocalX == null ? centerXUnit : firstFocalX.FocalX;
+            var focalYUnit = firstFocalY == null ? centerYUnit : firstFocalY.FocalY;
+
+            var normalizedCenterX = centerXUnit.Normalize(svgGradientUnits);
+            var normalizedCenterY = centerYUnit.Normalize(svgGradientUnits);
+            var normalizedRadius = radiusUnit.Normalize(svgGradientUnits);
+            var normalizedFocalX = focalXUnit.Normalize(svgGradientUnits);
+            var normalizedFocalY = focalYUnit.Normalize(svgGradientUnits);
 
             float centerX = normalizedCenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
             float centerY = normalizedCenterY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
+
+            float startRadius = 0f;
+            float endRadius = normalizedRadius.ToDeviceValue(UnitRenderingType.Other, svgRadialGradientServer, skBounds);
+
             float focalX = normalizedFocalX.ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
             float focalY = normalizedFocalY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
 
             var skStart = new SKPoint(centerX, centerY);
             var skEnd = new SKPoint(focalX, focalY);
-
-            float startRadius = 0f;
-            float endRadius = normalizedRadius.ToDeviceValue(UnitRenderingType.Other, svgRadialGradientServer, skBounds);
 
             var colors = new List<SKColor>();
             var colorPos = new List<float>();
