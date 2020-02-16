@@ -765,7 +765,7 @@ namespace Svg.Skia
                 if (firstPatternUnit == null)
                 {
 #if USE_PATTERN_UNITS_FIX
-                    if (p.HasPatternUnits())
+                    if (p.GetAttribute("patternUnits", out _) == true /* p.HasPatternUnits() */)
                     {
                         firstPatternUnit = p;
                     }
@@ -780,7 +780,7 @@ namespace Svg.Skia
                 if (firstPatternContentUnit == null)
                 {
 #if USE_PATTERN_UNITS_FIX
-                    if (p.HasPatternContentUnits())
+                    if (p.GetAttribute("patternContentUnits", out _) == true /* p.HasPatternContentUnits() */)
                     {
                         firstPatternContentUnit = p;
                     }
