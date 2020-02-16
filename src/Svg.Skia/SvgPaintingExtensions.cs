@@ -142,7 +142,31 @@ namespace Svg.Skia
             return null;
         }
 
-        public static void GetStops(SvgGradientServer svgGradientServer, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
+        public static List<SvgPatternServer> GetLinkedPatternServer(SvgPatternServer svgPatternServer, SvgVisualElement svgVisualElement)
+        {
+            var svgPatternServers = new List<SvgPatternServer>();
+            var currentPatternServer = svgPatternServer;
+            do
+            {
+                svgPatternServers.Add(currentPatternServer);
+                currentPatternServer = SvgDeferredPaintServer.TryGet<SvgPatternServer>(currentPatternServer.InheritGradient, svgVisualElement);
+            } while (currentPatternServer != null);
+            return svgPatternServers;
+        }
+
+        public static List<SvgGradientServer> GetLinkedGradientServer(SvgGradientServer svgGradientServer, SvgVisualElement svgVisualElement)
+        {
+            var svgGradientServers = new List<SvgGradientServer>();
+            var currentGradientServer = svgGradientServer;
+            do
+            {
+                svgGradientServers.Add((SvgGradientServer)currentGradientServer);
+                currentGradientServer = SvgDeferredPaintServer.TryGet<SvgGradientServer>(currentGradientServer.InheritGradient, svgVisualElement);
+            } while (currentGradientServer != null);
+            return svgGradientServers;
+        }
+
+        private static void GetStopsImpl(SvgGradientServer svgGradientServer, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
         {
             foreach (var child in svgGradientServer.Children)
             {
@@ -166,11 +190,27 @@ namespace Svg.Skia
                     }
                 }
             }
+        }
 
-            var inheritGradient = SvgDeferredPaintServer.TryGet<SvgGradientServer>(svgGradientServer.InheritGradient, svgVisualElement);
-            if (colors.Count == 0 && inheritGradient != null)
+        public static void GetStops(SvgGradientServer svgGradientServer, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
+        {
+            GetStopsImpl(svgGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
+            if (colors.Count > 0)
             {
-                GetStops(inheritGradient, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
+                return;
+            }
+
+            var svgReferencedGradientServers = GetLinkedGradientServer(svgGradientServer, svgVisualElement);
+            foreach (var svgReferencedGradientServer in svgReferencedGradientServers)
+            {
+                if (colors.Count == 0)
+                {
+                    GetStopsImpl(svgReferencedGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
+                    if (colors.Count > 0)
+                    {
+                        return;
+                    }
+                }
             }
         }
 
@@ -505,13 +545,7 @@ namespace Svg.Skia
 
         public static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes, CompositeDisposable disposable)
         {
-            var svgPatternServers = new List<SvgPatternServer>();
-            var currentPatternServer = svgPatternServer;
-            do
-            {
-                svgPatternServers.Add(currentPatternServer);
-                currentPatternServer = SvgDeferredPaintServer.TryGet<SvgPatternServer>(currentPatternServer.InheritGradient, svgVisualElement);
-            } while (currentPatternServer != null);
+            var svgReferencedPatternServers = GetLinkedPatternServer(svgPatternServer, svgVisualElement);
 
             SvgPatternServer? firstChildren = null;
             SvgPatternServer? firstX = null;
@@ -523,7 +557,7 @@ namespace Svg.Skia
             SvgPatternServer? firstViewBox = null;
             SvgPatternServer? firstAspectRatio = null;
 
-            foreach (var p in svgPatternServers)
+            foreach (var p in svgReferencedPatternServers)
             {
                 if (firstChildren == null)
                 {
