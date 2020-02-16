@@ -192,15 +192,8 @@ namespace Svg.Skia
             }
         }
 
-        public static void GetStops(SvgGradientServer svgGradientServer, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
+        public static void GetStops(List<SvgGradientServer> svgReferencedGradientServers, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
         {
-            GetStopsImpl(svgGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
-            if (colors.Count > 0)
-            {
-                return;
-            }
-
-            var svgReferencedGradientServers = GetLinkedGradientServer(svgGradientServer, svgVisualElement);
             foreach (var svgReferencedGradientServer in svgReferencedGradientServers)
             {
                 if (colors.Count == 0)
@@ -278,10 +271,22 @@ namespace Svg.Skia
         public static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
 #endif
         {
-            var normalizedX1 = svgLinearGradientServer.X1.Normalize(svgLinearGradientServer.GradientUnits);
-            var normalizedY1 = svgLinearGradientServer.Y1.Normalize(svgLinearGradientServer.GradientUnits);
-            var normalizedX2 = svgLinearGradientServer.X2.Normalize(svgLinearGradientServer.GradientUnits);
-            var normalizedY2 = svgLinearGradientServer.Y2.Normalize(svgLinearGradientServer.GradientUnits);
+            var svgReferencedGradientServers = GetLinkedGradientServer(svgLinearGradientServer, svgVisualElement);
+
+            var svgSpreadMethod = svgLinearGradientServer.SpreadMethod;
+            var svgGradientTransform = svgLinearGradientServer.GradientTransform;
+            var svgGradientUnits = svgLinearGradientServer.GradientUnits;
+            var x1Unit = svgLinearGradientServer.X1;
+            var y1Unit = svgLinearGradientServer.Y1;
+            var x2Unit = svgLinearGradientServer.X2;
+            var y2Unit = svgLinearGradientServer.Y2;
+
+            // TODO: Handle referenced gradient servers properties.
+
+            var normalizedX1 = x1Unit.Normalize(svgLinearGradientServer.GradientUnits);
+            var normalizedY1 = y1Unit.Normalize(svgLinearGradientServer.GradientUnits);
+            var normalizedX2 = x2Unit.Normalize(svgLinearGradientServer.GradientUnits);
+            var normalizedY2 = y2Unit.Normalize(svgLinearGradientServer.GradientUnits);
 
             float x1 = normalizedX1.ToDeviceValue(UnitRenderingType.Horizontal, svgLinearGradientServer, skBounds);
             float y1 = normalizedY1.ToDeviceValue(UnitRenderingType.Vertical, svgLinearGradientServer, skBounds);
@@ -293,10 +298,10 @@ namespace Svg.Skia
             var colors = new List<SKColor>();
             var colorPos = new List<float>();
 
-            GetStops(svgLinearGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
+            GetStops(svgReferencedGradientServers, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
             AdjustStopColorPos(colorPos);
 
-            var shaderTileMode = svgLinearGradientServer.SpreadMethod switch
+            var shaderTileMode = svgSpreadMethod switch
             {
                 SvgGradientSpreadMethod.Reflect => SKShaderTileMode.Mirror,
                 SvgGradientSpreadMethod.Repeat => SKShaderTileMode.Repeat,
@@ -322,9 +327,7 @@ namespace Svg.Skia
 #endif
             }
 
-            var svgGradientTransform = svgLinearGradientServer.GradientTransform;
-
-            if (svgLinearGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
                 var skBoundingBoxTransform = new SKMatrix()
                 {
@@ -382,11 +385,24 @@ namespace Svg.Skia
         public static SKShader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
 #endif
         {
-            var normalizedCenterX = svgRadialGradientServer.CenterX.Normalize(svgRadialGradientServer.GradientUnits);
-            var normalizedCenterY = svgRadialGradientServer.CenterY.Normalize(svgRadialGradientServer.GradientUnits);
-            var normalizedFocalX = svgRadialGradientServer.FocalX.Normalize(svgRadialGradientServer.GradientUnits);
-            var normalizedFocalY = svgRadialGradientServer.FocalY.Normalize(svgRadialGradientServer.GradientUnits);
-            var normalizedRadius = svgRadialGradientServer.Radius.Normalize(svgRadialGradientServer.GradientUnits);
+            var svgReferencedGradientServers = GetLinkedGradientServer(svgRadialGradientServer, svgVisualElement);
+
+            var svgSpreadMethod = svgRadialGradientServer.SpreadMethod;
+            var svgGradientTransform = svgRadialGradientServer.GradientTransform;
+            var svgGradientUnits = svgRadialGradientServer.GradientUnits;
+            var centerXUnit = svgRadialGradientServer.CenterX;
+            var centerYUnit = svgRadialGradientServer.CenterY;
+            var focalXUnit = svgRadialGradientServer.FocalX;
+            var focalYUnit = svgRadialGradientServer.FocalY;
+            var radiusUnit = svgRadialGradientServer.Radius;
+
+            // TODO: Handle referenced gradient servers properties.
+
+            var normalizedCenterX = centerXUnit.Normalize(svgRadialGradientServer.GradientUnits);
+            var normalizedCenterY = centerYUnit.Normalize(svgRadialGradientServer.GradientUnits);
+            var normalizedFocalX = focalXUnit.Normalize(svgRadialGradientServer.GradientUnits);
+            var normalizedFocalY = focalYUnit.Normalize(svgRadialGradientServer.GradientUnits);
+            var normalizedRadius = radiusUnit.Normalize(svgRadialGradientServer.GradientUnits);
 
             float centerX = normalizedCenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
             float centerY = normalizedCenterY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
@@ -402,10 +418,10 @@ namespace Svg.Skia
             var colors = new List<SKColor>();
             var colorPos = new List<float>();
 
-            GetStops(svgRadialGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
+            GetStops(svgReferencedGradientServers, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
             AdjustStopColorPos(colorPos);
 
-            var shaderTileMode = svgRadialGradientServer.SpreadMethod switch
+            var shaderTileMode = svgSpreadMethod switch
             {
                 SvgGradientSpreadMethod.Reflect => SKShaderTileMode.Mirror,
                 SvgGradientSpreadMethod.Repeat => SKShaderTileMode.Repeat,
@@ -431,9 +447,7 @@ namespace Svg.Skia
 #endif
             }
 
-            var svgGradientTransform = svgRadialGradientServer.GradientTransform;
-
-            if (svgRadialGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
                 var skBoundingBoxTransform = new SKMatrix()
                 {
