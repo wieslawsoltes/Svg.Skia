@@ -56,8 +56,11 @@ namespace SvgToPng
             if (size.Width <= 0 || size.Height <= 0)
                 return;
 
+#if USE_COLORSPACE
             var info = new SKImageInfo(size.Width, size.Height, SKImageInfo.PlatformColorType, SKAlphaType.Premul, SvgPaintingExtensions.Srgb);
-
+#else
+            var info = new SKImageInfo(size.Width, size.Height, SKImageInfo.PlatformColorType, SKAlphaType.Premul);
+#endif
             // reset the bitmap if the size has changed
             if (bitmap == null || info.Width != bitmap.PixelWidth || info.Height != bitmap.PixelHeight)
             {
