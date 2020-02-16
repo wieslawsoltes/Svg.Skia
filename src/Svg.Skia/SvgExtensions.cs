@@ -274,6 +274,15 @@ namespace Svg.Skia
             return null;
         }
 
+        public static bool GetAttribute(this SvgElement svgElement, string name, out string value)
+        {
+            if (svgElement.TryGetAttribute(name, out value))
+            {
+                return true;
+            }
+            return false;
+        }
+
         public static T? GetUriElementReference<T>(this SvgElement svgOwnerElement, string name, HashSet<Uri> uris) where T : SvgElement
         {
             var uri = svgOwnerElement.GetUri(name);
