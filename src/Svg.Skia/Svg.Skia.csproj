@@ -22,7 +22,7 @@
   <Import Project="..\..\build\SkiaSharp.props" />
 
   <!-- Use Svg from NuGet -->
-  <Import Project="..\..\build\Svg.props" />
+  <!--<Import Project="..\..\build\Svg.props" />-->
 
   <!-- Use Svg from externals/SVG -->
   <!--<ItemGroup>
@@ -30,17 +30,17 @@
   </ItemGroup>-->
 
   <!-- Use Svg custom build -->
-  <!--<ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
-  </ItemGroup>-->
+  </ItemGroup>
 
-  <!--<PropertyGroup>
+  <PropertyGroup>
     <DefineConstants>$(DefineConstants);USE_NEW_MASK_PROPS</DefineConstants>
     <DefineConstants>$(DefineConstants);USE_NEW_FONT_STRETCH_PROP</DefineConstants>
     <DefineConstants>$(DefineConstants);USE_NEW_STDDEVIATION</DefineConstants>
     <DefineConstants>$(DefineConstants);USE_NEW_FILTERS</DefineConstants>
     <DefineConstants>$(DefineConstants);USE_PATTERN_UNITS_FIX</DefineConstants>
-  </PropertyGroup>-->
+  </PropertyGroup>
   <!--<PropertyGroup>
     <DefineConstants>$(DefineConstants);USE_COLORSPACE</DefineConstants>
   </PropertyGroup>-->
