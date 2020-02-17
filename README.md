@@ -184,20 +184,22 @@ Usage:
   Svg.Skia.Converter [options]
 
 Options:
-  -f, --files <files>                The relative or absolute path to the input files
-  -d, --directories <directories>    The relative or absolute path to the input directories
-  -o, --output <output>              The relative or absolute path to the output directory
-  -p, --pattern <pattern>            The search string to match against the names of files in the input directory
-  --format <format>                  The output image format
-  -q, --quality <quality>            The output image quality
-  -b, --background <background>      The output image background
-  -s, --scale <scale>                The output image horizontal and vertical scaling factor
-  -sx, --scaleX <scalex>             The output image horizontal scaling factor
-  -sy, --scaleY <scaley>             The output image vertical scaling factor
-  --quiet                            Set verbosity level to quiet
-  -c, --load-config <load-config>    The relative or absolute path to the config file
-  --save-config <save-config>        The relative or absolute path to the config file
-  --version                          Display version information
+  -f, --inputFiles <inputfiles>                The relative or absolute path to the input files
+  -d, --inputDirectories <inputdirectories>    The relative or absolute path to the input directories
+  -o, --outputDirectory <outputdirectory>      The relative or absolute path to the output directory
+  --outputFile <outputfile>                    The relative or absolute path to the output file
+  -p, --pattern <pattern>                      The search string to match against the names of files in the input directory
+  --format <format>                            The output image format
+  -q, --quality <quality>                      The output image quality
+  -b, --background <background>                The output image background
+  -s, --scale <scale>                          The output image horizontal and vertical scaling factor
+  --scaleX, -sx <scalex>                       The output image horizontal scaling factor
+  --scaleY, -sy <scaley>                       The output image vertical scaling factor
+  --quiet                                      Set verbosity level to quiet
+  -c, --load-config <load-config>              The relative or absolute path to the config file
+  --save-config <save-config>                  The relative or absolute path to the config file
+  --version                                    Show version information
+  -?, -h, --help                               Show help and usage information
 ```
 
 Supported formats: png, jpg, jpeg, webp, pdf, xps
