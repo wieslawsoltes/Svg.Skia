@@ -155,11 +155,15 @@ Console.WriteLine($"[{svgElement}] systemLanguage={systemLanguageString}");
 
                         foreach (var language in languages)
                         {
-                            var languageCultureInfo = CultureInfo.CreateSpecificCulture(language.Trim());
-                            if (systemLanguage.Equals(languageCultureInfo) || systemLanguage.TwoLetterISOLanguageName == languageCultureInfo.TwoLetterISOLanguageName)
+                            try
                             {
-                                hasSystemLanguage = true;
+                                var languageCultureInfo = CultureInfo.CreateSpecificCulture(language.Trim());
+                                if (systemLanguage.Equals(languageCultureInfo) || systemLanguage.TwoLetterISOLanguageName == languageCultureInfo.TwoLetterISOLanguageName)
+                                {
+                                    hasSystemLanguage = true;
+                                }
                             }
+                            catch { }
                         }
                     }
                     else

@@ -1,5 +1,9 @@
 # Svg.Skia Changelog
 
+## 0.1.5
+
+* Fixed `systemLanguage` validation.
+
 ## 0.1.4
 
 * Added `switch` element support.
