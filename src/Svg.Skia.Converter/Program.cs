@@ -64,7 +64,7 @@ namespace Svg.Skia.Converter
         }
     }
 
-    public class ConverterSettings
+    public class Settings
     {
         public FileInfo[]? InputFiles { get; set; }
         public DirectoryInfo[]? InputDirectories { get; set; }
@@ -223,7 +223,7 @@ namespace Svg.Skia.Converter
             }
         }
 
-        public static void Convert(ConverterSettings settings)
+        public static void Convert(Settings settings)
         {
             try
             {
@@ -386,7 +386,7 @@ namespace Svg.Skia.Converter
             rootCommand.AddOption(optionLoadConfig);
             rootCommand.AddOption(optionSaveConfig);
 
-            rootCommand.Handler = CommandHandler.Create((ConverterSettings converterSettings, FileInfo loadConfig, FileInfo saveConfig) =>
+            rootCommand.Handler = CommandHandler.Create((Settings settings, FileInfo loadConfig, FileInfo saveConfig) =>
             {
                 if (loadConfig != null)
                 {
@@ -401,10 +401,10 @@ namespace Svg.Skia.Converter
                         }
                     };
                     var json = File.ReadAllText(loadConfig.FullName);
-                    var loadedConverterSettings = JsonConvert.DeserializeObject<ConverterSettings>(json, jsonSerializerSettings);
-                    if (loadedConverterSettings != null)
+                    var loadedSettings = JsonConvert.DeserializeObject<Settings>(json, jsonSerializerSettings);
+                    if (loadedSettings != null)
                     {
-                        Converter.Convert(loadedConverterSettings);
+                        Converter.Convert(loadedSettings);
                     }
                 }
                 else
@@ -421,10 +421,10 @@ namespace Svg.Skia.Converter
                                 new DirectoryInfoJsonConverter()
                             }
                         };
-                        string json = JsonConvert.SerializeObject(converterSettings, jsonSerializerSettings);
+                        string json = JsonConvert.SerializeObject(settings, jsonSerializerSettings);
                         File.WriteAllText(saveConfig.FullName, json);
                     }
-                    Converter.Convert(converterSettings);
+                    Converter.Convert(settings);
                 }
             });
 
