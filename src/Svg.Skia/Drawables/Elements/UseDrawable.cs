@@ -17,7 +17,7 @@ namespace Svg.Skia
             : base(svgUse, root, parent)
         {
             IgnoreAttributes = ignoreAttributes;
-            IsDrawable = CanDraw(svgUse, IgnoreAttributes);
+            IsDrawable = CanDraw(svgUse, IgnoreAttributes) && HasFeatures(svgUse, IgnoreAttributes);
 
             if (!IsDrawable)
             {

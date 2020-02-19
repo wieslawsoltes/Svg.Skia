@@ -14,7 +14,7 @@ namespace Svg.Skia
         {
         }
 
-        protected void CreateChildren(SvgElement svgElement, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes)
+        protected virtual void CreateChildren(SvgElement svgElement, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes)
         {
             foreach (var child in svgElement.Children)
             {
@@ -27,7 +27,7 @@ namespace Svg.Skia
             }
         }
 
-        protected void CreateTransformedBounds()
+        protected virtual void CreateTransformedBounds()
         {
             foreach (var drawable in ChildrenDrawables)
             {

@@ -12,7 +12,7 @@ namespace Svg.Skia
             : base(svgRectangle, root, parent)
         {
             IgnoreAttributes = ignoreAttributes;
-            IsDrawable = CanDraw(svgRectangle, IgnoreAttributes);
+            IsDrawable = CanDraw(svgRectangle, IgnoreAttributes) && HasFeatures(svgRectangle, IgnoreAttributes);
 
             if (!IsDrawable)
             {

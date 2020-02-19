@@ -12,7 +12,12 @@ namespace Svg.Skia
             : base(svgFragment, root, parent)
         {
             IgnoreAttributes = ignoreAttributes;
-            IsDrawable = true;
+            IsDrawable = HasFeatures(svgFragment, IgnoreAttributes);
+
+            if (!IsDrawable)
+            {
+                return;
+            }
 
             var svgFragmentParent = svgFragment.Parent;
 

@@ -10,6 +10,213 @@ namespace Svg.Skia
 {
     public abstract class Drawable : SKDrawable, IFilterSource, IPictureSource
     {
+        public static CultureInfo? s_systemLanguageOverride = null;
+
+        public static HashSet<string> s_supportedFeatures = new HashSet<string>()
+        {
+            "http://www.w3.org/TR/SVG11/feature#SVG",
+            "http://www.w3.org/TR/SVG11/feature#SVGDOM",
+            "http://www.w3.org/TR/SVG11/feature#SVG-static",
+            "http://www.w3.org/TR/SVG11/feature#SVGDOM-static",
+            "http://www.w3.org/TR/SVG11/feature#SVG-animation",
+            "http://www.w3.org/TR/SVG11/feature#SVGDOM-animation",
+            "http://www.w3.org/TR/SVG11/feature#SVG-dynamic",
+            "http://www.w3.org/TR/SVG11/feature#SVGDOM-dynamic",
+            "http://www.w3.org/TR/SVG11/feature#CoreAttribute",
+            "http://www.w3.org/TR/SVG11/feature#Structure",
+            "http://www.w3.org/TR/SVG11/feature#BasicStructure",
+            "http://www.w3.org/TR/SVG11/feature#ContainerAttribute",
+            "http://www.w3.org/TR/SVG11/feature#ConditionalProcessing",
+            "http://www.w3.org/TR/SVG11/feature#Image",
+            "http://www.w3.org/TR/SVG11/feature#Style",
+            "http://www.w3.org/TR/SVG11/feature#ViewportAttribute",
+            "http://www.w3.org/TR/SVG11/feature#Shape",
+            "http://www.w3.org/TR/SVG11/feature#Text",
+            "http://www.w3.org/TR/SVG11/feature#BasicText",
+            "http://www.w3.org/TR/SVG11/feature#PaintAttribute",
+            "http://www.w3.org/TR/SVG11/feature#BasicPaintAttribute",
+            "http://www.w3.org/TR/SVG11/feature#OpacityAttribute",
+            "http://www.w3.org/TR/SVG11/feature#GraphicsAttribute",
+            "http://www.w3.org/TR/SVG11/feature#BasicGraphicsAttribute",
+            "http://www.w3.org/TR/SVG11/feature#Marker",
+            "http://www.w3.org/TR/SVG11/feature#ColorProfile",
+            "http://www.w3.org/TR/SVG11/feature#Gradient",
+            "http://www.w3.org/TR/SVG11/feature#Pattern",
+            "http://www.w3.org/TR/SVG11/feature#Clip",
+            "http://www.w3.org/TR/SVG11/feature#BasicClip",
+            "http://www.w3.org/TR/SVG11/feature#Mask",
+            "http://www.w3.org/TR/SVG11/feature#Filter",
+            "http://www.w3.org/TR/SVG11/feature#BasicFilter",
+            "http://www.w3.org/TR/SVG11/feature#DocumentEventsAttribute",
+            "http://www.w3.org/TR/SVG11/feature#GraphicalEventsAttribute",
+            "http://www.w3.org/TR/SVG11/feature#AnimationEventsAttribute",
+            "http://www.w3.org/TR/SVG11/feature#Cursor",
+            "http://www.w3.org/TR/SVG11/feature#Hyperlinking",
+            "http://www.w3.org/TR/SVG11/feature#XlinkAttribute",
+            "http://www.w3.org/TR/SVG11/feature#ExternalResourcesRequired",
+            "http://www.w3.org/TR/SVG11/feature#View",
+            "http://www.w3.org/TR/SVG11/feature#Script",
+            "http://www.w3.org/TR/SVG11/feature#Animation",
+            "http://www.w3.org/TR/SVG11/feature#Font",
+            "http://www.w3.org/TR/SVG11/feature#BasicFont",
+            "http://www.w3.org/TR/SVG11/feature#Extensibility"
+        };
+
+        public static HashSet<string> s_supportedExtensions = new HashSet<string>()
+        {
+        };
+
+        public static bool HasRequiredFeatures(SvgElement svgElement)
+        {
+            bool hasRequiredFeatures = true;
+
+            if (svgElement.GetAttribute("requiredFeatures", out var requiredFeaturesString) == true)
+            {
+                if (string.IsNullOrEmpty(requiredFeaturesString))
+                {
+                    hasRequiredFeatures = false;
+                }
+                else
+                {
+                    var features = requiredFeaturesString.Trim().Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (features.Length > 0)
+                    {
+                        foreach (var feature in features)
+                        {
+                            if (!s_supportedFeatures.Contains(feature))
+                            {
+                                hasRequiredFeatures = false;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        hasRequiredFeatures = false;
+                    }
+                }
+            }
+
+            return hasRequiredFeatures;
+        }
+
+        public static bool HasRequiredExtensions(SvgElement svgElement)
+        {
+            bool hasRequiredExtensions = true;
+
+            if (svgElement.GetAttribute("requiredExtensions", out var requiredExtensionsString) == true)
+            {
+                if (string.IsNullOrEmpty(requiredExtensionsString))
+                {
+                    hasRequiredExtensions = false;
+                }
+                else
+                {
+                    var extensions = requiredExtensionsString.Trim().Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (extensions.Length > 0)
+                    {
+                        foreach (var extension in extensions)
+                        {
+                            if (!s_supportedExtensions.Contains(extension))
+                            {
+                                hasRequiredExtensions = false;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        hasRequiredExtensions = false;
+                    }
+                }
+            }
+
+            return hasRequiredExtensions;
+        }
+
+        public static bool HasSystemLanguage(SvgElement svgElement)
+        {
+            bool hasSystemLanguage = true;
+
+            if (svgElement.GetAttribute("systemLanguage", out var systemLanguageString) == true)
+            {
+Console.WriteLine($"[{svgElement}] systemLanguage={systemLanguageString}");
+                if (string.IsNullOrEmpty(systemLanguageString))
+                {
+                    hasSystemLanguage = false;
+                }
+                else
+                {
+                    var languages = systemLanguageString.Trim().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (languages.Length > 0)
+                    {
+                        hasSystemLanguage = false;
+                        var systemLanguage = s_systemLanguageOverride != null ? s_systemLanguageOverride : CultureInfo.InstalledUICulture;
+
+                        foreach (var language in languages)
+                        {
+                            var languageCultureInfo = CultureInfo.CreateSpecificCulture(language.Trim());
+                            if (systemLanguage.Equals(languageCultureInfo) || systemLanguage.TwoLetterISOLanguageName == languageCultureInfo.TwoLetterISOLanguageName)
+                            {
+                                hasSystemLanguage = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        hasSystemLanguage = false;
+                    }
+                }
+            }
+
+            return hasSystemLanguage;
+        }
+
+        public static bool IsContainerElement(SvgElement svgElement)
+        {
+            switch (svgElement)
+            {
+                case SvgAnchor _:
+                case SvgDefinitionList _:
+                case SvgMissingGlyph _:
+                case SvgGlyph _:
+                case SvgGroup _:
+                case SvgMarker _:
+                case SvgMask _:
+                case SvgPatternServer _:
+                case SvgFragment _:
+                case SvgSwitch _:
+                case SvgSymbol _:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public static bool IsKnownElement(SvgElement svgElement)
+        {
+            switch (svgElement)
+            {
+                case SvgAnchor _:
+                case SvgCircle _:
+                case SvgEllipse _:
+                case SvgFragment _:
+                case SvgGroup _:
+                case SvgImage _:
+                case SvgLine _:
+                case SvgPath _:
+                case SvgPolyline _:
+                case SvgPolygon _:
+                case SvgRectangle _:
+                case SvgSwitch _:
+                case SvgText _:
+                case SvgUse _:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         internal CompositeDisposable _disposable = new CompositeDisposable();
 
         public SvgElement? Element;
@@ -67,7 +274,7 @@ namespace Svg.Skia
             _disposable?.Dispose();
         }
 
-        protected void CreateMaskPaints()
+        protected virtual void CreateMaskPaints()
         {
             Mask = new SKPaint()
             {
@@ -90,9 +297,17 @@ namespace Svg.Skia
             _disposable.Add(MaskDstIn);
         }
 
-        protected bool CanDraw(SvgVisualElement svgVisualElement, Attributes ignoreAttributes)
+        protected virtual bool HasFeatures(SvgElement svgElement, Attributes ignoreAttributes)
         {
-            bool visible = svgVisualElement.Visible == true;
+            bool hasRequiredFeatures = ignoreAttributes.HasFlag(Attributes.RequiredFeatures) ? true : HasRequiredFeatures(svgElement);
+            bool hasRequiredExtensions = ignoreAttributes.HasFlag(Attributes.RequiredExtensions) ? true : HasRequiredExtensions(svgElement);
+            bool hasSystemLanguage = ignoreAttributes.HasFlag(Attributes.SystemLanguage) ? true : HasSystemLanguage(svgElement);
+            return hasRequiredFeatures && hasRequiredExtensions && hasSystemLanguage;
+        }
+
+        protected virtual bool CanDraw(SvgVisualElement svgVisualElement, Attributes ignoreAttributes)
+        {
+            bool visible = ignoreAttributes.HasFlag(Attributes.Visibility) ? true : string.Equals(svgVisualElement.Visibility, "visible", StringComparison.OrdinalIgnoreCase);
             bool display = ignoreAttributes.HasFlag(Attributes.Display) ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
             return visible && display;
         }
@@ -228,27 +443,6 @@ namespace Svg.Skia
             else
             {
                 Filter = null;
-            }
-        }
-
-        public bool IsContainerElement(SvgElement svgElement)
-        {
-            switch (svgElement)
-            {
-                case SvgAnchor _:
-                case SvgDefinitionList _:
-                case SvgMissingGlyph _:
-                case SvgGlyph _:
-                case SvgGroup _:
-                case SvgMarker _:
-                case SvgMask _:
-                case SvgPatternServer _:
-                case SvgFragment _:
-                case SvgSwitch _:
-                case SvgSymbol _:
-                    return true;
-                default:
-                    return false;
             }
         }
 

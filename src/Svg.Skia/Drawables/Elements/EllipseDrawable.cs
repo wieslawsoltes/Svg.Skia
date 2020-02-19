@@ -12,7 +12,7 @@ namespace Svg.Skia
             : base(svgEllipse, root, parent)
         {
             IgnoreAttributes = ignoreAttributes;
-            IsDrawable = CanDraw(svgEllipse, IgnoreAttributes);
+            IsDrawable = CanDraw(svgEllipse, IgnoreAttributes) && HasFeatures(svgEllipse, IgnoreAttributes);
 
             if (!IsDrawable)
             {

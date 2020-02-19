@@ -301,7 +301,7 @@ namespace Svg.Skia
 
         internal void DrawTextPath(SvgTextPath svgTextPath, float currentX, float currentY, SKRect skOwnerBounds, Attributes ignoreAttributes, SKCanvas skCanvas, Drawable? until)
         {
-            if (!CanDraw(svgTextPath, ignoreAttributes))
+            if (!CanDraw(svgTextPath, ignoreAttributes) || !HasFeatures(svgTextPath, ignoreAttributes))
             {
                 return;
             }
@@ -376,7 +376,7 @@ namespace Svg.Skia
 
         internal void DrawTextRef(SvgTextRef svgTextRef, float currentX, float currentY, SKRect skOwnerBounds, Attributes ignoreAttributes, SKCanvas skCanvas, Drawable? until)
         {
-            if (!CanDraw(svgTextRef, ignoreAttributes))
+            if (!CanDraw(svgTextRef, ignoreAttributes) || !HasFeatures(svgTextRef, ignoreAttributes))
             {
                 return;
             }
@@ -411,7 +411,7 @@ namespace Svg.Skia
 
         internal void DrawTextSpan(SvgTextSpan svgTextSpan, float currentX, float currentY, SKRect skOwnerBounds, Attributes ignoreAttributes, SKCanvas skCanvas, Drawable? until)
         {
-            if (!CanDraw(svgTextSpan, ignoreAttributes))
+            if (!CanDraw(svgTextSpan, ignoreAttributes) || !HasFeatures(svgTextSpan, ignoreAttributes))
             {
                 return;
             }
@@ -435,7 +435,7 @@ namespace Svg.Skia
 
         internal void DrawText(SvgText svgText, SKRect skOwnerBounds, Attributes ignoreAttributes, SKCanvas skCanvas, Drawable? until)
         {
-            if (!CanDraw(svgText, ignoreAttributes))
+            if (!CanDraw(svgText, ignoreAttributes) || !HasFeatures(svgText, ignoreAttributes))
             {
                 return;
             }

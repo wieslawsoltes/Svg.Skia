@@ -10,7 +10,7 @@ namespace Svg.Skia
             : base(svgGroup, root, parent)
         {
             IgnoreAttributes = ignoreAttributes;
-            IsDrawable = CanDraw(svgGroup, IgnoreAttributes);
+            IsDrawable = CanDraw(svgGroup, IgnoreAttributes) && HasFeatures(svgGroup, IgnoreAttributes);
 
             // NOTE: Call AddMarkers only once.
             SvgMarkerExtensions.AddMarkers(svgGroup);

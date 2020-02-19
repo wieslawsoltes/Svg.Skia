@@ -9,9 +9,13 @@ namespace Svg.Skia
     {
         None = 0,
         Display = 1,
-        Opacity = 2,
-        Filter = 4,
-        ClipPath = 8,
-        Mask = 16
+        Visibility = 2,
+        Opacity = 4,
+        Filter = 8,
+        ClipPath = 16,
+        Mask = 32,
+        RequiredFeatures = 64,
+        RequiredExtensions = 128,
+        SystemLanguage = 256
     }
 }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -77,6 +78,7 @@ namespace Svg.Skia.Converter
         public float Scale { get; set; } = 1f;
         public float ScaleX { get; set; } = 1f;
         public float ScaleY { get; set; } = 1f;
+        public string? SystemLanguage { get; set; }
         public bool Quiet { get; set; }
     }
 
@@ -239,6 +241,11 @@ namespace Svg.Skia.Converter
                 }
             }
 
+            if (settings.SystemLanguage != null)
+            {
+                Drawable.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture(settings.SystemLanguage);
+            }
+
             var sw = Stopwatch.StartNew();
 
             int processed = 0;
@@ -283,6 +290,11 @@ namespace Svg.Skia.Converter
             }
 
             sw.Stop();
+
+            if (settings.SystemLanguage != null)
+            {
+                Drawable.s_systemLanguageOverride = null;
+            }
 
             if (paths.Count > 0)
             {
@@ -347,6 +359,11 @@ namespace Svg.Skia.Converter
                 Argument = new Argument<float>(getDefaultValue: () => 1f)
             };
 
+            var optionSystemLanguage = new Option(new[] { "--systemLanguage" }, "The system language name as defined in BCP 47")
+            {
+                Argument = new Argument<string?>(getDefaultValue: () => null)
+            };
+
             var optionQuiet = new Option(new[] { "--quiet" }, "Set verbosity level to quiet")
             {
                 Argument = new Argument<bool>()
@@ -378,6 +395,7 @@ namespace Svg.Skia.Converter
             rootCommand.AddOption(optionScale);
             rootCommand.AddOption(optionScaleX);
             rootCommand.AddOption(optionScaleY);
+            rootCommand.AddOption(optionSystemLanguage);
             rootCommand.AddOption(optionQuiet);
             rootCommand.AddOption(optionLoadConfig);
             rootCommand.AddOption(optionSaveConfig);
