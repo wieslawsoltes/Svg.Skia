@@ -68,7 +68,7 @@ namespace Svg.Skia.Converter
     {
         public FileInfo[]? InputFiles { get; set; }
         public DirectoryInfo[]? InputDirectories { get; set; }
-        public FileInfo? OutputFile { get; set; }
+        public FileInfo[]? OutputFiles { get; set; }
         public DirectoryInfo? OutputDirectory { get; set; }
         public string? Pattern { get; set; }
         public string Format { get; set; } = "png";
@@ -109,185 +109,184 @@ namespace Svg.Skia.Converter
             }
         }
 
-        static bool Save(FileInfo inputPath, FileInfo? outputFile, DirectoryInfo? outputDirectory, string format, int quality, string background, float scale, float scaleX, float scaleY, bool quiet, int i)
+        static bool Save(FileInfo inputPath, string outputPath, string format, int quality, string background, float scale, float scaleX, float scaleY, bool quiet, int i)
         {
-            try
+            if (quiet == false)
             {
-                if (quiet == false)
-                {
-                    Log($"[{i}] File: {inputPath}");
-                }
+                Log($"[{i}] File: {inputPath}");
+            }
 
-                string outputPath = string.Empty;
+            using var svg = new SKSvg();
 
-                if (outputFile != null)
+            if (svg.Load(inputPath.FullName) == null)
+            {
+                Log($"Error: Failed to load input file: {inputPath.FullName}");
+                return false;
+            }
+
+            if (string.Compare(format, "pdf", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                if (SKColor.TryParse(background, out var skBackgroundColor))
                 {
-                    outputPath = outputFile.FullName;
+                    if (scale != 1f)
+                    {
+                        svg.Picture?.ToPdf(outputPath, skBackgroundColor, scale, scale);
+                    }
+                    else
+                    {
+                        svg.Picture?.ToPdf(outputPath, skBackgroundColor, scaleX, scaleY);
+                    }
                 }
                 else
                 {
-                    var inputExtension = inputPath.Extension;
-                    outputPath = inputPath.FullName.Remove(inputPath.FullName.Length - inputExtension.Length) + "." + format.ToLower();
-                    if (outputDirectory != null && !string.IsNullOrEmpty(outputDirectory.FullName))
+                    throw new ArgumentException($"Invalid output image background.", nameof(background));
+                }
+            }
+            else if (string.Compare(format, "xps", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                if (SKColor.TryParse(background, out var skBackgroundColor))
+                {
+                    if (scale != 1f)
                     {
-                        outputPath = Path.Combine(outputDirectory.FullName, Path.GetFileName(outputPath));
+                        svg.Picture?.ToXps(outputPath, skBackgroundColor, scale, scale);
+                    }
+                    else
+                    {
+                        svg.Picture?.ToXps(outputPath, skBackgroundColor, scaleX, scaleY);
                     }
                 }
-
-                Directory.SetCurrentDirectory(Path.GetDirectoryName(inputPath.FullName));
-
-                using (var svg = new SKSvg())
+                else
                 {
-                    if (svg.Load(inputPath.FullName) != null)
+                    throw new ArgumentException($"Invalid output image background.", nameof(background));
+                }
+            }
+            else
+            {
+                if (Enum.TryParse<SKEncodedImageFormat>(format, true, out var skEncodedImageFormat))
+                {
+                    if (SKColor.TryParse(background, out var skBackgroundColor))
                     {
-                        if (string.Compare(format, "pdf", StringComparison.OrdinalIgnoreCase) == 0)
+                        if (scale != 1f)
                         {
-                            if (SKColor.TryParse(background, out var skBackgroundColor))
-                            {
-                                if (scale != 1f)
-                                {
-                                    svg.Picture?.ToPdf(outputPath, skBackgroundColor, scale, scale);
-                                }
-                                else
-                                {
-                                    svg.Picture?.ToPdf(outputPath, skBackgroundColor, scaleX, scaleY);
-                                }
-                            }
-                            else
-                            {
-                                throw new ArgumentException($"Invalid output image background.", nameof(background));
-                            }
-                        }
-                        else if (string.Compare(format, "xps", StringComparison.OrdinalIgnoreCase) == 0)
-                        {
-                            if (SKColor.TryParse(background, out var skBackgroundColor))
-                            {
-                                if (scale != 1f)
-                                {
-                                    svg.Picture?.ToXps(outputPath, skBackgroundColor, scale, scale);
-                                }
-                                else
-                                {
-                                    svg.Picture?.ToXps(outputPath, skBackgroundColor, scaleX, scaleY);
-                                }
-                            }
-                            else
-                            {
-                                throw new ArgumentException($"Invalid output image background.", nameof(background));
-                            }
+                            svg.Save(outputPath, skBackgroundColor, skEncodedImageFormat, quality, scale, scale);
                         }
                         else
                         {
-                            if (Enum.TryParse<SKEncodedImageFormat>(format, true, out var skEncodedImageFormat))
-                            {
-                                if (SKColor.TryParse(background, out var skBackgroundColor))
-                                {
-                                    if (scale != 1f)
-                                    {
-                                        svg.Save(outputPath, skBackgroundColor, skEncodedImageFormat, quality, scale, scale);
-                                    }
-                                    else
-                                    {
-                                        svg.Save(outputPath, skBackgroundColor, skEncodedImageFormat, quality, scaleX, scaleY);
-                                    }
-                                }
-                                else
-                                {
-                                    throw new ArgumentException($"Invalid output image background.", nameof(background));
-                                }
-                            }
-                            else
-                            {
-                                throw new ArgumentException($"Invalid output image format.", nameof(format));
-                            }
+                            svg.Save(outputPath, skBackgroundColor, skEncodedImageFormat, quality, scaleX, scaleY);
                         }
                     }
+                    else
+                    {
+                        throw new ArgumentException($"Invalid output image background.", nameof(background));
+                    }
                 }
-
-                if (quiet == false)
+                else
                 {
-                    Log($"[{i}] Success: {outputPath}");
+                    throw new ArgumentException($"Invalid output image format.", nameof(format));
                 }
-
-                return true;
             }
-            catch (Exception ex)
+
+            if (quiet == false)
             {
-                if (quiet == false)
-                {
-                    Log($"[{i}] Error: {inputPath}");
-                    Error(ex);
-                }
+                Log($"[{i}] Success: {outputPath}");
             }
 
-            return false;
+            return true;
         }
 
         static void Run(Settings settings)
         {
-            try
+            var paths = new List<FileInfo>();
+
+            if (settings.InputFiles != null)
             {
-                var paths = new List<FileInfo>();
-
-                if (settings.InputFiles != null)
+                foreach (var file in settings.InputFiles)
                 {
-                    foreach (var file in settings.InputFiles)
+                    paths.Add(file);
+                }
+            }
+
+            if (settings.InputDirectories != null)
+            {
+                foreach (var directory in settings.InputDirectories)
+                {
+                    if (settings.Pattern == null)
                     {
-                        paths.Add(file);
+                        GetFiles(directory, "*.svg", paths);
+                        GetFiles(directory, "*.svgz", paths);
+                    }
+                    else
+                    {
+                        GetFiles(directory, settings.Pattern, paths);
                     }
                 }
+            }
 
-                if (settings.InputDirectories != null)
+            if (settings.OutputFiles != null)
+            {
+                if (paths.Count > 0 && paths.Count != settings.OutputFiles.Length)
                 {
-                    foreach (var directory in settings.InputDirectories)
+                    Log($"Error: Number of the output files must match number of the input files.");
+                    return;
+                }
+            }
+
+            if (settings.OutputDirectory != null && !string.IsNullOrEmpty(settings.OutputDirectory.FullName))
+            {
+                if (!Directory.Exists(settings.OutputDirectory.FullName))
+                {
+                    Directory.CreateDirectory(settings.OutputDirectory.FullName);
+                }
+            }
+
+            var sw = Stopwatch.StartNew();
+
+            int processed = 0;
+
+            for (int i = 0; i < paths.Count; i++)
+            {
+                var inputPath = paths[i];
+                var outputFile = settings.OutputFiles != null ? settings.OutputFiles[i] : null;
+                try
+                {
+                    string outputPath = string.Empty;
+
+                    if (outputFile != null)
                     {
-                        if (settings.Pattern == null)
+                        outputPath = outputFile.FullName;
+                    }
+                    else
+                    {
+                        var inputExtension = inputPath.Extension;
+                        outputPath = inputPath.FullName.Remove(inputPath.FullName.Length - inputExtension.Length) + "." + settings.Format.ToLower();
+                        if (settings.OutputDirectory != null && !string.IsNullOrEmpty(settings.OutputDirectory.FullName))
                         {
-                            GetFiles(directory, "*.svg", paths);
-                            GetFiles(directory, "*.svgz", paths);
-                        }
-                        else
-                        {
-                            GetFiles(directory, settings.Pattern, paths);
+                            outputPath = Path.Combine(settings.OutputDirectory.FullName, Path.GetFileName(outputPath));
                         }
                     }
-                }
 
-                if (settings.OutputDirectory != null && !string.IsNullOrEmpty(settings.OutputDirectory.FullName))
-                {
-                    if (!Directory.Exists(settings.OutputDirectory.FullName))
-                    {
-                        Directory.CreateDirectory(settings.OutputDirectory.FullName);
-                    }
-                }
+                    Directory.SetCurrentDirectory(Path.GetDirectoryName(inputPath.FullName));
 
-                var sw = Stopwatch.StartNew();
-
-                int processed = 0;
-
-                for (int i = 0; i < paths.Count; i++)
-                {
-                    var path = paths[i];
-
-                    if (Save(path, settings.OutputFile, settings.OutputDirectory, settings.Format, settings.Quality, settings.Background, settings.Scale, settings.ScaleX, settings.ScaleY, settings.Quiet, i))
+                    if (Save(inputPath, outputPath, settings.Format, settings.Quality, settings.Background, settings.Scale, settings.ScaleX, settings.ScaleY, settings.Quiet, i))
                     {
                         processed++;
                     }
                 }
-
-                sw.Stop();
-
-                if (paths.Count > 0)
+                catch (Exception ex)
                 {
-                    Log($"Done: {sw.Elapsed} ({processed}/{paths.Count})");
+                    if (settings.Quiet == false)
+                    {
+                        Log($"[{i}] Error: {inputPath}");
+                        Error(ex);
+                    }
                 }
             }
-            catch (Exception ex)
+
+            sw.Stop();
+
+            if (paths.Count > 0)
             {
-                if (settings.Quiet == false)
-                {
-                    Error(ex);
-                }
+                Log($"Done: {sw.Elapsed} ({processed}/{paths.Count})");
             }
         }
 
@@ -308,7 +307,7 @@ namespace Svg.Skia.Converter
                 Argument = new Argument<DirectoryInfo?>(getDefaultValue: () => null)
             };
 
-            var optionOutputFile = new Option(new[] { "--outputFile" }, "The relative or absolute path to the output file")
+            var optionOutputFiles = new Option(new[] { "--outputFiles" }, "The relative or absolute path to the output files")
             {
                 Argument = new Argument<DirectoryInfo?>(getDefaultValue: () => null)
             };
@@ -371,7 +370,7 @@ namespace Svg.Skia.Converter
             rootCommand.AddOption(optionInputFiles);
             rootCommand.AddOption(optionInputDirectories);
             rootCommand.AddOption(optionOutputDirectory);
-            rootCommand.AddOption(optionOutputFile);
+            rootCommand.AddOption(optionOutputFiles);
             rootCommand.AddOption(optionPattern);
             rootCommand.AddOption(optionFormat);
             rootCommand.AddOption(optionQuality);
@@ -401,7 +400,17 @@ namespace Svg.Skia.Converter
                     var loadedSettings = JsonConvert.DeserializeObject<Settings>(json, jsonSerializerSettings);
                     if (loadedSettings != null)
                     {
-                        Run(loadedSettings);
+                        try
+                        {
+                            Run(loadedSettings);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (loadedSettings.Quiet == false)
+                            {
+                                Error(ex);
+                            }
+                        }
                     }
                 }
                 else
@@ -421,7 +430,17 @@ namespace Svg.Skia.Converter
                         string json = JsonConvert.SerializeObject(settings, jsonSerializerSettings);
                         File.WriteAllText(saveConfig.FullName, json);
                     }
-                    Run(settings);
+                    try
+                    {
+                        Run(settings);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (settings.Quiet == false)
+                        {
+                            Error(ex);
+                        }
+                    }
                 }
             });
 
