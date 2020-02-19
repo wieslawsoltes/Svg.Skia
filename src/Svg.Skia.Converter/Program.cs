@@ -1,4 +1,4 @@
-// Copyright (c) Wiesław Šoltés. All rights reserved.
+﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 using System;
 using System.Collections.Generic;
@@ -80,14 +80,14 @@ namespace Svg.Skia.Converter
         public bool Quiet { get; set; }
     }
 
-    public class Converter
+    class Program
     {
-        public static void Log(string message)
+        static void Log(string message)
         {
             Console.WriteLine(message);
         }
 
-        public static void Error(Exception ex)
+        static void Error(Exception ex)
         {
             Log($"{ex.Message}");
             Log($"{ex.StackTrace}");
@@ -97,7 +97,19 @@ namespace Svg.Skia.Converter
             }
         }
 
-        public static bool Save(FileInfo inputPath, FileInfo? outputFile, DirectoryInfo? outputDirectory, string format, int quality, string background, float scale, float scaleX, float scaleY, bool quiet, int i)
+        static void GetFiles(DirectoryInfo directory, string pattern, List<FileInfo> paths)
+        {
+            var files = Directory.EnumerateFiles(directory.FullName, pattern);
+            if (files != null)
+            {
+                foreach (var path in files)
+                {
+                    paths.Add(new FileInfo(path));
+                }
+            }
+        }
+
+        static bool Save(FileInfo inputPath, FileInfo? outputFile, DirectoryInfo? outputDirectory, string format, int quality, string background, float scale, float scaleX, float scaleY, bool quiet, int i)
         {
             try
             {
@@ -211,19 +223,7 @@ namespace Svg.Skia.Converter
             return false;
         }
 
-        public static void GetFiles(DirectoryInfo directory, string pattern, List<FileInfo> paths)
-        {
-            var files = Directory.EnumerateFiles(directory.FullName, pattern);
-            if (files != null)
-            {
-                foreach (var path in files)
-                {
-                    paths.Add(new FileInfo(path));
-                }
-            }
-        }
-
-        public static void Convert(Settings settings)
+        static void Run(Settings settings)
         {
             try
             {
@@ -290,11 +290,8 @@ namespace Svg.Skia.Converter
                 }
             }
         }
-    }
 
-    public class Program
-    {
-        public static async Task<int> Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
             var optionInputFiles = new Option(new[] { "--inputFiles", "-f" }, "The relative or absolute path to the input files")
             {
@@ -404,7 +401,7 @@ namespace Svg.Skia.Converter
                     var loadedSettings = JsonConvert.DeserializeObject<Settings>(json, jsonSerializerSettings);
                     if (loadedSettings != null)
                     {
-                        Converter.Convert(loadedSettings);
+                        Run(loadedSettings);
                     }
                 }
                 else
@@ -424,7 +421,7 @@ namespace Svg.Skia.Converter
                         string json = JsonConvert.SerializeObject(settings, jsonSerializerSettings);
                         File.WriteAllText(saveConfig.FullName, json);
                     }
-                    Converter.Convert(settings);
+                    Run(settings);
                 }
             });
 
