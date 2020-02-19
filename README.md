@@ -187,7 +187,7 @@ Options:
   -f, --inputFiles <inputfiles>                The relative or absolute path to the input files
   -d, --inputDirectories <inputdirectories>    The relative or absolute path to the input directories
   -o, --outputDirectory <outputdirectory>      The relative or absolute path to the output directory
-  --outputFile <outputfile>                    The relative or absolute path to the output file
+  --outputFiles <outputfiles>                  The relative or absolute path to the output files
   -p, --pattern <pattern>                      The search string to match against the names of files in the input directory
   --format <format>                            The output image format
   -q, --quality <quality>                      The output image quality
