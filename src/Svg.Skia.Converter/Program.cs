@@ -309,7 +309,7 @@ namespace Svg.Skia.Converter
 
             var optionOutputFiles = new Option(new[] { "--outputFiles" }, "The relative or absolute path to the output files")
             {
-                Argument = new Argument<DirectoryInfo?>(getDefaultValue: () => null)
+                Argument = new Argument<FileInfo[]?>(getDefaultValue: () => null)
             };
 
             var optionPattern = new Option(new[] { "--pattern", "-p" }, "The search string to match against the names of files in the input directory")
