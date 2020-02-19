@@ -226,7 +226,7 @@ namespace Svg.Skia.Converter
             {
                 if (paths.Count > 0 && paths.Count != settings.OutputFiles.Length)
                 {
-                    Log($"Error: Number of the output files must match number of the input files.");
+                    Log($"Error: The number of the output files must match the number of the input files.");
                     return;
                 }
             }
