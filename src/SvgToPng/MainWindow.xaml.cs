@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using SkiaSharp;
+using Svg.Skia;
 //using SkiaSharp.Views.Desktop;
 using SvgToPng.ViewModels;
 
@@ -23,7 +24,9 @@ namespace SvgToPng
         public MainWindow()
         {
             InitializeComponent();
-
+#if DEBUG
+            Drawable.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture("en-US");
+#endif
             var vm = MainWindowViewModel.Load<MainWindowViewModel>("VM.json");
             if (vm != null)
             {
