@@ -78,11 +78,20 @@ namespace Svg.Skia
                     break;
             }
 
-            MarkerClipRect = SKRect.Create(
-                svgMarker.ViewBox.MinX,
-                svgMarker.ViewBox.MinY,
-                markerWidth / viewBoxToMarkerUnitsScaleX,
-                markerHeight / viewBoxToMarkerUnitsScaleY);
+            switch (svgMarker.Overflow)
+            {
+                case SvgOverflow.Auto:
+                case SvgOverflow.Visible:
+                case SvgOverflow.Inherit:
+                    break;
+                default:
+                    MarkerClipRect = SKRect.Create(
+                        svgMarker.ViewBox.MinX,
+                        svgMarker.ViewBox.MinY,
+                        markerWidth / viewBoxToMarkerUnitsScaleX,
+                        markerHeight / viewBoxToMarkerUnitsScaleY);
+                    break;
+            }
 
             var drawable = DrawableFactory.Create(markerElement, skOwnerBounds, root, this, Attributes.Display);
             if (drawable != null)
