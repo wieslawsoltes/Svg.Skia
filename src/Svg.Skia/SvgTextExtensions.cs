@@ -58,7 +58,7 @@ namespace Svg.Skia
 
             return fontWeight;
         }
-#if USE_NEW_FONT_STRETCH_PROP
+
         public static SKFontStyleWidth ToSKFontStyleWidth(SvgFontStretch svgFontStretch)
         {
             var fontWidth = SKFontStyleWidth.Normal;
@@ -105,50 +105,7 @@ namespace Svg.Skia
 
             return fontWidth;
         }
-#else
-        public static SKFontStyleWidth ToSKFontStyleWidth(string attributeFontStretch)
-        {
-            var fontWidth = SKFontStyleWidth.Normal;
 
-            switch (attributeFontStretch?.ToLower())
-            {
-                case "inherit":
-                    // TODO: Implement inherit
-                    break;
-                case "ultra-condensed":
-                    fontWidth = SKFontStyleWidth.UltraCondensed;
-                    break;
-                case "extra-condensed":
-                    fontWidth = SKFontStyleWidth.ExtraCondensed;
-                    break;
-                case "condensed":
-                    fontWidth = SKFontStyleWidth.Condensed;
-                    break;
-                case "semi-condensed":
-                    fontWidth = SKFontStyleWidth.SemiCondensed;
-                    break;
-                case "normal":
-                    fontWidth = SKFontStyleWidth.Normal;
-                    break;
-                case "semi-expanded":
-                    fontWidth = SKFontStyleWidth.SemiExpanded;
-                    break;
-                case "expanded":
-                    fontWidth = SKFontStyleWidth.Expanded;
-                    break;
-                case "extra-expanded":
-                    fontWidth = SKFontStyleWidth.ExtraExpanded;
-                    break;
-                case "ultra-expanded":
-                    fontWidth = SKFontStyleWidth.UltraExpanded;
-                    break;
-                default:
-                    break;
-            }
-
-            return fontWidth;
-        }
-#endif
         public static SKTextAlign ToSKTextAlign(SvgTextAnchor textAnchor)
         {
             return textAnchor switch
@@ -172,16 +129,8 @@ namespace Svg.Skia
         private static void SetTypeface(SvgTextBase svgText, SKPaint skPaint, CompositeDisposable disposable)
         {
             var fontWeight = SKFontStyleWeight(svgText.FontWeight);
-
-#if USE_NEW_FONT_STRETCH_PROP
             var fontWidth = ToSKFontStyleWidth(svgText.FontStretch);
-#else
-            // TODO: Use FontStretch property.
-            svgText.TryGetAttribute("font-stretch", out string attributeFontStretch);
-            var fontWidth = ToSKFontStyleWidth(attributeFontStretch);
-#endif
             var fontStyle = ToSKFontStyleSlant(svgText.FontStyle);
-
             var fontFamily = svgText.FontFamily;
 
             if (s_typefaceProviders == null || s_typefaceProviders.Count <= 0)

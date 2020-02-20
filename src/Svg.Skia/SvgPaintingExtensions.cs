@@ -767,33 +767,17 @@ namespace Svg.Skia
                 }
                 if (firstPatternUnit == null)
                 {
-#if USE_PATTERN_UNITS_FIX
-                    if (p.GetAttribute("patternUnits", out _) == true /* p.HasPatternUnits() */)
+                    if (p.GetAttribute("patternUnits", out _) == true)
                     {
                         firstPatternUnit = p;
                     }
-#else
-                    var pPatternUnits = p.PatternUnits;
-                    if (pPatternUnits != SvgCoordinateUnits.Inherit)
-                    {
-                        firstPatternUnit = p;
-                    }
-#endif
                 }
                 if (firstPatternContentUnit == null)
                 {
-#if USE_PATTERN_UNITS_FIX
-                    if (p.GetAttribute("patternContentUnits", out _) == true /* p.HasPatternContentUnits() */)
+                    if (p.GetAttribute("patternContentUnits", out _) == true)
                     {
                         firstPatternContentUnit = p;
                     }
-#else
-                    var pPatternContentUnits = p.PatternContentUnits;
-                    if (pPatternContentUnits != SvgCoordinateUnits.Inherit)
-                    {
-                        firstPatternContentUnit = p;
-                    }
-#endif
                 }
                 if (firstViewBox == null)
                 {

@@ -140,7 +140,6 @@ namespace Svg.Skia
 
             if (svgElement.GetAttribute("systemLanguage", out var systemLanguageString) == true)
             {
-Console.WriteLine($"[{svgElement}] systemLanguage={systemLanguageString}");
                 if (string.IsNullOrEmpty(systemLanguageString))
                 {
                     hasSystemLanguage = false;

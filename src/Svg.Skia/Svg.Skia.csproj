@@ -21,32 +21,16 @@
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <Import Project="..\..\build\SkiaSharp.props" />
 
-  <!-- Use Svg from NuGet -->
+  <PropertyGroup>
+    <!--<DefineConstants>$(DefineConstants);USE_COLORSPACE</DefineConstants>-->
+    <!--<DefineConstants>$(DefineConstants);USE_EXPERIMENTAL_LINEAR_RGB</DefineConstants>-->
+  </PropertyGroup>
+
   <!--<Import Project="..\..\build\Svg.props" />-->
-
-  <!-- Use Svg from externals/SVG -->
-  <!--<ItemGroup>
-    <ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />
-  </ItemGroup>-->
-
-  <!-- Use Svg custom build -->
   <ItemGroup>
+    <!--<ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />-->
     <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_NEW_MASK_PROPS</DefineConstants>
-    <DefineConstants>$(DefineConstants);USE_NEW_FONT_STRETCH_PROP</DefineConstants>
-    <DefineConstants>$(DefineConstants);USE_NEW_STDDEVIATION</DefineConstants>
-    <DefineConstants>$(DefineConstants);USE_NEW_FILTERS</DefineConstants>
-    <DefineConstants>$(DefineConstants);USE_PATTERN_UNITS_FIX</DefineConstants>
-  </PropertyGroup>
-  <!--<PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_COLORSPACE</DefineConstants>
-  </PropertyGroup>-->
-  <!--<PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_EXPERIMENTAL_LINEAR_RGB</DefineConstants>
-  </PropertyGroup>-->
 
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />

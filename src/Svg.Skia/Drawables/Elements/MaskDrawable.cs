@@ -8,77 +8,6 @@ namespace Svg.Skia
 {
     public class MaskDrawable : DrawableContainer
     {
-#if !USE_NEW_MASK_PROPS
-        public static SvgCoordinateUnits GetMaskUnits(SvgMask svgMask)
-        {
-            svgMask.CustomAttributes.TryGetValue("maskUnits", out string? maskUnitsString);
-            return maskUnitsString switch
-            {
-                "userSpaceOnUse" => SvgCoordinateUnits.UserSpaceOnUse,
-                "objectBoundingBox" => SvgCoordinateUnits.ObjectBoundingBox,
-                _ => SvgCoordinateUnits.ObjectBoundingBox,
-            };
-        }
-
-        public static SvgCoordinateUnits GetMaskContentUnits(SvgMask svgMask)
-        {
-            svgMask.CustomAttributes.TryGetValue("maskContentUnits", out string? maskContentUnitsString);
-            return maskContentUnitsString switch
-            {
-                "userSpaceOnUse" => SvgCoordinateUnits.UserSpaceOnUse,
-                "objectBoundingBox" => SvgCoordinateUnits.ObjectBoundingBox,
-                _ => SvgCoordinateUnits.UserSpaceOnUse,
-            };
-        }
-
-        public static SvgUnit GetX(SvgMask svgMask)
-        {
-            if (svgMask.CustomAttributes.TryGetValue("x", out string? xString))
-            {
-                if (new SvgUnitConverter().ConvertFromString(xString) is SvgUnit _x)
-                {
-                    return _x;
-                }
-            }
-            return new SvgUnit(SvgUnitType.Percentage, -10f);
-        }
-
-        public static SvgUnit GetY(SvgMask svgMask)
-        {
-            if (svgMask.CustomAttributes.TryGetValue("y", out string? yString))
-            {
-                if (new SvgUnitConverter().ConvertFromString(yString) is SvgUnit y)
-                {
-                    return y;
-                }
-            }
-            return new SvgUnit(SvgUnitType.Percentage, -10f);
-        }
-
-        public static SvgUnit GetWidth(SvgMask svgMask)
-        {
-            if (svgMask.CustomAttributes.TryGetValue("width", out string? _widthString))
-            {
-                if (new SvgUnitConverter().ConvertFromString(_widthString) is SvgUnit width)
-                {
-                    return width;
-                }
-            }
-            return new SvgUnit(SvgUnitType.Percentage, 120f);
-        }
-
-        public static SvgUnit GetHeight(SvgMask svgMask)
-        {
-            if (svgMask.CustomAttributes.TryGetValue("height", out string? heightString))
-            {
-                if (new SvgUnitConverter().ConvertFromString(heightString) is SvgUnit height)
-                {
-                    return height;
-                }
-            }
-            return new SvgUnit(SvgUnitType.Percentage, 120f);
-        }
-#endif
         public MaskDrawable(SvgMask svgMask, SKRect skOwnerBounds, Drawable? root, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
             : base(svgMask, root, parent)
         {
@@ -89,21 +18,12 @@ namespace Svg.Skia
             {
                 return;
             }
-#if USE_NEW_MASK_PROPS
             var maskUnits = svgMask.MaskUnits;
             var maskContentUnits = svgMask.MaskContentUnits;
             var xUnit = svgMask.X;
             var yUnit = svgMask.Y;
             var widthUnit = svgMask.Width;
             var heightUnit = svgMask.Height;
-#else
-            var maskUnits = GetMaskUnits(svgMask);
-            var maskContentUnits = GetMaskContentUnits(svgMask);
-            var xUnit = GetX(svgMask);
-            var yUnit = GetY(svgMask);
-            var widthUnit = GetWidth(svgMask);
-            var heightUnit = GetHeight(svgMask);
-#endif
             float x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skOwnerBounds);
             float y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgMask, skOwnerBounds);
             float width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skOwnerBounds);
