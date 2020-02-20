@@ -335,6 +335,10 @@ namespace Svg.Skia
             var enableFilter = !ignoreAttributes.HasFlag(Attributes.Filter);
 
             canvas.Save();
+#if USE_LAYERS
+            using var skPaintLayer = new SKPaint();
+            canvas.SaveLayer(skPaintLayer);
+#endif
 
             if (Overflow != null)
             {
@@ -390,6 +394,9 @@ namespace Svg.Skia
                 canvas.Restore();
             }
 
+#if USE_LAYERS
+            canvas.Restore();
+#endif
             canvas.Restore();
         }
 

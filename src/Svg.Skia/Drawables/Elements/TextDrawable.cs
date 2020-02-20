@@ -100,7 +100,10 @@ namespace Svg.Skia
             var enableFilter = !ignoreAttributes.HasFlag(Attributes.Filter);
 
             skCanvas.Save();
-
+#if USE_LAYERS
+            using var skPaintLayer = new SKPaint();
+            skCanvas.SaveLayer(skPaintLayer);
+#endif
             var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgTextBase.Transforms);
 
             var skMatrixTotal = skCanvas.TotalMatrix;
@@ -203,6 +206,9 @@ namespace Svg.Skia
                 skCanvas.Restore();
             }
 
+#if USE_LAYERS
+            skCanvas.Restore();
+#endif
             skCanvas.Restore();
         }
 
