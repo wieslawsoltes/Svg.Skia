@@ -22,7 +22,6 @@
   <Import Project="..\..\build\SkiaSharp.props" />
 
   <PropertyGroup>
-    <!--<DefineConstants>$(DefineConstants);USE_LAYERS</DefineConstants>-->
     <!--<DefineConstants>$(DefineConstants);USE_COLORSPACE</DefineConstants>-->
     <!--<DefineConstants>$(DefineConstants);USE_EXPERIMENTAL_LINEAR_RGB</DefineConstants>-->
   </PropertyGroup>
