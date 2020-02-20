@@ -18,7 +18,6 @@ namespace Svg.Skia
                 SvgCircle svgCircle => new CircleDrawable(svgCircle, skOwnerBounds, root, parent, ignoreAttributes),
                 SvgEllipse svgEllipse => new EllipseDrawable(svgEllipse, skOwnerBounds, root, parent, ignoreAttributes),
                 SvgRectangle svgRectangle => new RectangleDrawable(svgRectangle, skOwnerBounds, root, parent, ignoreAttributes),
-                SvgGlyph svgGlyph => new GlyphDrawable(svgGlyph, skOwnerBounds, root, parent, ignoreAttributes),
                 SvgGroup svgGroup => new GroupDrawable(svgGroup, skOwnerBounds, root, parent, ignoreAttributes),
                 SvgLine svgLine => new LineDrawable(svgLine, skOwnerBounds, root, parent, ignoreAttributes),
                 SvgPath svgPath => new PathDrawable(svgPath, skOwnerBounds, root, parent, ignoreAttributes),
