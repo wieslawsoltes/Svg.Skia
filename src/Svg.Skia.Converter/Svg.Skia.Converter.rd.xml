@@ -30,6 +30,9 @@
       <Type Name="SkiaSharp.SKShader" Dynamic="Required All" />
       <Type Name="SkiaSharp.SKPicture" Dynamic="Required All" />
       <Type Name="SkiaSharp.SKPictureRecorder" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKColorFilter" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKImageFilter" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKPathEffect" Dynamic="Required All" />
     </Assembly>
 
     <!-- .NET Core -->
