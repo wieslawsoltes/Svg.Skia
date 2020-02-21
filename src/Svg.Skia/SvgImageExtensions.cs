@@ -56,13 +56,15 @@ namespace Svg.Skia
             }
 
             var isSvgMimeType = response.ContentType.StartsWith(MimeTypeSvg, StringComparison.InvariantCultureIgnoreCase);
+            var isSvg = uri.LocalPath.EndsWith(".svg", StringComparison.InvariantCultureIgnoreCase);
+            var isSvgz = uri.LocalPath.EndsWith(".svgz", StringComparison.InvariantCultureIgnoreCase);
 
-            if (isSvgMimeType || uri.LocalPath.EndsWith(".svg", StringComparison.InvariantCultureIgnoreCase))
+            if (isSvgMimeType || isSvg)
             {
                 var svgDocument = LoadSvg(stream, uri);
                 return svgDocument;
             }
-            else if (isSvgMimeType || uri.LocalPath.EndsWith(".svgz", StringComparison.InvariantCultureIgnoreCase))
+            else if (isSvgMimeType || isSvgz)
             {
                 var svgDocument = LoadSvgz(stream, uri);
                 return svgDocument;
