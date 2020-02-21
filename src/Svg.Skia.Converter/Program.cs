@@ -255,7 +255,7 @@ namespace Svg.Skia.Converter
                 var outputFile = settings.OutputFiles != null ? settings.OutputFiles[i] : null;
                 try
                 {
-                    string outputPath = string.Empty;
+                    var outputPath = string.Empty;
 
                     if (outputFile != null)
                     {
@@ -264,7 +264,7 @@ namespace Svg.Skia.Converter
                     else
                     {
                         var inputExtension = inputPath.Extension;
-                        outputPath = inputPath.FullName.Remove(inputPath.FullName.Length - inputExtension.Length) + "." + settings.Format.ToLower();
+                        outputPath = Path.ChangeExtension(inputPath.FullName, "." + settings.Format.ToLower());
                         if (settings.OutputDirectory != null && !string.IsNullOrEmpty(settings.OutputDirectory.FullName))
                         {
                             outputPath = Path.Combine(settings.OutputDirectory.FullName, Path.GetFileName(outputPath));
