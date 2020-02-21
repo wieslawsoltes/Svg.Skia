@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Svg.Skia.Converter.rd.xml" />
     <Content Include="SvgToPng.ico" />
   </ItemGroup>
 
