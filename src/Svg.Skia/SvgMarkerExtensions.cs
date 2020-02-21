@@ -114,7 +114,7 @@ namespace Svg.Skia
             var pathLength = pathTypes.Count;
 
             var markerStart = svgMarkerElement.MarkerStart;
-            if (markerStart != null && !SvgExtensions.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
+            if (markerStart != null && pathLength > 0 && !SvgExtensions.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
             {
                 var marker = SvgExtensions.GetReference<SvgMarker>(svgMarkerElement, markerStart);
                 if (marker != null)
@@ -125,13 +125,13 @@ namespace Svg.Skia
                     {
                         ++index;
                     }
-                    var refPoint2 = pathTypes[index].Point;
+                    var refPoint2 = pathLength == 1 ? refPoint1 : pathTypes[index].Point;
                     CreateMarker(marker, svgMarkerElement, refPoint1, refPoint1, refPoint2, true, skOwnerBounds, ref markerDrawables, disposable);
                 }
             }
 
             var markerMid = svgMarkerElement.MarkerMid;
-            if (markerMid != null && !SvgExtensions.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, new HashSet<Uri>()))
+            if (markerMid != null && pathLength > 0 && !SvgExtensions.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, new HashSet<Uri>()))
             {
                 var marker = SvgExtensions.GetReference<SvgMarker>(svgMarkerElement, markerMid);
                 if (marker != null)
@@ -158,19 +158,22 @@ namespace Svg.Skia
             }
 
             var markerEnd = svgMarkerElement.MarkerEnd;
-            if (markerEnd != null && !SvgExtensions.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, new HashSet<Uri>()))
+            if (markerEnd != null && pathLength > 0 && !SvgExtensions.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, new HashSet<Uri>()))
             {
                 var marker = SvgExtensions.GetReference<SvgMarker>(svgMarkerElement, markerEnd);
                 if (marker != null)
                 {
                     var index = pathLength - 1;
                     var refPoint1 = pathTypes[index].Point;
-                    --index;
-                    while (index > 0 && pathTypes[index].Point == refPoint1)
+                    if (pathLength > 1)
                     {
                         --index;
+                        while (index > 0 && pathTypes[index].Point == refPoint1)
+                        {
+                            --index;
+                        }
                     }
-                    var refPoint2 = pathTypes[index].Point;
+                    var refPoint2 = pathLength == 1 ? refPoint1 : pathTypes[index].Point;
                     CreateMarker(marker, svgMarkerElement, refPoint1, refPoint2, pathTypes[pathLength - 1].Point, false, skOwnerBounds, ref markerDrawables, disposable);
                 }
             }
