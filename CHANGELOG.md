@@ -2,7 +2,8 @@
 
 ## vNext
 
-* 
+* Fixed `marker` exception.
+* Added native build support using CoreRT.
 
 ## 0.1.5
 
