@@ -1,40 +1,40 @@
 <Directives>
-    <Application>
+  <Application>
 
-        <!-- App -->
+    <!-- App -->
 
-        <Assembly Name="Svg.Skia" Dynamic="Required All" />
-        <Assembly Name="Svg.Skia.Converter" Dynamic="Required All" />
+    <Assembly Name="Svg.Skia" Dynamic="Required All" />
+    <Assembly Name="Svg.Skia.Converter" Dynamic="Required All" />
 
-        <!-- Svg -->
+    <!-- Svg -->
 
-        <Assembly Name="System.Drawing.Common" Dynamic="Required All" />
-        <Assembly Name="Fizzler" Dynamic="Required All" />
-        <Assembly Name="Svg.Custom" Dynamic="Required All" />
+    <Assembly Name="System.Drawing.Common" Dynamic="Required All" />
+    <Assembly Name="Fizzler" Dynamic="Required All" />
+    <Assembly Name="Svg.Custom" Dynamic="Required All" />
 
-        <!-- Newtonsoft.Json" -->
+    <!-- Newtonsoft.Json" -->
 
-        <Assembly Name="Newtonsoft.Json" Dynamic="Required All" >
-          <Type Name="Newtonsoft.Json.Serialization.ObjectConstructor`1[[System.Object,System.Private.CoreLib]]" Dynamic="Required All" />
-        </Assembly>
+    <Assembly Name="Newtonsoft.Json" Dynamic="Required All" >
+      <Type Name="Newtonsoft.Json.Serialization.ObjectConstructor`1[[System.Object,System.Private.CoreLib]]" Dynamic="Required All" />
+    </Assembly>
 
-        <!-- SkiaSharp -->
+    <!-- SkiaSharp -->
 
-        <Assembly Name="SkiaSharp">
-          <Type Name="SkiaSharp.SKData" Dynamic="Required All" />
-          <Type Name="SkiaSharp.SKImage" Dynamic="Required All" />
-          <Type Name="SkiaSharp.SKTypeface" Dynamic="Required All" />
-          <Type Name="SkiaSharp.SKString" Dynamic="Required All" />
-          <Type Name="SkiaSharp.SKSurface" Dynamic="Required All" />
-          <Type Name="SkiaSharp.SKCanvas" Dynamic="Required All" />
-          <Type Name="SkiaSharp.SKShader" Dynamic="Required All" />
-          <Type Name="SkiaSharp.SKPicture" Dynamic="Required All" />
-          <Type Name="SkiaSharp.SKPictureRecorder" Dynamic="Required All" />
-        </Assembly>
+    <Assembly Name="SkiaSharp">
+      <Type Name="SkiaSharp.SKData" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKImage" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKTypeface" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKString" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKSurface" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKCanvas" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKShader" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKPicture" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKPictureRecorder" Dynamic="Required All" />
+    </Assembly>
 
-        <!-- .NET Core -->
+    <!-- .NET Core -->
 
-        <Assembly Name="mscorlib" />
+    <Assembly Name="mscorlib" />
 
-    </Application>
+  </Application>
 </Directives>
