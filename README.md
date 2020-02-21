@@ -216,6 +216,55 @@ git submodule update --init --recursive
 dotnet build -c Release
 ```
 
+### Publish Managed
+
+```
+cd ./src/Svg.Skia.Converter
+dotnet publish -c Release -f netcoreapp3.0 -r win7-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_netcoreapp3.0_win7-x64
+```
+
+```
+cd ./src/Svg.Skia.Converter
+dotnet publish -c Release -f netcoreapp3.0 -r ubuntu.14.04-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_netcoreapp3.0_ubuntu.14.04-x64
+```
+
+```
+cd ./src/Svg.Skia.Converter
+dotnet publish -c Release -f netcoreapp3.0 -r osx.10.12-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_netcoreapp3.0_osx.10.12-x64
+```
+
+```
+cd ./src/Svg.Skia.Converter
+dotnet publish -c Release -f netcoreapp3.0 -r debian.8-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_netcoreapp3.0_debian.8-x64
+```
+
+```
+cd ./src/SvgToPng
+dotnet publish -c Release -f netcoreapp3.0 -r win7-x64 -o SvgToPng_netcoreapp3.0_win7-x64
+```
+
+```
+cd ./src/SvgToPng
+dotnet publish -c Release -f net461 -r win7-x64 -o SvgToPng_net461_win7-x64
+```
+
+### Publish Native
+
+```
+cd ./src/Svg.Skia.Converter
+dotnet publish -c Release -f netcoreapp3.0 -r win-x64 -o Svg.Skia.Converter_netcoreapp3.0_win-x64
+```
+
+```
+cd ./src/Svg.Skia.Converter
+dotnet publish -c Release -f netcoreapp3.0 -r linux-x64 -o Svg.Skia.Converter_netcoreapp3.0_linux-x64
+```
+
+```
+cd ./src/Svg.Skia.Converter
+dotnet publish -c Release -f netcoreapp3.0 -r osx-x64 -o Svg.Skia.Converter_netcoreapp3.0_osx-x64
+```
+
 ## Externals
 
 The `Svg.Skia` library is using code from the https://github.com/vvvv/SVG
