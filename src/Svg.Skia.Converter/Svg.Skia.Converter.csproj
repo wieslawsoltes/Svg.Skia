@@ -55,7 +55,7 @@
   </PropertyGroup>
 
   <!-- https://github.com/dotnet/corert/issues/5496 -->
-  <Target Name="CopyClrCompressionDll" AfterTargets="Publish" Condition="'$(CoreRT)' == 'True'">
+  <Target Name="CopyClrCompressionDll" AfterTargets="Publish" Condition="'$(CoreRT)' == 'True' and '$(RuntimeIdentifier)' == 'win-x64'">
     <Copy SourceFiles="$(IlcPath)\framework\clrcompression.dll" DestinationFolder="$(PublishDir)" />
   </Target>
 
