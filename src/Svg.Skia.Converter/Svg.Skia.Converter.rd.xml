@@ -3,6 +3,8 @@
 
         <!-- App -->
 
+        <Assembly Name="System.Drawing.Common" Dynamic="Required All" />
+        <Assembly Name="Fizzler" Dynamic="Required All" />
         <Assembly Name="Svg.Custom" Dynamic="Required All" />
         <Assembly Name="Svg.Skia" Dynamic="Required All" />
         <Assembly Name="Svg.Skia.Converter" Dynamic="Required All" />
