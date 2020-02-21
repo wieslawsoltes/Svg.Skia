@@ -46,29 +46,31 @@ namespace Svg.Skia
         public static object GetImageFromWeb(Uri uri)
         {
             // should work with http: and file: protocol urls
-            var httpRequest = WebRequest.Create(uri);
-
-            using var webResponse = httpRequest.GetResponse();
-            using var stream = webResponse.GetResponseStream();
+            var request = WebRequest.Create(uri);
+            using var response = request.GetResponse();
+            using var stream = response.GetResponseStream();
 
             if (stream.CanSeek)
             {
                 stream.Position = 0;
             }
 
-            if (webResponse.ContentType.StartsWith(MimeTypeSvg, StringComparison.InvariantCultureIgnoreCase) ||
-                uri.LocalPath.EndsWith(".svg", StringComparison.InvariantCultureIgnoreCase))
+            var isSvgMimeType = response.ContentType.StartsWith(MimeTypeSvg, StringComparison.InvariantCultureIgnoreCase);
+
+            if (isSvgMimeType || uri.LocalPath.EndsWith(".svg", StringComparison.InvariantCultureIgnoreCase))
             {
-                return LoadSvg(stream, uri);
+                var svgDocument = LoadSvg(stream, uri);
+                return svgDocument;
             }
-            if (webResponse.ContentType.StartsWith(MimeTypeSvg, StringComparison.InvariantCultureIgnoreCase) ||
-                uri.LocalPath.EndsWith(".svgz", StringComparison.InvariantCultureIgnoreCase))
+            else if (isSvgMimeType || uri.LocalPath.EndsWith(".svgz", StringComparison.InvariantCultureIgnoreCase))
             {
-                return LoadSvgz(stream, uri);
+                var svgDocument = LoadSvgz(stream, uri);
+                return svgDocument;
             }
             else
             {
-                return SKImage.FromEncodedData(stream);
+                var skImage = SKImage.FromEncodedData(stream);
+                return skImage;
             }
         }
 
