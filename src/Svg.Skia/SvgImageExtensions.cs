@@ -48,30 +48,27 @@ namespace Svg.Skia
             // should work with http: and file: protocol urls
             var httpRequest = WebRequest.Create(uri);
 
-            using (var webResponse = httpRequest.GetResponse())
-            {
-                using (var stream = webResponse.GetResponseStream())
-                {
-                    if (stream.CanSeek)
-                    {
-                        stream.Position = 0;
-                    }
+            using var webResponse = httpRequest.GetResponse();
+            using var stream = webResponse.GetResponseStream();
 
-                    if (webResponse.ContentType.StartsWith(MimeTypeSvg, StringComparison.InvariantCultureIgnoreCase) ||
-                        uri.LocalPath.EndsWith(".svg", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        return LoadSvg(stream, uri);
-                    }
-                    if (webResponse.ContentType.StartsWith(MimeTypeSvg, StringComparison.InvariantCultureIgnoreCase) ||
-                        uri.LocalPath.EndsWith(".svgz", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        return LoadSvgz(stream, uri);
-                    }
-                    else
-                    {
-                        return SKImage.FromEncodedData(stream);
-                    }
-                }
+            if (stream.CanSeek)
+            {
+                stream.Position = 0;
+            }
+
+            if (webResponse.ContentType.StartsWith(MimeTypeSvg, StringComparison.InvariantCultureIgnoreCase) ||
+                uri.LocalPath.EndsWith(".svg", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return LoadSvg(stream, uri);
+            }
+            if (webResponse.ContentType.StartsWith(MimeTypeSvg, StringComparison.InvariantCultureIgnoreCase) ||
+                uri.LocalPath.EndsWith(".svgz", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return LoadSvgz(stream, uri);
+            }
+            else
+            {
+                return SKImage.FromEncodedData(stream);
             }
         }
 
