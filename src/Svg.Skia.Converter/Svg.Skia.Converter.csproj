@@ -54,6 +54,11 @@
     <IlcGenerateStackTraceData>False</IlcGenerateStackTraceData>
   </PropertyGroup>
 
+  <!-- https://github.com/dotnet/corert/issues/5496 -->
+  <Target Name="CopyClrCompressionDll" AfterTargets="Publish" Condition="'$(CoreRT)' == 'True'">
+    <Copy SourceFiles="$(IlcPath)\framework\clrcompression.dll" DestinationFolder="$(PublishDir)" />
+  </Target>
+
   <PropertyGroup Condition="'$(CoreRT)' != 'True'">
     <PublishTrimmed>False</PublishTrimmed>
     <PublishSingleFile>False</PublishSingleFile>
