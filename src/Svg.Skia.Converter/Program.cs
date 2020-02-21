@@ -68,7 +68,7 @@ namespace Svg.Skia.Converter
     public class Settings
     {
         public FileInfo[]? InputFiles { get; set; }
-        public DirectoryInfo[]? InputDirectories { get; set; }
+        public DirectoryInfo? InputDirectory { get; set; }
         public FileInfo[]? OutputFiles { get; set; }
         public DirectoryInfo? OutputDirectory { get; set; }
         public string? Pattern { get; set; }
@@ -208,19 +208,18 @@ namespace Svg.Skia.Converter
                 }
             }
 
-            if (settings.InputDirectories != null)
+            if (settings.InputDirectory != null)
             {
-                foreach (var directory in settings.InputDirectories)
+                var directory = settings.InputDirectory;
+                var pattern = settings.Pattern;
+                if (pattern == null)
                 {
-                    if (settings.Pattern == null)
-                    {
-                        GetFiles(directory, "*.svg", paths);
-                        GetFiles(directory, "*.svgz", paths);
-                    }
-                    else
-                    {
-                        GetFiles(directory, settings.Pattern, paths);
-                    }
+                    GetFiles(directory, "*.svg", paths);
+                    GetFiles(directory, "*.svgz", paths);
+                }
+                else
+                {
+                    GetFiles(directory, pattern, paths);
                 }
             }
 
@@ -309,9 +308,9 @@ namespace Svg.Skia.Converter
                 Argument = new Argument<FileInfo[]?>(getDefaultValue: () => null)
             };
 
-            var optionInputDirectories = new Option(new[] { "--inputDirectories", "-d" }, "The relative or absolute path to the input directories")
+            var optionInputDirectory = new Option(new[] { "--inputDirectory", "-d" }, "The relative or absolute path to the input directory")
             {
-                Argument = new Argument<DirectoryInfo[]?>(getDefaultValue: () => null)
+                Argument = new Argument<DirectoryInfo?>(getDefaultValue: () => null)
             };
 
             var optionOutputDirectory = new Option(new[] { "--outputDirectory", "-o" }, "The relative or absolute path to the output directory")
@@ -385,7 +384,7 @@ namespace Svg.Skia.Converter
             };
 
             rootCommand.AddOption(optionInputFiles);
-            rootCommand.AddOption(optionInputDirectories);
+            rootCommand.AddOption(optionInputDirectory);
             rootCommand.AddOption(optionOutputDirectory);
             rootCommand.AddOption(optionOutputFiles);
             rootCommand.AddOption(optionPattern);

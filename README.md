@@ -184,22 +184,23 @@ Usage:
   Svg.Skia.Converter [options]
 
 Options:
-  -f, --inputFiles <inputfiles>                The relative or absolute path to the input files
-  -d, --inputDirectories <inputdirectories>    The relative or absolute path to the input directories
-  -o, --outputDirectory <outputdirectory>      The relative or absolute path to the output directory
-  --outputFiles <outputfiles>                  The relative or absolute path to the output files
-  -p, --pattern <pattern>                      The search string to match against the names of files in the input directory
-  --format <format>                            The output image format
-  -q, --quality <quality>                      The output image quality
-  -b, --background <background>                The output image background
-  -s, --scale <scale>                          The output image horizontal and vertical scaling factor
-  --scaleX, -sx <scalex>                       The output image horizontal scaling factor
-  --scaleY, -sy <scaley>                       The output image vertical scaling factor
-  --quiet                                      Set verbosity level to quiet
-  -c, --load-config <load-config>              The relative or absolute path to the config file
-  --save-config <save-config>                  The relative or absolute path to the config file
-  --version                                    Show version information
-  -?, -h, --help                               Show help and usage information
+  -f, --inputFiles <inputfiles>              The relative or absolute path to the input files
+  -d, --inputDirectory <inputdirectory>      The relative or absolute path to the input directory
+  -o, --outputDirectory <outputdirectory>    The relative or absolute path to the output directory
+  --outputFiles <outputfiles>                The relative or absolute path to the output files
+  -p, --pattern <pattern>                    The search string to match against the names of files in the input directory
+  --format <format>                          The output image format
+  -q, --quality <quality>                    The output image quality
+  -b, --background <background>              The output image background
+  -s, --scale <scale>                        The output image horizontal and vertical scaling factor
+  --scaleX, -sx <scalex>                     The output image horizontal scaling factor
+  --scaleY, -sy <scaley>                     The output image vertical scaling factor
+  --systemLanguage <systemlanguage>          The system language name as defined in BCP 47
+  --quiet                                    Set verbosity level to quiet
+  -c, --load-config <load-config>            The relative or absolute path to the config file
+  --save-config <save-config>                The relative or absolute path to the config file
+  --version                                  Show version information
+  -?, -h, --help                             Show help and usage information
 ```
 
 Supported formats: png, jpg, jpeg, webp, pdf, xps
