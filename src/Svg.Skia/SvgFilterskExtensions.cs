@@ -898,13 +898,11 @@ namespace Svg.Skia
                 if (dxUnit.Type != SvgUnitType.Percentage)
                 {
                     dx *= skBounds.Width;
-                    dx += skBounds.Left;
                 }
 
                 if (dyUnit.Type != SvgUnitType.Percentage)
                 {
                     dy *= skBounds.Height;
-                    dy += skBounds.Top;
                 }
             }
 
