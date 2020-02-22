@@ -1084,6 +1084,11 @@ namespace Svg.Skia
                                 {
                                     lastResult = SetImageFilter(svgBlend, skPaint, skImageFilter, results, disposable);
                                 }
+                                else
+                                {
+                                    isValid = false;
+                                    return null;
+                                }
                             }
                             break;
                         case FilterEffects.SvgColourMatrix svgColourMatrix:
@@ -1095,6 +1100,11 @@ namespace Svg.Skia
                                 {
                                     lastResult = SetImageFilter(svgColourMatrix, skPaint, skImageFilter, results, disposable);
                                 }
+                                else
+                                {
+                                    isValid = false;
+                                    return null;
+                                }
                             }
                             break;
                         case FilterEffects.SvgComponentTransfer svgComponentTransfer:
@@ -1105,6 +1115,11 @@ namespace Svg.Skia
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgComponentTransfer, skPaint, skImageFilter, results, disposable);
+                                }
+                                else
+                                {
+                                    isValid = false;
+                                    return null;
                                 }
                             }
                             break;
@@ -1123,6 +1138,11 @@ namespace Svg.Skia
                                 {
                                     lastResult = SetImageFilter(svgComposite, skPaint, skImageFilter, results, disposable);
                                 }
+                                else
+                                {
+                                    isValid = false;
+                                    return null;
+                                }
                             }
                             break;
                         case FilterEffects.SvgConvolveMatrix svgConvolveMatrix:
@@ -1134,6 +1154,11 @@ namespace Svg.Skia
                                 {
                                     lastResult = SetImageFilter(svgConvolveMatrix, skPaint, skImageFilter, results, disposable);
                                 }
+                                else
+                                {
+                                    isValid = false;
+                                    return null;
+                                }
                             }
                             break;
                         case FilterEffects.SvgDiffuseLighting svgDiffuseLighting:
@@ -1144,6 +1169,11 @@ namespace Svg.Skia
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgDiffuseLighting, skPaint, skImageFilter, results, disposable);
+                                }
+                                else
+                                {
+                                    isValid = false;
+                                    return null;
                                 }
                             }
                             break;
@@ -1162,6 +1192,11 @@ namespace Svg.Skia
                                 {
                                     lastResult = SetImageFilter(svgDisplacementMap, skPaint, skImageFilter, results, disposable);
                                 }
+                                else
+                                {
+                                    isValid = false;
+                                    return null;
+                                }
                             }
                             break;
                         case FilterEffects.SvgFlood svgFlood:
@@ -1172,6 +1207,11 @@ namespace Svg.Skia
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgFlood, skPaint, skImageFilter, results, disposable);
+                                }
+                                else
+                                {
+                                    isValid = false;
+                                    return null;
                                 }
                             }
                             break;
@@ -1184,6 +1224,11 @@ namespace Svg.Skia
                                 {
                                     lastResult = SetImageFilter(svgGaussianBlur, skPaint, skImageFilter, results, disposable);
                                 }
+                                else
+                                {
+                                    isValid = false;
+                                    return null;
+                                }
                             }
                             break;
                         case FilterEffects.SvgImage svgImage:
@@ -1195,6 +1240,11 @@ namespace Svg.Skia
                                 {
                                     lastResult = SetImageFilter(svgImage, skPaint, skImageFilter, results, disposable);
                                 }
+                                else
+                                {
+                                    isValid = false;
+                                    return null;
+                                }
                             }
                             break;
                         case FilterEffects.SvgMerge svgMerge:
@@ -1203,6 +1253,11 @@ namespace Svg.Skia
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgMerge, skPaint, skImageFilter, results, disposable);
+                                }
+                                else
+                                {
+                                    isValid = false;
+                                    return null;
                                 }
                             }
                             break;
@@ -1215,6 +1270,11 @@ namespace Svg.Skia
                                 {
                                     lastResult = SetImageFilter(svgMorphology, skPaint, skImageFilter, results, disposable);
                                 }
+                                else
+                                {
+                                    isValid = false;
+                                    return null;
+                                }
                             }
                             break;
                         case FilterEffects.SvgOffset svgOffset:
@@ -1225,6 +1285,11 @@ namespace Svg.Skia
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgOffset, skPaint, skImageFilter, results, disposable);
+                                }
+                                else
+                                {
+                                    isValid = false;
+                                    return null;
                                 }
                             }
                             break;
@@ -1237,6 +1302,11 @@ namespace Svg.Skia
                                 {
                                     lastResult = SetImageFilter(svgSpecularLighting, skPaint, skImageFilter, results, disposable);
                                 }
+                                else
+                                {
+                                    isValid = false;
+                                    return null;
+                                }
                             }
                             break;
                         case FilterEffects.SvgTile svgTile:
@@ -1248,6 +1318,11 @@ namespace Svg.Skia
                                 {
                                     lastResult = SetImageFilter(svgTile, skPaint, skImageFilter, results, disposable);
                                 }
+                                else
+                                {
+                                    isValid = false;
+                                    return null;
+                                }
                             }
                             break;
                         case FilterEffects.SvgTurbulence svgTurbulence:
@@ -1258,6 +1333,11 @@ namespace Svg.Skia
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgTurbulence, skPaint, skImageFilter, results, disposable);
+                                }
+                                else
+                                {
+                                    isValid = false;
+                                    return null;
                                 }
                             }
                             break;
