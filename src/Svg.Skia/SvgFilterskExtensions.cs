@@ -952,10 +952,15 @@ namespace Svg.Skia
             var lastResult = default(SKImageFilter);
             var prevoiusFilterPrimitiveRegion = SKRect.Empty;
 
-            float x = svgFilter.X.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilter, skBounds);
-            float y = svgFilter.Y.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilter, skBounds);
-            float width = svgFilter.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFilter, skBounds);
-            float height = svgFilter.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFilter, skBounds);
+            var xUnit = svgFilter.X;
+            var yUnit = svgFilter.Y;
+            var widthUnit = svgFilter.Width;
+            var heightUnit = svgFilter.Height;
+
+            float x = xUnit.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilter, skBounds);
+            float y = yUnit.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilter, skBounds);
+            float width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgFilter, skBounds);
+            float height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgFilter, skBounds);
 
             if (width <= 0f || height <= 0f)
             {
