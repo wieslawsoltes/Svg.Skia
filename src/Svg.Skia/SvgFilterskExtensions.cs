@@ -830,7 +830,7 @@ namespace Svg.Skia
             return SKImageFilter.CreateMerge(filters, cropRect);
         }
 
-        public static SKImageFilter? CreateMorphology(FilterEffects.SvgMorphology svgMorphology, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateMorphology(FilterEffects.SvgMorphology svgMorphology, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             GetOptionalNumbers(svgMorphology.Radius, 0f, 0f, out var radiusX, out var radiusY);
 
