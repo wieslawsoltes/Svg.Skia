@@ -662,6 +662,16 @@ namespace Svg.Skia
                 (float)(Math.Sin(azimuthRad) * Math.Cos(elevationRad)),
                 (float)Math.Sin(elevationRad));
             return direction;
+
+        public static SKPoint3 GetPoint3(float x, float y, float z, SKRect skBounds, SvgCoordinateUnits primitiveUnits)
+        {
+            if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            {
+                x *= skBounds.Width;
+                y *= skBounds.Height;
+                z *= CalculateOtherPercentageValue(skBounds);
+            }
+            return new SKPoint3(x, y, z);
         }
 
         public static SKImageFilter? CreateDiffuseLighting(FilterEffects.SvgDiffuseLighting svgDiffuseLighting, SvgVisualElement svgVisualElement, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
