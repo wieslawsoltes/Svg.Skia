@@ -754,7 +754,7 @@ namespace Svg.Skia
                 sigmaY += skBounds.Top;
             }
 
-            if (sigmaX < 0f || sigmaY < 0f)
+            if (sigmaX < 0f && sigmaY < 0f)
             {
                 return null;
             }
