@@ -680,7 +680,7 @@ namespace Svg.Skia
             return new SKPoint3(x, y, z);
         }
 
-        public static SKImageFilter? CreateDiffuseLighting(FilterEffects.SvgDiffuseLighting svgDiffuseLighting, SvgVisualElement svgVisualElement, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateDiffuseLighting(FilterEffects.SvgDiffuseLighting svgDiffuseLighting, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SvgVisualElement svgVisualElement, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             var lightColor = SvgPaintingExtensions.GetColor(svgVisualElement, svgDiffuseLighting.LightingColor);
             if (lightColor == null)
@@ -706,13 +706,13 @@ namespace Svg.Skia
                     }
                 case SvgPointLight svgPointLight:
                     {
-                        var location = new SKPoint3(svgPointLight.X, svgPointLight.Y, svgPointLight.Z);
+                        var location = GetPoint3(svgPointLight.X, svgPointLight.Y, svgPointLight.Z, skBounds, primitiveUnits);
                         return SKImageFilter.CreatePointLitDiffuse(location, lightColor.Value, surfaceScale, diffuseConstant, input, cropRect);
                     }
                 case SvgSpotLight svgSpotLight:
                     {
-                        var location = new SKPoint3(svgSpotLight.X, svgSpotLight.Y, svgSpotLight.Z);
-                        var target = new SKPoint3(svgSpotLight.PointsAtX, svgSpotLight.PointsAtY, svgSpotLight.PointsAtZ);
+                        var location = GetPoint3(svgSpotLight.X, svgSpotLight.Y, svgSpotLight.Z, skBounds, primitiveUnits);
+                        var target = GetPoint3(svgSpotLight.PointsAtX, svgSpotLight.PointsAtY, svgSpotLight.PointsAtZ, skBounds, primitiveUnits);
                         float specularExponentSpotLight = svgSpotLight.SpecularExponent;
                         float limitingConeAngle = svgSpotLight.LlimitingConeAngle;
                         if (float.IsNaN(limitingConeAngle) || limitingConeAngle > 90f || limitingConeAngle < -90f)
@@ -1235,7 +1235,7 @@ namespace Svg.Skia
                             {
                                 var inputKey = svgDiffuseLighting.Input;
                                 var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateDiffuseLighting(svgDiffuseLighting, svgVisualElement, inputFilter, skCropRect);
+                                var skImageFilter = CreateDiffuseLighting(svgDiffuseLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgDiffuseLighting, skPaint, skImageFilter, results, disposable);
