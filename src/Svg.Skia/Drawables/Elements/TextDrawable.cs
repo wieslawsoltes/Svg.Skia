@@ -167,7 +167,7 @@ namespace Svg.Skia
 
             if (enableFilter == true)
             {
-                skPaintFilter = SvgFiltersExtensions.GetFilterSKPaint(svgTextBase, skBounds, this, disposable);
+                skPaintFilter = SvgFiltersExtensions.GetFilterSKPaint(svgTextBase, skBounds, this, disposable, out var isValid);
                 if (skPaintFilter != null && !IgnoreAttributes.HasFlag(Attributes.Filter))
                 {
                     skCanvas.SaveLayer(skPaintFilter);
