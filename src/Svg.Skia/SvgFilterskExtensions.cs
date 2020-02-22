@@ -959,14 +959,18 @@ namespace Svg.Skia
         {
             GetOptionalNumbers(svgTurbulence.BaseFrequency, 0f, 0f, out var baseFrequencyX, out var baseFrequencyY);
 
-            if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            if (baseFrequencyX < 0f || baseFrequencyY < 0f)
             {
-                var value = CalculateOtherPercentageValue(skBounds);
-                baseFrequencyX *= value;
-                baseFrequencyY *= value;
+                return null;
             }
 
             var numOctaves = svgTurbulence.NumOctaves;
+
+            if (numOctaves < 0)
+            {
+                return null;
+            }
+
             var seed = svgTurbulence.Seed;
 
             var skPaint = new SKPaint()
