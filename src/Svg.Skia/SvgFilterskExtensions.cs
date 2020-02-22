@@ -842,6 +842,11 @@ namespace Svg.Skia
                 radiusY += skBounds.Top;
             }
 
+            if (radiusX <= 0f && radiusY <= 0f)
+            {
+                return null;
+            }
+
             return svgMorphology.Operator switch
             {
                 SvgMorphologyOperator.Dilate => SKImageFilter.CreateDilate((int)radiusX, (int)radiusY, input, cropRect),
