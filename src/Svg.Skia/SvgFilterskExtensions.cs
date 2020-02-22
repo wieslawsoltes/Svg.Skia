@@ -742,9 +742,21 @@ namespace Svg.Skia
             return SKImageFilter.CreateColorFilter(cf, input, cropRect);
         }
 
-        public static SKImageFilter? CreateBlur(FilterEffects.SvgGaussianBlur svgGaussianBlur, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateBlur(FilterEffects.SvgGaussianBlur svgGaussianBlur, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             GetOptionalNumbers(svgGaussianBlur.StdDeviation, 0f, 0f, out var sigmaX, out var sigmaY);
+
+            if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            {
+                sigmaX = (skBounds.Width / 100) * sigmaX;
+                sigmaY = (skBounds.Height / 100) * sigmaY;
+            }
+
+            if (sigmaX < 0f || sigmaY < 0f)
+            {
+                return null;
+            }
+
             return SKImageFilter.CreateBlur(sigmaX, sigmaY, input, cropRect);
         }
 
@@ -1219,7 +1231,7 @@ namespace Svg.Skia
                             {
                                 var inputKey = svgGaussianBlur.Input;
                                 var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateBlur(svgGaussianBlur, inputFilter, skCropRect);
+                                var skImageFilter = CreateBlur(svgGaussianBlur, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgGaussianBlur, skPaint, skImageFilter, results, disposable);
