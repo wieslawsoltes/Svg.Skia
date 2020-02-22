@@ -979,6 +979,7 @@ namespace Svg.Skia
             }
 
             var filterUnits = svgFilter.FilterUnits;
+            var primitiveUnits = svgFilter.PrimitiveUnits;
 
             if (filterUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
