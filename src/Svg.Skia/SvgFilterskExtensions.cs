@@ -646,6 +646,11 @@ namespace Svg.Skia
             return SKImageFilter.CreateMatrixConvolution(kernelSize, kernel, gain, bias, kernelOffset, tileMode, convolveAlpha, input, cropRect);
         }
 
+        public static float CalculateOtherPercentageValue(SKRect skBounds)
+        {
+            return (float)(Math.Sqrt((skBounds.Width * skBounds.Width) + (skBounds.Width * skBounds.Height)) / Math.Sqrt(2.0));
+        }
+
         public static SKPoint3 GetDirection(SvgDistantLight svgDistantLight)
         {
             float azimuth = svgDistantLight.Azimuth;
