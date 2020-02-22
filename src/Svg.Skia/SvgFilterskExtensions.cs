@@ -840,10 +840,28 @@ namespace Svg.Skia
             };
         }
 
-        public static SKImageFilter? CreateOffset(FilterEffects.SvgOffset svgOffset, SKRect skBounds, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateOffset(FilterEffects.SvgOffset svgOffset, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            float dx = svgOffset.Dx.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgOffset, skBounds);
-            float dy = svgOffset.Dy.ToDeviceValue(UnitRenderingType.VerticalOffset, svgOffset, skBounds);
+            var dxUnit = svgOffset.Dx;
+            var dyUnit = svgOffset.Dy;
+
+            float dx = dxUnit.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgOffset, skBounds);
+            float dy = dyUnit.ToDeviceValue(UnitRenderingType.VerticalOffset, svgOffset, skBounds);
+
+            if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            {
+                if (dxUnit.Type != SvgUnitType.Percentage)
+                {
+                    dx *= skBounds.Width;
+                    dx += skBounds.Left;
+                }
+
+                if (dyUnit.Type != SvgUnitType.Percentage)
+                {
+                    dy *= skBounds.Height;
+                    dy += skBounds.Top;
+                }
+            }
 
             return SKImageFilter.CreateOffset(dx, dy, input, cropRect);
         }
@@ -1293,7 +1311,7 @@ namespace Svg.Skia
                             {
                                 var inputKey = svgOffset.Input;
                                 var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateOffset(svgOffset, skFilterPrimitiveRegion, inputFilter, skCropRect);
+                                var skImageFilter = CreateOffset(svgOffset, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgOffset, skPaint, skImageFilter, results, disposable);
