@@ -1026,6 +1026,33 @@ namespace Svg.Skia
                     float yChild = yUnitChild.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilterPrimitive, skPrimitiveBounds);
                     float widthChild = widthUnitChild.ToDeviceValue(UnitRenderingType.Horizontal, svgFilterPrimitive, skPrimitiveBounds);
                     float heightChild = heightUnitChild.ToDeviceValue(UnitRenderingType.Vertical, svgFilterPrimitive, skPrimitiveBounds);
+
+                    if (svgFilter.PrimitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
+                    {
+                        if (xUnitChild.Type != SvgUnitType.Percentage)
+                        {
+                            xChild *= skPrimitiveBounds.Width;
+                        }
+
+                        if (yUnitChild.Type != SvgUnitType.Percentage)
+                        {
+                            yChild *= skPrimitiveBounds.Height;
+                        }
+
+                        if (widthUnitChild.Type != SvgUnitType.Percentage)
+                        {
+                            widthChild *= skPrimitiveBounds.Width;
+                        }
+
+                        if (heightUnitChild.Type != SvgUnitType.Percentage)
+                        {
+                            heightChild *= skPrimitiveBounds.Height;
+                        }
+
+                        //xChild += skPrimitiveBounds.Left;
+                        //yChild += skPrimitiveBounds.Top;
+                    }
+
                     var skFilterPrimitiveRegion = SKRect.Create(xChild, yChild, widthChild, heightChild);
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
 
