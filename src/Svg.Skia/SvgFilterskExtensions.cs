@@ -748,8 +748,10 @@ namespace Svg.Skia
 
             if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
-                sigmaX = (skBounds.Width / 100) * sigmaX;
-                sigmaY = (skBounds.Height / 100) * sigmaY;
+                sigmaX *= skBounds.Width;
+                sigmaX += skBounds.Left;
+                sigmaY *= skBounds.Height;
+                sigmaY += skBounds.Top;
             }
 
             if (sigmaX < 0f || sigmaY < 0f)
