@@ -1039,7 +1039,7 @@ namespace Svg.Skia
                     float widthChild = widthUnitChild.ToDeviceValue(UnitRenderingType.Horizontal, svgFilterPrimitive, skPrimitiveBounds);
                     float heightChild = heightUnitChild.ToDeviceValue(UnitRenderingType.Vertical, svgFilterPrimitive, skPrimitiveBounds);
 
-                    if (svgFilter.PrimitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
+                    if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
                     {
                         if (xUnitChild.Type != SvgUnitType.Percentage)
                         {
