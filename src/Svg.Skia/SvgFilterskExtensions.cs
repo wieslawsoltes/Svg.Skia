@@ -657,11 +657,11 @@ namespace Svg.Skia
             float elevation = svgDistantLight.Elevation;
             double azimuthRad = DegreeToRadian(azimuth);
             double elevationRad = DegreeToRadian(elevation);
-            SKPoint3 direction = new SKPoint3(
-                (float)(Math.Cos(azimuthRad) * Math.Cos(elevationRad)),
-                (float)(Math.Sin(azimuthRad) * Math.Cos(elevationRad)),
-                (float)Math.Sin(elevationRad));
-            return direction;
+            float x = (float)(Math.Cos(azimuthRad) * Math.Cos(elevationRad));
+            float y = (float)(Math.Sin(azimuthRad) * Math.Cos(elevationRad));
+            float z = (float)Math.Sin(elevationRad);
+            return new SKPoint3(x, y, z);
+        }
 
         public static SKPoint3 GetPoint3(float x, float y, float z, SKRect skBounds, SvgCoordinateUnits primitiveUnits)
         {
