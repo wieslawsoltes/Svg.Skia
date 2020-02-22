@@ -1044,11 +1044,13 @@ namespace Svg.Skia
                         if (xUnitChild.Type != SvgUnitType.Percentage)
                         {
                             xChild *= skPrimitiveBounds.Width;
+                            xChild += skPrimitiveBounds.Left;
                         }
 
                         if (yUnitChild.Type != SvgUnitType.Percentage)
                         {
                             yChild *= skPrimitiveBounds.Height;
+                            yChild += skPrimitiveBounds.Top;
                         }
 
                         if (widthUnitChild.Type != SvgUnitType.Percentage)
@@ -1060,9 +1062,6 @@ namespace Svg.Skia
                         {
                             heightChild *= skPrimitiveBounds.Height;
                         }
-
-                        //xChild += skPrimitiveBounds.Left;
-                        //yChild += skPrimitiveBounds.Top;
                     }
 
                     var skFilterPrimitiveRegion = SKRect.Create(xChild, yChild, widthChild, heightChild);
