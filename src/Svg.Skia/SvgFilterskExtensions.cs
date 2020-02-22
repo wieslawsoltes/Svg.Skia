@@ -1310,7 +1310,7 @@ namespace Svg.Skia
                             {
                                 var inputKey = svgMorphology.Input;
                                 var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateMorphology(svgMorphology, inputFilter, skCropRect);
+                                var skImageFilter = CreateMorphology(svgMorphology, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgMorphology, skPaint, skImageFilter, results, disposable);
