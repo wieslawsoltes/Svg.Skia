@@ -763,10 +763,9 @@ namespace Svg.Skia
 
             if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
-                sigmaX *= skBounds.Width;
-                sigmaX += skBounds.Left;
-                sigmaY *= skBounds.Height;
-                sigmaY += skBounds.Top;
+                var value = CalculateOtherPercentageValue(skBounds);
+                sigmaX *= value;
+                sigmaY *= value;
             }
 
             if (sigmaX < 0f && sigmaY < 0f)
