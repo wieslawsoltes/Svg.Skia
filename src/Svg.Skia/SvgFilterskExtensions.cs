@@ -592,6 +592,11 @@ namespace Svg.Skia
         {
             GetOptionalNumbers(svgConvolveMatrix.Order, 3f, 3f, out var orderX, out var orderY);
 
+            if (orderX <= 0f || orderY <= 0f)
+            {
+                return null;
+            }
+
             var kernelSize = new SKSizeI((int)orderX, (int)orderY);
             var kernelMatrix = svgConvolveMatrix.KernelMatrix;
 
