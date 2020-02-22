@@ -686,6 +686,11 @@ namespace Svg.Skia
             var diffuseConstant = svgDiffuseLighting.DiffuseConstant;
             // TODO: svgDiffuseLighting.KernelUnitLength
 
+            if (diffuseConstant < 0f)
+            {
+                diffuseConstant = 0f;
+            }
+
             switch (svgDiffuseLighting.LightSource)
             {
                 case SvgDistantLight svgDistantLight:
