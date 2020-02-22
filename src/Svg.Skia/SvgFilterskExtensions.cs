@@ -834,6 +834,14 @@ namespace Svg.Skia
         {
             GetOptionalNumbers(svgMorphology.Radius, 0f, 0f, out var radiusX, out var radiusY);
 
+            if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            {
+                radiusX *= skBounds.Width;
+                radiusX += skBounds.Left;
+                radiusY *= skBounds.Height;
+                radiusY += skBounds.Top;
+            }
+
             return svgMorphology.Operator switch
             {
                 SvgMorphologyOperator.Dilate => SKImageFilter.CreateDilate((int)radiusX, (int)radiusY, input, cropRect),
