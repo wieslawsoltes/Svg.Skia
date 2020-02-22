@@ -931,10 +931,15 @@ namespace Svg.Skia
             return SKImageFilter.CreatePaint(skPaint, cropRect);
         }
 
+        public static bool IsNone(Uri uri)
+        {
+            return string.Equals(uri.ToString(), "none", StringComparison.OrdinalIgnoreCase);
+        }
+
         public static SKPaint? GetFilterSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, IFilterSource filterSource, CompositeDisposable disposable, out bool isValid)
         {
             var filter = svgVisualElement.Filter;
-            if (filter == null)
+            if (filter == null || IsNone(filter))
             {
                 isValid = true;
                 return null;
