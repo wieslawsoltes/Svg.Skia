@@ -958,9 +958,16 @@ namespace Svg.Skia
             return SKImageFilter.CreateTile(skBounds, cropRect != null ? cropRect.Rect : skBounds, input);
         }
 
-        public static SKImageFilter? CreateTurbulence(FilterEffects.SvgTurbulence svgTurbulence, SKRect skBounds, CompositeDisposable disposable, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateTurbulence(FilterEffects.SvgTurbulence svgTurbulence, SKRect skBounds, SvgCoordinateUnits primitiveUnits, CompositeDisposable disposable, SKImageFilter.CropRect? cropRect = null)
         {
             GetOptionalNumbers(svgTurbulence.BaseFrequency, 0f, 0f, out var baseFrequencyX, out var baseFrequencyY);
+
+            if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            {
+                var value = CalculateOtherPercentageValue(skBounds);
+                baseFrequencyX *= value;
+                baseFrequencyY *= value;
+            }
 
             var numOctaves = svgTurbulence.NumOctaves;
             var seed = svgTurbulence.Seed;
@@ -1405,7 +1412,7 @@ namespace Svg.Skia
                             {
                                 var inputKey = svgTurbulence.Input;
                                 var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateTurbulence(svgTurbulence, skFilterPrimitiveRegion, disposable, skCropRect);
+                                var skImageFilter = CreateTurbulence(svgTurbulence, skFilterPrimitiveRegion, primitiveUnits, disposable, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgTurbulence, skPaint, skImageFilter, results, disposable);
