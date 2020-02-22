@@ -588,9 +588,15 @@ namespace Svg.Skia
             }
         }
 
-        public static SKImageFilter? CreateConvolveMatrix(FilterEffects.SvgConvolveMatrix svgConvolveMatrix, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateConvolveMatrix(FilterEffects.SvgConvolveMatrix svgConvolveMatrix, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             GetOptionalNumbers(svgConvolveMatrix.Order, 3f, 3f, out var orderX, out var orderY);
+
+            if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            {
+                orderX *= skBounds.Width;
+                orderY *= skBounds.Height;
+            }
 
             if (orderX <= 0f || orderY <= 0f)
             {
@@ -1213,7 +1219,7 @@ namespace Svg.Skia
                             {
                                 var inputKey = svgConvolveMatrix.Input;
                                 var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateConvolveMatrix(svgConvolveMatrix, inputFilter, skCropRect);
+                                var skImageFilter = CreateConvolveMatrix(svgConvolveMatrix, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgConvolveMatrix, skPaint, skImageFilter, results, disposable);
