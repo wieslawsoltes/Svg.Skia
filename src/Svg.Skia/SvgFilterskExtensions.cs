@@ -737,11 +737,17 @@ namespace Svg.Skia
             };
         }
 
-        public static SKImageFilter? CreateDisplacementMap(FilterEffects.SvgDisplacementMap svgDisplacementMap, SKImageFilter displacement, SKImageFilter? inout = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateDisplacementMap(FilterEffects.SvgDisplacementMap svgDisplacementMap, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter displacement, SKImageFilter? inout = null, SKImageFilter.CropRect? cropRect = null)
         {
             var xChannelSelector = GetSKDisplacementMapEffectChannelSelectorType(svgDisplacementMap.XChannelSelector);
             var yChannelSelector = GetSKDisplacementMapEffectChannelSelectorType(svgDisplacementMap.YChannelSelector);
             var scale = svgDisplacementMap.Scale;
+
+            if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            {
+                scale *= CalculateOtherPercentageValue(skBounds);
+            }
+
             return SKImageFilter.CreateDisplacementMapEffect(xChannelSelector, yChannelSelector, scale, displacement, inout, cropRect);
         }
 
@@ -1257,7 +1263,7 @@ namespace Svg.Skia
                                 {
                                     break;
                                 }
-                                var skImageFilter = CreateDisplacementMap(svgDisplacementMap, input2Filter, input1Filter, skCropRect);
+                                var skImageFilter = CreateDisplacementMap(svgDisplacementMap, skFilterPrimitiveRegion, primitiveUnits, input2Filter, input1Filter, skCropRect);
                                 if (skImageFilter != null)
                                 {
                                     lastResult = SetImageFilter(svgDisplacementMap, skPaint, skImageFilter, results, disposable);
