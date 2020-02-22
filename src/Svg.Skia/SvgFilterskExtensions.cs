@@ -979,6 +979,9 @@ namespace Svg.Skia
             }
 
             if (svgFilter.FilterUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            var filterUnits = svgFilter.FilterUnits;
+
+            if (filterUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
                 // TOOD: FilterUnits
                 if (xUnit.Type != SvgUnitType.Percentage)
@@ -1000,9 +1003,6 @@ namespace Svg.Skia
                 {
                     height *= skBounds.Height;
                 }
-
-                //x += skBounds.Left;
-                //y += skBounds.Top;
             }
 
             var skFilterRegion = SKRect.Create(x, y, width, height);
