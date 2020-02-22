@@ -1022,7 +1022,7 @@ namespace Svg.Skia
                     var skPrimitiveBounds = skBounds;
 
                     // TOOD: PrimitiveUnits
-                    if (svgFilter.PrimitiveUnits == SvgCoordinateUnits.UserSpaceOnUse)
+                    if (primitiveUnits == SvgCoordinateUnits.UserSpaceOnUse)
                     {
                         skPrimitiveBounds = skFilterRegion;
                     }
