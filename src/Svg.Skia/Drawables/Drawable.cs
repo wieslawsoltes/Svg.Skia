@@ -441,7 +441,12 @@ namespace Svg.Skia
 
             if (visualElement != null && enableFilter == true)
             {
-                Filter = SvgFiltersExtensions.GetFilterSKPaint(visualElement, TransformedBounds, this, _disposable);
+                Filter = SvgFiltersExtensions.GetFilterSKPaint(visualElement, TransformedBounds, this, _disposable, out var isValid);
+                if (isValid == false)
+                {
+                    IsDrawable = false;
+                    return;
+                }
             }
             else
             {
