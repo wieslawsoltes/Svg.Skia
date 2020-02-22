@@ -926,22 +926,25 @@ namespace Svg.Skia
             return SKImageFilter.CreatePaint(skPaint, cropRect);
         }
 
-        public static SKPaint? GetFilterSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, IFilterSource filterSource, CompositeDisposable disposable)
+        public static SKPaint? GetFilterSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, IFilterSource filterSource, CompositeDisposable disposable, out bool isValid)
         {
             var filter = svgVisualElement.Filter;
             if (filter == null)
             {
+                isValid = true;
                 return null;
             }
 
             if (SvgExtensions.HasRecursiveReference(svgVisualElement, (e) => e.Filter, new HashSet<Uri>()))
             {
+                isValid = false;
                 return null;
             }
 
             var svgFilter = SvgExtensions.GetReference<FilterEffects.SvgFilter>(svgVisualElement, svgVisualElement.Filter);
             if (svgFilter == null)
             {
+                isValid = false;
                 return null;
             }
 
@@ -956,8 +959,8 @@ namespace Svg.Skia
 
             if (width <= 0f || height <= 0f)
             {
-                // TODO: Disable visual element rendering.
-                //return null;
+                isValid = false;
+                return null;
             }
 
             if (svgFilter.FilterUnits == SvgCoordinateUnits.ObjectBoundingBox)
@@ -1197,6 +1200,7 @@ namespace Svg.Skia
             }
 
             disposable.Add(skPaint);
+            isValid = true;
             return skPaint;
         }
     }
