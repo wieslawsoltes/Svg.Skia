@@ -1607,9 +1607,7 @@ namespace Svg.Skia
                 {
                     Style = SKPaintStyle.StrokeAndFill
                 };
-
                 skPaint.ImageFilter = lastResult;
-
                 disposable.Add(skPaint);
 
                 isValid = true;
