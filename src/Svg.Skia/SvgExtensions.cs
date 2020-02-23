@@ -8,10 +8,46 @@ namespace Svg.Skia
 {
     public static class SvgExtensions
     {
-        /// <summary>
-        /// Converts the current unit to one that can be used at render time.
-        /// </summary>
-        /// <returns>The representation of the current unit in a device value (usually pixels).</returns>
+        public static double DegreeToRadian(this double degrees)
+        {
+            return Math.PI * degrees / 180.0;
+        }
+
+        public static double RadianToDegree(this double radians)
+        {
+            return radians * (180.0 / Math.PI);
+        }
+
+        public static bool IsNone(this Uri uri)
+        {
+            return string.Equals(uri.ToString(), "none", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static void GetOptionalNumbers(this SvgNumberCollection svgNumberCollection, float defaultValue1, float defaultValue2, out float value1, out float value2)
+        {
+            value1 = defaultValue1;
+            value2 = defaultValue2;
+            if (svgNumberCollection == null)
+            {
+                return;
+            }
+            if (svgNumberCollection.Count == 1)
+            {
+                value1 = svgNumberCollection[0];
+                value2 = value1;
+            }
+            else if (svgNumberCollection.Count == 2)
+            {
+                value1 = svgNumberCollection[0];
+                value2 = svgNumberCollection[1];
+            }
+        }
+
+        public static float CalculateOtherPercentageValue(this SKRect skBounds)
+        {
+            return (float)(Math.Sqrt((skBounds.Width * skBounds.Width) + (skBounds.Width * skBounds.Height)) / Math.Sqrt(2.0));
+        }
+
         public static float ToDeviceValue(this SvgUnit svgUnit, UnitRenderingType renderType, SvgElement? owner, SKRect skBounds)
         {
             /*
