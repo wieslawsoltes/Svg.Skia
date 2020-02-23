@@ -1020,6 +1020,34 @@ namespace Svg.Skia
             return string.Equals(uri.ToString(), "none", StringComparison.OrdinalIgnoreCase);
         }
 
+        private static List<FilterEffects.SvgFilter>? GetLinkedFilter(SvgVisualElement svgVisualElement,HashSet<Uri> uris)
+        {
+            SvgFilter? currentFilter = SvgExtensions.GetReference<FilterEffects.SvgFilter>(svgVisualElement, svgVisualElement.Filter);
+            if (currentFilter == null)
+            {
+                return null;
+            }
+
+            var svgFilters = new List<FilterEffects.SvgFilter>();
+
+            do
+            {
+                if (currentFilter != null)
+                {
+                    svgFilters.Add(currentFilter);
+
+                    if (SvgExtensions.HasRecursiveReference(currentFilter, (e) => e.Href, uris))
+                    {
+                        return svgFilters;
+                    }
+
+                    currentFilter = SvgExtensions.GetReference<FilterEffects.SvgFilter>(currentFilter, currentFilter.Href);
+                }
+            } while (currentFilter != null);
+
+            return svgFilters;
+        }
+
         public static SKPaint? GetFilterSKPaint(SvgVisualElement svgVisualElement, SKRect skBounds, IFilterSource filterSource, CompositeDisposable disposable, out bool isValid)
         {
             var filter = svgVisualElement.Filter;
@@ -1029,41 +1057,103 @@ namespace Svg.Skia
                 return null;
             }
 
-            if (SvgExtensions.HasRecursiveReference(svgVisualElement, (e) => e.Filter, new HashSet<Uri>()))
+            var svgReferencedFilters = GetLinkedFilter(svgVisualElement, new HashSet<Uri>());
+            if (svgReferencedFilters == null || svgReferencedFilters.Count < 0)
             {
                 isValid = false;
                 return null;
             }
 
-            var svgFilter = SvgExtensions.GetReference<FilterEffects.SvgFilter>(svgVisualElement, svgVisualElement.Filter);
-            if (svgFilter == null)
+            var svgFirstFilter = svgReferencedFilters[0];
+
+            FilterEffects.SvgFilter? firstChildren = null;
+            FilterEffects.SvgFilter? firstX = null;
+            FilterEffects.SvgFilter? firstY = null;
+            FilterEffects.SvgFilter? firstWidth = null;
+            FilterEffects.SvgFilter? firstHeight = null;
+            FilterEffects.SvgFilter? firstFilterUnits = null;
+            FilterEffects.SvgFilter? firstPrimitiveUnits = null;
+
+            foreach (var p in svgReferencedFilters)
+            {
+                if (firstChildren == null)
+                {
+                    if (p.Children.Count > 0)
+                    {
+                        firstChildren = p;
+                    }
+                }
+                if (firstX == null)
+                {
+                    if (p.GetAttribute("x", out _) == true)
+                    {
+                        firstX = p;
+                    }
+                }
+                if (firstY == null)
+                {
+                    if (p.GetAttribute("y", out _) == true)
+                    {
+                        firstY = p;
+                    }
+                }
+                if (firstWidth == null)
+                {
+                    if (p.GetAttribute("width", out _) == true)
+                    {
+                        firstWidth = p;
+                    }
+                }
+                if (firstHeight == null)
+                {
+                    if (p.GetAttribute("height", out _) == true)
+                    {
+                        firstHeight = p;
+                    }
+                }
+                if (firstFilterUnits == null)
+                {
+                    if (p.GetAttribute("filterUnits", out _) == true)
+                    {
+                        firstFilterUnits = p;
+                    }
+                }
+                if (firstPrimitiveUnits == null)
+                {
+                    if (p.GetAttribute("primitiveUnits", out _) == true)
+                    {
+                        firstPrimitiveUnits = p;
+                    }
+                }
+            }
+
+            if (firstChildren == null)
             {
                 isValid = false;
                 return null;
             }
+
+            var xUnit = firstX == null ? new SvgUnit(SvgUnitType.Percentage, -10f) : firstX.X;
+            var yUnit = firstY == null ? new SvgUnit(SvgUnitType.Percentage, -10f) : firstY.Y;
+            var widthUnit = firstWidth == null ? new SvgUnit(SvgUnitType.Percentage, 120f) : firstWidth.Width;
+            var heightUnit = firstHeight == null ? new SvgUnit(SvgUnitType.Percentage, 120f) : firstHeight.Height;
+            var filterUnits = firstFilterUnits == null ? SvgCoordinateUnits.ObjectBoundingBox : firstFilterUnits.FilterUnits;
+            var primitiveUnits = firstPrimitiveUnits == null ? SvgCoordinateUnits.UserSpaceOnUse : firstPrimitiveUnits.FilterUnits;
+
+            float x = xUnit.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFirstFilter, skBounds);
+            float y = yUnit.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFirstFilter, skBounds);
+            float width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgFirstFilter, skBounds);
+            float height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgFirstFilter, skBounds);
 
             var results = new Dictionary<string, SKImageFilter>();
             var lastResult = default(SKImageFilter);
             var prevoiusFilterPrimitiveRegion = SKRect.Empty;
-
-            var xUnit = svgFilter.X;
-            var yUnit = svgFilter.Y;
-            var widthUnit = svgFilter.Width;
-            var heightUnit = svgFilter.Height;
-
-            float x = xUnit.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilter, skBounds);
-            float y = yUnit.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilter, skBounds);
-            float width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgFilter, skBounds);
-            float height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgFilter, skBounds);
 
             if (width <= 0f || height <= 0f)
             {
                 isValid = false;
                 return null;
             }
-
-            var filterUnits = svgFilter.FilterUnits;
-            var primitiveUnits = svgFilter.PrimitiveUnits;
 
             if (filterUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
@@ -1099,7 +1189,7 @@ namespace Svg.Skia
             };
 
             int count = 0;
-            foreach (var child in svgFilter.Children)
+            foreach (var child in firstChildren.Children)
             {
                 if (child is FilterEffects.SvgFilterPrimitive svgFilterPrimitive)
                 {
@@ -1108,7 +1198,7 @@ namespace Svg.Skia
                     var skPrimitiveBounds = skBounds;
 
                     // TOOD: PrimitiveUnits
-                    if (primitiveUnits == SvgCoordinateUnits.UserSpaceOnUse)
+                    //if (primitiveUnits == SvgCoordinateUnits.UserSpaceOnUse)
                     {
                         skPrimitiveBounds = skFilterRegion;
                     }
