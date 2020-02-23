@@ -260,6 +260,21 @@ namespace Svg.Skia
             return null;
         }
 
+        public static SKImageFilter? GetFilterResult(SvgFilterPrimitive svgFilterPrimitive, SKImageFilter? skImageFilter, Dictionary<string, SKImageFilter> results, CompositeDisposable disposable)
+        {
+            if (skImageFilter != null)
+            {
+                var key = svgFilterPrimitive.Result;
+                if (!string.IsNullOrWhiteSpace(key))
+                {
+                    results[key] = skImageFilter;
+                }
+                disposable.Add(skImageFilter);
+                return skImageFilter;
+            }
+            return null;
+        }
+
         public static SKBlendMode GetSKBlendMode(FilterEffects.SvgBlendMode svgBlendMode)
         {
             return svgBlendMode switch
@@ -1317,16 +1332,7 @@ namespace Svg.Skia
                                 break;
                             }
                             var skImageFilter = CreateBlend(svgBlend, input2Filter, input1Filter, skCropRect);
-                            if (skImageFilter != null)
-                            {
-                                var key = svgFilterPrimitive.Result;
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    results[key] = skImageFilter;
-                                }
-                                disposable.Add(skImageFilter);
-                                lastResult = skImageFilter;
-                            }
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
                         }
                         break;
                     case FilterEffects.SvgColourMatrix svgColourMatrix:
@@ -1334,16 +1340,7 @@ namespace Svg.Skia
                             var inputKey = svgColourMatrix.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
                             var skImageFilter = CreateColorMatrix(svgColourMatrix, disposable, inputFilter, skCropRect);
-                            if (skImageFilter != null)
-                            {
-                                var key = svgFilterPrimitive.Result;
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    results[key] = skImageFilter;
-                                }
-                                disposable.Add(skImageFilter);
-                                lastResult = skImageFilter;
-                            }
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
                         }
                         break;
                     case FilterEffects.SvgComponentTransfer svgComponentTransfer:
@@ -1351,16 +1348,7 @@ namespace Svg.Skia
                             var inputKey = svgComponentTransfer.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
                             var skImageFilter = CreateComponentTransfer(svgComponentTransfer, disposable, inputFilter, skCropRect);
-                            if (skImageFilter != null)
-                            {
-                                var key = svgFilterPrimitive.Result;
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    results[key] = skImageFilter;
-                                }
-                                disposable.Add(skImageFilter);
-                                lastResult = skImageFilter;
-                            }
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
                         }
                         break;
                     case FilterEffects.SvgComposite svgComposite:
@@ -1374,16 +1362,7 @@ namespace Svg.Skia
                                 break;
                             }
                             var skImageFilter = CreateComposite(svgComposite, input2Filter, input1Filter, skCropRect);
-                            if (skImageFilter != null)
-                            {
-                                var key = svgFilterPrimitive.Result;
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    results[key] = skImageFilter;
-                                }
-                                disposable.Add(skImageFilter);
-                                lastResult = skImageFilter;
-                            }
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
                         }
                         break;
                     case FilterEffects.SvgConvolveMatrix svgConvolveMatrix:
@@ -1391,16 +1370,7 @@ namespace Svg.Skia
                             var inputKey = svgConvolveMatrix.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
                             var skImageFilter = CreateConvolveMatrix(svgConvolveMatrix, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
-                            if (skImageFilter != null)
-                            {
-                                var key = svgFilterPrimitive.Result;
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    results[key] = skImageFilter;
-                                }
-                                disposable.Add(skImageFilter);
-                                lastResult = skImageFilter;
-                            }
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
                         }
                         break;
                     case FilterEffects.SvgDiffuseLighting svgDiffuseLighting:
@@ -1408,16 +1378,7 @@ namespace Svg.Skia
                             var inputKey = svgDiffuseLighting.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
                             var skImageFilter = CreateDiffuseLighting(svgDiffuseLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
-                            if (skImageFilter != null)
-                            {
-                                var key = svgFilterPrimitive.Result;
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    results[key] = skImageFilter;
-                                }
-                                disposable.Add(skImageFilter);
-                                lastResult = skImageFilter;
-                            }
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
                         }
                         break;
                     case FilterEffects.SvgDisplacementMap svgDisplacementMap:
@@ -1431,16 +1392,7 @@ namespace Svg.Skia
                                 break;
                             }
                             var skImageFilter = CreateDisplacementMap(svgDisplacementMap, skFilterPrimitiveRegion, primitiveUnits, input2Filter, input1Filter, skCropRect);
-                            if (skImageFilter != null)
-                            {
-                                var key = svgFilterPrimitive.Result;
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    results[key] = skImageFilter;
-                                }
-                                disposable.Add(skImageFilter);
-                                lastResult = skImageFilter;
-                            }
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
                         }
                         break;
                     case FilterEffects.SvgFlood svgFlood:
@@ -1448,16 +1400,7 @@ namespace Svg.Skia
                             var inputKey = svgFlood.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
                             var skImageFilter = CreateFlood(svgFlood, svgVisualElement, skFilterPrimitiveRegion, disposable, inputFilter, skCropRect);
-                            if (skImageFilter != null)
-                            {
-                                var key = svgFilterPrimitive.Result;
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    results[key] = skImageFilter;
-                                }
-                                disposable.Add(skImageFilter);
-                                lastResult = skImageFilter;
-                            }
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
                         }
                         break;
                     case FilterEffects.SvgGaussianBlur svgGaussianBlur:
@@ -1465,16 +1408,7 @@ namespace Svg.Skia
                             var inputKey = svgGaussianBlur.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
                             var skImageFilter = CreateBlur(svgGaussianBlur, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
-                            if (skImageFilter != null)
-                            {
-                                var key = svgFilterPrimitive.Result;
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    results[key] = skImageFilter;
-                                }
-                                disposable.Add(skImageFilter);
-                                lastResult = skImageFilter;
-                            }
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
                         }
                         break;
                     case FilterEffects.SvgImage svgImage:
@@ -1482,31 +1416,13 @@ namespace Svg.Skia
                             var inputKey = svgImage.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
                             var skImageFilter = CreateImage(svgImage, skFilterPrimitiveRegion, disposable, skCropRect);
-                            if (skImageFilter != null)
-                            {
-                                var key = svgFilterPrimitive.Result;
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    results[key] = skImageFilter;
-                                }
-                                disposable.Add(skImageFilter);
-                                lastResult = skImageFilter;
-                            }
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
                         }
                         break;
                     case FilterEffects.SvgMerge svgMerge:
                         {
                             var skImageFilter = CreateMerge(svgMerge, results, lastResult, filterSource, disposable, skCropRect);
-                            if (skImageFilter != null)
-                            {
-                                var key = svgFilterPrimitive.Result;
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    results[key] = skImageFilter;
-                                }
-                                disposable.Add(skImageFilter);
-                                lastResult = skImageFilter;
-                            }
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
                         }
                         break;
                     case FilterEffects.SvgMorphology svgMorphology:
@@ -1514,16 +1430,7 @@ namespace Svg.Skia
                             var inputKey = svgMorphology.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
                             var skImageFilter = CreateMorphology(svgMorphology, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
-                            if (skImageFilter != null)
-                            {
-                                var key = svgFilterPrimitive.Result;
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    results[key] = skImageFilter;
-                                }
-                                disposable.Add(skImageFilter);
-                                lastResult = skImageFilter;
-                            }
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
                         }
                         break;
                     case FilterEffects.SvgOffset svgOffset:
@@ -1531,16 +1438,7 @@ namespace Svg.Skia
                             var inputKey = svgOffset.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
                             var skImageFilter = CreateOffset(svgOffset, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
-                            if (skImageFilter != null)
-                            {
-                                var key = svgFilterPrimitive.Result;
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    results[key] = skImageFilter;
-                                }
-                                disposable.Add(skImageFilter);
-                                lastResult = skImageFilter;
-                            }
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
                         }
                         break;
                     case FilterEffects.SvgSpecularLighting svgSpecularLighting:
@@ -1548,16 +1446,7 @@ namespace Svg.Skia
                             var inputKey = svgSpecularLighting.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
                             var skImageFilter = CreateSpecularLighting(svgSpecularLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
-                            if (skImageFilter != null)
-                            {
-                                var key = svgFilterPrimitive.Result;
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    results[key] = skImageFilter;
-                                }
-                                disposable.Add(skImageFilter);
-                                lastResult = skImageFilter;
-                            }
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
                         }
                         break;
                     case FilterEffects.SvgTile svgTile:
@@ -1565,16 +1454,7 @@ namespace Svg.Skia
                             var inputKey = svgTile.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
                             var skImageFilter = CreateTile(svgTile, prevoiusFilterPrimitiveRegion, inputFilter, skCropRect);
-                            if (skImageFilter != null)
-                            {
-                                var key = svgFilterPrimitive.Result;
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    results[key] = skImageFilter;
-                                }
-                                disposable.Add(skImageFilter);
-                                lastResult = skImageFilter;
-                            }
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
                         }
                         break;
                     case FilterEffects.SvgTurbulence svgTurbulence:
@@ -1582,16 +1462,7 @@ namespace Svg.Skia
                             var inputKey = svgTurbulence.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
                             var skImageFilter = CreateTurbulence(svgTurbulence, skFilterPrimitiveRegion, primitiveUnits, disposable, skCropRect);
-                            if (skImageFilter != null)
-                            {
-                                var key = svgFilterPrimitive.Result;
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    results[key] = skImageFilter;
-                                }
-                                disposable.Add(skImageFilter);
-                                lastResult = skImageFilter;
-                            }
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
                         }
                         break;
                     default:
