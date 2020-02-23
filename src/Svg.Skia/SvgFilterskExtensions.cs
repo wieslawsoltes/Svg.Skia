@@ -260,18 +260,6 @@ namespace Svg.Skia
             return null;
         }
 
-        public static SKImageFilter? SetImageFilter(FilterEffects.SvgFilterPrimitive svgFilterPrimitive, SKPaint skPaint, SKImageFilter skImageFilter, Dictionary<string, SKImageFilter> results, CompositeDisposable disposable)
-        {
-            var key = svgFilterPrimitive.Result;
-            if (!string.IsNullOrWhiteSpace(key))
-            {
-                results[key] = skImageFilter;
-            }
-            disposable.Add(skImageFilter);
-            skPaint.ImageFilter = skImageFilter;
-            return skImageFilter;
-        }
-
         public static SKBlendMode GetSKBlendMode(FilterEffects.SvgBlendMode svgBlendMode)
         {
             return svgBlendMode switch
@@ -1256,13 +1244,6 @@ namespace Svg.Skia
 
             var skFilterRegion = SKRect.Create(x, y, width, height);
 
-            var skPaint = new SKPaint
-            {
-                Style = SKPaintStyle.StrokeAndFill
-            };
-
-            int count = 0;
-
             var svgFilterPrimitives = new List<FilterEffects.SvgFilterPrimitive>();
             foreach (var child in firstChildren.Children)
             {
@@ -1272,6 +1253,7 @@ namespace Svg.Skia
                 }
             }
 
+            int count = 0;
             foreach (var svgFilterPrimitive in svgFilterPrimitives)
             {
                 count++;
@@ -1337,7 +1319,14 @@ namespace Svg.Skia
                             var skImageFilter = CreateBlend(svgBlend, input2Filter, input1Filter, skCropRect);
                             if (skImageFilter != null)
                             {
-                                lastResult = SetImageFilter(svgBlend, skPaint, skImageFilter, results, disposable);
+                                var key = svgFilterPrimitive.Result;
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    results[key] = skImageFilter;
+                                }
+
+                                disposable.Add(skImageFilter);
+                                lastResult = skImageFilter;
                             }
                             else
                             {
@@ -1353,12 +1342,14 @@ namespace Svg.Skia
                             var skImageFilter = CreateColorMatrix(svgColourMatrix, disposable, inputFilter, skCropRect);
                             if (skImageFilter != null)
                             {
-                                lastResult = SetImageFilter(svgColourMatrix, skPaint, skImageFilter, results, disposable);
-                            }
-                            else
-                            {
-                                isValid = false;
-                                return null;
+                                var key = svgFilterPrimitive.Result;
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    results[key] = skImageFilter;
+                                }
+
+                                disposable.Add(skImageFilter);
+                                lastResult = skImageFilter;
                             }
                         }
                         break;
@@ -1369,12 +1360,14 @@ namespace Svg.Skia
                             var skImageFilter = CreateComponentTransfer(svgComponentTransfer, disposable, inputFilter, skCropRect);
                             if (skImageFilter != null)
                             {
-                                lastResult = SetImageFilter(svgComponentTransfer, skPaint, skImageFilter, results, disposable);
-                            }
-                            else
-                            {
-                                isValid = false;
-                                return null;
+                                var key = svgFilterPrimitive.Result;
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    results[key] = skImageFilter;
+                                }
+
+                                disposable.Add(skImageFilter);
+                                lastResult = skImageFilter;
                             }
                         }
                         break;
@@ -1391,12 +1384,14 @@ namespace Svg.Skia
                             var skImageFilter = CreateComposite(svgComposite, input2Filter, input1Filter, skCropRect);
                             if (skImageFilter != null)
                             {
-                                lastResult = SetImageFilter(svgComposite, skPaint, skImageFilter, results, disposable);
-                            }
-                            else
-                            {
-                                isValid = false;
-                                return null;
+                                var key = svgFilterPrimitive.Result;
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    results[key] = skImageFilter;
+                                }
+
+                                disposable.Add(skImageFilter);
+                                lastResult = skImageFilter;
                             }
                         }
                         break;
@@ -1407,12 +1402,14 @@ namespace Svg.Skia
                             var skImageFilter = CreateConvolveMatrix(svgConvolveMatrix, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                             if (skImageFilter != null)
                             {
-                                lastResult = SetImageFilter(svgConvolveMatrix, skPaint, skImageFilter, results, disposable);
-                            }
-                            else
-                            {
-                                isValid = false;
-                                return null;
+                                var key = svgFilterPrimitive.Result;
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    results[key] = skImageFilter;
+                                }
+
+                                disposable.Add(skImageFilter);
+                                lastResult = skImageFilter;
                             }
                         }
                         break;
@@ -1423,12 +1420,14 @@ namespace Svg.Skia
                             var skImageFilter = CreateDiffuseLighting(svgDiffuseLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
                             if (skImageFilter != null)
                             {
-                                lastResult = SetImageFilter(svgDiffuseLighting, skPaint, skImageFilter, results, disposable);
-                            }
-                            else
-                            {
-                                isValid = false;
-                                return null;
+                                var key = svgFilterPrimitive.Result;
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    results[key] = skImageFilter;
+                                }
+
+                                disposable.Add(skImageFilter);
+                                lastResult = skImageFilter;
                             }
                         }
                         break;
@@ -1445,12 +1444,14 @@ namespace Svg.Skia
                             var skImageFilter = CreateDisplacementMap(svgDisplacementMap, skFilterPrimitiveRegion, primitiveUnits, input2Filter, input1Filter, skCropRect);
                             if (skImageFilter != null)
                             {
-                                lastResult = SetImageFilter(svgDisplacementMap, skPaint, skImageFilter, results, disposable);
-                            }
-                            else
-                            {
-                                isValid = false;
-                                return null;
+                                var key = svgFilterPrimitive.Result;
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    results[key] = skImageFilter;
+                                }
+
+                                disposable.Add(skImageFilter);
+                                lastResult = skImageFilter;
                             }
                         }
                         break;
@@ -1461,12 +1462,14 @@ namespace Svg.Skia
                             var skImageFilter = CreateFlood(svgFlood, svgVisualElement, skFilterPrimitiveRegion, disposable, inputFilter, skCropRect);
                             if (skImageFilter != null)
                             {
-                                lastResult = SetImageFilter(svgFlood, skPaint, skImageFilter, results, disposable);
-                            }
-                            else
-                            {
-                                isValid = false;
-                                return null;
+                                var key = svgFilterPrimitive.Result;
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    results[key] = skImageFilter;
+                                }
+
+                                disposable.Add(skImageFilter);
+                                lastResult = skImageFilter;
                             }
                         }
                         break;
@@ -1477,12 +1480,14 @@ namespace Svg.Skia
                             var skImageFilter = CreateBlur(svgGaussianBlur, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                             if (skImageFilter != null)
                             {
-                                lastResult = SetImageFilter(svgGaussianBlur, skPaint, skImageFilter, results, disposable);
-                            }
-                            else
-                            {
-                                isValid = false;
-                                return null;
+                                var key = svgFilterPrimitive.Result;
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    results[key] = skImageFilter;
+                                }
+
+                                disposable.Add(skImageFilter);
+                                lastResult = skImageFilter;
                             }
                         }
                         break;
@@ -1493,12 +1498,14 @@ namespace Svg.Skia
                             var skImageFilter = CreateImage(svgImage, skFilterPrimitiveRegion, disposable, skCropRect);
                             if (skImageFilter != null)
                             {
-                                lastResult = SetImageFilter(svgImage, skPaint, skImageFilter, results, disposable);
-                            }
-                            else
-                            {
-                                isValid = false;
-                                return null;
+                                var key = svgFilterPrimitive.Result;
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    results[key] = skImageFilter;
+                                }
+
+                                disposable.Add(skImageFilter);
+                                lastResult = skImageFilter;
                             }
                         }
                         break;
@@ -1507,12 +1514,14 @@ namespace Svg.Skia
                             var skImageFilter = CreateMerge(svgMerge, results, lastResult, filterSource, disposable, skCropRect);
                             if (skImageFilter != null)
                             {
-                                lastResult = SetImageFilter(svgMerge, skPaint, skImageFilter, results, disposable);
-                            }
-                            else
-                            {
-                                isValid = false;
-                                return null;
+                                var key = svgFilterPrimitive.Result;
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    results[key] = skImageFilter;
+                                }
+
+                                disposable.Add(skImageFilter);
+                                lastResult = skImageFilter;
                             }
                         }
                         break;
@@ -1523,12 +1532,14 @@ namespace Svg.Skia
                             var skImageFilter = CreateMorphology(svgMorphology, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                             if (skImageFilter != null)
                             {
-                                lastResult = SetImageFilter(svgMorphology, skPaint, skImageFilter, results, disposable);
-                            }
-                            else
-                            {
-                                isValid = false;
-                                return null;
+                                var key = svgFilterPrimitive.Result;
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    results[key] = skImageFilter;
+                                }
+
+                                disposable.Add(skImageFilter);
+                                lastResult = skImageFilter;
                             }
                         }
                         break;
@@ -1539,12 +1550,14 @@ namespace Svg.Skia
                             var skImageFilter = CreateOffset(svgOffset, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                             if (skImageFilter != null)
                             {
-                                lastResult = SetImageFilter(svgOffset, skPaint, skImageFilter, results, disposable);
-                            }
-                            else
-                            {
-                                isValid = false;
-                                return null;
+                                var key = svgFilterPrimitive.Result;
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    results[key] = skImageFilter;
+                                }
+
+                                disposable.Add(skImageFilter);
+                                lastResult = skImageFilter;
                             }
                         }
                         break;
@@ -1555,12 +1568,14 @@ namespace Svg.Skia
                             var skImageFilter = CreateSpecularLighting(svgSpecularLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
                             if (skImageFilter != null)
                             {
-                                lastResult = SetImageFilter(svgSpecularLighting, skPaint, skImageFilter, results, disposable);
-                            }
-                            else
-                            {
-                                isValid = false;
-                                return null;
+                                var key = svgFilterPrimitive.Result;
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    results[key] = skImageFilter;
+                                }
+
+                                disposable.Add(skImageFilter);
+                                lastResult = skImageFilter;
                             }
                         }
                         break;
@@ -1571,12 +1586,14 @@ namespace Svg.Skia
                             var skImageFilter = CreateTile(svgTile, prevoiusFilterPrimitiveRegion, inputFilter, skCropRect);
                             if (skImageFilter != null)
                             {
-                                lastResult = SetImageFilter(svgTile, skPaint, skImageFilter, results, disposable);
-                            }
-                            else
-                            {
-                                isValid = false;
-                                return null;
+                                var key = svgFilterPrimitive.Result;
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    results[key] = skImageFilter;
+                                }
+
+                                disposable.Add(skImageFilter);
+                                lastResult = skImageFilter;
                             }
                         }
                         break;
@@ -1587,12 +1604,14 @@ namespace Svg.Skia
                             var skImageFilter = CreateTurbulence(svgTurbulence, skFilterPrimitiveRegion, primitiveUnits, disposable, skCropRect);
                             if (skImageFilter != null)
                             {
-                                lastResult = SetImageFilter(svgTurbulence, skPaint, skImageFilter, results, disposable);
-                            }
-                            else
-                            {
-                                isValid = false;
-                                return null;
+                                var key = svgFilterPrimitive.Result;
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    results[key] = skImageFilter;
+                                }
+
+                                disposable.Add(skImageFilter);
+                                lastResult = skImageFilter;
                             }
                         }
                         break;
@@ -1603,9 +1622,23 @@ namespace Svg.Skia
                 prevoiusFilterPrimitiveRegion = skFilterPrimitiveRegion;
             }
 
-            disposable.Add(skPaint);
-            isValid = true;
-            return skPaint;
+            if (lastResult != null)
+            {
+                var skPaint = new SKPaint
+                {
+                    Style = SKPaintStyle.StrokeAndFill
+                };
+
+                skPaint.ImageFilter = lastResult;
+
+                disposable.Add(skPaint);
+
+                isValid = true;
+                return skPaint; 
+            }
+
+            isValid = false;
+            return null;
         }
     }
 }
