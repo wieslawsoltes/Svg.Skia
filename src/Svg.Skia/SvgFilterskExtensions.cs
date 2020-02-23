@@ -1324,7 +1324,6 @@ namespace Svg.Skia
                                 {
                                     results[key] = skImageFilter;
                                 }
-
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
@@ -1342,7 +1341,6 @@ namespace Svg.Skia
                                 {
                                     results[key] = skImageFilter;
                                 }
-
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
@@ -1360,7 +1358,6 @@ namespace Svg.Skia
                                 {
                                     results[key] = skImageFilter;
                                 }
-
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
@@ -1384,7 +1381,6 @@ namespace Svg.Skia
                                 {
                                     results[key] = skImageFilter;
                                 }
-
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
@@ -1402,7 +1398,6 @@ namespace Svg.Skia
                                 {
                                     results[key] = skImageFilter;
                                 }
-
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
@@ -1420,7 +1415,6 @@ namespace Svg.Skia
                                 {
                                     results[key] = skImageFilter;
                                 }
-
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
@@ -1444,7 +1438,6 @@ namespace Svg.Skia
                                 {
                                     results[key] = skImageFilter;
                                 }
-
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
@@ -1462,7 +1455,6 @@ namespace Svg.Skia
                                 {
                                     results[key] = skImageFilter;
                                 }
-
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
@@ -1480,7 +1472,6 @@ namespace Svg.Skia
                                 {
                                     results[key] = skImageFilter;
                                 }
-
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
@@ -1498,7 +1489,6 @@ namespace Svg.Skia
                                 {
                                     results[key] = skImageFilter;
                                 }
-
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
@@ -1514,7 +1504,6 @@ namespace Svg.Skia
                                 {
                                     results[key] = skImageFilter;
                                 }
-
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
@@ -1532,7 +1521,6 @@ namespace Svg.Skia
                                 {
                                     results[key] = skImageFilter;
                                 }
-
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
@@ -1550,7 +1538,6 @@ namespace Svg.Skia
                                 {
                                     results[key] = skImageFilter;
                                 }
-
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
@@ -1568,7 +1555,6 @@ namespace Svg.Skia
                                 {
                                     results[key] = skImageFilter;
                                 }
-
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
@@ -1586,7 +1572,6 @@ namespace Svg.Skia
                                 {
                                     results[key] = skImageFilter;
                                 }
-
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
@@ -1604,7 +1589,6 @@ namespace Svg.Skia
                                 {
                                     results[key] = skImageFilter;
                                 }
-
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
