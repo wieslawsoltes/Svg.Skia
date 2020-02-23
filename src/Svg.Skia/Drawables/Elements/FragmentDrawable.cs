@@ -35,7 +35,7 @@ namespace Svg.Skia
 
             IsAntialias = SvgPaintingExtensions.IsAntialias(svgFragment);
 
-            TransformedBounds = SKRect.Empty;
+            TransformedBounds = skOwnerBounds;
 
             CreateTransformedBounds();
 
