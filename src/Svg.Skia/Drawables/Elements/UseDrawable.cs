@@ -30,7 +30,7 @@ namespace Svg.Skia
                 return;
             }
 
-            var svgReferencedElement = SvgExtensions.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
+            var svgReferencedElement = SvgExtensions.GetReference<SvgElement>(svgUse, svgUse.ReferencedElement);
             if (svgReferencedElement == null)
             {
                 IsDrawable = false;
