@@ -5,6 +5,7 @@
 * Fixed `marker` exception.
 * Added native build support using CoreRT.
 * Added referenced properties support for `filter` element.
+* Added `feImage` referenced image `preserveAspectRatio` support.
 
 ## 0.1.5
 
