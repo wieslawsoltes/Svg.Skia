@@ -173,10 +173,10 @@ namespace Svg.Skia
             FragmentTransform = SKMatrix.MakeIdentity();
             if (FragmentDrawable != null)
             {
-                float dx = DestRect.Left;
-                float dy = DestRect.Top;
-                float sx = DestRect.Width / SrcRect.Width;
-                float sy = DestRect.Height / SrcRect.Height;
+                float dx = destClip.Left;
+                float dy = destClip.Top;
+                float sx = destClip.Width / SrcRect.Width;
+                float sy = destClip.Height / SrcRect.Height;
                 var skTranslationMatrix = SKMatrix.MakeTranslation(dx, dy);
                 var skScaleMatrix = SKMatrix.MakeScale(sx, sy);
                 SKMatrix.PreConcat(ref FragmentTransform, ref skTranslationMatrix);
