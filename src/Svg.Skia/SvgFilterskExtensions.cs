@@ -759,7 +759,8 @@ namespace Svg.Skia
 
         public static SKImageFilter? CreateTile(FilterEffects.SvgTile svgTile, SKRect skBounds, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            return SKImageFilter.CreateTile(skBounds, cropRect != null ? cropRect.Rect : skBounds, input);
+            var dst = cropRect != null ? cropRect.Rect : skBounds;
+            return SKImageFilter.CreateTile(skBounds, dst, input);
         }
 
         public static SKImageFilter? CreateTurbulence(FilterEffects.SvgTurbulence svgTurbulence, SKRect skBounds, SvgCoordinateUnits primitiveUnits, CompositeDisposable disposable, SKImageFilter.CropRect? cropRect = null)
