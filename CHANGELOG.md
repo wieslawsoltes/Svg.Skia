@@ -4,6 +4,7 @@
 
 * Fixed `marker` exception.
 * Added native build support using CoreRT.
+* Added referenced properties support for `filter` element.
 
 ## 0.1.5
 
