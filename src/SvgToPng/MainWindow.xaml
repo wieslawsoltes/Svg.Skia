@@ -120,25 +120,44 @@
                 </Grid.RowDefinitions>
                 <Grid Grid.Column="0" Grid.Row="0">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="50*"/>
                         <ColumnDefinition Width="4"/>
                         <ColumnDefinition Width="50*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="50*"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Text="Skia" Padding="0" Margin="0" Grid.Column="0" Grid.Row="0"/>
-                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="0" Grid.Row="1">
+                    <TextBlock Text="Skia" Padding="0" Margin="0" Grid.Column="0" Grid.Row="0" RenderTransformOrigin="0.5,0.5" VerticalAlignment="Top">
+                        <TextBlock.LayoutTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="90"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </TextBlock.LayoutTransform>
+                    </TextBlock>
+                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="1" Grid.Row="0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid>
                                 <local:SKElement x:Name="skElementSvg" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
                             </Grid>
                         </ScrollViewer>
                     </Border>
-                    <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"/>
-                    <TextBlock Text="Reference" Padding="0" Margin="0" Grid.Column="2" Grid.Row="0"/>
-                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="2" Grid.Row="1">
+                    <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="2" Grid.Row="0" Grid.RowSpan="2"/>
+                    <TextBlock Text="Reference" Padding="0" Margin="0" Grid.Column="4" Grid.Row="0">
+                        <TextBlock.LayoutTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="90"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </TextBlock.LayoutTransform>
+                    </TextBlock>
+                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="3" Grid.Row="0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid>
                                 <local:SKElement x:Name="skElementPng" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
@@ -149,16 +168,26 @@
                 <GridSplitter ResizeDirection="Rows" ResizeBehavior="PreviousAndNext" Background="Transparent" HorizontalAlignment="Stretch" Height="4" Grid.Column="0" Grid.Row="1"/>
                 <Grid Grid.Column="0" Grid.Row="2">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="50*"/>
                         <ColumnDefinition Width="4"/>
                         <ColumnDefinition Width="50*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="50*"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Text="Settings" Padding="0" Margin="0" Grid.Column="0" Grid.Row="0"/>
-                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="0" Grid.Row="1">
+                    <TextBlock Text="Settings" Padding="0" Margin="0" Grid.Column="0" Grid.Row="0">
+                        <TextBlock.LayoutTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="90"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </TextBlock.LayoutTransform>
+                    </TextBlock>
+                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="1" Grid.Row="0">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -211,9 +240,18 @@
                             <CheckBox x:Name="CheckDrawDiff" Content="Draw Diff" IsChecked="True" Padding="0" Margin="2,2,2,1" Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2"/>
                         </Grid>
                     </Border>
-                    <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"/>
-                    <TextBlock Text="Diff" Padding="0" Margin="0" Grid.Column="2" Grid.Row="0"/>
-                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="2" Grid.Row="1">
+                    <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="2" Grid.Row="0" Grid.RowSpan="2"/>
+                    <TextBlock Text="Diff" Padding="0" Margin="0" Grid.Column="4" Grid.Row="0">
+                        <TextBlock.LayoutTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="90"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </TextBlock.LayoutTransform>
+                    </TextBlock>
+                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="3" Grid.Row="0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid>
                                 <local:SKElement x:Name="skElementDiff" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
