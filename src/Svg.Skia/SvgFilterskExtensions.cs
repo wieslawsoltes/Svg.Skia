@@ -1081,7 +1081,7 @@ namespace Svg.Skia
             return string.Equals(uri.ToString(), "none", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static List<FilterEffects.SvgFilter>? GetLinkedFilter(SvgVisualElement svgVisualElement,HashSet<Uri> uris)
+        private static List<FilterEffects.SvgFilter>? GetLinkedFilter(SvgVisualElement svgVisualElement, HashSet<Uri> uris)
         {
             SvgFilter? currentFilter = SvgExtensions.GetReference<FilterEffects.SvgFilter>(svgVisualElement, svgVisualElement.Filter);
             if (currentFilter == null)
@@ -1634,7 +1634,7 @@ namespace Svg.Skia
                 disposable.Add(skPaint);
 
                 isValid = true;
-                return skPaint; 
+                return skPaint;
             }
 
             isValid = false;
