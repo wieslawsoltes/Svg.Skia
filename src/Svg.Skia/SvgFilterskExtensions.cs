@@ -1237,7 +1237,7 @@ namespace Svg.Skia
             {
                 count++;
                 bool isFirst = count == 1;
-                var skPrimitiveBounds = skBounds;
+                var skPrimitiveBounds = skFilterRegion;
 
                 // TOOD: PrimitiveUnits
                 //if (primitiveUnits == SvgCoordinateUnits.UserSpaceOnUse)
