@@ -1262,338 +1262,345 @@ namespace Svg.Skia
             };
 
             int count = 0;
+
+            var svgFilterPrimitives = new List<FilterEffects.SvgFilterPrimitive>();
             foreach (var child in firstChildren.Children)
             {
                 if (child is FilterEffects.SvgFilterPrimitive svgFilterPrimitive)
                 {
-                    count++;
-                    bool isFirst = count == 1;
-                    var skPrimitiveBounds = skBounds;
-
-                    // TOOD: PrimitiveUnits
-                    //if (primitiveUnits == SvgCoordinateUnits.UserSpaceOnUse)
-                    {
-                        skPrimitiveBounds = skFilterRegion;
-                    }
-
-                    var xUnitChild = svgFilterPrimitive.X;
-                    var yUnitChild = svgFilterPrimitive.Y;
-                    var widthUnitChild = svgFilterPrimitive.Width;
-                    var heightUnitChild = svgFilterPrimitive.Height;
-
-                    float xChild = xUnitChild.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilterPrimitive, skPrimitiveBounds);
-                    float yChild = yUnitChild.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilterPrimitive, skPrimitiveBounds);
-                    float widthChild = widthUnitChild.ToDeviceValue(UnitRenderingType.Horizontal, svgFilterPrimitive, skPrimitiveBounds);
-                    float heightChild = heightUnitChild.ToDeviceValue(UnitRenderingType.Vertical, svgFilterPrimitive, skPrimitiveBounds);
-
-                    if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
-                    {
-                        if (xUnitChild.Type != SvgUnitType.Percentage)
-                        {
-                            xChild *= skPrimitiveBounds.Width;
-                            xChild += skPrimitiveBounds.Left;
-                        }
-
-                        if (yUnitChild.Type != SvgUnitType.Percentage)
-                        {
-                            yChild *= skPrimitiveBounds.Height;
-                            yChild += skPrimitiveBounds.Top;
-                        }
-
-                        if (widthUnitChild.Type != SvgUnitType.Percentage)
-                        {
-                            widthChild *= skPrimitiveBounds.Width;
-                        }
-
-                        if (heightUnitChild.Type != SvgUnitType.Percentage)
-                        {
-                            heightChild *= skPrimitiveBounds.Height;
-                        }
-                    }
-
-                    var skFilterPrimitiveRegion = SKRect.Create(xChild, yChild, widthChild, heightChild);
-                    var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
-
-                    switch (svgFilterPrimitive)
-                    {
-                        case FilterEffects.SvgBlend svgBlend:
-                            {
-                                var input1Key = svgBlend.Input;
-                                var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, disposable, isFirst);
-                                var input2Key = svgBlend.Input2;
-                                var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, disposable, false);
-                                if (input2Filter == null)
-                                {
-                                    break;
-                                }
-                                var skImageFilter = CreateBlend(svgBlend, input2Filter, input1Filter, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgBlend, skPaint, skImageFilter, results, disposable);
-                                }
-                                else
-                                {
-                                    isValid = false;
-                                    return null;
-                                }
-                            }
-                            break;
-                        case FilterEffects.SvgColourMatrix svgColourMatrix:
-                            {
-                                var inputKey = svgColourMatrix.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateColorMatrix(svgColourMatrix, disposable, inputFilter, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgColourMatrix, skPaint, skImageFilter, results, disposable);
-                                }
-                                else
-                                {
-                                    isValid = false;
-                                    return null;
-                                }
-                            }
-                            break;
-                        case FilterEffects.SvgComponentTransfer svgComponentTransfer:
-                            {
-                                var inputKey = svgComponentTransfer.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateComponentTransfer(svgComponentTransfer, disposable, inputFilter, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgComponentTransfer, skPaint, skImageFilter, results, disposable);
-                                }
-                                else
-                                {
-                                    isValid = false;
-                                    return null;
-                                }
-                            }
-                            break;
-                        case FilterEffects.SvgComposite svgComposite:
-                            {
-                                var input1Key = svgComposite.Input;
-                                var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, disposable, isFirst);
-                                var input2Key = svgComposite.Input2;
-                                var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, disposable, false);
-                                if (input2Filter == null)
-                                {
-                                    break;
-                                }
-                                var skImageFilter = CreateComposite(svgComposite, input2Filter, input1Filter, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgComposite, skPaint, skImageFilter, results, disposable);
-                                }
-                                else
-                                {
-                                    isValid = false;
-                                    return null;
-                                }
-                            }
-                            break;
-                        case FilterEffects.SvgConvolveMatrix svgConvolveMatrix:
-                            {
-                                var inputKey = svgConvolveMatrix.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateConvolveMatrix(svgConvolveMatrix, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgConvolveMatrix, skPaint, skImageFilter, results, disposable);
-                                }
-                                else
-                                {
-                                    isValid = false;
-                                    return null;
-                                }
-                            }
-                            break;
-                        case FilterEffects.SvgDiffuseLighting svgDiffuseLighting:
-                            {
-                                var inputKey = svgDiffuseLighting.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateDiffuseLighting(svgDiffuseLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgDiffuseLighting, skPaint, skImageFilter, results, disposable);
-                                }
-                                else
-                                {
-                                    isValid = false;
-                                    return null;
-                                }
-                            }
-                            break;
-                        case FilterEffects.SvgDisplacementMap svgDisplacementMap:
-                            {
-                                var input1Key = svgDisplacementMap.Input;
-                                var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, disposable, isFirst);
-                                var input2Key = svgDisplacementMap.Input2;
-                                var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, disposable, false);
-                                if (input2Filter == null)
-                                {
-                                    break;
-                                }
-                                var skImageFilter = CreateDisplacementMap(svgDisplacementMap, skFilterPrimitiveRegion, primitiveUnits, input2Filter, input1Filter, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgDisplacementMap, skPaint, skImageFilter, results, disposable);
-                                }
-                                else
-                                {
-                                    isValid = false;
-                                    return null;
-                                }
-                            }
-                            break;
-                        case FilterEffects.SvgFlood svgFlood:
-                            {
-                                var inputKey = svgFlood.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateFlood(svgFlood, svgVisualElement, skFilterPrimitiveRegion, disposable, inputFilter, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgFlood, skPaint, skImageFilter, results, disposable);
-                                }
-                                else
-                                {
-                                    isValid = false;
-                                    return null;
-                                }
-                            }
-                            break;
-                        case FilterEffects.SvgGaussianBlur svgGaussianBlur:
-                            {
-                                var inputKey = svgGaussianBlur.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateBlur(svgGaussianBlur, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgGaussianBlur, skPaint, skImageFilter, results, disposable);
-                                }
-                                else
-                                {
-                                    isValid = false;
-                                    return null;
-                                }
-                            }
-                            break;
-                        case FilterEffects.SvgImage svgImage:
-                            {
-                                var inputKey = svgImage.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateImage(svgImage, skFilterPrimitiveRegion, disposable, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgImage, skPaint, skImageFilter, results, disposable);
-                                }
-                                else
-                                {
-                                    isValid = false;
-                                    return null;
-                                }
-                            }
-                            break;
-                        case FilterEffects.SvgMerge svgMerge:
-                            {
-                                var skImageFilter = CreateMerge(svgMerge, results, lastResult, filterSource, disposable, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgMerge, skPaint, skImageFilter, results, disposable);
-                                }
-                                else
-                                {
-                                    isValid = false;
-                                    return null;
-                                }
-                            }
-                            break;
-                        case FilterEffects.SvgMorphology svgMorphology:
-                            {
-                                var inputKey = svgMorphology.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateMorphology(svgMorphology, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgMorphology, skPaint, skImageFilter, results, disposable);
-                                }
-                                else
-                                {
-                                    isValid = false;
-                                    return null;
-                                }
-                            }
-                            break;
-                        case FilterEffects.SvgOffset svgOffset:
-                            {
-                                var inputKey = svgOffset.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateOffset(svgOffset, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgOffset, skPaint, skImageFilter, results, disposable);
-                                }
-                                else
-                                {
-                                    isValid = false;
-                                    return null;
-                                }
-                            }
-                            break;
-                        case FilterEffects.SvgSpecularLighting svgSpecularLighting:
-                            {
-                                var inputKey = svgSpecularLighting.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateSpecularLighting(svgSpecularLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgSpecularLighting, skPaint, skImageFilter, results, disposable);
-                                }
-                                else
-                                {
-                                    isValid = false;
-                                    return null;
-                                }
-                            }
-                            break;
-                        case FilterEffects.SvgTile svgTile:
-                            {
-                                var inputKey = svgTile.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateTile(svgTile, prevoiusFilterPrimitiveRegion, inputFilter, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgTile, skPaint, skImageFilter, results, disposable);
-                                }
-                                else
-                                {
-                                    isValid = false;
-                                    return null;
-                                }
-                            }
-                            break;
-                        case FilterEffects.SvgTurbulence svgTurbulence:
-                            {
-                                var inputKey = svgTurbulence.Input;
-                                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                                var skImageFilter = CreateTurbulence(svgTurbulence, skFilterPrimitiveRegion, primitiveUnits, disposable, skCropRect);
-                                if (skImageFilter != null)
-                                {
-                                    lastResult = SetImageFilter(svgTurbulence, skPaint, skImageFilter, results, disposable);
-                                }
-                                else
-                                {
-                                    isValid = false;
-                                    return null;
-                                }
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-
-                    prevoiusFilterPrimitiveRegion = skFilterPrimitiveRegion;
+                    svgFilterPrimitives.Add(svgFilterPrimitive);
                 }
+            }
+
+            foreach (var svgFilterPrimitive in svgFilterPrimitives)
+            {
+                count++;
+                bool isFirst = count == 1;
+                var skPrimitiveBounds = skBounds;
+
+                // TOOD: PrimitiveUnits
+                //if (primitiveUnits == SvgCoordinateUnits.UserSpaceOnUse)
+                {
+                    skPrimitiveBounds = skFilterRegion;
+                }
+
+                var xUnitChild = svgFilterPrimitive.X;
+                var yUnitChild = svgFilterPrimitive.Y;
+                var widthUnitChild = svgFilterPrimitive.Width;
+                var heightUnitChild = svgFilterPrimitive.Height;
+
+                float xChild = xUnitChild.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilterPrimitive, skPrimitiveBounds);
+                float yChild = yUnitChild.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilterPrimitive, skPrimitiveBounds);
+                float widthChild = widthUnitChild.ToDeviceValue(UnitRenderingType.Horizontal, svgFilterPrimitive, skPrimitiveBounds);
+                float heightChild = heightUnitChild.ToDeviceValue(UnitRenderingType.Vertical, svgFilterPrimitive, skPrimitiveBounds);
+
+                if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
+                {
+                    if (xUnitChild.Type != SvgUnitType.Percentage)
+                    {
+                        xChild *= skPrimitiveBounds.Width;
+                        xChild += skPrimitiveBounds.Left;
+                    }
+
+                    if (yUnitChild.Type != SvgUnitType.Percentage)
+                    {
+                        yChild *= skPrimitiveBounds.Height;
+                        yChild += skPrimitiveBounds.Top;
+                    }
+
+                    if (widthUnitChild.Type != SvgUnitType.Percentage)
+                    {
+                        widthChild *= skPrimitiveBounds.Width;
+                    }
+
+                    if (heightUnitChild.Type != SvgUnitType.Percentage)
+                    {
+                        heightChild *= skPrimitiveBounds.Height;
+                    }
+                }
+
+                var skFilterPrimitiveRegion = SKRect.Create(xChild, yChild, widthChild, heightChild);
+                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
+
+                switch (svgFilterPrimitive)
+                {
+                    case FilterEffects.SvgBlend svgBlend:
+                        {
+                            var input1Key = svgBlend.Input;
+                            var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, disposable, isFirst);
+                            var input2Key = svgBlend.Input2;
+                            var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, disposable, false);
+                            if (input2Filter == null)
+                            {
+                                break;
+                            }
+                            var skImageFilter = CreateBlend(svgBlend, input2Filter, input1Filter, skCropRect);
+                            if (skImageFilter != null)
+                            {
+                                lastResult = SetImageFilter(svgBlend, skPaint, skImageFilter, results, disposable);
+                            }
+                            else
+                            {
+                                isValid = false;
+                                return null;
+                            }
+                        }
+                        break;
+                    case FilterEffects.SvgColourMatrix svgColourMatrix:
+                        {
+                            var inputKey = svgColourMatrix.Input;
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var skImageFilter = CreateColorMatrix(svgColourMatrix, disposable, inputFilter, skCropRect);
+                            if (skImageFilter != null)
+                            {
+                                lastResult = SetImageFilter(svgColourMatrix, skPaint, skImageFilter, results, disposable);
+                            }
+                            else
+                            {
+                                isValid = false;
+                                return null;
+                            }
+                        }
+                        break;
+                    case FilterEffects.SvgComponentTransfer svgComponentTransfer:
+                        {
+                            var inputKey = svgComponentTransfer.Input;
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var skImageFilter = CreateComponentTransfer(svgComponentTransfer, disposable, inputFilter, skCropRect);
+                            if (skImageFilter != null)
+                            {
+                                lastResult = SetImageFilter(svgComponentTransfer, skPaint, skImageFilter, results, disposable);
+                            }
+                            else
+                            {
+                                isValid = false;
+                                return null;
+                            }
+                        }
+                        break;
+                    case FilterEffects.SvgComposite svgComposite:
+                        {
+                            var input1Key = svgComposite.Input;
+                            var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, disposable, isFirst);
+                            var input2Key = svgComposite.Input2;
+                            var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, disposable, false);
+                            if (input2Filter == null)
+                            {
+                                break;
+                            }
+                            var skImageFilter = CreateComposite(svgComposite, input2Filter, input1Filter, skCropRect);
+                            if (skImageFilter != null)
+                            {
+                                lastResult = SetImageFilter(svgComposite, skPaint, skImageFilter, results, disposable);
+                            }
+                            else
+                            {
+                                isValid = false;
+                                return null;
+                            }
+                        }
+                        break;
+                    case FilterEffects.SvgConvolveMatrix svgConvolveMatrix:
+                        {
+                            var inputKey = svgConvolveMatrix.Input;
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var skImageFilter = CreateConvolveMatrix(svgConvolveMatrix, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
+                            if (skImageFilter != null)
+                            {
+                                lastResult = SetImageFilter(svgConvolveMatrix, skPaint, skImageFilter, results, disposable);
+                            }
+                            else
+                            {
+                                isValid = false;
+                                return null;
+                            }
+                        }
+                        break;
+                    case FilterEffects.SvgDiffuseLighting svgDiffuseLighting:
+                        {
+                            var inputKey = svgDiffuseLighting.Input;
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var skImageFilter = CreateDiffuseLighting(svgDiffuseLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
+                            if (skImageFilter != null)
+                            {
+                                lastResult = SetImageFilter(svgDiffuseLighting, skPaint, skImageFilter, results, disposable);
+                            }
+                            else
+                            {
+                                isValid = false;
+                                return null;
+                            }
+                        }
+                        break;
+                    case FilterEffects.SvgDisplacementMap svgDisplacementMap:
+                        {
+                            var input1Key = svgDisplacementMap.Input;
+                            var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, disposable, isFirst);
+                            var input2Key = svgDisplacementMap.Input2;
+                            var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, disposable, false);
+                            if (input2Filter == null)
+                            {
+                                break;
+                            }
+                            var skImageFilter = CreateDisplacementMap(svgDisplacementMap, skFilterPrimitiveRegion, primitiveUnits, input2Filter, input1Filter, skCropRect);
+                            if (skImageFilter != null)
+                            {
+                                lastResult = SetImageFilter(svgDisplacementMap, skPaint, skImageFilter, results, disposable);
+                            }
+                            else
+                            {
+                                isValid = false;
+                                return null;
+                            }
+                        }
+                        break;
+                    case FilterEffects.SvgFlood svgFlood:
+                        {
+                            var inputKey = svgFlood.Input;
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var skImageFilter = CreateFlood(svgFlood, svgVisualElement, skFilterPrimitiveRegion, disposable, inputFilter, skCropRect);
+                            if (skImageFilter != null)
+                            {
+                                lastResult = SetImageFilter(svgFlood, skPaint, skImageFilter, results, disposable);
+                            }
+                            else
+                            {
+                                isValid = false;
+                                return null;
+                            }
+                        }
+                        break;
+                    case FilterEffects.SvgGaussianBlur svgGaussianBlur:
+                        {
+                            var inputKey = svgGaussianBlur.Input;
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var skImageFilter = CreateBlur(svgGaussianBlur, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
+                            if (skImageFilter != null)
+                            {
+                                lastResult = SetImageFilter(svgGaussianBlur, skPaint, skImageFilter, results, disposable);
+                            }
+                            else
+                            {
+                                isValid = false;
+                                return null;
+                            }
+                        }
+                        break;
+                    case FilterEffects.SvgImage svgImage:
+                        {
+                            var inputKey = svgImage.Input;
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var skImageFilter = CreateImage(svgImage, skFilterPrimitiveRegion, disposable, skCropRect);
+                            if (skImageFilter != null)
+                            {
+                                lastResult = SetImageFilter(svgImage, skPaint, skImageFilter, results, disposable);
+                            }
+                            else
+                            {
+                                isValid = false;
+                                return null;
+                            }
+                        }
+                        break;
+                    case FilterEffects.SvgMerge svgMerge:
+                        {
+                            var skImageFilter = CreateMerge(svgMerge, results, lastResult, filterSource, disposable, skCropRect);
+                            if (skImageFilter != null)
+                            {
+                                lastResult = SetImageFilter(svgMerge, skPaint, skImageFilter, results, disposable);
+                            }
+                            else
+                            {
+                                isValid = false;
+                                return null;
+                            }
+                        }
+                        break;
+                    case FilterEffects.SvgMorphology svgMorphology:
+                        {
+                            var inputKey = svgMorphology.Input;
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var skImageFilter = CreateMorphology(svgMorphology, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
+                            if (skImageFilter != null)
+                            {
+                                lastResult = SetImageFilter(svgMorphology, skPaint, skImageFilter, results, disposable);
+                            }
+                            else
+                            {
+                                isValid = false;
+                                return null;
+                            }
+                        }
+                        break;
+                    case FilterEffects.SvgOffset svgOffset:
+                        {
+                            var inputKey = svgOffset.Input;
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var skImageFilter = CreateOffset(svgOffset, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
+                            if (skImageFilter != null)
+                            {
+                                lastResult = SetImageFilter(svgOffset, skPaint, skImageFilter, results, disposable);
+                            }
+                            else
+                            {
+                                isValid = false;
+                                return null;
+                            }
+                        }
+                        break;
+                    case FilterEffects.SvgSpecularLighting svgSpecularLighting:
+                        {
+                            var inputKey = svgSpecularLighting.Input;
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var skImageFilter = CreateSpecularLighting(svgSpecularLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
+                            if (skImageFilter != null)
+                            {
+                                lastResult = SetImageFilter(svgSpecularLighting, skPaint, skImageFilter, results, disposable);
+                            }
+                            else
+                            {
+                                isValid = false;
+                                return null;
+                            }
+                        }
+                        break;
+                    case FilterEffects.SvgTile svgTile:
+                        {
+                            var inputKey = svgTile.Input;
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var skImageFilter = CreateTile(svgTile, prevoiusFilterPrimitiveRegion, inputFilter, skCropRect);
+                            if (skImageFilter != null)
+                            {
+                                lastResult = SetImageFilter(svgTile, skPaint, skImageFilter, results, disposable);
+                            }
+                            else
+                            {
+                                isValid = false;
+                                return null;
+                            }
+                        }
+                        break;
+                    case FilterEffects.SvgTurbulence svgTurbulence:
+                        {
+                            var inputKey = svgTurbulence.Input;
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var skImageFilter = CreateTurbulence(svgTurbulence, skFilterPrimitiveRegion, primitiveUnits, disposable, skCropRect);
+                            if (skImageFilter != null)
+                            {
+                                lastResult = SetImageFilter(svgTurbulence, skPaint, skImageFilter, results, disposable);
+                            }
+                            else
+                            {
+                                isValid = false;
+                                return null;
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+                prevoiusFilterPrimitiveRegion = skFilterPrimitiveRegion;
             }
 
             disposable.Add(skPaint);
