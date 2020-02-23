@@ -1065,18 +1065,15 @@ namespace Svg.Skia
             }
 
             var svgFilters = new List<FilterEffects.SvgFilter>();
-
             do
             {
                 if (currentFilter != null)
                 {
                     svgFilters.Add(currentFilter);
-
                     if (SvgExtensions.HasRecursiveReference(currentFilter, (e) => e.Href, uris))
                     {
                         return svgFilters;
                     }
-
                     currentFilter = SvgExtensions.GetReference<FilterEffects.SvgFilter>(currentFilter, currentFilter.Href);
                 }
             } while (currentFilter != null);
