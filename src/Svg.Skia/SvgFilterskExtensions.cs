@@ -1328,11 +1328,6 @@ namespace Svg.Skia
                                 disposable.Add(skImageFilter);
                                 lastResult = skImageFilter;
                             }
-                            else
-                            {
-                                isValid = false;
-                                return null;
-                            }
                         }
                         break;
                     case FilterEffects.SvgColourMatrix svgColourMatrix:
