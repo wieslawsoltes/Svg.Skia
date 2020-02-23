@@ -72,7 +72,6 @@ namespace Svg.Skia
             }
 
             var destClip = SKRect.Create(location.X, location.Y, width, height);
-            DestRect = destClip;
 
             var aspectRatio = svgImage.AspectRatio;
             if (aspectRatio.Align != SvgPreserveAspectRatio.none)
@@ -128,8 +127,14 @@ namespace Svg.Skia
                 }
 
                 DestRect = SKRect.Create(
-                    destClip.Left + xOffset, destClip.Top + yOffset,
-                    SrcRect.Width * fScaleX, SrcRect.Height * fScaleY);
+                    destClip.Left + xOffset,
+                    destClip.Top + yOffset,
+                    SrcRect.Width * fScaleX,
+                    SrcRect.Height * fScaleY);
+            }
+            else
+            {
+                DestRect = destClip;
             }
 
             Clip = destClip;
