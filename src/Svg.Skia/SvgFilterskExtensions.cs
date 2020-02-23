@@ -759,8 +759,9 @@ namespace Svg.Skia
 
         public static SKImageFilter? CreateTile(FilterEffects.SvgTile svgTile, SKRect skBounds, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
+            var src = skBounds;
             var dst = cropRect != null ? cropRect.Rect : skBounds;
-            return SKImageFilter.CreateTile(skBounds, dst, input);
+            return SKImageFilter.CreateTile(src, dst, input);
         }
 
         public static SKImageFilter? CreateTurbulence(FilterEffects.SvgTurbulence svgTurbulence, SKRect skBounds, SvgCoordinateUnits primitiveUnits, CompositeDisposable disposable, SKImageFilter.CropRect? cropRect = null)
@@ -1226,6 +1227,8 @@ namespace Svg.Skia
                 }
             }
 
+            var skFilterPrimitiveRegions = new List<(FilterEffects.SvgFilterPrimitive primitive, SKRect region)>();
+
             int count = 0;
             foreach (var svgFilterPrimitive in svgFilterPrimitives)
             {
@@ -1275,7 +1278,10 @@ namespace Svg.Skia
                 }
 
                 var skFilterPrimitiveRegion = SKRect.Create(xChild, yChild, widthChild, heightChild);
+
                 var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
+
+                skFilterPrimitiveRegions.Add((svgFilterPrimitive, skFilterPrimitiveRegion));
 
                 switch (svgFilterPrimitive)
                 {
