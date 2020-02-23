@@ -1227,7 +1227,9 @@ namespace Svg.Skia
                 }
             }
 
+#if DEBUG
             var skFilterPrimitiveRegions = new List<(FilterEffects.SvgFilterPrimitive primitive, SKRect region)>();
+#endif
 
             int count = 0;
             foreach (var svgFilterPrimitive in svgFilterPrimitives)
@@ -1280,8 +1282,9 @@ namespace Svg.Skia
                 var skFilterPrimitiveRegion = SKRect.Create(xChild, yChild, widthChild, heightChild);
 
                 var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
-
+#if DEBUG
                 skFilterPrimitiveRegions.Add((svgFilterPrimitive, skFilterPrimitiveRegion));
+#endif
 
                 switch (svgFilterPrimitive)
                 {
