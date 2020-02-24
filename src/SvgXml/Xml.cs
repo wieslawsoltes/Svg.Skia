@@ -110,12 +110,12 @@ namespace Xml
                         break;
                     case XmlNodeType.SignificantWhitespace:
                         break;
-                    case XmlNodeType.EndEntity:
-                        break;
                     case XmlNodeType.EndElement:
                         {
                             stack.Pop();
                         }
+                        break;
+                    case XmlNodeType.EndEntity:
                         break;
                     case XmlNodeType.XmlDeclaration:
                         break;
