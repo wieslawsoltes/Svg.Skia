@@ -51,7 +51,7 @@ namespace Xml
                         {
                             string elementName = reader.LocalName;
                             Element element;
-                            
+
                             if (string.IsNullOrEmpty(reader.NamespaceURI) || elementFactory.Namespaces.Contains(reader.NamespaceURI))
                             {
                                 element = elementFactory.Create(elementName);
