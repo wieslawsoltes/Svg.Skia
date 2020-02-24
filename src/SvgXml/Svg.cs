@@ -52,7 +52,7 @@ namespace Svg
 
     public class SvgElementFactory
     {
-        public static Element Create(string name, string ns)
+        public static Element Create(string name)
         {
             return name switch
             {
