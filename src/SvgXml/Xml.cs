@@ -18,7 +18,8 @@ namespace Xml
 
     public interface IElementFactory
     {
-        public Element Create(string name);
+        ISet<string> Namespaces { get; }
+        Element Create(string name);
     }
 
     public abstract class Element
@@ -48,21 +49,34 @@ namespace Xml
                         break;
                     case XmlNodeType.Element:
                         {
-                            var name = reader.LocalName;
-                            var element = elementFactory.Create(name);
-
-                            if (reader.MoveToFirstAttribute())
+                            string elementName = reader.LocalName;
+                            Element element;
+                            
+                            if (string.IsNullOrEmpty(reader.NamespaceURI) || elementFactory.Namespaces.Contains(reader.NamespaceURI))
                             {
-                                do
-                                {
-                                    element.Attributes.Add(reader.Name, reader.Value);
-                                }
-                                while (reader.MoveToNextAttribute());
-                                reader.MoveToElement();
-                            }
+                                element = elementFactory.Create(elementName);
 
-                            var nodes = stack.Count > 0 ? stack.Peek().Children : elements;
-                            nodes.Add(element);
+                                if (reader.MoveToFirstAttribute())
+                                {
+                                    do
+                                    {
+                                        if (string.IsNullOrEmpty(reader.NamespaceURI) || elementFactory.Namespaces.Contains(reader.NamespaceURI))
+                                        {
+                                            string attributeName = reader.LocalName;
+                                            element.Attributes.Add(attributeName, reader.Value);
+                                        }
+                                    }
+                                    while (reader.MoveToNextAttribute());
+                                    reader.MoveToElement();
+                                }
+
+                                var nodes = stack.Count > 0 ? stack.Peek().Children : elements;
+                                nodes.Add(element);
+                            }
+                            else
+                            {
+                                element = new UnknownElement() { Name = elementName };
+                            }
 
                             if (!reader.IsEmptyElement)
                             {
