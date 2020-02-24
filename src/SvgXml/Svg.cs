@@ -1,4 +1,5 @@
-﻿using Xml;
+﻿using System.Collections.Generic;
+using Xml;
 
 namespace Svg
 {
@@ -16,6 +17,13 @@ namespace Svg
 
     public class SvgElementFactory : IElementFactory
     {
+        public ISet<string> Namespaces { get; } = new HashSet<string>
+        {
+            "http://www.w3.org/2000/svg",
+            "http://www.w3.org/1999/xlink",
+            "http://www.w3.org/XML/1998/namespace"
+        };
+
         public Element Create(string name)
         {
             return name switch
