@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Xml;
+using Svg;
 
 namespace SvgXml
 {
-    using Svg;
-
     internal class Program
     {
         private static List<Element> ReadElements(XmlReader reader)
