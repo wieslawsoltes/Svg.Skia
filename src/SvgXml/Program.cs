@@ -20,8 +20,7 @@ namespace SvgXml
                     case XmlNodeType.Element:
                         {
                             var name = reader.LocalName;
-                            var ns = reader.NamespaceURI;
-                            var element = SvgElementFactory.Create(name, ns);
+                            var element = SvgElementFactory.Create(name);
 
                             if (reader.MoveToFirstAttribute())
                             {
