@@ -6,6 +6,17 @@ using System.Xml;
 
 namespace Svg
 {
+    [AttributeUsage(AttributeTargets.Class)]
+    public sealed class ElementAttribute : Attribute
+    {
+        public string Name { get; private set; }
+
+        public ElementAttribute(string name)
+        {
+            this.Name = name;
+        }
+    }
+
     public abstract class Element
     {
         public string Name { get; set; }
@@ -117,7 +128,7 @@ namespace Svg
         }
     }
 
-    // "style"
+    [Element("style")]
     public class SvgStyle : SvgElement
     {
     }
@@ -138,32 +149,32 @@ namespace Svg
     {
     }
 
-    // "circle"
+    [Element("circle")]
     public class SvgCircle : SvgPathBasedElement
     {
     }
 
-    // "ellipse"
+    [Element("ellipse")]
     public class SvgEllipse : SvgPathBasedElement
     {
     }
 
-    // "line"
+    [Element("line")]
     public class SvgLine : SvgMarkerElement
     {
     }
 
-    // "polygon"
+    [Element("polygon")]
     public class SvgPolygon : SvgMarkerElement
     {
     }
 
-    // "polyline"
+    [Element("polyline")]
     public class SvgPolyline : SvgPolygon
     {
     }
 
-    // "rect"
+    [Element("rect")]
     public class SvgRectangle : SvgPathBasedElement
     {
     }
@@ -172,12 +183,12 @@ namespace Svg
     // Clipping and Masking
     // ------------------------------------------------------------------------
 
-    // "clipPath"
+    [Element("clipPath")]
     public class SvgClipPath : SvgElement
     {
     }
 
-    // "mask"
+    [Element("mask")]
     public class SvgMask : SvgElement
     {
     }
@@ -186,52 +197,52 @@ namespace Svg
     // Document Structure
     // ------------------------------------------------------------------------
 
-    // "defs"
+    [Element("defs")]
     public class SvgDefinitionList : SvgElement
     {
     }
 
-    // "desc"
+    [Element("desc")]
     public class SvgDescription : SvgElement
     {
     }
 
-    // "metadata"
+    [Element("metadata")]
     public class SvgDocumentMetadata : SvgElement
     {
     }
 
-    // "svg"
+    [Element("svg")]
     public class SvgFragment : SvgElement
     {
     }
 
-    // "g"
+    [Element("g")]
     public class SvgGroup : SvgMarkerElement
     {
     }
 
-    // "image"
+    [Element("image")]
     public class SvgImage : SvgVisualElement
     {
     }
 
-    // "switch"
+    [Element("switch")]
     public class SvgSwitch : SvgVisualElement
     {
     }
 
-    // "symbol"
+    [Element("symbol")]
     public class SvgSymbol : SvgVisualElement
     {
     }
 
-    // "title"
+    [Element("title")]
     public class SvgTitle : SvgElement
     {
     }
 
-    // "use"
+    [Element("use")]
     public class SvgUse : SvgVisualElement
     {
     }
@@ -240,7 +251,7 @@ namespace Svg
     // Extensibility
     // ------------------------------------------------------------------------
 
-    // "foreignObject"
+    [Element("foreignObject")]
     public class SvgForeignObject : SvgVisualElement
     {
     }
@@ -251,7 +262,7 @@ namespace Svg
 
     namespace FilterEffects
     {
-        // "filter"
+        [Element("filter")]
         public class SvgFilter : SvgElement
         {
         }
@@ -260,47 +271,47 @@ namespace Svg
         {
         }
 
-        // "feBlend"
+        [Element("feBlend")]
         public class SvgBlend : SvgFilterPrimitive
         {
         }
 
-        // "feColorMatrix"
+        [Element("feColorMatrix")]
         public class SvgColourMatrix : SvgFilterPrimitive
         {
         }
 
-        // "feComponentTransfer"
+        [Element("feComponentTransfer")]
         public class SvgComponentTransfer : SvgFilterPrimitive
         {
         }
 
-        // "feComposite"
+        [Element("feComposite")]
         public class SvgComposite : SvgFilterPrimitive
         {
         }
 
-        // "feConvolveMatrix"
+        [Element("feConvolveMatrix")]
         public class SvgConvolveMatrix : SvgFilterPrimitive
         {
         }
 
-        // "feDiffuseLighting"
+        [Element("feDiffuseLighting")]
         public class SvgDiffuseLighting : SvgFilterPrimitive
         {
         }
 
-        // "feDisplacementMap"
+        [Element("feDisplacementMap")]
         public class SvgDisplacementMap : SvgFilterPrimitive
         {
         }
 
-        // "feDistantLight"
+        [Element("feDistantLight")]
         public class SvgDistantLight : SvgElement
         {
         }
 
-        // "feFlood"
+        [Element("feFlood")]
         public class SvgFlood : SvgFilterPrimitive
         {
         }
@@ -309,77 +320,77 @@ namespace Svg
         {
         }
 
-        // "feFuncA"
+        [Element("feFuncA")]
         public class SvgFuncA : SvgComponentTransferFunction
         {
         }
 
-        // "feFuncB"
+        [Element("feFuncB")]
         public class SvgFuncB : SvgComponentTransferFunction
         {
         }
 
-        // "feFuncG"
+        [Element("feFuncG")]
         public class SvgFuncG : SvgComponentTransferFunction
         {
         }
 
-        // "feFuncR"
+        [Element("feFuncR")]
         public class SvgFuncR : SvgComponentTransferFunction
         {
         }
 
-        // "feGaussianBlur"
+        [Element("feGaussianBlur")]
         public class SvgGaussianBlur : SvgFilterPrimitive
         {
         }
 
-        // "feImage"
+        [Element("feImage")]
         public class SvgImage : SvgFilterPrimitive
         {
         }
 
-        // "feMerge"
+        [Element("feMerge")]
         public class SvgMerge : SvgFilterPrimitive
         {
         }
 
-        // "feMergeNode"
+        [Element("feMergeNode")]
         public class SvgMergeNode : SvgElement
         {
         }
 
-        // "feMorphology"
+        [Element("feMorphology")]
         public class SvgMorphology : SvgFilterPrimitive
         {
         }
 
-        // "feOffset"
+        [Element("feOffset")]
         public class SvgOffset : SvgFilterPrimitive
         {
         }
 
-        // "fePointLight"
+        [Element("fePointLight")]
         public class SvgPointLight : SvgElement
         {
         }
 
-        // "feSpecularLighting"
+        [Element("feSpecularLighting")]
         public class SvgSpecularLighting : SvgFilterPrimitive
         {
         }
 
-        // "feSpotLight"
+        [Element("feSpotLight")]
         public class SvgSpotLight : SvgElement
         {
         }
 
-        // "feTile"
+        [Element("feTile")]
         public class SvgTile : SvgFilterPrimitive
         {
         }
 
-        // "feTurbulence"
+        [Element("feTurbulence")]
         public class SvgTurbulence : SvgFilterPrimitive
         {
         }
@@ -387,7 +398,7 @@ namespace Svg
 
     // Linking
 
-    // "a"
+    [Element("a")]
     public class SvgAnchor : SvgElement
     {
     }
@@ -410,27 +421,27 @@ namespace Svg
     {
     }
 
-    // "stop"
+    [Element("stop")]
     public class SvgGradientStop : SvgElement
     {
     }
 
-    // "linearGradient"
+    [Element("linearGradient")]
     public class SvgLinearGradientServer : SvgGradientServer
     {
     }
 
-    // "marker"
+    [Element("marker")]
     public class SvgMarker : SvgPathBasedElement
     {
     }
 
-    // "pattern"
+    [Element("pattern")]
     public class SvgPatternServer : SvgPaintServer
     {
     }
 
-    // "radialGradient"
+    [Element("radialGradient")]
     public class SvgRadialGradientServer : SvgGradientServer
     {
 
@@ -440,14 +451,14 @@ namespace Svg
     // Paths
     // ------------------------------------------------------------------------
 
-    // "path"
+    [Element("path")]
     public class SvgPath : SvgMarkerElement
     {
     }
 
     // Scripting
 
-    // "script"
+    [Element("script")]
     public class SvgScript : SvgElement
     {
     }
@@ -456,32 +467,32 @@ namespace Svg
     // Text
     // ------------------------------------------------------------------------
 
-    // "font"
+    [Element("font")]
     public class SvgFont : SvgElement
     {
     }
 
-    // "font-face"
+    [Element("font-face")]
     public class SvgFontFace : SvgElement
     {
     }
 
-    // "font-face-src"
+    [Element("font-face-src")]
     public class SvgFontFaceSrc : SvgElement
     {
     }
 
-    // "font-face-uri"
+    [Element("font-face-uri")]
     public class SvgFontFaceUri : SvgElement
     {
     }
 
-    // "glyph"
+    [Element("glyph")]
     public class SvgGlyph : SvgPathBasedElement
     {
     }
 
-    // "missing-glyph"
+    [Element("missing-glyph")]
     public class SvgMissingGlyph : SvgGlyph
     {
     }
@@ -490,22 +501,22 @@ namespace Svg
     {
     }
 
-    // "text"
+    [Element("text")]
     public class SvgText : SvgTextBase
     {
     }
 
-    // "textPath"
+    [Element("textPath")]
     public class SvgTextPath : SvgTextBase
     {
     }
 
-    // "tref"
+    [Element("tref")]
     public class SvgTextRef : SvgTextBase
     {
     }
 
-    // "tspan"
+    [Element("tspan")]
     public class SvgTextSpan : SvgTextBase
     {
     }
@@ -590,6 +601,12 @@ namespace SvgXml
 
         private static void Main(string[] args)
         {
+            if (args.Length != 1)
+            {
+                Console.WriteLine($"Usage: {nameof(SvgXml)} <directory>");
+                return;
+            }
+
             var directory = new DirectoryInfo(args[0]);
             var paths = new List<FileInfo>();
             GetFiles(directory, "*.svg", paths);
