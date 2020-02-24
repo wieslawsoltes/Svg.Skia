@@ -9,6 +9,7 @@
 * Added `feImage` referenced image `preserveAspectRatio` support.
 * Improved `Filter Effects` validation.
 * Added `SKFontManager` typeface provider.
+* Fixed `fill` and `stroke` validation.
 
 ## 0.1.5
 

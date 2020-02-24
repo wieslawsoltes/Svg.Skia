@@ -32,13 +32,15 @@ namespace Svg.Skia
 
             Transform = SvgTransformsExtensions.ToSKMatrix(svgLine.Transforms);
 
+            bool canDrawFill = true;
+            bool canDrawStroke = true;
+
             if (SvgPaintingExtensions.IsValidFill(svgLine))
             {
                 Fill = SvgPaintingExtensions.GetFillSKPaint(svgLine, TransformedBounds, ignoreAttributes, _disposable);
                 if (Fill == null)
                 {
-                    IsDrawable = false;
-                    return;
+                    canDrawFill = false;
                 }
             }
 
@@ -47,9 +49,14 @@ namespace Svg.Skia
                 Stroke = SvgPaintingExtensions.GetStrokeSKPaint(svgLine, TransformedBounds, ignoreAttributes, _disposable);
                 if (Stroke == null)
                 {
-                    IsDrawable = false;
-                    return;
+                    canDrawStroke = false;
                 }
+            }
+
+            if (canDrawFill && !canDrawStroke)
+            {
+                IsDrawable = false;
+                return;
             }
 
             SvgMarkerExtensions.CreateMarkers(svgLine, Path, skOwnerBounds, ref MarkerDrawables, _disposable);

@@ -32,13 +32,15 @@ namespace Svg.Skia
 
             Transform = SvgTransformsExtensions.ToSKMatrix(svgEllipse.Transforms);
 
+            bool canDrawFill = true;
+            bool canDrawStroke = true;
+
             if (SvgPaintingExtensions.IsValidFill(svgEllipse))
             {
                 Fill = SvgPaintingExtensions.GetFillSKPaint(svgEllipse, TransformedBounds, ignoreAttributes, _disposable);
                 if (Fill == null)
                 {
-                    IsDrawable = false;
-                    return;
+                    canDrawFill = false;
                 }
             }
 
@@ -47,9 +49,14 @@ namespace Svg.Skia
                 Stroke = SvgPaintingExtensions.GetStrokeSKPaint(svgEllipse, TransformedBounds, ignoreAttributes, _disposable);
                 if (Stroke == null)
                 {
-                    IsDrawable = false;
-                    return;
+                    canDrawStroke = false;
                 }
+            }
+
+            if (canDrawFill && !canDrawStroke)
+            {
+                IsDrawable = false;
+                return;
             }
 
             // TODO: Transform _skBounds using _skMatrix.
