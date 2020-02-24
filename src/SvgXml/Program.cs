@@ -67,10 +67,8 @@ namespace SvgXml
 
         private static List<Element> Open(string path)
         {
-            using (var stream = File.OpenRead(path))
-            {
-                return Open(path);
-            }
+            using var stream = File.OpenRead(path);
+            return Open(stream);
         }
 
         private static void PrintElements(Element element, bool printAttributes = true, string indent = "")
