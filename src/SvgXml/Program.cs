@@ -2,91 +2,26 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Xml;
 using Svg;
+using Xml;
 
 namespace SvgXml
 {
     internal class Program
     {
-        private static Element? Open(XmlReader reader)
+        private static void PrintElement(Element element, Action<string> writeLine, bool printAttributes = true, string indent = "")
         {
-            var elements = new List<Element>();
-            var stack = new Stack<Element>();
-            while (reader.Read())
-            {
-                switch (reader.NodeType)
-                {
-                    case XmlNodeType.Element:
-                        {
-                            var name = reader.LocalName;
-                            var element = SvgElementFactory.Create(name);
-
-                            if (reader.MoveToFirstAttribute())
-                            {
-                                do
-                                {
-                                    element.Attributes.Add(reader.Name, reader.Value);
-                                }
-                                while (reader.MoveToNextAttribute());
-                                reader.MoveToElement();
-                            }
-
-                            var nodes = stack.Count > 0 ? stack.Peek().Children : elements;
-                            nodes.Add(element);
-
-                            if (!reader.IsEmptyElement)
-                            {
-                                stack.Push(element);
-                            }
-                        }
-                        break;
-                    case XmlNodeType.EndElement:
-                        {
-                            stack.Pop();
-                        }
-                        break;
-                }
-            }
-            if (elements.Count == 1)
-            {
-                return elements[0];
-            }
-            return null;
-        }
-
-        private static Element? Open(Stream stream)
-        {
-            var settings = new XmlReaderSettings()
-            {
-                ConformanceLevel = ConformanceLevel.Fragment,
-                IgnoreWhitespace = true,
-                IgnoreComments = true
-            };
-            var reader = XmlReader.Create(stream, settings);
-            var element = Open(reader);
-            return element;
-        }
-
-        private static Element? Open(string path)
-        {
-            using var stream = File.OpenRead(path);
-            return Open(stream);
-        }
-
-        private static void PrintElement(Element element, bool printAttributes = true, string indent = "")
-        {
-            Console.WriteLine($"{indent}{element.GetType().Name} [{element.Name}]");
+            writeLine($"{indent}{element.GetType().Name} [{element.Name}]");
             if (printAttributes)
             {
                 foreach (var attribute in element.Attributes)
                 {
-                    Console.WriteLine($"{indent}  {attribute.Key}='{attribute.Value}'");
+                    writeLine($"{indent}  {attribute.Key}='{attribute.Value}'");
                 }
             }
             foreach (var child in element.Children)
             {
-                PrintElement(child, printAttributes, indent + "  ");
+                PrintElement(child, writeLine, printAttributes, indent + "  ");
             }
         }
 
@@ -118,12 +53,13 @@ namespace SvgXml
             var sw = Stopwatch.StartNew();
 
             var results = new List<(FileInfo path, Element element)>();
+            var elementFactory = new SvgElementFactory();
 
             foreach (var path in paths)
             {
                 try
                 {
-                    var element = Open(path.FullName);
+                    var element = Element.Open(path.FullName, elementFactory);
                     if (element != null)
                     {
                         results.Add((path, element));
@@ -143,7 +79,7 @@ namespace SvgXml
                 var element = result.element;
                 if (element != null)
                 {
-                    PrintElement(element, printAttributes: true);
+                    PrintElement(element, Console.WriteLine, printAttributes: true);
                 }
             }
         }
