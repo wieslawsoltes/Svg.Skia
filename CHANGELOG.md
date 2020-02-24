@@ -6,6 +6,7 @@
 * Added native build support using CoreRT.
 * Added referenced properties support for `filter` element.
 * Added `feImage` referenced image `preserveAspectRatio` support.
+* Improved `Filter Effects` validation.
 
 ## 0.1.5
 
