@@ -6,6 +6,10 @@ using System.Xml;
 
 namespace Svg
 {
+    // ------------------------------------------------------------------------
+    // Xml
+    // ------------------------------------------------------------------------
+
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class ElementAttribute : Attribute
     {
@@ -35,6 +39,10 @@ namespace Svg
     {
     }
 
+    // ------------------------------------------------------------------------
+    // Svg
+    // ------------------------------------------------------------------------
+
     public abstract class SvgElement : Element
     {
     }
@@ -50,6 +58,13 @@ namespace Svg
             return name switch
             {
                 "style" => new SvgStyle() { Name = name },
+                // Animation
+                "animate" => new SvgAnimate() { Name = name },
+                "animateColor" => new SvgAnimateColor() { Name = name },
+                "animateMotion" => new SvgAnimateMotion() { Name = name },
+                "animateTransform" => new SvgAnimateTransform() { Name = name },
+                "set" => new SvgSet() { Name = name },
+                "mpath" => new SvgMotionPath() { Name = name },
                 // Basic Shapes
                 "circle" => new SvgCircle() { Name = name },
                 "ellipse" => new SvgEllipse() { Name = name },
@@ -60,6 +75,8 @@ namespace Svg
                 // Clipping and Masking
                 "clipPath" => new SvgClipPath() { Name = name },
                 "mask" => new SvgMask() { Name = name },
+                // Color
+                "color-profile" => new SvgColorProfile() { Name = name },
                 // Document Structure
                 "defs" => new SvgDefinitionList() { Name = name },
                 "desc" => new SvgDescription() { Name = name },
@@ -99,8 +116,11 @@ namespace Svg
                 "feSpotLight" => new FilterEffects.SvgSpotLight() { Name = name },
                 "feTile" => new FilterEffects.SvgTile() { Name = name },
                 "feTurbulence" => new FilterEffects.SvgTurbulence() { Name = name },
+                // Interactivity
+                "cursor" => new SvgCursor() { Name = name },
                 // Linking
                 "a" => new SvgAnchor() { Name = name },
+                "view" => new SvgView() { Name = name },
                 // Painting
                 "stop" => new SvgGradientStop() { Name = name },
                 "linearGradient" => new SvgLinearGradientServer() { Name = name },
@@ -112,11 +132,19 @@ namespace Svg
                 // Scripting
                 "script" => new SvgScript() { Name = name },
                 // Text
+                "altGlyph" => new SvgAltGlyph() { Name = name },
+                "altGlyphDef" => new SvgAltGlyphDef() { Name = name },
+                "altGlyphItem" => new SvgAltGlyphItem() { Name = name },
                 "font" => new SvgFont() { Name = name },
                 "font-face" => new SvgFontFace() { Name = name },
+                "font-face-format" => new SvgFontFaceFormat() { Name = name },
+                "font-face-name" => new SvgFontFaceName() { Name = name },
                 "font-face-src" => new SvgFontFaceSrc() { Name = name },
                 "font-face-uri" => new SvgFontFaceUri() { Name = name },
                 "glyph" => new SvgGlyph() { Name = name },
+                "glyphRef" => new SvgGlyphRef() { Name = name },
+                "hkern" => new SvgHorizontalKern() { Name = name },
+                "vkern" => new SvgVerticalKern() { Name = name },
                 "missing-glyph" => new SvgMissingGlyph() { Name = name },
                 "text" => new SvgText() { Name = name },
                 "textPath" => new SvgTextPath() { Name = name },
@@ -130,6 +158,44 @@ namespace Svg
 
     [Element("style")]
     public class SvgStyle : SvgElement
+    {
+    }
+
+    // ------------------------------------------------------------------------
+    // Animation
+    // ------------------------------------------------------------------------
+
+    public abstract class SvgAnimationElement : SvgElement
+    {
+    }
+
+    [Element("animate")]
+    public class SvgAnimate : SvgAnimationElement
+    {
+    }
+
+    [Element("animateColor")]
+    public class SvgAnimateColor : SvgAnimationElement
+    {
+    }
+
+    [Element("animateMotion")]
+    public class SvgAnimateMotion : SvgAnimationElement
+    {
+    }
+
+    [Element("animateTransform")]
+    public class SvgAnimateTransform : SvgAnimationElement
+    {
+    }
+
+    [Element("set")]
+    public class SvgSet : SvgAnimationElement
+    {
+    }
+
+    [Element("mpath")]
+    public class SvgMotionPath : SvgElement
     {
     }
 
@@ -190,6 +256,15 @@ namespace Svg
 
     [Element("mask")]
     public class SvgMask : SvgElement
+    {
+    }
+
+    // ------------------------------------------------------------------------
+    // Color
+    // ------------------------------------------------------------------------
+
+    [Element("color-profile")]
+    public class SvgColorProfile : SvgElement
     {
     }
 
@@ -396,14 +471,32 @@ namespace Svg
         }
     }
 
+    // ------------------------------------------------------------------------
+    // Interactivity
+    // ------------------------------------------------------------------------
+
+    [Element("cursor")]
+    public class SvgCursor : SvgElement
+    {
+    }
+
+    // ------------------------------------------------------------------------
     // Linking
+    // ------------------------------------------------------------------------
 
     [Element("a")]
     public class SvgAnchor : SvgElement
     {
     }
 
+    [Element("view")]
+    public class SvgView : SvgElement
+    {
+    }
+
+    // ------------------------------------------------------------------------
     // Painting
+    // ------------------------------------------------------------------------
 
     public abstract class SvgPaintServer : SvgElement
     {
@@ -456,7 +549,9 @@ namespace Svg
     {
     }
 
+    // ------------------------------------------------------------------------
     // Scripting
+    // ------------------------------------------------------------------------
 
     [Element("script")]
     public class SvgScript : SvgElement
@@ -467,6 +562,21 @@ namespace Svg
     // Text
     // ------------------------------------------------------------------------
 
+    [Element("altGlyph")]
+    public class SvgAltGlyph : SvgElement
+    {
+    }
+
+    [Element("altGlyphDef")]
+    public class SvgAltGlyphDef : SvgElement
+    {
+    }
+
+    [Element("altGlyphItem")]
+    public class SvgAltGlyphItem : SvgElement
+    {
+    }
+
     [Element("font")]
     public class SvgFont : SvgElement
     {
@@ -474,6 +584,16 @@ namespace Svg
 
     [Element("font-face")]
     public class SvgFontFace : SvgElement
+    {
+    }
+
+    [Element("font-face-format")]
+    public class SvgFontFaceFormat : SvgElement
+    {
+    }
+
+    [Element("font-face-name")]
+    public class SvgFontFaceName : SvgElement
     {
     }
 
@@ -489,6 +609,25 @@ namespace Svg
 
     [Element("glyph")]
     public class SvgGlyph : SvgPathBasedElement
+    {
+    }
+
+    [Element("glyphRef")]
+    public class SvgGlyphRef : SvgElement
+    {
+    }
+
+    public abstract class SvgKern : Element
+    {
+    }
+
+    [Element("hkern")]
+    public class SvgHorizontalKern : SvgKern
+    {
+    }
+
+    [Element("vkern")]
+    public class SvgVerticalKern : SvgKern
     {
     }
 
