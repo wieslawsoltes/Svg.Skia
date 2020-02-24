@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
+//#define USE_TEXT_SHAPER
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using SkiaSharp;
+using SkiaSharp.HarfBuzz;
 
 namespace Svg.Skia
 {
@@ -217,7 +219,16 @@ namespace Svg.Skia
                 if (skPaint != null)
                 {
                     SvgTextExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
+#if USE_TEXT_SHAPER
+                    var typeface = skPaint.Typeface;
+                    if (typeface != null)
+                    {
+                        using var skShaper = new SKShaper(skPaint.Typeface);
+                        skCanvas.DrawShapedText(skShaper, text, x, y, skPaint);
+                    }
+#else
                     skCanvas.DrawText(text, x, y, skPaint);
+#endif
                 }
             }
 
@@ -227,7 +238,16 @@ namespace Svg.Skia
                 if (skPaint != null)
                 {
                     SvgTextExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, _disposable);
+#if USE_TEXT_SHAPER
+                    var typeface = skPaint.Typeface;
+                    if (typeface != null)
+                    {
+                        using var skShaper = new SKShaper(skPaint.Typeface);
+                        skCanvas.DrawShapedText(skShaper, text, x, y, skPaint);
+                    }
+#else
                     skCanvas.DrawText(text, x, y, skPaint);
+#endif
                 }
             }
         }

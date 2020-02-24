@@ -20,6 +20,7 @@
   <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <Import Project="..\..\build\SkiaSharp.props" />
+  <Import Project="..\..\build\SkiaSharp.HarfBuzz.props" />
 
   <PropertyGroup>
     <!--<DefineConstants>$(DefineConstants);USE_COLORSPACE</DefineConstants>-->
