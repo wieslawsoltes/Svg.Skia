@@ -27,6 +27,8 @@ namespace Svg
 
         public Element()
         {
+            Name = string.Empty;
+            Text = string.Empty;
             Children = new List<Element>();
             Attributes = new Dictionary<string, string>();
         }
