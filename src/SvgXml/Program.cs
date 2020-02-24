@@ -6,18 +6,22 @@ using System.Xml;
 
 namespace Svg
 {
-    public abstract class SvgElement
+    public abstract class Element
     {
         public string Name { get; set; }
         public string Text { get; set; }
-        public List<SvgElement> Children { get; set; }
+        public List<Element> Children { get; set; }
         public Dictionary<string, string> Attributes { get; set; }
 
-        public SvgElement()
+        public Element()
         {
-            Children = new List<SvgElement>();
+            Children = new List<Element>();
             Attributes = new Dictionary<string, string>();
         }
+    }
+
+    public abstract class SvgElement : Element
+    {
     }
 
     public class SvgDocument : SvgFragment
@@ -26,14 +30,15 @@ namespace Svg
 
     public class SvgElementFactory
     {
-        public static SvgElement Create(string name)
+        public static Element Create(string name, string ns)
         {
             return name switch
             {
+                "style" => new SvgStyle() { Name = name },
                 // Basic Shapes
                 "circle" => new SvgCircle() { Name = name },
                 "ellipse" => new SvgEllipse() { Name = name },
-                "slinevg" => new SvgLine() { Name = name },
+                "line" => new SvgLine() { Name = name },
                 "polygon" => new SvgPolygon() { Name = name },
                 "polyline" => new SvgPolyline() { Name = name },
                 "rect" => new SvgRectangle() { Name = name },
@@ -54,6 +59,7 @@ namespace Svg
                 // Extensibility
                 "foreignObject" => new SvgForeignObject() { Name = name },
                 // Filter Effects
+                "filter" => new FilterEffects.SvgFilter() { Name = name },
                 "feBlend" => new FilterEffects.SvgBlend() { Name = name },
                 "feColorMatrix" => new FilterEffects.SvgColourMatrix() { Name = name },
                 "feComponentTransfer" => new FilterEffects.SvgComponentTransfer() { Name = name },
@@ -70,6 +76,7 @@ namespace Svg
                 "feGaussianBlur" => new FilterEffects.SvgGaussianBlur() { Name = name },
                 "feImage" => new FilterEffects.SvgImage() { Name = name },
                 "feMerge" => new FilterEffects.SvgMerge() { Name = name },
+                "feMergeNode" => new FilterEffects.SvgMergeNode() { Name = name },
                 "feMorphology" => new FilterEffects.SvgMorphology() { Name = name },
                 "feOffset" => new FilterEffects.SvgOffset() { Name = name },
                 "fePointLight" => new FilterEffects.SvgPointLight() { Name = name },
@@ -101,12 +108,17 @@ namespace Svg
                 "tref" => new SvgTextRef() { Name = name },
                 "tspan" => new SvgTextSpan() { Name = name },
                 // Unknown
-                _ => new SvgUnknownElement() { Name = name },
+                _ => new UnknownElement() { Name = name }
             };
         }
     }
 
-    public class SvgUnknownElement : SvgElement
+    // "style"
+    public class SvgStyle : SvgElement
+    {
+    }
+
+    public class UnknownElement : Element
     {
     }
 
@@ -332,6 +344,11 @@ namespace Svg
         {
         }
 
+        // "feMergeNode"
+        public class SvgMergeNode : SvgElement
+        {
+        }
+
         // "feMorphology"
         public class SvgMorphology : SvgFilterPrimitive
         {
@@ -500,35 +517,36 @@ namespace SvgXml
 
     internal class Program
     {
-        private static List<SvgElement> ReadNodes(XmlReader reader)
+        private static List<Element> ReadElements(XmlReader reader)
         {
-            var elements = new List<SvgElement>();
-            var stack = new Stack<SvgElement>();
+            var elements = new List<Element>();
+            var stack = new Stack<Element>();
             while (reader.Read())
             {
                 switch (reader.NodeType)
                 {
                     case XmlNodeType.Element:
                         {
-                            var name = reader.Name;
-                            var node = SvgElementFactory.Create(name);
+                            var name = reader.LocalName;
+                            var ns = reader.NamespaceURI;
+                            var element = SvgElementFactory.Create(name, ns);
 
                             if (reader.MoveToFirstAttribute())
                             {
                                 do
                                 {
-                                    node.Attributes.Add(reader.Name, reader.Value);
+                                    element.Attributes.Add(reader.Name, reader.Value);
                                 }
                                 while (reader.MoveToNextAttribute());
                                 reader.MoveToElement();
                             }
 
                             var nodes = stack.Count > 0 ? stack.Peek().Children : elements;
-                            nodes.Add(node);
+                            nodes.Add(element);
 
                             if (!reader.IsEmptyElement)
                             {
-                                stack.Push(node);
+                                stack.Push(element);
                             }
                         }
                         break;
@@ -542,17 +560,17 @@ namespace SvgXml
             return elements;
         }
 
-        private static void Print(SvgElement node, bool printAttributes = true, string indent = "")
+        private static void Print(Element element, bool printAttributes = true, string indent = "")
         {
-            Console.WriteLine($"{indent}{node.GetType().Name} [{node.Name}]");
+            Console.WriteLine($"{indent}{element.GetType().Name} [{element.Name}]");
             if (printAttributes)
             {
-                foreach (var attribute in node.Attributes)
+                foreach (var attribute in element.Attributes)
                 {
                     Console.WriteLine($"{indent}  {attribute.Key}='{attribute.Value}'");
                 }
             }
-            foreach (var child in node.Children)
+            foreach (var child in element.Children)
             {
                 Print(child, printAttributes, indent + "  ");
             }
@@ -577,7 +595,7 @@ namespace SvgXml
             GetFiles(directory, "*.svg", paths);
             paths.Sort((f1, f2) => f1.Name.CompareTo(f2.Name));
 
-            var results = new List<(FileInfo path, List<SvgElement> nodes)>();
+            var results = new List<(FileInfo path, List<Element> elements)>();
 
             var sw = Stopwatch.StartNew();
 
@@ -592,8 +610,8 @@ namespace SvgXml
                         IgnoreComments = true
                     };
                     var reader = XmlReader.Create(path.FullName, settings);
-                    var nodes = ReadNodes(reader);
-                    results.Add((path, nodes));
+                    var elements = ReadElements(reader);
+                    results.Add((path, elements));
                 }
                 catch (Exception)
                 {
@@ -606,12 +624,12 @@ namespace SvgXml
             foreach (var result in results)
             {
                 Console.WriteLine($"{result.path.FullName}");
-                var nodes = result.nodes;
-                if (nodes != null)
+                var elements = result.elements;
+                if (elements != null)
                 {
-                    foreach (var node in nodes)
+                    foreach (var element in elements)
                     {
-                        Print(node, printAttributes: false);
+                        Print(element, printAttributes: false);
                     }
                 }
             }
