@@ -142,7 +142,7 @@ namespace SvgXml
                 {
                     foreach (var element in elements)
                     {
-                        PrintElements(element, printAttributes: false);
+                        PrintElements(element, printAttributes: true);
                     }
                 }
             }
