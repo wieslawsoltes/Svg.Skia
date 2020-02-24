@@ -52,7 +52,7 @@ namespace SvgXml
             return elements;
         }
 
-        private static void Print(Element element, bool printAttributes = true, string indent = "")
+        private static void PrintElements(Element element, bool printAttributes = true, string indent = "")
         {
             Console.WriteLine($"{indent}{element.GetType().Name} [{element.Name}]");
             if (printAttributes)
@@ -64,7 +64,7 @@ namespace SvgXml
             }
             foreach (var child in element.Children)
             {
-                Print(child, printAttributes, indent + "  ");
+                PrintElements(child, printAttributes, indent + "  ");
             }
         }
 
@@ -127,7 +127,7 @@ namespace SvgXml
                 {
                     foreach (var element in elements)
                     {
-                        Print(element, printAttributes: false);
+                        PrintElements(element, printAttributes: false);
                     }
                 }
             }
