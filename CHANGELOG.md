@@ -3,6 +3,7 @@
 ## vNext
 
 * Fixed `marker` exception.
+* Fixed `use` to accept `svg` element.
 * Added native build support using CoreRT.
 * Added referenced properties support for `filter` element.
 * Added `feImage` referenced image `preserveAspectRatio` support.
