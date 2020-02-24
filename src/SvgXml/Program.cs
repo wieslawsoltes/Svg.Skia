@@ -20,6 +20,10 @@ namespace Svg
         }
     }
 
+    public class UnknownElement : Element
+    {
+    }
+
     public abstract class SvgElement : Element
     {
     }
@@ -115,10 +119,6 @@ namespace Svg
 
     // "style"
     public class SvgStyle : SvgElement
-    {
-    }
-
-    public class UnknownElement : Element
     {
     }
 
