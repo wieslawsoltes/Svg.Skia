@@ -9,7 +9,7 @@ namespace SvgXml
 {
     internal class Program
     {
-        private static List<Element> ReadElements(XmlReader reader)
+        private static List<Element> Open(XmlReader reader)
         {
             var elements = new List<Element>();
             var stack = new Stack<Element>();
@@ -50,6 +50,27 @@ namespace SvgXml
                 }
             }
             return elements;
+        }
+
+        private static List<Element> Open(Stream stream)
+        {
+            var settings = new XmlReaderSettings()
+            {
+                ConformanceLevel = ConformanceLevel.Fragment,
+                IgnoreWhitespace = true,
+                IgnoreComments = true
+            };
+            var reader = XmlReader.Create(stream, settings);
+            var elements = Open(reader);
+            return elements;
+        }
+
+        private static List<Element> Open(string path)
+        {
+            using (var stream = File.OpenRead(path))
+            {
+                return Open(path);
+            }
         }
 
         private static void PrintElements(Element element, bool printAttributes = true, string indent = "")
@@ -93,23 +114,19 @@ namespace SvgXml
             GetFiles(directory, "*.svg", paths);
             paths.Sort((f1, f2) => f1.Name.CompareTo(f2.Name));
 
-            var results = new List<(FileInfo path, List<Element> elements)>();
-
             var sw = Stopwatch.StartNew();
+
+            var results = new List<(FileInfo path, List<Element> elements)>();
 
             foreach (var path in paths)
             {
                 try
                 {
-                    var settings = new XmlReaderSettings()
+                    var elements = Open(path.FullName);
+                    if (elements != null)
                     {
-                        ConformanceLevel = ConformanceLevel.Fragment,
-                        IgnoreWhitespace = true,
-                        IgnoreComments = true
-                    };
-                    var reader = XmlReader.Create(path.FullName, settings);
-                    var elements = ReadElements(reader);
-                    results.Add((path, elements));
+                        results.Add((path, elements));
+                    }
                 }
                 catch (Exception)
                 {
