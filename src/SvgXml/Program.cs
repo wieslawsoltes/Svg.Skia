@@ -9,7 +9,7 @@ namespace SvgXml
 {
     internal class Program
     {
-        private static List<Element> Open(XmlReader reader)
+        private static Element? Open(XmlReader reader)
         {
             var elements = new List<Element>();
             var stack = new Stack<Element>();
@@ -48,10 +48,14 @@ namespace SvgXml
                         break;
                 }
             }
-            return elements;
+            if (elements.Count == 1)
+            {
+                return elements[0];
+            }
+            return null;
         }
 
-        private static List<Element> Open(Stream stream)
+        private static Element? Open(Stream stream)
         {
             var settings = new XmlReaderSettings()
             {
@@ -60,17 +64,17 @@ namespace SvgXml
                 IgnoreComments = true
             };
             var reader = XmlReader.Create(stream, settings);
-            var elements = Open(reader);
-            return elements;
+            var element = Open(reader);
+            return element;
         }
 
-        private static List<Element> Open(string path)
+        private static Element? Open(string path)
         {
             using var stream = File.OpenRead(path);
             return Open(stream);
         }
 
-        private static void PrintElements(Element element, bool printAttributes = true, string indent = "")
+        private static void PrintElement(Element element, bool printAttributes = true, string indent = "")
         {
             Console.WriteLine($"{indent}{element.GetType().Name} [{element.Name}]");
             if (printAttributes)
@@ -82,7 +86,7 @@ namespace SvgXml
             }
             foreach (var child in element.Children)
             {
-                PrintElements(child, printAttributes, indent + "  ");
+                PrintElement(child, printAttributes, indent + "  ");
             }
         }
 
@@ -113,16 +117,16 @@ namespace SvgXml
 
             var sw = Stopwatch.StartNew();
 
-            var results = new List<(FileInfo path, List<Element> elements)>();
+            var results = new List<(FileInfo path, Element element)>();
 
             foreach (var path in paths)
             {
                 try
                 {
-                    var elements = Open(path.FullName);
-                    if (elements != null)
+                    var element = Open(path.FullName);
+                    if (element != null)
                     {
-                        results.Add((path, elements));
+                        results.Add((path, element));
                     }
                 }
                 catch (Exception)
@@ -136,13 +140,10 @@ namespace SvgXml
             foreach (var result in results)
             {
                 Console.WriteLine($"{result.path.FullName}");
-                var elements = result.elements;
-                if (elements != null)
+                var element = result.element;
+                if (element != null)
                 {
-                    foreach (var element in elements)
-                    {
-                        PrintElements(element, printAttributes: true);
-                    }
+                    PrintElement(element, printAttributes: true);
                 }
             }
         }
