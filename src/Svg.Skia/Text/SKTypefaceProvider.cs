@@ -6,7 +6,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    public class SKTypefaceProvider : ITypefaceProvider
+    public class DefaultTypefaceProvider : ITypefaceProvider
     {
         public static char[] s_fontFamilyTrim = new char[] { '\'' };
 
@@ -30,6 +30,44 @@ namespace Svg.Skia
                             continue;
                         }
                         break;
+                    }
+                }
+            }
+            return skTypeface;
+        }
+    }
+
+    public class FontManagerTypefacerovider : ITypefaceProvider
+    {
+        public static char[] s_fontFamilyTrim = new char[] { '\'' };
+
+        public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
+        {
+            var skTypeface = default(SKTypeface);
+            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
+            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
+            {
+                var defaultName = SKTypeface.Default.FamilyName;
+                var skFontManager = SKFontManager.Default;
+                var skFontStyle = new SKFontStyle(fontWeight, fontWidth, fontStyle);
+
+                foreach (var fontFamilyName in fontFamilyNames)
+                {
+                    var skFontStyleSet = skFontManager.GetFontStyles(fontFamilyName);
+                    if (skFontStyleSet.Count > 0)
+                    {
+                        skTypeface = skFontManager.MatchFamily(fontFamilyName, skFontStyle);
+                        if (skTypeface != null)
+                        {
+                            if (!defaultName.Equals(fontFamilyName, StringComparison.Ordinal)
+                                && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
+                            {
+                                skTypeface.Dispose();
+                                skTypeface = null;
+                                continue;
+                            }
+                            break;
+                        }
                     }
                 }
             }

@@ -9,7 +9,8 @@ namespace Svg.Skia
     {
         public static IList<ITypefaceProvider> s_typefaceProviders = new List<ITypefaceProvider>()
         {
-            new SKTypefaceProvider()
+            new FontManagerTypefacerovider(),
+            new DefaultTypefaceProvider()
         };
 
         public static SKFontStyleWeight SKFontStyleWeight(SvgFontWeight svgFontWeight)

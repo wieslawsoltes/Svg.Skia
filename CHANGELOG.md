@@ -8,6 +8,7 @@
 * Added referenced properties support for `filter` element.
 * Added `feImage` referenced image `preserveAspectRatio` support.
 * Improved `Filter Effects` validation.
+* Added `SKFontManager` typeface provider.
 
 ## 0.1.5
 
