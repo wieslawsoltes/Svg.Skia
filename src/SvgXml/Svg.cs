@@ -14,7 +14,7 @@ namespace Svg
 
         public ElementAttribute(string name)
         {
-            this.Name = name;
+            Name = name;
         }
     }
 
