@@ -930,21 +930,101 @@ namespace Svg
     [Element("circle")]
     public class SvgCircle : SvgPathBasedElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
+        [Attribute("cx")]
+        public string? CenterX
+        {
+            get => GetAttribute("cx");
+            set => SetAttribute("cx", value);
+        }
+
+        [Attribute("cy")]
+        public string? CenterY
+        {
+            get => GetAttribute("cy");
+            set => SetAttribute("cy", value);
+        }
+
+        [Attribute("r")]
+        public string? Radius
+        {
+            get => GetAttribute("r");
+            set => SetAttribute("r", value);
+        }
     }
 
     [Element("ellipse")]
     public class SvgEllipse : SvgPathBasedElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
+        [Attribute("cx")]
+        public string? CenterX
+        {
+            get => GetAttribute("cx");
+            set => SetAttribute("cx", value);
+        }
+
+        [Attribute("cy")]
+        public string? CenterY
+        {
+            get => GetAttribute("cy");
+            set => SetAttribute("cy", value);
+        }
+
+        [Attribute("rx")]
+        public string? RadiusX
+        {
+            get => GetAttribute("rx");
+            set => SetAttribute("rx", value);
+        }
+
+        [Attribute("ry")]
+        public string? RadiusY
+        {
+            get => GetAttribute("ry");
+            set => SetAttribute("ry", value);
+        }
     }
 
     [Element("line")]
     public class SvgLine : SvgMarkerElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
+        [Attribute("x1")]
+        public string? StartX
+        {
+            get => GetAttribute("x1");
+            set => SetAttribute("x1", value);
+        }
+
+        [Attribute("y1")]
+        public string? StartY
+        {
+            get => GetAttribute("y1");
+            set => SetAttribute("y1", value);
+        }
+
+        [Attribute("x2")]
+        public string? EndX
+        {
+            get => GetAttribute("x2");
+            set => SetAttribute("x2", value);
+        }
+
+        [Attribute("y2")]
+        public string? EndY
+        {
+            get => GetAttribute("y2");
+            set => SetAttribute("y2", value);
+        }
     }
 
     [Element("polygon")]
     public class SvgPolygon : SvgMarkerElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
+        [Attribute("points")]
+        public string? Points
+        {
+            get => GetAttribute("points");
+            set => SetAttribute("points", value);
+        }
     }
 
     [Element("polyline")]
@@ -955,6 +1035,47 @@ namespace Svg
     [Element("rect")]
     public class SvgRectangle : SvgPathBasedElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
+        [Attribute("x")]
+        public string? X
+        {
+            get => GetAttribute("x");
+            set => SetAttribute("x", value);
+        }
+
+        [Attribute("y")]
+        public string? Y
+        {
+            get => GetAttribute("y");
+            set => SetAttribute("y", value);
+        }
+
+        [Attribute("width")]
+        public string? Width
+        {
+            get => GetAttribute("width");
+            set => SetAttribute("width", value);
+        }
+
+        [Attribute("height")]
+        public string? Height
+        {
+            get => GetAttribute("height");
+            set => SetAttribute("height", value);
+        }
+
+        [Attribute("rx")]
+        public string? CornerRadiusX
+        {
+            get => GetAttribute("rx");
+            set => SetAttribute("rx", value);
+        }
+
+        [Attribute("ry")]
+        public string? CornerRadiusY
+        {
+            get => GetAttribute("ry");
+            set => SetAttribute("ry", value);
+        }
     }
 
     // Clipping and Masking
