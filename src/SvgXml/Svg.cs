@@ -1106,7 +1106,6 @@ namespace Svg
         {
             return name switch
             {
-                "style" => new SvgStyle() { Name = name },
                 // Animation
                 "animate" => new SvgAnimate() { Name = name },
                 "animateColor" => new SvgAnimateColor() { Name = name },
@@ -1180,6 +1179,8 @@ namespace Svg
                 "path" => new SvgPath() { Name = name },
                 // Scripting
                 "script" => new SvgScript() { Name = name },
+                // Styling
+                "style" => new SvgStyle() { Name = name },
                 // Text
                 "altGlyph" => new SvgAltGlyph() { Name = name },
                 "altGlyphDef" => new SvgAltGlyphDef() { Name = name },
@@ -1202,16 +1203,6 @@ namespace Svg
                 // Unknown
                 _ => new UnknownElement() { Name = name }
             };
-        }
-    }
-
-    [Element("style")]
-    public class SvgStyle : SvgElement
-    {
-        public override void Print(string indent)
-        {
-            base.Print(indent);
-            // TODO:
         }
     }
 
@@ -2124,6 +2115,18 @@ namespace Svg
 
     [Element("script")]
     public class SvgScript : SvgElement
+    {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
+    }
+
+    // Styling
+
+    [Element("style")]
+    public class SvgStyle : SvgElement
     {
         public override void Print(string indent)
         {
