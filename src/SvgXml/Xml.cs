@@ -30,7 +30,7 @@ namespace Xml
     public interface IElementFactory
     {
         ISet<string> Namespaces { get; }
-        Element Create(string name);
+        Element Create(string name, IElement? parent);
     }
 
     public interface IElement
@@ -63,7 +63,10 @@ namespace Xml
 
                             if (string.IsNullOrEmpty(reader.NamespaceURI) || elementFactory.Namespaces.Contains(reader.NamespaceURI))
                             {
-                                element = elementFactory.Create(elementName);
+                                var parent = stack.Count > 0 ? stack.Peek() : null;
+
+                                element = elementFactory.Create(elementName, parent);
+                                element.Parent = parent;
 
                                 if (reader.MoveToFirstAttribute())
                                 {
@@ -78,9 +81,6 @@ namespace Xml
                                     while (reader.MoveToNextAttribute());
                                     reader.MoveToElement();
                                 }
-
-                                var parent = stack.Count > 0 ? stack.Peek() : null;
-                                element.Parent = parent;
 
                                 var nodes = parent != null ? parent.Children : elements;
                                 nodes.Add(element);

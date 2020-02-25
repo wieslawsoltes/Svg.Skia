@@ -769,7 +769,7 @@ namespace Svg
             "http://www.w3.org/XML/1998/namespace"
         };
 
-        public Element Create(string name)
+        public Element Create(string name, IElement? parent)
         {
             return name switch
             {
@@ -797,7 +797,7 @@ namespace Svg
                 "defs" => new SvgDefinitionList() { Name = name },
                 "desc" => new SvgDescription() { Name = name },
                 "metadata" => new SvgDocumentMetadata() { Name = name },
-                "svg" => new SvgFragment() { Name = name },
+                "svg" => (parent == null) ? new SvgDocument() { Name = name } : new SvgFragment() { Name = name },
                 "g" => new SvgGroup() { Name = name },
                 "image" => new SvgImage() { Name = name },
                 "switch" => new SvgSwitch() { Name = name },
