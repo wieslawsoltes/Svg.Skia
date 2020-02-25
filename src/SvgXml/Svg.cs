@@ -1362,6 +1362,19 @@ namespace Svg
     [Element("path")]
     public class SvgPath : SvgMarkerElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
+        [Attribute("d")]
+        public string? PathData
+        {
+            get => GetAttribute("d");
+            set => SetAttribute("d", value);
+        }
+
+        [Attribute("pathLength")]
+        public string? PathLength
+        {
+            get => GetAttribute("pathLength");
+            set => SetAttribute("pathLength", value);
+        }
     }
 
     // Scripting
