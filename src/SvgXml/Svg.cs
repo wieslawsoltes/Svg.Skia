@@ -4,6 +4,8 @@ using Xml;
 
 namespace Svg
 {
+    // Attributes
+
     public interface ISvgAttributePrinter
     {
         void Print(string indent);
@@ -1052,6 +1054,8 @@ namespace Svg
             "use"
         };
     }
+
+    // Svg
 
     public abstract class SvgElement : Element, ISvgCoreAttributes
     {
