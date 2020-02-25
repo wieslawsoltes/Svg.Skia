@@ -1,14 +1,26 @@
-﻿using Xml;
+﻿using System;
+using Xml;
 
 namespace Svg
 {
     [Element("clipPath")]
     public class SvgClipPath : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
+        [Attribute("clipPathUnits")]
+        public string? ClipPathUnits
+        {
+            get => GetAttribute("clipPathUnits");
+            set => SetAttribute("clipPathUnits", value);
+        }
+
         public override void Print(string indent)
         {
             base.Print(indent);
-            // TODO:
+
+            if (ClipPathUnits != null)
+            {
+                Console.WriteLine($"{indent}{nameof(ClipPathUnits)}='{ClipPathUnits}'");
+            }
         }
     }
 }
