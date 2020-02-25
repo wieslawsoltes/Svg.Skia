@@ -11,7 +11,7 @@ namespace SvgXml
     {
         private static void PrintElement(Element element, Action<string> writeLine, bool printAttributes = true, string indent = "")
         {
-            writeLine($"{indent}{element.GetType().Name} [{element.Name}]");
+            writeLine($"{indent}{element.GetType().Name} [{element.Name}] [parent={element.Parent?.Name}]");
             if (printAttributes)
             {
                 foreach (var attribute in element.Attributes)

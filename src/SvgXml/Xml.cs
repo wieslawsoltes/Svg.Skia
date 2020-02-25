@@ -35,6 +35,11 @@ namespace Xml
 
     public interface IElement
     {
+        string Name { get; set; }
+        string Text { get; set; }
+        List<Element> Children { get; set; }
+        Dictionary<string, string?> Attributes { get; set; }
+        IElement? Parent { get; set; }
         string? GetAttribute(string key);
         void SetAttribute(string key, string? value);
     }
@@ -74,12 +79,15 @@ namespace Xml
                                     reader.MoveToElement();
                                 }
 
-                                var nodes = stack.Count > 0 ? stack.Peek().Children : elements;
+                                var parent = stack.Count > 0 ? stack.Peek() : null;
+                                element.Parent = parent;
+
+                                var nodes = parent != null ? parent.Children : elements;
                                 nodes.Add(element);
                             }
                             else
                             {
-                                element = new UnknownElement() { Name = elementName };
+                                element = new UnknownElement() { Name = elementName, Parent = null };
                             }
 
                             if (!reader.IsEmptyElement)
@@ -157,6 +165,7 @@ namespace Xml
         public string Text { get; set; }
         public List<Element> Children { get; set; }
         public Dictionary<string, string?> Attributes { get; set; }
+        public IElement? Parent { get; set; }
 
         public Element()
         {
@@ -164,6 +173,7 @@ namespace Xml
             Text = string.Empty;
             Children = new List<Element>();
             Attributes = new Dictionary<string, string?>();
+            Parent = null;
         }
 
         public string? GetAttribute(string key)
