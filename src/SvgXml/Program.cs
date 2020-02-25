@@ -65,14 +65,23 @@ namespace SvgXml
                         results.Add((path, element));
                     }
                 }
+#if true
                 catch (Exception)
                 {
                 }
+#else
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"{path.FullName}");
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
+                }
+#endif
             }
 
             sw.Stop();
             Console.WriteLine($"{sw.Elapsed.TotalMilliseconds}ms [{sw.Elapsed}], {paths.Count} files");
-
+#if true
             foreach (var result in results)
             {
                 Console.WriteLine($"{result.path.FullName}");
@@ -82,6 +91,7 @@ namespace SvgXml
                     PrintElement(element, Console.WriteLine, printAttributes: true);
                 }
             }
+#endif
         }
     }
 }

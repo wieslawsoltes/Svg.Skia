@@ -142,15 +142,16 @@ namespace Xml
             return null;
         }
 
+        public static XmlReaderSettings s_settings = new XmlReaderSettings()
+        {
+            ConformanceLevel = ConformanceLevel.Fragment,
+            IgnoreWhitespace = true,
+            IgnoreComments = true
+        };
+
         public static Element? Open(Stream stream, IElementFactory elementFactory)
         {
-            var settings = new XmlReaderSettings()
-            {
-                ConformanceLevel = ConformanceLevel.Fragment,
-                IgnoreWhitespace = true,
-                IgnoreComments = true
-            };
-            var reader = XmlReader.Create(stream, settings);
+            var reader = XmlReader.Create(stream, s_settings);
             var element = Open(reader, elementFactory);
             return element;
         }
