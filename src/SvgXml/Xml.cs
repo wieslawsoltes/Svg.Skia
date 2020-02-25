@@ -33,7 +33,13 @@ namespace Xml
         Element Create(string name);
     }
 
-    public abstract class Element
+    public interface IElement
+    {
+        string? GetAttribute(string key);
+        void SetAttribute(string key, string? value);
+    }
+
+    public abstract class Element : IElement
     {
         public static Element? Open(XmlReader reader, IElementFactory elementFactory)
         {
