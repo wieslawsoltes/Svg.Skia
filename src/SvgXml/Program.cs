@@ -14,10 +14,14 @@ namespace SvgXml
             writeLine($"{indent}{element.GetType().Name} [{element.Name}] [parent={element.Parent?.Name}]");
             if (printAttributes)
             {
-                foreach (var attribute in element.Attributes)
+                if (element is ISvgAttributePrinter attributePrinter)
                 {
-                    writeLine($"{indent}  {attribute.Key}='{attribute.Value}'");
+                    attributePrinter.Print(indent + "  ");
                 }
+                //foreach (var attribute in element.Attributes)
+                //{
+                //    writeLine($"{indent}  {attribute.Key}='{attribute.Value}'");
+                //}
             }
             foreach (var child in element.Children)
             {

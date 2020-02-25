@@ -1,9 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Xml;
 
 namespace Svg
 {
-    public interface ISvgCoreAttributes : IElement
+    public interface ISvgAttributePrinter
+    {
+        void Print(string indent);
+    }
+
+    public interface ISvgCoreAttributes : IElement, ISvgAttributePrinter
     {
         [Attribute("id")]
         public string? Id
@@ -32,9 +38,29 @@ namespace Svg
             get => GetAttribute("space");
             set => SetAttribute("space", value);
         }
+
+        public void PrintCoreAttributes(string indent)
+        {
+            if (Id != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Id)}='{Id}'");
+            }
+            if (Base != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Base)}='{Base}'");
+            }
+            if (Lang != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Lang)}='{Lang}'");
+            }
+            if (Space != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Space)}='{Space}'");
+            }
+        }
     }
 
-    public interface ISvgPresentationAttributes : IElement
+    public interface ISvgPresentationAttributes : IElement, ISvgAttributePrinter
     {
         [Attribute("alignment-baseline")]
         public string? AlignmentBaseline
@@ -448,9 +474,249 @@ namespace Svg
             get => GetAttribute("writing-mode");
             set => SetAttribute("writing-mode", value);
         }
+
+        public void PrintPresentationAttributes(string indent)
+        {
+            if (AlignmentBaseline != null)
+            {
+                Console.WriteLine($"{indent}{nameof(AlignmentBaseline)}='{AlignmentBaseline}'");
+            }
+            if (BaselineShift != null)
+            {
+                Console.WriteLine($"{indent}{nameof(BaselineShift)}='{BaselineShift}'");
+            }
+            if (Clip != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Clip)}='{Clip}'");
+            }
+            if (ClipPath != null)
+            {
+                Console.WriteLine($"{indent}{nameof(ClipPath)}='{ClipPath}'");
+            }
+            if (ClipRule != null)
+            {
+                Console.WriteLine($"{indent}{nameof(ClipRule)}='{ClipRule}'");
+            }
+            if (Color != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Color)}='{Color}'");
+            }
+            if (ColorInterpolation != null)
+            {
+                Console.WriteLine($"{indent}{nameof(ColorInterpolation)}='{ColorInterpolation}'");
+            }
+            if (ColorInterpolationFilters != null)
+            {
+                Console.WriteLine($"{indent}{nameof(ColorInterpolationFilters)}='{ColorInterpolationFilters}'");
+            }
+            if (ColorProfile != null)
+            {
+                Console.WriteLine($"{indent}{nameof(ColorProfile)}='{ColorProfile}'");
+            }
+            if (ColorRendering != null)
+            {
+                Console.WriteLine($"{indent}{nameof(ColorRendering)}='{ColorRendering}'");
+            }
+            if (Cursor != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Cursor)}='{Cursor}'");
+            }
+            if (Direction != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Direction)}='{Direction}'");
+            }
+            if (Display != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Display)}='{Display}'");
+            }
+            if (DominantBaseline != null)
+            {
+                Console.WriteLine($"{indent}{nameof(DominantBaseline)}='{DominantBaseline}'");
+            }
+            if (EnableBackground != null)
+            {
+                Console.WriteLine($"{indent}{nameof(EnableBackground)}='{EnableBackground}'");
+            }
+            if (Fill != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Fill)}='{Fill}'");
+            }
+            if (FillOpacity != null)
+            {
+                Console.WriteLine($"{indent}{nameof(FillOpacity)}='{FillOpacity}'");
+            }
+            if (FillRule != null)
+            {
+                Console.WriteLine($"{indent}{nameof(FillRule)}='{FillRule}'");
+            }
+            if (Filter != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Filter)}='{Filter}'");
+            }
+            if (FloodColor != null)
+            {
+                Console.WriteLine($"{indent}{nameof(FloodColor)}='{FloodColor}'");
+            }
+            if (FloodOpacity != null)
+            {
+                Console.WriteLine($"{indent}{nameof(FloodOpacity)}='{FloodOpacity}'");
+            }
+            if (FontFamily != null)
+            {
+                Console.WriteLine($"{indent}{nameof(FontFamily)}='{FontFamily}'");
+            }
+            if (FontSize != null)
+            {
+                Console.WriteLine($"{indent}{nameof(FontSize)}='{FontSize}'");
+            }
+            if (FontSizeAdjust != null)
+            {
+                Console.WriteLine($"{indent}{nameof(FontSizeAdjust)}='{FontSizeAdjust}'");
+            }
+            if (FontStretch != null)
+            {
+                Console.WriteLine($"{indent}{nameof(FontStretch)}='{FontStretch}'");
+            }
+            if (FontStyle != null)
+            {
+                Console.WriteLine($"{indent}{nameof(FontStyle)}='{FontStyle}'");
+            }
+            if (FontVariant != null)
+            {
+                Console.WriteLine($"{indent}{nameof(FontVariant)}='{FontVariant}'");
+            }
+            if (FontWeight != null)
+            {
+                Console.WriteLine($"{indent}{nameof(FontWeight)}='{FontWeight}'");
+            }
+            if (GlyphOrientationHorizontal != null)
+            {
+                Console.WriteLine($"{indent}{nameof(GlyphOrientationHorizontal)}='{GlyphOrientationHorizontal}'");
+            }
+            if (GlyphOrientationVertical != null)
+            {
+                Console.WriteLine($"{indent}{nameof(GlyphOrientationVertical)}='{GlyphOrientationVertical}'");
+            }
+            if (ImageRendering != null)
+            {
+                Console.WriteLine($"{indent}{nameof(ImageRendering)}='{ImageRendering}'");
+            }
+            if (Kerning != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Kerning)}='{Kerning}'");
+            }
+            if (LetterSpacing != null)
+            {
+                Console.WriteLine($"{indent}{nameof(LetterSpacing)}='{LetterSpacing}'");
+            }
+            if (LightingColor != null)
+            {
+                Console.WriteLine($"{indent}{nameof(LightingColor)}='{LightingColor}'");
+            }
+            if (MarkerEnd != null)
+            {
+                Console.WriteLine($"{indent}{nameof(MarkerEnd)}='{MarkerEnd}'");
+            }
+            if (MarkerMid != null)
+            {
+                Console.WriteLine($"{indent}{nameof(MarkerMid)}='{MarkerMid}'");
+            }
+            if (MarkerStart != null)
+            {
+                Console.WriteLine($"{indent}{nameof(MarkerStart)}='{MarkerStart}'");
+            }
+            if (Mask != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Mask)}='{Mask}'");
+            }
+            if (Opacity != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Opacity)}='{Opacity}'");
+            }
+            if (Overflow != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Overflow)}='{Overflow}'");
+            }
+            if (PointerEvents != null)
+            {
+                Console.WriteLine($"{indent}{nameof(PointerEvents)}='{PointerEvents}'");
+            }
+            if (ShapeRendering != null)
+            {
+                Console.WriteLine($"{indent}{nameof(ShapeRendering)}='{ShapeRendering}'");
+            }
+            if (StopColor != null)
+            {
+                Console.WriteLine($"{indent}{nameof(StopColor)}='{StopColor}'");
+            }
+            if (StopOpacity != null)
+            {
+                Console.WriteLine($"{indent}{nameof(StopOpacity)}='{StopOpacity}'");
+            }
+            if (Stroke != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Stroke)}='{Stroke}'");
+            }
+            if (StrokeDasharray != null)
+            {
+                Console.WriteLine($"{indent}{nameof(StrokeDasharray)}='{StrokeDasharray}'");
+            }
+            if (StrokeDashoffset != null)
+            {
+                Console.WriteLine($"{indent}{nameof(StrokeDashoffset)}='{StrokeDashoffset}'");
+            }
+            if (StrokeLinecap != null)
+            {
+                Console.WriteLine($"{indent}{nameof(StrokeLinecap)}='{StrokeLinecap}'");
+            }
+            if (SrokeLinejoin != null)
+            {
+                Console.WriteLine($"{indent}{nameof(SrokeLinejoin)}='{SrokeLinejoin}'");
+            }
+            if (StrokeMiterlimit != null)
+            {
+                Console.WriteLine($"{indent}{nameof(StrokeMiterlimit)}='{StrokeMiterlimit}'");
+            }
+            if (StrokeOpacity != null)
+            {
+                Console.WriteLine($"{indent}{nameof(StrokeOpacity)}='{StrokeOpacity}'");
+            }
+            if (StrokeWidth != null)
+            {
+                Console.WriteLine($"{indent}{nameof(StrokeWidth)}='{StrokeWidth}'");
+            }
+            if (TextAnchor != null)
+            {
+                Console.WriteLine($"{indent}{nameof(TextAnchor)}='{TextAnchor}'");
+            }
+            if (TextDecoration != null)
+            {
+                Console.WriteLine($"{indent}{nameof(TextDecoration)}='{TextDecoration}'");
+            }
+            if (TextRendering != null)
+            {
+                Console.WriteLine($"{indent}{nameof(TextRendering)}='{TextRendering}'");
+            }
+            if (UnicodeBidi != null)
+            {
+                Console.WriteLine($"{indent}{nameof(UnicodeBidi)}='{UnicodeBidi}'");
+            }
+            if (Visibility != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Visibility)}='{Visibility}'");
+            }
+            if (WordSpacing != null)
+            {
+                Console.WriteLine($"{indent}{nameof(WordSpacing)}='{WordSpacing}'");
+            }
+            if (WritingMode != null)
+            {
+                Console.WriteLine($"{indent}{nameof(WritingMode)}='{WritingMode}'");
+            }
+        }
     }
 
-    public interface ISvgTestsAttributes : IElement
+    public interface ISvgTestsAttributes : IElement, ISvgAttributePrinter
     {
         [Attribute("requiredFeatures")]
         public string? RequiredFeatures
@@ -472,9 +738,25 @@ namespace Svg
             get => GetAttribute("systemLanguage");
             set => SetAttribute("systemLanguage", value);
         }
+
+        public void PrintTestsAttributes(string indent)
+        {
+            if (RequiredFeatures != null)
+            {
+                Console.WriteLine($"{indent}{nameof(RequiredFeatures)}='{RequiredFeatures}'");
+            }
+            if (RequiredExtensions != null)
+            {
+                Console.WriteLine($"{indent}{nameof(RequiredExtensions)}='{RequiredExtensions}'");
+            }
+            if (SystemLanguage != null)
+            {
+                Console.WriteLine($"{indent}{nameof(SystemLanguage)}='{SystemLanguage}'");
+            }
+        }
     }
 
-    public interface ISvgStylableAttributes : IElement
+    public interface ISvgStylableAttributes : IElement, ISvgAttributePrinter
     {
         [Attribute("class")]
         public string? Class
@@ -489,15 +771,35 @@ namespace Svg
             get => GetAttribute("style");
             set => SetAttribute("style", value);
         }
+
+        public void PrintStylableAttributes(string indent)
+        {
+            if (Class != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Class)}='{Class}'");
+            }
+            if (Style != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Style)}='{Style}'");
+            }
+        }
     }
 
-    public interface ISvgTransformableAttributes : IElement
+    public interface ISvgTransformableAttributes : IElement, ISvgAttributePrinter
     {
         [Attribute("transform")]
         public string? Transform
         {
             get => GetAttribute("transform");
             set => SetAttribute("transform", value);
+        }
+
+        public void PrintTransformableAttributes(string indent)
+        {
+            if (Transform != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Transform)}='{Transform}'");
+            }
         }
     }
 
@@ -753,11 +1055,38 @@ namespace Svg
 
     public abstract class SvgElement : Element, ISvgCoreAttributes
     {
-
+        public virtual void Print(string indent)
+        {
+            if (this is ISvgCoreAttributes svgCoreAttributes)
+            {
+                svgCoreAttributes.PrintCoreAttributes(indent);
+            }
+            if (this is ISvgPresentationAttributes svgPresentationAttributes)
+            {
+                svgPresentationAttributes.PrintPresentationAttributes(indent);
+            }
+            if (this is ISvgTestsAttributes svgTestsAttributes)
+            {
+                svgTestsAttributes.PrintTestsAttributes(indent);
+            }
+            if (this is ISvgStylableAttributes svgStylableAttributes)
+            {
+                svgStylableAttributes.PrintStylableAttributes(indent);
+            }
+            if (this is ISvgTransformableAttributes svgTransformableAttributes)
+            {
+                svgTransformableAttributes.PrintTransformableAttributes(indent);
+            }
+        }
     }
 
     public class SvgDocument : SvgFragment
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     public class SvgElementFactory : IElementFactory
@@ -875,6 +1204,11 @@ namespace Svg
     [Element("style")]
     public class SvgStyle : SvgElement
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     // Animation
@@ -886,31 +1220,61 @@ namespace Svg
     [Element("animate")]
     public class SvgAnimate : SvgAnimationElement, ISvgPresentationAttributes, ISvgTestsAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("animateColor")]
     public class SvgAnimateColor : SvgAnimationElement, ISvgPresentationAttributes, ISvgTestsAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("animateMotion")]
     public class SvgAnimateMotion : SvgAnimationElement, ISvgTestsAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("animateTransform")]
     public class SvgAnimateTransform : SvgAnimationElement, ISvgTestsAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("set")]
     public class SvgSet : SvgAnimationElement, ISvgTestsAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("mpath")]
     public class SvgMotionPath : SvgElement
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     // Basic Shapes
@@ -950,6 +1314,24 @@ namespace Svg
             get => GetAttribute("r");
             set => SetAttribute("r", value);
         }
+
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+
+            if (CenterX != null)
+            {
+                Console.WriteLine($"{indent}{nameof(CenterX)}='{CenterX}'");
+            }
+            if (CenterY != null)
+            {
+                Console.WriteLine($"{indent}{nameof(CenterY)}='{CenterY}'");
+            }
+            if (Radius != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Radius)}='{Radius}'");
+            }
+        }
     }
 
     [Element("ellipse")]
@@ -981,6 +1363,28 @@ namespace Svg
         {
             get => GetAttribute("ry");
             set => SetAttribute("ry", value);
+        }
+
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+
+            if (CenterX != null)
+            {
+                Console.WriteLine($"{indent}{nameof(CenterX)}='{CenterX}'");
+            }
+            if (CenterY != null)
+            {
+                Console.WriteLine($"{indent}{nameof(CenterY)}='{CenterY}'");
+            }
+            if (RadiusX != null)
+            {
+                Console.WriteLine($"{indent}{nameof(RadiusX)}='{RadiusX}'");
+            }
+            if (RadiusY != null)
+            {
+                Console.WriteLine($"{indent}{nameof(RadiusY)}='{RadiusY}'");
+            }
         }
     }
 
@@ -1014,6 +1418,28 @@ namespace Svg
             get => GetAttribute("y2");
             set => SetAttribute("y2", value);
         }
+
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+
+            if (StartX != null)
+            {
+                Console.WriteLine($"{indent}{nameof(StartX)}='{StartX}'");
+            }
+            if (StartY != null)
+            {
+                Console.WriteLine($"{indent}{nameof(StartY)}='{StartY}'");
+            }
+            if (EndX != null)
+            {
+                Console.WriteLine($"{indent}{nameof(EndX)}='{EndX}'");
+            }
+            if (EndY != null)
+            {
+                Console.WriteLine($"{indent}{nameof(EndY)}='{EndY}'");
+            }
+        }
     }
 
     [Element("polygon")]
@@ -1024,6 +1450,16 @@ namespace Svg
         {
             get => GetAttribute("points");
             set => SetAttribute("points", value);
+        }
+
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+
+            if (Points != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Points)}='{Points}'");
+            }
         }
     }
 
@@ -1076,6 +1512,36 @@ namespace Svg
             get => GetAttribute("ry");
             set => SetAttribute("ry", value);
         }
+
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+
+            if (X != null)
+            {
+                Console.WriteLine($"{indent}{nameof(X)}='{X}'");
+            }
+            if (Y != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Y)}='{Y}'");
+            }
+            if (Width != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Width)}='{Width}'");
+            }
+            if (Height != null)
+            {
+                Console.WriteLine($"{indent}{nameof(Height)}='{Height}'");
+            }
+            if (CornerRadiusX != null)
+            {
+                Console.WriteLine($"{indent}{nameof(CornerRadiusX)}='{CornerRadiusX}'");
+            }
+            if (CornerRadiusY != null)
+            {
+                Console.WriteLine($"{indent}{nameof(CornerRadiusY)}='{CornerRadiusY}'");
+            }
+        }
     }
 
     // Clipping and Masking
@@ -1083,11 +1549,21 @@ namespace Svg
     [Element("clipPath")]
     public class SvgClipPath : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("mask")]
     public class SvgMask : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     // Color
@@ -1095,6 +1571,11 @@ namespace Svg
     [Element("color-profile")]
     public class SvgColorProfile : SvgElement
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     // Document Structure
@@ -1102,51 +1583,101 @@ namespace Svg
     [Element("defs")]
     public class SvgDefinitionList : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("desc")]
     public class SvgDescription : SvgElement, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("metadata")]
     public class SvgDocumentMetadata : SvgElement
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("svg")]
     public class SvgFragment : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("g")]
     public class SvgGroup : SvgMarkerElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("image")]
     public class SvgImage : SvgVisualElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("switch")]
     public class SvgSwitch : SvgVisualElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("symbol")]
     public class SvgSymbol : SvgVisualElement, ISvgPresentationAttributes, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("title")]
     public class SvgTitle : SvgElement, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("use")]
     public class SvgUse : SvgVisualElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     // Extensibility
@@ -1154,6 +1685,11 @@ namespace Svg
     [Element("foreignObject")]
     public class SvgForeignObject : SvgVisualElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     // Filter Effects
@@ -1163,6 +1699,11 @@ namespace Svg
         [Element("filter")]
         public class SvgFilter : SvgElement, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         public abstract class SvgFilterPrimitive : SvgElement
@@ -1172,125 +1713,250 @@ namespace Svg
         [Element("feBlend")]
         public class SvgBlend : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feColorMatrix")]
         public class SvgColourMatrix : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feComponentTransfer")]
         public class SvgComponentTransfer : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feComposite")]
         public class SvgComposite : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feConvolveMatrix")]
         public class SvgConvolveMatrix : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feDiffuseLighting")]
         public class SvgDiffuseLighting : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feDisplacementMap")]
         public class SvgDisplacementMap : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feDistantLight")]
         public class SvgDistantLight : SvgElement
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feFlood")]
         public class SvgFlood : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         public abstract class SvgComponentTransferFunction : SvgElement
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feFuncA")]
         public class SvgFuncA : SvgComponentTransferFunction
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feFuncB")]
         public class SvgFuncB : SvgComponentTransferFunction
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feFuncG")]
         public class SvgFuncG : SvgComponentTransferFunction
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feFuncR")]
         public class SvgFuncR : SvgComponentTransferFunction
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feGaussianBlur")]
         public class SvgGaussianBlur : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feImage")]
         public class SvgImage : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feMerge")]
         public class SvgMerge : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feMergeNode")]
         public class SvgMergeNode : SvgElement
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feMorphology")]
         public class SvgMorphology : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feOffset")]
         public class SvgOffset : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("fePointLight")]
         public class SvgPointLight : SvgElement
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feSpecularLighting")]
         public class SvgSpecularLighting : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feSpotLight")]
         public class SvgSpotLight : SvgElement
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feTile")]
         public class SvgTile : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
 
         [Element("feTurbulence")]
         public class SvgTurbulence : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
+            public override void Print(string indent)
+            {
+                base.Print(indent);
+                // TODO:
+            }
         }
     }
 
@@ -1299,6 +1965,11 @@ namespace Svg
     [Element("cursor")]
     public class SvgCursor : SvgElement, ISvgTestsAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     // Linking
@@ -1306,55 +1977,109 @@ namespace Svg
     [Element("a")]
     public class SvgAnchor : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("view")]
     public class SvgView : SvgElement
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     // Painting
 
     public abstract class SvgPaintServer : SvgElement
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     public class SvgColourServer : SvgPaintServer
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     public class SvgDeferredPaintServer : SvgPaintServer
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     public abstract class SvgGradientServer : SvgPaintServer
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("stop")]
     public class SvgGradientStop : SvgElement, ISvgPresentationAttributes, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("linearGradient")]
     public class SvgLinearGradientServer : SvgGradientServer, ISvgPresentationAttributes, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("marker")]
     public class SvgMarker : SvgPathBasedElement, ISvgPresentationAttributes, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("pattern")]
     public class SvgPatternServer : SvgPaintServer, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("radialGradient")]
     public class SvgRadialGradientServer : SvgGradientServer, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     // Paths
@@ -1375,6 +2100,20 @@ namespace Svg
             get => GetAttribute("pathLength");
             set => SetAttribute("pathLength", value);
         }
+
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+
+            if (PathData != null)
+            {
+                Console.WriteLine($"{indent}{nameof(PathData)}='{PathData}'");
+            }
+            if (PathLength != null)
+            {
+                Console.WriteLine($"{indent}{nameof(PathLength)}='{PathLength}'");
+            }
+        }
     }
 
     // Scripting
@@ -1382,6 +2121,11 @@ namespace Svg
     [Element("script")]
     public class SvgScript : SvgElement
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     // Text
@@ -1389,75 +2133,145 @@ namespace Svg
     [Element("altGlyph")]
     public class SvgAltGlyph : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("altGlyphDef")]
     public class SvgAltGlyphDef : SvgElement
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("altGlyphItem")]
     public class SvgAltGlyphItem : SvgElement
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("font")]
     public class SvgFont : SvgElement, ISvgPresentationAttributes, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("font-face")]
     public class SvgFontFace : SvgElement
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("font-face-format")]
     public class SvgFontFaceFormat : SvgElement
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("font-face-name")]
     public class SvgFontFaceName : SvgElement
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("font-face-src")]
     public class SvgFontFaceSrc : SvgElement
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("font-face-uri")]
     public class SvgFontFaceUri : SvgElement
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("glyph")]
     public class SvgGlyph : SvgPathBasedElement, ISvgPresentationAttributes, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("glyphRef")]
     public class SvgGlyphRef : SvgElement, ISvgPresentationAttributes, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
-    public abstract class SvgKern : Element
+    public abstract class SvgKern : SvgElement
     {
     }
 
     [Element("hkern")]
     public class SvgHorizontalKern : SvgKern
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("vkern")]
     public class SvgVerticalKern : SvgKern
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("missing-glyph")]
     public class SvgMissingGlyph : SvgGlyph, ISvgPresentationAttributes, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     public abstract class SvgTextBase : SvgVisualElement
@@ -1467,20 +2281,40 @@ namespace Svg
     [Element("text")]
     public class SvgText : SvgTextBase, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("textPath")]
     public class SvgTextPath : SvgTextBase, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("tref")]
     public class SvgTextRef : SvgTextBase, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 
     [Element("tspan")]
     public class SvgTextSpan : SvgTextBase, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
     {
+        public override void Print(string indent)
+        {
+            base.Print(indent);
+            // TODO:
+        }
     }
 }
