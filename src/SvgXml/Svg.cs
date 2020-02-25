@@ -24,10 +24,24 @@ namespace Svg
         }
     }
 
+    public class StyleAttributeAttribute : AttributeAttribute
+    {
+        public StyleAttributeAttribute(string name) : base(name)
+        {
+        }
+    }
+
+    public class RegularAttributeAttribute : AttributeAttribute
+    {
+        public RegularAttributeAttribute(string name) : base(name)
+        {
+        }
+    }
+
     public interface ISvgCoreAttributes : IElement
     {
         [CoreAttribute("id")]
-        public string? id
+        public string? Id
         {
             get => GetAttribute("id");
             set => SetAttribute("id", value);
@@ -495,6 +509,23 @@ namespace Svg
         }
     }
 
+    public interface ISvgStyleAttributes : IElement
+    {
+        [StyleAttribute("class")]
+        public string? Class
+        {
+            get => GetAttribute("class");
+            set => SetAttribute("class", value);
+        }
+
+        [StyleAttribute("style")]
+        public string? Style
+        {
+            get => GetAttribute("style");
+            set => SetAttribute("style", value);
+        }
+    }
+
     public static class SvgAttributes
     {
         public static ISet<string> s_coreElements = new HashSet<string>()
@@ -664,6 +695,61 @@ namespace Svg
             "symbol",
             "text",
             "textPath",
+            "tref",
+            "tspan",
+            "use"
+        };
+
+        public static ISet<string> s_styleElements = new HashSet<string>()
+        {
+            "a",
+            "altGlyph",
+            "circle",
+            "clipPath",
+            "defs",
+            "desc",
+            "ellipse",
+            "feBlend",
+            "feColorMatrix",
+            "feComponentTransfer",
+            "feComposite",
+            "feConvolveMatrix",
+            "feDiffuseLighting",
+            "feDisplacementMap",
+            "feFlood",
+            "feGaussianBlur",
+            "feImage",
+            "feMerge",
+            "feMorphology",
+            "feOffset",
+            "feSpecularLighting",
+            "feTile",
+            "feTurbulence",
+            "filter",
+            "font",
+            "foreignObject",
+            "g",
+            "glyph",
+            "glyphRef",
+            "image",
+            "line",
+            "linearGradient",
+            "marker",
+            "mask",
+            "missing-glyph",
+            "path",
+            "pattern",
+            "polygon",
+            "polyline",
+            "radialGradient",
+            "rect",
+            "stop",
+            "svg",
+            "switch",
+            "symbol",
+            "text",
+            "textPath",
+            "title",
             "tref",
             "tspan",
             "use"
@@ -847,44 +933,44 @@ namespace Svg
     }
 
     [Element("circle")]
-    public class SvgCircle : SvgPathBasedElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgCircle : SvgPathBasedElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("ellipse")]
-    public class SvgEllipse : SvgPathBasedElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgEllipse : SvgPathBasedElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("line")]
-    public class SvgLine : SvgMarkerElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgLine : SvgMarkerElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("polygon")]
-    public class SvgPolygon : SvgMarkerElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgPolygon : SvgMarkerElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("polyline")]
-    public class SvgPolyline : SvgPolygon, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgPolyline : SvgPolygon, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("rect")]
-    public class SvgRectangle : SvgPathBasedElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgRectangle : SvgPathBasedElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     // Clipping and Masking
 
     [Element("clipPath")]
-    public class SvgClipPath : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgClipPath : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("mask")]
-    public class SvgMask : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgMask : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
@@ -898,12 +984,12 @@ namespace Svg
     // Document Structure
 
     [Element("defs")]
-    public class SvgDefinitionList : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgDefinitionList : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("desc")]
-    public class SvgDescription : SvgElement
+    public class SvgDescription : SvgElement, ISvgStyleAttributes
     {
     }
 
@@ -913,44 +999,44 @@ namespace Svg
     }
 
     [Element("svg")]
-    public class SvgFragment : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgFragment : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("g")]
-    public class SvgGroup : SvgMarkerElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgGroup : SvgMarkerElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("image")]
-    public class SvgImage : SvgVisualElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgImage : SvgVisualElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("switch")]
-    public class SvgSwitch : SvgVisualElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgSwitch : SvgVisualElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("symbol")]
-    public class SvgSymbol : SvgVisualElement, ISvgPresentationAttributes
+    public class SvgSymbol : SvgVisualElement, ISvgPresentationAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("title")]
-    public class SvgTitle : SvgElement
+    public class SvgTitle : SvgElement, ISvgStyleAttributes
     {
     }
 
     [Element("use")]
-    public class SvgUse : SvgVisualElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgUse : SvgVisualElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     // Extensibility
 
     [Element("foreignObject")]
-    public class SvgForeignObject : SvgVisualElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgForeignObject : SvgVisualElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
@@ -959,7 +1045,7 @@ namespace Svg
     namespace FilterEffects
     {
         [Element("filter")]
-        public class SvgFilter : SvgElement, ISvgPresentationAttributes
+        public class SvgFilter : SvgElement, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
 
@@ -968,37 +1054,37 @@ namespace Svg
         }
 
         [Element("feBlend")]
-        public class SvgBlend : SvgFilterPrimitive, ISvgPresentationAttributes
+        public class SvgBlend : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
 
         [Element("feColorMatrix")]
-        public class SvgColourMatrix : SvgFilterPrimitive, ISvgPresentationAttributes
+        public class SvgColourMatrix : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
 
         [Element("feComponentTransfer")]
-        public class SvgComponentTransfer : SvgFilterPrimitive, ISvgPresentationAttributes
+        public class SvgComponentTransfer : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
 
         [Element("feComposite")]
-        public class SvgComposite : SvgFilterPrimitive, ISvgPresentationAttributes
+        public class SvgComposite : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
 
         [Element("feConvolveMatrix")]
-        public class SvgConvolveMatrix : SvgFilterPrimitive, ISvgPresentationAttributes
+        public class SvgConvolveMatrix : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
 
         [Element("feDiffuseLighting")]
-        public class SvgDiffuseLighting : SvgFilterPrimitive, ISvgPresentationAttributes
+        public class SvgDiffuseLighting : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
 
         [Element("feDisplacementMap")]
-        public class SvgDisplacementMap : SvgFilterPrimitive, ISvgPresentationAttributes
+        public class SvgDisplacementMap : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
 
@@ -1008,7 +1094,7 @@ namespace Svg
         }
 
         [Element("feFlood")]
-        public class SvgFlood : SvgFilterPrimitive, ISvgPresentationAttributes
+        public class SvgFlood : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
 
@@ -1037,17 +1123,17 @@ namespace Svg
         }
 
         [Element("feGaussianBlur")]
-        public class SvgGaussianBlur : SvgFilterPrimitive, ISvgPresentationAttributes
+        public class SvgGaussianBlur : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
 
         [Element("feImage")]
-        public class SvgImage : SvgFilterPrimitive, ISvgPresentationAttributes
+        public class SvgImage : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
 
         [Element("feMerge")]
-        public class SvgMerge : SvgFilterPrimitive, ISvgPresentationAttributes
+        public class SvgMerge : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
 
@@ -1057,12 +1143,12 @@ namespace Svg
         }
 
         [Element("feMorphology")]
-        public class SvgMorphology : SvgFilterPrimitive, ISvgPresentationAttributes
+        public class SvgMorphology : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
 
         [Element("feOffset")]
-        public class SvgOffset : SvgFilterPrimitive, ISvgPresentationAttributes
+        public class SvgOffset : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
 
@@ -1072,7 +1158,7 @@ namespace Svg
         }
 
         [Element("feSpecularLighting")]
-        public class SvgSpecularLighting : SvgFilterPrimitive, ISvgPresentationAttributes
+        public class SvgSpecularLighting : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
 
@@ -1082,12 +1168,12 @@ namespace Svg
         }
 
         [Element("feTile")]
-        public class SvgTile : SvgFilterPrimitive, ISvgPresentationAttributes
+        public class SvgTile : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
 
         [Element("feTurbulence")]
-        public class SvgTurbulence : SvgFilterPrimitive, ISvgPresentationAttributes
+        public class SvgTurbulence : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
         {
         }
     }
@@ -1102,7 +1188,7 @@ namespace Svg
     // Linking
 
     [Element("a")]
-    public class SvgAnchor : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgAnchor : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
@@ -1130,27 +1216,27 @@ namespace Svg
     }
 
     [Element("stop")]
-    public class SvgGradientStop : SvgElement, ISvgPresentationAttributes
+    public class SvgGradientStop : SvgElement, ISvgPresentationAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("linearGradient")]
-    public class SvgLinearGradientServer : SvgGradientServer, ISvgPresentationAttributes
+    public class SvgLinearGradientServer : SvgGradientServer, ISvgPresentationAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("marker")]
-    public class SvgMarker : SvgPathBasedElement, ISvgPresentationAttributes
+    public class SvgMarker : SvgPathBasedElement, ISvgPresentationAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("pattern")]
-    public class SvgPatternServer : SvgPaintServer, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgPatternServer : SvgPaintServer, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("radialGradient")]
-    public class SvgRadialGradientServer : SvgGradientServer, ISvgPresentationAttributes
+    public class SvgRadialGradientServer : SvgGradientServer, ISvgPresentationAttributes, ISvgStyleAttributes
     {
 
     }
@@ -1158,7 +1244,7 @@ namespace Svg
     // Paths
 
     [Element("path")]
-    public class SvgPath : SvgMarkerElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgPath : SvgMarkerElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
@@ -1172,7 +1258,7 @@ namespace Svg
     // Text
 
     [Element("altGlyph")]
-    public class SvgAltGlyph : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgAltGlyph : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
@@ -1187,7 +1273,7 @@ namespace Svg
     }
 
     [Element("font")]
-    public class SvgFont : SvgElement, ISvgPresentationAttributes
+    public class SvgFont : SvgElement, ISvgPresentationAttributes, ISvgStyleAttributes
     {
     }
 
@@ -1217,12 +1303,12 @@ namespace Svg
     }
 
     [Element("glyph")]
-    public class SvgGlyph : SvgPathBasedElement, ISvgPresentationAttributes
+    public class SvgGlyph : SvgPathBasedElement, ISvgPresentationAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("glyphRef")]
-    public class SvgGlyphRef : SvgElement, ISvgPresentationAttributes
+    public class SvgGlyphRef : SvgElement, ISvgPresentationAttributes, ISvgStyleAttributes
     {
     }
 
@@ -1241,7 +1327,7 @@ namespace Svg
     }
 
     [Element("missing-glyph")]
-    public class SvgMissingGlyph : SvgGlyph, ISvgPresentationAttributes
+    public class SvgMissingGlyph : SvgGlyph, ISvgPresentationAttributes, ISvgStyleAttributes
     {
     }
 
@@ -1250,22 +1336,22 @@ namespace Svg
     }
 
     [Element("text")]
-    public class SvgText : SvgTextBase, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgText : SvgTextBase, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("textPath")]
-    public class SvgTextPath : SvgTextBase, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgTextPath : SvgTextBase, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("tref")]
-    public class SvgTextRef : SvgTextBase, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgTextRef : SvgTextBase, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 
     [Element("tspan")]
-    public class SvgTextSpan : SvgTextBase, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgTextSpan : SvgTextBase, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
     {
     }
 }
