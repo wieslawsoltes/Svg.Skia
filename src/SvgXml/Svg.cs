@@ -497,7 +497,7 @@ namespace Svg
 
     public static class SvgAttributes
     {
-        public static ISet<string> Core = new HashSet<string>()
+        public static ISet<string> s_coreElements = new HashSet<string>()
         {
             "a",
             "altGlyph",
@@ -581,7 +581,7 @@ namespace Svg
             "vkern"
         };
 
-        public static ISet<string> ConditionalProcessing = new HashSet<string>()
+        public static ISet<string> s_conditionalProcessingElements = new HashSet<string>()
         {
             "a",
             "altGlyph",
@@ -614,7 +614,7 @@ namespace Svg
             "use"
         };
 
-        public static ISet<string> Presentation = new HashSet<string>()
+        public static ISet<string> s_presentationElements = new HashSet<string>()
         {
             "a",
             "altGlyph",
