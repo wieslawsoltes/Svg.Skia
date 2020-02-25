@@ -3,65 +3,30 @@ using Xml;
 
 namespace Svg
 {
-    public class CoreAttributeAttribute : AttributeAttribute
-    {
-        public CoreAttributeAttribute(string name) : base(name)
-        {
-        }
-    }
-
-    public class PresentationAttributeAttribute : AttributeAttribute
-    {
-        public PresentationAttributeAttribute(string name) : base(name)
-        {
-        }
-    }
-
-    public class ConditionalProcessingAttributeAttribute : AttributeAttribute
-    {
-        public ConditionalProcessingAttributeAttribute(string name) : base(name)
-        {
-        }
-    }
-
-    public class StyleAttributeAttribute : AttributeAttribute
-    {
-        public StyleAttributeAttribute(string name) : base(name)
-        {
-        }
-    }
-
-    public class RegularAttributeAttribute : AttributeAttribute
-    {
-        public RegularAttributeAttribute(string name) : base(name)
-        {
-        }
-    }
-
     public interface ISvgCoreAttributes : IElement
     {
-        [CoreAttribute("id")]
+        [Attribute("id")]
         public string? Id
         {
             get => GetAttribute("id");
             set => SetAttribute("id", value);
         }
 
-        [CoreAttribute("base")]
+        [Attribute("base")]
         public string? Base
         {
             get => GetAttribute("base");
             set => SetAttribute("base", value);
         }
 
-        [CoreAttribute("lang")]
+        [Attribute("lang")]
         public string? Lang
         {
             get => GetAttribute("lang");
             set => SetAttribute("lang", value);
         }
 
-        [CoreAttribute("space")]
+        [Attribute("space")]
         public string? Space
         {
             get => GetAttribute("space");
@@ -71,413 +36,413 @@ namespace Svg
 
     public interface ISvgPresentationAttributes : IElement
     {
-        [PresentationAttribute("alignment-baseline")]
+        [Attribute("alignment-baseline")]
         public string? AlignmentBaseline
         {
             get => GetAttribute("alignment-baseline");
             set => SetAttribute("alignment-baseline", value);
         }
 
-        [PresentationAttribute("baseline-shift")]
+        [Attribute("baseline-shift")]
         public string? BaselineShift
         {
             get => GetAttribute("baseline-shift");
             set => SetAttribute("baseline-shift", value);
         }
 
-        [PresentationAttribute("clip")]
+        [Attribute("clip")]
         public string? Clip
         {
             get => GetAttribute("clip");
             set => SetAttribute("clip", value);
         }
 
-        [PresentationAttribute("clip-path")]
+        [Attribute("clip-path")]
         public string? ClipPath
         {
             get => GetAttribute("clip-path");
             set => SetAttribute("clip-path", value);
         }
 
-        [PresentationAttribute("clip-rule")]
+        [Attribute("clip-rule")]
         public string? ClipRule
         {
             get => GetAttribute("clip-rule");
             set => SetAttribute("clip-rule", value);
         }
 
-        [PresentationAttribute("color")]
+        [Attribute("color")]
         public string? Color
         {
             get => GetAttribute("color");
             set => SetAttribute("color", value);
         }
 
-        [PresentationAttribute("color-interpolation")]
+        [Attribute("color-interpolation")]
         public string? ColorInterpolation
         {
             get => GetAttribute("color-interpolation");
             set => SetAttribute("color-interpolation", value);
         }
 
-        [PresentationAttribute("color-interpolation-filters")]
+        [Attribute("color-interpolation-filters")]
         public string? ColorInterpolationFilters
         {
             get => GetAttribute("color-interpolation-filters");
             set => SetAttribute("color-interpolation-filters", value);
         }
 
-        [PresentationAttribute("color-profile")]
+        [Attribute("color-profile")]
         public string? ColorProfile
         {
             get => GetAttribute("color-profile");
             set => SetAttribute("color-profile", value);
         }
 
-        [PresentationAttribute("color-rendering")]
+        [Attribute("color-rendering")]
         public string? ColorRendering
         {
             get => GetAttribute("color-rendering");
             set => SetAttribute("color-rendering", value);
         }
 
-        [PresentationAttribute("cursor")]
+        [Attribute("cursor")]
         public string? Cursor
         {
             get => GetAttribute("cursor");
             set => SetAttribute("cursor", value);
         }
 
-        [PresentationAttribute("direction")]
+        [Attribute("direction")]
         public string? Direction
         {
             get => GetAttribute("direction");
             set => SetAttribute("direction", value);
         }
 
-        [PresentationAttribute("display")]
+        [Attribute("display")]
         public string? Display
         {
             get => GetAttribute("display");
             set => SetAttribute("display", value);
         }
 
-        [PresentationAttribute("dominant-baseline")]
+        [Attribute("dominant-baseline")]
         public string? DominantBaseline
         {
             get => GetAttribute("dominant-baseline");
             set => SetAttribute("dominant-baseline", value);
         }
 
-        [PresentationAttribute("enable-background")]
+        [Attribute("enable-background")]
         public string? EnableBackground
         {
             get => GetAttribute("enable-background");
             set => SetAttribute("enable-background", value);
         }
 
-        [PresentationAttribute("fill")]
+        [Attribute("fill")]
         public string? Fill
         {
             get => GetAttribute("fill");
             set => SetAttribute("fill", value);
         }
 
-        [PresentationAttribute("fill-opacity")]
+        [Attribute("fill-opacity")]
         public string? FillOpacity
         {
             get => GetAttribute("fill-opacity");
             set => SetAttribute("fill-opacity", value);
         }
 
-        [PresentationAttribute("fill-rule")]
+        [Attribute("fill-rule")]
         public string? FillRule
         {
             get => GetAttribute("fill-rule");
             set => SetAttribute("fill-rule", value);
         }
 
-        [PresentationAttribute("filter")]
+        [Attribute("filter")]
         public string? Filter
         {
             get => GetAttribute("filter");
             set => SetAttribute("filter", value);
         }
 
-        [PresentationAttribute("flood-color")]
+        [Attribute("flood-color")]
         public string? FloodColor
         {
             get => GetAttribute("flood-color");
             set => SetAttribute("flood-color", value);
         }
 
-        [PresentationAttribute("flood-opacity")]
+        [Attribute("flood-opacity")]
         public string? FloodOpacity
         {
             get => GetAttribute("flood-opacity");
             set => SetAttribute("flood-opacity", value);
         }
 
-        [PresentationAttribute("font-family")]
+        [Attribute("font-family")]
         public string? FontFamily
         {
             get => GetAttribute("font-family");
             set => SetAttribute("font-family", value);
         }
 
-        [PresentationAttribute("font-size")]
+        [Attribute("font-size")]
         public string? FontSize
         {
             get => GetAttribute("font-size");
             set => SetAttribute("font-size", value);
         }
 
-        [PresentationAttribute("font-size-adjust")]
+        [Attribute("font-size-adjust")]
         public string? FontSizeAdjust
         {
             get => GetAttribute("font-size-adjust");
             set => SetAttribute("font-size-adjust", value);
         }
 
-        [PresentationAttribute("font-stretch")]
+        [Attribute("font-stretch")]
         public string? FontStretch
         {
             get => GetAttribute("font-stretch");
             set => SetAttribute("font-stretch", value);
         }
 
-        [PresentationAttribute("font-style")]
+        [Attribute("font-style")]
         public string? FontStyle
         {
             get => GetAttribute("font-style");
             set => SetAttribute("font-style", value);
         }
 
-        [PresentationAttribute("font-variant")]
+        [Attribute("font-variant")]
         public string? FontVariant
         {
             get => GetAttribute("font-variant");
             set => SetAttribute("font-variant", value);
         }
 
-        [PresentationAttribute("font-weight")]
+        [Attribute("font-weight")]
         public string? FontWeight
         {
             get => GetAttribute("font-weight");
             set => SetAttribute("font-weight", value);
         }
 
-        [PresentationAttribute("glyph-orientation-horizontal")]
+        [Attribute("glyph-orientation-horizontal")]
         public string? GlyphOrientationHorizontal
         {
             get => GetAttribute("glyph-orientation-horizontal");
             set => SetAttribute("glyph-orientation-horizontal", value);
         }
 
-        [PresentationAttribute("glyph-orientation-vertical")]
+        [Attribute("glyph-orientation-vertical")]
         public string? GlyphOrientationVertical
         {
             get => GetAttribute("glyph-orientation-vertical");
             set => SetAttribute("glyph-orientation-vertical", value);
         }
 
-        [PresentationAttribute("image-rendering")]
+        [Attribute("image-rendering")]
         public string? ImageRendering
         {
             get => GetAttribute("image-rendering");
             set => SetAttribute("image-rendering", value);
         }
 
-        [PresentationAttribute("kerning")]
+        [Attribute("kerning")]
         public string? Kerning
         {
             get => GetAttribute("kerning");
             set => SetAttribute("kerning", value);
         }
 
-        [PresentationAttribute("letter-spacing")]
+        [Attribute("letter-spacing")]
         public string? LetterSpacing
         {
             get => GetAttribute("letter-spacing");
             set => SetAttribute("letter-spacing", value);
         }
 
-        [PresentationAttribute("lighting-color")]
+        [Attribute("lighting-color")]
         public string? LightingColor
         {
             get => GetAttribute("lighting-color");
             set => SetAttribute("lighting-color", value);
         }
 
-        [PresentationAttribute("marker-end")]
+        [Attribute("marker-end")]
         public string? MarkerEnd
         {
             get => GetAttribute("marker-end");
             set => SetAttribute("marker-end", value);
         }
 
-        [PresentationAttribute("marker-mid")]
+        [Attribute("marker-mid")]
         public string? MarkerMid
         {
             get => GetAttribute("marker-mid");
             set => SetAttribute("marker-mid", value);
         }
 
-        [PresentationAttribute("marker-start")]
+        [Attribute("marker-start")]
         public string? MarkerStart
         {
             get => GetAttribute("marker-start");
             set => SetAttribute("marker-start", value);
         }
 
-        [PresentationAttribute("mask")]
+        [Attribute("mask")]
         public string? Mask
         {
             get => GetAttribute("mask");
             set => SetAttribute("mask", value);
         }
 
-        [PresentationAttribute("opacity")]
+        [Attribute("opacity")]
         public string? Opacity
         {
             get => GetAttribute("opacity");
             set => SetAttribute("opacity", value);
         }
 
-        [PresentationAttribute("overflow")]
+        [Attribute("overflow")]
         public string? Overflow
         {
             get => GetAttribute("overflow");
             set => SetAttribute("overflow", value);
         }
 
-        [PresentationAttribute("pointer-events")]
+        [Attribute("pointer-events")]
         public string? PointerEvents
         {
             get => GetAttribute("pointer-events");
             set => SetAttribute("pointer-events", value);
         }
 
-        [PresentationAttribute("shape-rendering")]
+        [Attribute("shape-rendering")]
         public string? ShapeRendering
         {
             get => GetAttribute("shape-rendering");
             set => SetAttribute("shape-rendering", value);
         }
 
-        [PresentationAttribute("stop-color")]
+        [Attribute("stop-color")]
         public string? StopColor
         {
             get => GetAttribute("stop-color");
             set => SetAttribute("stop-color", value);
         }
 
-        [PresentationAttribute("stop-opacity")]
+        [Attribute("stop-opacity")]
         public string? StopOpacity
         {
             get => GetAttribute("stop-opacity");
             set => SetAttribute("stop-opacity", value);
         }
 
-        [PresentationAttribute("stroke")]
+        [Attribute("stroke")]
         public string? Stroke
         {
             get => GetAttribute("stroke");
             set => SetAttribute("stroke", value);
         }
 
-        [PresentationAttribute("stroke-dasharray")]
+        [Attribute("stroke-dasharray")]
         public string? StrokeDasharray
         {
             get => GetAttribute("stroke-dasharray");
             set => SetAttribute("stroke-dasharray", value);
         }
 
-        [PresentationAttribute("stroke-dashoffset")]
+        [Attribute("stroke-dashoffset")]
         public string? StrokeDashoffset
         {
             get => GetAttribute("stroke-dashoffset");
             set => SetAttribute("stroke-dashoffset", value);
         }
 
-        [PresentationAttribute("stroke-linecap")]
+        [Attribute("stroke-linecap")]
         public string? StrokeLinecap
         {
             get => GetAttribute("stroke-linecap");
             set => SetAttribute("stroke-linecap", value);
         }
 
-        [PresentationAttribute("stroke-linejoin")]
+        [Attribute("stroke-linejoin")]
         public string? SrokeLinejoin
         {
             get => GetAttribute("stroke-linejoin");
             set => SetAttribute("stroke-linejoin", value);
         }
 
-        [PresentationAttribute("stroke-miterlimit")]
+        [Attribute("stroke-miterlimit")]
         public string? StrokeMiterlimit
         {
             get => GetAttribute("stroke-miterlimit");
             set => SetAttribute("stroke-miterlimit", value);
         }
 
-        [PresentationAttribute("stroke-opacity")]
+        [Attribute("stroke-opacity")]
         public string? StrokeOpacity
         {
             get => GetAttribute("stroke-opacity");
             set => SetAttribute("stroke-opacity", value);
         }
 
-        [PresentationAttribute("stroke-width")]
+        [Attribute("stroke-width")]
         public string? StrokeWidth
         {
             get => GetAttribute("stroke-width");
             set => SetAttribute("stroke-width", value);
         }
 
-        [PresentationAttribute("text-anchor")]
+        [Attribute("text-anchor")]
         public string? TextAnchor
         {
             get => GetAttribute("text-anchor");
             set => SetAttribute("text-anchor", value);
         }
 
-        [PresentationAttribute("text-decoration")]
+        [Attribute("text-decoration")]
         public string? TextDecoration
         {
             get => GetAttribute("text-decoration");
             set => SetAttribute("text-decoration", value);
         }
 
-        [PresentationAttribute("text-rendering")]
+        [Attribute("text-rendering")]
         public string? TextRendering
         {
             get => GetAttribute("text-rendering");
             set => SetAttribute("text-rendering", value);
         }
 
-        [PresentationAttribute("unicode-bidi")]
+        [Attribute("unicode-bidi")]
         public string? UnicodeBidi
         {
             get => GetAttribute("unicode-bidi");
             set => SetAttribute("unicode-bidi", value);
         }
 
-        [PresentationAttribute("visibility")]
+        [Attribute("visibility")]
         public string? Visibility
         {
             get => GetAttribute("visibility");
             set => SetAttribute("visibility", value);
         }
 
-        [PresentationAttribute("word-spacing")]
+        [Attribute("word-spacing")]
         public string? WordSpacing
         {
             get => GetAttribute("word-spacing");
             set => SetAttribute("word-spacing", value);
         }
 
-        [PresentationAttribute("writing-mode")]
+        [Attribute("writing-mode")]
         public string? WritingMode
         {
             get => GetAttribute("writing-mode");
@@ -485,23 +450,23 @@ namespace Svg
         }
     }
 
-    public interface ISvgConditionalProcessingAttributes : IElement
+    public interface ISvgTestsAttributes : IElement
     {
-        [ConditionalProcessingAttribute("requiredFeatures")]
+        [Attribute("requiredFeatures")]
         public string? RequiredFeatures
         {
             get => GetAttribute("requiredFeatures");
             set => SetAttribute("requiredFeatures", value);
         }
 
-        [ConditionalProcessingAttribute("requiredExtensions")]
+        [Attribute("requiredExtensions")]
         public string? RequiredExtensions
         {
             get => GetAttribute("requiredExtensions");
             set => SetAttribute("requiredExtensions", value);
         }
 
-        [ConditionalProcessingAttribute("systemLanguage")]
+        [Attribute("systemLanguage")]
         public string? SystemLanguage
         {
             get => GetAttribute("systemLanguage");
@@ -509,20 +474,30 @@ namespace Svg
         }
     }
 
-    public interface ISvgStyleAttributes : IElement
+    public interface ISvgStylableAttributes : IElement
     {
-        [StyleAttribute("class")]
+        [Attribute("class")]
         public string? Class
         {
             get => GetAttribute("class");
             set => SetAttribute("class", value);
         }
 
-        [StyleAttribute("style")]
+        [Attribute("style")]
         public string? Style
         {
             get => GetAttribute("style");
             set => SetAttribute("style", value);
+        }
+    }
+
+    public interface ISvgTransformableAttributes : IElement
+    {
+        [Attribute("transform")]
+        public string? Transform
+        {
+            get => GetAttribute("transform");
+            set => SetAttribute("transform", value);
         }
     }
 
@@ -612,7 +587,7 @@ namespace Svg
             "vkern"
         };
 
-        public static ISet<string> s_conditionalProcessingElements = new HashSet<string>()
+        public static ISet<string> s_testsElements = new HashSet<string>()
         {
             "a",
             "altGlyph",
@@ -700,7 +675,7 @@ namespace Svg
             "use"
         };
 
-        public static ISet<string> s_styleElements = new HashSet<string>()
+        public static ISet<string> s_stylableElements = new HashSet<string>()
         {
             "a",
             "altGlyph",
@@ -752,6 +727,26 @@ namespace Svg
             "title",
             "tref",
             "tspan",
+            "use"
+        };
+
+        public static ISet<string> s_transformableElements = new HashSet<string>()
+        {
+            "a",
+            "circle",
+            "clipPath",
+            "defs",
+            "ellipse",
+            "foreignObject",
+            "g",
+            "image",
+            "line",
+            "path",
+            "polygon",
+            "polyline",
+            "rect",
+            "switch",
+            "text",
             "use"
         };
     }
@@ -889,27 +884,27 @@ namespace Svg
     }
 
     [Element("animate")]
-    public class SvgAnimate : SvgAnimationElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgAnimate : SvgAnimationElement, ISvgPresentationAttributes, ISvgTestsAttributes
     {
     }
 
     [Element("animateColor")]
-    public class SvgAnimateColor : SvgAnimationElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes
+    public class SvgAnimateColor : SvgAnimationElement, ISvgPresentationAttributes, ISvgTestsAttributes
     {
     }
 
     [Element("animateMotion")]
-    public class SvgAnimateMotion : SvgAnimationElement, ISvgConditionalProcessingAttributes
+    public class SvgAnimateMotion : SvgAnimationElement, ISvgTestsAttributes
     {
     }
 
     [Element("animateTransform")]
-    public class SvgAnimateTransform : SvgAnimationElement, ISvgConditionalProcessingAttributes
+    public class SvgAnimateTransform : SvgAnimationElement, ISvgTestsAttributes
     {
     }
 
     [Element("set")]
-    public class SvgSet : SvgAnimationElement, ISvgConditionalProcessingAttributes
+    public class SvgSet : SvgAnimationElement, ISvgTestsAttributes
     {
     }
 
@@ -933,44 +928,44 @@ namespace Svg
     }
 
     [Element("circle")]
-    public class SvgCircle : SvgPathBasedElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgCircle : SvgPathBasedElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
     }
 
     [Element("ellipse")]
-    public class SvgEllipse : SvgPathBasedElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgEllipse : SvgPathBasedElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
     }
 
     [Element("line")]
-    public class SvgLine : SvgMarkerElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgLine : SvgMarkerElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
     }
 
     [Element("polygon")]
-    public class SvgPolygon : SvgMarkerElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgPolygon : SvgMarkerElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
     }
 
     [Element("polyline")]
-    public class SvgPolyline : SvgPolygon, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgPolyline : SvgPolygon, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
     }
 
     [Element("rect")]
-    public class SvgRectangle : SvgPathBasedElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgRectangle : SvgPathBasedElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
     }
 
     // Clipping and Masking
 
     [Element("clipPath")]
-    public class SvgClipPath : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgClipPath : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
     }
 
     [Element("mask")]
-    public class SvgMask : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgMask : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
     {
     }
 
@@ -984,12 +979,12 @@ namespace Svg
     // Document Structure
 
     [Element("defs")]
-    public class SvgDefinitionList : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgDefinitionList : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
     }
 
     [Element("desc")]
-    public class SvgDescription : SvgElement, ISvgStyleAttributes
+    public class SvgDescription : SvgElement, ISvgStylableAttributes
     {
     }
 
@@ -999,44 +994,44 @@ namespace Svg
     }
 
     [Element("svg")]
-    public class SvgFragment : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgFragment : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
     {
     }
 
     [Element("g")]
-    public class SvgGroup : SvgMarkerElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgGroup : SvgMarkerElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
     }
 
     [Element("image")]
-    public class SvgImage : SvgVisualElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgImage : SvgVisualElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
     }
 
     [Element("switch")]
-    public class SvgSwitch : SvgVisualElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgSwitch : SvgVisualElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
     }
 
     [Element("symbol")]
-    public class SvgSymbol : SvgVisualElement, ISvgPresentationAttributes, ISvgStyleAttributes
+    public class SvgSymbol : SvgVisualElement, ISvgPresentationAttributes, ISvgStylableAttributes
     {
     }
 
     [Element("title")]
-    public class SvgTitle : SvgElement, ISvgStyleAttributes
+    public class SvgTitle : SvgElement, ISvgStylableAttributes
     {
     }
 
     [Element("use")]
-    public class SvgUse : SvgVisualElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgUse : SvgVisualElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
     }
 
     // Extensibility
 
     [Element("foreignObject")]
-    public class SvgForeignObject : SvgVisualElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgForeignObject : SvgVisualElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
     }
 
@@ -1045,7 +1040,7 @@ namespace Svg
     namespace FilterEffects
     {
         [Element("filter")]
-        public class SvgFilter : SvgElement, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgFilter : SvgElement, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
 
@@ -1054,37 +1049,37 @@ namespace Svg
         }
 
         [Element("feBlend")]
-        public class SvgBlend : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgBlend : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
 
         [Element("feColorMatrix")]
-        public class SvgColourMatrix : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgColourMatrix : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
 
         [Element("feComponentTransfer")]
-        public class SvgComponentTransfer : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgComponentTransfer : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
 
         [Element("feComposite")]
-        public class SvgComposite : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgComposite : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
 
         [Element("feConvolveMatrix")]
-        public class SvgConvolveMatrix : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgConvolveMatrix : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
 
         [Element("feDiffuseLighting")]
-        public class SvgDiffuseLighting : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgDiffuseLighting : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
 
         [Element("feDisplacementMap")]
-        public class SvgDisplacementMap : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgDisplacementMap : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
 
@@ -1094,7 +1089,7 @@ namespace Svg
         }
 
         [Element("feFlood")]
-        public class SvgFlood : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgFlood : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
 
@@ -1123,17 +1118,17 @@ namespace Svg
         }
 
         [Element("feGaussianBlur")]
-        public class SvgGaussianBlur : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgGaussianBlur : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
 
         [Element("feImage")]
-        public class SvgImage : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgImage : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
 
         [Element("feMerge")]
-        public class SvgMerge : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgMerge : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
 
@@ -1143,12 +1138,12 @@ namespace Svg
         }
 
         [Element("feMorphology")]
-        public class SvgMorphology : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgMorphology : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
 
         [Element("feOffset")]
-        public class SvgOffset : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgOffset : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
 
@@ -1158,7 +1153,7 @@ namespace Svg
         }
 
         [Element("feSpecularLighting")]
-        public class SvgSpecularLighting : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgSpecularLighting : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
 
@@ -1168,12 +1163,12 @@ namespace Svg
         }
 
         [Element("feTile")]
-        public class SvgTile : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgTile : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
 
         [Element("feTurbulence")]
-        public class SvgTurbulence : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStyleAttributes
+        public class SvgTurbulence : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
         {
         }
     }
@@ -1181,14 +1176,14 @@ namespace Svg
     // Interactivity
 
     [Element("cursor")]
-    public class SvgCursor : SvgElement, ISvgConditionalProcessingAttributes
+    public class SvgCursor : SvgElement, ISvgTestsAttributes
     {
     }
 
     // Linking
 
     [Element("a")]
-    public class SvgAnchor : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgAnchor : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
     }
 
@@ -1216,27 +1211,27 @@ namespace Svg
     }
 
     [Element("stop")]
-    public class SvgGradientStop : SvgElement, ISvgPresentationAttributes, ISvgStyleAttributes
+    public class SvgGradientStop : SvgElement, ISvgPresentationAttributes, ISvgStylableAttributes
     {
     }
 
     [Element("linearGradient")]
-    public class SvgLinearGradientServer : SvgGradientServer, ISvgPresentationAttributes, ISvgStyleAttributes
+    public class SvgLinearGradientServer : SvgGradientServer, ISvgPresentationAttributes, ISvgStylableAttributes
     {
     }
 
     [Element("marker")]
-    public class SvgMarker : SvgPathBasedElement, ISvgPresentationAttributes, ISvgStyleAttributes
+    public class SvgMarker : SvgPathBasedElement, ISvgPresentationAttributes, ISvgStylableAttributes
     {
     }
 
     [Element("pattern")]
-    public class SvgPatternServer : SvgPaintServer, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgPatternServer : SvgPaintServer, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
     {
     }
 
     [Element("radialGradient")]
-    public class SvgRadialGradientServer : SvgGradientServer, ISvgPresentationAttributes, ISvgStyleAttributes
+    public class SvgRadialGradientServer : SvgGradientServer, ISvgPresentationAttributes, ISvgStylableAttributes
     {
 
     }
@@ -1244,7 +1239,7 @@ namespace Svg
     // Paths
 
     [Element("path")]
-    public class SvgPath : SvgMarkerElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgPath : SvgMarkerElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
     }
 
@@ -1258,7 +1253,7 @@ namespace Svg
     // Text
 
     [Element("altGlyph")]
-    public class SvgAltGlyph : SvgElement, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgAltGlyph : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
     {
     }
 
@@ -1273,7 +1268,7 @@ namespace Svg
     }
 
     [Element("font")]
-    public class SvgFont : SvgElement, ISvgPresentationAttributes, ISvgStyleAttributes
+    public class SvgFont : SvgElement, ISvgPresentationAttributes, ISvgStylableAttributes
     {
     }
 
@@ -1303,12 +1298,12 @@ namespace Svg
     }
 
     [Element("glyph")]
-    public class SvgGlyph : SvgPathBasedElement, ISvgPresentationAttributes, ISvgStyleAttributes
+    public class SvgGlyph : SvgPathBasedElement, ISvgPresentationAttributes, ISvgStylableAttributes
     {
     }
 
     [Element("glyphRef")]
-    public class SvgGlyphRef : SvgElement, ISvgPresentationAttributes, ISvgStyleAttributes
+    public class SvgGlyphRef : SvgElement, ISvgPresentationAttributes, ISvgStylableAttributes
     {
     }
 
@@ -1327,7 +1322,7 @@ namespace Svg
     }
 
     [Element("missing-glyph")]
-    public class SvgMissingGlyph : SvgGlyph, ISvgPresentationAttributes, ISvgStyleAttributes
+    public class SvgMissingGlyph : SvgGlyph, ISvgPresentationAttributes, ISvgStylableAttributes
     {
     }
 
@@ -1336,22 +1331,22 @@ namespace Svg
     }
 
     [Element("text")]
-    public class SvgText : SvgTextBase, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgText : SvgTextBase, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
     {
     }
 
     [Element("textPath")]
-    public class SvgTextPath : SvgTextBase, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgTextPath : SvgTextBase, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
     {
     }
 
     [Element("tref")]
-    public class SvgTextRef : SvgTextBase, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgTextRef : SvgTextBase, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
     {
     }
 
     [Element("tspan")]
-    public class SvgTextSpan : SvgTextBase, ISvgPresentationAttributes, ISvgConditionalProcessingAttributes, ISvgStyleAttributes
+    public class SvgTextSpan : SvgTextBase, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
     {
     }
 }
