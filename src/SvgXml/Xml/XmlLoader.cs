@@ -1,51 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 
 namespace Xml
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public sealed class ElementAttribute : Attribute
+    public static class XmlLoader
     {
-        public string Name { get; private set; }
-
-        public ElementAttribute(string name)
+        public static XmlReaderSettings s_settings = new XmlReaderSettings()
         {
-            Name = name;
-        }
-    }
+            ConformanceLevel = ConformanceLevel.Fragment,
+            IgnoreWhitespace = true,
+            IgnoreComments = true
+        };
 
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Event)]
-    public class AttributeAttribute : Attribute
-    {
-        public string Name { get; private set; }
-
-        public AttributeAttribute(string name)
-        {
-            Name = name;
-        }
-    }
-
-    public interface IElementFactory
-    {
-        ISet<string> Namespaces { get; }
-        Element Create(string name, IElement? parent);
-    }
-
-    public interface IElement
-    {
-        string Name { get; set; }
-        string Text { get; set; }
-        List<Element> Children { get; set; }
-        Dictionary<string, string?> Attributes { get; set; }
-        IElement? Parent { get; set; }
-        string? GetAttribute(string key);
-        void SetAttribute(string key, string? value);
-    }
-
-    public abstract class Element : IElement
-    {
         public static Element? Open(XmlReader reader, IElementFactory elementFactory)
         {
             var elements = new List<Element>();
@@ -142,13 +109,6 @@ namespace Xml
             return null;
         }
 
-        public static XmlReaderSettings s_settings = new XmlReaderSettings()
-        {
-            ConformanceLevel = ConformanceLevel.Fragment,
-            IgnoreWhitespace = true,
-            IgnoreComments = true
-        };
-
         public static Element? Open(Stream stream, IElementFactory elementFactory)
         {
             var reader = XmlReader.Create(stream, s_settings);
@@ -161,38 +121,5 @@ namespace Xml
             using var stream = File.OpenRead(path);
             return Open(stream, elementFactory);
         }
-
-        public string Name { get; set; }
-        public string Text { get; set; }
-        public List<Element> Children { get; set; }
-        public Dictionary<string, string?> Attributes { get; set; }
-        public IElement? Parent { get; set; }
-
-        public Element()
-        {
-            Name = string.Empty;
-            Text = string.Empty;
-            Children = new List<Element>();
-            Attributes = new Dictionary<string, string?>();
-            Parent = null;
-        }
-
-        public string? GetAttribute(string key)
-        {
-            if (Attributes.TryGetValue(key, out var value))
-            {
-                return value;
-            }
-            return null;
-        }
-
-        public void SetAttribute(string key, string? value)
-        {
-            Attributes[key] = value;
-        }
-    }
-
-    public class UnknownElement : Element
-    {
     }
 }

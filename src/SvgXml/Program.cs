@@ -66,7 +66,7 @@ namespace SvgXml
             {
                 try
                 {
-                    var element = Element.Open(path.FullName, elementFactory);
+                    var element = XmlLoader.Open(path.FullName, elementFactory);
                     if (element != null)
                     {
                         results.Add((path, element));
