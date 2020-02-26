@@ -659,7 +659,7 @@ namespace Svg
             }
         }
 
-        public static void PrintXlinkAttributes(this ISvgXLinkAttributes attributes, Action<string> write, string indent)
+        public static void PrintXLinkAttributes(this ISvgXLinkAttributes attributes, Action<string> write, string indent)
         {
             if (attributes.Href != null)
             {
