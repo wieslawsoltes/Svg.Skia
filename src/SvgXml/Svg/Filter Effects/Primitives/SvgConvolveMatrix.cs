@@ -76,49 +76,49 @@ namespace Svg.FilterEffects
             set => SetAttribute("preserveAlpha", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (Input != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input)}: \"{Input}\"");
+                write($"{indent}{nameof(Input)}: \"{Input}\"");
             }
             if (Order != null)
             {
-                Console.WriteLine($"{indent}{nameof(Order)}: \"{Order}\"");
+                write($"{indent}{nameof(Order)}: \"{Order}\"");
             }
             if (KernelMatrix != null)
             {
-                Console.WriteLine($"{indent}{nameof(KernelMatrix)}: \"{KernelMatrix}\"");
+                write($"{indent}{nameof(KernelMatrix)}: \"{KernelMatrix}\"");
             }
             if (Divisor != null)
             {
-                Console.WriteLine($"{indent}{nameof(Divisor)}: \"{Divisor}\"");
+                write($"{indent}{nameof(Divisor)}: \"{Divisor}\"");
             }
             if (Bias != null)
             {
-                Console.WriteLine($"{indent}{nameof(Bias)}: \"{Bias}\"");
+                write($"{indent}{nameof(Bias)}: \"{Bias}\"");
             }
             if (TargetX != null)
             {
-                Console.WriteLine($"{indent}{nameof(TargetX)}: \"{TargetX}\"");
+                write($"{indent}{nameof(TargetX)}: \"{TargetX}\"");
             }
             if (TargetY != null)
             {
-                Console.WriteLine($"{indent}{nameof(TargetY)}: \"{TargetY}\"");
+                write($"{indent}{nameof(TargetY)}: \"{TargetY}\"");
             }
             if (EdgeMode != null)
             {
-                Console.WriteLine($"{indent}{nameof(EdgeMode)}: \"{EdgeMode}\"");
+                write($"{indent}{nameof(EdgeMode)}: \"{EdgeMode}\"");
             }
             if (KernelUnitLength != null)
             {
-                Console.WriteLine($"{indent}{nameof(KernelUnitLength)}: \"{KernelUnitLength}\"");
+                write($"{indent}{nameof(KernelUnitLength)}: \"{KernelUnitLength}\"");
             }
             if (PreserveAlpha != null)
             {
-                Console.WriteLine($"{indent}{nameof(PreserveAlpha)}: \"{PreserveAlpha}\"");
+                write($"{indent}{nameof(PreserveAlpha)}: \"{PreserveAlpha}\"");
             }
         }
     }

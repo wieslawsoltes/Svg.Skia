@@ -34,25 +34,25 @@ namespace Svg
             set => SetAttribute("y2", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (StartX != null)
             {
-                Console.WriteLine($"{indent}{nameof(StartX)}: \"{StartX}\"");
+                write($"{indent}{nameof(StartX)}: \"{StartX}\"");
             }
             if (StartY != null)
             {
-                Console.WriteLine($"{indent}{nameof(StartY)}: \"{StartY}\"");
+                write($"{indent}{nameof(StartY)}: \"{StartY}\"");
             }
             if (EndX != null)
             {
-                Console.WriteLine($"{indent}{nameof(EndX)}: \"{EndX}\"");
+                write($"{indent}{nameof(EndX)}: \"{EndX}\"");
             }
             if (EndY != null)
             {
-                Console.WriteLine($"{indent}{nameof(EndY)}: \"{EndY}\"");
+                write($"{indent}{nameof(EndY)}: \"{EndY}\"");
             }
         }
     }

@@ -68,45 +68,45 @@ namespace Svg
             set => SetAttribute("href", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (CenterX != null)
             {
-                Console.WriteLine($"{indent}{nameof(CenterX)}: \"{CenterX}\"");
+                write($"{indent}{nameof(CenterX)}: \"{CenterX}\"");
             }
             if (CenterY != null)
             {
-                Console.WriteLine($"{indent}{nameof(CenterY)}: \"{CenterY}\"");
+                write($"{indent}{nameof(CenterY)}: \"{CenterY}\"");
             }
             if (Radius != null)
             {
-                Console.WriteLine($"{indent}{nameof(Radius)}: \"{Radius}\"");
+                write($"{indent}{nameof(Radius)}: \"{Radius}\"");
             }
             if (FocalX != null)
             {
-                Console.WriteLine($"{indent}{nameof(FocalX)}: \"{FocalX}\"");
+                write($"{indent}{nameof(FocalX)}: \"{FocalX}\"");
             }
             if (FocalY != null)
             {
-                Console.WriteLine($"{indent}{nameof(FocalY)}: \"{FocalY}\"");
+                write($"{indent}{nameof(FocalY)}: \"{FocalY}\"");
             }
             if (GradientUnits != null)
             {
-                Console.WriteLine($"{indent}{nameof(GradientUnits)}: \"{GradientUnits}\"");
+                write($"{indent}{nameof(GradientUnits)}: \"{GradientUnits}\"");
             }
             if (GradientTransform != null)
             {
-                Console.WriteLine($"{indent}{nameof(GradientTransform)}: \"{GradientTransform}\"");
+                write($"{indent}{nameof(GradientTransform)}: \"{GradientTransform}\"");
             }
             if (SpreadMethod != null)
             {
-                Console.WriteLine($"{indent}{nameof(SpreadMethod)}: \"{SpreadMethod}\"");
+                write($"{indent}{nameof(SpreadMethod)}: \"{SpreadMethod}\"");
             }
             if (Href != null)
             {
-                Console.WriteLine($"{indent}{nameof(Href)}: \"{Href}\"");
+                write($"{indent}{nameof(Href)}: \"{Href}\"");
             }
         }
     }

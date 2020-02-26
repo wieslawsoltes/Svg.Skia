@@ -3,42 +3,24 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Svg;
-using Xml;
 
 namespace SvgXml
 {
     internal class Program
     {
-        private static void PrintElement(Element element, Action<string> writeLine, bool printAttributes = true, string indent = "")
+        private static void Main(string[] args)
         {
-            writeLine($"{indent}{element.GetType().Name}:");
-            if (printAttributes)
-            {
-#if true
-                if (element is ISvgAttributePrinter attributePrinter)
-                {
-                    attributePrinter.Print(indent + "  ");
-                }
-#else
-                foreach (var attribute in element.Attributes)
-                {
-                    writeLine($"{indent}  {attribute.Key}: \"{attribute.Value}\"");
-                }
-#endif
-            }
-            if (element.Children.Count > 0)
-            {
-                writeLine($"{indent}  Children:");
-                foreach (var child in element.Children)
-                {
-                    PrintElement(child, writeLine, printAttributes, indent + "    ");
-                }
-            }
-        }
+            Action<string> write = Console.WriteLine;
 
-        private static void GetFiles(DirectoryInfo directory, string pattern, List<FileInfo> paths)
-        {
-            var files = Directory.EnumerateFiles(directory.FullName, pattern);
+            if (args.Length != 1)
+            {
+                write($"Usage: {nameof(SvgXml)} <directory>");
+                return;
+            }
+
+            var directory = new DirectoryInfo(args[0]);
+            var paths = new List<FileInfo>();
+            var files = Directory.EnumerateFiles(directory.FullName, "*.svg");
             if (files != null)
             {
                 foreach (var path in files)
@@ -46,19 +28,6 @@ namespace SvgXml
                     paths.Add(new FileInfo(path));
                 }
             }
-        }
-
-        private static void Main(string[] args)
-        {
-            if (args.Length != 1)
-            {
-                Console.WriteLine($"Usage: {nameof(SvgXml)} <directory>");
-                return;
-            }
-
-            var directory = new DirectoryInfo(args[0]);
-            var paths = new List<FileInfo>();
-            GetFiles(directory, "*.svg", paths);
             paths.Sort((f1, f2) => f1.Name.CompareTo(f2.Name));
 
             var sw = Stopwatch.StartNew();
@@ -83,23 +52,23 @@ namespace SvgXml
 #else
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"{path.FullName}");
-                    Console.WriteLine(ex.Message);
-                    Console.WriteLine(ex.StackTrace);
+                    write($"{path.FullName}");
+                    write(ex.Message);
+                    write(ex.StackTrace);
                 }
 #endif
             }
 
             sw.Stop();
-            Console.WriteLine($"# {sw.Elapsed.TotalMilliseconds}ms [{sw.Elapsed}], {paths.Count} files");
+            write($"# {sw.Elapsed.TotalMilliseconds}ms [{sw.Elapsed}], {paths.Count} files");
 #if true
             foreach (var result in results)
             {
-                Console.WriteLine($"# {result.path.FullName}");
+                write($"# {result.path.FullName}");
                 var document = result.document;
                 if (document != null)
                 {
-                    PrintElement(document, Console.WriteLine, printAttributes: true);
+                    document.Print(write, printAttributes: true);
                 }
             }
 #endif

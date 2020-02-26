@@ -62,41 +62,41 @@ namespace Svg.FilterEffects
             set => SetAttribute("href", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (X != null)
             {
-                Console.WriteLine($"{indent}{nameof(X)}: \"{X}\"");
+                write($"{indent}{nameof(X)}: \"{X}\"");
             }
             if (Y != null)
             {
-                Console.WriteLine($"{indent}{nameof(Y)}: \"{Y}\"");
+                write($"{indent}{nameof(Y)}: \"{Y}\"");
             }
             if (Width != null)
             {
-                Console.WriteLine($"{indent}{nameof(Width)}: \"{Width}\"");
+                write($"{indent}{nameof(Width)}: \"{Width}\"");
             }
             if (Height != null)
             {
-                Console.WriteLine($"{indent}{nameof(Height)}: \"{Height}\"");
+                write($"{indent}{nameof(Height)}: \"{Height}\"");
             }
             if (FilterRes != null)
             {
-                Console.WriteLine($"{indent}{nameof(FilterRes)}: \"{FilterRes}\"");
+                write($"{indent}{nameof(FilterRes)}: \"{FilterRes}\"");
             }
             if (FilterUnits != null)
             {
-                Console.WriteLine($"{indent}{nameof(FilterUnits)}: \"{FilterUnits}\"");
+                write($"{indent}{nameof(FilterUnits)}: \"{FilterUnits}\"");
             }
             if (PrimitiveUnits != null)
             {
-                Console.WriteLine($"{indent}{nameof(PrimitiveUnits)}: \"{PrimitiveUnits}\"");
+                write($"{indent}{nameof(PrimitiveUnits)}: \"{PrimitiveUnits}\"");
             }
             if (Href != null)
             {
-                Console.WriteLine($"{indent}{nameof(Href)}: \"{Href}\"");
+                write($"{indent}{nameof(Href)}: \"{Href}\"");
             }
         }
     }

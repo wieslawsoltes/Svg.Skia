@@ -54,37 +54,37 @@ namespace Svg.FilterEffects
             set => SetAttribute("offset", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (Type != null)
             {
-                Console.WriteLine($"{indent}{nameof(Type)}: \"{Type}\"");
+                write($"{indent}{nameof(Type)}: \"{Type}\"");
             }
             if (TableValues != null)
             {
-                Console.WriteLine($"{indent}{nameof(TableValues)}: \"{TableValues}\"");
+                write($"{indent}{nameof(TableValues)}: \"{TableValues}\"");
             }
             if (Slope != null)
             {
-                Console.WriteLine($"{indent}{nameof(Slope)}: \"{Slope}\"");
+                write($"{indent}{nameof(Slope)}: \"{Slope}\"");
             }
             if (Intercept != null)
             {
-                Console.WriteLine($"{indent}{nameof(Intercept)}: \"{Intercept}\"");
+                write($"{indent}{nameof(Intercept)}: \"{Intercept}\"");
             }
             if (Amplitude != null)
             {
-                Console.WriteLine($"{indent}{nameof(Amplitude)}: \"{Amplitude}\"");
+                write($"{indent}{nameof(Amplitude)}: \"{Amplitude}\"");
             }
             if (Exponent != null)
             {
-                Console.WriteLine($"{indent}{nameof(Exponent)}: \"{Exponent}\"");
+                write($"{indent}{nameof(Exponent)}: \"{Exponent}\"");
             }
             if (Offset != null)
             {
-                Console.WriteLine($"{indent}{nameof(Offset)}: \"{Offset}\"");
+                write($"{indent}{nameof(Offset)}: \"{Offset}\"");
             }
         }
     }

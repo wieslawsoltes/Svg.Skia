@@ -3,7 +3,7 @@ using Xml;
 
 namespace Svg
 {
-    public interface ISvgCoreAttributes : IElement, ISvgAttributePrinter
+    public interface ISvgCommonAttributes : IElement
     {
         [Attribute("id")]
         public string? Id
@@ -31,26 +31,6 @@ namespace Svg
         {
             get => GetAttribute("space");
             set => SetAttribute("space", value);
-        }
-
-        public void PrintCoreAttributes(string indent)
-        {
-            if (Id != null)
-            {
-                Console.WriteLine($"{indent}{nameof(Id)}: \"{Id}\"");
-            }
-            if (Base != null)
-            {
-                Console.WriteLine($"{indent}{nameof(Base)}: \"{Base}\"");
-            }
-            if (Lang != null)
-            {
-                Console.WriteLine($"{indent}{nameof(Lang)}: \"{Lang}\"");
-            }
-            if (Space != null)
-            {
-                Console.WriteLine($"{indent}{nameof(Space)}: \"{Space}\"");
-            }
         }
     }
 }

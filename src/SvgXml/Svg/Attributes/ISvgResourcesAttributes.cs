@@ -3,21 +3,13 @@ using Xml;
 
 namespace Svg
 {
-    public interface ISvgResourcesAttributes : IElement, ISvgAttributePrinter
+    public interface ISvgResourcesAttributes : IElement
     {
         [Attribute("externalResourcesRequired")]
         public string? ExternalResourcesRequired
         {
             get => GetAttribute("externalResourcesRequired");
             set => SetAttribute("externalResourcesRequired", value);
-        }
-
-        public void PrintResourcesAttributes(string indent)
-        {
-            if (ExternalResourcesRequired != null)
-            {
-                Console.WriteLine($"{indent}{nameof(ExternalResourcesRequired)}: \"{ExternalResourcesRequired}\"");
-            }
         }
     }
 }

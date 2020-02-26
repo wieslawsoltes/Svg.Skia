@@ -27,21 +27,21 @@ namespace Svg.FilterEffects
             set => SetAttribute("mode", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (Input != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input)}: \"{Input}\"");
+                write($"{indent}{nameof(Input)}: \"{Input}\"");
             }
             if (Input2 != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input2)}: \"{Input2}\"");
+                write($"{indent}{nameof(Input2)}: \"{Input2}\"");
             }
             if (Mode != null)
             {
-                Console.WriteLine($"{indent}{nameof(Mode)}: \"{Mode}\"");
+                write($"{indent}{nameof(Mode)}: \"{Mode}\"");
             }
         }
     }

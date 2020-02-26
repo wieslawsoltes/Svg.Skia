@@ -41,29 +41,29 @@ namespace Svg.FilterEffects
             set => SetAttribute("yChannelSelector", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (Input != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input)}: \"{Input}\"");
+                write($"{indent}{nameof(Input)}: \"{Input}\"");
             }
             if (Input2 != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input2)}: \"{Input2}\"");
+                write($"{indent}{nameof(Input2)}: \"{Input2}\"");
             }
             if (Scale != null)
             {
-                Console.WriteLine($"{indent}{nameof(Scale)}: \"{Scale}\"");
+                write($"{indent}{nameof(Scale)}: \"{Scale}\"");
             }
             if (XChannelSelector != null)
             {
-                Console.WriteLine($"{indent}{nameof(XChannelSelector)}: \"{XChannelSelector}\"");
+                write($"{indent}{nameof(XChannelSelector)}: \"{XChannelSelector}\"");
             }
             if (YChannelSelector != null)
             {
-                Console.WriteLine($"{indent}{nameof(YChannelSelector)}: \"{YChannelSelector}\"");
+                write($"{indent}{nameof(YChannelSelector)}: \"{YChannelSelector}\"");
             }
         }
     }

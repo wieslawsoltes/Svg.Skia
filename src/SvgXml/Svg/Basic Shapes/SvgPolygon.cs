@@ -13,13 +13,13 @@ namespace Svg
             set => SetAttribute("points", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (Points != null)
             {
-                Console.WriteLine($"{indent}{nameof(Points)}: \"{Points}\"");
+                write($"{indent}{nameof(Points)}: \"{Points}\"");
             }
         }
     }

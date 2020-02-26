@@ -27,21 +27,21 @@ namespace Svg.FilterEffects
             set => SetAttribute("values", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (Input != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input)}: \"{Input}\"");
+                write($"{indent}{nameof(Input)}: \"{Input}\"");
             }
             if (Type != null)
             {
-                Console.WriteLine($"{indent}{nameof(Type)}: \"{Type}\"");
+                write($"{indent}{nameof(Type)}: \"{Type}\"");
             }
             if (Values != null)
             {
-                Console.WriteLine($"{indent}{nameof(Values)}: \"{Values}\"");
+                write($"{indent}{nameof(Values)}: \"{Values}\"");
             }
         }
     }

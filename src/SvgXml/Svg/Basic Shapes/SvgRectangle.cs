@@ -48,33 +48,33 @@ namespace Svg
             set => SetAttribute("ry", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (X != null)
             {
-                Console.WriteLine($"{indent}{nameof(X)}: \"{X}\"");
+                write($"{indent}{nameof(X)}: \"{X}\"");
             }
             if (Y != null)
             {
-                Console.WriteLine($"{indent}{nameof(Y)}: \"{Y}\"");
+                write($"{indent}{nameof(Y)}: \"{Y}\"");
             }
             if (Width != null)
             {
-                Console.WriteLine($"{indent}{nameof(Width)}: \"{Width}\"");
+                write($"{indent}{nameof(Width)}: \"{Width}\"");
             }
             if (Height != null)
             {
-                Console.WriteLine($"{indent}{nameof(Height)}: \"{Height}\"");
+                write($"{indent}{nameof(Height)}: \"{Height}\"");
             }
             if (CornerRadiusX != null)
             {
-                Console.WriteLine($"{indent}{nameof(CornerRadiusX)}: \"{CornerRadiusX}\"");
+                write($"{indent}{nameof(CornerRadiusX)}: \"{CornerRadiusX}\"");
             }
             if (CornerRadiusY != null)
             {
-                Console.WriteLine($"{indent}{nameof(CornerRadiusY)}: \"{CornerRadiusY}\"");
+                write($"{indent}{nameof(CornerRadiusY)}: \"{CornerRadiusY}\"");
             }
         }
     }

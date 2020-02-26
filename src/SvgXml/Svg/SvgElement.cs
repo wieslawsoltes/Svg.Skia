@@ -1,34 +1,35 @@
-﻿using Xml;
+﻿using System;
+using Xml;
 
 namespace Svg
 {
-    public abstract class SvgElement : Element, ISvgCoreAttributes
+    public abstract class SvgElement : Element, ISvgCommonAttributes
     {
-        public virtual void Print(string indent)
+        public virtual void Print(Action<string> write, string indent)
         {
-            if (this is ISvgCoreAttributes svgCoreAttributes)
+            if (this is ISvgCommonAttributes svgCommonAttributes)
             {
-                svgCoreAttributes.PrintCoreAttributes(indent);
+                svgCommonAttributes.PrintCommonAttributes(write, indent);
             }
             if (this is ISvgPresentationAttributes svgPresentationAttributes)
             {
-                svgPresentationAttributes.PrintPresentationAttributes(indent);
+                svgPresentationAttributes.PrintPresentationAttributes(write, indent);
             }
             if (this is ISvgTestsAttributes svgTestsAttributes)
             {
-                svgTestsAttributes.PrintTestsAttributes(indent);
+                svgTestsAttributes.PrintTestsAttributes(write, indent);
             }
             if (this is ISvgStylableAttributes svgStylableAttributes)
             {
-                svgStylableAttributes.PrintStylableAttributes(indent);
+                svgStylableAttributes.PrintStylableAttributes(write, indent);
             }
             if (this is ISvgResourcesAttributes svgResourcesAttributes)
             {
-                svgResourcesAttributes.PrintResourcesAttributes(indent);
+                svgResourcesAttributes.PrintResourcesAttributes(write, indent);
             }
             if (this is ISvgTransformableAttributes svgTransformableAttributes)
             {
-                svgTransformableAttributes.PrintTransformableAttributes(indent);
+                svgTransformableAttributes.PrintTransformableAttributes(write, indent);
             }
         }
     }

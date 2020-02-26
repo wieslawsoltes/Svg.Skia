@@ -62,41 +62,41 @@ namespace Svg
             set => SetAttribute("orient", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (ViewBox != null)
             {
-                Console.WriteLine($"{indent}{nameof(ViewBox)}: \"{ViewBox}\"");
+                write($"{indent}{nameof(ViewBox)}: \"{ViewBox}\"");
             }
             if (AspectRatio != null)
             {
-                Console.WriteLine($"{indent}{nameof(AspectRatio)}: \"{AspectRatio}\"");
+                write($"{indent}{nameof(AspectRatio)}: \"{AspectRatio}\"");
             }
             if (RefX != null)
             {
-                Console.WriteLine($"{indent}{nameof(RefX)}: \"{RefX}\"");
+                write($"{indent}{nameof(RefX)}: \"{RefX}\"");
             }
             if (RefY != null)
             {
-                Console.WriteLine($"{indent}{nameof(RefY)}: \"{RefY}\"");
+                write($"{indent}{nameof(RefY)}: \"{RefY}\"");
             }
             if (MarkerUnits != null)
             {
-                Console.WriteLine($"{indent}{nameof(MarkerUnits)}: \"{MarkerUnits}\"");
+                write($"{indent}{nameof(MarkerUnits)}: \"{MarkerUnits}\"");
             }
             if (MarkerWidth != null)
             {
-                Console.WriteLine($"{indent}{nameof(MarkerWidth)}: \"{MarkerWidth}\"");
+                write($"{indent}{nameof(MarkerWidth)}: \"{MarkerWidth}\"");
             }
             if (MarkerHeight != null)
             {
-                Console.WriteLine($"{indent}{nameof(MarkerHeight)}: \"{MarkerHeight}\"");
+                write($"{indent}{nameof(MarkerHeight)}: \"{MarkerHeight}\"");
             }
             if (Orient != null)
             {
-                Console.WriteLine($"{indent}{nameof(Orient)}: \"{Orient}\"");
+                write($"{indent}{nameof(Orient)}: \"{Orient}\"");
             }
         }
     }

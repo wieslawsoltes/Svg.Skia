@@ -3,7 +3,7 @@ using Xml;
 
 namespace Svg
 {
-    public interface ISvgTestsAttributes : IElement, ISvgAttributePrinter
+    public interface ISvgTestsAttributes : IElement
     {
         [Attribute("requiredFeatures")]
         public string? RequiredFeatures
@@ -24,22 +24,6 @@ namespace Svg
         {
             get => GetAttribute("systemLanguage");
             set => SetAttribute("systemLanguage", value);
-        }
-
-        public void PrintTestsAttributes(string indent)
-        {
-            if (RequiredFeatures != null)
-            {
-                Console.WriteLine($"{indent}{nameof(RequiredFeatures)}: \"{RequiredFeatures}\"");
-            }
-            if (RequiredExtensions != null)
-            {
-                Console.WriteLine($"{indent}{nameof(RequiredExtensions)}: \"{RequiredExtensions}\"");
-            }
-            if (SystemLanguage != null)
-            {
-                Console.WriteLine($"{indent}{nameof(SystemLanguage)}: \"{SystemLanguage}\"");
-            }
         }
     }
 }

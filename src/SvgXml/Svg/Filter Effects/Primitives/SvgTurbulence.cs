@@ -41,29 +41,29 @@ namespace Svg.FilterEffects
             set => SetAttribute("type", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (BaseFrequency != null)
             {
-                Console.WriteLine($"{indent}{nameof(BaseFrequency)}: \"{BaseFrequency}\"");
+                write($"{indent}{nameof(BaseFrequency)}: \"{BaseFrequency}\"");
             }
             if (NumOctaves != null)
             {
-                Console.WriteLine($"{indent}{nameof(NumOctaves)}: \"{NumOctaves}\"");
+                write($"{indent}{nameof(NumOctaves)}: \"{NumOctaves}\"");
             }
             if (Seed != null)
             {
-                Console.WriteLine($"{indent}{nameof(Seed)}: \"{Seed}\"");
+                write($"{indent}{nameof(Seed)}: \"{Seed}\"");
             }
             if (StitchTiles != null)
             {
-                Console.WriteLine($"{indent}{nameof(StitchTiles)}: \"{StitchTiles}\"");
+                write($"{indent}{nameof(StitchTiles)}: \"{StitchTiles}\"");
             }
             if (Type != null)
             {
-                Console.WriteLine($"{indent}{nameof(Type)}: \"{Type}\"");
+                write($"{indent}{nameof(Type)}: \"{Type}\"");
             }
         }
     }

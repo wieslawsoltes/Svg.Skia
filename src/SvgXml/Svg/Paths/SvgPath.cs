@@ -20,17 +20,17 @@ namespace Svg
             set => SetAttribute("pathLength", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (PathData != null)
             {
-                Console.WriteLine($"{indent}{nameof(PathData)}: \"{PathData}\"");
+                write($"{indent}{nameof(PathData)}: \"{PathData}\"");
             }
             if (PathLength != null)
             {
-                Console.WriteLine($"{indent}{nameof(PathLength)}: \"{PathLength}\"");
+                write($"{indent}{nameof(PathLength)}: \"{PathLength}\"");
             }
         }
     }

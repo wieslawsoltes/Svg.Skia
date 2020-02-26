@@ -13,13 +13,13 @@ namespace Svg
             set => SetAttribute("offset", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (Offset != null)
             {
-                Console.WriteLine($"{indent}{nameof(Offset)}: \"{Offset}\"");
+                write($"{indent}{nameof(Offset)}: \"{Offset}\"");
             }
         }
     }

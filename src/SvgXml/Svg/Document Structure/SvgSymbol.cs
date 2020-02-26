@@ -20,17 +20,17 @@ namespace Svg
             set => SetAttribute("preserveAspectRatio", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (ViewBox != null)
             {
-                Console.WriteLine($"{indent}{nameof(ViewBox)}: \"{ViewBox}\"");
+                write($"{indent}{nameof(ViewBox)}: \"{ViewBox}\"");
             }
             if (AspectRatio != null)
             {
-                Console.WriteLine($"{indent}{nameof(AspectRatio)}: \"{AspectRatio}\"");
+                write($"{indent}{nameof(AspectRatio)}: \"{AspectRatio}\"");
             }
         }
     }

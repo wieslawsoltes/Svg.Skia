@@ -3,7 +3,7 @@ using Xml;
 
 namespace Svg
 {
-    public interface ISvgStylableAttributes : IElement, ISvgAttributePrinter
+    public interface ISvgStylableAttributes : IElement
     {
         [Attribute("class")]
         public string? Class
@@ -17,18 +17,6 @@ namespace Svg
         {
             get => GetAttribute("style");
             set => SetAttribute("style", value);
-        }
-
-        public void PrintStylableAttributes(string indent)
-        {
-            if (Class != null)
-            {
-                Console.WriteLine($"{indent}{nameof(Class)}: \"{Class}\"");
-            }
-            if (Style != null)
-            {
-                Console.WriteLine($"{indent}{nameof(Style)}: \"{Style}\"");
-            }
         }
     }
 }

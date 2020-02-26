@@ -20,17 +20,17 @@ namespace Svg.FilterEffects
             set => SetAttribute("href", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (AspectRatio != null)
             {
-                Console.WriteLine($"{indent}{nameof(AspectRatio)}: \"{AspectRatio}\"");
+                write($"{indent}{nameof(AspectRatio)}: \"{AspectRatio}\"");
             }
             if (Href != null)
             {
-                Console.WriteLine($"{indent}{nameof(Href)}: \"{Href}\"");
+                write($"{indent}{nameof(Href)}: \"{Href}\"");
             }
         }
     }

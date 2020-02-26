@@ -62,41 +62,41 @@ namespace Svg.FilterEffects
             set => SetAttribute("limitingConeAngle", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (X != null)
             {
-                Console.WriteLine($"{indent}{nameof(X)}: \"{X}\"");
+                write($"{indent}{nameof(X)}: \"{X}\"");
             }
             if (Y != null)
             {
-                Console.WriteLine($"{indent}{nameof(Y)}: \"{Y}\"");
+                write($"{indent}{nameof(Y)}: \"{Y}\"");
             }
             if (Z != null)
             {
-                Console.WriteLine($"{indent}{nameof(Z)}: \"{Z}\"");
+                write($"{indent}{nameof(Z)}: \"{Z}\"");
             }
             if (PointsAtX != null)
             {
-                Console.WriteLine($"{indent}{nameof(PointsAtX)}: \"{PointsAtX}\"");
+                write($"{indent}{nameof(PointsAtX)}: \"{PointsAtX}\"");
             }
             if (PointsAtY != null)
             {
-                Console.WriteLine($"{indent}{nameof(PointsAtY)}: \"{PointsAtY}\"");
+                write($"{indent}{nameof(PointsAtY)}: \"{PointsAtY}\"");
             }
             if (PointsAtZ != null)
             {
-                Console.WriteLine($"{indent}{nameof(PointsAtZ)}: \"{PointsAtZ}\"");
+                write($"{indent}{nameof(PointsAtZ)}: \"{PointsAtZ}\"");
             }
             if (SpecularExponent != null)
             {
-                Console.WriteLine($"{indent}{nameof(SpecularExponent)}: \"{SpecularExponent}\"");
+                write($"{indent}{nameof(SpecularExponent)}: \"{SpecularExponent}\"");
             }
             if (LlimitingConeAngle != null)
             {
-                Console.WriteLine($"{indent}{nameof(LlimitingConeAngle)}: \"{LlimitingConeAngle}\"");
+                write($"{indent}{nameof(LlimitingConeAngle)}: \"{LlimitingConeAngle}\"");
             }
         }
     }

@@ -34,25 +34,25 @@ namespace Svg.FilterEffects
             set => SetAttribute("kernelUnitLength", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (Input != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input)}: \"{Input}\"");
+                write($"{indent}{nameof(Input)}: \"{Input}\"");
             }
             if (SurfaceScale != null)
             {
-                Console.WriteLine($"{indent}{nameof(SurfaceScale)}: \"{SurfaceScale}\"");
+                write($"{indent}{nameof(SurfaceScale)}: \"{SurfaceScale}\"");
             }
             if (DiffuseConstant != null)
             {
-                Console.WriteLine($"{indent}{nameof(DiffuseConstant)}: \"{DiffuseConstant}\"");
+                write($"{indent}{nameof(DiffuseConstant)}: \"{DiffuseConstant}\"");
             }
             if (KernelUnitLength != null)
             {
-                Console.WriteLine($"{indent}{nameof(KernelUnitLength)}: \"{KernelUnitLength}\"");
+                write($"{indent}{nameof(KernelUnitLength)}: \"{KernelUnitLength}\"");
             }
         }
     }

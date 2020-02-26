@@ -62,41 +62,41 @@ namespace Svg
             set => SetAttribute("href", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (X1 != null)
             {
-                Console.WriteLine($"{indent}{nameof(X1)}: \"{X1}\"");
+                write($"{indent}{nameof(X1)}: \"{X1}\"");
             }
             if (Y1 != null)
             {
-                Console.WriteLine($"{indent}{nameof(Y1)}: \"{Y1}\"");
+                write($"{indent}{nameof(Y1)}: \"{Y1}\"");
             }
             if (X2 != null)
             {
-                Console.WriteLine($"{indent}{nameof(X2)}: \"{X2}\"");
+                write($"{indent}{nameof(X2)}: \"{X2}\"");
             }
             if (Y2 != null)
             {
-                Console.WriteLine($"{indent}{nameof(Y2)}: \"{Y2}\"");
+                write($"{indent}{nameof(Y2)}: \"{Y2}\"");
             }
             if (GradientUnits != null)
             {
-                Console.WriteLine($"{indent}{nameof(GradientUnits)}: \"{GradientUnits}\"");
+                write($"{indent}{nameof(GradientUnits)}: \"{GradientUnits}\"");
             }
             if (GradientTransform != null)
             {
-                Console.WriteLine($"{indent}{nameof(GradientTransform)}: \"{GradientTransform}\"");
+                write($"{indent}{nameof(GradientTransform)}: \"{GradientTransform}\"");
             }
             if (SpreadMethod != null)
             {
-                Console.WriteLine($"{indent}{nameof(SpreadMethod)}: \"{SpreadMethod}\"");
+                write($"{indent}{nameof(SpreadMethod)}: \"{SpreadMethod}\"");
             }
             if (Href != null)
             {
-                Console.WriteLine($"{indent}{nameof(Href)}: \"{Href}\"");
+                write($"{indent}{nameof(Href)}: \"{Href}\"");
             }
         }
     }

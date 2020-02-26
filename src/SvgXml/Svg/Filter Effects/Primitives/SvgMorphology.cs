@@ -27,21 +27,21 @@ namespace Svg.FilterEffects
             set => SetAttribute("radius", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (Input != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input)}: \"{Input}\"");
+                write($"{indent}{nameof(Input)}: \"{Input}\"");
             }
             if (Operator != null)
             {
-                Console.WriteLine($"{indent}{nameof(Operator)}: \"{Operator}\"");
+                write($"{indent}{nameof(Operator)}: \"{Operator}\"");
             }
             if (Radius != null)
             {
-                Console.WriteLine($"{indent}{nameof(Radius)}: \"{Radius}\"");
+                write($"{indent}{nameof(Radius)}: \"{Radius}\"");
             }
         }
     }

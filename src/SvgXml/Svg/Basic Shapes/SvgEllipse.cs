@@ -34,25 +34,25 @@ namespace Svg
             set => SetAttribute("ry", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (CenterX != null)
             {
-                Console.WriteLine($"{indent}{nameof(CenterX)}: \"{CenterX}\"");
+                write($"{indent}{nameof(CenterX)}: \"{CenterX}\"");
             }
             if (CenterY != null)
             {
-                Console.WriteLine($"{indent}{nameof(CenterY)}: \"{CenterY}\"");
+                write($"{indent}{nameof(CenterY)}: \"{CenterY}\"");
             }
             if (RadiusX != null)
             {
-                Console.WriteLine($"{indent}{nameof(RadiusX)}: \"{RadiusX}\"");
+                write($"{indent}{nameof(RadiusX)}: \"{RadiusX}\"");
             }
             if (RadiusY != null)
             {
-                Console.WriteLine($"{indent}{nameof(RadiusY)}: \"{RadiusY}\"");
+                write($"{indent}{nameof(RadiusY)}: \"{RadiusY}\"");
             }
         }
     }

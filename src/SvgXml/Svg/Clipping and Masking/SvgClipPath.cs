@@ -13,13 +13,13 @@ namespace Svg
             set => SetAttribute("clipPathUnits", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (ClipPathUnits != null)
             {
-                Console.WriteLine($"{indent}{nameof(ClipPathUnits)}: \"{ClipPathUnits}\"");
+                write($"{indent}{nameof(ClipPathUnits)}: \"{ClipPathUnits}\"");
             }
         }
     }

@@ -83,53 +83,53 @@ namespace Svg
             set => SetAttribute("contentStyleType", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (X != null)
             {
-                Console.WriteLine($"{indent}{nameof(X)}: \"{X}\"");
+                write($"{indent}{nameof(X)}: \"{X}\"");
             }
             if (Y != null)
             {
-                Console.WriteLine($"{indent}{nameof(Y)}: \"{Y}\"");
+                write($"{indent}{nameof(Y)}: \"{Y}\"");
             }
             if (Width != null)
             {
-                Console.WriteLine($"{indent}{nameof(Width)}: \"{Width}\"");
+                write($"{indent}{nameof(Width)}: \"{Width}\"");
             }
             if (Height != null)
             {
-                Console.WriteLine($"{indent}{nameof(Height)}: \"{Height}\"");
+                write($"{indent}{nameof(Height)}: \"{Height}\"");
             }
             if (ViewBox != null)
             {
-                Console.WriteLine($"{indent}{nameof(ViewBox)}: \"{ViewBox}\"");
+                write($"{indent}{nameof(ViewBox)}: \"{ViewBox}\"");
             }
             if (AspectRatio != null)
             {
-                Console.WriteLine($"{indent}{nameof(AspectRatio)}: \"{AspectRatio}\"");
+                write($"{indent}{nameof(AspectRatio)}: \"{AspectRatio}\"");
             }
             if (ZoomAndPan != null)
             {
-                Console.WriteLine($"{indent}{nameof(ZoomAndPan)}: \"{ZoomAndPan}\"");
+                write($"{indent}{nameof(ZoomAndPan)}: \"{ZoomAndPan}\"");
             }
             if (Version != null)
             {
-                Console.WriteLine($"{indent}{nameof(Version)}: \"{Version}\"");
+                write($"{indent}{nameof(Version)}: \"{Version}\"");
             }
             if (BaseProfile != null)
             {
-                Console.WriteLine($"{indent}{nameof(BaseProfile)}: \"{BaseProfile}\"");
+                write($"{indent}{nameof(BaseProfile)}: \"{BaseProfile}\"");
             }
             if (ContentScriptType != null)
             {
-                Console.WriteLine($"{indent}{nameof(ContentScriptType)}: \"{ContentScriptType}\"");
+                write($"{indent}{nameof(ContentScriptType)}: \"{ContentScriptType}\"");
             }
             if (ContentStyleType != null)
             {
-                Console.WriteLine($"{indent}{nameof(ContentStyleType)}: \"{ContentStyleType}\"");
+                write($"{indent}{nameof(ContentStyleType)}: \"{ContentStyleType}\"");
             }
         }
     }

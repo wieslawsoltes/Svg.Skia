@@ -40,29 +40,29 @@ namespace Svg.FilterEffects
             set => SetAttribute("result", value);
         }
 
-        public override void Print(string indent)
+        public override void Print(Action<string> write, string indent)
         {
-            base.Print(indent);
+            base.Print(write, indent);
 
             if (X != null)
             {
-                Console.WriteLine($"{indent}{nameof(X)}: \"{X}\"");
+                write($"{indent}{nameof(X)}: \"{X}\"");
             }
             if (Y != null)
             {
-                Console.WriteLine($"{indent}{nameof(Y)}: \"{Y}\"");
+                write($"{indent}{nameof(Y)}: \"{Y}\"");
             }
             if (Width != null)
             {
-                Console.WriteLine($"{indent}{nameof(Width)}: \"{Width}\"");
+                write($"{indent}{nameof(Width)}: \"{Width}\"");
             }
             if (Height != null)
             {
-                Console.WriteLine($"{indent}{nameof(Height)}: \"{Height}\"");
+                write($"{indent}{nameof(Height)}: \"{Height}\"");
             }
             if (Result != null)
             {
-                Console.WriteLine($"{indent}{nameof(Result)}: \"{Result}\"");
+                write($"{indent}{nameof(Result)}: \"{Result}\"");
             }
         }
     }
