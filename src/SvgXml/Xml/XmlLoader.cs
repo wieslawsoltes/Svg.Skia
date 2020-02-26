@@ -9,6 +9,7 @@ namespace Xml
         public static XmlReaderSettings s_settings = new XmlReaderSettings()
         {
             ConformanceLevel = ConformanceLevel.Fragment,
+            DtdProcessing = DtdProcessing.Parse,
             IgnoreWhitespace = true,
             IgnoreComments = true
         };
@@ -49,8 +50,8 @@ namespace Xml
                                     reader.MoveToElement();
                                 }
 
-                                var nodes = parent != null ? parent.Children : elements;
-                                nodes.Add(element);
+                                var children = parent != null ? parent.Children : elements;
+                                children.Add(element);
                             }
                             else
                             {
@@ -67,17 +68,24 @@ namespace Xml
                         break;
                     case XmlNodeType.Text:
                         {
-                            // TODO: element.Content
+                            var element = stack.Peek();
+                            var content = new ContentElement() { Content = reader.Value };
+                            element.Children.Add(content);
                         }
                         break;
                     case XmlNodeType.CDATA:
                         {
-                            // TODO: element.Content
+                            var element = stack.Peek();
+                            var content = new ContentElement() { Content = reader.Value };
+                            element.Children.Add(content);
                         }
                         break;
                     case XmlNodeType.EntityReference:
                         {
-                            // TODO: element.Content
+                            reader.ResolveEntity();
+                            var element = stack.Peek();
+                            var content = new ContentElement() { Content = reader.Value };
+                            element.Children.Add(content);
                         }
                         break;
                     case XmlNodeType.Entity:
@@ -100,8 +108,15 @@ namespace Xml
                         break;
                     case XmlNodeType.EndElement:
                         {
-                            stack.Pop();
-                            // TODO: element.Content
+                            var element = stack.Pop();
+
+                            foreach (var child in element.Children)
+                            {
+                                if (child is ContentElement content)
+                                {
+                                    element.Content += content.Content;
+                                }
+                            }
                         }
                         break;
                     case XmlNodeType.EndEntity:
