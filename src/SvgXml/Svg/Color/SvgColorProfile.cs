@@ -40,15 +40,15 @@ namespace Svg
 
             if (Local != null)
             {
-                Console.WriteLine($"{indent}{nameof(Local)}='{Local}'");
+                write($"{indent}{nameof(Local)}='{Local}'");
             }
             if (Name != null)
             {
-                Console.WriteLine($"{indent}{nameof(Name)}='{Name}'");
+                write($"{indent}{nameof(Name)}='{Name}'");
             }
             if (RenderingIntent != null)
             {
-                Console.WriteLine($"{indent}{nameof(RenderingIntent)}='{RenderingIntent}'");
+                write($"{indent}{nameof(RenderingIntent)}='{RenderingIntent}'");
             }
             if (Href != null)
             {
