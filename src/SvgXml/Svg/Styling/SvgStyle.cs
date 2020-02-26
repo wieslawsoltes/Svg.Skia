@@ -33,15 +33,15 @@ namespace Svg
 
             if (Type != null)
             {
-                write($"{indent}{nameof(Type)}='{Type}'");
+                write($"{indent}{nameof(Type)}: \"{Type}\"");
             }
             if (Media != null)
             {
-                write($"{indent}{nameof(Media)}='{Media}'");
+                write($"{indent}{nameof(Media)}: \"{Media}\"");
             }
             if (Title != null)
             {
-                write($"{indent}{nameof(Title)}='{Title}'");
+                write($"{indent}{nameof(Title)}: \"{Title}\"");
             }
         }
     }
