@@ -66,10 +66,19 @@ namespace Xml
                     case XmlNodeType.Attribute:
                         break;
                     case XmlNodeType.Text:
+                        {
+                            // TODO: element.Content
+                        }
                         break;
                     case XmlNodeType.CDATA:
+                        {
+                            // TODO: element.Content
+                        }
                         break;
                     case XmlNodeType.EntityReference:
+                        {
+                            // TODO: element.Content
+                        }
                         break;
                     case XmlNodeType.Entity:
                         break;
@@ -92,6 +101,7 @@ namespace Xml
                     case XmlNodeType.EndElement:
                         {
                             stack.Pop();
+                            // TODO: element.Content
                         }
                         break;
                     case XmlNodeType.EndEntity:
