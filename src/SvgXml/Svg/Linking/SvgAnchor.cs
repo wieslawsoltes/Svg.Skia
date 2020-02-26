@@ -19,7 +19,7 @@ namespace Svg
 
             if (Target != null)
             {
-                write($"{indent}{nameof(Target)}='{Target}'");
+                write($"{indent}{nameof(Target)}: \"{Target}\"");
             }
         }
     }
