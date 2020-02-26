@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("pattern")]
-    public class SvgPatternServer : SvgPaintServer, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
+    public class SvgPatternServer : SvgPaintServer, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
         [Attribute("viewBox")]
         public string? ViewBox

@@ -250,5 +250,48 @@ namespace Svg
             "text",
             "use"
         };
+
+        public static ISet<string> s_resourcesElements = new HashSet<string>()
+        {
+            "a",
+            "altGlyph",
+            "animate",
+            "animateColor",
+            "animateMotion",
+            "animateTransform",
+            "circle",
+            "clipPath",
+            "cursor",
+            "defs",
+            "ellipse",
+            "feImage",
+            "filter",
+            "font",
+            "foreignObject",
+            "g",
+            "image",
+            "line",
+            "linearGradient",
+            "marker",
+            "mask",
+            "mpath",
+            "path",
+            "pattern",
+            "polygon",
+            "polyline",
+            "radialGradient",
+            "rect",
+            "script",
+            "set",
+            "svg",
+            "switch",
+            "symbol",
+            "text",
+            "textPath",
+            "tref",
+            "tspan",
+            "use",
+            "view"
+        };
     }
 }

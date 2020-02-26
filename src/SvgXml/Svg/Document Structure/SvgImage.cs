@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("image")]
-    public class SvgImage : SvgVisualElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
+    public class SvgImage : SvgVisualElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes, ISvgTransformableAttributes
     {
         [Attribute("preserveAspectRatio")]
         public string? AspectRatio

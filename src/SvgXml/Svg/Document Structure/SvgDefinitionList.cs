@@ -3,7 +3,7 @@
 namespace Svg
 {
     [Element("defs")]
-    public class SvgDefinitionList : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgTransformableAttributes
+    public class SvgDefinitionList : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes, ISvgTransformableAttributes
     {
     }
 }

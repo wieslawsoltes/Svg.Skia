@@ -3,7 +3,7 @@
 namespace Svg
 {
     [Element("view")]
-    public class SvgView : SvgElement
+    public class SvgView : SvgElement, ISvgResourcesAttributes
     {
         public override void Print(string indent)
         {

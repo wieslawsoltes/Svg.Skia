@@ -3,7 +3,7 @@
 namespace Svg
 {
     [Element("tref")]
-    public class SvgTextRef : SvgTextBase, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
+    public class SvgTextRef : SvgTextBase, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
         public override void Print(string indent)
         {

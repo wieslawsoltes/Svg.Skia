@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("svg")]
-    public class SvgFragment : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes
+    public class SvgFragment : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
         [Attribute("x")]
         public string? X

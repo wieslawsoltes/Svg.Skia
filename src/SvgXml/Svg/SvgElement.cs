@@ -22,6 +22,10 @@ namespace Svg
             {
                 svgStylableAttributes.PrintStylableAttributes(indent);
             }
+            if (this is ISvgResourcesAttributes svgResourcesAttributes)
+            {
+                svgResourcesAttributes.PrintResourcesAttributes(indent);
+            }
             if (this is ISvgTransformableAttributes svgTransformableAttributes)
             {
                 svgTransformableAttributes.PrintTransformableAttributes(indent);

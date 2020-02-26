@@ -3,7 +3,7 @@
 namespace Svg
 {
     [Element("animate")]
-    public class SvgAnimate : SvgAnimationElement, ISvgPresentationAttributes, ISvgTestsAttributes
+    public class SvgAnimate : SvgAnimationElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgResourcesAttributes
     {
         public override void Print(string indent)
         {

@@ -3,7 +3,7 @@
 namespace Svg
 {
     [Element("cursor")]
-    public class SvgCursor : SvgElement, ISvgTestsAttributes
+    public class SvgCursor : SvgElement, ISvgTestsAttributes, ISvgResourcesAttributes
     {
         public override void Print(string indent)
         {
