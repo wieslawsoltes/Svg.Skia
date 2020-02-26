@@ -26,7 +26,7 @@ namespace Svg
 
             if (Type != null)
             {
-                write($"{indent}{nameof(Type)}='{Type}'");
+                write($"{indent}{nameof(Type)}: \"{Type}\"");
             }
             if (Href != null)
             {
