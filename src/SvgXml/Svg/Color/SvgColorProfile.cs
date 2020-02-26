@@ -40,15 +40,15 @@ namespace Svg
 
             if (Local != null)
             {
-                write($"{indent}{nameof(Local)}='{Local}'");
+                write($"{indent}{nameof(Local)}: \"{Local}\"");
             }
             if (Name != null)
             {
-                write($"{indent}{nameof(Name)}='{Name}'");
+                write($"{indent}{nameof(Name)}: \"{Name}\"");
             }
             if (RenderingIntent != null)
             {
-                write($"{indent}{nameof(RenderingIntent)}='{RenderingIntent}'");
+                write($"{indent}{nameof(RenderingIntent)}: \"{RenderingIntent}\"");
             }
             if (Href != null)
             {
