@@ -59,17 +59,17 @@ namespace SvgXml
 
             var sw = Stopwatch.StartNew();
 
-            var results = new List<(FileInfo path, Element element)>();
+            var results = new List<(FileInfo path, SvgDocument document)>();
             var elementFactory = new SvgElementFactory();
 
             foreach (var path in paths)
             {
                 try
                 {
-                    var element = XmlLoader.Open(path.FullName, elementFactory);
-                    if (element != null)
+                    var document = SvgDocument.Open(path.FullName);
+                    if (document != null)
                     {
-                        results.Add((path, element));
+                        results.Add((path, document));
                     }
                 }
 #if true
@@ -92,10 +92,10 @@ namespace SvgXml
             foreach (var result in results)
             {
                 Console.WriteLine($"{result.path.FullName}");
-                var element = result.element;
-                if (element != null)
+                var document = result.document;
+                if (document != null)
                 {
-                    PrintElement(element, Console.WriteLine, printAttributes: true);
+                    PrintElement(document, Console.WriteLine, printAttributes: true);
                 }
             }
 #endif
