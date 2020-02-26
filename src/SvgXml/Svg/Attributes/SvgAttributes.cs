@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Xml;
 
 namespace Svg
 {
@@ -302,6 +303,10 @@ namespace Svg
             if (printAttributes)
             {
 #if true
+                if (element.Content != string.Empty)
+                {
+                    write($"{indent}  {nameof(element.Content)}: \"{element.Content}\"");
+                }
                 element.Print(write, indent + "  ");
 #else
                 foreach (var attribute in element.Attributes)
@@ -319,6 +324,26 @@ namespace Svg
                     if (child is SvgElement childElement)
                     {
                         Print(childElement, write, indent + "    ", printAttributes);
+                    }
+                    else if (child is ContentElement contentElement)
+                    {
+                        write($"{indent}    {contentElement.GetType().Name}:");
+                        if (printAttributes)
+                        {
+                            write($"{indent}      {nameof(contentElement.Content)}: \"{contentElement.Content}\"");
+                        }
+                    }
+                    else if (child is UnknownElement unknownElement)
+                    {
+                        write($"{indent}  {unknownElement.GetType().Name}");
+                        if (printAttributes)
+                        {
+                            write($"{indent}    {nameof(unknownElement.Tag)}: {unknownElement.Tag}");
+                            foreach (var attribute in element.Attributes)
+                            {
+                                write($"{indent}    {attribute.Key}: \"{attribute.Value}\"");
+                            }
+                        }
                     }
                 }
             }
