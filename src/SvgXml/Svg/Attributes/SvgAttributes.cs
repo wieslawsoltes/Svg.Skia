@@ -6,6 +6,12 @@ namespace Svg
 {
     public static class SvgAttributes
     {
+        public const string SvgNamespace = "http://www.w3.org/2000/svg";
+
+        public const string XLinkNamespace = "http://www.w3.org/1999/xlink";
+
+        public const string XmlNamespace = "http://www.w3.org/XML/1998/namespace";
+
         public static ISet<string> s_coreElements = new HashSet<string>()
         {
             "a",
