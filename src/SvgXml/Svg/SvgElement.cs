@@ -31,6 +31,10 @@ namespace Svg
             {
                 svgTransformableAttributes.PrintTransformableAttributes(write, indent);
             }
+            if (this is ISvgXLinkAttributes svgXLinkAttributes)
+            {
+                svgXLinkAttributes.PrintXLinkAttributes(write, indent);
+            } 
         }
     }
 }
