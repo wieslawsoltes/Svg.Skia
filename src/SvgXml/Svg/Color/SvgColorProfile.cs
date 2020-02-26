@@ -6,28 +6,28 @@ namespace Svg
     [Element("color-profile")]
     public class SvgColorProfile : SvgElement
     {
-        [Attribute("local")]
+        [Attribute("local", SvgAttributes.SvgNamespace)]
         public string? Local
         {
             get => GetAttribute("local");
             set => SetAttribute("local", value);
         }
 
-        [Attribute("name")]
+        [Attribute("name", SvgAttributes.SvgNamespace)]
         public string? Name
         {
             get => GetAttribute("name");
             set => SetAttribute("name", value);
         }
 
-        [Attribute("rendering-intent")]
+        [Attribute("rendering-intent", SvgAttributes.SvgNamespace)]
         public string? RenderingIntent
         {
             get => GetAttribute("rendering-intent");
             set => SetAttribute("rendering-intent", value);
         }
 
-        [Attribute("href")]
+        [Attribute("href", SvgAttributes.XLinkNamespace)]
         public string? Href
         {
             get => GetAttribute("href");

@@ -6,14 +6,14 @@ namespace Svg
     [Element("symbol")]
     public class SvgSymbol : SvgVisualElement, ISvgPresentationAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
-        [Attribute("viewBox")]
+        [Attribute("viewBox", SvgAttributes.SvgNamespace)]
         public string? ViewBox
         {
             get => GetAttribute("viewBox");
             set => SetAttribute("viewBox", value);
         }
 
-        [Attribute("preserveAspectRatio")]
+        [Attribute("preserveAspectRatio", SvgAttributes.SvgNamespace)]
         public string? AspectRatio
         {
             get => GetAttribute("preserveAspectRatio");

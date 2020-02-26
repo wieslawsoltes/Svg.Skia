@@ -5,7 +5,7 @@ namespace Svg
 {
     public interface ISvgResourcesAttributes : IElement
     {
-        [Attribute("externalResourcesRequired")]
+        [Attribute("externalResourcesRequired", SvgAttributes.SvgNamespace)]
         public string? ExternalResourcesRequired
         {
             get => GetAttribute("externalResourcesRequired");

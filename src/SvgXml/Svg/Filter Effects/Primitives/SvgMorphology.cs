@@ -6,21 +6,21 @@ namespace Svg.FilterEffects
     [Element("feMorphology")]
     public class SvgMorphology : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("in")]
+        [Attribute("in", SvgAttributes.SvgNamespace)]
         public string? Input
         {
             get => GetAttribute("in");
             set => SetAttribute("in", value);
         }
 
-        [Attribute("operator")]
+        [Attribute("operator", SvgAttributes.SvgNamespace)]
         public string? Operator
         {
             get => GetAttribute("operator");
             set => SetAttribute("operator", value);
         }
 
-        [Attribute("radius")]
+        [Attribute("radius", SvgAttributes.SvgNamespace)]
         public string? Radius
         {
             get => GetAttribute("radius");

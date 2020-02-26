@@ -6,56 +6,56 @@ namespace Svg.FilterEffects
     [Element("filter")]
     public class SvgFilter : SvgElement, ISvgPresentationAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
-        [Attribute("x")]
+        [Attribute("x", SvgAttributes.SvgNamespace)]
         public string? X
         {
             get => GetAttribute("x");
             set => SetAttribute("x", value);
         }
 
-        [Attribute("y")]
+        [Attribute("y", SvgAttributes.SvgNamespace)]
         public string? Y
         {
             get => GetAttribute("y");
             set => SetAttribute("y", value);
         }
 
-        [Attribute("width")]
+        [Attribute("width", SvgAttributes.SvgNamespace)]
         public string? Width
         {
             get => GetAttribute("width");
             set => SetAttribute("width", value);
         }
 
-        [Attribute("height")]
+        [Attribute("height", SvgAttributes.SvgNamespace)]
         public string? Height
         {
             get => GetAttribute("height");
             set => SetAttribute("height", value);
         }
 
-        [Attribute("filterRes")]
+        [Attribute("filterRes", SvgAttributes.SvgNamespace)]
         public string? FilterRes
         {
             get => GetAttribute("filterRes");
             set => SetAttribute("filterRes", value);
         }
 
-        [Attribute("filterUnits")]
+        [Attribute("filterUnits", SvgAttributes.SvgNamespace)]
         public string? FilterUnits
         {
             get => GetAttribute("filterUnits");
             set => SetAttribute("filterUnits", value);
         }
 
-        [Attribute("primitiveUnits")]
+        [Attribute("primitiveUnits", SvgAttributes.SvgNamespace)]
         public string? PrimitiveUnits
         {
             get => GetAttribute("primitiveUnits");
             set => SetAttribute("primitiveUnits", value);
         }
 
-        [Attribute("href")]
+        [Attribute("href", SvgAttributes.XLinkNamespace)]
         public string? Href
         {
             get => GetAttribute("href");

@@ -6,7 +6,7 @@ namespace Svg
     [Element("clipPath")]
     public class SvgClipPath : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes, ISvgTransformableAttributes
     {
-        [Attribute("clipPathUnits")]
+        [Attribute("clipPathUnits", SvgAttributes.SvgNamespace)]
         public string? ClipPathUnits
         {
             get => GetAttribute("clipPathUnits");

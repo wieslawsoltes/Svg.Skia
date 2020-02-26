@@ -6,28 +6,28 @@ namespace Svg
     [Element("view")]
     public class SvgView : SvgElement, ISvgResourcesAttributes
     {
-        [Attribute("viewBox")]
+        [Attribute("viewBox", SvgAttributes.SvgNamespace)]
         public string? ViewBox
         {
             get => GetAttribute("viewBox");
             set => SetAttribute("viewBox", value);
         }
 
-        [Attribute("preserveAspectRatio")]
+        [Attribute("preserveAspectRatio", SvgAttributes.SvgNamespace)]
         public string? AspectRatio
         {
             get => GetAttribute("preserveAspectRatio");
             set => SetAttribute("preserveAspectRatio", value);
         }
 
-        [Attribute("zoomAndPan")]
+        [Attribute("zoomAndPan", SvgAttributes.SvgNamespace)]
         public string? ZoomAndPan
         {
             get => GetAttribute("zoomAndPan");
             set => SetAttribute("zoomAndPan", value);
         }
 
-        [Attribute("viewTarget")]
+        [Attribute("viewTarget", SvgAttributes.SvgNamespace)]
         public string? ViewTarget
         {
             get => GetAttribute("viewTarget");

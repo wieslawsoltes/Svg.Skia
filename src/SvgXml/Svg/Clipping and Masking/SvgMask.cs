@@ -6,42 +6,42 @@ namespace Svg
     [Element("mask")]
     public class SvgMask : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
-        [Attribute("x")]
+        [Attribute("x", SvgAttributes.SvgNamespace)]
         public string? X
         {
             get => GetAttribute("x");
             set => SetAttribute("x", value);
         }
 
-        [Attribute("y")]
+        [Attribute("y", SvgAttributes.SvgNamespace)]
         public string? Y
         {
             get => GetAttribute("y");
             set => SetAttribute("y", value);
         }
 
-        [Attribute("width")]
+        [Attribute("width", SvgAttributes.SvgNamespace)]
         public string? Width
         {
             get => GetAttribute("width");
             set => SetAttribute("width", value);
         }
 
-        [Attribute("height")]
+        [Attribute("height", SvgAttributes.SvgNamespace)]
         public string? Height
         {
             get => GetAttribute("height");
             set => SetAttribute("height", value);
         }
 
-        [Attribute("maskUnits")]
+        [Attribute("maskUnits", SvgAttributes.SvgNamespace)]
         public string? MaskUnits
         {
             get => GetAttribute("maskUnits");
             set => SetAttribute("maskUnits", value);
         }
 
-        [Attribute("maskContentUnits")]
+        [Attribute("maskContentUnits", SvgAttributes.SvgNamespace)]
         public string? MaskContentUnits
         {
             get => GetAttribute("maskContentUnits");

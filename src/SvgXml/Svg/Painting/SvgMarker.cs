@@ -6,56 +6,56 @@ namespace Svg
     [Element("marker")]
     public class SvgMarker : SvgPathBasedElement, ISvgPresentationAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
-        [Attribute("viewBox")]
+        [Attribute("viewBox", SvgAttributes.SvgNamespace)]
         public string? ViewBox
         {
             get => GetAttribute("viewBox");
             set => SetAttribute("viewBox", value);
         }
 
-        [Attribute("preserveAspectRatio")]
+        [Attribute("preserveAspectRatio", SvgAttributes.SvgNamespace)]
         public string? AspectRatio
         {
             get => GetAttribute("preserveAspectRatio");
             set => SetAttribute("preserveAspectRatio", value);
         }
 
-        [Attribute("refX")]
+        [Attribute("refX", SvgAttributes.SvgNamespace)]
         public string? RefX
         {
             get => GetAttribute("refX");
             set => SetAttribute("refX", value);
         }
 
-        [Attribute("refY")]
+        [Attribute("refY", SvgAttributes.SvgNamespace)]
         public string? RefY
         {
             get => GetAttribute("refY");
             set => SetAttribute("refY", value);
         }
 
-        [Attribute("markerUnits")]
+        [Attribute("markerUnits", SvgAttributes.SvgNamespace)]
         public string? MarkerUnits
         {
             get => GetAttribute("markerUnits");
             set => SetAttribute("markerUnits", value);
         }
 
-        [Attribute("markerWidth")]
+        [Attribute("markerWidth", SvgAttributes.SvgNamespace)]
         public string? MarkerWidth
         {
             get => GetAttribute("markerWidth");
             set => SetAttribute("markerWidth", value);
         }
 
-        [Attribute("markerHeight")]
+        [Attribute("markerHeight", SvgAttributes.SvgNamespace)]
         public string? MarkerHeight
         {
             get => GetAttribute("markerHeight");
             set => SetAttribute("markerHeight", value);
         }
 
-        [Attribute("orient")]
+        [Attribute("orient", SvgAttributes.SvgNamespace)]
         public string? Orient
         {
             get => GetAttribute("orient");

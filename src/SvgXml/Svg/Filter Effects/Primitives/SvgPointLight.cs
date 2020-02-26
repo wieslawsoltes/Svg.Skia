@@ -6,21 +6,21 @@ namespace Svg.FilterEffects
     [Element("fePointLight")]
     public class SvgPointLight : SvgElement
     {
-        [Attribute("x")]
+        [Attribute("x", SvgAttributes.SvgNamespace)]
         public string? X
         {
             get => GetAttribute("x");
             set => SetAttribute("x", value);
         }
 
-        [Attribute("y")]
+        [Attribute("y", SvgAttributes.SvgNamespace)]
         public string? Y
         {
             get => GetAttribute("y");
             set => SetAttribute("y", value);
         }
 
-        [Attribute("z")]
+        [Attribute("z", SvgAttributes.SvgNamespace)]
         public string? Z
         {
             get => GetAttribute("z");

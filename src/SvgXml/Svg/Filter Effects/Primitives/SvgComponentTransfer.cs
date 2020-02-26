@@ -6,7 +6,7 @@ namespace Svg.FilterEffects
     [Element("feComponentTransfer")]
     public class SvgComponentTransfer : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("in")]
+        [Attribute("in", SvgAttributes.SvgNamespace)]
         public string? Input
         {
             get => GetAttribute("in");

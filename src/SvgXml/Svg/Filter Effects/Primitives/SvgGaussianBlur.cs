@@ -7,14 +7,14 @@ namespace Svg.FilterEffects
     [Element("feGaussianBlur")]
     public class SvgGaussianBlur : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("in")]
+        [Attribute("in", SvgAttributes.SvgNamespace)]
         public string? Input
         {
             get => GetAttribute("in");
             set => SetAttribute("in", value);
         }
 
-        [Attribute("stdDeviation")]
+        [Attribute("stdDeviation", SvgAttributes.SvgNamespace)]
         public string? StdDeviation
         {
             get => GetAttribute("stdDeviation");

@@ -6,56 +6,56 @@ namespace Svg.FilterEffects
     [Element("feSpotLight")]
     public class SvgSpotLight : SvgElement
     {
-        [Attribute("x")]
+        [Attribute("x", SvgAttributes.SvgNamespace)]
         public string? X
         {
             get => GetAttribute("x");
             set => SetAttribute("x", value);
         }
 
-        [Attribute("y")]
+        [Attribute("y", SvgAttributes.SvgNamespace)]
         public string? Y
         {
             get => GetAttribute("y");
             set => SetAttribute("y", value);
         }
 
-        [Attribute("z")]
+        [Attribute("z", SvgAttributes.SvgNamespace)]
         public string? Z
         {
             get => GetAttribute("z");
             set => SetAttribute("z", value);
         }
 
-        [Attribute("pointsAtX")]
+        [Attribute("pointsAtX", SvgAttributes.SvgNamespace)]
         public string? PointsAtX
         {
             get => GetAttribute("pointsAtX");
             set => SetAttribute("pointsAtX", value);
         }
 
-        [Attribute("pointsAtY")]
+        [Attribute("pointsAtY", SvgAttributes.SvgNamespace)]
         public string? PointsAtY
         {
             get => GetAttribute("pointsAtY");
             set => SetAttribute("pointsAtY", value);
         }
 
-        [Attribute("pointsAtZ")]
+        [Attribute("pointsAtZ", SvgAttributes.SvgNamespace)]
         public string? PointsAtZ
         {
             get => GetAttribute("pointsAtZ");
             set => SetAttribute("pointsAtZ", value);
         }
 
-        [Attribute("specularExponent")]
+        [Attribute("specularExponent", SvgAttributes.SvgNamespace)]
         public string? SpecularExponent
         {
             get => GetAttribute("specularExponent");
             set => SetAttribute("specularExponent", value);
         }
 
-        [Attribute("limitingConeAngle")]
+        [Attribute("limitingConeAngle", SvgAttributes.SvgNamespace)]
         public string? LlimitingConeAngle
         {
             get => GetAttribute("limitingConeAngle");

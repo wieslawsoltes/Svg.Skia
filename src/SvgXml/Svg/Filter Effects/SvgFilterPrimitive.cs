@@ -5,35 +5,35 @@ namespace Svg.FilterEffects
 {
     public abstract class SvgFilterPrimitive : SvgElement
     {
-        [Attribute("x")]
+        [Attribute("x", SvgAttributes.SvgNamespace)]
         public string? X
         {
             get => GetAttribute("x");
             set => SetAttribute("x", value);
         }
 
-        [Attribute("y")]
+        [Attribute("y", SvgAttributes.SvgNamespace)]
         public string? Y
         {
             get => GetAttribute("y");
             set => SetAttribute("y", value);
         }
 
-        [Attribute("width")]
+        [Attribute("width", SvgAttributes.SvgNamespace)]
         public string? Width
         {
             get => GetAttribute("width");
             set => SetAttribute("width", value);
         }
 
-        [Attribute("height")]
+        [Attribute("height", SvgAttributes.SvgNamespace)]
         public string? Height
         {
             get => GetAttribute("height");
             set => SetAttribute("height", value);
         }
 
-        [Attribute("result")]
+        [Attribute("result", SvgAttributes.SvgNamespace)]
         public string? Result
         {
             get => GetAttribute("result");

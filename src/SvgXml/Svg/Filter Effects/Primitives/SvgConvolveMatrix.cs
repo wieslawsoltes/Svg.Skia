@@ -6,70 +6,70 @@ namespace Svg.FilterEffects
     [Element("feConvolveMatrix")]
     public class SvgConvolveMatrix : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("in")]
+        [Attribute("in", SvgAttributes.SvgNamespace)]
         public string? Input
         {
             get => GetAttribute("in");
             set => SetAttribute("in", value);
         }
 
-        [Attribute("order")]
+        [Attribute("order", SvgAttributes.SvgNamespace)]
         public string? Order
         {
             get => GetAttribute("order");
             set => SetAttribute("order", value);
         }
 
-        [Attribute("kernelMatrix")]
+        [Attribute("kernelMatrix", SvgAttributes.SvgNamespace)]
         public string? KernelMatrix
         {
             get => GetAttribute("kernelMatrix");
             set => SetAttribute("kernelMatrix", value);
         }
 
-        [Attribute("divisor")]
+        [Attribute("divisor", SvgAttributes.SvgNamespace)]
         public string? Divisor
         {
             get => GetAttribute("divisor");
             set => SetAttribute("divisor", value);
         }
 
-        [Attribute("bias")]
+        [Attribute("bias", SvgAttributes.SvgNamespace)]
         public string? Bias
         {
             get => GetAttribute("bias");
             set => SetAttribute("bias", value);
         }
 
-        [Attribute("targetX")]
+        [Attribute("targetX", SvgAttributes.SvgNamespace)]
         public string? TargetX
         {
             get => GetAttribute("targetX");
             set => SetAttribute("targetX", value);
         }
 
-        [Attribute("targetY")]
+        [Attribute("targetY", SvgAttributes.SvgNamespace)]
         public string? TargetY
         {
             get => GetAttribute("targetY");
             set => SetAttribute("targetY", value);
         }
 
-        [Attribute("edgeMode")]
+        [Attribute("edgeMode", SvgAttributes.SvgNamespace)]
         public string? EdgeMode
         {
             get => GetAttribute("edgeMode");
             set => SetAttribute("edgeMode", value);
         }
 
-        [Attribute("kernelUnitLength")]
+        [Attribute("kernelUnitLength", SvgAttributes.SvgNamespace)]
         public string? KernelUnitLength
         {
             get => GetAttribute("kernelUnitLength");
             set => SetAttribute("kernelUnitLength", value);
         }
 
-        [Attribute("preserveAlpha")]
+        [Attribute("preserveAlpha", SvgAttributes.SvgNamespace)]
         public string? PreserveAlpha
         {
             get => GetAttribute("preserveAlpha");

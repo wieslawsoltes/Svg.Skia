@@ -5,21 +5,21 @@ namespace Svg
 {
     public interface ISvgTestsAttributes : IElement
     {
-        [Attribute("requiredFeatures")]
+        [Attribute("requiredFeatures", SvgAttributes.SvgNamespace)]
         public string? RequiredFeatures
         {
             get => GetAttribute("requiredFeatures");
             set => SetAttribute("requiredFeatures", value);
         }
 
-        [Attribute("requiredExtensions")]
+        [Attribute("requiredExtensions", SvgAttributes.SvgNamespace)]
         public string? RequiredExtensions
         {
             get => GetAttribute("requiredExtensions");
             set => SetAttribute("requiredExtensions", value);
         }
 
-        [Attribute("systemLanguage")]
+        [Attribute("systemLanguage", SvgAttributes.SvgNamespace)]
         public string? SystemLanguage
         {
             get => GetAttribute("systemLanguage");

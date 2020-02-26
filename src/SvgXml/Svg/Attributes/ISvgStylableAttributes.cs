@@ -5,14 +5,14 @@ namespace Svg
 {
     public interface ISvgStylableAttributes : IElement
     {
-        [Attribute("class")]
+        [Attribute("class", SvgAttributes.SvgNamespace)]
         public string? Class
         {
             get => GetAttribute("class");
             set => SetAttribute("class", value);
         }
 
-        [Attribute("style")]
+        [Attribute("style", SvgAttributes.SvgNamespace)]
         public string? Style
         {
             get => GetAttribute("style");
