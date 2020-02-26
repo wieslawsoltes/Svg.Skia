@@ -44,16 +44,9 @@ namespace Svg
             using var fileStream = File.OpenRead(path);
             using var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress);
             using var memoryStream = new MemoryStream();
-
             gzipStream.CopyTo(memoryStream);
             memoryStream.Position = 0;
-
-            var element = XmlLoader.Open(memoryStream, s_elementFactory);
-            if (element is SvgDocument svgDocument)
-            {
-                return svgDocument;
-            }
-            return null;
+            return Open(memoryStream);
         }
 
         public static SvgDocument? Open(string path)
@@ -74,13 +67,7 @@ namespace Svg
             streamWriter.Write(svg);
             streamWriter.Flush();
             memoryStream.Position = 0;
-
-            var element = XmlLoader.Open(memoryStream, s_elementFactory);
-            if (element is SvgDocument svgDocument)
-            {
-                return svgDocument;
-            }
-            return null;
+            return Open(memoryStream);
         }
     }
 }
