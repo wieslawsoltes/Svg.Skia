@@ -7,9 +7,9 @@ namespace Svg
     {
         public ISet<string> Namespaces { get; } = new HashSet<string>
         {
-            "http://www.w3.org/2000/svg",
-            "http://www.w3.org/1999/xlink",
-            "http://www.w3.org/XML/1998/namespace"
+            SvgAttributes.SvgNamespace,
+            SvgAttributes.XLinkNamespace,
+            SvgAttributes.XmlNamespace
         };
 
         public Element Create(string tag, IElement? parent)
