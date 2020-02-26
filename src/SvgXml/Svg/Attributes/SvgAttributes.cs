@@ -302,6 +302,11 @@ namespace Svg
             "view"
         };
 
+        public static ISet<string> s_xlinkElements = new HashSet<string>()
+        {
+            // TODO:
+        };
+
         public static void Print(this SvgElement element, Action<string> write, string indent = "", bool printAttributes = true)
         {
             write($"{indent}{element.GetType().Name}:");
