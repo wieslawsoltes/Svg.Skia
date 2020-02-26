@@ -1,4 +1,7 @@
-﻿namespace Svg.FilterEffects
+﻿using System;
+using Xml;
+
+namespace Svg.FilterEffects
 {
     public abstract class SvgFilterPrimitive : SvgElement
     {
