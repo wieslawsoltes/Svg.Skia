@@ -658,5 +658,37 @@ namespace Svg
                 write($"{indent}{nameof(attributes.Transform)}: \"{attributes.Transform}\"");
             }
         }
+
+        public static void PrintXlinkAttributes(this ISvgXLinkAttributes attributes, Action<string> write, string indent)
+        {
+            if (attributes.Href != null)
+            {
+                write($"{indent}{nameof(attributes.Href)}: \"{attributes.Href}\"");
+            }
+            if (attributes.Show != null)
+            {
+                write($"{indent}{nameof(attributes.Show)}: \"{attributes.Show}\"");
+            }
+            if (attributes.Actuate != null)
+            {
+                write($"{indent}{nameof(attributes.Actuate)}: \"{attributes.Actuate}\"");
+            }
+            if (attributes.Type != null)
+            {
+                write($"{indent}{nameof(attributes.Type)}: \"{attributes.Type}\"");
+            }
+            if (attributes.Role != null)
+            {
+                write($"{indent}{nameof(attributes.Role)}: \"{attributes.Role}\"");
+            }
+            if (attributes.Arcrole != null)
+            {
+                write($"{indent}{nameof(attributes.Arcrole)}: \"{attributes.Arcrole}\"");
+            }
+            if (attributes.Title != null)
+            {
+                write($"{indent}{nameof(attributes.Title)}: \"{attributes.Title}\"");
+            }
+        }
     }
 }
