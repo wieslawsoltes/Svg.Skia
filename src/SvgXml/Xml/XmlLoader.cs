@@ -25,14 +25,14 @@ namespace Xml
                         break;
                     case XmlNodeType.Element:
                         {
-                            string elementName = reader.LocalName;
+                            string localName = reader.LocalName;
                             Element element;
 
                             if (string.IsNullOrEmpty(reader.NamespaceURI) || elementFactory.Namespaces.Contains(reader.NamespaceURI))
                             {
                                 var parent = stack.Count > 0 ? stack.Peek() : null;
 
-                                element = elementFactory.Create(elementName, parent);
+                                element = elementFactory.Create(localName, parent);
                                 element.Parent = parent;
 
                                 if (reader.MoveToFirstAttribute())
@@ -54,7 +54,7 @@ namespace Xml
                             }
                             else
                             {
-                                element = new UnknownElement() { Name = elementName, Parent = null };
+                                element = new UnknownElement() { Tag = localName, Parent = null };
                             }
 
                             if (!reader.IsEmptyElement)

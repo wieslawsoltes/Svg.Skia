@@ -4,8 +4,8 @@ namespace Xml
 {
     public interface IElement
     {
-        string Name { get; set; }
-        string Text { get; set; }
+        string Tag { get; set; }
+        string Content { get; set; }
         List<Element> Children { get; set; }
         Dictionary<string, string?> Attributes { get; set; }
         IElement? Parent { get; set; }
