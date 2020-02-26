@@ -16,7 +16,7 @@ namespace Svg
         {
             if (Transform != null)
             {
-                Console.WriteLine($"{indent}{nameof(Transform)}='{Transform}'");
+                Console.WriteLine($"{indent}{nameof(Transform)}: \"{Transform}\"");
             }
         }
     }

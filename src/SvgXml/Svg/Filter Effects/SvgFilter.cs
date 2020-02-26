@@ -68,35 +68,35 @@ namespace Svg.FilterEffects
 
             if (X != null)
             {
-                Console.WriteLine($"{indent}{nameof(X)}='{X}'");
+                Console.WriteLine($"{indent}{nameof(X)}: \"{X}\"");
             }
             if (Y != null)
             {
-                Console.WriteLine($"{indent}{nameof(Y)}='{Y}'");
+                Console.WriteLine($"{indent}{nameof(Y)}: \"{Y}\"");
             }
             if (Width != null)
             {
-                Console.WriteLine($"{indent}{nameof(Width)}='{Width}'");
+                Console.WriteLine($"{indent}{nameof(Width)}: \"{Width}\"");
             }
             if (Height != null)
             {
-                Console.WriteLine($"{indent}{nameof(Height)}='{Height}'");
+                Console.WriteLine($"{indent}{nameof(Height)}: \"{Height}\"");
             }
             if (FilterRes != null)
             {
-                Console.WriteLine($"{indent}{nameof(FilterRes)}='{FilterRes}'");
+                Console.WriteLine($"{indent}{nameof(FilterRes)}: \"{FilterRes}\"");
             }
             if (FilterUnits != null)
             {
-                Console.WriteLine($"{indent}{nameof(FilterUnits)}='{FilterUnits}'");
+                Console.WriteLine($"{indent}{nameof(FilterUnits)}: \"{FilterUnits}\"");
             }
             if (PrimitiveUnits != null)
             {
-                Console.WriteLine($"{indent}{nameof(PrimitiveUnits)}='{PrimitiveUnits}'");
+                Console.WriteLine($"{indent}{nameof(PrimitiveUnits)}: \"{PrimitiveUnits}\"");
             }
             if (Href != null)
             {
-                Console.WriteLine($"{indent}{nameof(Href)}='{Href}'");
+                Console.WriteLine($"{indent}{nameof(Href)}: \"{Href}\"");
             }
         }
     }

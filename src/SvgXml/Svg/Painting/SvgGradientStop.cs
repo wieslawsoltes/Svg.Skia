@@ -19,7 +19,7 @@ namespace Svg
 
             if (Offset != null)
             {
-                Console.WriteLine($"{indent}{nameof(Offset)}='{Offset}'");
+                Console.WriteLine($"{indent}{nameof(Offset)}: \"{Offset}\"");
             }
         }
     }

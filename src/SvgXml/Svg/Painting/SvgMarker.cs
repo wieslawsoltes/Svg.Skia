@@ -68,35 +68,35 @@ namespace Svg
 
             if (ViewBox != null)
             {
-                Console.WriteLine($"{indent}{nameof(ViewBox)}='{ViewBox}'");
+                Console.WriteLine($"{indent}{nameof(ViewBox)}: \"{ViewBox}\"");
             }
             if (AspectRatio != null)
             {
-                Console.WriteLine($"{indent}{nameof(AspectRatio)}='{AspectRatio}'");
+                Console.WriteLine($"{indent}{nameof(AspectRatio)}: \"{AspectRatio}\"");
             }
             if (RefX != null)
             {
-                Console.WriteLine($"{indent}{nameof(RefX)}='{RefX}'");
+                Console.WriteLine($"{indent}{nameof(RefX)}: \"{RefX}\"");
             }
             if (RefY != null)
             {
-                Console.WriteLine($"{indent}{nameof(RefY)}='{RefY}'");
+                Console.WriteLine($"{indent}{nameof(RefY)}: \"{RefY}\"");
             }
             if (MarkerUnits != null)
             {
-                Console.WriteLine($"{indent}{nameof(MarkerUnits)}='{MarkerUnits}'");
+                Console.WriteLine($"{indent}{nameof(MarkerUnits)}: \"{MarkerUnits}\"");
             }
             if (MarkerWidth != null)
             {
-                Console.WriteLine($"{indent}{nameof(MarkerWidth)}='{MarkerWidth}'");
+                Console.WriteLine($"{indent}{nameof(MarkerWidth)}: \"{MarkerWidth}\"");
             }
             if (MarkerHeight != null)
             {
-                Console.WriteLine($"{indent}{nameof(MarkerHeight)}='{MarkerHeight}'");
+                Console.WriteLine($"{indent}{nameof(MarkerHeight)}: \"{MarkerHeight}\"");
             }
             if (Orient != null)
             {
-                Console.WriteLine($"{indent}{nameof(Orient)}='{Orient}'");
+                Console.WriteLine($"{indent}{nameof(Orient)}: \"{Orient}\"");
             }
         }
     }

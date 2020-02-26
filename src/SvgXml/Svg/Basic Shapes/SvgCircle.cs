@@ -33,15 +33,15 @@ namespace Svg
 
             if (CenterX != null)
             {
-                Console.WriteLine($"{indent}{nameof(CenterX)}='{CenterX}'");
+                Console.WriteLine($"{indent}{nameof(CenterX)}: \"{CenterX}\"");
             }
             if (CenterY != null)
             {
-                Console.WriteLine($"{indent}{nameof(CenterY)}='{CenterY}'");
+                Console.WriteLine($"{indent}{nameof(CenterY)}: \"{CenterY}\"");
             }
             if (Radius != null)
             {
-                Console.WriteLine($"{indent}{nameof(Radius)}='{Radius}'");
+                Console.WriteLine($"{indent}{nameof(Radius)}: \"{Radius}\"");
             }
         }
     }

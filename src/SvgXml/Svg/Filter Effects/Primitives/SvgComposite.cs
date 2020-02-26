@@ -61,31 +61,31 @@ namespace Svg.FilterEffects
 
             if (Input != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input)}='{Input}'");
+                Console.WriteLine($"{indent}{nameof(Input)}: \"{Input}\"");
             }
             if (Input2 != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input2)}='{Input2}'");
+                Console.WriteLine($"{indent}{nameof(Input2)}: \"{Input2}\"");
             }
             if (Operator != null)
             {
-                Console.WriteLine($"{indent}{nameof(Operator)}='{Operator}'");
+                Console.WriteLine($"{indent}{nameof(Operator)}: \"{Operator}\"");
             }
             if (K1 != null)
             {
-                Console.WriteLine($"{indent}{nameof(K1)}='{K1}'");
+                Console.WriteLine($"{indent}{nameof(K1)}: \"{K1}\"");
             }
             if (K2 != null)
             {
-                Console.WriteLine($"{indent}{nameof(K2)}='{K2}'");
+                Console.WriteLine($"{indent}{nameof(K2)}: \"{K2}\"");
             }
             if (K3 != null)
             {
-                Console.WriteLine($"{indent}{nameof(K3)}='{K3}'");
+                Console.WriteLine($"{indent}{nameof(K3)}: \"{K3}\"");
             }
             if (K4 != null)
             {
-                Console.WriteLine($"{indent}{nameof(K4)}='{K4}'");
+                Console.WriteLine($"{indent}{nameof(K4)}: \"{K4}\"");
             }
         }
     }

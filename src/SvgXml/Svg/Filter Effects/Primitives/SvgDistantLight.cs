@@ -26,11 +26,11 @@ namespace Svg.FilterEffects
 
             if (Azimuth != null)
             {
-                Console.WriteLine($"{indent}{nameof(Azimuth)}='{Azimuth}'");
+                Console.WriteLine($"{indent}{nameof(Azimuth)}: \"{Azimuth}\"");
             }
             if (Elevation != null)
             {
-                Console.WriteLine($"{indent}{nameof(Elevation)}='{Elevation}'");
+                Console.WriteLine($"{indent}{nameof(Elevation)}: \"{Elevation}\"");
             }
         }
     }

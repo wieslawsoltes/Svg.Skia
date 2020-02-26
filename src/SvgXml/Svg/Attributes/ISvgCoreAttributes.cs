@@ -37,19 +37,19 @@ namespace Svg
         {
             if (Id != null)
             {
-                Console.WriteLine($"{indent}{nameof(Id)}='{Id}'");
+                Console.WriteLine($"{indent}{nameof(Id)}: \"{Id}\"");
             }
             if (Base != null)
             {
-                Console.WriteLine($"{indent}{nameof(Base)}='{Base}'");
+                Console.WriteLine($"{indent}{nameof(Base)}: \"{Base}\"");
             }
             if (Lang != null)
             {
-                Console.WriteLine($"{indent}{nameof(Lang)}='{Lang}'");
+                Console.WriteLine($"{indent}{nameof(Lang)}: \"{Lang}\"");
             }
             if (Space != null)
             {
-                Console.WriteLine($"{indent}{nameof(Space)}='{Space}'");
+                Console.WriteLine($"{indent}{nameof(Space)}: \"{Space}\"");
             }
         }
     }

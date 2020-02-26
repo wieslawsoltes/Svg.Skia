@@ -89,47 +89,47 @@ namespace Svg
 
             if (X != null)
             {
-                Console.WriteLine($"{indent}{nameof(X)}='{X}'");
+                Console.WriteLine($"{indent}{nameof(X)}: \"{X}\"");
             }
             if (Y != null)
             {
-                Console.WriteLine($"{indent}{nameof(Y)}='{Y}'");
+                Console.WriteLine($"{indent}{nameof(Y)}: \"{Y}\"");
             }
             if (Width != null)
             {
-                Console.WriteLine($"{indent}{nameof(Width)}='{Width}'");
+                Console.WriteLine($"{indent}{nameof(Width)}: \"{Width}\"");
             }
             if (Height != null)
             {
-                Console.WriteLine($"{indent}{nameof(Height)}='{Height}'");
+                Console.WriteLine($"{indent}{nameof(Height)}: \"{Height}\"");
             }
             if (ViewBox != null)
             {
-                Console.WriteLine($"{indent}{nameof(ViewBox)}='{ViewBox}'");
+                Console.WriteLine($"{indent}{nameof(ViewBox)}: \"{ViewBox}\"");
             }
             if (AspectRatio != null)
             {
-                Console.WriteLine($"{indent}{nameof(AspectRatio)}='{AspectRatio}'");
+                Console.WriteLine($"{indent}{nameof(AspectRatio)}: \"{AspectRatio}\"");
             }
             if (ZoomAndPan != null)
             {
-                Console.WriteLine($"{indent}{nameof(ZoomAndPan)}='{ZoomAndPan}'");
+                Console.WriteLine($"{indent}{nameof(ZoomAndPan)}: \"{ZoomAndPan}\"");
             }
             if (Version != null)
             {
-                Console.WriteLine($"{indent}{nameof(Version)}='{Version}'");
+                Console.WriteLine($"{indent}{nameof(Version)}: \"{Version}\"");
             }
             if (BaseProfile != null)
             {
-                Console.WriteLine($"{indent}{nameof(BaseProfile)}='{BaseProfile}'");
+                Console.WriteLine($"{indent}{nameof(BaseProfile)}: \"{BaseProfile}\"");
             }
             if (ContentScriptType != null)
             {
-                Console.WriteLine($"{indent}{nameof(ContentScriptType)}='{ContentScriptType}'");
+                Console.WriteLine($"{indent}{nameof(ContentScriptType)}: \"{ContentScriptType}\"");
             }
             if (ContentStyleType != null)
             {
-                Console.WriteLine($"{indent}{nameof(ContentStyleType)}='{ContentStyleType}'");
+                Console.WriteLine($"{indent}{nameof(ContentStyleType)}: \"{ContentStyleType}\"");
             }
         }
     }

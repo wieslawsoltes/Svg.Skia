@@ -33,15 +33,15 @@ namespace Svg.FilterEffects
 
             if (Input != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input)}='{Input}'");
+                Console.WriteLine($"{indent}{nameof(Input)}: \"{Input}\"");
             }
             if (Operator != null)
             {
-                Console.WriteLine($"{indent}{nameof(Operator)}='{Operator}'");
+                Console.WriteLine($"{indent}{nameof(Operator)}: \"{Operator}\"");
             }
             if (Radius != null)
             {
-                Console.WriteLine($"{indent}{nameof(Radius)}='{Radius}'");
+                Console.WriteLine($"{indent}{nameof(Radius)}: \"{Radius}\"");
             }
         }
     }

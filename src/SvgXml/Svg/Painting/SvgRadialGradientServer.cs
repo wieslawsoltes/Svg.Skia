@@ -74,39 +74,39 @@ namespace Svg
 
             if (CenterX != null)
             {
-                Console.WriteLine($"{indent}{nameof(CenterX)}='{CenterX}'");
+                Console.WriteLine($"{indent}{nameof(CenterX)}: \"{CenterX}\"");
             }
             if (CenterY != null)
             {
-                Console.WriteLine($"{indent}{nameof(CenterY)}='{CenterY}'");
+                Console.WriteLine($"{indent}{nameof(CenterY)}: \"{CenterY}\"");
             }
             if (Radius != null)
             {
-                Console.WriteLine($"{indent}{nameof(Radius)}='{Radius}'");
+                Console.WriteLine($"{indent}{nameof(Radius)}: \"{Radius}\"");
             }
             if (FocalX != null)
             {
-                Console.WriteLine($"{indent}{nameof(FocalX)}='{FocalX}'");
+                Console.WriteLine($"{indent}{nameof(FocalX)}: \"{FocalX}\"");
             }
             if (FocalY != null)
             {
-                Console.WriteLine($"{indent}{nameof(FocalY)}='{FocalY}'");
+                Console.WriteLine($"{indent}{nameof(FocalY)}: \"{FocalY}\"");
             }
             if (GradientUnits != null)
             {
-                Console.WriteLine($"{indent}{nameof(GradientUnits)}='{GradientUnits}'");
+                Console.WriteLine($"{indent}{nameof(GradientUnits)}: \"{GradientUnits}\"");
             }
             if (GradientTransform != null)
             {
-                Console.WriteLine($"{indent}{nameof(GradientTransform)}='{GradientTransform}'");
+                Console.WriteLine($"{indent}{nameof(GradientTransform)}: \"{GradientTransform}\"");
             }
             if (SpreadMethod != null)
             {
-                Console.WriteLine($"{indent}{nameof(SpreadMethod)}='{SpreadMethod}'");
+                Console.WriteLine($"{indent}{nameof(SpreadMethod)}: \"{SpreadMethod}\"");
             }
             if (Href != null)
             {
-                Console.WriteLine($"{indent}{nameof(Href)}='{Href}'");
+                Console.WriteLine($"{indent}{nameof(Href)}: \"{Href}\"");
             }
         }
     }

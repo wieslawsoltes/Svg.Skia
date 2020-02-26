@@ -23,11 +23,11 @@ namespace Svg
         {
             if (Class != null)
             {
-                Console.WriteLine($"{indent}{nameof(Class)}='{Class}'");
+                Console.WriteLine($"{indent}{nameof(Class)}: \"{Class}\"");
             }
             if (Style != null)
             {
-                Console.WriteLine($"{indent}{nameof(Style)}='{Style}'");
+                Console.WriteLine($"{indent}{nameof(Style)}: \"{Style}\"");
             }
         }
     }

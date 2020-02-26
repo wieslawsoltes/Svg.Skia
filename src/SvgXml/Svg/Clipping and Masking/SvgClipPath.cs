@@ -19,7 +19,7 @@ namespace Svg
 
             if (ClipPathUnits != null)
             {
-                Console.WriteLine($"{indent}{nameof(ClipPathUnits)}='{ClipPathUnits}'");
+                Console.WriteLine($"{indent}{nameof(ClipPathUnits)}: \"{ClipPathUnits}\"");
             }
         }
     }

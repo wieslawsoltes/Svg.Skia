@@ -33,15 +33,15 @@ namespace Svg.FilterEffects
 
             if (Input != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input)}='{Input}'");
+                Console.WriteLine($"{indent}{nameof(Input)}: \"{Input}\"");
             }
             if (Input2 != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input2)}='{Input2}'");
+                Console.WriteLine($"{indent}{nameof(Input2)}: \"{Input2}\"");
             }
             if (Mode != null)
             {
-                Console.WriteLine($"{indent}{nameof(Mode)}='{Mode}'");
+                Console.WriteLine($"{indent}{nameof(Mode)}: \"{Mode}\"");
             }
         }
     }

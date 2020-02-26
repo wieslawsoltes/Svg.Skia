@@ -68,35 +68,35 @@ namespace Svg.FilterEffects
 
             if (X != null)
             {
-                Console.WriteLine($"{indent}{nameof(X)}='{X}'");
+                Console.WriteLine($"{indent}{nameof(X)}: \"{X}\"");
             }
             if (Y != null)
             {
-                Console.WriteLine($"{indent}{nameof(Y)}='{Y}'");
+                Console.WriteLine($"{indent}{nameof(Y)}: \"{Y}\"");
             }
             if (Z != null)
             {
-                Console.WriteLine($"{indent}{nameof(Z)}='{Z}'");
+                Console.WriteLine($"{indent}{nameof(Z)}: \"{Z}\"");
             }
             if (PointsAtX != null)
             {
-                Console.WriteLine($"{indent}{nameof(PointsAtX)}='{PointsAtX}'");
+                Console.WriteLine($"{indent}{nameof(PointsAtX)}: \"{PointsAtX}\"");
             }
             if (PointsAtY != null)
             {
-                Console.WriteLine($"{indent}{nameof(PointsAtY)}='{PointsAtY}'");
+                Console.WriteLine($"{indent}{nameof(PointsAtY)}: \"{PointsAtY}\"");
             }
             if (PointsAtZ != null)
             {
-                Console.WriteLine($"{indent}{nameof(PointsAtZ)}='{PointsAtZ}'");
+                Console.WriteLine($"{indent}{nameof(PointsAtZ)}: \"{PointsAtZ}\"");
             }
             if (SpecularExponent != null)
             {
-                Console.WriteLine($"{indent}{nameof(SpecularExponent)}='{SpecularExponent}'");
+                Console.WriteLine($"{indent}{nameof(SpecularExponent)}: \"{SpecularExponent}\"");
             }
             if (LlimitingConeAngle != null)
             {
-                Console.WriteLine($"{indent}{nameof(LlimitingConeAngle)}='{LlimitingConeAngle}'");
+                Console.WriteLine($"{indent}{nameof(LlimitingConeAngle)}: \"{LlimitingConeAngle}\"");
             }
         }
     }

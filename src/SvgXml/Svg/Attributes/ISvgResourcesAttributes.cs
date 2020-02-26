@@ -16,7 +16,7 @@ namespace Svg
         {
             if (ExternalResourcesRequired != null)
             {
-                Console.WriteLine($"{indent}{nameof(ExternalResourcesRequired)}='{ExternalResourcesRequired}'");
+                Console.WriteLine($"{indent}{nameof(ExternalResourcesRequired)}: \"{ExternalResourcesRequired}\"");
             }
         }
     }

@@ -40,19 +40,19 @@ namespace Svg
 
             if (CenterX != null)
             {
-                Console.WriteLine($"{indent}{nameof(CenterX)}='{CenterX}'");
+                Console.WriteLine($"{indent}{nameof(CenterX)}: \"{CenterX}\"");
             }
             if (CenterY != null)
             {
-                Console.WriteLine($"{indent}{nameof(CenterY)}='{CenterY}'");
+                Console.WriteLine($"{indent}{nameof(CenterY)}: \"{CenterY}\"");
             }
             if (RadiusX != null)
             {
-                Console.WriteLine($"{indent}{nameof(RadiusX)}='{RadiusX}'");
+                Console.WriteLine($"{indent}{nameof(RadiusX)}: \"{RadiusX}\"");
             }
             if (RadiusY != null)
             {
-                Console.WriteLine($"{indent}{nameof(RadiusY)}='{RadiusY}'");
+                Console.WriteLine($"{indent}{nameof(RadiusY)}: \"{RadiusY}\"");
             }
         }
     }

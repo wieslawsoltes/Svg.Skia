@@ -47,23 +47,23 @@ namespace Svg.FilterEffects
 
             if (Input != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input)}='{Input}'");
+                Console.WriteLine($"{indent}{nameof(Input)}: \"{Input}\"");
             }
             if (Input2 != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input2)}='{Input2}'");
+                Console.WriteLine($"{indent}{nameof(Input2)}: \"{Input2}\"");
             }
             if (Scale != null)
             {
-                Console.WriteLine($"{indent}{nameof(Scale)}='{Scale}'");
+                Console.WriteLine($"{indent}{nameof(Scale)}: \"{Scale}\"");
             }
             if (XChannelSelector != null)
             {
-                Console.WriteLine($"{indent}{nameof(XChannelSelector)}='{XChannelSelector}'");
+                Console.WriteLine($"{indent}{nameof(XChannelSelector)}: \"{XChannelSelector}\"");
             }
             if (YChannelSelector != null)
             {
-                Console.WriteLine($"{indent}{nameof(YChannelSelector)}='{YChannelSelector}'");
+                Console.WriteLine($"{indent}{nameof(YChannelSelector)}: \"{YChannelSelector}\"");
             }
         }
     }

@@ -26,11 +26,11 @@ namespace Svg
 
             if (PathData != null)
             {
-                Console.WriteLine($"{indent}{nameof(PathData)}='{PathData}'");
+                Console.WriteLine($"{indent}{nameof(PathData)}: \"{PathData}\"");
             }
             if (PathLength != null)
             {
-                Console.WriteLine($"{indent}{nameof(PathLength)}='{PathLength}'");
+                Console.WriteLine($"{indent}{nameof(PathLength)}: \"{PathLength}\"");
             }
         }
     }

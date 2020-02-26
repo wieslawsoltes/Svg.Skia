@@ -47,23 +47,23 @@ namespace Svg.FilterEffects
 
             if (Input != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input)}='{Input}'");
+                Console.WriteLine($"{indent}{nameof(Input)}: \"{Input}\"");
             }
             if (SurfaceScale != null)
             {
-                Console.WriteLine($"{indent}{nameof(SurfaceScale)}='{SurfaceScale}'");
+                Console.WriteLine($"{indent}{nameof(SurfaceScale)}: \"{SurfaceScale}\"");
             }
             if (SpecularConstant != null)
             {
-                Console.WriteLine($"{indent}{nameof(SpecularConstant)}='{SpecularConstant}'");
+                Console.WriteLine($"{indent}{nameof(SpecularConstant)}: \"{SpecularConstant}\"");
             }
             if (SpecularExponent != null)
             {
-                Console.WriteLine($"{indent}{nameof(SpecularExponent)}='{SpecularExponent}'");
+                Console.WriteLine($"{indent}{nameof(SpecularExponent)}: \"{SpecularExponent}\"");
             }
             if (KernelUnitLength != null)
             {
-                Console.WriteLine($"{indent}{nameof(KernelUnitLength)}='{KernelUnitLength}'");
+                Console.WriteLine($"{indent}{nameof(KernelUnitLength)}: \"{KernelUnitLength}\"");
             }
         }
     }

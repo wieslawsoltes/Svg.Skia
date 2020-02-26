@@ -33,15 +33,15 @@ namespace Svg.FilterEffects
 
             if (X != null)
             {
-                Console.WriteLine($"{indent}{nameof(X)}='{X}'");
+                Console.WriteLine($"{indent}{nameof(X)}: \"{X}\"");
             }
             if (Y != null)
             {
-                Console.WriteLine($"{indent}{nameof(Y)}='{Y}'");
+                Console.WriteLine($"{indent}{nameof(Y)}: \"{Y}\"");
             }
             if (Z != null)
             {
-                Console.WriteLine($"{indent}{nameof(Z)}='{Z}'");
+                Console.WriteLine($"{indent}{nameof(Z)}: \"{Z}\"");
             }
         }
     }

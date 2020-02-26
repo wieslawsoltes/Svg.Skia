@@ -82,43 +82,43 @@ namespace Svg
 
             if (ViewBox != null)
             {
-                Console.WriteLine($"{indent}{nameof(ViewBox)}='{ViewBox}'");
+                Console.WriteLine($"{indent}{nameof(ViewBox)}: \"{ViewBox}\"");
             }
             if (AspectRatio != null)
             {
-                Console.WriteLine($"{indent}{nameof(AspectRatio)}='{AspectRatio}'");
+                Console.WriteLine($"{indent}{nameof(AspectRatio)}: \"{AspectRatio}\"");
             }
             if (X != null)
             {
-                Console.WriteLine($"{indent}{nameof(X)}='{X}'");
+                Console.WriteLine($"{indent}{nameof(X)}: \"{X}\"");
             }
             if (Y != null)
             {
-                Console.WriteLine($"{indent}{nameof(Y)}='{Y}'");
+                Console.WriteLine($"{indent}{nameof(Y)}: \"{Y}\"");
             }
             if (Width != null)
             {
-                Console.WriteLine($"{indent}{nameof(Width)}='{Width}'");
+                Console.WriteLine($"{indent}{nameof(Width)}: \"{Width}\"");
             }
             if (Height != null)
             {
-                Console.WriteLine($"{indent}{nameof(Height)}='{Height}'");
+                Console.WriteLine($"{indent}{nameof(Height)}: \"{Height}\"");
             }
             if (PatternUnits != null)
             {
-                Console.WriteLine($"{indent}{nameof(PatternUnits)}='{PatternUnits}'");
+                Console.WriteLine($"{indent}{nameof(PatternUnits)}: \"{PatternUnits}\"");
             }
             if (PatternContentUnits != null)
             {
-                Console.WriteLine($"{indent}{nameof(PatternContentUnits)}='{PatternContentUnits}'");
+                Console.WriteLine($"{indent}{nameof(PatternContentUnits)}: \"{PatternContentUnits}\"");
             }
             if (PatternTransform != null)
             {
-                Console.WriteLine($"{indent}{nameof(PatternTransform)}='{PatternTransform}'");
+                Console.WriteLine($"{indent}{nameof(PatternTransform)}: \"{PatternTransform}\"");
             }
             if (Href != null)
             {
-                Console.WriteLine($"{indent}{nameof(Href)}='{Href}'");
+                Console.WriteLine($"{indent}{nameof(Href)}: \"{Href}\"");
             }
         }
     }

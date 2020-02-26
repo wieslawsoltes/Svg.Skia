@@ -26,11 +26,11 @@ namespace Svg
 
             if (ViewBox != null)
             {
-                Console.WriteLine($"{indent}{nameof(ViewBox)}='{ViewBox}'");
+                Console.WriteLine($"{indent}{nameof(ViewBox)}: \"{ViewBox}\"");
             }
             if (AspectRatio != null)
             {
-                Console.WriteLine($"{indent}{nameof(AspectRatio)}='{AspectRatio}'");
+                Console.WriteLine($"{indent}{nameof(AspectRatio)}: \"{AspectRatio}\"");
             }
         }
     }

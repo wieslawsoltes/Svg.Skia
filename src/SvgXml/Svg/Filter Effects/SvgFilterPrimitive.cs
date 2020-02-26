@@ -46,23 +46,23 @@ namespace Svg.FilterEffects
 
             if (X != null)
             {
-                Console.WriteLine($"{indent}{nameof(X)}='{X}'");
+                Console.WriteLine($"{indent}{nameof(X)}: \"{X}\"");
             }
             if (Y != null)
             {
-                Console.WriteLine($"{indent}{nameof(Y)}='{Y}'");
+                Console.WriteLine($"{indent}{nameof(Y)}: \"{Y}\"");
             }
             if (Width != null)
             {
-                Console.WriteLine($"{indent}{nameof(Width)}='{Width}'");
+                Console.WriteLine($"{indent}{nameof(Width)}: \"{Width}\"");
             }
             if (Height != null)
             {
-                Console.WriteLine($"{indent}{nameof(Height)}='{Height}'");
+                Console.WriteLine($"{indent}{nameof(Height)}: \"{Height}\"");
             }
             if (Result != null)
             {
-                Console.WriteLine($"{indent}{nameof(Result)}='{Result}'");
+                Console.WriteLine($"{indent}{nameof(Result)}: \"{Result}\"");
             }
         }
     }

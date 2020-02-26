@@ -54,27 +54,27 @@ namespace Svg
 
             if (X != null)
             {
-                Console.WriteLine($"{indent}{nameof(X)}='{X}'");
+                Console.WriteLine($"{indent}{nameof(X)}: \"{X}\"");
             }
             if (Y != null)
             {
-                Console.WriteLine($"{indent}{nameof(Y)}='{Y}'");
+                Console.WriteLine($"{indent}{nameof(Y)}: \"{Y}\"");
             }
             if (Width != null)
             {
-                Console.WriteLine($"{indent}{nameof(Width)}='{Width}'");
+                Console.WriteLine($"{indent}{nameof(Width)}: \"{Width}\"");
             }
             if (Height != null)
             {
-                Console.WriteLine($"{indent}{nameof(Height)}='{Height}'");
+                Console.WriteLine($"{indent}{nameof(Height)}: \"{Height}\"");
             }
             if (CornerRadiusX != null)
             {
-                Console.WriteLine($"{indent}{nameof(CornerRadiusX)}='{CornerRadiusX}'");
+                Console.WriteLine($"{indent}{nameof(CornerRadiusX)}: \"{CornerRadiusX}\"");
             }
             if (CornerRadiusY != null)
             {
-                Console.WriteLine($"{indent}{nameof(CornerRadiusY)}='{CornerRadiusY}'");
+                Console.WriteLine($"{indent}{nameof(CornerRadiusY)}: \"{CornerRadiusY}\"");
             }
         }
     }

@@ -47,23 +47,23 @@ namespace Svg.FilterEffects
 
             if (BaseFrequency != null)
             {
-                Console.WriteLine($"{indent}{nameof(BaseFrequency)}='{BaseFrequency}'");
+                Console.WriteLine($"{indent}{nameof(BaseFrequency)}: \"{BaseFrequency}\"");
             }
             if (NumOctaves != null)
             {
-                Console.WriteLine($"{indent}{nameof(NumOctaves)}='{NumOctaves}'");
+                Console.WriteLine($"{indent}{nameof(NumOctaves)}: \"{NumOctaves}\"");
             }
             if (Seed != null)
             {
-                Console.WriteLine($"{indent}{nameof(Seed)}='{Seed}'");
+                Console.WriteLine($"{indent}{nameof(Seed)}: \"{Seed}\"");
             }
             if (StitchTiles != null)
             {
-                Console.WriteLine($"{indent}{nameof(StitchTiles)}='{StitchTiles}'");
+                Console.WriteLine($"{indent}{nameof(StitchTiles)}: \"{StitchTiles}\"");
             }
             if (Type != null)
             {
-                Console.WriteLine($"{indent}{nameof(Type)}='{Type}'");
+                Console.WriteLine($"{indent}{nameof(Type)}: \"{Type}\"");
             }
         }
     }

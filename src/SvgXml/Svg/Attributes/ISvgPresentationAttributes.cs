@@ -422,239 +422,239 @@ namespace Svg
         {
             if (AlignmentBaseline != null)
             {
-                Console.WriteLine($"{indent}{nameof(AlignmentBaseline)}='{AlignmentBaseline}'");
+                Console.WriteLine($"{indent}{nameof(AlignmentBaseline)}: \"{AlignmentBaseline}\"");
             }
             if (BaselineShift != null)
             {
-                Console.WriteLine($"{indent}{nameof(BaselineShift)}='{BaselineShift}'");
+                Console.WriteLine($"{indent}{nameof(BaselineShift)}: \"{BaselineShift}\"");
             }
             if (Clip != null)
             {
-                Console.WriteLine($"{indent}{nameof(Clip)}='{Clip}'");
+                Console.WriteLine($"{indent}{nameof(Clip)}: \"{Clip}\"");
             }
             if (ClipPath != null)
             {
-                Console.WriteLine($"{indent}{nameof(ClipPath)}='{ClipPath}'");
+                Console.WriteLine($"{indent}{nameof(ClipPath)}: \"{ClipPath}\"");
             }
             if (ClipRule != null)
             {
-                Console.WriteLine($"{indent}{nameof(ClipRule)}='{ClipRule}'");
+                Console.WriteLine($"{indent}{nameof(ClipRule)}: \"{ClipRule}\"");
             }
             if (Color != null)
             {
-                Console.WriteLine($"{indent}{nameof(Color)}='{Color}'");
+                Console.WriteLine($"{indent}{nameof(Color)}: \"{Color}\"");
             }
             if (ColorInterpolation != null)
             {
-                Console.WriteLine($"{indent}{nameof(ColorInterpolation)}='{ColorInterpolation}'");
+                Console.WriteLine($"{indent}{nameof(ColorInterpolation)}: \"{ColorInterpolation}\"");
             }
             if (ColorInterpolationFilters != null)
             {
-                Console.WriteLine($"{indent}{nameof(ColorInterpolationFilters)}='{ColorInterpolationFilters}'");
+                Console.WriteLine($"{indent}{nameof(ColorInterpolationFilters)}: \"{ColorInterpolationFilters}\"");
             }
             if (ColorProfile != null)
             {
-                Console.WriteLine($"{indent}{nameof(ColorProfile)}='{ColorProfile}'");
+                Console.WriteLine($"{indent}{nameof(ColorProfile)}: \"{ColorProfile}\"");
             }
             if (ColorRendering != null)
             {
-                Console.WriteLine($"{indent}{nameof(ColorRendering)}='{ColorRendering}'");
+                Console.WriteLine($"{indent}{nameof(ColorRendering)}: \"{ColorRendering}\"");
             }
             if (Cursor != null)
             {
-                Console.WriteLine($"{indent}{nameof(Cursor)}='{Cursor}'");
+                Console.WriteLine($"{indent}{nameof(Cursor)}: \"{Cursor}\"");
             }
             if (Direction != null)
             {
-                Console.WriteLine($"{indent}{nameof(Direction)}='{Direction}'");
+                Console.WriteLine($"{indent}{nameof(Direction)}: \"{Direction}\"");
             }
             if (Display != null)
             {
-                Console.WriteLine($"{indent}{nameof(Display)}='{Display}'");
+                Console.WriteLine($"{indent}{nameof(Display)}: \"{Display}\"");
             }
             if (DominantBaseline != null)
             {
-                Console.WriteLine($"{indent}{nameof(DominantBaseline)}='{DominantBaseline}'");
+                Console.WriteLine($"{indent}{nameof(DominantBaseline)}: \"{DominantBaseline}\"");
             }
             if (EnableBackground != null)
             {
-                Console.WriteLine($"{indent}{nameof(EnableBackground)}='{EnableBackground}'");
+                Console.WriteLine($"{indent}{nameof(EnableBackground)}: \"{EnableBackground}\"");
             }
             if (Fill != null)
             {
-                Console.WriteLine($"{indent}{nameof(Fill)}='{Fill}'");
+                Console.WriteLine($"{indent}{nameof(Fill)}: \"{Fill}\"");
             }
             if (FillOpacity != null)
             {
-                Console.WriteLine($"{indent}{nameof(FillOpacity)}='{FillOpacity}'");
+                Console.WriteLine($"{indent}{nameof(FillOpacity)}: \"{FillOpacity}\"");
             }
             if (FillRule != null)
             {
-                Console.WriteLine($"{indent}{nameof(FillRule)}='{FillRule}'");
+                Console.WriteLine($"{indent}{nameof(FillRule)}: \"{FillRule}\"");
             }
             if (Filter != null)
             {
-                Console.WriteLine($"{indent}{nameof(Filter)}='{Filter}'");
+                Console.WriteLine($"{indent}{nameof(Filter)}: \"{Filter}\"");
             }
             if (FloodColor != null)
             {
-                Console.WriteLine($"{indent}{nameof(FloodColor)}='{FloodColor}'");
+                Console.WriteLine($"{indent}{nameof(FloodColor)}: \"{FloodColor}\"");
             }
             if (FloodOpacity != null)
             {
-                Console.WriteLine($"{indent}{nameof(FloodOpacity)}='{FloodOpacity}'");
+                Console.WriteLine($"{indent}{nameof(FloodOpacity)}: \"{FloodOpacity}\"");
             }
             if (FontFamily != null)
             {
-                Console.WriteLine($"{indent}{nameof(FontFamily)}='{FontFamily}'");
+                Console.WriteLine($"{indent}{nameof(FontFamily)}: \"{FontFamily}\"");
             }
             if (FontSize != null)
             {
-                Console.WriteLine($"{indent}{nameof(FontSize)}='{FontSize}'");
+                Console.WriteLine($"{indent}{nameof(FontSize)}: \"{FontSize}\"");
             }
             if (FontSizeAdjust != null)
             {
-                Console.WriteLine($"{indent}{nameof(FontSizeAdjust)}='{FontSizeAdjust}'");
+                Console.WriteLine($"{indent}{nameof(FontSizeAdjust)}: \"{FontSizeAdjust}\"");
             }
             if (FontStretch != null)
             {
-                Console.WriteLine($"{indent}{nameof(FontStretch)}='{FontStretch}'");
+                Console.WriteLine($"{indent}{nameof(FontStretch)}: \"{FontStretch}\"");
             }
             if (FontStyle != null)
             {
-                Console.WriteLine($"{indent}{nameof(FontStyle)}='{FontStyle}'");
+                Console.WriteLine($"{indent}{nameof(FontStyle)}: \"{FontStyle}\"");
             }
             if (FontVariant != null)
             {
-                Console.WriteLine($"{indent}{nameof(FontVariant)}='{FontVariant}'");
+                Console.WriteLine($"{indent}{nameof(FontVariant)}: \"{FontVariant}\"");
             }
             if (FontWeight != null)
             {
-                Console.WriteLine($"{indent}{nameof(FontWeight)}='{FontWeight}'");
+                Console.WriteLine($"{indent}{nameof(FontWeight)}: \"{FontWeight}\"");
             }
             if (GlyphOrientationHorizontal != null)
             {
-                Console.WriteLine($"{indent}{nameof(GlyphOrientationHorizontal)}='{GlyphOrientationHorizontal}'");
+                Console.WriteLine($"{indent}{nameof(GlyphOrientationHorizontal)}: \"{GlyphOrientationHorizontal}\"");
             }
             if (GlyphOrientationVertical != null)
             {
-                Console.WriteLine($"{indent}{nameof(GlyphOrientationVertical)}='{GlyphOrientationVertical}'");
+                Console.WriteLine($"{indent}{nameof(GlyphOrientationVertical)}: \"{GlyphOrientationVertical}\"");
             }
             if (ImageRendering != null)
             {
-                Console.WriteLine($"{indent}{nameof(ImageRendering)}='{ImageRendering}'");
+                Console.WriteLine($"{indent}{nameof(ImageRendering)}: \"{ImageRendering}\"");
             }
             if (Kerning != null)
             {
-                Console.WriteLine($"{indent}{nameof(Kerning)}='{Kerning}'");
+                Console.WriteLine($"{indent}{nameof(Kerning)}: \"{Kerning}\"");
             }
             if (LetterSpacing != null)
             {
-                Console.WriteLine($"{indent}{nameof(LetterSpacing)}='{LetterSpacing}'");
+                Console.WriteLine($"{indent}{nameof(LetterSpacing)}: \"{LetterSpacing}\"");
             }
             if (LightingColor != null)
             {
-                Console.WriteLine($"{indent}{nameof(LightingColor)}='{LightingColor}'");
+                Console.WriteLine($"{indent}{nameof(LightingColor)}: \"{LightingColor}\"");
             }
             if (MarkerEnd != null)
             {
-                Console.WriteLine($"{indent}{nameof(MarkerEnd)}='{MarkerEnd}'");
+                Console.WriteLine($"{indent}{nameof(MarkerEnd)}: \"{MarkerEnd}\"");
             }
             if (MarkerMid != null)
             {
-                Console.WriteLine($"{indent}{nameof(MarkerMid)}='{MarkerMid}'");
+                Console.WriteLine($"{indent}{nameof(MarkerMid)}: \"{MarkerMid}\"");
             }
             if (MarkerStart != null)
             {
-                Console.WriteLine($"{indent}{nameof(MarkerStart)}='{MarkerStart}'");
+                Console.WriteLine($"{indent}{nameof(MarkerStart)}: \"{MarkerStart}\"");
             }
             if (Mask != null)
             {
-                Console.WriteLine($"{indent}{nameof(Mask)}='{Mask}'");
+                Console.WriteLine($"{indent}{nameof(Mask)}: \"{Mask}\"");
             }
             if (Opacity != null)
             {
-                Console.WriteLine($"{indent}{nameof(Opacity)}='{Opacity}'");
+                Console.WriteLine($"{indent}{nameof(Opacity)}: \"{Opacity}\"");
             }
             if (Overflow != null)
             {
-                Console.WriteLine($"{indent}{nameof(Overflow)}='{Overflow}'");
+                Console.WriteLine($"{indent}{nameof(Overflow)}: \"{Overflow}\"");
             }
             if (PointerEvents != null)
             {
-                Console.WriteLine($"{indent}{nameof(PointerEvents)}='{PointerEvents}'");
+                Console.WriteLine($"{indent}{nameof(PointerEvents)}: \"{PointerEvents}\"");
             }
             if (ShapeRendering != null)
             {
-                Console.WriteLine($"{indent}{nameof(ShapeRendering)}='{ShapeRendering}'");
+                Console.WriteLine($"{indent}{nameof(ShapeRendering)}: \"{ShapeRendering}\"");
             }
             if (StopColor != null)
             {
-                Console.WriteLine($"{indent}{nameof(StopColor)}='{StopColor}'");
+                Console.WriteLine($"{indent}{nameof(StopColor)}: \"{StopColor}\"");
             }
             if (StopOpacity != null)
             {
-                Console.WriteLine($"{indent}{nameof(StopOpacity)}='{StopOpacity}'");
+                Console.WriteLine($"{indent}{nameof(StopOpacity)}: \"{StopOpacity}\"");
             }
             if (Stroke != null)
             {
-                Console.WriteLine($"{indent}{nameof(Stroke)}='{Stroke}'");
+                Console.WriteLine($"{indent}{nameof(Stroke)}: \"{Stroke}\"");
             }
             if (StrokeDasharray != null)
             {
-                Console.WriteLine($"{indent}{nameof(StrokeDasharray)}='{StrokeDasharray}'");
+                Console.WriteLine($"{indent}{nameof(StrokeDasharray)}: \"{StrokeDasharray}\"");
             }
             if (StrokeDashoffset != null)
             {
-                Console.WriteLine($"{indent}{nameof(StrokeDashoffset)}='{StrokeDashoffset}'");
+                Console.WriteLine($"{indent}{nameof(StrokeDashoffset)}: \"{StrokeDashoffset}\"");
             }
             if (StrokeLinecap != null)
             {
-                Console.WriteLine($"{indent}{nameof(StrokeLinecap)}='{StrokeLinecap}'");
+                Console.WriteLine($"{indent}{nameof(StrokeLinecap)}: \"{StrokeLinecap}\"");
             }
             if (SrokeLinejoin != null)
             {
-                Console.WriteLine($"{indent}{nameof(SrokeLinejoin)}='{SrokeLinejoin}'");
+                Console.WriteLine($"{indent}{nameof(SrokeLinejoin)}: \"{SrokeLinejoin}\"");
             }
             if (StrokeMiterlimit != null)
             {
-                Console.WriteLine($"{indent}{nameof(StrokeMiterlimit)}='{StrokeMiterlimit}'");
+                Console.WriteLine($"{indent}{nameof(StrokeMiterlimit)}: \"{StrokeMiterlimit}\"");
             }
             if (StrokeOpacity != null)
             {
-                Console.WriteLine($"{indent}{nameof(StrokeOpacity)}='{StrokeOpacity}'");
+                Console.WriteLine($"{indent}{nameof(StrokeOpacity)}: \"{StrokeOpacity}\"");
             }
             if (StrokeWidth != null)
             {
-                Console.WriteLine($"{indent}{nameof(StrokeWidth)}='{StrokeWidth}'");
+                Console.WriteLine($"{indent}{nameof(StrokeWidth)}: \"{StrokeWidth}\"");
             }
             if (TextAnchor != null)
             {
-                Console.WriteLine($"{indent}{nameof(TextAnchor)}='{TextAnchor}'");
+                Console.WriteLine($"{indent}{nameof(TextAnchor)}: \"{TextAnchor}\"");
             }
             if (TextDecoration != null)
             {
-                Console.WriteLine($"{indent}{nameof(TextDecoration)}='{TextDecoration}'");
+                Console.WriteLine($"{indent}{nameof(TextDecoration)}: \"{TextDecoration}\"");
             }
             if (TextRendering != null)
             {
-                Console.WriteLine($"{indent}{nameof(TextRendering)}='{TextRendering}'");
+                Console.WriteLine($"{indent}{nameof(TextRendering)}: \"{TextRendering}\"");
             }
             if (UnicodeBidi != null)
             {
-                Console.WriteLine($"{indent}{nameof(UnicodeBidi)}='{UnicodeBidi}'");
+                Console.WriteLine($"{indent}{nameof(UnicodeBidi)}: \"{UnicodeBidi}\"");
             }
             if (Visibility != null)
             {
-                Console.WriteLine($"{indent}{nameof(Visibility)}='{Visibility}'");
+                Console.WriteLine($"{indent}{nameof(Visibility)}: \"{Visibility}\"");
             }
             if (WordSpacing != null)
             {
-                Console.WriteLine($"{indent}{nameof(WordSpacing)}='{WordSpacing}'");
+                Console.WriteLine($"{indent}{nameof(WordSpacing)}: \"{WordSpacing}\"");
             }
             if (WritingMode != null)
             {
-                Console.WriteLine($"{indent}{nameof(WritingMode)}='{WritingMode}'");
+                Console.WriteLine($"{indent}{nameof(WritingMode)}: \"{WritingMode}\"");
             }
         }
     }

@@ -27,11 +27,11 @@ namespace Svg.FilterEffects
 
             if (Input != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input)}='{Input}'");
+                Console.WriteLine($"{indent}{nameof(Input)}: \"{Input}\"");
             }
             if (StdDeviation != null)
             {
-                Console.WriteLine($"{indent}{nameof(StdDeviation)}='{StdDeviation}'");
+                Console.WriteLine($"{indent}{nameof(StdDeviation)}: \"{StdDeviation}\"");
             }
         }
     }

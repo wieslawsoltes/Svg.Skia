@@ -60,31 +60,31 @@ namespace Svg.FilterEffects
 
             if (Type != null)
             {
-                Console.WriteLine($"{indent}{nameof(Type)}='{Type}'");
+                Console.WriteLine($"{indent}{nameof(Type)}: \"{Type}\"");
             }
             if (TableValues != null)
             {
-                Console.WriteLine($"{indent}{nameof(TableValues)}='{TableValues}'");
+                Console.WriteLine($"{indent}{nameof(TableValues)}: \"{TableValues}\"");
             }
             if (Slope != null)
             {
-                Console.WriteLine($"{indent}{nameof(Slope)}='{Slope}'");
+                Console.WriteLine($"{indent}{nameof(Slope)}: \"{Slope}\"");
             }
             if (Intercept != null)
             {
-                Console.WriteLine($"{indent}{nameof(Intercept)}='{Intercept}'");
+                Console.WriteLine($"{indent}{nameof(Intercept)}: \"{Intercept}\"");
             }
             if (Amplitude != null)
             {
-                Console.WriteLine($"{indent}{nameof(Amplitude)}='{Amplitude}'");
+                Console.WriteLine($"{indent}{nameof(Amplitude)}: \"{Amplitude}\"");
             }
             if (Exponent != null)
             {
-                Console.WriteLine($"{indent}{nameof(Exponent)}='{Exponent}'");
+                Console.WriteLine($"{indent}{nameof(Exponent)}: \"{Exponent}\"");
             }
             if (Offset != null)
             {
-                Console.WriteLine($"{indent}{nameof(Offset)}='{Offset}'");
+                Console.WriteLine($"{indent}{nameof(Offset)}: \"{Offset}\"");
             }
         }
     }

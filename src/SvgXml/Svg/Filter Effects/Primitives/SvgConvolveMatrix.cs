@@ -82,43 +82,43 @@ namespace Svg.FilterEffects
 
             if (Input != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input)}='{Input}'");
+                Console.WriteLine($"{indent}{nameof(Input)}: \"{Input}\"");
             }
             if (Order != null)
             {
-                Console.WriteLine($"{indent}{nameof(Order)}='{Order}'");
+                Console.WriteLine($"{indent}{nameof(Order)}: \"{Order}\"");
             }
             if (KernelMatrix != null)
             {
-                Console.WriteLine($"{indent}{nameof(KernelMatrix)}='{KernelMatrix}'");
+                Console.WriteLine($"{indent}{nameof(KernelMatrix)}: \"{KernelMatrix}\"");
             }
             if (Divisor != null)
             {
-                Console.WriteLine($"{indent}{nameof(Divisor)}='{Divisor}'");
+                Console.WriteLine($"{indent}{nameof(Divisor)}: \"{Divisor}\"");
             }
             if (Bias != null)
             {
-                Console.WriteLine($"{indent}{nameof(Bias)}='{Bias}'");
+                Console.WriteLine($"{indent}{nameof(Bias)}: \"{Bias}\"");
             }
             if (TargetX != null)
             {
-                Console.WriteLine($"{indent}{nameof(TargetX)}='{TargetX}'");
+                Console.WriteLine($"{indent}{nameof(TargetX)}: \"{TargetX}\"");
             }
             if (TargetY != null)
             {
-                Console.WriteLine($"{indent}{nameof(TargetY)}='{TargetY}'");
+                Console.WriteLine($"{indent}{nameof(TargetY)}: \"{TargetY}\"");
             }
             if (EdgeMode != null)
             {
-                Console.WriteLine($"{indent}{nameof(EdgeMode)}='{EdgeMode}'");
+                Console.WriteLine($"{indent}{nameof(EdgeMode)}: \"{EdgeMode}\"");
             }
             if (KernelUnitLength != null)
             {
-                Console.WriteLine($"{indent}{nameof(KernelUnitLength)}='{KernelUnitLength}'");
+                Console.WriteLine($"{indent}{nameof(KernelUnitLength)}: \"{KernelUnitLength}\"");
             }
             if (PreserveAlpha != null)
             {
-                Console.WriteLine($"{indent}{nameof(PreserveAlpha)}='{PreserveAlpha}'");
+                Console.WriteLine($"{indent}{nameof(PreserveAlpha)}: \"{PreserveAlpha}\"");
             }
         }
     }

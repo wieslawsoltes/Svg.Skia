@@ -40,19 +40,19 @@ namespace Svg.FilterEffects
 
             if (Input != null)
             {
-                Console.WriteLine($"{indent}{nameof(Input)}='{Input}'");
+                Console.WriteLine($"{indent}{nameof(Input)}: \"{Input}\"");
             }
             if (SurfaceScale != null)
             {
-                Console.WriteLine($"{indent}{nameof(SurfaceScale)}='{SurfaceScale}'");
+                Console.WriteLine($"{indent}{nameof(SurfaceScale)}: \"{SurfaceScale}\"");
             }
             if (DiffuseConstant != null)
             {
-                Console.WriteLine($"{indent}{nameof(DiffuseConstant)}='{DiffuseConstant}'");
+                Console.WriteLine($"{indent}{nameof(DiffuseConstant)}: \"{DiffuseConstant}\"");
             }
             if (KernelUnitLength != null)
             {
-                Console.WriteLine($"{indent}{nameof(KernelUnitLength)}='{KernelUnitLength}'");
+                Console.WriteLine($"{indent}{nameof(KernelUnitLength)}: \"{KernelUnitLength}\"");
             }
         }
     }

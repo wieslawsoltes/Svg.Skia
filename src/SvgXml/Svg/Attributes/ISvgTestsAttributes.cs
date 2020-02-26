@@ -30,15 +30,15 @@ namespace Svg
         {
             if (RequiredFeatures != null)
             {
-                Console.WriteLine($"{indent}{nameof(RequiredFeatures)}='{RequiredFeatures}'");
+                Console.WriteLine($"{indent}{nameof(RequiredFeatures)}: \"{RequiredFeatures}\"");
             }
             if (RequiredExtensions != null)
             {
-                Console.WriteLine($"{indent}{nameof(RequiredExtensions)}='{RequiredExtensions}'");
+                Console.WriteLine($"{indent}{nameof(RequiredExtensions)}: \"{RequiredExtensions}\"");
             }
             if (SystemLanguage != null)
             {
-                Console.WriteLine($"{indent}{nameof(SystemLanguage)}='{SystemLanguage}'");
+                Console.WriteLine($"{indent}{nameof(SystemLanguage)}: \"{SystemLanguage}\"");
             }
         }
     }

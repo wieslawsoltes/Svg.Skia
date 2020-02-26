@@ -40,19 +40,19 @@ namespace Svg
 
             if (StartX != null)
             {
-                Console.WriteLine($"{indent}{nameof(StartX)}='{StartX}'");
+                Console.WriteLine($"{indent}{nameof(StartX)}: \"{StartX}\"");
             }
             if (StartY != null)
             {
-                Console.WriteLine($"{indent}{nameof(StartY)}='{StartY}'");
+                Console.WriteLine($"{indent}{nameof(StartY)}: \"{StartY}\"");
             }
             if (EndX != null)
             {
-                Console.WriteLine($"{indent}{nameof(EndX)}='{EndX}'");
+                Console.WriteLine($"{indent}{nameof(EndX)}: \"{EndX}\"");
             }
             if (EndY != null)
             {
-                Console.WriteLine($"{indent}{nameof(EndY)}='{EndY}'");
+                Console.WriteLine($"{indent}{nameof(EndY)}: \"{EndY}\"");
             }
         }
     }

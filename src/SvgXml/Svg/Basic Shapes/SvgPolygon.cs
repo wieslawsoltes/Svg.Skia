@@ -19,7 +19,7 @@ namespace Svg
 
             if (Points != null)
             {
-                Console.WriteLine($"{indent}{nameof(Points)}='{Points}'");
+                Console.WriteLine($"{indent}{nameof(Points)}: \"{Points}\"");
             }
         }
     }

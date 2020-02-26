@@ -26,11 +26,11 @@ namespace Svg.FilterEffects
 
             if (AspectRatio != null)
             {
-                Console.WriteLine($"{indent}{nameof(AspectRatio)}='{AspectRatio}'");
+                Console.WriteLine($"{indent}{nameof(AspectRatio)}: \"{AspectRatio}\"");
             }
             if (Href != null)
             {
-                Console.WriteLine($"{indent}{nameof(Href)}='{Href}'");
+                Console.WriteLine($"{indent}{nameof(Href)}: \"{Href}\"");
             }
         }
     }

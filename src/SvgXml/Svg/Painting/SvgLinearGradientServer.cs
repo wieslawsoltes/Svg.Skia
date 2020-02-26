@@ -68,35 +68,35 @@ namespace Svg
 
             if (X1 != null)
             {
-                Console.WriteLine($"{indent}{nameof(X1)}='{X1}'");
+                Console.WriteLine($"{indent}{nameof(X1)}: \"{X1}\"");
             }
             if (Y1 != null)
             {
-                Console.WriteLine($"{indent}{nameof(Y1)}='{Y1}'");
+                Console.WriteLine($"{indent}{nameof(Y1)}: \"{Y1}\"");
             }
             if (X2 != null)
             {
-                Console.WriteLine($"{indent}{nameof(X2)}='{X2}'");
+                Console.WriteLine($"{indent}{nameof(X2)}: \"{X2}\"");
             }
             if (Y2 != null)
             {
-                Console.WriteLine($"{indent}{nameof(Y2)}='{Y2}'");
+                Console.WriteLine($"{indent}{nameof(Y2)}: \"{Y2}\"");
             }
             if (GradientUnits != null)
             {
-                Console.WriteLine($"{indent}{nameof(GradientUnits)}='{GradientUnits}'");
+                Console.WriteLine($"{indent}{nameof(GradientUnits)}: \"{GradientUnits}\"");
             }
             if (GradientTransform != null)
             {
-                Console.WriteLine($"{indent}{nameof(GradientTransform)}='{GradientTransform}'");
+                Console.WriteLine($"{indent}{nameof(GradientTransform)}: \"{GradientTransform}\"");
             }
             if (SpreadMethod != null)
             {
-                Console.WriteLine($"{indent}{nameof(SpreadMethod)}='{SpreadMethod}'");
+                Console.WriteLine($"{indent}{nameof(SpreadMethod)}: \"{SpreadMethod}\"");
             }
             if (Href != null)
             {
-                Console.WriteLine($"{indent}{nameof(Href)}='{Href}'");
+                Console.WriteLine($"{indent}{nameof(Href)}: \"{Href}\"");
             }
         }
     }

@@ -11,7 +11,7 @@ namespace SvgXml
     {
         private static void PrintElement(Element element, Action<string> writeLine, bool printAttributes = true, string indent = "")
         {
-            writeLine($"{indent}{element.GetType().Name} [{element.Name}] [parent={element.Parent?.Name}]");
+            writeLine($"{indent}{element.GetType().Name}:");
             if (printAttributes)
             {
 #if true
@@ -22,13 +22,17 @@ namespace SvgXml
 #else
                 foreach (var attribute in element.Attributes)
                 {
-                    writeLine($"{indent}  {attribute.Key}='{attribute.Value}'");
+                    writeLine($"{indent}  {attribute.Key}: \"{attribute.Value}\"");
                 }
 #endif
             }
-            foreach (var child in element.Children)
+            if (element.Children.Count > 0)
             {
-                PrintElement(child, writeLine, printAttributes, indent + "  ");
+                writeLine($"{indent}  Children:");
+                foreach (var child in element.Children)
+                {
+                    PrintElement(child, writeLine, printAttributes, indent + "    ");
+                }
             }
         }
 
@@ -87,11 +91,11 @@ namespace SvgXml
             }
 
             sw.Stop();
-            Console.WriteLine($"{sw.Elapsed.TotalMilliseconds}ms [{sw.Elapsed}], {paths.Count} files");
+            Console.WriteLine($"# {sw.Elapsed.TotalMilliseconds}ms [{sw.Elapsed}], {paths.Count} files");
 #if true
             foreach (var result in results)
             {
-                Console.WriteLine($"{result.path.FullName}");
+                Console.WriteLine($"# {result.path.FullName}");
                 var document = result.document;
                 if (document != null)
                 {
