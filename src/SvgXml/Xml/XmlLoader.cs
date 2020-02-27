@@ -1,15 +1,36 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Xml;
 
 namespace Xml
 {
+#nullable disable warnings
+    internal class DtdXmlUrlResolver : XmlUrlResolver
+    {
+        public static string s_name = "SvgXml.Resources.svg11.dtd";
+
+        public override object GetEntity(Uri absoluteUri, string role, Type ofObjectToReturn)
+        {
+            if (absoluteUri.ToString().IndexOf("svg", StringComparison.InvariantCultureIgnoreCase) > -1)
+            {
+                return Assembly.GetExecutingAssembly().GetManifestResourceStream(s_name);
+            }
+            else
+            {
+                return base.GetEntity(absoluteUri, role, ofObjectToReturn);
+            }
+        }
+    }
+#nullable enable warnings
+
     public static class XmlLoader
     {
         public static XmlReaderSettings s_settings = new XmlReaderSettings()
         {
-            ConformanceLevel = ConformanceLevel.Fragment,
             DtdProcessing = DtdProcessing.Parse,
+            XmlResolver = new DtdXmlUrlResolver(),
             IgnoreWhitespace = true,
             IgnoreComments = true
         };

@@ -34,6 +34,7 @@ namespace SvgXml
 
             var results = new List<(FileInfo path, SvgDocument document)>();
             var elementFactory = new SvgElementFactory();
+            var errors = new List<(FileInfo path, Exception ex)>();
 
             foreach (var path in paths)
             {
@@ -45,22 +46,33 @@ namespace SvgXml
                         results.Add((path, document));
                     }
                 }
-#if true
-                catch (Exception)
-                {
-                }
-#else
                 catch (Exception ex)
                 {
-                    write($"{path.FullName}");
-                    write(ex.Message);
-                    write(ex.StackTrace);
+                    errors.Add((path, ex));
                 }
-#endif
             }
 
             sw.Stop();
             write($"# {sw.Elapsed.TotalMilliseconds}ms [{sw.Elapsed}], {paths.Count} files");
+#if true
+            void Print(Exception ex)
+            {
+                write(ex.Message);
+                if (ex.StackTrace != null)
+                {
+                    write(ex.StackTrace);
+                }
+                if (ex.InnerException != null)
+                {
+                    Print(ex.InnerException);
+                }
+            }
+            foreach (var error in errors)
+            {
+                write($"{error.path.FullName}");
+                Print(error.ex);
+            }
+#endif
 #if true
             foreach (var result in results)
             {
