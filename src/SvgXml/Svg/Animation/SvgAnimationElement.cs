@@ -25,9 +25,9 @@ namespace Svg
             {
                 PrintAnimationTimingAttributes(svgAnimationTimingAttributes, write, indent);
             }
-            if (this is ISvgAnimationValueAattributes svgAnimationValueAattributes)
+            if (this is ISvgAnimationValueAttributes svgAnimationValueAttributes)
             {
-                PrintAnimationValueAattributes(svgAnimationValueAattributes, write, indent);
+                PrintAnimationValueAttributes(svgAnimationValueAttributes, write, indent);
             }
         }
     }

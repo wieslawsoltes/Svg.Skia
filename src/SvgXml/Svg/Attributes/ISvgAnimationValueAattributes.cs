@@ -3,7 +3,7 @@ using Xml;
 
 namespace Svg
 {
-    public interface ISvgAnimationValueAattributes : IElement
+    public interface ISvgAnimationValueAttributes : IElement
     {
         [Attribute("calcMode", SvgElement.SvgNamespace)]
         public string? CalcMode

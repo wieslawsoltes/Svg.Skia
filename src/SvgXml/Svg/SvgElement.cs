@@ -516,7 +516,7 @@ namespace Svg
             }
         }
 
-        public static void PrintAnimationValueAattributes(ISvgAnimationValueAattributes attributes, Action<string> write, string indent)
+        public static void PrintAnimationValueAttributes(ISvgAnimationValueAttributes attributes, Action<string> write, string indent)
         {
             if (attributes.CalcMode != null)
             {

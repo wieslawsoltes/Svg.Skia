@@ -12,7 +12,7 @@ namespace Svg
                                    ISvgAnimationEventAttributes,
                                    ISvgAnimationAttributeTargetAttributes,
                                    ISvgAnimationTimingAttributes,
-                                   ISvgAnimationValueAattributes,
+                                   ISvgAnimationValueAttributes,
                                    ISvgAnimationAdditionAttributes
     {
     }

@@ -11,7 +11,7 @@ namespace Svg
                                        ISvgAnimationEventAttributes,
                                        ISvgAnimationAttributeTargetAttributes,
                                        ISvgAnimationTimingAttributes,
-                                       ISvgAnimationValueAattributes,
+                                       ISvgAnimationValueAttributes,
                                        ISvgAnimationAdditionAttributes
     {
         [Attribute("type", SvgNamespace)]

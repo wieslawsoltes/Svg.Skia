@@ -10,7 +10,7 @@ namespace Svg
                                     ISvgXLinkAttributes,
                                     ISvgAnimationEventAttributes,
                                     ISvgAnimationTimingAttributes,
-                                    ISvgAnimationValueAattributes,
+                                    ISvgAnimationValueAttributes,
                                     ISvgAnimationAdditionAttributes
     {
         [Attribute("path", SvgNamespace)]
