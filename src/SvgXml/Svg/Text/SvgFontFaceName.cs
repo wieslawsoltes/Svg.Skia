@@ -6,10 +6,21 @@ namespace Svg
     [Element("font-face-name")]
     public class SvgFontFaceName : SvgElement
     {
+        [Attribute("name", SvgAttributes.SvgNamespace)]
+        public string? Name
+        {
+            get => GetAttribute("name");
+            set => SetAttribute("name", value);
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);
-            // TODO:
+
+            if (Name != null)
+            {
+                write($"{indent}{nameof(Name)}: \"{Name}\"");
+            }
         }
     }
 }
