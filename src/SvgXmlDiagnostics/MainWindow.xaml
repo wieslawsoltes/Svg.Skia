@@ -3,14 +3,17 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen" WindowState="Normal"
+        UseLayoutRounding="True" SnapsToDevicePixels="True" TextOptions.TextRenderingMode="ClearType"
         Title="MainWindow" Height="650" Width="1200">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Menu Grid.Row="0">
+        <Menu Grid.Row="0" Background="Transparent">
             <MenuItem Header="_File">
                 <MenuItem Name="FileOpen" Header="_Open" Click="FileOpen_Click"/>
                 <Separator/>
@@ -19,17 +22,25 @@
         </Menu>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="300"/>
                 <ColumnDefinition Width="4"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <TreeView x:Name="DocumentTree" Grid.Column="0">
-                
+                <TreeView.Resources>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsExpanded" Value="True"/>
+                    </Style>
+                </TreeView.Resources>
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                        <TextBlock Text="{Binding}" />
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
             </TreeView>
             <GridSplitter Grid.Column="1" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
-            <DataGrid x:Name="PropertiesView" Grid.Column="2">
-                
-            </DataGrid>
+            <xctk:PropertyGrid x:Name="PropertiesView" SelectedObject="{Binding ElementName=DocumentTree, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}" Grid.Column="2">
+            </xctk:PropertyGrid>
         </Grid>
     </Grid>
 </Window>
