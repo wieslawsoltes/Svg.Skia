@@ -157,10 +157,10 @@ namespace SvgXml
                     Print(ex.InnerException);
                 }
             }
-            foreach (var error in errors)
+            foreach (var (path, ex) in errors)
             {
-                write($"{error.path.FullName}");
-                Print(error.ex);
+                write($"{path.FullName}");
+                Print(ex);
             }
 #endif
 #if true
