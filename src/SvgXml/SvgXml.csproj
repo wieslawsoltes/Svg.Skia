@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\svg11.dtd">
-      <Link>Resources\svg11.dtd</Link>
       <LogicalName>SvgXml.Resources.svg11.dtd</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
