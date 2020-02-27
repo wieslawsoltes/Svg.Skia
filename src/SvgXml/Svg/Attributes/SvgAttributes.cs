@@ -304,7 +304,28 @@ namespace Svg
 
         public static ISet<string> s_xlinkElements = new HashSet<string>()
         {
-            // TODO:
+            "a",
+            "animate",
+            "animateColor",
+            "animateMotion",
+            "animateTransform",
+            "altGlyph",
+            "color-profile",
+            "cursor",
+            "feImage",
+            "filter",
+            "font-face-uri",
+            "glyphRef",
+            "image",
+            "mpath",
+            "pattern",
+            "script",
+            "set",
+            "use",
+            "linearGradient",
+            "radialGradient",
+            "textPath",
+            "tref"
         };
 
         public static void Print(this SvgElement element, Action<string> write, string indent = "", bool printAttributes = true)
