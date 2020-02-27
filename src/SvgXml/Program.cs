@@ -31,17 +31,15 @@ namespace SvgXml
                 var subType = queue.Dequeue();
                 foreach (var subInterface in subType.GetInterfaces())
                 {
-                    if (considered.Contains(subInterface)) continue;
-    
+                    if (considered.Contains(subInterface))
+                    {
+                        continue;
+                    }
                     considered.Add(subInterface);
                     queue.Enqueue(subInterface);
                 }
-                var typeProperties = subType.GetProperties(
-                    BindingFlags.FlattenHierarchy 
-                    | BindingFlags.Public 
-                    | BindingFlags.Instance);
-                var newPropertyInfos = typeProperties
-                    .Where(x => !propertyInfos.Contains(x));
+                var typeProperties = subType.GetProperties(BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance);
+                var newPropertyInfos = typeProperties.Where(x => !propertyInfos.Contains(x));
                 propertyInfos.InsertRange(0, newPropertyInfos);
             }
             return propertyInfos.ToArray();
