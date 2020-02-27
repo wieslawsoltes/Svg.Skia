@@ -4,12 +4,23 @@ using Xml;
 namespace Svg
 {
     [Element("tref")]
-    public class SvgTextRef : SvgTextBase, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
+    public class SvgTextRef : SvgTextPositioning, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
+        [Attribute("href", SvgAttributes.XLinkNamespace)]
+        public string? Href
+        {
+            get => GetAttribute("href");
+            set => SetAttribute("href", value);
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);
-            // TODO:
+
+            if (Href != null)
+            {
+                write($"{indent}{nameof(Href)}: \"{Href}\"");
+            }
         }
     }
 }
