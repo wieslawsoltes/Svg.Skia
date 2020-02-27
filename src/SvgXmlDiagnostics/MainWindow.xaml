@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:svg="clr-namespace:Svg;assembly=SvgXml"
-        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:Svg="clr-namespace:Svg;assembly=SvgXml"
+        xmlns:SvgFilterEffects="clr-namespace:Svg.FilterEffects;assembly=SvgXml"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen" WindowState="Normal"
         UseLayoutRounding="True" SnapsToDevicePixels="True" TextOptions.TextRenderingMode="ClearType"
@@ -40,11 +40,425 @@
                 </TreeView.ItemTemplate>
             </TreeView>
             <GridSplitter Grid.Column="1" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
-            <xctk:PropertyGrid x:Name="PropertiesView"
-                               SelectedObject="{Binding ElementName=DocumentTree, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}" 
-                               ShowAdvancedOptions="True"
-                               Grid.Column="2">
-            </xctk:PropertyGrid>
+            <TabControl DataContext="{Binding ElementName=DocumentTree, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}" Grid.Column="2">
+                <TabItem Header="Element" Visibility="Visible">
+                    <ContentControl Content="{Binding}">
+                        <ContentControl.Resources>
+                            <!-- Animation -->
+                            <DataTemplate DataType="{x:Type Svg:SvgAnimate}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgAnimateColor}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgAnimateMotion}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgAnimateTransform}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgMotionPath}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgSet}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <!-- Basic Shapes -->
+                            <DataTemplate DataType="{x:Type Svg:SvgCircle}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgEllipse}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgLine}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgPolygon}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgPolyline}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgRectangle}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <!-- Clipping and Masking -->
+                            <DataTemplate DataType="{x:Type Svg:SvgClipPath}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgMask}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <!-- Color -->
+                            <DataTemplate DataType="{x:Type Svg:SvgColorProfile}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <!-- Document Structure -->
+                            <DataTemplate DataType="{x:Type Svg:SvgDefinitionList}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgDescription}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgDocumentMetadata}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgFragment}">
+                                <Grid Margin="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                    <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                    <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                    <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                    <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                    <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                    <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                    <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                    <TextBlock Text="ViewBox" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                    <TextBox Text="{Binding ViewBox}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgGroup}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgImage}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgSwitch}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgSymbol}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgTitle}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgUse}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <!-- Extensibility -->
+                            <DataTemplate DataType="{x:Type Svg:SvgForeignObject}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <!-- Filter Effects -->
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFilter}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <!-- Filter Effects Primitives -->
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgBlend}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgColourMatrix}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgComponentTransfer}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgComposite}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgConvolveMatrix}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgDiffuseLighting}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgDisplacementMap}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgDistantLight}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFlood}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncA}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncB}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncG}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncR}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgGaussianBlur}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgImage}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgMerge}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgMergeNode}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgMorphology}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgOffset}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgPointLight}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgSpecularLighting}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgSpotLight}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgTile}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgTurbulence}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <!-- Interactivity -->
+                            <DataTemplate DataType="{x:Type Svg:SvgCursor}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <!-- Linking -->
+                            <DataTemplate DataType="{x:Type Svg:SvgAnchor}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgView}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <!-- Painting -->
+                            <DataTemplate DataType="{x:Type Svg:SvgGradientStop}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgLinearGradientServer}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgMarker}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgRadialGradientServer}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgPatternServer}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <!-- Paths -->
+                            <DataTemplate DataType="{x:Type Svg:SvgPath}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <!-- Scripting -->
+                            <DataTemplate DataType="{x:Type Svg:SvgScript}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <!-- Styling -->
+                            <DataTemplate DataType="{x:Type Svg:SvgStyle}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <!-- Text -->
+                            <DataTemplate DataType="{x:Type Svg:SvgAltGlyph}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgAltGlyphDef}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgAltGlyphItem}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgFont}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgFontFace}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgFontFaceFormat}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgFontFaceName}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgFontFaceSrc}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgFontFaceUri}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgGlyph}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgGlyphRef}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgHorizontalKern}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgMissingGlyph}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgText}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgTextPath}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgTextRef}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgTextSpan}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Svg:SvgVerticalKern}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                        </ContentControl.Resources>
+                    </ContentControl>
+                </TabItem>
+                <TabItem Header="Common" Visibility="Visible">
+                    <Grid Margin="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Id" Grid.Row="0" Grid.Column="0" Margin="2" />
+                        <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Id)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                        <TextBlock Text="Base" Grid.Row="1" Grid.Column="0" Margin="2" />
+                        <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Base)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                        <TextBlock Text="Lang" Grid.Row="2" Grid.Column="0" Margin="2" />
+                        <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Lang)}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                        <TextBlock Text="Space" Grid.Row="3" Grid.Column="0" Margin="2" />
+                        <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Space)}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Presentation" Visibility="Visible">
+
+                </TabItem>
+                <TabItem Header="Resources" Visibility="Visible">
+
+                </TabItem>
+                <TabItem Header="Stylable" Visibility="Visible">
+
+                </TabItem>
+                <TabItem Header="Tests" Visibility="Visible">
+
+                </TabItem>
+                <TabItem Header="Transformable" Visibility="Visible">
+
+                </TabItem>
+                <TabItem Header="Xlink" Visibility="Visible">
+
+                </TabItem>
+                <TabItem Header="Animation Addition" Visibility="Visible">
+
+                </TabItem>
+                <TabItem Header="Animation Attribute Target" Visibility="Visible">
+
+                </TabItem>
+                <TabItem Header="Animation Event" Visibility="Visible">
+
+                </TabItem>
+                <TabItem Header="Animation Timing" Visibility="Visible">
+
+                </TabItem>
+                <TabItem Header="Animation Value" Visibility="Visible">
+
+                </TabItem>
+            </TabControl>
         </Grid>
     </Grid>
 </Window>
