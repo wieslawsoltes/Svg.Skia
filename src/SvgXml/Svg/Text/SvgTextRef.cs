@@ -6,7 +6,7 @@ namespace Svg
     [Element("tref")]
     public class SvgTextRef : SvgTextPositioning, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
-        [Attribute("href", SvgElement.XLinkNamespace)]
+        [Attribute("href", XLinkNamespace)]
         public string? Href
         {
             get => GetAttribute("href");

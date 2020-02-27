@@ -5,14 +5,14 @@ namespace Svg
 {
     public abstract class SvgTextContent : SvgVisualElement
     {
-        [Attribute("lengthAdjust", SvgElement.SvgNamespace)]
+        [Attribute("lengthAdjust", SvgNamespace)]
         public string? LengthAdjust
         {
             get => GetAttribute("lengthAdjust");
             set => SetAttribute("lengthAdjust", value);
         }
 
-        [Attribute("textLength", SvgElement.SvgNamespace)]
+        [Attribute("textLength", SvgNamespace)]
         public string? TextLength
         {
             get => GetAttribute("textLength");

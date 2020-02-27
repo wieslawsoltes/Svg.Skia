@@ -6,21 +6,21 @@ namespace Svg.FilterEffects
     [Element("feOffset")]
     public class SvgOffset : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("in", SvgElement.SvgNamespace)]
+        [Attribute("in", SvgNamespace)]
         public string? Input
         {
             get => GetAttribute("in");
             set => SetAttribute("in", value);
         }
 
-        [Attribute("dx", SvgElement.SvgNamespace)]
+        [Attribute("dx", SvgNamespace)]
         public string? Dx
         {
             get => GetAttribute("dx");
             set => SetAttribute("dx", value);
         }
 
-        [Attribute("dy", SvgElement.SvgNamespace)]
+        [Attribute("dy", SvgNamespace)]
         public string? Dy
         {
             get => GetAttribute("dy");

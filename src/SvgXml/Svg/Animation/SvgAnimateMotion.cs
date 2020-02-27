@@ -13,28 +13,28 @@ namespace Svg
                                     ISvgAnimationValueAattributes,
                                     ISvgAnimationAdditionAttributes
     {
-        [Attribute("path", SvgElement.SvgNamespace)]
+        [Attribute("path", SvgNamespace)]
         public string? Path
         {
             get => GetAttribute("path");
             set => SetAttribute("path", value);
         }
 
-        [Attribute("keyPoints", SvgElement.SvgNamespace)]
+        [Attribute("keyPoints", SvgNamespace)]
         public string? KeyPoints
         {
             get => GetAttribute("keyPoints");
             set => SetAttribute("keyPoints", value);
         }
 
-        [Attribute("rotate", SvgElement.SvgNamespace)]
+        [Attribute("rotate", SvgNamespace)]
         public string? Rotate
         {
             get => GetAttribute("rotate");
             set => SetAttribute("rotate", value);
         }
 
-        [Attribute("origin", SvgElement.SvgNamespace)]
+        [Attribute("origin", SvgNamespace)]
         public string? Origin
         {
             get => GetAttribute("origin");

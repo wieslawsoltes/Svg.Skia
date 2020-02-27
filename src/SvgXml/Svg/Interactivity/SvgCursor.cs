@@ -6,21 +6,21 @@ namespace Svg
     [Element("cursor")]
     public class SvgCursor : SvgElement, ISvgTestsAttributes, ISvgResourcesAttributes
     {
-        [Attribute("x", SvgElement.SvgNamespace)]
+        [Attribute("x", SvgNamespace)]
         public string? X
         {
             get => GetAttribute("x");
             set => SetAttribute("x", value);
         }
 
-        [Attribute("y", SvgElement.SvgNamespace)]
+        [Attribute("y", SvgNamespace)]
         public string? Y
         {
             get => GetAttribute("y");
             set => SetAttribute("y", value);
         }
 
-        [Attribute("href", SvgElement.XLinkNamespace)]
+        [Attribute("href", XLinkNamespace)]
         public string? Href
         {
             get => GetAttribute("href");

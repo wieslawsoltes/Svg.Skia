@@ -6,21 +6,21 @@ namespace Svg.FilterEffects
     [Element("feBlend")]
     public class SvgBlend : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("in", SvgElement.SvgNamespace)]
+        [Attribute("in", SvgNamespace)]
         public string? Input
         {
             get => GetAttribute("in");
             set => SetAttribute("in", value);
         }
 
-        [Attribute("in2", SvgElement.SvgNamespace)]
+        [Attribute("in2", SvgNamespace)]
         public string? Input2
         {
             get => GetAttribute("in2");
             set => SetAttribute("in2", value);
         }
 
-        [Attribute("mode", SvgElement.SvgNamespace)]
+        [Attribute("mode", SvgNamespace)]
         public string? Mode
         {
             get => GetAttribute("mode");

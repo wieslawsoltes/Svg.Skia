@@ -6,35 +6,35 @@ namespace Svg.FilterEffects
     [Element("feDisplacementMap")]
     public class SvgDisplacementMap : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("in", SvgElement.SvgNamespace)]
+        [Attribute("in", SvgNamespace)]
         public string? Input
         {
             get => GetAttribute("in");
             set => SetAttribute("in", value);
         }
 
-        [Attribute("in2", SvgElement.SvgNamespace)]
+        [Attribute("in2", SvgNamespace)]
         public string? Input2
         {
             get => GetAttribute("in2");
             set => SetAttribute("in2", value);
         }
 
-        [Attribute("scale", SvgElement.SvgNamespace)]
+        [Attribute("scale", SvgNamespace)]
         public string? Scale
         {
             get => GetAttribute("scale");
             set => SetAttribute("scale", value);
         }
 
-        [Attribute("xChannelSelector", SvgElement.SvgNamespace)]
+        [Attribute("xChannelSelector", SvgNamespace)]
         public string? XChannelSelector
         {
             get => GetAttribute("xChannelSelector");
             set => SetAttribute("xChannelSelector", value);
         }
 
-        [Attribute("yChannelSelector", SvgElement.SvgNamespace)]
+        [Attribute("yChannelSelector", SvgNamespace)]
         public string? YChannelSelector
         {
             get => GetAttribute("yChannelSelector");

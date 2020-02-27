@@ -6,7 +6,7 @@ namespace Svg
     [Element("font-face-name")]
     public class SvgFontFaceName : SvgElement
     {
-        [Attribute("name", SvgElement.SvgNamespace)]
+        [Attribute("name", SvgNamespace)]
         public string? Name
         {
             get => GetAttribute("name");

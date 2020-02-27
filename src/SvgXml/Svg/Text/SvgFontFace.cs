@@ -6,231 +6,231 @@ namespace Svg
     [Element("font-face")]
     public class SvgFontFace : SvgElement
     {
-        [Attribute("font-family", SvgElement.SvgNamespace)]
+        [Attribute("font-family", SvgNamespace)]
         public string? FontFamily
         {
             get => GetAttribute("font-family");
             set => SetAttribute("font-family", value);
         }
 
-        [Attribute("font-style", SvgElement.SvgNamespace)]
+        [Attribute("font-style", SvgNamespace)]
         public string? FontStyle
         {
             get => GetAttribute("font-style");
             set => SetAttribute("font-style", value);
         }
 
-        [Attribute("font-variant", SvgElement.SvgNamespace)]
+        [Attribute("font-variant", SvgNamespace)]
         public string? FontVariant
         {
             get => GetAttribute("font-variant");
             set => SetAttribute("font-variant", value);
         }
 
-        [Attribute("font-weight", SvgElement.SvgNamespace)]
+        [Attribute("font-weight", SvgNamespace)]
         public string? FontWeight
         {
             get => GetAttribute("font-weight");
             set => SetAttribute("font-weight", value);
         }
 
-        [Attribute("font-stretch", SvgElement.SvgNamespace)]
+        [Attribute("font-stretch", SvgNamespace)]
         public string? FontStretch
         {
             get => GetAttribute("font-stretch");
             set => SetAttribute("font-stretch", value);
         }
 
-        [Attribute("font-size", SvgElement.SvgNamespace)]
+        [Attribute("font-size", SvgNamespace)]
         public string? FontSize
         {
             get => GetAttribute("font-size");
             set => SetAttribute("font-size", value);
         }
 
-        [Attribute("unicode-range", SvgElement.SvgNamespace)]
+        [Attribute("unicode-range", SvgNamespace)]
         public string? UnicodeRange
         {
             get => GetAttribute("unicode-range");
             set => SetAttribute("unicode-range", value);
         }
 
-        [Attribute("units-per-em", SvgElement.SvgNamespace)]
+        [Attribute("units-per-em", SvgNamespace)]
         public string? UnitsPerEm
         {
             get => GetAttribute("units-per-em");
             set => SetAttribute("units-per-em", value);
         }
 
-        [Attribute("panose-1", SvgElement.SvgNamespace)]
+        [Attribute("panose-1", SvgNamespace)]
         public string? Panose1
         {
             get => GetAttribute("panose-1");
             set => SetAttribute("panose-1", value);
         }
 
-        [Attribute("stemv", SvgElement.SvgNamespace)]
+        [Attribute("stemv", SvgNamespace)]
         public string? StemV
         {
             get => GetAttribute("stemv");
             set => SetAttribute("stemv", value);
         }
 
-        [Attribute("stemh", SvgElement.SvgNamespace)]
+        [Attribute("stemh", SvgNamespace)]
         public string? StemH
         {
             get => GetAttribute("stemh");
             set => SetAttribute("stemh", value);
         }
 
-        [Attribute("slope", SvgElement.SvgNamespace)]
+        [Attribute("slope", SvgNamespace)]
         public string? Slope
         {
             get => GetAttribute("slope");
             set => SetAttribute("slope", value);
         }
 
-        [Attribute("cap-height", SvgElement.SvgNamespace)]
+        [Attribute("cap-height", SvgNamespace)]
         public string? CapHeight
         {
             get => GetAttribute("cap-height");
             set => SetAttribute("cap-height", value);
         }
 
-        [Attribute("x-height", SvgElement.SvgNamespace)]
+        [Attribute("x-height", SvgNamespace)]
         public string? XHeight
         {
             get => GetAttribute("x-height");
             set => SetAttribute("x-height", value);
         }
 
-        [Attribute("accent-height", SvgElement.SvgNamespace)]
+        [Attribute("accent-height", SvgNamespace)]
         public string? AccentHeight
         {
             get => GetAttribute("accent-height");
             set => SetAttribute("accent-height", value);
         }
 
-        [Attribute("ascent", SvgElement.SvgNamespace)]
+        [Attribute("ascent", SvgNamespace)]
         public string? Ascent
         {
             get => GetAttribute("ascent");
             set => SetAttribute("ascent", value);
         }
 
-        [Attribute("descent", SvgElement.SvgNamespace)]
+        [Attribute("descent", SvgNamespace)]
         public string? Descent
         {
             get => GetAttribute("descent");
             set => SetAttribute("descent", value);
         }
 
-        [Attribute("widths", SvgElement.SvgNamespace)]
+        [Attribute("widths", SvgNamespace)]
         public string? Widths
         {
             get => GetAttribute("widths");
             set => SetAttribute("widths", value);
         }
 
-        [Attribute("bbox", SvgElement.SvgNamespace)]
+        [Attribute("bbox", SvgNamespace)]
         public string? BBox
         {
             get => GetAttribute("bbox");
             set => SetAttribute("bbox", value);
         }
 
-        [Attribute("ideographic", SvgElement.SvgNamespace)]
+        [Attribute("ideographic", SvgNamespace)]
         public string? Ideographic
         {
             get => GetAttribute("ideographic");
             set => SetAttribute("ideographic", value);
         }
 
-        [Attribute("alphabetic", SvgElement.SvgNamespace)]
+        [Attribute("alphabetic", SvgNamespace)]
         public string? Alphabetic
         {
             get => GetAttribute("alphabetic");
             set => SetAttribute("alphabetic", value);
         }
 
-        [Attribute("mathematical", SvgElement.SvgNamespace)]
+        [Attribute("mathematical", SvgNamespace)]
         public string? Mathematical
         {
             get => GetAttribute("mathematical");
             set => SetAttribute("mathematical", value);
         }
 
-        [Attribute("hanging", SvgElement.SvgNamespace)]
+        [Attribute("hanging", SvgNamespace)]
         public string? Hanging
         {
             get => GetAttribute("hanging");
             set => SetAttribute("hanging", value);
         }
 
-        [Attribute("v-ideographic", SvgElement.SvgNamespace)]
+        [Attribute("v-ideographic", SvgNamespace)]
         public string? VIdeographic
         {
             get => GetAttribute("v-ideographic");
             set => SetAttribute("v-ideographic", value);
         }
 
-        [Attribute("v-alphabetic", SvgElement.SvgNamespace)]
+        [Attribute("v-alphabetic", SvgNamespace)]
         public string? VAlphabetic
         {
             get => GetAttribute("v-alphabetic");
             set => SetAttribute("v-alphabetic", value);
         }
 
-        [Attribute("v-mathematical", SvgElement.SvgNamespace)]
+        [Attribute("v-mathematical", SvgNamespace)]
         public string? VMathematical
         {
             get => GetAttribute("v-mathematical");
             set => SetAttribute("v-mathematical", value);
         }
 
-        [Attribute("v-hanging", SvgElement.SvgNamespace)]
+        [Attribute("v-hanging", SvgNamespace)]
         public string? VHanging
         {
             get => GetAttribute("v-hanging");
             set => SetAttribute("v-hanging", value);
         }
 
-        [Attribute("underline-position", SvgElement.SvgNamespace)]
+        [Attribute("underline-position", SvgNamespace)]
         public string? UnderlinePosition
         {
             get => GetAttribute("underline-position");
             set => SetAttribute("underline-position", value);
         }
 
-        [Attribute("underline-thickness", SvgElement.SvgNamespace)]
+        [Attribute("underline-thickness", SvgNamespace)]
         public string? UnderlineThickness
         {
             get => GetAttribute("underline-thickness");
             set => SetAttribute("underline-thickness", value);
         }
 
-        [Attribute("strikethrough-position", SvgElement.SvgNamespace)]
+        [Attribute("strikethrough-position", SvgNamespace)]
         public string? StrikethroughPosition
         {
             get => GetAttribute("strikethrough-position");
             set => SetAttribute("strikethrough-position", value);
         }
 
-        [Attribute("strikethrough-thickness", SvgElement.SvgNamespace)]
+        [Attribute("strikethrough-thickness", SvgNamespace)]
         public string? StrikethroughThickness
         {
             get => GetAttribute("strikethrough-thickness");
             set => SetAttribute("strikethrough-thickness", value);
         }
 
-        [Attribute("overline-position", SvgElement.SvgNamespace)]
+        [Attribute("overline-position", SvgNamespace)]
         public string? OverlinePosition
         {
             get => GetAttribute("overline-position");
             set => SetAttribute("overline-position", value);
         }
 
-        [Attribute("overline-thickness", SvgElement.SvgNamespace)]
+        [Attribute("overline-thickness", SvgNamespace)]
         public string? OverlineThickness
         {
             get => GetAttribute("overline-thickness");

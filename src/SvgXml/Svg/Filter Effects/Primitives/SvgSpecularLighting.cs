@@ -6,35 +6,35 @@ namespace Svg.FilterEffects
     [Element("feSpecularLighting")]
     public class SvgSpecularLighting : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("in", SvgElement.SvgNamespace)]
+        [Attribute("in", SvgNamespace)]
         public string? Input
         {
             get => GetAttribute("in");
             set => SetAttribute("in", value);
         }
 
-        [Attribute("surfaceScale", SvgElement.SvgNamespace)]
+        [Attribute("surfaceScale", SvgNamespace)]
         public string? SurfaceScale
         {
             get => GetAttribute("surfaceScale");
             set => SetAttribute("surfaceScale", value);
         }
 
-        [Attribute("specularConstant", SvgElement.SvgNamespace)]
+        [Attribute("specularConstant", SvgNamespace)]
         public string? SpecularConstant
         {
             get => GetAttribute("specularConstant");
             set => SetAttribute("specularConstant", value);
         }
 
-        [Attribute("specularExponent", SvgElement.SvgNamespace)]
+        [Attribute("specularExponent", SvgNamespace)]
         public string? SpecularExponent
         {
             get => GetAttribute("specularExponent");
             set => SetAttribute("specularExponent", value);
         }
 
-        [Attribute("kernelUnitLength", SvgElement.SvgNamespace)]
+        [Attribute("kernelUnitLength", SvgNamespace)]
         public string? KernelUnitLength
         {
             get => GetAttribute("kernelUnitLength");

@@ -6,28 +6,28 @@ namespace Svg.FilterEffects
     [Element("feDiffuseLighting")]
     public class SvgDiffuseLighting : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("in", SvgElement.SvgNamespace)]
+        [Attribute("in", SvgNamespace)]
         public string? Input
         {
             get => GetAttribute("in");
             set => SetAttribute("in", value);
         }
 
-        [Attribute("surfaceScale", SvgElement.SvgNamespace)]
+        [Attribute("surfaceScale", SvgNamespace)]
         public string? SurfaceScale
         {
             get => GetAttribute("surfaceScale");
             set => SetAttribute("surfaceScale", value);
         }
 
-        [Attribute("diffuseConstant", SvgElement.SvgNamespace)]
+        [Attribute("diffuseConstant", SvgNamespace)]
         public string? DiffuseConstant
         {
             get => GetAttribute("diffuseConstant");
             set => SetAttribute("diffuseConstant", value);
         }
 
-        [Attribute("kernelUnitLength", SvgElement.SvgNamespace)]
+        [Attribute("kernelUnitLength", SvgNamespace)]
         public string? KernelUnitLength
         {
             get => GetAttribute("kernelUnitLength");

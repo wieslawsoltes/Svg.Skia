@@ -6,21 +6,21 @@ namespace Svg
     [Element("style")]
     public class SvgStyle : SvgElement
     {
-        [Attribute("type", SvgElement.SvgNamespace)]
+        [Attribute("type", SvgNamespace)]
         public string? Type
         {
             get => GetAttribute("type");
             set => SetAttribute("type", value);
         }
 
-        [Attribute("media", SvgElement.SvgNamespace)]
+        [Attribute("media", SvgNamespace)]
         public string? Media
         {
             get => GetAttribute("media");
             set => SetAttribute("media", value);
         }
 
-        [Attribute("title", SvgElement.SvgNamespace)]
+        [Attribute("title", SvgNamespace)]
         public string? Title
         {
             get => GetAttribute("title");

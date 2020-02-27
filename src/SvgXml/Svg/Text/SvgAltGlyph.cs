@@ -6,56 +6,56 @@ namespace Svg
     [Element("altGlyph")]
     public class SvgAltGlyph : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
-        [Attribute("x", SvgElement.SvgNamespace)]
+        [Attribute("x", SvgNamespace)]
         public string? X
         {
             get => GetAttribute("x");
             set => SetAttribute("x", value);
         }
 
-        [Attribute("y", SvgElement.SvgNamespace)]
+        [Attribute("y", SvgNamespace)]
         public string? Y
         {
             get => GetAttribute("y");
             set => SetAttribute("y", value);
         }
 
-        [Attribute("dx", SvgElement.SvgNamespace)]
+        [Attribute("dx", SvgNamespace)]
         public string? Dx
         {
             get => GetAttribute("dx");
             set => SetAttribute("dx", value);
         }
 
-        [Attribute("dy", SvgElement.SvgNamespace)]
+        [Attribute("dy", SvgNamespace)]
         public string? Dy
         {
             get => GetAttribute("dy");
             set => SetAttribute("dy", value);
         }
 
-        [Attribute("glyphRef", SvgElement.SvgNamespace)]
+        [Attribute("glyphRef", SvgNamespace)]
         public string? GlyphRef
         {
             get => GetAttribute("glyphRef");
             set => SetAttribute("glyphRef", value);
         }
 
-        [Attribute("format", SvgElement.SvgNamespace)]
+        [Attribute("format", SvgNamespace)]
         public string? Format
         {
             get => GetAttribute("format");
             set => SetAttribute("format", value);
         }
 
-        [Attribute("rotate", SvgElement.SvgNamespace)]
+        [Attribute("rotate", SvgNamespace)]
         public string? Rotate
         {
             get => GetAttribute("rotate");
             set => SetAttribute("rotate", value);
         }
 
-        [Attribute("href", SvgElement.XLinkNamespace)]
+        [Attribute("href", XLinkNamespace)]
         public string? Href
         {
             get => GetAttribute("href");

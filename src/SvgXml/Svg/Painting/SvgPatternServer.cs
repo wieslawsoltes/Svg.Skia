@@ -6,70 +6,70 @@ namespace Svg
     [Element("pattern")]
     public class SvgPatternServer : SvgPaintServer, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
-        [Attribute("viewBox", SvgElement.SvgNamespace)]
+        [Attribute("viewBox", SvgNamespace)]
         public string? ViewBox
         {
             get => GetAttribute("viewBox");
             set => SetAttribute("viewBox", value);
         }
 
-        [Attribute("preserveAspectRatio", SvgElement.SvgNamespace)]
+        [Attribute("preserveAspectRatio", SvgNamespace)]
         public string? AspectRatio
         {
             get => GetAttribute("preserveAspectRatio");
             set => SetAttribute("preserveAspectRatio", value);
         }
 
-        [Attribute("x", SvgElement.SvgNamespace)]
+        [Attribute("x", SvgNamespace)]
         public string? X
         {
             get => GetAttribute("x");
             set => SetAttribute("x", value);
         }
 
-        [Attribute("y", SvgElement.SvgNamespace)]
+        [Attribute("y", SvgNamespace)]
         public string? Y
         {
             get => GetAttribute("y");
             set => SetAttribute("y", value);
         }
 
-        [Attribute("width", SvgElement.SvgNamespace)]
+        [Attribute("width", SvgNamespace)]
         public string? Width
         {
             get => GetAttribute("width");
             set => SetAttribute("width", value);
         }
 
-        [Attribute("height", SvgElement.SvgNamespace)]
+        [Attribute("height", SvgNamespace)]
         public string? Height
         {
             get => GetAttribute("height");
             set => SetAttribute("height", value);
         }
 
-        [Attribute("patternUnits", SvgElement.SvgNamespace)]
+        [Attribute("patternUnits", SvgNamespace)]
         public string? PatternUnits
         {
             get => GetAttribute("patternUnits");
             set => SetAttribute("patternUnits", value);
         }
 
-        [Attribute("patternContentUnits", SvgElement.SvgNamespace)]
+        [Attribute("patternContentUnits", SvgNamespace)]
         public string? PatternContentUnits
         {
             get => GetAttribute("patternContentUnits");
             set => SetAttribute("patternContentUnits", value);
         }
 
-        [Attribute("patternTransform", SvgElement.SvgNamespace)]
+        [Attribute("patternTransform", SvgNamespace)]
         public string? PatternTransform
         {
             get => GetAttribute("patternTransform");
             set => SetAttribute("patternTransform", value);
         }
 
-        [Attribute("href", SvgElement.XLinkNamespace)]
+        [Attribute("href", XLinkNamespace)]
         public string? Href
         {
             get => GetAttribute("href");

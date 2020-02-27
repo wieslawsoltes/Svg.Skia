@@ -6,14 +6,14 @@ namespace Svg.FilterEffects
     [Element("feImage")]
     public class SvgImage : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
-        [Attribute("preserveAspectRatio", SvgElement.SvgNamespace)]
+        [Attribute("preserveAspectRatio", SvgNamespace)]
         public string? AspectRatio
         {
             get => GetAttribute("preserveAspectRatio");
             set => SetAttribute("preserveAspectRatio", value);
         }
 
-        [Attribute("href", SvgElement.XLinkNamespace)]
+        [Attribute("href", XLinkNamespace)]
         public string? Href
         {
             get => GetAttribute("href");

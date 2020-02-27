@@ -6,28 +6,28 @@ namespace Svg
     [Element("a")]
     public class SvgAnchor : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes, ISvgTransformableAttributes
     {
-        [Attribute("href", SvgElement.XLinkNamespace)]
+        [Attribute("href", XLinkNamespace)]
         public string? Href
         {
             get => GetAttribute("href");
             set => SetAttribute("href", value);
         }
 
-        [Attribute("show", SvgElement.XLinkNamespace)]
+        [Attribute("show", XLinkNamespace)]
         public string? Show
         {
             get => GetAttribute("show");
             set => SetAttribute("show", value);
         }
 
-        [Attribute("actuate", SvgElement.XLinkNamespace)]
+        [Attribute("actuate", XLinkNamespace)]
         public string? Actuate
         {
             get => GetAttribute("actuate");
             set => SetAttribute("actuate", value);
         }
 
-        [Attribute("target", SvgElement.SvgNamespace)]
+        [Attribute("target", SvgNamespace)]
         public string? Target
         {
             get => GetAttribute("target");

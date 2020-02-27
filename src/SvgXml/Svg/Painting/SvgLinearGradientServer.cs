@@ -6,56 +6,56 @@ namespace Svg
     [Element("linearGradient")]
     public class SvgLinearGradientServer : SvgGradientServer, ISvgPresentationAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
-        [Attribute("x1", SvgElement.SvgNamespace)]
+        [Attribute("x1", SvgNamespace)]
         public string? X1
         {
             get => GetAttribute("x1");
             set => SetAttribute("x1", value);
         }
 
-        [Attribute("y1", SvgElement.SvgNamespace)]
+        [Attribute("y1", SvgNamespace)]
         public string? Y1
         {
             get => GetAttribute("y1");
             set => SetAttribute("y1", value);
         }
 
-        [Attribute("x2", SvgElement.SvgNamespace)]
+        [Attribute("x2", SvgNamespace)]
         public string? X2
         {
             get => GetAttribute("x2");
             set => SetAttribute("x2", value);
         }
 
-        [Attribute("y2", SvgElement.SvgNamespace)]
+        [Attribute("y2", SvgNamespace)]
         public string? Y2
         {
             get => GetAttribute("y2");
             set => SetAttribute("y2", value);
         }
 
-        [Attribute("gradientUnits", SvgElement.SvgNamespace)]
+        [Attribute("gradientUnits", SvgNamespace)]
         public string? GradientUnits
         {
             get => GetAttribute("gradientUnits");
             set => SetAttribute("gradientUnits", value);
         }
 
-        [Attribute("gradientTransform", SvgElement.SvgNamespace)]
+        [Attribute("gradientTransform", SvgNamespace)]
         public string? GradientTransform
         {
             get => GetAttribute("gradientTransform");
             set => SetAttribute("gradientTransform", value);
         }
 
-        [Attribute("spreadMethod", SvgElement.SvgNamespace)]
+        [Attribute("spreadMethod", SvgNamespace)]
         public string? SpreadMethod
         {
             get => GetAttribute("spreadMethod");
             set => SetAttribute("spreadMethod", value);
         }
 
-        [Attribute("href", SvgElement.XLinkNamespace)]
+        [Attribute("href", XLinkNamespace)]
         public string? Href
         {
             get => GetAttribute("href");

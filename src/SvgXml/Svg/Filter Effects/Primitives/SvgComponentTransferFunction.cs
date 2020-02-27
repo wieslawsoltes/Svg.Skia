@@ -5,49 +5,49 @@ namespace Svg.FilterEffects
 {
     public abstract class SvgComponentTransferFunction : SvgElement
     {
-        [Attribute("type", SvgElement.SvgNamespace)]
+        [Attribute("type", SvgNamespace)]
         public string? Type
         {
             get => GetAttribute("type");
             set => SetAttribute("type", value);
         }
 
-        [Attribute("tableValues", SvgElement.SvgNamespace)]
+        [Attribute("tableValues", SvgNamespace)]
         public string? TableValues
         {
             get => GetAttribute("tableValues");
             set => SetAttribute("tableValues", value);
         }
 
-        [Attribute("slope", SvgElement.SvgNamespace)]
+        [Attribute("slope", SvgNamespace)]
         public string? Slope
         {
             get => GetAttribute("slope");
             set => SetAttribute("slope", value);
         }
 
-        [Attribute("intercept", SvgElement.SvgNamespace)]
+        [Attribute("intercept", SvgNamespace)]
         public string? Intercept
         {
             get => GetAttribute("intercept");
             set => SetAttribute("intercept", value);
         }
 
-        [Attribute("amplitude", SvgElement.SvgNamespace)]
+        [Attribute("amplitude", SvgNamespace)]
         public string? Amplitude
         {
             get => GetAttribute("amplitude");
             set => SetAttribute("amplitude", value);
         }
 
-        [Attribute("exponent", SvgElement.SvgNamespace)]
+        [Attribute("exponent", SvgNamespace)]
         public string? Exponent
         {
             get => GetAttribute("exponent");
             set => SetAttribute("exponent", value);
         }
 
-        [Attribute("offset", SvgElement.SvgNamespace)]
+        [Attribute("offset", SvgNamespace)]
         public string? Offset
         {
             get => GetAttribute("offset");

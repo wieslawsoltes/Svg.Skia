@@ -10,77 +10,77 @@ namespace Svg
                                ISvgStylableAttributes,
                                ISvgResourcesAttributes
     {
-        [Attribute("x", SvgElement.SvgNamespace)]
+        [Attribute("x", SvgNamespace)]
         public string? X
         {
             get => GetAttribute("x");
             set => SetAttribute("x", value);
         }
 
-        [Attribute("y", SvgElement.SvgNamespace)]
+        [Attribute("y", SvgNamespace)]
         public string? Y
         {
             get => GetAttribute("y");
             set => SetAttribute("y", value);
         }
 
-        [Attribute("width", SvgElement.SvgNamespace)]
+        [Attribute("width", SvgNamespace)]
         public string? Width
         {
             get => GetAttribute("width");
             set => SetAttribute("width", value);
         }
 
-        [Attribute("height", SvgElement.SvgNamespace)]
+        [Attribute("height", SvgNamespace)]
         public string? Height
         {
             get => GetAttribute("height");
             set => SetAttribute("height", value);
         }
 
-        [Attribute("viewBox", SvgElement.SvgNamespace)]
+        [Attribute("viewBox", SvgNamespace)]
         public string? ViewBox
         {
             get => GetAttribute("viewBox");
             set => SetAttribute("viewBox", value);
         }
 
-        [Attribute("preserveAspectRatio", SvgElement.SvgNamespace)]
+        [Attribute("preserveAspectRatio", SvgNamespace)]
         public string? AspectRatio
         {
             get => GetAttribute("preserveAspectRatio");
             set => SetAttribute("preserveAspectRatio", value);
         }
 
-        [Attribute("zoomAndPan", SvgElement.SvgNamespace)]
+        [Attribute("zoomAndPan", SvgNamespace)]
         public string? ZoomAndPan
         {
             get => GetAttribute("zoomAndPan");
             set => SetAttribute("zoomAndPan", value);
         }
 
-        [Attribute("version", SvgElement.SvgNamespace)]
+        [Attribute("version", SvgNamespace)]
         public string? Version
         {
             get => GetAttribute("version");
             set => SetAttribute("version", value);
         }
 
-        [Attribute("baseProfile", SvgElement.SvgNamespace)]
+        [Attribute("baseProfile", SvgNamespace)]
         public string? BaseProfile
         {
             get => GetAttribute("baseProfile");
             set => SetAttribute("baseProfile", value);
         }
 
-        [Attribute("contentScriptType", SvgElement.SvgNamespace)]
+        [Attribute("contentScriptType", SvgNamespace)]
         public string? ContentScriptType
         {
             get => GetAttribute("contentScriptType");
             set => SetAttribute("contentScriptType", value);
         }
 
-        [Attribute("contentStyleType", SvgElement.SvgNamespace)]
+        [Attribute("contentStyleType", SvgNamespace)]
         public string? ContentStyleType
         {
             get => GetAttribute("contentStyleType");

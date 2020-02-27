@@ -5,35 +5,35 @@ namespace Svg
 {
     public abstract class SvgKern : SvgElement
     {
-        [Attribute("u1", SvgElement.SvgNamespace)]
+        [Attribute("u1", SvgNamespace)]
         public string? Unicode1
         {
             get => GetAttribute("u1");
             set => SetAttribute("u1", value);
         }
 
-        [Attribute("g1", SvgElement.SvgNamespace)]
+        [Attribute("g1", SvgNamespace)]
         public string? Glyph1
         {
             get => GetAttribute("g1");
             set => SetAttribute("g1", value);
         }
 
-        [Attribute("u2", SvgElement.SvgNamespace)]
+        [Attribute("u2", SvgNamespace)]
         public string? Unicode2
         {
             get => GetAttribute("u2");
             set => SetAttribute("u2", value);
         }
 
-        [Attribute("g2", SvgElement.SvgNamespace)]
+        [Attribute("g2", SvgNamespace)]
         public string? Glyph2
         {
             get => GetAttribute("g2");
             set => SetAttribute("g2", value);
         }
 
-        [Attribute("k", SvgElement.SvgNamespace)]
+        [Attribute("k", SvgNamespace)]
         public string? Kerning
         {
             get => GetAttribute("k");

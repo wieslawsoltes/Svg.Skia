@@ -6,56 +6,56 @@ namespace Svg.FilterEffects
     [Element("feSpotLight")]
     public class SvgSpotLight : SvgElement
     {
-        [Attribute("x", SvgElement.SvgNamespace)]
+        [Attribute("x", SvgNamespace)]
         public string? X
         {
             get => GetAttribute("x");
             set => SetAttribute("x", value);
         }
 
-        [Attribute("y", SvgElement.SvgNamespace)]
+        [Attribute("y", SvgNamespace)]
         public string? Y
         {
             get => GetAttribute("y");
             set => SetAttribute("y", value);
         }
 
-        [Attribute("z", SvgElement.SvgNamespace)]
+        [Attribute("z", SvgNamespace)]
         public string? Z
         {
             get => GetAttribute("z");
             set => SetAttribute("z", value);
         }
 
-        [Attribute("pointsAtX", SvgElement.SvgNamespace)]
+        [Attribute("pointsAtX", SvgNamespace)]
         public string? PointsAtX
         {
             get => GetAttribute("pointsAtX");
             set => SetAttribute("pointsAtX", value);
         }
 
-        [Attribute("pointsAtY", SvgElement.SvgNamespace)]
+        [Attribute("pointsAtY", SvgNamespace)]
         public string? PointsAtY
         {
             get => GetAttribute("pointsAtY");
             set => SetAttribute("pointsAtY", value);
         }
 
-        [Attribute("pointsAtZ", SvgElement.SvgNamespace)]
+        [Attribute("pointsAtZ", SvgNamespace)]
         public string? PointsAtZ
         {
             get => GetAttribute("pointsAtZ");
             set => SetAttribute("pointsAtZ", value);
         }
 
-        [Attribute("specularExponent", SvgElement.SvgNamespace)]
+        [Attribute("specularExponent", SvgNamespace)]
         public string? SpecularExponent
         {
             get => GetAttribute("specularExponent");
             set => SetAttribute("specularExponent", value);
         }
 
-        [Attribute("limitingConeAngle", SvgElement.SvgNamespace)]
+        [Attribute("limitingConeAngle", SvgNamespace)]
         public string? LlimitingConeAngle
         {
             get => GetAttribute("limitingConeAngle");

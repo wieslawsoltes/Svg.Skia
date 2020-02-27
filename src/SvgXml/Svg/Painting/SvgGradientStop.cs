@@ -6,7 +6,7 @@ namespace Svg
     [Element("stop")]
     public class SvgGradientStop : SvgElement, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("offset", SvgElement.SvgNamespace)]
+        [Attribute("offset", SvgNamespace)]
         public string? Offset
         {
             get => GetAttribute("offset");

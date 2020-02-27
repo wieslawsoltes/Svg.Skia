@@ -6,14 +6,14 @@ namespace Svg
     [Element("path")]
     public class SvgPath : SvgMarkerElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes, ISvgTransformableAttributes
     {
-        [Attribute("d", SvgElement.SvgNamespace)]
+        [Attribute("d", SvgNamespace)]
         public string? PathData
         {
             get => GetAttribute("d");
             set => SetAttribute("d", value);
         }
 
-        [Attribute("pathLength", SvgElement.SvgNamespace)]
+        [Attribute("pathLength", SvgNamespace)]
         public string? PathLength
         {
             get => GetAttribute("pathLength");

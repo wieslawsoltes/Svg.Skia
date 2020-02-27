@@ -6,21 +6,21 @@ namespace Svg.FilterEffects
     [Element("feColorMatrix")]
     public class SvgColourMatrix : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("in", SvgElement.SvgNamespace)]
+        [Attribute("in", SvgNamespace)]
         public string? Input
         {
             get => GetAttribute("in");
             set => SetAttribute("in", value);
         }
 
-        [Attribute("type", SvgElement.SvgNamespace)]
+        [Attribute("type", SvgNamespace)]
         public string? Type
         {
             get => GetAttribute("type");
             set => SetAttribute("type", value);
         }
 
-        [Attribute("values", SvgElement.SvgNamespace)]
+        [Attribute("values", SvgNamespace)]
         public string? Values
         {
             get => GetAttribute("values");
