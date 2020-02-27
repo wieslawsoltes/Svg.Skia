@@ -3,12 +3,17 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SvgXmlDiagnostics"
+        xmlns:Xml="clr-namespace:Xml;assembly=SvgXml"
         xmlns:Svg="clr-namespace:Svg;assembly=SvgXml"
         xmlns:SvgFilterEffects="clr-namespace:Svg.FilterEffects;assembly=SvgXml"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen" WindowState="Normal"
         UseLayoutRounding="True" SnapsToDevicePixels="True" TextOptions.TextRenderingMode="ClearType"
         Title="SvgXml Diagnostics" Height="650" Width="1200">
+    <Window.Resources>
+        <local:TypeVisibilityConverter x:Key="TypeVisibilityConverter" />
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -27,7 +32,7 @@
                 <ColumnDefinition Width="4"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TreeView x:Name="DocumentTree" Grid.Column="0">
+            <TreeView x:Name="DocumentTree" VirtualizingPanel.VirtualizationMode="Recycling" Grid.Column="0">
                 <TreeView.Resources>
                     <Style TargetType="{x:Type TreeViewItem}">
                         <Setter Property="IsExpanded" Value="True"/>
@@ -44,6 +49,15 @@
                 <TabItem Header="Element" Visibility="Visible">
                     <ContentControl Content="{Binding}">
                         <ContentControl.Resources>
+                            <!-- Xml -->
+                            <DataTemplate DataType="{x:Type Xml:ContentElement}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type Xml:UnknownElement}">
+                                <Grid Margin="2">
+                                </Grid>
+                            </DataTemplate>
                             <!-- Animation -->
                             <DataTemplate DataType="{x:Type Svg:SvgAnimate}">
                                 <Grid Margin="2">
@@ -142,8 +156,8 @@
                                     <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
                                     <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
                                     <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
-                                    <TextBlock Text="ViewBox" Grid.Row="3" Grid.Column="0" Margin="2" />
-                                    <TextBox Text="{Binding ViewBox}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                    <TextBlock Text="ViewBox" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                    <TextBox Text="{Binding ViewBox}" Grid.Row="4" Grid.Column="1" Margin="2" />
                                 </Grid>
                             </DataTemplate>
                             <DataTemplate DataType="{x:Type Svg:SvgGroup}">
@@ -403,7 +417,7 @@
                         </ContentControl.Resources>
                     </ContentControl>
                 </TabItem>
-                <TabItem Header="Common" Visibility="Visible">
+                <TabItem Header="Common" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgCommonAttributes}}">
                     <Grid Margin="2">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
@@ -425,38 +439,126 @@
                         <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Space)}" Grid.Row="3" Grid.Column="1" Margin="2" />
                     </Grid>
                 </TabItem>
-                <TabItem Header="Presentation" Visibility="Visible">
-
+                <TabItem Header="Presentation" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgPresentationAttributes}}">
+                    <Grid Margin="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                    </Grid>
                 </TabItem>
-                <TabItem Header="Resources" Visibility="Visible">
-
+                <TabItem Header="Resources" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgResourcesAttributes}}">
+                    <Grid Margin="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                    </Grid>
                 </TabItem>
-                <TabItem Header="Stylable" Visibility="Visible">
-
+                <TabItem Header="Stylable" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgStylableAttributes}}">
+                    <Grid Margin="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                    </Grid>
                 </TabItem>
-                <TabItem Header="Tests" Visibility="Visible">
-
+                <TabItem Header="Tests" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgTestsAttributes}}">
+                    <Grid Margin="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                    </Grid>
                 </TabItem>
-                <TabItem Header="Transformable" Visibility="Visible">
-
+                <TabItem Header="Transformable" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgTransformableAttributes}}">
+                    <Grid Margin="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                    </Grid>
                 </TabItem>
-                <TabItem Header="Xlink" Visibility="Visible">
-
+                <TabItem Header="Xlink" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgXLinkAttributes}}">
+                    <Grid Margin="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                    </Grid>
                 </TabItem>
-                <TabItem Header="Animation Addition" Visibility="Visible">
-
+                <TabItem Header="Animation Addition" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationAdditionAttributes}}">
+                    <Grid Margin="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                    </Grid>
                 </TabItem>
-                <TabItem Header="Animation Attribute Target" Visibility="Visible">
-
+                <TabItem Header="Animation Attribute Target" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationAttributeTargetAttributes}}">
+                    <Grid Margin="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                    </Grid>
                 </TabItem>
-                <TabItem Header="Animation Event" Visibility="Visible">
-
+                <TabItem Header="Animation Event" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationEventAttributes}}">
+                    <Grid Margin="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                    </Grid>
                 </TabItem>
-                <TabItem Header="Animation Timing" Visibility="Visible">
-
+                <TabItem Header="Animation Timing" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationTimingAttributes}}">
+                    <Grid Margin="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                    </Grid>
                 </TabItem>
-                <TabItem Header="Animation Value" Visibility="Visible">
-
+                <TabItem Header="Animation Value" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationValueAttributes}}">
+                    <Grid Margin="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                    </Grid>
                 </TabItem>
             </TabControl>
         </Grid>
