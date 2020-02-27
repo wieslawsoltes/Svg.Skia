@@ -4,12 +4,29 @@ using Xml;
 namespace Svg
 {
     [Element("set")]
-    public class SvgSet : SvgAnimationElement, ISvgTestsAttributes, ISvgResourcesAttributes
+    public class SvgSet : SvgAnimationElement,
+                          ISvgTestsAttributes,
+                          ISvgResourcesAttributes,
+                          ISvgXLinkAttributes,
+                          ISvgAnimationEventAttributes,
+                          ISvgAnimationAttributeTargetAttributes,
+                          ISvgAnimationTimingAttributes
     {
+        [Attribute("to", SvgAttributes.SvgNamespace)]
+        public string? To
+        {
+            get => GetAttribute("to");
+            set => SetAttribute("to", value);
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);
-            // TODO:
+
+            if (To != null)
+            {
+                Console.WriteLine($"{indent}{nameof(To)}='{To}'");
+            }
         }
     }
 }

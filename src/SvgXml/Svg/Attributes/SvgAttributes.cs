@@ -716,5 +716,121 @@ namespace Svg
                 write($"{indent}{nameof(attributes.Title)}: \"{attributes.Title}\"");
             }
         }
+
+        public static void PrintAnimationAdditionAttributes(this ISvgAnimationAdditionAttributes attributes, Action<string> write, string indent)
+        {
+            if (attributes.Additive != null)
+            {
+                write($"{indent}{nameof(attributes.Additive)}: \"{attributes.Additive}\"");
+            }
+            if (attributes.Accumulate != null)
+            {
+                write($"{indent}{nameof(attributes.Accumulate)}: \"{attributes.Accumulate}\"");
+            }
+        }
+
+        public static void PrintAnimationAttributeTargetAttributes(this ISvgAnimationAttributeTargetAttributes attributes, Action<string> write, string indent)
+        {
+            if (attributes.AttributeType != null)
+            {
+                write($"{indent}{nameof(attributes.AttributeType)}: \"{attributes.AttributeType}\"");
+            }
+            if (attributes.AttributeName != null)
+            {
+                write($"{indent}{nameof(attributes.AttributeName)}: \"{attributes.AttributeName}\"");
+            }
+        }
+
+        public static void PrintAnimationEventAttributes(this ISvgAnimationEventAttributes attributes, Action<string> write, string indent)
+        {
+            if (attributes.OnBegin != null)
+            {
+                write($"{indent}{nameof(attributes.OnBegin)}: \"{attributes.OnBegin}\"");
+            }
+            if (attributes.OnEnd != null)
+            {
+                write($"{indent}{nameof(attributes.OnEnd)}: \"{attributes.OnEnd}\"");
+            }
+            if (attributes.OnRepeat != null)
+            {
+                write($"{indent}{nameof(attributes.OnRepeat)}: \"{attributes.OnRepeat}\"");
+            }
+            if (attributes.OnLoad != null)
+            {
+                write($"{indent}{nameof(attributes.OnLoad)}: \"{attributes.OnLoad}\"");
+            }
+        }
+
+        public static void PrintAnimationTimingAttributes(this ISvgAnimationTimingAttributes attributes, Action<string> write, string indent)
+        {
+            if (attributes.Begin != null)
+            {
+                write($"{indent}{nameof(attributes.Begin)}: \"{attributes.Begin}\"");
+            }
+            if (attributes.Dur != null)
+            {
+                write($"{indent}{nameof(attributes.Dur)}: \"{attributes.Dur}\"");
+            }
+            if (attributes.End != null)
+            {
+                write($"{indent}{nameof(attributes.End)}: \"{attributes.End}\"");
+            }
+            if (attributes.Min != null)
+            {
+                write($"{indent}{nameof(attributes.Min)}: \"{attributes.Min}\"");
+            }
+            if (attributes.Max != null)
+            {
+                write($"{indent}{nameof(attributes.Max)}: \"{attributes.Max}\"");
+            }
+            if (attributes.Restart != null)
+            {
+                write($"{indent}{nameof(attributes.Restart)}: \"{attributes.Restart}\"");
+            }
+            if (attributes.RepeatCount != null)
+            {
+                write($"{indent}{nameof(attributes.RepeatCount)}: \"{attributes.RepeatCount}\"");
+            }
+            if (attributes.RepeatDur != null)
+            {
+                write($"{indent}{nameof(attributes.RepeatDur)}: \"{attributes.RepeatDur}\"");
+            }
+            if (attributes.Fill != null)
+            {
+                write($"{indent}{nameof(attributes.Fill)}: \"{attributes.Fill}\"");
+            }
+        }
+
+        public static void PrintAnimationValueAattributes(this ISvgAnimationValueAattributes attributes, Action<string> write, string indent)
+        {
+            if (attributes.CalcMode != null)
+            {
+                write($"{indent}{nameof(attributes.CalcMode)}: \"{attributes.CalcMode}\"");
+            }
+            if (attributes.Values != null)
+            {
+                write($"{indent}{nameof(attributes.Values)}: \"{attributes.Values}\"");
+            }
+            if (attributes.KeyTimes != null)
+            {
+                write($"{indent}{nameof(attributes.KeyTimes)}: \"{attributes.KeyTimes}\"");
+            }
+            if (attributes.KeySplines != null)
+            {
+                write($"{indent}{nameof(attributes.KeySplines)}: \"{attributes.KeySplines}\"");
+            }
+            if (attributes.From != null)
+            {
+                write($"{indent}{nameof(attributes.From)}: \"{attributes.From}\"");
+            }
+            if (attributes.To != null)
+            {
+                write($"{indent}{nameof(attributes.To)}: \"{attributes.To}\"");
+            }
+            if (attributes.By != null)
+            {
+                write($"{indent}{nameof(attributes.By)}: \"{attributes.By}\"");
+            }
+        }
     }
 }

@@ -4,12 +4,16 @@ using Xml;
 namespace Svg
 {
     [Element("animate")]
-    public class SvgAnimate : SvgAnimationElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgResourcesAttributes
+    public class SvgAnimate : SvgAnimationElement,
+                              ISvgPresentationAttributes,
+                              ISvgTestsAttributes,
+                              ISvgResourcesAttributes,
+                              ISvgXLinkAttributes,
+                              ISvgAnimationEventAttributes,
+                              ISvgAnimationAttributeTargetAttributes,
+                              ISvgAnimationTimingAttributes,
+                              ISvgAnimationValueAattributes,
+                              ISvgAnimationAdditionAttributes
     {
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-            // TODO:
-        }
     }
 }
