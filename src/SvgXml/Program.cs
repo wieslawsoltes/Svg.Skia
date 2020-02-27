@@ -50,12 +50,12 @@ namespace SvgXml
             var elements = typeof(SvgDocument).Assembly
                 .GetExportedTypes()
                 .Where(x => x.GetCustomAttributes(typeof(ElementAttribute), true).Length > 0 && x.IsSubclassOf(typeof(Element)))
-                .Select(x => new ElementInfo 
-                             { 
-                                 Name = ((ElementAttribute)x.GetCustomAttributes(typeof(ElementAttribute), true)[0]).Name, 
-                                 Type = x,
-                                 Attributes = GetPublicProperties(x).Select(x => (x, (AttributeAttribute?)x.GetCustomAttributes(typeof(AttributeAttribute), true).FirstOrDefault())).ToArray()
-                             })
+                .Select(x => new ElementInfo
+                {
+                    Name = ((ElementAttribute)x.GetCustomAttributes(typeof(ElementAttribute), true)[0]).Name,
+                    Type = x,
+                    Attributes = GetPublicProperties(x).Select(x => (x, (AttributeAttribute?)x.GetCustomAttributes(typeof(AttributeAttribute), true).FirstOrDefault())).ToArray()
+                })
                 .OrderBy(x => x.Name);
 #if true
             foreach (var element in elements)
