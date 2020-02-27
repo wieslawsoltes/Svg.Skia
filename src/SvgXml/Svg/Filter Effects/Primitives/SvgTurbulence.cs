@@ -6,35 +6,35 @@ namespace Svg.FilterEffects
     [Element("feTurbulence")]
     public class SvgTurbulence : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("baseFrequency", SvgAttributes.SvgNamespace)]
+        [Attribute("baseFrequency", SvgElement.SvgNamespace)]
         public string? BaseFrequency
         {
             get => GetAttribute("baseFrequency");
             set => SetAttribute("baseFrequency", value);
         }
 
-        [Attribute("numOctaves", SvgAttributes.SvgNamespace)]
+        [Attribute("numOctaves", SvgElement.SvgNamespace)]
         public string? NumOctaves
         {
             get => GetAttribute("numOctaves");
             set => SetAttribute("numOctaves", value);
         }
 
-        [Attribute("seed", SvgAttributes.SvgNamespace)]
+        [Attribute("seed", SvgElement.SvgNamespace)]
         public string? Seed
         {
             get => GetAttribute("seed");
             set => SetAttribute("seed", value);
         }
 
-        [Attribute("stitchTiles", SvgAttributes.SvgNamespace)]
+        [Attribute("stitchTiles", SvgElement.SvgNamespace)]
         public string? StitchTiles
         {
             get => GetAttribute("stitchTiles");
             set => SetAttribute("stitchTiles", value);
         }
 
-        [Attribute("type", SvgAttributes.SvgNamespace)]
+        [Attribute("type", SvgElement.SvgNamespace)]
         public string? Type
         {
             get => GetAttribute("type");

@@ -6,28 +6,28 @@ namespace Svg
     [Element("ellipse")]
     public class SvgEllipse : SvgPathBasedElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes, ISvgTransformableAttributes
     {
-        [Attribute("cx", SvgAttributes.SvgNamespace)]
+        [Attribute("cx", SvgElement.SvgNamespace)]
         public string? CenterX
         {
             get => GetAttribute("cx");
             set => SetAttribute("cx", value);
         }
 
-        [Attribute("cy", SvgAttributes.SvgNamespace)]
+        [Attribute("cy", SvgElement.SvgNamespace)]
         public string? CenterY
         {
             get => GetAttribute("cy");
             set => SetAttribute("cy", value);
         }
 
-        [Attribute("rx", SvgAttributes.SvgNamespace)]
+        [Attribute("rx", SvgElement.SvgNamespace)]
         public string? RadiusX
         {
             get => GetAttribute("rx");
             set => SetAttribute("rx", value);
         }
 
-        [Attribute("ry", SvgAttributes.SvgNamespace)]
+        [Attribute("ry", SvgElement.SvgNamespace)]
         public string? RadiusY
         {
             get => GetAttribute("ry");

@@ -6,49 +6,49 @@ namespace Svg
     [Element("glyphRef")]
     public class SvgGlyphRef : SvgElement, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("x", SvgAttributes.SvgNamespace)]
+        [Attribute("x", SvgElement.SvgNamespace)]
         public string? X
         {
             get => GetAttribute("x");
             set => SetAttribute("x", value);
         }
 
-        [Attribute("y", SvgAttributes.SvgNamespace)]
+        [Attribute("y", SvgElement.SvgNamespace)]
         public string? Y
         {
             get => GetAttribute("y");
             set => SetAttribute("y", value);
         }
 
-        [Attribute("dx", SvgAttributes.SvgNamespace)]
+        [Attribute("dx", SvgElement.SvgNamespace)]
         public string? Dx
         {
             get => GetAttribute("dx");
             set => SetAttribute("dx", value);
         }
 
-        [Attribute("dy", SvgAttributes.SvgNamespace)]
+        [Attribute("dy", SvgElement.SvgNamespace)]
         public string? Dy
         {
             get => GetAttribute("dy");
             set => SetAttribute("dy", value);
         }
 
-        [Attribute("glyphRef", SvgAttributes.SvgNamespace)]
+        [Attribute("glyphRef", SvgElement.SvgNamespace)]
         public string? GlyphRef
         {
             get => GetAttribute("glyphRef");
             set => SetAttribute("glyphRef", value);
         }
 
-        [Attribute("format", SvgAttributes.SvgNamespace)]
+        [Attribute("format", SvgElement.SvgNamespace)]
         public string? Format
         {
             get => GetAttribute("format");
             set => SetAttribute("format", value);
         }
 
-        [Attribute("href", SvgAttributes.XLinkNamespace)]
+        [Attribute("href", SvgElement.XLinkNamespace)]
         public string? Href
         {
             get => GetAttribute("href");

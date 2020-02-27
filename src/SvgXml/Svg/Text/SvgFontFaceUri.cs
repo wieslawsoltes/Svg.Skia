@@ -6,7 +6,7 @@ namespace Svg
     [Element("font-face-uri")]
     public class SvgFontFaceUri : SvgElement
     {
-        [Attribute("href", SvgAttributes.XLinkNamespace)]
+        [Attribute("href", SvgElement.XLinkNamespace)]
         public string? Href
         {
             get => GetAttribute("href");

@@ -6,62 +6,62 @@ namespace Svg
     [Element("radialGradient")]
     public class SvgRadialGradientServer : SvgGradientServer, ISvgPresentationAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
-        [Attribute("cx", SvgAttributes.SvgNamespace)]
+        [Attribute("cx", SvgElement.SvgNamespace)]
         public string? CenterX
         {
             get => GetAttribute("cx");
             set => SetAttribute("cx", value);
         }
 
-        [Attribute("cy", SvgAttributes.SvgNamespace)]
+        [Attribute("cy", SvgElement.SvgNamespace)]
         public string? CenterY
         {
             get => GetAttribute("cy");
             set => SetAttribute("cy", value);
         }
 
-        [Attribute("r", SvgAttributes.SvgNamespace)]
+        [Attribute("r", SvgElement.SvgNamespace)]
         public string? Radius
         {
             get => GetAttribute("r");
             set => SetAttribute("r", value);
         }
-        [Attribute("fx", SvgAttributes.SvgNamespace)]
+        [Attribute("fx", SvgElement.SvgNamespace)]
         public string? FocalX
         {
             get => GetAttribute("fx");
             set => SetAttribute("fx", value);
         }
 
-        [Attribute("fy", SvgAttributes.SvgNamespace)]
+        [Attribute("fy", SvgElement.SvgNamespace)]
         public string? FocalY
         {
             get => GetAttribute("fy");
             set => SetAttribute("fy", value);
         }
 
-        [Attribute("gradientUnits", SvgAttributes.SvgNamespace)]
+        [Attribute("gradientUnits", SvgElement.SvgNamespace)]
         public string? GradientUnits
         {
             get => GetAttribute("gradientUnits");
             set => SetAttribute("gradientUnits", value);
         }
 
-        [Attribute("gradientTransform", SvgAttributes.SvgNamespace)]
+        [Attribute("gradientTransform", SvgElement.SvgNamespace)]
         public string? GradientTransform
         {
             get => GetAttribute("gradientTransform");
             set => SetAttribute("gradientTransform", value);
         }
 
-        [Attribute("spreadMethod", SvgAttributes.SvgNamespace)]
+        [Attribute("spreadMethod", SvgElement.SvgNamespace)]
         public string? SpreadMethod
         {
             get => GetAttribute("spreadMethod");
             set => SetAttribute("spreadMethod", value);
         }
 
-        [Attribute("href", SvgAttributes.XLinkNamespace)]
+        [Attribute("href", SvgElement.XLinkNamespace)]
         public string? Href
         {
             get => GetAttribute("href");

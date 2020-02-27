@@ -5,49 +5,49 @@ namespace Svg.FilterEffects
 {
     public abstract class SvgComponentTransferFunction : SvgElement
     {
-        [Attribute("type", SvgAttributes.SvgNamespace)]
+        [Attribute("type", SvgElement.SvgNamespace)]
         public string? Type
         {
             get => GetAttribute("type");
             set => SetAttribute("type", value);
         }
 
-        [Attribute("tableValues", SvgAttributes.SvgNamespace)]
+        [Attribute("tableValues", SvgElement.SvgNamespace)]
         public string? TableValues
         {
             get => GetAttribute("tableValues");
             set => SetAttribute("tableValues", value);
         }
 
-        [Attribute("slope", SvgAttributes.SvgNamespace)]
+        [Attribute("slope", SvgElement.SvgNamespace)]
         public string? Slope
         {
             get => GetAttribute("slope");
             set => SetAttribute("slope", value);
         }
 
-        [Attribute("intercept", SvgAttributes.SvgNamespace)]
+        [Attribute("intercept", SvgElement.SvgNamespace)]
         public string? Intercept
         {
             get => GetAttribute("intercept");
             set => SetAttribute("intercept", value);
         }
 
-        [Attribute("amplitude", SvgAttributes.SvgNamespace)]
+        [Attribute("amplitude", SvgElement.SvgNamespace)]
         public string? Amplitude
         {
             get => GetAttribute("amplitude");
             set => SetAttribute("amplitude", value);
         }
 
-        [Attribute("exponent", SvgAttributes.SvgNamespace)]
+        [Attribute("exponent", SvgElement.SvgNamespace)]
         public string? Exponent
         {
             get => GetAttribute("exponent");
             set => SetAttribute("exponent", value);
         }
 
-        [Attribute("offset", SvgAttributes.SvgNamespace)]
+        [Attribute("offset", SvgElement.SvgNamespace)]
         public string? Offset
         {
             get => GetAttribute("offset");

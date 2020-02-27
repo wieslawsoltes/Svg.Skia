@@ -6,42 +6,42 @@ namespace Svg
     [Element("rect")]
     public class SvgRectangle : SvgPathBasedElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes, ISvgTransformableAttributes
     {
-        [Attribute("x", SvgAttributes.SvgNamespace)]
+        [Attribute("x", SvgElement.SvgNamespace)]
         public string? X
         {
             get => GetAttribute("x");
             set => SetAttribute("x", value);
         }
 
-        [Attribute("y", SvgAttributes.SvgNamespace)]
+        [Attribute("y", SvgElement.SvgNamespace)]
         public string? Y
         {
             get => GetAttribute("y");
             set => SetAttribute("y", value);
         }
 
-        [Attribute("width", SvgAttributes.SvgNamespace)]
+        [Attribute("width", SvgElement.SvgNamespace)]
         public string? Width
         {
             get => GetAttribute("width");
             set => SetAttribute("width", value);
         }
 
-        [Attribute("height", SvgAttributes.SvgNamespace)]
+        [Attribute("height", SvgElement.SvgNamespace)]
         public string? Height
         {
             get => GetAttribute("height");
             set => SetAttribute("height", value);
         }
 
-        [Attribute("rx", SvgAttributes.SvgNamespace)]
+        [Attribute("rx", SvgElement.SvgNamespace)]
         public string? CornerRadiusX
         {
             get => GetAttribute("rx");
             set => SetAttribute("rx", value);
         }
 
-        [Attribute("ry", SvgAttributes.SvgNamespace)]
+        [Attribute("ry", SvgElement.SvgNamespace)]
         public string? CornerRadiusY
         {
             get => GetAttribute("ry");

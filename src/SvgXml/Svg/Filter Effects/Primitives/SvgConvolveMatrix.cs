@@ -6,70 +6,70 @@ namespace Svg.FilterEffects
     [Element("feConvolveMatrix")]
     public class SvgConvolveMatrix : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("in", SvgAttributes.SvgNamespace)]
+        [Attribute("in", SvgElement.SvgNamespace)]
         public string? Input
         {
             get => GetAttribute("in");
             set => SetAttribute("in", value);
         }
 
-        [Attribute("order", SvgAttributes.SvgNamespace)]
+        [Attribute("order", SvgElement.SvgNamespace)]
         public string? Order
         {
             get => GetAttribute("order");
             set => SetAttribute("order", value);
         }
 
-        [Attribute("kernelMatrix", SvgAttributes.SvgNamespace)]
+        [Attribute("kernelMatrix", SvgElement.SvgNamespace)]
         public string? KernelMatrix
         {
             get => GetAttribute("kernelMatrix");
             set => SetAttribute("kernelMatrix", value);
         }
 
-        [Attribute("divisor", SvgAttributes.SvgNamespace)]
+        [Attribute("divisor", SvgElement.SvgNamespace)]
         public string? Divisor
         {
             get => GetAttribute("divisor");
             set => SetAttribute("divisor", value);
         }
 
-        [Attribute("bias", SvgAttributes.SvgNamespace)]
+        [Attribute("bias", SvgElement.SvgNamespace)]
         public string? Bias
         {
             get => GetAttribute("bias");
             set => SetAttribute("bias", value);
         }
 
-        [Attribute("targetX", SvgAttributes.SvgNamespace)]
+        [Attribute("targetX", SvgElement.SvgNamespace)]
         public string? TargetX
         {
             get => GetAttribute("targetX");
             set => SetAttribute("targetX", value);
         }
 
-        [Attribute("targetY", SvgAttributes.SvgNamespace)]
+        [Attribute("targetY", SvgElement.SvgNamespace)]
         public string? TargetY
         {
             get => GetAttribute("targetY");
             set => SetAttribute("targetY", value);
         }
 
-        [Attribute("edgeMode", SvgAttributes.SvgNamespace)]
+        [Attribute("edgeMode", SvgElement.SvgNamespace)]
         public string? EdgeMode
         {
             get => GetAttribute("edgeMode");
             set => SetAttribute("edgeMode", value);
         }
 
-        [Attribute("kernelUnitLength", SvgAttributes.SvgNamespace)]
+        [Attribute("kernelUnitLength", SvgElement.SvgNamespace)]
         public string? KernelUnitLength
         {
             get => GetAttribute("kernelUnitLength");
             set => SetAttribute("kernelUnitLength", value);
         }
 
-        [Attribute("preserveAlpha", SvgAttributes.SvgNamespace)]
+        [Attribute("preserveAlpha", SvgElement.SvgNamespace)]
         public string? PreserveAlpha
         {
             get => GetAttribute("preserveAlpha");

@@ -6,7 +6,7 @@ namespace Svg.FilterEffects
     [Element("feTile")]
     public class SvgTile : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("in", SvgAttributes.SvgNamespace)]
+        [Attribute("in", SvgElement.SvgNamespace)]
         public string? Input
         {
             get => GetAttribute("in");

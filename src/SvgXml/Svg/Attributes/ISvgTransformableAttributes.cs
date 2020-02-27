@@ -5,7 +5,7 @@ namespace Svg
 {
     public interface ISvgTransformableAttributes : IElement
     {
-        [Attribute("transform", SvgAttributes.SvgNamespace)]
+        [Attribute("transform", SvgElement.SvgNamespace)]
         public string? Transform
         {
             get => GetAttribute("transform");

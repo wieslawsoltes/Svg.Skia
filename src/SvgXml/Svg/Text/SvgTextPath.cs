@@ -6,28 +6,28 @@ namespace Svg
     [Element("textPath")]
     public class SvgTextPath : SvgTextContent, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
-        [Attribute("href", SvgAttributes.XLinkNamespace)]
+        [Attribute("href", SvgElement.XLinkNamespace)]
         public string? Href
         {
             get => GetAttribute("href");
             set => SetAttribute("href", value);
         }
 
-        [Attribute("startOffset", SvgAttributes.SvgNamespace)]
+        [Attribute("startOffset", SvgElement.SvgNamespace)]
         public string? StartOffset
         {
             get => GetAttribute("startOffset");
             set => SetAttribute("startOffset", value);
         }
 
-        [Attribute("method", SvgAttributes.SvgNamespace)]
+        [Attribute("method", SvgElement.SvgNamespace)]
         public string? Method
         {
             get => GetAttribute("method");
             set => SetAttribute("method", value);
         }
 
-        [Attribute("spacing", SvgAttributes.SvgNamespace)]
+        [Attribute("spacing", SvgElement.SvgNamespace)]
         public string? Spacing
         {
             get => GetAttribute("spacing");

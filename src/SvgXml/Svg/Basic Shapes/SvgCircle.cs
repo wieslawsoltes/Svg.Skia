@@ -6,21 +6,21 @@ namespace Svg
     [Element("circle")]
     public class SvgCircle : SvgPathBasedElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes, ISvgTransformableAttributes
     {
-        [Attribute("cx", SvgAttributes.SvgNamespace)]
+        [Attribute("cx", SvgElement.SvgNamespace)]
         public string? CenterX
         {
             get => GetAttribute("cx");
             set => SetAttribute("cx", value);
         }
 
-        [Attribute("cy", SvgAttributes.SvgNamespace)]
+        [Attribute("cy", SvgElement.SvgNamespace)]
         public string? CenterY
         {
             get => GetAttribute("cy");
             set => SetAttribute("cy", value);
         }
 
-        [Attribute("r", SvgAttributes.SvgNamespace)]
+        [Attribute("r", SvgElement.SvgNamespace)]
         public string? Radius
         {
             get => GetAttribute("r");

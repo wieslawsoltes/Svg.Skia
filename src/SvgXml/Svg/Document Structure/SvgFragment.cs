@@ -6,77 +6,77 @@ namespace Svg
     [Element("svg")]
     public class SvgFragment : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
-        [Attribute("x", SvgAttributes.SvgNamespace)]
+        [Attribute("x", SvgElement.SvgNamespace)]
         public string? X
         {
             get => GetAttribute("x");
             set => SetAttribute("x", value);
         }
 
-        [Attribute("y", SvgAttributes.SvgNamespace)]
+        [Attribute("y", SvgElement.SvgNamespace)]
         public string? Y
         {
             get => GetAttribute("y");
             set => SetAttribute("y", value);
         }
 
-        [Attribute("width", SvgAttributes.SvgNamespace)]
+        [Attribute("width", SvgElement.SvgNamespace)]
         public string? Width
         {
             get => GetAttribute("width");
             set => SetAttribute("width", value);
         }
 
-        [Attribute("height", SvgAttributes.SvgNamespace)]
+        [Attribute("height", SvgElement.SvgNamespace)]
         public string? Height
         {
             get => GetAttribute("height");
             set => SetAttribute("height", value);
         }
 
-        [Attribute("viewBox", SvgAttributes.SvgNamespace)]
+        [Attribute("viewBox", SvgElement.SvgNamespace)]
         public string? ViewBox
         {
             get => GetAttribute("viewBox");
             set => SetAttribute("viewBox", value);
         }
 
-        [Attribute("preserveAspectRatio", SvgAttributes.SvgNamespace)]
+        [Attribute("preserveAspectRatio", SvgElement.SvgNamespace)]
         public string? AspectRatio
         {
             get => GetAttribute("preserveAspectRatio");
             set => SetAttribute("preserveAspectRatio", value);
         }
 
-        [Attribute("zoomAndPan", SvgAttributes.SvgNamespace)]
+        [Attribute("zoomAndPan", SvgElement.SvgNamespace)]
         public string? ZoomAndPan
         {
             get => GetAttribute("zoomAndPan");
             set => SetAttribute("zoomAndPan", value);
         }
 
-        [Attribute("version", SvgAttributes.SvgNamespace)]
+        [Attribute("version", SvgElement.SvgNamespace)]
         public string? Version
         {
             get => GetAttribute("version");
             set => SetAttribute("version", value);
         }
 
-        [Attribute("baseProfile", SvgAttributes.SvgNamespace)]
+        [Attribute("baseProfile", SvgElement.SvgNamespace)]
         public string? BaseProfile
         {
             get => GetAttribute("baseProfile");
             set => SetAttribute("baseProfile", value);
         }
 
-        [Attribute("contentScriptType", SvgAttributes.SvgNamespace)]
+        [Attribute("contentScriptType", SvgElement.SvgNamespace)]
         public string? ContentScriptType
         {
             get => GetAttribute("contentScriptType");
             set => SetAttribute("contentScriptType", value);
         }
 
-        [Attribute("contentStyleType", SvgAttributes.SvgNamespace)]
+        [Attribute("contentStyleType", SvgElement.SvgNamespace)]
         public string? ContentStyleType
         {
             get => GetAttribute("contentStyleType");

@@ -6,28 +6,28 @@ namespace Svg
     [Element("line")]
     public class SvgLine : SvgMarkerElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes, ISvgTransformableAttributes
     {
-        [Attribute("x1", SvgAttributes.SvgNamespace)]
+        [Attribute("x1", SvgElement.SvgNamespace)]
         public string? StartX
         {
             get => GetAttribute("x1");
             set => SetAttribute("x1", value);
         }
 
-        [Attribute("y1", SvgAttributes.SvgNamespace)]
+        [Attribute("y1", SvgElement.SvgNamespace)]
         public string? StartY
         {
             get => GetAttribute("y1");
             set => SetAttribute("y1", value);
         }
 
-        [Attribute("x2", SvgAttributes.SvgNamespace)]
+        [Attribute("x2", SvgElement.SvgNamespace)]
         public string? EndX
         {
             get => GetAttribute("x2");
             set => SetAttribute("x2", value);
         }
 
-        [Attribute("y2", SvgAttributes.SvgNamespace)]
+        [Attribute("y2", SvgElement.SvgNamespace)]
         public string? EndY
         {
             get => GetAttribute("y2");

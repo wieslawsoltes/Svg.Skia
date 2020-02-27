@@ -6,56 +6,56 @@ namespace Svg.FilterEffects
     [Element("filter")]
     public class SvgFilter : SvgElement, ISvgPresentationAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
-        [Attribute("x", SvgAttributes.SvgNamespace)]
+        [Attribute("x", SvgElement.SvgNamespace)]
         public string? X
         {
             get => GetAttribute("x");
             set => SetAttribute("x", value);
         }
 
-        [Attribute("y", SvgAttributes.SvgNamespace)]
+        [Attribute("y", SvgElement.SvgNamespace)]
         public string? Y
         {
             get => GetAttribute("y");
             set => SetAttribute("y", value);
         }
 
-        [Attribute("width", SvgAttributes.SvgNamespace)]
+        [Attribute("width", SvgElement.SvgNamespace)]
         public string? Width
         {
             get => GetAttribute("width");
             set => SetAttribute("width", value);
         }
 
-        [Attribute("height", SvgAttributes.SvgNamespace)]
+        [Attribute("height", SvgElement.SvgNamespace)]
         public string? Height
         {
             get => GetAttribute("height");
             set => SetAttribute("height", value);
         }
 
-        [Attribute("filterRes", SvgAttributes.SvgNamespace)]
+        [Attribute("filterRes", SvgElement.SvgNamespace)]
         public string? FilterRes
         {
             get => GetAttribute("filterRes");
             set => SetAttribute("filterRes", value);
         }
 
-        [Attribute("filterUnits", SvgAttributes.SvgNamespace)]
+        [Attribute("filterUnits", SvgElement.SvgNamespace)]
         public string? FilterUnits
         {
             get => GetAttribute("filterUnits");
             set => SetAttribute("filterUnits", value);
         }
 
-        [Attribute("primitiveUnits", SvgAttributes.SvgNamespace)]
+        [Attribute("primitiveUnits", SvgElement.SvgNamespace)]
         public string? PrimitiveUnits
         {
             get => GetAttribute("primitiveUnits");
             set => SetAttribute("primitiveUnits", value);
         }
 
-        [Attribute("href", SvgAttributes.XLinkNamespace)]
+        [Attribute("href", SvgElement.XLinkNamespace)]
         public string? Href
         {
             get => GetAttribute("href");

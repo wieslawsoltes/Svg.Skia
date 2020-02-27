@@ -5,14 +5,14 @@ namespace Svg
 {
     public interface ISvgAnimationAdditionAttributes : IElement
     {
-        [Attribute("additive", SvgAttributes.SvgNamespace)]
+        [Attribute("additive", SvgElement.SvgNamespace)]
         public string? Additive
         {
             get => GetAttribute("additive");
             set => SetAttribute("additive", value);
         }
 
-        [Attribute("accumulate", SvgAttributes.SvgNamespace)]
+        [Attribute("accumulate", SvgElement.SvgNamespace)]
         public string? Accumulate
         {
             get => GetAttribute("accumulate");

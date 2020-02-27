@@ -5,35 +5,35 @@ namespace Svg
 {
     public abstract class SvgTextPositioning : SvgTextContent
     {
-        [Attribute("x", SvgAttributes.SvgNamespace)]
+        [Attribute("x", SvgElement.SvgNamespace)]
         public string? X
         {
             get => GetAttribute("x");
             set => SetAttribute("x", value);
         }
 
-        [Attribute("y", SvgAttributes.SvgNamespace)]
+        [Attribute("y", SvgElement.SvgNamespace)]
         public string? Y
         {
             get => GetAttribute("y");
             set => SetAttribute("y", value);
         }
 
-        [Attribute("dx", SvgAttributes.SvgNamespace)]
+        [Attribute("dx", SvgElement.SvgNamespace)]
         public string? Dx
         {
             get => GetAttribute("dx");
             set => SetAttribute("dx", value);
         }
 
-        [Attribute("dy", SvgAttributes.SvgNamespace)]
+        [Attribute("dy", SvgElement.SvgNamespace)]
         public string? Dy
         {
             get => GetAttribute("dy");
             set => SetAttribute("dy", value);
         }
 
-        [Attribute("rotate", SvgAttributes.SvgNamespace)]
+        [Attribute("rotate", SvgElement.SvgNamespace)]
         public string? Rotate
         {
             get => GetAttribute("rotate");

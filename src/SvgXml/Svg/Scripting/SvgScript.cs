@@ -6,14 +6,14 @@ namespace Svg
     [Element("script")]
     public class SvgScript : SvgElement, ISvgResourcesAttributes
     {
-        [Attribute("type", SvgAttributes.SvgNamespace)]
+        [Attribute("type", SvgElement.SvgNamespace)]
         public string? Type
         {
             get => GetAttribute("type");
             set => SetAttribute("type", value);
         }
 
-        [Attribute("href", SvgAttributes.XLinkNamespace)]
+        [Attribute("href", SvgElement.XLinkNamespace)]
         public string? Href
         {
             get => GetAttribute("href");

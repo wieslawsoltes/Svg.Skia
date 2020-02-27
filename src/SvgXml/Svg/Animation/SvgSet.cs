@@ -12,7 +12,7 @@ namespace Svg
                           ISvgAnimationAttributeTargetAttributes,
                           ISvgAnimationTimingAttributes
     {
-        [Attribute("to", SvgAttributes.SvgNamespace)]
+        [Attribute("to", SvgElement.SvgNamespace)]
         public string? To
         {
             get => GetAttribute("to");

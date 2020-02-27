@@ -6,70 +6,70 @@ namespace Svg
     [Element("glyph")]
     public class SvgGlyph : SvgPathBasedElement, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("d", SvgAttributes.SvgNamespace)]
+        [Attribute("d", SvgElement.SvgNamespace)]
         public string? PathData
         {
             get => GetAttribute("d");
             set => SetAttribute("d", value);
         }
 
-        [Attribute("horiz-adv-x", SvgAttributes.SvgNamespace)]
+        [Attribute("horiz-adv-x", SvgElement.SvgNamespace)]
         public string? HorizAdvX
         {
             get => GetAttribute("horiz-adv-x");
             set => SetAttribute("horiz-adv-x", value);
         }
 
-        [Attribute("vert-origin-x", SvgAttributes.SvgNamespace)]
+        [Attribute("vert-origin-x", SvgElement.SvgNamespace)]
         public string? VertOriginX
         {
             get => GetAttribute("vert-origin-x");
             set => SetAttribute("vert-origin-x", value);
         }
 
-        [Attribute("vert-origin-y", SvgAttributes.SvgNamespace)]
+        [Attribute("vert-origin-y", SvgElement.SvgNamespace)]
         public string? VertOriginY
         {
             get => GetAttribute("vert-origin-y");
             set => SetAttribute("vert-origin-y", value);
         }
 
-        [Attribute("vert-adv-y", SvgAttributes.SvgNamespace)]
+        [Attribute("vert-adv-y", SvgElement.SvgNamespace)]
         public string? VertAdvY
         {
             get => GetAttribute("vert-adv-y");
             set => SetAttribute("vert-adv-y", value);
         }
 
-        [Attribute("unicode", SvgAttributes.SvgNamespace)]
+        [Attribute("unicode", SvgElement.SvgNamespace)]
         public string? Unicode
         {
             get => GetAttribute("unicode");
             set => SetAttribute("unicode", value);
         }
 
-        [Attribute("glyph-name", SvgAttributes.SvgNamespace)]
+        [Attribute("glyph-name", SvgElement.SvgNamespace)]
         public string? GlyphName
         {
             get => GetAttribute("glyph-name");
             set => SetAttribute("glyph-name", value);
         }
 
-        [Attribute("orientation", SvgAttributes.SvgNamespace)]
+        [Attribute("orientation", SvgElement.SvgNamespace)]
         public string? Orientation
         {
             get => GetAttribute("orientation");
             set => SetAttribute("orientation", value);
         }
 
-        [Attribute("arabic-form", SvgAttributes.SvgNamespace)]
+        [Attribute("arabic-form", SvgElement.SvgNamespace)]
         public string? ArabicForm
         {
             get => GetAttribute("arabic-form");
             set => SetAttribute("arabic-form", value);
         }
 
-        [Attribute("lang", SvgAttributes.SvgNamespace)]
+        [Attribute("lang", SvgElement.SvgNamespace)]
         public string? Lang
         {
             get => GetAttribute("lang");

@@ -6,7 +6,7 @@ namespace Svg.FilterEffects
     [Element("feMergeNode")]
     public class SvgMergeNode : SvgElement
     {
-        [Attribute("in", SvgAttributes.SvgNamespace)]
+        [Attribute("in", SvgElement.SvgNamespace)]
         public string? Input
         {
             get => GetAttribute("in");

@@ -6,7 +6,7 @@ namespace Svg
     [Element("polygon")]
     public class SvgPolygon : SvgMarkerElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes, ISvgTransformableAttributes
     {
-        [Attribute("points", SvgAttributes.SvgNamespace)]
+        [Attribute("points", SvgElement.SvgNamespace)]
         public string? Points
         {
             get => GetAttribute("points");

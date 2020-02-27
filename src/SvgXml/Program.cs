@@ -169,7 +169,7 @@ namespace SvgXml
                 var document = result.document;
                 if (document != null)
                 {
-                    document.Print(write, printAttributes: true);
+                    SvgElement.Print(document, write, printAttributes: true);
                 }
             }
 #endif

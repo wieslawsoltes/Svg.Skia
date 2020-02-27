@@ -14,7 +14,7 @@ namespace Svg
                                        ISvgAnimationValueAattributes,
                                        ISvgAnimationAdditionAttributes
     {
-        [Attribute("type", SvgAttributes.SvgNamespace)]
+        [Attribute("type", SvgElement.SvgNamespace)]
         public string? Type
         {
             get => GetAttribute("type");

@@ -5,49 +5,49 @@ namespace Svg
 {
     public interface ISvgAnimationValueAattributes : IElement
     {
-        [Attribute("calcMode", SvgAttributes.SvgNamespace)]
+        [Attribute("calcMode", SvgElement.SvgNamespace)]
         public string? CalcMode
         {
             get => GetAttribute("calcMode");
             set => SetAttribute("calcMode", value);
         }
 
-        [Attribute("values", SvgAttributes.SvgNamespace)]
+        [Attribute("values", SvgElement.SvgNamespace)]
         public string? Values
         {
             get => GetAttribute("values");
             set => SetAttribute("values", value);
         }
 
-        [Attribute("keyTimes", SvgAttributes.SvgNamespace)]
+        [Attribute("keyTimes", SvgElement.SvgNamespace)]
         public string? KeyTimes
         {
             get => GetAttribute("keyTimes");
             set => SetAttribute("keyTimes", value);
         }
 
-        [Attribute("keySplines", SvgAttributes.SvgNamespace)]
+        [Attribute("keySplines", SvgElement.SvgNamespace)]
         public string? KeySplines
         {
             get => GetAttribute("keySplines");
             set => SetAttribute("keySplines", value);
         }
 
-        [Attribute("from", SvgAttributes.SvgNamespace)]
+        [Attribute("from", SvgElement.SvgNamespace)]
         public string? From
         {
             get => GetAttribute("from");
             set => SetAttribute("from", value);
         }
 
-        [Attribute("to", SvgAttributes.SvgNamespace)]
+        [Attribute("to", SvgElement.SvgNamespace)]
         public string? To
         {
             get => GetAttribute("to");
             set => SetAttribute("to", value);
         }
 
-        [Attribute("by", SvgAttributes.SvgNamespace)]
+        [Attribute("by", SvgElement.SvgNamespace)]
         public string? By
         {
             get => GetAttribute("by");

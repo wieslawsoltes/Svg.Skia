@@ -6,14 +6,14 @@ namespace Svg.FilterEffects
     [Element("feDistantLight")]
     public class SvgDistantLight : SvgElement
     {
-        [Attribute("azimuth", SvgAttributes.SvgNamespace)]
+        [Attribute("azimuth", SvgElement.SvgNamespace)]
         public string? Azimuth
         {
             get => GetAttribute("azimuth");
             set => SetAttribute("azimuth", value);
         }
 
-        [Attribute("elevation", SvgAttributes.SvgNamespace)]
+        [Attribute("elevation", SvgElement.SvgNamespace)]
         public string? Elevation
         {
             get => GetAttribute("elevation");

@@ -5,14 +5,14 @@ namespace Svg
 {
     public interface ISvgAnimationAttributeTargetAttributes : IElement
     {
-        [Attribute("attributeType", SvgAttributes.SvgNamespace)]
+        [Attribute("attributeType", SvgElement.SvgNamespace)]
         public string? AttributeType
         {
             get => GetAttribute("attributeType");
             set => SetAttribute("attributeType", value);
         }
 
-        [Attribute("attributeName", SvgAttributes.SvgNamespace)]
+        [Attribute("attributeName", SvgElement.SvgNamespace)]
         public string? AttributeName
         {
             get => GetAttribute("attributeName");

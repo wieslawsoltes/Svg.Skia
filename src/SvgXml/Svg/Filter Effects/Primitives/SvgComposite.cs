@@ -6,49 +6,49 @@ namespace Svg.FilterEffects
     [Element("feComposite")]
     public class SvgComposite : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
     {
-        [Attribute("in", SvgAttributes.SvgNamespace)]
+        [Attribute("in", SvgElement.SvgNamespace)]
         public string? Input
         {
             get => GetAttribute("in");
             set => SetAttribute("in", value);
         }
 
-        [Attribute("in2", SvgAttributes.SvgNamespace)]
+        [Attribute("in2", SvgElement.SvgNamespace)]
         public string? Input2
         {
             get => GetAttribute("in2");
             set => SetAttribute("in2", value);
         }
 
-        [Attribute("operator", SvgAttributes.SvgNamespace)]
+        [Attribute("operator", SvgElement.SvgNamespace)]
         public string? Operator
         {
             get => GetAttribute("operator");
             set => SetAttribute("operator", value);
         }
 
-        [Attribute("k1", SvgAttributes.SvgNamespace)]
+        [Attribute("k1", SvgElement.SvgNamespace)]
         public string? K1
         {
             get => GetAttribute("k1");
             set => SetAttribute("k1", value);
         }
 
-        [Attribute("k2", SvgAttributes.SvgNamespace)]
+        [Attribute("k2", SvgElement.SvgNamespace)]
         public string? K2
         {
             get => GetAttribute("k2");
             set => SetAttribute("k2", value);
         }
 
-        [Attribute("k3", SvgAttributes.SvgNamespace)]
+        [Attribute("k3", SvgElement.SvgNamespace)]
         public string? K3
         {
             get => GetAttribute("k3");
             set => SetAttribute("k3", value);
         }
 
-        [Attribute("k4", SvgAttributes.SvgNamespace)]
+        [Attribute("k4", SvgElement.SvgNamespace)]
         public string? K4
         {
             get => GetAttribute("k4");
