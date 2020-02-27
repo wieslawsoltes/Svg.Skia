@@ -39,7 +39,10 @@
                 </TreeView.ItemTemplate>
             </TreeView>
             <GridSplitter Grid.Column="1" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
-            <xctk:PropertyGrid x:Name="PropertiesView" SelectedObject="{Binding ElementName=DocumentTree, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}" Grid.Column="2">
+            <xctk:PropertyGrid x:Name="PropertiesView"
+                               SelectedObject="{Binding ElementName=DocumentTree, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}" 
+                               ShowAdvancedOptions="True"
+                               Grid.Column="2">
             </xctk:PropertyGrid>
         </Grid>
     </Grid>
