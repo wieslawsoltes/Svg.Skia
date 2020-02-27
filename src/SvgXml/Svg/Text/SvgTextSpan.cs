@@ -1,15 +1,9 @@
-﻿using System;
-using Xml;
+﻿using Xml;
 
 namespace Svg
 {
     [Element("tspan")]
-    public class SvgTextSpan : SvgTextBase, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
+    public class SvgTextSpan : SvgTextPositioning, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
     {
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-            // TODO:
-        }
     }
 }
