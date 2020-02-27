@@ -136,7 +136,7 @@ namespace Xml
 
         public static Element? Open(Stream stream, IElementFactory elementFactory)
         {
-            var reader = XmlReader.Create(stream, s_settings);
+            using var reader = XmlReader.Create(stream, s_settings);
             var element = Open(reader, elementFactory);
             return element;
         }
