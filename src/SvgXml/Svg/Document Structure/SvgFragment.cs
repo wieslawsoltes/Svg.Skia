@@ -4,7 +4,11 @@ using Xml;
 namespace Svg
 {
     [Element("svg")]
-    public class SvgFragment : SvgElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
+    public class SvgFragment : SvgElement,
+                               ISvgPresentationAttributes,
+                               ISvgTestsAttributes,
+                               ISvgStylableAttributes,
+                               ISvgResourcesAttributes
     {
         [Attribute("x", SvgElement.SvgNamespace)]
         public string? X
