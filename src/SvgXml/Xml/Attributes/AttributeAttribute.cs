@@ -2,7 +2,7 @@
 
 namespace Xml
 {
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Event)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Event, Inherited = false)]
     public class AttributeAttribute : Attribute
     {
         public string Name { get; private set; }

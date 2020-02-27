@@ -2,7 +2,7 @@
 
 namespace Xml
 {
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public sealed class ElementAttribute : Attribute
     {
         public string Name { get; private set; }

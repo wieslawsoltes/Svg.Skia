@@ -2,15 +2,43 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Svg;
+using Xml;
 
 namespace SvgXml
 {
     internal class Program
     {
+        internal class ElementInfo
+        {
+            public string? Name { get; set; }
+            public Type? Type { get; set; }
+        }
+
+        private static void PrintAttributeUsage(Action<string> write)
+        {
+            var elements = typeof(SvgDocument).Assembly
+                .GetExportedTypes()
+                .Where(x => x.GetCustomAttributes(typeof(ElementAttribute), true).Length > 0 && x.IsSubclassOf(typeof(Element)))
+                .Select(x => new ElementInfo { Name = ((ElementAttribute)x.GetCustomAttributes(typeof(ElementAttribute), true)[0]).Name, Type = x })
+                .OrderBy(x => x.Name);
+
+            foreach (var element in elements)
+            {
+                write($"{element.Name} [{element.Type?.Name}]");
+            }
+        }
+
         private static void Main(string[] args)
         {
             Action<string> write = Console.WriteLine;
+
+            if (args.Length == 0)
+            {
+                PrintAttributeUsage(write);
+                return;
+            }
 
             if (args.Length != 1)
             {
