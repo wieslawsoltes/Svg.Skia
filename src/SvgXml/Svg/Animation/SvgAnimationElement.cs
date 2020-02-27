@@ -11,23 +11,23 @@ namespace Svg
 
             if (this is ISvgAnimationAdditionAttributes svgAnimationAdditionAttributes)
             {
-                svgAnimationAdditionAttributes.PrintAnimationAdditionAttributes(write, indent);
+                PrintAnimationAdditionAttributes(svgAnimationAdditionAttributes, write, indent);
             }
             if (this is ISvgAnimationAttributeTargetAttributes svgAnimationAttributeTargetAttributes)
             {
-                svgAnimationAttributeTargetAttributes.PrintAnimationAttributeTargetAttributes(write, indent);
+                PrintAnimationAttributeTargetAttributes(svgAnimationAttributeTargetAttributes, write, indent);
             }
             if (this is ISvgAnimationEventAttributes svgAnimationEventAttributes)
             {
-                svgAnimationEventAttributes.PrintAnimationEventAttributes(write, indent);
+                PrintAnimationEventAttributes(svgAnimationEventAttributes, write, indent);
             }
             if (this is ISvgAnimationTimingAttributes svgAnimationTimingAttributes)
             {
-                svgAnimationTimingAttributes.PrintAnimationTimingAttributes(write, indent);
+                PrintAnimationTimingAttributes(svgAnimationTimingAttributes, write, indent);
             }
             if (this is ISvgAnimationValueAattributes svgAnimationValueAattributes)
             {
-                svgAnimationValueAattributes.PrintAnimationValueAattributes(write, indent);
+                PrintAnimationValueAattributes(svgAnimationValueAattributes, write, indent);
             }
         }
     }
