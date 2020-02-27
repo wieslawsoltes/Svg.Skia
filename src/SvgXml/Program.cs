@@ -57,7 +57,7 @@ namespace SvgXml
                                  Attributes = GetPublicProperties(x).Select(x => (x, (AttributeAttribute?)x.GetCustomAttributes(typeof(AttributeAttribute), true).FirstOrDefault())).ToArray()
                              })
                 .OrderBy(x => x.Name);
-
+#if true
             foreach (var element in elements)
             {
                 write($"{element.Name} [{element.Type?.Name}]");
@@ -72,6 +72,24 @@ namespace SvgXml
                     }
                 }
             }
+#else
+            foreach (var element in elements)
+            {
+                write($"public interface I{element.Type?.Name}");
+                write($"{{");
+                if (element.Attributes != null)
+                {
+                    foreach (var attribute in element.Attributes)
+                    {
+                        if (attribute.Attribute != null)
+                        {
+                            write($"    {attribute.Property.Name} {{ get; set; }}");
+                        }
+                    }
+                }
+                write($"}}");
+            }
+#endif
         }
 
         private static void Main(string[] args)
