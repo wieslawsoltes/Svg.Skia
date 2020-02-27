@@ -14,14 +14,21 @@ namespace SvgXmlDiagnostics
         {
             var dlg = new Microsoft.Win32.OpenFileDialog()
             {
-                Filter = "Supported Files (*.svg;*.svgz)|*.svg;*svgz|Svg Files (*.svg)|*.svg|Svgz Files (*.svgz)|*.svgz|All Files (*.*)|*.*"
+                Filter = "Supported Files (*.svg;*.svgz)|*.svg;*svgz" +
+                         "|Svg Files (*.svg)|*.svg" +
+                         "|Svgz Files (*.svgz)|*.svgz" +
+                         "|All Files (*.*)|*.*",
+                Multiselect = true
             };
             if (dlg.ShowDialog() == true)
             {
-                var svgDocument = SvgDocument.Open(dlg.FileName);
-                if (svgDocument != null)
+                foreach (var fileName in dlg.FileNames)
                 {
-                    DocumentTree.Items.Add(svgDocument);
+                    var svgDocument = SvgDocument.Open(fileName);
+                    if (svgDocument != null)
+                    {
+                        DocumentTree.Items.Add(svgDocument);
+                    }
                 }
             }
         }
