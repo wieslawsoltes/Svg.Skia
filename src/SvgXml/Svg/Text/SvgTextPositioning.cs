@@ -8,36 +8,36 @@ namespace Svg
         [Attribute("x", SvgNamespace)]
         public string? X
         {
-            get => GetAttribute("x");
-            set => SetAttribute("x", value);
+            get => this.GetAttribute("x");
+            set => this.SetAttribute("x", value);
         }
 
         [Attribute("y", SvgNamespace)]
         public string? Y
         {
-            get => GetAttribute("y");
-            set => SetAttribute("y", value);
+            get => this.GetAttribute("y");
+            set => this.SetAttribute("y", value);
         }
 
         [Attribute("dx", SvgNamespace)]
         public string? Dx
         {
-            get => GetAttribute("dx");
-            set => SetAttribute("dx", value);
+            get => this.GetAttribute("dx");
+            set => this.SetAttribute("dx", value);
         }
 
         [Attribute("dy", SvgNamespace)]
         public string? Dy
         {
-            get => GetAttribute("dy");
-            set => SetAttribute("dy", value);
+            get => this.GetAttribute("dy");
+            set => this.SetAttribute("dy", value);
         }
 
         [Attribute("rotate", SvgNamespace)]
         public string? Rotate
         {
-            get => GetAttribute("rotate");
-            set => SetAttribute("rotate", value);
+            get => this.GetAttribute("rotate");
+            set => this.SetAttribute("rotate", value);
         }
 
         public override void Print(Action<string> write, string indent)

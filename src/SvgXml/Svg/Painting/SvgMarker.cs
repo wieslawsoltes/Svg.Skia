@@ -13,57 +13,57 @@ namespace Svg
         [Attribute("viewBox", SvgNamespace)]
         public string? ViewBox
         {
-            get => GetAttribute("viewBox");
-            set => SetAttribute("viewBox", value);
+            get => this.GetAttribute("viewBox");
+            set => this.SetAttribute("viewBox", value);
         }
 
         [Attribute("preserveAspectRatio", SvgNamespace)]
         public string? AspectRatio
         {
-            get => GetAttribute("preserveAspectRatio");
-            set => SetAttribute("preserveAspectRatio", value);
+            get => this.GetAttribute("preserveAspectRatio");
+            set => this.SetAttribute("preserveAspectRatio", value);
         }
 
         [Attribute("refX", SvgNamespace)]
         public string? RefX
         {
-            get => GetAttribute("refX");
-            set => SetAttribute("refX", value);
+            get => this.GetAttribute("refX");
+            set => this.SetAttribute("refX", value);
         }
 
         [Attribute("refY", SvgNamespace)]
         public string? RefY
         {
-            get => GetAttribute("refY");
-            set => SetAttribute("refY", value);
+            get => this.GetAttribute("refY");
+            set => this.SetAttribute("refY", value);
         }
 
         [Attribute("markerUnits", SvgNamespace)]
         public string? MarkerUnits
         {
-            get => GetAttribute("markerUnits");
-            set => SetAttribute("markerUnits", value);
+            get => this.GetAttribute("markerUnits");
+            set => this.SetAttribute("markerUnits", value);
         }
 
         [Attribute("markerWidth", SvgNamespace)]
         public string? MarkerWidth
         {
-            get => GetAttribute("markerWidth");
-            set => SetAttribute("markerWidth", value);
+            get => this.GetAttribute("markerWidth");
+            set => this.SetAttribute("markerWidth", value);
         }
 
         [Attribute("markerHeight", SvgNamespace)]
         public string? MarkerHeight
         {
-            get => GetAttribute("markerHeight");
-            set => SetAttribute("markerHeight", value);
+            get => this.GetAttribute("markerHeight");
+            set => this.SetAttribute("markerHeight", value);
         }
 
         [Attribute("orient", SvgNamespace)]
         public string? Orient
         {
-            get => GetAttribute("orient");
-            set => SetAttribute("orient", value);
+            get => this.GetAttribute("orient");
+            set => this.SetAttribute("orient", value);
         }
 
         public override void Print(Action<string> write, string indent)

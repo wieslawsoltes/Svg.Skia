@@ -10,15 +10,15 @@ namespace Svg.FilterEffects
         [Attribute("azimuth", SvgNamespace)]
         public string? Azimuth
         {
-            get => GetAttribute("azimuth");
-            set => SetAttribute("azimuth", value);
+            get => this.GetAttribute("azimuth");
+            set => this.SetAttribute("azimuth", value);
         }
 
         [Attribute("elevation", SvgNamespace)]
         public string? Elevation
         {
-            get => GetAttribute("elevation");
-            set => SetAttribute("elevation", value);
+            get => this.GetAttribute("elevation");
+            set => this.SetAttribute("elevation", value);
         }
 
         public override void Print(Action<string> write, string indent)

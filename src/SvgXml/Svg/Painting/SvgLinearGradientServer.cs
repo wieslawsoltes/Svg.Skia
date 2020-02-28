@@ -13,57 +13,57 @@ namespace Svg
         [Attribute("x1", SvgNamespace)]
         public string? X1
         {
-            get => GetAttribute("x1");
-            set => SetAttribute("x1", value);
+            get => this.GetAttribute("x1");
+            set => this.SetAttribute("x1", value);
         }
 
         [Attribute("y1", SvgNamespace)]
         public string? Y1
         {
-            get => GetAttribute("y1");
-            set => SetAttribute("y1", value);
+            get => this.GetAttribute("y1");
+            set => this.SetAttribute("y1", value);
         }
 
         [Attribute("x2", SvgNamespace)]
         public string? X2
         {
-            get => GetAttribute("x2");
-            set => SetAttribute("x2", value);
+            get => this.GetAttribute("x2");
+            set => this.SetAttribute("x2", value);
         }
 
         [Attribute("y2", SvgNamespace)]
         public string? Y2
         {
-            get => GetAttribute("y2");
-            set => SetAttribute("y2", value);
+            get => this.GetAttribute("y2");
+            set => this.SetAttribute("y2", value);
         }
 
         [Attribute("gradientUnits", SvgNamespace)]
         public string? GradientUnits
         {
-            get => GetAttribute("gradientUnits");
-            set => SetAttribute("gradientUnits", value);
+            get => this.GetAttribute("gradientUnits");
+            set => this.SetAttribute("gradientUnits", value);
         }
 
         [Attribute("gradientTransform", SvgNamespace)]
         public string? GradientTransform
         {
-            get => GetAttribute("gradientTransform");
-            set => SetAttribute("gradientTransform", value);
+            get => this.GetAttribute("gradientTransform");
+            set => this.SetAttribute("gradientTransform", value);
         }
 
         [Attribute("spreadMethod", SvgNamespace)]
         public string? SpreadMethod
         {
-            get => GetAttribute("spreadMethod");
-            set => SetAttribute("spreadMethod", value);
+            get => this.GetAttribute("spreadMethod");
+            set => this.SetAttribute("spreadMethod", value);
         }
 
         [Attribute("href", XLinkNamespace)]
         public string? Href
         {
-            get => GetAttribute("href");
-            set => SetAttribute("href", value);
+            get => this.GetAttribute("href");
+            set => this.SetAttribute("href", value);
         }
 
         public override void Print(Action<string> write, string indent)

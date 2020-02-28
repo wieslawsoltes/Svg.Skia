@@ -12,50 +12,50 @@ namespace Svg
         [Attribute("x", SvgNamespace)]
         public string? X
         {
-            get => GetAttribute("x");
-            set => SetAttribute("x", value);
+            get => this.GetAttribute("x");
+            set => this.SetAttribute("x", value);
         }
 
         [Attribute("y", SvgNamespace)]
         public string? Y
         {
-            get => GetAttribute("y");
-            set => SetAttribute("y", value);
+            get => this.GetAttribute("y");
+            set => this.SetAttribute("y", value);
         }
 
         [Attribute("dx", SvgNamespace)]
         public string? Dx
         {
-            get => GetAttribute("dx");
-            set => SetAttribute("dx", value);
+            get => this.GetAttribute("dx");
+            set => this.SetAttribute("dx", value);
         }
 
         [Attribute("dy", SvgNamespace)]
         public string? Dy
         {
-            get => GetAttribute("dy");
-            set => SetAttribute("dy", value);
+            get => this.GetAttribute("dy");
+            set => this.SetAttribute("dy", value);
         }
 
         [Attribute("glyphRef", SvgNamespace)]
         public string? GlyphRef
         {
-            get => GetAttribute("glyphRef");
-            set => SetAttribute("glyphRef", value);
+            get => this.GetAttribute("glyphRef");
+            set => this.SetAttribute("glyphRef", value);
         }
 
         [Attribute("format", SvgNamespace)]
         public string? Format
         {
-            get => GetAttribute("format");
-            set => SetAttribute("format", value);
+            get => this.GetAttribute("format");
+            set => this.SetAttribute("format", value);
         }
 
         [Attribute("href", XLinkNamespace)]
         public string? Href
         {
-            get => GetAttribute("href");
-            set => SetAttribute("href", value);
+            get => this.GetAttribute("href");
+            set => this.SetAttribute("href", value);
         }
 
         public override void Print(Action<string> write, string indent)

@@ -12,22 +12,22 @@ namespace Svg.FilterEffects
         [Attribute("in", SvgNamespace)]
         public string? Input
         {
-            get => GetAttribute("in");
-            set => SetAttribute("in", value);
+            get => this.GetAttribute("in");
+            set => this.SetAttribute("in", value);
         }
 
         [Attribute("operator", SvgNamespace)]
         public string? Operator
         {
-            get => GetAttribute("operator");
-            set => SetAttribute("operator", value);
+            get => this.GetAttribute("operator");
+            set => this.SetAttribute("operator", value);
         }
 
         [Attribute("radius", SvgNamespace)]
         public string? Radius
         {
-            get => GetAttribute("radius");
-            set => SetAttribute("radius", value);
+            get => this.GetAttribute("radius");
+            set => this.SetAttribute("radius", value);
         }
 
         public override void Print(Action<string> write, string indent)

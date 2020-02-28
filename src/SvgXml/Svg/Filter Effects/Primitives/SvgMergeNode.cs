@@ -10,8 +10,8 @@ namespace Svg.FilterEffects
         [Attribute("in", SvgNamespace)]
         public string? Input
         {
-            get => GetAttribute("in");
-            set => SetAttribute("in", value);
+            get => this.GetAttribute("in");
+            set => this.SetAttribute("in", value);
         }
 
         public override void Print(Action<string> write, string indent)

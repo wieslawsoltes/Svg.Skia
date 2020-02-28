@@ -14,78 +14,78 @@ namespace Svg
         [Attribute("x", SvgNamespace)]
         public string? X
         {
-            get => GetAttribute("x");
-            set => SetAttribute("x", value);
+            get => this.GetAttribute("x", false, "0");
+            set => this.SetAttribute("x", value);
         }
 
         [Attribute("y", SvgNamespace)]
         public string? Y
         {
-            get => GetAttribute("y");
-            set => SetAttribute("y", value);
+            get => this.GetAttribute("y", false, "0");
+            set => this.SetAttribute("y", value);
         }
 
         [Attribute("width", SvgNamespace)]
         public string? Width
         {
-            get => GetAttribute("width");
-            set => SetAttribute("width", value);
+            get => this.GetAttribute("width", false, "100%");
+            set => this.SetAttribute("width", value);
         }
 
         [Attribute("height", SvgNamespace)]
         public string? Height
         {
-            get => GetAttribute("height");
-            set => SetAttribute("height", value);
+            get => this.GetAttribute("height", false, "100%");
+            set => this.SetAttribute("height", value);
         }
 
         [Attribute("viewBox", SvgNamespace)]
         public string? ViewBox
         {
-            get => GetAttribute("viewBox");
-            set => SetAttribute("viewBox", value);
+            get => this.GetAttribute("viewBox", false, null);
+            set => this.SetAttribute("viewBox", value);
         }
 
         [Attribute("preserveAspectRatio", SvgNamespace)]
         public string? AspectRatio
         {
-            get => GetAttribute("preserveAspectRatio");
-            set => SetAttribute("preserveAspectRatio", value);
+            get => this.GetAttribute("preserveAspectRatio", false, "xMidYMid meet");
+            set => this.SetAttribute("preserveAspectRatio", value);
         }
 
         [Attribute("zoomAndPan", SvgNamespace)]
         public string? ZoomAndPan
         {
-            get => GetAttribute("zoomAndPan");
-            set => SetAttribute("zoomAndPan", value);
+            get => this.GetAttribute("zoomAndPan", false, "magnify");
+            set => this.SetAttribute("zoomAndPan", value);
         }
 
         [Attribute("version", SvgNamespace)]
         public string? Version
         {
-            get => GetAttribute("version");
-            set => SetAttribute("version", value);
+            get => this.GetAttribute("version", false, "1.1");
+            set => this.SetAttribute("version", value);
         }
 
         [Attribute("baseProfile", SvgNamespace)]
         public string? BaseProfile
         {
-            get => GetAttribute("baseProfile");
-            set => SetAttribute("baseProfile", value);
+            get => this.GetAttribute("baseProfile", false, "none");
+            set => this.SetAttribute("baseProfile", value);
         }
 
         [Attribute("contentScriptType", SvgNamespace)]
         public string? ContentScriptType
         {
-            get => GetAttribute("contentScriptType");
-            set => SetAttribute("contentScriptType", value);
+            get => this.GetAttribute("contentScriptType", false, "application/ecmascript");
+            set => this.SetAttribute("contentScriptType", value);
         }
 
         [Attribute("contentStyleType", SvgNamespace)]
         public string? ContentStyleType
         {
-            get => GetAttribute("contentStyleType");
-            set => SetAttribute("contentStyleType", value);
+            get => this.GetAttribute("contentStyleType", false, "text/css");
+            set => this.SetAttribute("contentStyleType", value);
         }
 
         public override void Print(Action<string> write, string indent)

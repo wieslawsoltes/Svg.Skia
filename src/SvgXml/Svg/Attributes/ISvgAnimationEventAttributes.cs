@@ -8,29 +8,29 @@ namespace Svg
         [Attribute("onbegin", SvgElement.SvgNamespace)]
         public string? OnBegin
         {
-            get => GetAttribute("onbegin");
-            set => SetAttribute("onbegin", value);
+            get => this.GetAttribute("onbegin");
+            set => this.SetAttribute("onbegin", value);
         }
 
         [Attribute("onend", SvgElement.SvgNamespace)]
         public string? OnEnd
         {
-            get => GetAttribute("onend");
-            set => SetAttribute("onend", value);
+            get => this.GetAttribute("onend");
+            set => this.SetAttribute("onend", value);
         }
 
         [Attribute("onrepeat", SvgElement.SvgNamespace)]
         public string? OnRepeat
         {
-            get => GetAttribute("onrepeat");
-            set => SetAttribute("onrepeat", value);
+            get => this.GetAttribute("onrepeat");
+            set => this.SetAttribute("onrepeat", value);
         }
 
         [Attribute("onload", SvgElement.SvgNamespace)]
         public string? OnLoad
         {
-            get => GetAttribute("onload");
-            set => SetAttribute("onload", value);
+            get => this.GetAttribute("onload");
+            set => this.SetAttribute("onload", value);
         }
     }
 }

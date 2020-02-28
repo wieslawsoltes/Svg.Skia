@@ -12,36 +12,36 @@ namespace Svg.FilterEffects
         [Attribute("in", SvgNamespace)]
         public string? Input
         {
-            get => GetAttribute("in");
-            set => SetAttribute("in", value);
+            get => this.GetAttribute("in");
+            set => this.SetAttribute("in", value);
         }
 
         [Attribute("in2", SvgNamespace)]
         public string? Input2
         {
-            get => GetAttribute("in2");
-            set => SetAttribute("in2", value);
+            get => this.GetAttribute("in2");
+            set => this.SetAttribute("in2", value);
         }
 
         [Attribute("scale", SvgNamespace)]
         public string? Scale
         {
-            get => GetAttribute("scale");
-            set => SetAttribute("scale", value);
+            get => this.GetAttribute("scale");
+            set => this.SetAttribute("scale", value);
         }
 
         [Attribute("xChannelSelector", SvgNamespace)]
         public string? XChannelSelector
         {
-            get => GetAttribute("xChannelSelector");
-            set => SetAttribute("xChannelSelector", value);
+            get => this.GetAttribute("xChannelSelector");
+            set => this.SetAttribute("xChannelSelector", value);
         }
 
         [Attribute("yChannelSelector", SvgNamespace)]
         public string? YChannelSelector
         {
-            get => GetAttribute("yChannelSelector");
-            set => SetAttribute("yChannelSelector", value);
+            get => this.GetAttribute("yChannelSelector");
+            set => this.SetAttribute("yChannelSelector", value);
         }
 
         public override void Print(Action<string> write, string indent)

@@ -13,43 +13,43 @@ namespace Svg
         [Attribute("horiz-origin-x", SvgNamespace)]
         public string? HorizOriginX
         {
-            get => GetAttribute("horiz-origin-x");
-            set => SetAttribute("horiz-origin-x", value);
+            get => this.GetAttribute("horiz-origin-x");
+            set => this.SetAttribute("horiz-origin-x", value);
         }
 
         [Attribute("horiz-origin-y", SvgNamespace)]
         public string? HorizOriginY
         {
-            get => GetAttribute("horiz-origin-y");
-            set => SetAttribute("horiz-origin-y", value);
+            get => this.GetAttribute("horiz-origin-y");
+            set => this.SetAttribute("horiz-origin-y", value);
         }
 
         [Attribute("horiz-adv-x", SvgNamespace)]
         public string? HorizAdvX
         {
-            get => GetAttribute("horiz-adv-x");
-            set => SetAttribute("horiz-adv-x", value);
+            get => this.GetAttribute("horiz-adv-x");
+            set => this.SetAttribute("horiz-adv-x", value);
         }
 
         [Attribute("vert-origin-x", SvgNamespace)]
         public string? VertOriginX
         {
-            get => GetAttribute("vert-origin-x");
-            set => SetAttribute("vert-origin-x", value);
+            get => this.GetAttribute("vert-origin-x");
+            set => this.SetAttribute("vert-origin-x", value);
         }
 
         [Attribute("vert-origin-y", SvgNamespace)]
         public string? VertOriginY
         {
-            get => GetAttribute("vert-origin-y");
-            set => SetAttribute("vert-origin-y", value);
+            get => this.GetAttribute("vert-origin-y");
+            set => this.SetAttribute("vert-origin-y", value);
         }
 
         [Attribute("vert-adv-y", SvgNamespace)]
         public string? VertAdvY
         {
-            get => GetAttribute("vert-adv-y");
-            set => SetAttribute("vert-adv-y", value);
+            get => this.GetAttribute("vert-adv-y");
+            set => this.SetAttribute("vert-adv-y", value);
         }
 
         public override void Print(Action<string> write, string indent)

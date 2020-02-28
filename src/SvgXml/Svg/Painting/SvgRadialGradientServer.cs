@@ -13,63 +13,63 @@ namespace Svg
         [Attribute("cx", SvgNamespace)]
         public string? CenterX
         {
-            get => GetAttribute("cx");
-            set => SetAttribute("cx", value);
+            get => this.GetAttribute("cx");
+            set => this.SetAttribute("cx", value);
         }
 
         [Attribute("cy", SvgNamespace)]
         public string? CenterY
         {
-            get => GetAttribute("cy");
-            set => SetAttribute("cy", value);
+            get => this.GetAttribute("cy");
+            set => this.SetAttribute("cy", value);
         }
 
         [Attribute("r", SvgNamespace)]
         public string? Radius
         {
-            get => GetAttribute("r");
-            set => SetAttribute("r", value);
+            get => this.GetAttribute("r");
+            set => this.SetAttribute("r", value);
         }
         [Attribute("fx", SvgNamespace)]
         public string? FocalX
         {
-            get => GetAttribute("fx");
-            set => SetAttribute("fx", value);
+            get => this.GetAttribute("fx");
+            set => this.SetAttribute("fx", value);
         }
 
         [Attribute("fy", SvgNamespace)]
         public string? FocalY
         {
-            get => GetAttribute("fy");
-            set => SetAttribute("fy", value);
+            get => this.GetAttribute("fy");
+            set => this.SetAttribute("fy", value);
         }
 
         [Attribute("gradientUnits", SvgNamespace)]
         public string? GradientUnits
         {
-            get => GetAttribute("gradientUnits");
-            set => SetAttribute("gradientUnits", value);
+            get => this.GetAttribute("gradientUnits");
+            set => this.SetAttribute("gradientUnits", value);
         }
 
         [Attribute("gradientTransform", SvgNamespace)]
         public string? GradientTransform
         {
-            get => GetAttribute("gradientTransform");
-            set => SetAttribute("gradientTransform", value);
+            get => this.GetAttribute("gradientTransform");
+            set => this.SetAttribute("gradientTransform", value);
         }
 
         [Attribute("spreadMethod", SvgNamespace)]
         public string? SpreadMethod
         {
-            get => GetAttribute("spreadMethod");
-            set => SetAttribute("spreadMethod", value);
+            get => this.GetAttribute("spreadMethod");
+            set => this.SetAttribute("spreadMethod", value);
         }
 
         [Attribute("href", XLinkNamespace)]
         public string? Href
         {
-            get => GetAttribute("href");
-            set => SetAttribute("href", value);
+            get => this.GetAttribute("href");
+            set => this.SetAttribute("href", value);
         }
 
         public override void Print(Action<string> write, string indent)

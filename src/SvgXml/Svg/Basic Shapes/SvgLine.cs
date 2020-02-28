@@ -15,29 +15,29 @@ namespace Svg
         [Attribute("x1", SvgNamespace)]
         public string? StartX
         {
-            get => GetAttribute("x1");
-            set => SetAttribute("x1", value);
+            get => this.GetAttribute("x1");
+            set => this.SetAttribute("x1", value);
         }
 
         [Attribute("y1", SvgNamespace)]
         public string? StartY
         {
-            get => GetAttribute("y1");
-            set => SetAttribute("y1", value);
+            get => this.GetAttribute("y1");
+            set => this.SetAttribute("y1", value);
         }
 
         [Attribute("x2", SvgNamespace)]
         public string? EndX
         {
-            get => GetAttribute("x2");
-            set => SetAttribute("x2", value);
+            get => this.GetAttribute("x2");
+            set => this.SetAttribute("x2", value);
         }
 
         [Attribute("y2", SvgNamespace)]
         public string? EndY
         {
-            get => GetAttribute("y2");
-            set => SetAttribute("y2", value);
+            get => this.GetAttribute("y2");
+            set => this.SetAttribute("y2", value);
         }
 
         public override void Print(Action<string> write, string indent)

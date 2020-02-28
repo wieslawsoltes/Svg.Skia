@@ -8,36 +8,36 @@ namespace Svg.FilterEffects
         [Attribute("x", SvgNamespace)]
         public string? X
         {
-            get => GetAttribute("x");
-            set => SetAttribute("x", value);
+            get => this.GetAttribute("x");
+            set => this.SetAttribute("x", value);
         }
 
         [Attribute("y", SvgNamespace)]
         public string? Y
         {
-            get => GetAttribute("y");
-            set => SetAttribute("y", value);
+            get => this.GetAttribute("y");
+            set => this.SetAttribute("y", value);
         }
 
         [Attribute("width", SvgNamespace)]
         public string? Width
         {
-            get => GetAttribute("width");
-            set => SetAttribute("width", value);
+            get => this.GetAttribute("width");
+            set => this.SetAttribute("width", value);
         }
 
         [Attribute("height", SvgNamespace)]
         public string? Height
         {
-            get => GetAttribute("height");
-            set => SetAttribute("height", value);
+            get => this.GetAttribute("height");
+            set => this.SetAttribute("height", value);
         }
 
         [Attribute("result", SvgNamespace)]
         public string? Result
         {
-            get => GetAttribute("result");
-            set => SetAttribute("result", value);
+            get => this.GetAttribute("result");
+            set => this.SetAttribute("result", value);
         }
 
         public override void Print(Action<string> write, string indent)

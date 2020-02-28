@@ -15,29 +15,29 @@ namespace Svg
         [Attribute("cx", SvgNamespace)]
         public string? CenterX
         {
-            get => GetAttribute("cx");
-            set => SetAttribute("cx", value);
+            get => this.GetAttribute("cx");
+            set => this.SetAttribute("cx", value);
         }
 
         [Attribute("cy", SvgNamespace)]
         public string? CenterY
         {
-            get => GetAttribute("cy");
-            set => SetAttribute("cy", value);
+            get => this.GetAttribute("cy");
+            set => this.SetAttribute("cy", value);
         }
 
         [Attribute("rx", SvgNamespace)]
         public string? RadiusX
         {
-            get => GetAttribute("rx");
-            set => SetAttribute("rx", value);
+            get => this.GetAttribute("rx");
+            set => this.SetAttribute("rx", value);
         }
 
         [Attribute("ry", SvgNamespace)]
         public string? RadiusY
         {
-            get => GetAttribute("ry");
-            set => SetAttribute("ry", value);
+            get => this.GetAttribute("ry");
+            set => this.SetAttribute("ry", value);
         }
 
         public override void Print(Action<string> write, string indent)

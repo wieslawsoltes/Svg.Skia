@@ -12,22 +12,22 @@ namespace Svg.FilterEffects
         [Attribute("in", SvgNamespace)]
         public string? Input
         {
-            get => GetAttribute("in");
-            set => SetAttribute("in", value);
+            get => this.GetAttribute("in");
+            set => this.SetAttribute("in", value);
         }
 
         [Attribute("in2", SvgNamespace)]
         public string? Input2
         {
-            get => GetAttribute("in2");
-            set => SetAttribute("in2", value);
+            get => this.GetAttribute("in2");
+            set => this.SetAttribute("in2", value);
         }
 
         [Attribute("mode", SvgNamespace)]
         public string? Mode
         {
-            get => GetAttribute("mode");
-            set => SetAttribute("mode", value);
+            get => this.GetAttribute("mode");
+            set => this.SetAttribute("mode", value);
         }
 
         public override void Print(Action<string> write, string indent)

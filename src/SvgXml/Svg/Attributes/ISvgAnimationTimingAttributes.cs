@@ -8,64 +8,64 @@ namespace Svg
         [Attribute("begin", SvgElement.SvgNamespace)]
         public string? Begin
         {
-            get => GetAttribute("begin");
-            set => SetAttribute("begin", value);
+            get => this.GetAttribute("begin");
+            set => this.SetAttribute("begin", value);
         }
 
         [Attribute("dur", SvgElement.SvgNamespace)]
         public string? Dur
         {
-            get => GetAttribute("dur");
-            set => SetAttribute("dur", value);
+            get => this.GetAttribute("dur");
+            set => this.SetAttribute("dur", value);
         }
 
         [Attribute("end", SvgElement.SvgNamespace)]
         public string? End
         {
-            get => GetAttribute("end");
-            set => SetAttribute("end", value);
+            get => this.GetAttribute("end");
+            set => this.SetAttribute("end", value);
         }
 
         [Attribute("min", SvgElement.SvgNamespace)]
         public string? Min
         {
-            get => GetAttribute("min");
-            set => SetAttribute("min", value);
+            get => this.GetAttribute("min");
+            set => this.SetAttribute("min", value);
         }
 
         [Attribute("max", SvgElement.SvgNamespace)]
         public string? Max
         {
-            get => GetAttribute("max");
-            set => SetAttribute("max", value);
+            get => this.GetAttribute("max");
+            set => this.SetAttribute("max", value);
         }
 
         [Attribute("restart", SvgElement.SvgNamespace)]
         public string? Restart
         {
-            get => GetAttribute("restart");
-            set => SetAttribute("restart", value);
+            get => this.GetAttribute("restart");
+            set => this.SetAttribute("restart", value);
         }
 
         [Attribute("repeatCount", SvgElement.SvgNamespace)]
         public string? RepeatCount
         {
-            get => GetAttribute("repeatCount");
-            set => SetAttribute("repeatCount", value);
+            get => this.GetAttribute("repeatCount");
+            set => this.SetAttribute("repeatCount", value);
         }
 
         [Attribute("repeatDur", SvgElement.SvgNamespace)]
         public string? RepeatDur
         {
-            get => GetAttribute("repeatDur");
-            set => SetAttribute("repeatDur", value);
+            get => this.GetAttribute("repeatDur");
+            set => this.SetAttribute("repeatDur", value);
         }
 
         [Attribute("fill", SvgElement.SvgNamespace)]
         public string? Fill
         {
-            get => GetAttribute("fill");
-            set => SetAttribute("fill", value);
+            get => this.GetAttribute("fill");
+            set => this.SetAttribute("fill", value);
         }
     }
 }

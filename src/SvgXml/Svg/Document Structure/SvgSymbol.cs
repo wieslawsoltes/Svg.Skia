@@ -13,15 +13,15 @@ namespace Svg
         [Attribute("viewBox", SvgNamespace)]
         public string? ViewBox
         {
-            get => GetAttribute("viewBox");
-            set => SetAttribute("viewBox", value);
+            get => this.GetAttribute("viewBox");
+            set => this.SetAttribute("viewBox", value);
         }
 
         [Attribute("preserveAspectRatio", SvgNamespace)]
         public string? AspectRatio
         {
-            get => GetAttribute("preserveAspectRatio");
-            set => SetAttribute("preserveAspectRatio", value);
+            get => this.GetAttribute("preserveAspectRatio");
+            set => this.SetAttribute("preserveAspectRatio", value);
         }
 
         public override void Print(Action<string> write, string indent)

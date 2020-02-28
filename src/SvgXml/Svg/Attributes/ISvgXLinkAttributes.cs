@@ -8,50 +8,50 @@ namespace Svg
         [Attribute("href", SvgElement.XLinkNamespace)]
         public string? Href
         {
-            get => GetAttribute("href");
-            set => SetAttribute("href", value);
+            get => this.GetAttribute("href", false, null);
+            set => this.SetAttribute("href", value);
         }
 
         [Attribute("show", SvgElement.XLinkNamespace)]
         public string? Show
         {
-            get => GetAttribute("show");
-            set => SetAttribute("show", value);
+            get => this.GetAttribute("show", false, null);
+            set => this.SetAttribute("show", value);
         }
 
         [Attribute("actuate", SvgElement.XLinkNamespace)]
         public string? Actuate
         {
-            get => GetAttribute("actuate");
-            set => SetAttribute("actuate", value);
+            get => this.GetAttribute("actuate", false, null);
+            set => this.SetAttribute("actuate", value);
         }
 
         [Attribute("type", SvgElement.XLinkNamespace)]
         public string? Type
         {
-            get => GetAttribute("type");
-            set => SetAttribute("type", value);
+            get => this.GetAttribute("type", false, null);
+            set => this.SetAttribute("type", value);
         }
 
         [Attribute("role", SvgElement.XLinkNamespace)]
         public string? Role
         {
-            get => GetAttribute("role");
-            set => SetAttribute("role", value);
+            get => this.GetAttribute("role", false, null);
+            set => this.SetAttribute("role", value);
         }
 
         [Attribute("arcrole", SvgElement.XLinkNamespace)]
         public string? Arcrole
         {
-            get => GetAttribute("arcrole");
-            set => SetAttribute("arcrole", value);
+            get => this.GetAttribute("arcrole", false, null);
+            set => this.SetAttribute("arcrole", value);
         }
 
         [Attribute("title", SvgElement.XLinkNamespace)]
         public string? Title
         {
-            get => GetAttribute("title");
-            set => SetAttribute("title", value);
+            get => this.GetAttribute("title");
+            set => this.SetAttribute("title", value);
         }
     }
 }

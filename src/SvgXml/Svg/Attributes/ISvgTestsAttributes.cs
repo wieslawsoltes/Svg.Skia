@@ -8,22 +8,22 @@ namespace Svg
         [Attribute("requiredFeatures", SvgElement.SvgNamespace)]
         public string? RequiredFeatures
         {
-            get => GetAttribute("requiredFeatures");
-            set => SetAttribute("requiredFeatures", value);
+            get => this.GetAttribute("requiredFeatures", false, null);
+            set => this.SetAttribute("requiredFeatures", value);
         }
 
         [Attribute("requiredExtensions", SvgElement.SvgNamespace)]
         public string? RequiredExtensions
         {
-            get => GetAttribute("requiredExtensions");
-            set => SetAttribute("requiredExtensions", value);
+            get => this.GetAttribute("requiredExtensions", false, null);
+            set => this.SetAttribute("requiredExtensions", value);
         }
 
         [Attribute("systemLanguage", SvgElement.SvgNamespace)]
         public string? SystemLanguage
         {
-            get => GetAttribute("systemLanguage");
-            set => SetAttribute("systemLanguage", value);
+            get => this.GetAttribute("systemLanguage", false, null);
+            set => this.SetAttribute("systemLanguage", value);
         }
     }
 }

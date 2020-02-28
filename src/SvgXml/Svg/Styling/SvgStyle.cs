@@ -10,22 +10,22 @@ namespace Svg
         [Attribute("type", SvgNamespace)]
         public string? Type
         {
-            get => GetAttribute("type");
-            set => SetAttribute("type", value);
+            get => this.GetAttribute("type");
+            set => this.SetAttribute("type", value);
         }
 
         [Attribute("media", SvgNamespace)]
         public string? Media
         {
-            get => GetAttribute("media");
-            set => SetAttribute("media", value);
+            get => this.GetAttribute("media");
+            set => this.SetAttribute("media", value);
         }
 
         [Attribute("title", SvgNamespace)]
         public string? Title
         {
-            get => GetAttribute("title");
-            set => SetAttribute("title", value);
+            get => this.GetAttribute("title");
+            set => this.SetAttribute("title", value);
         }
 
         public override void Print(Action<string> write, string indent)

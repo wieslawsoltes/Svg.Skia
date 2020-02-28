@@ -10,22 +10,22 @@ namespace Svg.FilterEffects
         [Attribute("x", SvgNamespace)]
         public string? X
         {
-            get => GetAttribute("x");
-            set => SetAttribute("x", value);
+            get => this.GetAttribute("x");
+            set => this.SetAttribute("x", value);
         }
 
         [Attribute("y", SvgNamespace)]
         public string? Y
         {
-            get => GetAttribute("y");
-            set => SetAttribute("y", value);
+            get => this.GetAttribute("y");
+            set => this.SetAttribute("y", value);
         }
 
         [Attribute("z", SvgNamespace)]
         public string? Z
         {
-            get => GetAttribute("z");
-            set => SetAttribute("z", value);
+            get => this.GetAttribute("z");
+            set => this.SetAttribute("z", value);
         }
 
         public override void Print(Action<string> write, string indent)

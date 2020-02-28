@@ -12,71 +12,71 @@ namespace Svg
         [Attribute("d", SvgNamespace)]
         public string? PathData
         {
-            get => GetAttribute("d");
-            set => SetAttribute("d", value);
+            get => this.GetAttribute("d");
+            set => this.SetAttribute("d", value);
         }
 
         [Attribute("horiz-adv-x", SvgNamespace)]
         public string? HorizAdvX
         {
-            get => GetAttribute("horiz-adv-x");
-            set => SetAttribute("horiz-adv-x", value);
+            get => this.GetAttribute("horiz-adv-x");
+            set => this.SetAttribute("horiz-adv-x", value);
         }
 
         [Attribute("vert-origin-x", SvgNamespace)]
         public string? VertOriginX
         {
-            get => GetAttribute("vert-origin-x");
-            set => SetAttribute("vert-origin-x", value);
+            get => this.GetAttribute("vert-origin-x");
+            set => this.SetAttribute("vert-origin-x", value);
         }
 
         [Attribute("vert-origin-y", SvgNamespace)]
         public string? VertOriginY
         {
-            get => GetAttribute("vert-origin-y");
-            set => SetAttribute("vert-origin-y", value);
+            get => this.GetAttribute("vert-origin-y");
+            set => this.SetAttribute("vert-origin-y", value);
         }
 
         [Attribute("vert-adv-y", SvgNamespace)]
         public string? VertAdvY
         {
-            get => GetAttribute("vert-adv-y");
-            set => SetAttribute("vert-adv-y", value);
+            get => this.GetAttribute("vert-adv-y");
+            set => this.SetAttribute("vert-adv-y", value);
         }
 
         [Attribute("unicode", SvgNamespace)]
         public string? Unicode
         {
-            get => GetAttribute("unicode");
-            set => SetAttribute("unicode", value);
+            get => this.GetAttribute("unicode");
+            set => this.SetAttribute("unicode", value);
         }
 
         [Attribute("glyph-name", SvgNamespace)]
         public string? GlyphName
         {
-            get => GetAttribute("glyph-name");
-            set => SetAttribute("glyph-name", value);
+            get => this.GetAttribute("glyph-name");
+            set => this.SetAttribute("glyph-name", value);
         }
 
         [Attribute("orientation", SvgNamespace)]
         public string? Orientation
         {
-            get => GetAttribute("orientation");
-            set => SetAttribute("orientation", value);
+            get => this.GetAttribute("orientation");
+            set => this.SetAttribute("orientation", value);
         }
 
         [Attribute("arabic-form", SvgNamespace)]
         public string? ArabicForm
         {
-            get => GetAttribute("arabic-form");
-            set => SetAttribute("arabic-form", value);
+            get => this.GetAttribute("arabic-form");
+            set => this.SetAttribute("arabic-form", value);
         }
 
         [Attribute("lang", SvgNamespace)]
         public string? Lang
         {
-            get => GetAttribute("lang");
-            set => SetAttribute("lang", value);
+            get => this.GetAttribute("lang");
+            set => this.SetAttribute("lang", value);
         }
 
         public override void Print(Action<string> write, string indent)

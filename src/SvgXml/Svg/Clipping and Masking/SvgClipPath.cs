@@ -15,8 +15,8 @@ namespace Svg
         [Attribute("clipPathUnits", SvgNamespace)]
         public string? ClipPathUnits
         {
-            get => GetAttribute("clipPathUnits");
-            set => SetAttribute("clipPathUnits", value);
+            get => this.GetAttribute("clipPathUnits");
+            set => this.SetAttribute("clipPathUnits", value);
         }
 
         public override void Print(Action<string> write, string indent)

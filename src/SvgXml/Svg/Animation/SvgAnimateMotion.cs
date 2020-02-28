@@ -17,29 +17,29 @@ namespace Svg
         [Attribute("path", SvgNamespace)]
         public string? Path
         {
-            get => GetAttribute("path");
-            set => SetAttribute("path", value);
+            get => this.GetAttribute("path");
+            set => this.SetAttribute("path", value);
         }
 
         [Attribute("keyPoints", SvgNamespace)]
         public string? KeyPoints
         {
-            get => GetAttribute("keyPoints");
-            set => SetAttribute("keyPoints", value);
+            get => this.GetAttribute("keyPoints");
+            set => this.SetAttribute("keyPoints", value);
         }
 
         [Attribute("rotate", SvgNamespace)]
         public string? Rotate
         {
-            get => GetAttribute("rotate");
-            set => SetAttribute("rotate", value);
+            get => this.GetAttribute("rotate");
+            set => this.SetAttribute("rotate", value);
         }
 
         [Attribute("origin", SvgNamespace)]
         public string? Origin
         {
-            get => GetAttribute("origin");
-            set => SetAttribute("origin", value);
+            get => this.GetAttribute("origin");
+            set => this.SetAttribute("origin", value);
         }
 
         public override void Print(Action<string> write, string indent)

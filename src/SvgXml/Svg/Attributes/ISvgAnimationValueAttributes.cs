@@ -8,50 +8,50 @@ namespace Svg
         [Attribute("calcMode", SvgElement.SvgNamespace)]
         public string? CalcMode
         {
-            get => GetAttribute("calcMode");
-            set => SetAttribute("calcMode", value);
+            get => this.GetAttribute("calcMode");
+            set => this.SetAttribute("calcMode", value);
         }
 
         [Attribute("values", SvgElement.SvgNamespace)]
         public string? Values
         {
-            get => GetAttribute("values");
-            set => SetAttribute("values", value);
+            get => this.GetAttribute("values");
+            set => this.SetAttribute("values", value);
         }
 
         [Attribute("keyTimes", SvgElement.SvgNamespace)]
         public string? KeyTimes
         {
-            get => GetAttribute("keyTimes");
-            set => SetAttribute("keyTimes", value);
+            get => this.GetAttribute("keyTimes");
+            set => this.SetAttribute("keyTimes", value);
         }
 
         [Attribute("keySplines", SvgElement.SvgNamespace)]
         public string? KeySplines
         {
-            get => GetAttribute("keySplines");
-            set => SetAttribute("keySplines", value);
+            get => this.GetAttribute("keySplines");
+            set => this.SetAttribute("keySplines", value);
         }
 
         [Attribute("from", SvgElement.SvgNamespace)]
         public string? From
         {
-            get => GetAttribute("from");
-            set => SetAttribute("from", value);
+            get => this.GetAttribute("from");
+            set => this.SetAttribute("from", value);
         }
 
         [Attribute("to", SvgElement.SvgNamespace)]
         public string? To
         {
-            get => GetAttribute("to");
-            set => SetAttribute("to", value);
+            get => this.GetAttribute("to");
+            set => this.SetAttribute("to", value);
         }
 
         [Attribute("by", SvgElement.SvgNamespace)]
         public string? By
         {
-            get => GetAttribute("by");
-            set => SetAttribute("by", value);
+            get => this.GetAttribute("by");
+            set => this.SetAttribute("by", value);
         }
     }
 }

@@ -12,50 +12,50 @@ namespace Svg.FilterEffects
         [Attribute("in", SvgNamespace)]
         public string? Input
         {
-            get => GetAttribute("in");
-            set => SetAttribute("in", value);
+            get => this.GetAttribute("in");
+            set => this.SetAttribute("in", value);
         }
 
         [Attribute("in2", SvgNamespace)]
         public string? Input2
         {
-            get => GetAttribute("in2");
-            set => SetAttribute("in2", value);
+            get => this.GetAttribute("in2");
+            set => this.SetAttribute("in2", value);
         }
 
         [Attribute("operator", SvgNamespace)]
         public string? Operator
         {
-            get => GetAttribute("operator");
-            set => SetAttribute("operator", value);
+            get => this.GetAttribute("operator");
+            set => this.SetAttribute("operator", value);
         }
 
         [Attribute("k1", SvgNamespace)]
         public string? K1
         {
-            get => GetAttribute("k1");
-            set => SetAttribute("k1", value);
+            get => this.GetAttribute("k1");
+            set => this.SetAttribute("k1", value);
         }
 
         [Attribute("k2", SvgNamespace)]
         public string? K2
         {
-            get => GetAttribute("k2");
-            set => SetAttribute("k2", value);
+            get => this.GetAttribute("k2");
+            set => this.SetAttribute("k2", value);
         }
 
         [Attribute("k3", SvgNamespace)]
         public string? K3
         {
-            get => GetAttribute("k3");
-            set => SetAttribute("k3", value);
+            get => this.GetAttribute("k3");
+            set => this.SetAttribute("k3", value);
         }
 
         [Attribute("k4", SvgNamespace)]
         public string? K4
         {
-            get => GetAttribute("k4");
-            set => SetAttribute("k4", value);
+            get => this.GetAttribute("k4");
+            set => this.SetAttribute("k4", value);
         }
 
         public override void Print(Action<string> write, string indent)

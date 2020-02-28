@@ -8,50 +8,50 @@ namespace Svg.FilterEffects
         [Attribute("type", SvgNamespace)]
         public string? Type
         {
-            get => GetAttribute("type");
-            set => SetAttribute("type", value);
+            get => this.GetAttribute("type");
+            set => this.SetAttribute("type", value);
         }
 
         [Attribute("tableValues", SvgNamespace)]
         public string? TableValues
         {
-            get => GetAttribute("tableValues");
-            set => SetAttribute("tableValues", value);
+            get => this.GetAttribute("tableValues");
+            set => this.SetAttribute("tableValues", value);
         }
 
         [Attribute("slope", SvgNamespace)]
         public string? Slope
         {
-            get => GetAttribute("slope");
-            set => SetAttribute("slope", value);
+            get => this.GetAttribute("slope");
+            set => this.SetAttribute("slope", value);
         }
 
         [Attribute("intercept", SvgNamespace)]
         public string? Intercept
         {
-            get => GetAttribute("intercept");
-            set => SetAttribute("intercept", value);
+            get => this.GetAttribute("intercept");
+            set => this.SetAttribute("intercept", value);
         }
 
         [Attribute("amplitude", SvgNamespace)]
         public string? Amplitude
         {
-            get => GetAttribute("amplitude");
-            set => SetAttribute("amplitude", value);
+            get => this.GetAttribute("amplitude");
+            set => this.SetAttribute("amplitude", value);
         }
 
         [Attribute("exponent", SvgNamespace)]
         public string? Exponent
         {
-            get => GetAttribute("exponent");
-            set => SetAttribute("exponent", value);
+            get => this.GetAttribute("exponent");
+            set => this.SetAttribute("exponent", value);
         }
 
         [Attribute("offset", SvgNamespace)]
         public string? Offset
         {
-            get => GetAttribute("offset");
-            set => SetAttribute("offset", value);
+            get => this.GetAttribute("offset");
+            set => this.SetAttribute("offset", value);
         }
 
         public override void Print(Action<string> write, string indent)

@@ -8,8 +8,8 @@ namespace Svg
         [Attribute("transform", SvgElement.SvgNamespace)]
         public string? Transform
         {
-            get => GetAttribute("transform");
-            set => SetAttribute("transform", value);
+            get => this.GetAttribute("transform", false, null);
+            set => this.SetAttribute("transform", value);
         }
     }
 }

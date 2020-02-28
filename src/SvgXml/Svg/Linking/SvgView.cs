@@ -11,29 +11,29 @@ namespace Svg
         [Attribute("viewBox", SvgNamespace)]
         public string? ViewBox
         {
-            get => GetAttribute("viewBox");
-            set => SetAttribute("viewBox", value);
+            get => this.GetAttribute("viewBox");
+            set => this.SetAttribute("viewBox", value);
         }
 
         [Attribute("preserveAspectRatio", SvgNamespace)]
         public string? AspectRatio
         {
-            get => GetAttribute("preserveAspectRatio");
-            set => SetAttribute("preserveAspectRatio", value);
+            get => this.GetAttribute("preserveAspectRatio");
+            set => this.SetAttribute("preserveAspectRatio", value);
         }
 
         [Attribute("zoomAndPan", SvgNamespace)]
         public string? ZoomAndPan
         {
-            get => GetAttribute("zoomAndPan");
-            set => SetAttribute("zoomAndPan", value);
+            get => this.GetAttribute("zoomAndPan");
+            set => this.SetAttribute("zoomAndPan", value);
         }
 
         [Attribute("viewTarget", SvgNamespace)]
         public string? ViewTarget
         {
-            get => GetAttribute("viewTarget");
-            set => SetAttribute("viewTarget", value);
+            get => this.GetAttribute("viewTarget");
+            set => this.SetAttribute("viewTarget", value);
         }
 
         public override void Print(Action<string> write, string indent)

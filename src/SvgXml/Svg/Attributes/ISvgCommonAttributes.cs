@@ -8,29 +8,29 @@ namespace Svg
         [Attribute("id", SvgElement.SvgNamespace)]
         public string? Id
         {
-            get => GetAttribute("id");
-            set => SetAttribute("id", value);
+            get => this.GetAttribute("id", false, null);
+            set => this.SetAttribute("id", value);
         }
 
         [Attribute("base", SvgElement.XmlNamespace)]
         public string? Base
         {
-            get => GetAttribute("base");
-            set => SetAttribute("base", value);
+            get => this.GetAttribute("base", false, null);
+            set => this.SetAttribute("base", value);
         }
 
         [Attribute("lang", SvgElement.XmlNamespace)]
         public string? Lang
         {
-            get => GetAttribute("lang");
-            set => SetAttribute("lang", value);
+            get => this.GetAttribute("lang", false, null);
+            set => this.SetAttribute("lang", value);
         }
 
         [Attribute("space", SvgElement.XmlNamespace)]
         public string? Space
         {
-            get => GetAttribute("space");
-            set => SetAttribute("space", value);
+            get => this.GetAttribute("space", false, "default");
+            set => this.SetAttribute("space", value);
         }
     }
 }

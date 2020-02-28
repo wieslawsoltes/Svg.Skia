@@ -12,36 +12,36 @@ namespace Svg.FilterEffects
         [Attribute("baseFrequency", SvgNamespace)]
         public string? BaseFrequency
         {
-            get => GetAttribute("baseFrequency");
-            set => SetAttribute("baseFrequency", value);
+            get => this.GetAttribute("baseFrequency");
+            set => this.SetAttribute("baseFrequency", value);
         }
 
         [Attribute("numOctaves", SvgNamespace)]
         public string? NumOctaves
         {
-            get => GetAttribute("numOctaves");
-            set => SetAttribute("numOctaves", value);
+            get => this.GetAttribute("numOctaves");
+            set => this.SetAttribute("numOctaves", value);
         }
 
         [Attribute("seed", SvgNamespace)]
         public string? Seed
         {
-            get => GetAttribute("seed");
-            set => SetAttribute("seed", value);
+            get => this.GetAttribute("seed");
+            set => this.SetAttribute("seed", value);
         }
 
         [Attribute("stitchTiles", SvgNamespace)]
         public string? StitchTiles
         {
-            get => GetAttribute("stitchTiles");
-            set => SetAttribute("stitchTiles", value);
+            get => this.GetAttribute("stitchTiles");
+            set => this.SetAttribute("stitchTiles", value);
         }
 
         [Attribute("type", SvgNamespace)]
         public string? Type
         {
-            get => GetAttribute("type");
-            set => SetAttribute("type", value);
+            get => this.GetAttribute("type");
+            set => this.SetAttribute("type", value);
         }
 
         public override void Print(Action<string> write, string indent)

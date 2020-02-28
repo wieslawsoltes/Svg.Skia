@@ -12,71 +12,71 @@ namespace Svg.FilterEffects
         [Attribute("in", SvgNamespace)]
         public string? Input
         {
-            get => GetAttribute("in");
-            set => SetAttribute("in", value);
+            get => this.GetAttribute("in");
+            set => this.SetAttribute("in", value);
         }
 
         [Attribute("order", SvgNamespace)]
         public string? Order
         {
-            get => GetAttribute("order");
-            set => SetAttribute("order", value);
+            get => this.GetAttribute("order");
+            set => this.SetAttribute("order", value);
         }
 
         [Attribute("kernelMatrix", SvgNamespace)]
         public string? KernelMatrix
         {
-            get => GetAttribute("kernelMatrix");
-            set => SetAttribute("kernelMatrix", value);
+            get => this.GetAttribute("kernelMatrix");
+            set => this.SetAttribute("kernelMatrix", value);
         }
 
         [Attribute("divisor", SvgNamespace)]
         public string? Divisor
         {
-            get => GetAttribute("divisor");
-            set => SetAttribute("divisor", value);
+            get => this.GetAttribute("divisor");
+            set => this.SetAttribute("divisor", value);
         }
 
         [Attribute("bias", SvgNamespace)]
         public string? Bias
         {
-            get => GetAttribute("bias");
-            set => SetAttribute("bias", value);
+            get => this.GetAttribute("bias");
+            set => this.SetAttribute("bias", value);
         }
 
         [Attribute("targetX", SvgNamespace)]
         public string? TargetX
         {
-            get => GetAttribute("targetX");
-            set => SetAttribute("targetX", value);
+            get => this.GetAttribute("targetX");
+            set => this.SetAttribute("targetX", value);
         }
 
         [Attribute("targetY", SvgNamespace)]
         public string? TargetY
         {
-            get => GetAttribute("targetY");
-            set => SetAttribute("targetY", value);
+            get => this.GetAttribute("targetY");
+            set => this.SetAttribute("targetY", value);
         }
 
         [Attribute("edgeMode", SvgNamespace)]
         public string? EdgeMode
         {
-            get => GetAttribute("edgeMode");
-            set => SetAttribute("edgeMode", value);
+            get => this.GetAttribute("edgeMode");
+            set => this.SetAttribute("edgeMode", value);
         }
 
         [Attribute("kernelUnitLength", SvgNamespace)]
         public string? KernelUnitLength
         {
-            get => GetAttribute("kernelUnitLength");
-            set => SetAttribute("kernelUnitLength", value);
+            get => this.GetAttribute("kernelUnitLength");
+            set => this.SetAttribute("kernelUnitLength", value);
         }
 
         [Attribute("preserveAlpha", SvgNamespace)]
         public string? PreserveAlpha
         {
-            get => GetAttribute("preserveAlpha");
-            set => SetAttribute("preserveAlpha", value);
+            get => this.GetAttribute("preserveAlpha");
+            set => this.SetAttribute("preserveAlpha", value);
         }
 
         public override void Print(Action<string> write, string indent)

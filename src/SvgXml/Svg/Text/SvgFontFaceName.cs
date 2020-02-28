@@ -10,8 +10,8 @@ namespace Svg
         [Attribute("name", SvgNamespace)]
         public string? Name
         {
-            get => GetAttribute("name");
-            set => SetAttribute("name", value);
+            get => this.GetAttribute("name");
+            set => this.SetAttribute("name", value);
         }
 
         public override void Print(Action<string> write, string indent)

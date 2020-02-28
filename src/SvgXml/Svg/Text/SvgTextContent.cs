@@ -8,15 +8,15 @@ namespace Svg
         [Attribute("lengthAdjust", SvgNamespace)]
         public string? LengthAdjust
         {
-            get => GetAttribute("lengthAdjust");
-            set => SetAttribute("lengthAdjust", value);
+            get => this.GetAttribute("lengthAdjust");
+            set => this.SetAttribute("lengthAdjust", value);
         }
 
         [Attribute("textLength", SvgNamespace)]
         public string? TextLength
         {
-            get => GetAttribute("textLength");
-            set => SetAttribute("textLength", value);
+            get => this.GetAttribute("textLength");
+            set => this.SetAttribute("textLength", value);
         }
 
         public override void Print(Action<string> write, string indent)

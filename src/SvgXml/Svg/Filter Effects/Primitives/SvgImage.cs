@@ -13,15 +13,15 @@ namespace Svg.FilterEffects
         [Attribute("preserveAspectRatio", SvgNamespace)]
         public string? AspectRatio
         {
-            get => GetAttribute("preserveAspectRatio");
-            set => SetAttribute("preserveAspectRatio", value);
+            get => this.GetAttribute("preserveAspectRatio");
+            set => this.SetAttribute("preserveAspectRatio", value);
         }
 
         [Attribute("href", XLinkNamespace)]
         public string? Href
         {
-            get => GetAttribute("href");
-            set => SetAttribute("href", value);
+            get => this.GetAttribute("href");
+            set => this.SetAttribute("href", value);
         }
 
         public override void Print(Action<string> write, string indent)

@@ -10,57 +10,57 @@ namespace Svg.FilterEffects
         [Attribute("x", SvgNamespace)]
         public string? X
         {
-            get => GetAttribute("x");
-            set => SetAttribute("x", value);
+            get => this.GetAttribute("x");
+            set => this.SetAttribute("x", value);
         }
 
         [Attribute("y", SvgNamespace)]
         public string? Y
         {
-            get => GetAttribute("y");
-            set => SetAttribute("y", value);
+            get => this.GetAttribute("y");
+            set => this.SetAttribute("y", value);
         }
 
         [Attribute("z", SvgNamespace)]
         public string? Z
         {
-            get => GetAttribute("z");
-            set => SetAttribute("z", value);
+            get => this.GetAttribute("z");
+            set => this.SetAttribute("z", value);
         }
 
         [Attribute("pointsAtX", SvgNamespace)]
         public string? PointsAtX
         {
-            get => GetAttribute("pointsAtX");
-            set => SetAttribute("pointsAtX", value);
+            get => this.GetAttribute("pointsAtX");
+            set => this.SetAttribute("pointsAtX", value);
         }
 
         [Attribute("pointsAtY", SvgNamespace)]
         public string? PointsAtY
         {
-            get => GetAttribute("pointsAtY");
-            set => SetAttribute("pointsAtY", value);
+            get => this.GetAttribute("pointsAtY");
+            set => this.SetAttribute("pointsAtY", value);
         }
 
         [Attribute("pointsAtZ", SvgNamespace)]
         public string? PointsAtZ
         {
-            get => GetAttribute("pointsAtZ");
-            set => SetAttribute("pointsAtZ", value);
+            get => this.GetAttribute("pointsAtZ");
+            set => this.SetAttribute("pointsAtZ", value);
         }
 
         [Attribute("specularExponent", SvgNamespace)]
         public string? SpecularExponent
         {
-            get => GetAttribute("specularExponent");
-            set => SetAttribute("specularExponent", value);
+            get => this.GetAttribute("specularExponent");
+            set => this.SetAttribute("specularExponent", value);
         }
 
         [Attribute("limitingConeAngle", SvgNamespace)]
         public string? LimitingConeAngle
         {
-            get => GetAttribute("limitingConeAngle");
-            set => SetAttribute("limitingConeAngle", value);
+            get => this.GetAttribute("limitingConeAngle");
+            set => this.SetAttribute("limitingConeAngle", value);
         }
 
         public override void Print(Action<string> write, string indent)

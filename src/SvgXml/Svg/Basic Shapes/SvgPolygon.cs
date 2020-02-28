@@ -15,8 +15,8 @@ namespace Svg
         [Attribute("points", SvgNamespace)]
         public string? Points
         {
-            get => GetAttribute("points");
-            set => SetAttribute("points", value);
+            get => this.GetAttribute("points");
+            set => this.SetAttribute("points", value);
         }
 
         public override void Print(Action<string> write, string indent)

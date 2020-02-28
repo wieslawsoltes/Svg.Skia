@@ -18,8 +18,8 @@ namespace Svg
         [Attribute("type", SvgNamespace)]
         public string? Type
         {
-            get => GetAttribute("type");
-            set => SetAttribute("type", value);
+            get => this.GetAttribute("type");
+            set => this.SetAttribute("type", value);
         }
 
         public override void Print(Action<string> write, string indent)

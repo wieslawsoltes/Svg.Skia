@@ -8,15 +8,15 @@ namespace Svg
         [Attribute("attributeType", SvgElement.SvgNamespace)]
         public string? AttributeType
         {
-            get => GetAttribute("attributeType");
-            set => SetAttribute("attributeType", value);
+            get => this.GetAttribute("attributeType");
+            set => this.SetAttribute("attributeType", value);
         }
 
         [Attribute("attributeName", SvgElement.SvgNamespace)]
         public string? AttributeName
         {
-            get => GetAttribute("attributeName");
-            set => SetAttribute("attributeName", value);
+            get => this.GetAttribute("attributeName");
+            set => this.SetAttribute("attributeName", value);
         }
     }
 }

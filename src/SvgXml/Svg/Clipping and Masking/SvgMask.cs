@@ -14,43 +14,43 @@ namespace Svg
         [Attribute("x", SvgNamespace)]
         public string? X
         {
-            get => GetAttribute("x");
-            set => SetAttribute("x", value);
+            get => this.GetAttribute("x");
+            set => this.SetAttribute("x", value);
         }
 
         [Attribute("y", SvgNamespace)]
         public string? Y
         {
-            get => GetAttribute("y");
-            set => SetAttribute("y", value);
+            get => this.GetAttribute("y");
+            set => this.SetAttribute("y", value);
         }
 
         [Attribute("width", SvgNamespace)]
         public string? Width
         {
-            get => GetAttribute("width");
-            set => SetAttribute("width", value);
+            get => this.GetAttribute("width");
+            set => this.SetAttribute("width", value);
         }
 
         [Attribute("height", SvgNamespace)]
         public string? Height
         {
-            get => GetAttribute("height");
-            set => SetAttribute("height", value);
+            get => this.GetAttribute("height");
+            set => this.SetAttribute("height", value);
         }
 
         [Attribute("maskUnits", SvgNamespace)]
         public string? MaskUnits
         {
-            get => GetAttribute("maskUnits");
-            set => SetAttribute("maskUnits", value);
+            get => this.GetAttribute("maskUnits");
+            set => this.SetAttribute("maskUnits", value);
         }
 
         [Attribute("maskContentUnits", SvgNamespace)]
         public string? MaskContentUnits
         {
-            get => GetAttribute("maskContentUnits");
-            set => SetAttribute("maskContentUnits", value);
+            get => this.GetAttribute("maskContentUnits");
+            set => this.SetAttribute("maskContentUnits", value);
         }
 
         public override void Print(Action<string> write, string indent)

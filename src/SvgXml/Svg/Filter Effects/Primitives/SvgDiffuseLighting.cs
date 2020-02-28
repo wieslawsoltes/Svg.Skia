@@ -12,29 +12,29 @@ namespace Svg.FilterEffects
         [Attribute("in", SvgNamespace)]
         public string? Input
         {
-            get => GetAttribute("in");
-            set => SetAttribute("in", value);
+            get => this.GetAttribute("in");
+            set => this.SetAttribute("in", value);
         }
 
         [Attribute("surfaceScale", SvgNamespace)]
         public string? SurfaceScale
         {
-            get => GetAttribute("surfaceScale");
-            set => SetAttribute("surfaceScale", value);
+            get => this.GetAttribute("surfaceScale");
+            set => this.SetAttribute("surfaceScale", value);
         }
 
         [Attribute("diffuseConstant", SvgNamespace)]
         public string? DiffuseConstant
         {
-            get => GetAttribute("diffuseConstant");
-            set => SetAttribute("diffuseConstant", value);
+            get => this.GetAttribute("diffuseConstant");
+            set => this.SetAttribute("diffuseConstant", value);
         }
 
         [Attribute("kernelUnitLength", SvgNamespace)]
         public string? KernelUnitLength
         {
-            get => GetAttribute("kernelUnitLength");
-            set => SetAttribute("kernelUnitLength", value);
+            get => this.GetAttribute("kernelUnitLength");
+            set => this.SetAttribute("kernelUnitLength", value);
         }
 
         public override void Print(Action<string> write, string indent)

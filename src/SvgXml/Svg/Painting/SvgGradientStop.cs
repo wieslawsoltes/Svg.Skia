@@ -12,8 +12,8 @@ namespace Svg
         [Attribute("offset", SvgNamespace)]
         public string? Offset
         {
-            get => GetAttribute("offset");
-            set => SetAttribute("offset", value);
+            get => this.GetAttribute("offset");
+            set => this.SetAttribute("offset", value);
         }
 
         public override void Print(Action<string> write, string indent)

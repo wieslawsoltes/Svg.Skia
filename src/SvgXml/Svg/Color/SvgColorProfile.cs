@@ -10,29 +10,29 @@ namespace Svg
         [Attribute("local", SvgNamespace)]
         public string? Local
         {
-            get => GetAttribute("local");
-            set => SetAttribute("local", value);
+            get => this.GetAttribute("local");
+            set => this.SetAttribute("local", value);
         }
 
         [Attribute("name", SvgNamespace)]
         public string? Name
         {
-            get => GetAttribute("name");
-            set => SetAttribute("name", value);
+            get => this.GetAttribute("name");
+            set => this.SetAttribute("name", value);
         }
 
         [Attribute("rendering-intent", SvgNamespace)]
         public string? RenderingIntent
         {
-            get => GetAttribute("rendering-intent");
-            set => SetAttribute("rendering-intent", value);
+            get => this.GetAttribute("rendering-intent");
+            set => this.SetAttribute("rendering-intent", value);
         }
 
         [Attribute("href", XLinkNamespace)]
         public string? Href
         {
-            get => GetAttribute("href");
-            set => SetAttribute("href", value);
+            get => this.GetAttribute("href");
+            set => this.SetAttribute("href", value);
         }
 
         public override void Print(Action<string> write, string indent)

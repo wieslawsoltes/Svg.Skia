@@ -8,414 +8,417 @@ namespace Svg
         [Attribute("alignment-baseline", SvgElement.SvgNamespace)]
         public string? AlignmentBaseline
         {
-            get => GetAttribute("alignment-baseline");
-            set => SetAttribute("alignment-baseline", value);
+            get => this.GetAttribute("alignment-baseline", false, "auto");
+            set => this.SetAttribute("alignment-baseline", value);
         }
 
         [Attribute("baseline-shift", SvgElement.SvgNamespace)]
         public string? BaselineShift
         {
-            get => GetAttribute("baseline-shift");
-            set => SetAttribute("baseline-shift", value);
+            get => this.GetAttribute("baseline-shift", false, "baseline");
+            set => this.SetAttribute("baseline-shift", value);
         }
 
         [Attribute("clip", SvgElement.SvgNamespace)]
         public string? Clip
         {
-            get => GetAttribute("clip");
-            set => SetAttribute("clip", value);
+            get => this.GetAttribute("clip", false, "auto");
+            set => this.SetAttribute("clip", value);
         }
 
         [Attribute("clip-path", SvgElement.SvgNamespace)]
         public string? ClipPath
         {
-            get => GetAttribute("clip-path");
-            set => SetAttribute("clip-path", value);
+            get => this.GetAttribute("clip-path", false, "none");
+            set => this.SetAttribute("clip-path", value);
         }
 
         [Attribute("clip-rule", SvgElement.SvgNamespace)]
         public string? ClipRule
         {
-            get => GetAttribute("clip-rule");
-            set => SetAttribute("clip-rule", value);
+            get => this.GetAttribute("clip-rule", true, "nonzero");
+            set => this.SetAttribute("clip-rule", value);
         }
 
         [Attribute("color", SvgElement.SvgNamespace)]
         public string? Color
         {
-            get => GetAttribute("color");
-            set => SetAttribute("color", value);
+            get => this.GetAttribute("color", true, null);
+            set => this.SetAttribute("color", value);
         }
 
         [Attribute("color-interpolation", SvgElement.SvgNamespace)]
         public string? ColorInterpolation
         {
-            get => GetAttribute("color-interpolation");
-            set => SetAttribute("color-interpolation", value);
+            get => this.GetAttribute("color-interpolation", true, "sRGB");
+            set => this.SetAttribute("color-interpolation", value);
         }
 
         [Attribute("color-interpolation-filters", SvgElement.SvgNamespace)]
         public string? ColorInterpolationFilters
         {
-            get => GetAttribute("color-interpolation-filters");
-            set => SetAttribute("color-interpolation-filters", value);
+            get => this.GetAttribute("color-interpolation-filters", true, "linearRGB");
+            set => this.SetAttribute("color-interpolation-filters", value);
         }
 
         [Attribute("color-profile", SvgElement.SvgNamespace)]
         public string? ColorProfile
         {
-            get => GetAttribute("color-profile");
-            set => SetAttribute("color-profile", value);
+            get => this.GetAttribute("color-profile", true, "auto");
+            set => this.SetAttribute("color-profile", value);
         }
 
         [Attribute("color-rendering", SvgElement.SvgNamespace)]
         public string? ColorRendering
         {
-            get => GetAttribute("color-rendering");
-            set => SetAttribute("color-rendering", value);
+            get => this.GetAttribute("color-rendering", true, "auto");
+            set => this.SetAttribute("color-rendering", value);
         }
 
         [Attribute("cursor", SvgElement.SvgNamespace)]
         public string? Cursor
         {
-            get => GetAttribute("cursor");
-            set => SetAttribute("cursor", value);
+            get => this.GetAttribute("cursor", true, "auto");
+            set => this.SetAttribute("cursor", value);
         }
 
         [Attribute("direction", SvgElement.SvgNamespace)]
         public string? Direction
         {
-            get => GetAttribute("direction");
-            set => SetAttribute("direction", value);
+            get => this.GetAttribute("direction", true, "ltr");
+            set => this.SetAttribute("direction", value);
         }
 
         [Attribute("display", SvgElement.SvgNamespace)]
         public string? Display
         {
-            get => GetAttribute("display");
-            set => SetAttribute("display", value);
+            get => this.GetAttribute("display", false, "inline");
+            set => this.SetAttribute("display", value);
         }
 
         [Attribute("dominant-baseline", SvgElement.SvgNamespace)]
         public string? DominantBaseline
         {
-            get => GetAttribute("dominant-baseline");
-            set => SetAttribute("dominant-baseline", value);
+            get => this.GetAttribute("dominant-baseline", false, "auto");
+            set => this.SetAttribute("dominant-baseline", value);
         }
 
         [Attribute("enable-background", SvgElement.SvgNamespace)]
         public string? EnableBackground
         {
-            get => GetAttribute("enable-background");
-            set => SetAttribute("enable-background", value);
+            get => this.GetAttribute("enable-background", false, "accumulate");
+            set => this.SetAttribute("enable-background", value);
         }
 
         [Attribute("fill", SvgElement.SvgNamespace)]
         public string? Fill
         {
-            get => GetAttribute("fill");
-            set => SetAttribute("fill", value);
+            get => this.GetAttribute("fill", true, "black");
+            set => this.SetAttribute("fill", value);
         }
 
         [Attribute("fill-opacity", SvgElement.SvgNamespace)]
         public string? FillOpacity
         {
-            get => GetAttribute("fill-opacity");
-            set => SetAttribute("fill-opacity", value);
+            get => this.GetAttribute("fill-opacity", true, "1");
+            set => this.SetAttribute("fill-opacity", value);
         }
 
         [Attribute("fill-rule", SvgElement.SvgNamespace)]
         public string? FillRule
         {
-            get => GetAttribute("fill-rule");
-            set => SetAttribute("fill-rule", value);
+            get => this.GetAttribute("fill-rule", true, "nonzero");
+            set => this.SetAttribute("fill-rule", value);
         }
 
         [Attribute("filter", SvgElement.SvgNamespace)]
         public string? Filter
         {
-            get => GetAttribute("filter");
-            set => SetAttribute("filter", value);
+            get => this.GetAttribute("filter", false, "none");
+            set => this.SetAttribute("filter", value);
         }
 
         [Attribute("flood-color", SvgElement.SvgNamespace)]
         public string? FloodColor
         {
-            get => GetAttribute("flood-color");
-            set => SetAttribute("flood-color", value);
+            get => this.GetAttribute("flood-color", false, "black");
+            set => this.SetAttribute("flood-color", value);
         }
 
         [Attribute("flood-opacity", SvgElement.SvgNamespace)]
         public string? FloodOpacity
         {
-            get => GetAttribute("flood-opacity");
-            set => SetAttribute("flood-opacity", value);
+            get => this.GetAttribute("flood-opacity", false, "1");
+            set => this.SetAttribute("flood-opacity", value);
         }
 
         [Attribute("font-family", SvgElement.SvgNamespace)]
         public string? FontFamily
         {
-            get => GetAttribute("font-family");
-            set => SetAttribute("font-family", value);
+            get => this.GetAttribute("font-family", true, null);
+            set => this.SetAttribute("font-family", value);
         }
 
         [Attribute("font-size", SvgElement.SvgNamespace)]
         public string? FontSize
         {
-            get => GetAttribute("font-size");
-            set => SetAttribute("font-size", value);
+            get => this.GetAttribute("font-size", true, "medium");
+            set => this.SetAttribute("font-size", value);
         }
 
         [Attribute("font-size-adjust", SvgElement.SvgNamespace)]
         public string? FontSizeAdjust
         {
-            get => GetAttribute("font-size-adjust");
-            set => SetAttribute("font-size-adjust", value);
+            get => this.GetAttribute("font-size-adjust", true, "none");
+            set => this.SetAttribute("font-size-adjust", value);
         }
 
         [Attribute("font-stretch", SvgElement.SvgNamespace)]
         public string? FontStretch
         {
-            get => GetAttribute("font-stretch");
-            set => SetAttribute("font-stretch", value);
+            get => this.GetAttribute("font-stretch", true, "normal");
+            set => this.SetAttribute("font-stretch", value);
         }
 
         [Attribute("font-style", SvgElement.SvgNamespace)]
         public string? FontStyle
         {
-            get => GetAttribute("font-style");
-            set => SetAttribute("font-style", value);
+            get => this.GetAttribute("font-style", true, "normal");
+            set => this.SetAttribute("font-style", value);
         }
 
         [Attribute("font-variant", SvgElement.SvgNamespace)]
         public string? FontVariant
         {
-            get => GetAttribute("font-variant");
-            set => SetAttribute("font-variant", value);
+            get => this.GetAttribute("font-variant", true, "normal");
+            set => this.SetAttribute("font-variant", value);
         }
 
         [Attribute("font-weight", SvgElement.SvgNamespace)]
         public string? FontWeight
         {
-            get => GetAttribute("font-weight");
-            set => SetAttribute("font-weight", value);
+            get => this.GetAttribute("font-weight", true, "normal");
+            set => this.SetAttribute("font-weight", value);
         }
 
         [Attribute("glyph-orientation-horizontal", SvgElement.SvgNamespace)]
         public string? GlyphOrientationHorizontal
         {
-            get => GetAttribute("glyph-orientation-horizontal");
-            set => SetAttribute("glyph-orientation-horizontal", value);
+            get => this.GetAttribute("glyph-orientation-horizontal", true, "0deg");
+            set => this.SetAttribute("glyph-orientation-horizontal", value);
         }
 
         [Attribute("glyph-orientation-vertical", SvgElement.SvgNamespace)]
         public string? GlyphOrientationVertical
         {
-            get => GetAttribute("glyph-orientation-vertical");
-            set => SetAttribute("glyph-orientation-vertical", value);
+            get => this.GetAttribute("glyph-orientation-vertical", true, "auto");
+            set => this.SetAttribute("glyph-orientation-vertical", value);
         }
 
         [Attribute("image-rendering", SvgElement.SvgNamespace)]
         public string? ImageRendering
         {
-            get => GetAttribute("image-rendering");
-            set => SetAttribute("image-rendering", value);
+            get => this.GetAttribute("image-rendering", true, "auto");
+            set => this.SetAttribute("image-rendering", value);
         }
 
         [Attribute("kerning", SvgElement.SvgNamespace)]
         public string? Kerning
         {
-            get => GetAttribute("kerning");
-            set => SetAttribute("kerning", value);
+            get => this.GetAttribute("kerning", true, "auto");
+            set => this.SetAttribute("kerning", value);
         }
 
         [Attribute("letter-spacing", SvgElement.SvgNamespace)]
         public string? LetterSpacing
         {
-            get => GetAttribute("letter-spacing");
-            set => SetAttribute("letter-spacing", value);
+            get => this.GetAttribute("letter-spacing", true, "normal");
+            set => this.SetAttribute("letter-spacing", value);
         }
 
         [Attribute("lighting-color", SvgElement.SvgNamespace)]
         public string? LightingColor
         {
-            get => GetAttribute("lighting-color");
-            set => SetAttribute("lighting-color", value);
+            get => this.GetAttribute("lighting-color", false, "white");
+            set => this.SetAttribute("lighting-color", value);
         }
 
         [Attribute("marker-end", SvgElement.SvgNamespace)]
         public string? MarkerEnd
         {
-            get => GetAttribute("marker-end");
-            set => SetAttribute("marker-end", value);
+            get => this.GetAttribute("marker-end", true, "none");
+            set => this.SetAttribute("marker-end", value);
         }
 
         [Attribute("marker-mid", SvgElement.SvgNamespace)]
         public string? MarkerMid
         {
-            get => GetAttribute("marker-mid");
-            set => SetAttribute("marker-mid", value);
+            get => this.GetAttribute("marker-mid", true, "none");
+            set => this.SetAttribute("marker-mid", value);
         }
 
         [Attribute("marker-start", SvgElement.SvgNamespace)]
         public string? MarkerStart
         {
-            get => GetAttribute("marker-start");
-            set => SetAttribute("marker-start", value);
+            get => this.GetAttribute("marker-start", true, "none");
+            set => this.SetAttribute("marker-start", value);
         }
 
         [Attribute("mask", SvgElement.SvgNamespace)]
         public string? Mask
         {
-            get => GetAttribute("mask");
-            set => SetAttribute("mask", value);
+            get => this.GetAttribute("mask", false, "none");
+            set => this.SetAttribute("mask", value);
         }
 
         [Attribute("opacity", SvgElement.SvgNamespace)]
         public string? Opacity
         {
-            get => GetAttribute("opacity");
-            set => SetAttribute("opacity", value);
+            get => this.GetAttribute("opacity", false, "1");
+            set => this.SetAttribute("opacity", value);
         }
 
+        // TODO:
+        // svg, symbol, image, marker, pattern, foreignObject { overflow: hidden }
+        // https://www.w3.org/TR/SVG11/styling.html#UAStyleSheet
         [Attribute("overflow", SvgElement.SvgNamespace)]
         public string? Overflow
         {
-            get => GetAttribute("overflow");
-            set => SetAttribute("overflow", value);
+            get => this.GetAttribute("overflow", false, "visible");
+            set => this.SetAttribute("overflow", value);
         }
 
         [Attribute("pointer-events", SvgElement.SvgNamespace)]
         public string? PointerEvents
         {
-            get => GetAttribute("pointer-events");
-            set => SetAttribute("pointer-events", value);
+            get => this.GetAttribute("pointer-events", true, "visiblePainted");
+            set => this.SetAttribute("pointer-events", value);
         }
 
         [Attribute("shape-rendering", SvgElement.SvgNamespace)]
         public string? ShapeRendering
         {
-            get => GetAttribute("shape-rendering");
-            set => SetAttribute("shape-rendering", value);
+            get => this.GetAttribute("shape-rendering", true, "auto");
+            set => this.SetAttribute("shape-rendering", value);
         }
 
         [Attribute("stop-color", SvgElement.SvgNamespace)]
         public string? StopColor
         {
-            get => GetAttribute("stop-color");
-            set => SetAttribute("stop-color", value);
+            get => this.GetAttribute("stop-color", false, "black");
+            set => this.SetAttribute("stop-color", value);
         }
 
         [Attribute("stop-opacity", SvgElement.SvgNamespace)]
         public string? StopOpacity
         {
-            get => GetAttribute("stop-opacity");
-            set => SetAttribute("stop-opacity", value);
+            get => this.GetAttribute("stop-opacity", false, "1");
+            set => this.SetAttribute("stop-opacity", value);
         }
 
         [Attribute("stroke", SvgElement.SvgNamespace)]
         public string? Stroke
         {
-            get => GetAttribute("stroke");
-            set => SetAttribute("stroke", value);
+            get => this.GetAttribute("stroke", true, "none");
+            set => this.SetAttribute("stroke", value);
         }
 
         [Attribute("stroke-dasharray", SvgElement.SvgNamespace)]
         public string? StrokeDasharray
         {
-            get => GetAttribute("stroke-dasharray");
-            set => SetAttribute("stroke-dasharray", value);
+            get => this.GetAttribute("stroke-dasharray", true, "none");
+            set => this.SetAttribute("stroke-dasharray", value);
         }
 
         [Attribute("stroke-dashoffset", SvgElement.SvgNamespace)]
         public string? StrokeDashoffset
         {
-            get => GetAttribute("stroke-dashoffset");
-            set => SetAttribute("stroke-dashoffset", value);
+            get => this.GetAttribute("stroke-dashoffset", true, "0");
+            set => this.SetAttribute("stroke-dashoffset", value);
         }
 
         [Attribute("stroke-linecap", SvgElement.SvgNamespace)]
         public string? StrokeLinecap
         {
-            get => GetAttribute("stroke-linecap");
-            set => SetAttribute("stroke-linecap", value);
+            get => this.GetAttribute("stroke-linecap", true, "butt");
+            set => this.SetAttribute("stroke-linecap", value);
         }
 
         [Attribute("stroke-linejoin", SvgElement.SvgNamespace)]
         public string? SrokeLinejoin
         {
-            get => GetAttribute("stroke-linejoin");
-            set => SetAttribute("stroke-linejoin", value);
+            get => this.GetAttribute("stroke-linejoin", true, "miter");
+            set => this.SetAttribute("stroke-linejoin", value);
         }
 
         [Attribute("stroke-miterlimit", SvgElement.SvgNamespace)]
         public string? StrokeMiterlimit
         {
-            get => GetAttribute("stroke-miterlimit");
-            set => SetAttribute("stroke-miterlimit", value);
+            get => this.GetAttribute("stroke-miterlimit", true, "4");
+            set => this.SetAttribute("stroke-miterlimit", value);
         }
 
         [Attribute("stroke-opacity", SvgElement.SvgNamespace)]
         public string? StrokeOpacity
         {
-            get => GetAttribute("stroke-opacity");
-            set => SetAttribute("stroke-opacity", value);
+            get => this.GetAttribute("stroke-opacity", true, "1");
+            set => this.SetAttribute("stroke-opacity", value);
         }
 
         [Attribute("stroke-width", SvgElement.SvgNamespace)]
         public string? StrokeWidth
         {
-            get => GetAttribute("stroke-width");
-            set => SetAttribute("stroke-width", value);
+            get => this.GetAttribute("stroke-width", true, "1");
+            set => this.SetAttribute("stroke-width", value);
         }
 
         [Attribute("text-anchor", SvgElement.SvgNamespace)]
         public string? TextAnchor
         {
-            get => GetAttribute("text-anchor");
-            set => SetAttribute("text-anchor", value);
+            get => this.GetAttribute("text-anchor", true, "start");
+            set => this.SetAttribute("text-anchor", value);
         }
 
         [Attribute("text-decoration", SvgElement.SvgNamespace)]
         public string? TextDecoration
         {
-            get => GetAttribute("text-decoration");
-            set => SetAttribute("text-decoration", value);
+            get => this.GetAttribute("text-decoration", false, "none");
+            set => this.SetAttribute("text-decoration", value);
         }
 
         [Attribute("text-rendering", SvgElement.SvgNamespace)]
         public string? TextRendering
         {
-            get => GetAttribute("text-rendering");
-            set => SetAttribute("text-rendering", value);
+            get => this.GetAttribute("text-rendering", true, "auto");
+            set => this.SetAttribute("text-rendering", value);
         }
 
         [Attribute("unicode-bidi", SvgElement.SvgNamespace)]
         public string? UnicodeBidi
         {
-            get => GetAttribute("unicode-bidi");
-            set => SetAttribute("unicode-bidi", value);
+            get => this.GetAttribute("unicode-bidi", false, "normal");
+            set => this.SetAttribute("unicode-bidi", value);
         }
 
         [Attribute("visibility", SvgElement.SvgNamespace)]
         public string? Visibility
         {
-            get => GetAttribute("visibility");
-            set => SetAttribute("visibility", value);
+            get => this.GetAttribute("visibility", true, "visible");
+            set => this.SetAttribute("visibility", value);
         }
 
         [Attribute("word-spacing", SvgElement.SvgNamespace)]
         public string? WordSpacing
         {
-            get => GetAttribute("word-spacing");
-            set => SetAttribute("word-spacing", value);
+            get => this.GetAttribute("word-spacing", true, "normal");
+            set => this.SetAttribute("word-spacing", value);
         }
 
         [Attribute("writing-mode", SvgElement.SvgNamespace)]
         public string? WritingMode
         {
-            get => GetAttribute("writing-mode");
-            set => SetAttribute("writing-mode", value);
+            get => this.GetAttribute("writing-mode", true, "lr-tb");
+            set => this.SetAttribute("writing-mode", value);
         }
     }
 }
