@@ -4,7 +4,8 @@ using Xml;
 namespace Svg
 {
     [Element("view")]
-    public class SvgView : SvgElement, ISvgResourcesAttributes
+    public class SvgView : SvgElement,
+        ISvgResourcesAttributes
     {
         [Attribute("viewBox", SvgNamespace)]
         public string? ViewBox

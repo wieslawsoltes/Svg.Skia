@@ -4,7 +4,10 @@ using Xml;
 namespace Svg.FilterEffects
 {
     [Element("filter")]
-    public class SvgFilter : SvgElement, ISvgPresentationAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
+    public class SvgFilter : SvgElement,
+        ISvgPresentationAttributes,
+        ISvgStylableAttributes,
+        ISvgResourcesAttributes
     {
         [Attribute("x", SvgNamespace)]
         public string? X

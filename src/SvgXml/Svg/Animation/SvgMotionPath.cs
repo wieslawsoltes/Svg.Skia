@@ -4,7 +4,8 @@ using Xml;
 namespace Svg
 {
     [Element("mpath")]
-    public class SvgMotionPath : SvgElement, ISvgResourcesAttributes
+    public class SvgMotionPath : SvgElement,
+        ISvgResourcesAttributes
     {
         [Attribute("href", XLinkNamespace)]
         public string? Href

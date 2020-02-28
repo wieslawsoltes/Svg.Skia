@@ -4,7 +4,9 @@ using Xml;
 namespace Svg.FilterEffects
 {
     [Element("feTurbulence")]
-    public class SvgTurbulence : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
+    public class SvgTurbulence : SvgFilterPrimitive,
+        ISvgPresentationAttributes,
+        ISvgStylableAttributes
     {
         [Attribute("baseFrequency", SvgNamespace)]
         public string? BaseFrequency

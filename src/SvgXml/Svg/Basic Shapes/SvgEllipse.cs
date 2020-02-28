@@ -4,7 +4,12 @@ using Xml;
 namespace Svg
 {
     [Element("ellipse")]
-    public class SvgEllipse : SvgPathBasedElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes, ISvgTransformableAttributes
+    public class SvgEllipse : SvgPathBasedElement,
+        ISvgPresentationAttributes,
+        ISvgTestsAttributes,
+        ISvgStylableAttributes,
+        ISvgResourcesAttributes,
+        ISvgTransformableAttributes
     {
         [Attribute("cx", SvgNamespace)]
         public string? CenterX

@@ -5,13 +5,13 @@ namespace Svg
 {
     [Element("animateMotion")]
     public class SvgAnimateMotion : SvgAnimationElement,
-                                    ISvgTestsAttributes,
-                                    ISvgResourcesAttributes,
-                                    ISvgXLinkAttributes,
-                                    ISvgAnimationEventAttributes,
-                                    ISvgAnimationTimingAttributes,
-                                    ISvgAnimationValueAttributes,
-                                    ISvgAnimationAdditionAttributes
+        ISvgTestsAttributes,
+        ISvgResourcesAttributes,
+        ISvgXLinkAttributes,
+        ISvgAnimationEventAttributes,
+        ISvgAnimationTimingAttributes,
+        ISvgAnimationValueAttributes,
+        ISvgAnimationAdditionAttributes
     {
         [Attribute("path", SvgNamespace)]
         public string? Path

@@ -4,7 +4,12 @@ using Xml;
 namespace Svg
 {
     [Element("path")]
-    public class SvgPath : SvgMarkerElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes, ISvgTransformableAttributes
+    public class SvgPath : SvgMarkerElement,
+        ISvgPresentationAttributes,
+        ISvgTestsAttributes,
+        ISvgStylableAttributes,
+        ISvgResourcesAttributes,
+        ISvgTransformableAttributes
     {
         [Attribute("d", SvgNamespace)]
         public string? PathData

@@ -4,7 +4,10 @@ using Xml;
 namespace Svg
 {
     [Element("symbol")]
-    public class SvgSymbol : SvgVisualElement, ISvgPresentationAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
+    public class SvgSymbol : SvgVisualElement,
+        ISvgPresentationAttributes,
+        ISvgStylableAttributes,
+        ISvgResourcesAttributes
     {
         [Attribute("viewBox", SvgNamespace)]
         public string? ViewBox

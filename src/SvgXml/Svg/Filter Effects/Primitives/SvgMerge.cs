@@ -3,7 +3,9 @@
 namespace Svg.FilterEffects
 {
     [Element("feMerge")]
-    public class SvgMerge : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
+    public class SvgMerge : SvgFilterPrimitive,
+        ISvgPresentationAttributes,
+        ISvgStylableAttributes
     {
     }
 }

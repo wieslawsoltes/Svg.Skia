@@ -4,7 +4,9 @@ using Xml;
 namespace Svg.FilterEffects
 {
     [Element("feConvolveMatrix")]
-    public class SvgConvolveMatrix : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
+    public class SvgConvolveMatrix : SvgFilterPrimitive,
+        ISvgPresentationAttributes,
+        ISvgStylableAttributes
     {
         [Attribute("in", SvgNamespace)]
         public string? Input

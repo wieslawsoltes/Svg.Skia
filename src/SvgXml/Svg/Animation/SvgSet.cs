@@ -5,12 +5,12 @@ namespace Svg
 {
     [Element("set")]
     public class SvgSet : SvgAnimationElement,
-                          ISvgTestsAttributes,
-                          ISvgResourcesAttributes,
-                          ISvgXLinkAttributes,
-                          ISvgAnimationEventAttributes,
-                          ISvgAnimationAttributeTargetAttributes,
-                          ISvgAnimationTimingAttributes
+        ISvgTestsAttributes,
+        ISvgResourcesAttributes,
+        ISvgXLinkAttributes,
+        ISvgAnimationEventAttributes,
+        ISvgAnimationAttributeTargetAttributes,
+        ISvgAnimationTimingAttributes
     {
         [Attribute("to", SvgNamespace)]
         public string? To

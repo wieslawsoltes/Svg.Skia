@@ -4,7 +4,9 @@ using Xml;
 namespace Svg.FilterEffects
 {
     [Element("feTile")]
-    public class SvgTile : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
+    public class SvgTile : SvgFilterPrimitive,
+        ISvgPresentationAttributes,
+        ISvgStylableAttributes
     {
         [Attribute("in", SvgNamespace)]
         public string? Input

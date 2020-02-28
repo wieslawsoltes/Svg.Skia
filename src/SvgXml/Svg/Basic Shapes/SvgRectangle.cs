@@ -4,7 +4,12 @@ using Xml;
 namespace Svg
 {
     [Element("rect")]
-    public class SvgRectangle : SvgPathBasedElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes, ISvgTransformableAttributes
+    public class SvgRectangle : SvgPathBasedElement,
+        ISvgPresentationAttributes,
+        ISvgTestsAttributes,
+        ISvgStylableAttributes,
+        ISvgResourcesAttributes,
+        ISvgTransformableAttributes
     {
         [Attribute("x", SvgNamespace)]
         public string? X

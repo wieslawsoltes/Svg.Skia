@@ -5,14 +5,14 @@ namespace Svg
 {
     [Element("animateTransform")]
     public class SvgAnimateTransform : SvgAnimationElement,
-                                       ISvgTestsAttributes,
-                                       ISvgResourcesAttributes,
-                                       ISvgXLinkAttributes,
-                                       ISvgAnimationEventAttributes,
-                                       ISvgAnimationAttributeTargetAttributes,
-                                       ISvgAnimationTimingAttributes,
-                                       ISvgAnimationValueAttributes,
-                                       ISvgAnimationAdditionAttributes
+        ISvgTestsAttributes,
+        ISvgResourcesAttributes,
+        ISvgXLinkAttributes,
+        ISvgAnimationEventAttributes,
+        ISvgAnimationAttributeTargetAttributes,
+        ISvgAnimationTimingAttributes,
+        ISvgAnimationValueAttributes,
+        ISvgAnimationAdditionAttributes
     {
         [Attribute("type", SvgNamespace)]
         public string? Type

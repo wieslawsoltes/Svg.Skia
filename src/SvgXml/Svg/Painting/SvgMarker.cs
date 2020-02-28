@@ -4,7 +4,10 @@ using Xml;
 namespace Svg
 {
     [Element("marker")]
-    public class SvgMarker : SvgPathBasedElement, ISvgPresentationAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
+    public class SvgMarker : SvgPathBasedElement,
+        ISvgPresentationAttributes,
+        ISvgStylableAttributes,
+        ISvgResourcesAttributes
     {
         [Attribute("viewBox", SvgNamespace)]
         public string? ViewBox

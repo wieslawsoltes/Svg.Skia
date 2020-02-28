@@ -4,7 +4,10 @@ using Xml;
 namespace Svg.FilterEffects
 {
     [Element("feImage")]
-    public class SvgImage : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
+    public class SvgImage : SvgFilterPrimitive,
+        ISvgPresentationAttributes,
+        ISvgStylableAttributes,
+        ISvgResourcesAttributes
     {
         [Attribute("preserveAspectRatio", SvgNamespace)]
         public string? AspectRatio

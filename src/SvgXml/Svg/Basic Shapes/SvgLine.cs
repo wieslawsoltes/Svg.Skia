@@ -4,7 +4,12 @@ using Xml;
 namespace Svg
 {
     [Element("line")]
-    public class SvgLine : SvgMarkerElement, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes, ISvgTransformableAttributes
+    public class SvgLine: SvgMarkerElement,
+        ISvgPresentationAttributes,
+        ISvgTestsAttributes,
+        ISvgStylableAttributes,
+        ISvgResourcesAttributes,
+        ISvgTransformableAttributes
     {
         [Attribute("x1", SvgNamespace)]
         public string? StartX

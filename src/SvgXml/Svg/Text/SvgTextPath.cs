@@ -4,7 +4,11 @@ using Xml;
 namespace Svg
 {
     [Element("textPath")]
-    public class SvgTextPath : SvgTextContent, ISvgPresentationAttributes, ISvgTestsAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
+    public class SvgTextPath : SvgTextContent,
+        ISvgPresentationAttributes,
+        ISvgTestsAttributes,
+        ISvgStylableAttributes,
+        ISvgResourcesAttributes
     {
         [Attribute("href", XLinkNamespace)]
         public string? Href

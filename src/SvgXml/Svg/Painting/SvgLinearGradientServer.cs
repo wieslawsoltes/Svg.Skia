@@ -4,7 +4,10 @@ using Xml;
 namespace Svg
 {
     [Element("linearGradient")]
-    public class SvgLinearGradientServer : SvgGradientServer, ISvgPresentationAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
+    public class SvgLinearGradientServer : SvgGradientServer,
+        ISvgPresentationAttributes,
+        ISvgStylableAttributes,
+        ISvgResourcesAttributes
     {
         [Attribute("x1", SvgNamespace)]
         public string? X1

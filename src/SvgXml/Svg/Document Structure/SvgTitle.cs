@@ -3,7 +3,8 @@
 namespace Svg
 {
     [Element("title")]
-    public class SvgTitle : SvgElement, ISvgStylableAttributes
+    public class SvgTitle : SvgElement,
+        ISvgStylableAttributes
     {
     }
 }

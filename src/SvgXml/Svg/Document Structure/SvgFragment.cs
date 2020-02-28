@@ -5,10 +5,10 @@ namespace Svg
 {
     [Element("svg")]
     public class SvgFragment : SvgElement,
-                               ISvgPresentationAttributes,
-                               ISvgTestsAttributes,
-                               ISvgStylableAttributes,
-                               ISvgResourcesAttributes
+        ISvgPresentationAttributes,
+        ISvgTestsAttributes,
+        ISvgStylableAttributes,
+        ISvgResourcesAttributes
     {
         [Attribute("x", SvgNamespace)]
         public string? X

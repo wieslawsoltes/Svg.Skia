@@ -4,7 +4,9 @@ using Xml;
 namespace Svg
 {
     [Element("glyph")]
-    public class SvgGlyph : SvgPathBasedElement, ISvgPresentationAttributes, ISvgStylableAttributes
+    public class SvgGlyph : SvgPathBasedElement,
+        ISvgPresentationAttributes,
+        ISvgStylableAttributes
     {
         [Attribute("d", SvgNamespace)]
         public string? PathData

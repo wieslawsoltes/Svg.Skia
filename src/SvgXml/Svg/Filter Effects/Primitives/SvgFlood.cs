@@ -3,7 +3,9 @@
 namespace Svg.FilterEffects
 {
     [Element("feFlood")]
-    public class SvgFlood : SvgFilterPrimitive, ISvgPresentationAttributes, ISvgStylableAttributes
+    public class SvgFlood : SvgFilterPrimitive,
+        ISvgPresentationAttributes,
+        ISvgStylableAttributes
     {
     }
 }

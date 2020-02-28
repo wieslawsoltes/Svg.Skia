@@ -4,7 +4,10 @@ using Xml;
 namespace Svg
 {
     [Element("font")]
-    public class SvgFont : SvgElement, ISvgPresentationAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
+    public class SvgFont : SvgElement,
+        ISvgPresentationAttributes,
+        ISvgStylableAttributes,
+        ISvgResourcesAttributes
     {
         [Attribute("horiz-origin-x", SvgNamespace)]
         public string? HorizOriginX

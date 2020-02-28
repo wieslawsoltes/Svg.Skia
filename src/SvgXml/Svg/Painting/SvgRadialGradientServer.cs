@@ -4,7 +4,10 @@ using Xml;
 namespace Svg
 {
     [Element("radialGradient")]
-    public class SvgRadialGradientServer : SvgGradientServer, ISvgPresentationAttributes, ISvgStylableAttributes, ISvgResourcesAttributes
+    public class SvgRadialGradientServer : SvgGradientServer,
+        ISvgPresentationAttributes,
+        ISvgStylableAttributes,
+        ISvgResourcesAttributes
     {
         [Attribute("cx", SvgNamespace)]
         public string? CenterX

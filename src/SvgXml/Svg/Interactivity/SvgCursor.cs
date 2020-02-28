@@ -4,7 +4,9 @@ using Xml;
 namespace Svg
 {
     [Element("cursor")]
-    public class SvgCursor : SvgElement, ISvgTestsAttributes, ISvgResourcesAttributes
+    public class SvgCursor : SvgElement,
+        ISvgTestsAttributes,
+        ISvgResourcesAttributes
     {
         [Attribute("x", SvgNamespace)]
         public string? X

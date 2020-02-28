@@ -4,7 +4,9 @@ using Xml;
 namespace Svg
 {
     [Element("stop")]
-    public class SvgGradientStop : SvgElement, ISvgPresentationAttributes, ISvgStylableAttributes
+    public class SvgGradientStop : SvgElement,
+        ISvgPresentationAttributes,
+        ISvgStylableAttributes
     {
         [Attribute("offset", SvgNamespace)]
         public string? Offset
