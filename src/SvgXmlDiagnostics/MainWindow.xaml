@@ -2854,161 +2854,165 @@
                             </Grid>
                         </ScrollViewer>
                     </TabItem>
-                    <TabItem Header="Animation Addition" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationAdditionAttributes}}">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <Grid Margin="2">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <!-- Additive -->
-                                <TextBlock Text="Additive" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationAdditionAttributes.Additive)}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                                <!-- Accumulate -->
-                                <TextBlock Text="Accumulate" Grid.Row="1" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationAdditionAttributes.Accumulate)}" Grid.Row="1" Grid.Column="1" Margin="2" />
-                            </Grid>
-                        </ScrollViewer>
-                    </TabItem>
-                    <TabItem Header="Animation Attribute Target" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationAttributeTargetAttributes}}">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <Grid Margin="2">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <!-- AttributeType -->
-                                <TextBlock Text="AttributeType" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationAttributeTargetAttributes.AttributeType)}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                                <!-- AttributeName -->
-                                <TextBlock Text="AttributeName" Grid.Row="1" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationAttributeTargetAttributes.AttributeName)}" Grid.Row="1" Grid.Column="1" Margin="2" />
-                            </Grid>
-                        </ScrollViewer>
-                    </TabItem>
-                    <TabItem Header="Animation Event" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationEventAttributes}}">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <Grid Margin="2">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <!-- OnBegin -->
-                                <TextBlock Text="OnBegin" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationEventAttributes.OnBegin)}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                                <!-- OnEnd -->
-                                <TextBlock Text="OnEnd" Grid.Row="1" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationEventAttributes.OnEnd)}" Grid.Row="1" Grid.Column="1" Margin="2" />
-                                <!-- OnRepeat -->
-                                <TextBlock Text="OnRepeat" Grid.Row="2" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationEventAttributes.OnRepeat)}" Grid.Row="2" Grid.Column="1" Margin="2" />
-                                <!-- OnLoad -->
-                                <TextBlock Text="OnLoad" Grid.Row="3" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationEventAttributes.OnLoad)}" Grid.Row="3" Grid.Column="1" Margin="2" />
-                            </Grid>
-                        </ScrollViewer>
-                    </TabItem>
-                    <TabItem Header="Animation Timing" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationTimingAttributes}}">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <Grid Margin="2">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <!-- Begin -->
-                                <TextBlock Text="Begin" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Begin)}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                                <!-- Dur -->
-                                <TextBlock Text="Dur" Grid.Row="1" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Dur)}" Grid.Row="1" Grid.Column="1" Margin="2" />
-                                <!-- End -->
-                                <TextBlock Text="End" Grid.Row="2" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.End)}" Grid.Row="2" Grid.Column="1" Margin="2" />
-                                <!-- Min -->
-                                <TextBlock Text="Min" Grid.Row="3" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Min)}" Grid.Row="3" Grid.Column="1" Margin="2" />
-                                <!-- Max -->
-                                <TextBlock Text="Max" Grid.Row="4" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Max)}" Grid.Row="4" Grid.Column="1" Margin="2" />
-                                <!-- Restart -->
-                                <TextBlock Text="Restart" Grid.Row="5" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Restart)}" Grid.Row="5" Grid.Column="1" Margin="2" />
-                                <!-- RepeatCount -->
-                                <TextBlock Text="RepeatCount" Grid.Row="6" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.RepeatCount)}" Grid.Row="6" Grid.Column="1" Margin="2" />
-                                <!-- RepeatDur -->
-                                <TextBlock Text="RepeatDur" Grid.Row="7" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.RepeatDur)}" Grid.Row="7" Grid.Column="1" Margin="2" />
-                                <!-- Fill -->
-                                <TextBlock Text="Fill" Grid.Row="8" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Fill)}" Grid.Row="8" Grid.Column="1" Margin="2" />
-                            </Grid>
-                        </ScrollViewer>
-                    </TabItem>
-                    <TabItem Header="Animation Value" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationValueAttributes}}">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <Grid Margin="2">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <!-- CalcMode -->
-                                <TextBlock Text="CalcMode" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.CalcMode)}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                                <!-- Values -->
-                                <TextBlock Text="Values" Grid.Row="1" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.Values)}" Grid.Row="1" Grid.Column="1" Margin="2" />
-                                <!-- KeyTimes -->
-                                <TextBlock Text="KeyTimes" Grid.Row="2" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.KeyTimes)}" Grid.Row="2" Grid.Column="1" Margin="2" />
-                                <!-- KeySplines -->
-                                <TextBlock Text="KeySplines" Grid.Row="3" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.KeySplines)}" Grid.Row="3" Grid.Column="1" Margin="2" />
-                                <!-- From -->
-                                <TextBlock Text="From" Grid.Row="4" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.From)}" Grid.Row="4" Grid.Column="1" Margin="2" />
-                                <!-- To -->
-                                <TextBlock Text="To" Grid.Row="5" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.To)}" Grid.Row="5" Grid.Column="1" Margin="2" />
-                                <!-- By -->
-                                <TextBlock Text="By" Grid.Row="6" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.By)}" Grid.Row="6" Grid.Column="1" Margin="2" />
-                            </Grid>
-                        </ScrollViewer>
+                    <TabItem Header="Animation" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:SvgAnimationElement}}">
+                        <TabControl>
+                            <TabItem Header="Addition" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationAdditionAttributes}}">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                                    <Grid Margin="2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <!-- Additive -->
+                                        <TextBlock Text="Additive" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationAdditionAttributes.Additive)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Accumulate -->
+                                        <TextBlock Text="Accumulate" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationAdditionAttributes.Accumulate)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                    </Grid>
+                                </ScrollViewer>
+                            </TabItem>
+                            <TabItem Header="Attribute Target" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationAttributeTargetAttributes}}">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                                    <Grid Margin="2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <!-- AttributeType -->
+                                        <TextBlock Text="AttributeType" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationAttributeTargetAttributes.AttributeType)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- AttributeName -->
+                                        <TextBlock Text="AttributeName" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationAttributeTargetAttributes.AttributeName)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                    </Grid>
+                                </ScrollViewer>
+                            </TabItem>
+                            <TabItem Header="Event" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationEventAttributes}}">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                                    <Grid Margin="2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <!-- OnBegin -->
+                                        <TextBlock Text="OnBegin" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationEventAttributes.OnBegin)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- OnEnd -->
+                                        <TextBlock Text="OnEnd" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationEventAttributes.OnEnd)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- OnRepeat -->
+                                        <TextBlock Text="OnRepeat" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationEventAttributes.OnRepeat)}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- OnLoad -->
+                                        <TextBlock Text="OnLoad" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationEventAttributes.OnLoad)}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                    </Grid>
+                                </ScrollViewer>
+                            </TabItem>
+                            <TabItem Header="Timing" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationTimingAttributes}}">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                                    <Grid Margin="2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <!-- Begin -->
+                                        <TextBlock Text="Begin" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Begin)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Dur -->
+                                        <TextBlock Text="Dur" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Dur)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- End -->
+                                        <TextBlock Text="End" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.End)}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Min -->
+                                        <TextBlock Text="Min" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Min)}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Max -->
+                                        <TextBlock Text="Max" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Max)}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Restart -->
+                                        <TextBlock Text="Restart" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Restart)}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- RepeatCount -->
+                                        <TextBlock Text="RepeatCount" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.RepeatCount)}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                                        <!-- RepeatDur -->
+                                        <TextBlock Text="RepeatDur" Grid.Row="7" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.RepeatDur)}" Grid.Row="7" Grid.Column="1" Margin="2" />
+                                        <!-- Fill -->
+                                        <TextBlock Text="Fill" Grid.Row="8" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Fill)}" Grid.Row="8" Grid.Column="1" Margin="2" />
+                                    </Grid>
+                                </ScrollViewer>
+                            </TabItem>
+                            <TabItem Header="Value" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationValueAttributes}}">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                                    <Grid Margin="2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <!-- CalcMode -->
+                                        <TextBlock Text="CalcMode" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.CalcMode)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Values -->
+                                        <TextBlock Text="Values" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.Values)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- KeyTimes -->
+                                        <TextBlock Text="KeyTimes" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.KeyTimes)}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- KeySplines -->
+                                        <TextBlock Text="KeySplines" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.KeySplines)}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- From -->
+                                        <TextBlock Text="From" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.From)}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- To -->
+                                        <TextBlock Text="To" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.To)}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- By -->
+                                        <TextBlock Text="By" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.By)}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                                    </Grid>
+                                </ScrollViewer>
+                            </TabItem>
+                        </TabControl>
                     </TabItem>
                 </TabControl>
                 <GridSplitter Grid.Column="1" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
