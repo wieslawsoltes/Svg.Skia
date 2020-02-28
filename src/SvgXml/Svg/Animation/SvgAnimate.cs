@@ -1,5 +1,4 @@
-﻿using System;
-using Xml;
+﻿using Xml;
 
 namespace Svg
 {
