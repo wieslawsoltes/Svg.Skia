@@ -110,19 +110,9 @@
                                         <attributes:TestsProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                                 <TabItem Header="XLink">
@@ -182,19 +172,9 @@
                                         <attributes:TestsProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                                 <TabItem Header="XLink">
@@ -276,19 +256,9 @@
                                         <attributes:TestsProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                                 <TabItem Header="XLink">
@@ -301,11 +271,6 @@
                                         <TabItem Header="Event">
                                             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                                 <attributes:AnimationEventProperties/>
-                                            </ScrollViewer>
-                                        </TabItem>
-                                        <TabItem Header="Attribute Target">
-                                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                                <attributes:AnimationAttributeTargetProperties/>
                                             </ScrollViewer>
                                         </TabItem>
                                         <TabItem Header="Timing">
@@ -348,29 +313,14 @@
                                         <attributes:CommonProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Tests">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:TestsProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                                 <TabItem Header="XLink">
@@ -430,64 +380,10 @@
                                         <attributes:CommonProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
                                     </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Animation">
-                                    <TabControl>
-                                        <TabItem Header="Event">
-                                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                                <attributes:AnimationEventProperties/>
-                                            </ScrollViewer>
-                                        </TabItem>
-                                        <TabItem Header="Attribute Target">
-                                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                                <attributes:AnimationAttributeTargetProperties/>
-                                            </ScrollViewer>
-                                        </TabItem>
-                                        <TabItem Header="Timing">
-                                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                                <attributes:AnimationTimingProperties/>
-                                            </ScrollViewer>
-                                        </TabItem>
-                                        <TabItem Header="Value">
-                                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                                <attributes:AnimationValueProperties/>
-                                            </ScrollViewer>
-                                        </TabItem>
-                                        <TabItem Header="Addition">
-                                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                                <attributes:AnimationAdditionProperties/>
-                                            </ScrollViewer>
-                                        </TabItem>
-                                    </TabControl>
                                 </TabItem>
                             </TabControl>
                         </DataTemplate>
@@ -512,29 +408,14 @@
                                         <attributes:CommonProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Tests">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:TestsProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                                 <TabItem Header="XLink">
@@ -557,16 +438,6 @@
                                         <TabItem Header="Timing">
                                             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                                 <attributes:AnimationTimingProperties/>
-                                            </ScrollViewer>
-                                        </TabItem>
-                                        <TabItem Header="Value">
-                                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                                <attributes:AnimationValueProperties/>
-                                            </ScrollViewer>
-                                        </TabItem>
-                                        <TabItem Header="Addition">
-                                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                                <attributes:AnimationAdditionProperties/>
                                             </ScrollViewer>
                                         </TabItem>
                                     </TabControl>
@@ -626,11 +497,6 @@
                                 <TabItem Header="Transformable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -693,11 +559,6 @@
                                         <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgLine}">
@@ -758,11 +619,6 @@
                                         <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgPolygon}">
@@ -811,11 +667,6 @@
                                         <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgPolyline}">
@@ -862,11 +713,6 @@
                                 <TabItem Header="Transformable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -937,11 +783,6 @@
                                         <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <!-- Clipping and Masking -->
@@ -989,11 +830,6 @@
                                 <TabItem Header="Transformable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -1059,16 +895,6 @@
                                         <attributes:ResourcesProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <!-- Color -->
@@ -1103,36 +929,6 @@
                                 <TabItem Header="Common">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:CommonProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -1174,11 +970,6 @@
                                         <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgDescription}">
@@ -1192,34 +983,9 @@
                                         <attributes:CommonProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -1233,36 +999,6 @@
                                 <TabItem Header="Common">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:CommonProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -1348,16 +1084,6 @@
                                         <attributes:ResourcesProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgGroup}">
@@ -1394,11 +1120,6 @@
                                 <TabItem Header="Transformable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -1469,11 +1190,6 @@
                                         <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgSwitch}">
@@ -1512,11 +1228,6 @@
                                         <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgSymbol}">
@@ -1549,11 +1260,6 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
@@ -1562,16 +1268,6 @@
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -1587,34 +1283,9 @@
                                         <attributes:CommonProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -1681,11 +1352,6 @@
                                         <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <!-- Extensibility -->
@@ -1747,11 +1413,6 @@
                                         <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <!-- Filter Effects -->
@@ -1809,11 +1470,6 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
@@ -1822,16 +1478,6 @@
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -1891,29 +1537,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -1972,29 +1598,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -2045,29 +1651,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -2142,29 +1728,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -2251,29 +1817,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -2336,29 +1882,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -2425,29 +1951,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -2475,36 +1981,6 @@
                                 <TabItem Header="Common">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:CommonProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -2551,29 +2027,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -2623,36 +2079,6 @@
                                         <attributes:CommonProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncB}">
@@ -2698,36 +2124,6 @@
                                 <TabItem Header="Common">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:CommonProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -2777,36 +2173,6 @@
                                         <attributes:CommonProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncR}">
@@ -2852,36 +2218,6 @@
                                 <TabItem Header="Common">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:CommonProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -2936,29 +2272,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -3013,11 +2329,6 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
@@ -3026,16 +2337,6 @@
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -3082,29 +2383,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -3128,36 +2409,6 @@
                                 <TabItem Header="Common">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:CommonProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -3216,31 +2467,11 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
                                     </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
+                                </TabItem> >
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type SvgFilterEffects:SvgOffset}">
@@ -3297,29 +2528,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -3351,36 +2562,6 @@
                                 <TabItem Header="Common">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:CommonProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -3447,29 +2628,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -3523,36 +2684,6 @@
                                         <attributes:CommonProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type SvgFilterEffects:SvgTile}">
@@ -3601,29 +2732,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -3690,29 +2801,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -3747,34 +2838,14 @@
                                         <attributes:CommonProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Tests">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:TestsProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -3838,11 +2909,6 @@
                                         <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgView}">
@@ -3878,34 +2944,9 @@
                                         <attributes:CommonProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -3937,29 +2978,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -4018,11 +3039,6 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
@@ -4031,16 +3047,6 @@
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -4099,11 +3105,6 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
@@ -4112,16 +3113,6 @@
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -4203,16 +3194,6 @@
                                         <attributes:ResourcesProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgRadialGradientServer}">
@@ -4273,11 +3254,6 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
@@ -4286,16 +3262,6 @@
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -4351,11 +3317,6 @@
                                         <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <!-- Scripting -->
@@ -4384,34 +3345,9 @@
                                         <attributes:CommonProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -4444,36 +3380,6 @@
                                 <TabItem Header="Common">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:CommonProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -4548,16 +3454,6 @@
                                         <attributes:ResourcesProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgAltGlyphDef}">
@@ -4571,36 +3467,6 @@
                                         <attributes:CommonProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgAltGlyphItem}">
@@ -4612,36 +3478,6 @@
                                 <TabItem Header="Common">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:CommonProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -4692,11 +3528,6 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
@@ -4705,16 +3536,6 @@
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -4868,36 +3689,6 @@
                                         <attributes:CommonProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgFontFaceFormat}">
@@ -4919,36 +3710,6 @@
                                 <TabItem Header="Common">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:CommonProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -4974,36 +3735,6 @@
                                         <attributes:CommonProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgFontFaceSrc}">
@@ -5015,36 +3746,6 @@
                                 <TabItem Header="Common">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:CommonProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -5068,36 +3769,6 @@
                                 <TabItem Header="Common">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:CommonProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -5164,29 +3835,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -5241,29 +3892,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -5305,36 +3936,6 @@
                                         <attributes:CommonProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgMissingGlyph}">
@@ -5353,29 +3954,9 @@
                                         <attributes:PresentationProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                                 <TabItem Header="Stylable">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -5450,11 +4031,6 @@
                                         <attributes:TransformableProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgTextPath}">
@@ -5516,16 +4092,6 @@
                                 <TabItem Header="Resources">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
@@ -5598,16 +4164,6 @@
                                         <attributes:ResourcesProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgTextSpan}">
@@ -5674,16 +4230,6 @@
                                         <attributes:ResourcesProperties/>
                                     </ScrollViewer>
                                 </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
                             </TabControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type Svg:SvgVerticalKern}">
@@ -5721,36 +4267,6 @@
                                 <TabItem Header="Common">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                         <attributes:CommonProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Presentation">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:PresentationProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Tests">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TestsProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Stylable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:StylableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Resources">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:ResourcesProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="Transformable">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:TransformableProperties/>
-                                    </ScrollViewer>
-                                </TabItem>
-                                <TabItem Header="XLink">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                        <attributes:XLinkProperties/>
                                     </ScrollViewer>
                                 </TabItem>
                             </TabControl>
