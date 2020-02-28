@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("stop")]
     public class SvgGradientStop : SvgElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
     {

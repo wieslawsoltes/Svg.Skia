@@ -4,7 +4,8 @@ using Xml;
 namespace Svg
 {
     [Element("font-face-name")]
-    public class SvgFontFaceName : SvgElement
+    public class SvgFontFaceName : SvgElement,
+        ISvgCommonAttributes
     {
         [Attribute("name", SvgNamespace)]
         public string? Name

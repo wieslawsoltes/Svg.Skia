@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("circle")]
     public class SvgCircle : SvgPathBasedElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,

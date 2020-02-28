@@ -5,6 +5,7 @@ namespace Svg.FilterEffects
 {
     [Element("feOffset")]
     public class SvgOffset : SvgFilterPrimitive,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
     {

@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("ellipse")]
     public class SvgEllipse : SvgPathBasedElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,

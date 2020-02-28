@@ -5,6 +5,7 @@ namespace Svg.FilterEffects
 {
     [Element("feDisplacementMap")]
     public class SvgDisplacementMap : SvgFilterPrimitive,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
     {

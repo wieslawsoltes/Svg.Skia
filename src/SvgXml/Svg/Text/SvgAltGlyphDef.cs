@@ -3,7 +3,8 @@
 namespace Svg
 {
     [Element("altGlyphDef")]
-    public class SvgAltGlyphDef : SvgElement
+    public class SvgAltGlyphDef : SvgElement,
+        ISvgCommonAttributes
     {
     }
 }

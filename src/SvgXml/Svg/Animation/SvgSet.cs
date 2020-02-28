@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("set")]
     public class SvgSet : SvgAnimationElement,
+        ISvgCommonAttributes,
         ISvgTestsAttributes,
         ISvgResourcesAttributes,
         ISvgXLinkAttributes,

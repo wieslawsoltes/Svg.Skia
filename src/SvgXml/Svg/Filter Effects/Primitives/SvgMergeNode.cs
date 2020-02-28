@@ -4,7 +4,8 @@ using Xml;
 namespace Svg.FilterEffects
 {
     [Element("feMergeNode")]
-    public class SvgMergeNode : SvgElement
+    public class SvgMergeNode : SvgElement,
+        ISvgCommonAttributes
     {
         [Attribute("in", SvgNamespace)]
         public string? Input

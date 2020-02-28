@@ -4,7 +4,8 @@ using Xml;
 namespace Svg.FilterEffects
 {
     [Element("fePointLight")]
-    public class SvgPointLight : SvgElement
+    public class SvgPointLight : SvgElement,
+        ISvgCommonAttributes
     {
         [Attribute("x", SvgNamespace)]
         public string? X

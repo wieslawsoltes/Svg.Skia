@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("symbol")]
     public class SvgSymbol : SvgVisualElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes,
         ISvgResourcesAttributes

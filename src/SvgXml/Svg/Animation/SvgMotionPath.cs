@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("mpath")]
     public class SvgMotionPath : SvgElement,
+        ISvgCommonAttributes,
         ISvgResourcesAttributes
     {
         [Attribute("href", XLinkNamespace)]

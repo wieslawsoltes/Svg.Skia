@@ -4,7 +4,8 @@ using Xml;
 namespace Svg
 {
     [Element("font-face")]
-    public class SvgFontFace : SvgElement
+    public class SvgFontFace : SvgElement,
+        ISvgCommonAttributes
     {
         [Attribute("font-family", SvgNamespace)]
         public string? FontFamily

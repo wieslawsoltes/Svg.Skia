@@ -5,6 +5,7 @@ namespace Svg.FilterEffects
 {
     [Element("feDiffuseLighting")]
     public class SvgDiffuseLighting : SvgFilterPrimitive,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
     {

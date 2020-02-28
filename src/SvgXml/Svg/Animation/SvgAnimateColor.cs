@@ -4,6 +4,7 @@ namespace Svg
 {
     [Element("animateColor")]
     public class SvgAnimateColor : SvgAnimationElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgResourcesAttributes,

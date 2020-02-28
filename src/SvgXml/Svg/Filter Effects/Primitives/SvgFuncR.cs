@@ -3,7 +3,8 @@
 namespace Svg.FilterEffects
 {
     [Element("feFuncR")]
-    public class SvgFuncR : SvgComponentTransferFunction
+    public class SvgFuncR : SvgComponentTransferFunction,
+        ISvgCommonAttributes
     {
     }
 }

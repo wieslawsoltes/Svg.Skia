@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("svg")]
     public class SvgFragment : SvgElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,

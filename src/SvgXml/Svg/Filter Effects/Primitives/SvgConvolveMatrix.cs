@@ -5,6 +5,7 @@ namespace Svg.FilterEffects
 {
     [Element("feConvolveMatrix")]
     public class SvgConvolveMatrix : SvgFilterPrimitive,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
     {

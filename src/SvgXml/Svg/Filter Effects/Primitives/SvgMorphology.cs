@@ -5,6 +5,7 @@ namespace Svg.FilterEffects
 {
     [Element("feMorphology")]
     public class SvgMorphology : SvgFilterPrimitive,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
     {

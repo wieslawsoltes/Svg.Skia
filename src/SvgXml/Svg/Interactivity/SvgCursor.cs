@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("cursor")]
     public class SvgCursor : SvgElement,
+        ISvgCommonAttributes,
         ISvgTestsAttributes,
         ISvgResourcesAttributes
     {

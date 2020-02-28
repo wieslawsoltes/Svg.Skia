@@ -5,6 +5,7 @@ namespace Svg.FilterEffects
 {
     [Element("feComposite")]
     public class SvgComposite : SvgFilterPrimitive,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
     {

@@ -4,7 +4,8 @@ using Xml;
 namespace Svg
 {
     [Element("font-face-uri")]
-    public class SvgFontFaceUri : SvgElement
+    public class SvgFontFaceUri : SvgElement,
+        ISvgCommonAttributes
     {
         [Attribute("href", XLinkNamespace)]
         public string? Href

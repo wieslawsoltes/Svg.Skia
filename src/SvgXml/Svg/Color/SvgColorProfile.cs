@@ -4,7 +4,8 @@ using Xml;
 namespace Svg
 {
     [Element("color-profile")]
-    public class SvgColorProfile : SvgElement
+    public class SvgColorProfile : SvgElement,
+        ISvgCommonAttributes
     {
         [Attribute("local", SvgNamespace)]
         public string? Local

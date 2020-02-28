@@ -5,6 +5,7 @@ namespace Svg.FilterEffects
 {
     [Element("filter")]
     public class SvgFilter : SvgElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes,
         ISvgResourcesAttributes

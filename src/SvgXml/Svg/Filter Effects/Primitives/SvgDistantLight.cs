@@ -4,7 +4,8 @@ using Xml;
 namespace Svg.FilterEffects
 {
     [Element("feDistantLight")]
-    public class SvgDistantLight : SvgElement
+    public class SvgDistantLight : SvgElement,
+        ISvgCommonAttributes
     {
         [Attribute("azimuth", SvgNamespace)]
         public string? Azimuth

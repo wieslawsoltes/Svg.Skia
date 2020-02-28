@@ -6,6 +6,7 @@ namespace Svg.FilterEffects
 {
     [Element("feGaussianBlur")]
     public class SvgGaussianBlur : SvgFilterPrimitive,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
     {

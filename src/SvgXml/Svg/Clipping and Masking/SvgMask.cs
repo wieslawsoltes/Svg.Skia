@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("mask")]
     public class SvgMask : SvgElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,

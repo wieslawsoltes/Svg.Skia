@@ -5,6 +5,7 @@ namespace Svg.FilterEffects
 {
     [Element("feColorMatrix")]
     public class SvgColourMatrix : SvgFilterPrimitive,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
     {

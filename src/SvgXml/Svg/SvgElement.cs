@@ -3,8 +3,7 @@ using Xml;
 
 namespace Svg
 {
-    public abstract class SvgElement : Element,
-        ISvgCommonAttributes
+    public abstract class SvgElement : Element
     {
         public const string SvgNamespace = "http://www.w3.org/2000/svg";
 

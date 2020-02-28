@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("radialGradient")]
     public class SvgRadialGradientServer : SvgGradientServer,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes,
         ISvgResourcesAttributes

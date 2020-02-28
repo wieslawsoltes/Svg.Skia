@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("path")]
     public class SvgPath : SvgMarkerElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,

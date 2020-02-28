@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("rect")]
     public class SvgRectangle : SvgPathBasedElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,

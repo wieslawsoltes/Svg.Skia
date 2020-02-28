@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("glyph")]
     public class SvgGlyph : SvgPathBasedElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
     {

@@ -3,7 +3,8 @@
 namespace Svg
 {
     [Element("metadata")]
-    public class SvgDocumentMetadata : SvgElement
+    public class SvgDocumentMetadata : SvgElement,
+        ISvgCommonAttributes
     {
     }
 }

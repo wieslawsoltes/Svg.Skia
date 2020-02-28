@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("a")]
     public class SvgAnchor : SvgElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,

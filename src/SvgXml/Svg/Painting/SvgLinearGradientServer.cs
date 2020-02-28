@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("linearGradient")]
     public class SvgLinearGradientServer : SvgGradientServer,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes,
         ISvgResourcesAttributes

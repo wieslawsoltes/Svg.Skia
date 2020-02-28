@@ -4,6 +4,7 @@ namespace Svg
 {
     [Element("g")]
     public class SvgGroup : SvgMarkerElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,

@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("font")]
     public class SvgFont : SvgElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes,
         ISvgResourcesAttributes

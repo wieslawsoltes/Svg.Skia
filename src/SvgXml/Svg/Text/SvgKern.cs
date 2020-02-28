@@ -3,7 +3,8 @@ using Xml;
 
 namespace Svg
 {
-    public abstract class SvgKern : SvgElement
+    public abstract class SvgKern : SvgElement,
+        ISvgCommonAttributes
     {
         [Attribute("u1", SvgNamespace)]
         public string? Unicode1

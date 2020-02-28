@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("tref")]
     public class SvgTextRef : SvgTextPositioning,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,

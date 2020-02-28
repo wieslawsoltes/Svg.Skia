@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("script")]
     public class SvgScript : SvgElement,
+        ISvgCommonAttributes,
         ISvgResourcesAttributes
     {
         [Attribute("type", SvgNamespace)]

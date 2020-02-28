@@ -5,6 +5,7 @@ namespace Svg.FilterEffects
 {
     [Element("feComponentTransfer")]
     public class SvgComponentTransfer : SvgFilterPrimitive,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
     {

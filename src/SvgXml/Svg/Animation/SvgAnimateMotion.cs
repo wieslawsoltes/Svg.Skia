@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("animateMotion")]
     public class SvgAnimateMotion : SvgAnimationElement,
+        ISvgCommonAttributes,
         ISvgTestsAttributes,
         ISvgResourcesAttributes,
         ISvgXLinkAttributes,

@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("line")]
     public class SvgLine: SvgMarkerElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,

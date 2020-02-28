@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("altGlyph")]
     public class SvgAltGlyph : SvgElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,

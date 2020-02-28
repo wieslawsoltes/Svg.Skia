@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("pattern")]
     public class SvgPatternServer : SvgPaintServer,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,

@@ -4,7 +4,8 @@ using Xml;
 namespace Svg
 {
     [Element("style")]
-    public class SvgStyle : SvgElement
+    public class SvgStyle : SvgElement,
+        ISvgCommonAttributes
     {
         [Attribute("type", SvgNamespace)]
         public string? Type

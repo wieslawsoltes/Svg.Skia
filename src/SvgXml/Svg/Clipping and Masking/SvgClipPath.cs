@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("clipPath")]
     public class SvgClipPath : SvgElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,

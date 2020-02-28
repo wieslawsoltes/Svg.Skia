@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("use")]
     public class SvgUse : SvgVisualElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,

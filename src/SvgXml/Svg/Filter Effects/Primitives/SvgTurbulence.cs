@@ -5,6 +5,7 @@ namespace Svg.FilterEffects
 {
     [Element("feTurbulence")]
     public class SvgTurbulence : SvgFilterPrimitive,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
     {

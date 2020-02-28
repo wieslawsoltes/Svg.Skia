@@ -5,6 +5,7 @@ namespace Svg.FilterEffects
 {
     [Element("feImage")]
     public class SvgImage : SvgFilterPrimitive,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes,
         ISvgResourcesAttributes

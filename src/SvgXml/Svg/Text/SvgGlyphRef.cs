@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("glyphRef")]
     public class SvgGlyphRef : SvgElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
     {

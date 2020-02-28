@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("foreignObject")]
     public class SvgForeignObject : SvgVisualElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,

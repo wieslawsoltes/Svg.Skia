@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("textPath")]
     public class SvgTextPath : SvgTextContent,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,

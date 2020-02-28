@@ -3,7 +3,8 @@
 namespace Svg
 {
     [Element("hkern")]
-    public class SvgHorizontalKern : SvgKern
+    public class SvgHorizontalKern : SvgKern,
+        ISvgCommonAttributes
     {
     }
 }

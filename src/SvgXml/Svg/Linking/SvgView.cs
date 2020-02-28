@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("view")]
     public class SvgView : SvgElement,
+        ISvgCommonAttributes,
         ISvgResourcesAttributes
     {
         [Attribute("viewBox", SvgNamespace)]

@@ -5,6 +5,7 @@ namespace Svg.FilterEffects
 {
     [Element("feTile")]
     public class SvgTile : SvgFilterPrimitive,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
     {

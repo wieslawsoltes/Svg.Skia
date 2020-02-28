@@ -5,6 +5,7 @@ namespace Svg
 {
     [Element("polygon")]
     public class SvgPolygon : SvgMarkerElement,
+        ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
         ISvgStylableAttributes,
