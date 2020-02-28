@@ -82,30 +82,10 @@
                                 <!-- Animation -->
                                 <DataTemplate DataType="{x:Type Svg:SvgAnimate}">
                                     <Grid Margin="2">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type Svg:SvgAnimateColor}">
                                     <Grid Margin="2">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type Svg:SvgAnimateMotion}">
@@ -116,10 +96,22 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Path -->
+                                        <TextBlock Text="Path" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Path}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- KeyPoints -->
+                                        <TextBlock Text="KeyPoints" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding KeyPoints}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Rotate -->
+                                        <TextBlock Text="Rotate" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Rotate}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Origin -->
+                                        <TextBlock Text="Origin" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Origin}" Grid.Row="3" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type Svg:SvgAnimateTransform}">
@@ -131,9 +123,9 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Type -->
+                                        <TextBlock Text="Type" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Type}" Grid.Row="0" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type Svg:SvgMotionPath}">
@@ -145,9 +137,9 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Href -->
+                                        <TextBlock Text="Href" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Href}" Grid.Row="0" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type Svg:SvgSet}">
@@ -159,9 +151,9 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- To -->
+                                        <TextBlock Text="To" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding To}" Grid.Row="0" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <!-- Basic Shapes -->
@@ -173,10 +165,18 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- CenterX -->
+                                        <TextBlock Text="CenterX" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding CenterX}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- CenterY -->
+                                        <TextBlock Text="CenterY" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding CenterY}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Radius -->
+                                        <TextBlock Text="Radius" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Radius}" Grid.Row="2" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type Svg:SvgEllipse}">
@@ -187,10 +187,22 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- CenterX -->
+                                        <TextBlock Text="CenterX" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding CenterX}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- CenterY -->
+                                        <TextBlock Text="CenterY" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding CenterY}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- RadiusX -->
+                                        <TextBlock Text="RadiusX" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding RadiusX}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- RadiusY -->
+                                        <TextBlock Text="RadiusY" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding RadiusY}" Grid.Row="3" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type Svg:SvgLine}">
@@ -201,10 +213,22 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- StartX -->
+                                        <TextBlock Text="StartX" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding StartX}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- StartY -->
+                                        <TextBlock Text="StartY" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding StartY}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- EndX -->
+                                        <TextBlock Text="EndX" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding EndX}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- EndY -->
+                                        <TextBlock Text="EndY" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding EndY}" Grid.Row="3" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type Svg:SvgPolygon}">
@@ -216,9 +240,9 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Points -->
+                                        <TextBlock Text="Points" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Points}" Grid.Row="0" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type Svg:SvgPolyline}">
@@ -230,9 +254,9 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Points -->
+                                        <TextBlock Text="Points" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Points}" Grid.Row="0" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type Svg:SvgRectangle}">
@@ -243,10 +267,30 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- CornerRadiusX -->
+                                        <TextBlock Text="CornerRadiusX" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding CornerRadiusX}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- CornerRadiusY -->
+                                        <TextBlock Text="CornerRadiusY" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding CornerRadiusY}" Grid.Row="5" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <!-- Clipping and Masking -->
@@ -259,9 +303,9 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- ClipPathUnits -->
+                                        <TextBlock Text="ClipPathUnits" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding ClipPathUnits}" Grid.Row="0" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type Svg:SvgMask}">
@@ -272,10 +316,30 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- MaskUnits -->
+                                        <TextBlock Text="MaskUnits" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding MaskUnits}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- MaskContentUnits -->
+                                        <TextBlock Text="MaskContentUnits" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding MaskContentUnits}" Grid.Row="5" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <!-- Color -->
@@ -287,42 +351,38 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Local -->
+                                        <TextBlock Text="Local" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Local}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Name -->
+                                        <TextBlock Text="Name" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Name}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- RenderingIntent -->
+                                        <TextBlock Text="RenderingIntent" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding RenderingIntent}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Href -->
+                                        <TextBlock Text="Href" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Href}" Grid.Row="3" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <!-- Document Structure -->
                                 <DataTemplate DataType="{x:Type Svg:SvgDefinitionList}">
                                     <Grid Margin="2">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type Svg:SvgDescription}">
                                     <Grid Margin="2">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type Svg:SvgDocumentMetadata}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgFragment}">
                                     <Grid Margin="2">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" />
@@ -330,13 +390,117 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- ViewBox -->
+                                        <TextBlock Text="ViewBox" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding ViewBox}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- AspectRatio -->
+                                        <TextBlock Text="AspectRatio" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding AspectRatio}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- ZoomAndPan -->
+                                        <TextBlock Text="ZoomAndPan" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding ZoomAndPan}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                                        <!-- Version -->
+                                        <TextBlock Text="Version" Grid.Row="7" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Version}" Grid.Row="7" Grid.Column="1" Margin="2" />
+                                        <!-- BaseProfile -->
+                                        <TextBlock Text="BaseProfile" Grid.Row="8" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding BaseProfile}" Grid.Row="8" Grid.Column="1" Margin="2" />
+                                        <!-- ContentScriptType -->
+                                        <TextBlock Text="ContentScriptType" Grid.Row="9" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding ContentScriptType}" Grid.Row="9" Grid.Column="1" Margin="2" />
+                                        <!-- ContentStyleType -->
+                                        <TextBlock Text="ContentStyleType" Grid.Row="10" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding ContentStyleType}" Grid.Row="10" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
-                                <DataTemplate DataType="{x:Type Svg:SvgFragment}">
+                                <DataTemplate DataType="{x:Type Svg:SvgGroup}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgImage}">
+                                    <Grid Margin="2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <!-- AspectRatio -->
+                                        <TextBlock Text="AspectRatio" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding AspectRatio}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Href -->
+                                        <TextBlock Text="Href" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Href}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgSwitch}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgSymbol}">
+                                    <Grid Margin="2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <!-- ViewBox -->
+                                        <TextBlock Text="ViewBox" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding ViewBox}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- AspectRatio -->
+                                        <TextBlock Text="AspectRatio" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding AspectRatio}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgTitle}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgUse}">
                                     <Grid Margin="2">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" />
@@ -361,93 +525,9 @@
                                         <!-- Height -->
                                         <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
                                         <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
-                                        <!-- ViewBox -->
-                                        <TextBlock Text="ViewBox" Grid.Row="4" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding ViewBox}" Grid.Row="4" Grid.Column="1" Margin="2" />
-                                    </Grid>
-                                </DataTemplate>
-                                <DataTemplate DataType="{x:Type Svg:SvgGroup}">
-                                    <Grid Margin="2">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                                    </Grid>
-                                </DataTemplate>
-                                <DataTemplate DataType="{x:Type Svg:SvgImage}">
-                                    <Grid Margin="2">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                                    </Grid>
-                                </DataTemplate>
-                                <DataTemplate DataType="{x:Type Svg:SvgSwitch}">
-                                    <Grid Margin="2">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                                    </Grid>
-                                </DataTemplate>
-                                <DataTemplate DataType="{x:Type Svg:SvgSymbol}">
-                                    <Grid Margin="2">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                                    </Grid>
-                                </DataTemplate>
-                                <DataTemplate DataType="{x:Type Svg:SvgTitle}">
-                                    <Grid Margin="2">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                                    </Grid>
-                                </DataTemplate>
-                                <DataTemplate DataType="{x:Type Svg:SvgUse}">
-                                    <Grid Margin="2">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Href -->
+                                        <TextBlock Text="Href" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Href}" Grid.Row="4" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <!-- Extensibility -->
@@ -459,10 +539,22 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <!-- Filter Effects -->
@@ -474,10 +566,38 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- FilterRes -->
+                                        <TextBlock Text="FilterRes" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding FilterRes}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- FilterUnits -->
+                                        <TextBlock Text="FilterUnits" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding FilterUnits}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- PrimitiveUnits -->
+                                        <TextBlock Text="PrimitiveUnits" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding PrimitiveUnits}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                                        <!-- Href -->
+                                        <TextBlock Text="Href" Grid.Row="7" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Href}" Grid.Row="7" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <!-- Filter Effects Primitives -->
@@ -489,10 +609,38 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Result -->
+                                        <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Input -->
+                                        <TextBlock Text="Input" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Input}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- Input2 -->
+                                        <TextBlock Text="Input2" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Input2}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                                        <!-- Mode -->
+                                        <TextBlock Text="Mode" Grid.Row="7" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Mode}" Grid.Row="7" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgColourMatrix}">
@@ -503,10 +651,38 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Result -->
+                                        <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Input -->
+                                        <TextBlock Text="Input" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Input}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- Type -->
+                                        <TextBlock Text="Type" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Type}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- Values -->
+                                        <TextBlock Text="Values" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Values}" Grid.Row="5" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgComponentTransfer}">
@@ -517,10 +693,30 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Result -->
+                                        <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Input -->
+                                        <TextBlock Text="Input" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Input}" Grid.Row="5" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgComposite}">
@@ -531,10 +727,54 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Result -->
+                                        <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Input -->
+                                        <TextBlock Text="Input" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Input}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- Input2 -->
+                                        <TextBlock Text="Input2" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Input2}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                                        <!-- Operator -->
+                                        <TextBlock Text="Operator" Grid.Row="7" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Operator}" Grid.Row="7" Grid.Column="1" Margin="2" />
+                                        <!-- K1 -->
+                                        <TextBlock Text="K1" Grid.Row="8" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding K1}" Grid.Row="8" Grid.Column="1" Margin="2" />
+                                        <!-- K2 -->
+                                        <TextBlock Text="K2" Grid.Row="9" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding K2}" Grid.Row="9" Grid.Column="1" Margin="2" />
+                                        <!-- K3 -->
+                                        <TextBlock Text="K3" Grid.Row="10" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding K3}" Grid.Row="10" Grid.Column="1" Margin="2" />
+                                        <!-- K4 -->
+                                        <TextBlock Text="K4" Grid.Row="11" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding K4}" Grid.Row="11" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgConvolveMatrix}">
@@ -545,10 +785,66 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Result -->
+                                        <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Input -->
+                                        <TextBlock Text="Input" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Input}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- Order -->
+                                        <TextBlock Text="Order" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Order}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                                        <!-- KernelMatrix -->
+                                        <TextBlock Text="KernelMatrix" Grid.Row="7" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding KernelMatrix}" Grid.Row="7" Grid.Column="1" Margin="2" />
+                                        <!-- Divisor -->
+                                        <TextBlock Text="Divisor" Grid.Row="8" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Divisor}" Grid.Row="8" Grid.Column="1" Margin="2" />
+                                        <!-- Bias -->
+                                        <TextBlock Text="Bias" Grid.Row="9" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Bias}" Grid.Row="9" Grid.Column="1" Margin="2" />
+                                        <!-- TargetX -->
+                                        <TextBlock Text="TargetX" Grid.Row="10" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding TargetX}" Grid.Row="10" Grid.Column="1" Margin="2" />
+                                        <!-- TargetY -->
+                                        <TextBlock Text="TargetY" Grid.Row="11" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding TargetY}" Grid.Row="11" Grid.Column="1" Margin="2" />
+                                        <!-- EdgeMode -->
+                                        <TextBlock Text="EdgeMode" Grid.Row="12" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding EdgeMode}" Grid.Row="12" Grid.Column="1" Margin="2" />
+                                        <!-- KernelUnitLength -->
+                                        <TextBlock Text="KernelUnitLength" Grid.Row="13" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding KernelUnitLength}" Grid.Row="13" Grid.Column="1" Margin="2" />
+                                        <!-- PreserveAlpha -->
+                                        <TextBlock Text="PreserveAlpha" Grid.Row="14" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding PreserveAlpha}" Grid.Row="14" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgDiffuseLighting}">
@@ -559,10 +855,42 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Result -->
+                                        <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Input -->
+                                        <TextBlock Text="Input" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Input}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- SurfaceScale -->
+                                        <TextBlock Text="SurfaceScale" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding SurfaceScale}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                                        <!-- DiffuseConstant -->
+                                        <TextBlock Text="DiffuseConstant" Grid.Row="7" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding DiffuseConstant}" Grid.Row="7" Grid.Column="1" Margin="2" />
+                                        <!-- KernelUnitLength -->
+                                        <TextBlock Text="KernelUnitLength" Grid.Row="8" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding KernelUnitLength}" Grid.Row="8" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgDisplacementMap}">
@@ -573,10 +901,46 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Result -->
+                                        <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Input -->
+                                        <TextBlock Text="Input" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Input}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- Input2 -->
+                                        <TextBlock Text="Input2" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Input2}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                                        <!-- Scale -->
+                                        <TextBlock Text="Scale" Grid.Row="7" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Scale}" Grid.Row="7" Grid.Column="1" Margin="2" />
+                                        <!-- XChannelSelector -->
+                                        <TextBlock Text="XChannelSelector" Grid.Row="8" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding XChannelSelector}" Grid.Row="8" Grid.Column="1" Margin="2" />
+                                        <!-- YChannelSelector -->
+                                        <TextBlock Text="YChannelSelector" Grid.Row="9" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding YChannelSelector}" Grid.Row="9" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgDistantLight}">
@@ -587,10 +951,14 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Azimuth -->
+                                        <TextBlock Text="Azimuth" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Azimuth}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Elevation -->
+                                        <TextBlock Text="Elevation" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Elevation}" Grid.Row="1" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFlood}">
@@ -601,10 +969,26 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Result -->
+                                        <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncA}">
@@ -615,10 +999,34 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Type -->
+                                        <TextBlock Text="Type" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Type}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- TableValues -->
+                                        <TextBlock Text="TableValues" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding TableValues}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Slope -->
+                                        <TextBlock Text="Slope" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Slope}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Intercept -->
+                                        <TextBlock Text="Intercept" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Intercept}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Amplitude -->
+                                        <TextBlock Text="Amplitude" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Amplitude}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Exponent -->
+                                        <TextBlock Text="Exponent" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Exponent}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- Offset -->
+                                        <TextBlock Text="Offset" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Offset}" Grid.Row="6" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncB}">
@@ -629,10 +1037,34 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Type -->
+                                        <TextBlock Text="Type" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Type}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- TableValues -->
+                                        <TextBlock Text="TableValues" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding TableValues}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Slope -->
+                                        <TextBlock Text="Slope" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Slope}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Intercept -->
+                                        <TextBlock Text="Intercept" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Intercept}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Amplitude -->
+                                        <TextBlock Text="Amplitude" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Amplitude}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Exponent -->
+                                        <TextBlock Text="Exponent" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Exponent}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- Offset -->
+                                        <TextBlock Text="Offset" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Offset}" Grid.Row="6" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncG}">
@@ -643,24 +1075,72 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Type -->
+                                        <TextBlock Text="Type" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Type}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- TableValues -->
+                                        <TextBlock Text="TableValues" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding TableValues}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Slope -->
+                                        <TextBlock Text="Slope" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Slope}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Intercept -->
+                                        <TextBlock Text="Intercept" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Intercept}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Amplitude -->
+                                        <TextBlock Text="Amplitude" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Amplitude}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Exponent -->
+                                        <TextBlock Text="Exponent" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Exponent}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- Offset -->
+                                        <TextBlock Text="Offset" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Offset}" Grid.Row="6" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncR}">
-                                    <Grid Margin="2">
+                                     <Grid Margin="2">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Type -->
+                                        <TextBlock Text="Type" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Type}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- TableValues -->
+                                        <TextBlock Text="TableValues" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding TableValues}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Slope -->
+                                        <TextBlock Text="Slope" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Slope}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Intercept -->
+                                        <TextBlock Text="Intercept" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Intercept}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Amplitude -->
+                                        <TextBlock Text="Amplitude" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Amplitude}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Exponent -->
+                                        <TextBlock Text="Exponent" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Exponent}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- Offset -->
+                                        <TextBlock Text="Offset" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Offset}" Grid.Row="6" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgGaussianBlur}">
@@ -671,10 +1151,34 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Result -->
+                                        <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Input -->
+                                        <TextBlock Text="Input" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Input}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- StdDeviation -->
+                                        <TextBlock Text="StdDeviation" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding StdDeviation}" Grid.Row="6" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgImage}">
@@ -685,10 +1189,34 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Result -->
+                                        <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- AspectRatio -->
+                                        <TextBlock Text="AspectRatio" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding AspectRatio}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- Href -->
+                                        <TextBlock Text="Href" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Href}" Grid.Row="6" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgMerge}">
@@ -699,10 +1227,26 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Result -->
+                                        <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgMergeNode}">
@@ -714,9 +1258,9 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Input -->
+                                        <TextBlock Text="Input" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Input}" Grid.Row="0" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgMorphology}">
@@ -727,10 +1271,38 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Result -->
+                                        <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Input -->
+                                        <TextBlock Text="Input" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Input}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- Operator -->
+                                        <TextBlock Text="Operator" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Operator}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                                        <!-- Radius -->
+                                        <TextBlock Text="Radius" Grid.Row="7" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Radius}" Grid.Row="7" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgOffset}">
@@ -741,10 +1313,38 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Result -->
+                                        <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Input -->
+                                        <TextBlock Text="Input" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Input}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- Dx -->
+                                        <TextBlock Text="Dx" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Dx}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                                        <!-- Dy -->
+                                        <TextBlock Text="Dy" Grid.Row="7" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Dy}" Grid.Row="7" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgPointLight}">
@@ -755,10 +1355,18 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Z -->
+                                        <TextBlock Text="Z" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Z}" Grid.Row="2" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgSpecularLighting}">
@@ -769,10 +1377,46 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Result -->
+                                        <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Input -->
+                                        <TextBlock Text="Input" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Input}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- SurfaceScale -->
+                                        <TextBlock Text="SurfaceScale" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding SurfaceScale}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                                        <!-- SpecularConstant -->
+                                        <TextBlock Text="SpecularConstant" Grid.Row="7" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding SpecularConstant}" Grid.Row="7" Grid.Column="1" Margin="2" />
+                                        <!-- SpecularExponent -->
+                                        <TextBlock Text="SpecularExponent" Grid.Row="8" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding SpecularExponent}" Grid.Row="8" Grid.Column="1" Margin="2" />
+                                        <!-- KernelUnitLength -->
+                                        <TextBlock Text="KernelUnitLength" Grid.Row="9" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding KernelUnitLength}" Grid.Row="9" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgSpotLight}">
@@ -783,10 +1427,38 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Z -->
+                                        <TextBlock Text="Z" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Z}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- PointsAtX -->
+                                        <TextBlock Text="PointsAtX" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding PointsAtX}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- PointsAtY -->
+                                        <TextBlock Text="PointsAtY" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding PointsAtY}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- PointsAtZ -->
+                                        <TextBlock Text="PointsAtZ" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding PointsAtZ}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- SpecularExponent -->
+                                        <TextBlock Text="SpecularExponent" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding SpecularExponent}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                                        <!-- LimitingConeAngle -->
+                                        <TextBlock Text="LimitingConeAngle" Grid.Row="7" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding LimitingConeAngle}" Grid.Row="7" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgTile}">
@@ -797,10 +1469,30 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Result -->
+                                        <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- Input -->
+                                        <TextBlock Text="Input" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Input}" Grid.Row="5" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgTurbulence}">
@@ -811,10 +1503,46 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- xxx -->
-                                        <TextBlock Text="xxx" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                        <TextBox Text="{Binding xxx}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- Result -->
+                                        <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                        <!-- BaseFrequency -->
+                                        <TextBlock Text="BaseFrequency" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding BaseFrequency}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- NumOctaves -->
+                                        <TextBlock Text="NumOctaves" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding NumOctaves}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- Seed -->
+                                        <TextBlock Text="Seed" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Seed}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- StitchTiles -->
+                                        <TextBlock Text="StitchTiles" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding StitchTiles}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                        <!-- Type -->
+                                        <TextBlock Text="Type" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Type}" Grid.Row="5" Grid.Column="1" Margin="2" />
                                     </Grid>
                                 </DataTemplate>
                                 <!-- Interactivity -->

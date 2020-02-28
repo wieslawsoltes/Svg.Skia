@@ -56,7 +56,7 @@ namespace Svg.FilterEffects
         }
 
         [Attribute("limitingConeAngle", SvgNamespace)]
-        public string? LlimitingConeAngle
+        public string? LimitingConeAngle
         {
             get => GetAttribute("limitingConeAngle");
             set => SetAttribute("limitingConeAngle", value);
@@ -94,9 +94,9 @@ namespace Svg.FilterEffects
             {
                 write($"{indent}{nameof(SpecularExponent)}: \"{SpecularExponent}\"");
             }
-            if (LlimitingConeAngle != null)
+            if (LimitingConeAngle != null)
             {
-                write($"{indent}{nameof(LlimitingConeAngle)}: \"{LlimitingConeAngle}\"");
+                write($"{indent}{nameof(LimitingConeAngle)}: \"{LimitingConeAngle}\"");
             }
         }
     }
