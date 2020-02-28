@@ -538,7 +538,7 @@
                             <!-- Color -->
                             <TextBlock Text="Color" Grid.Row="5" Grid.Column="0" Margin="2" />
                             <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.Color)}" Grid.Row="5" Grid.Column="1" Margin="2" />
-                            <!-- ColorInterpolationFilters -->
+                            <!-- ColorInterpolation -->
                             <TextBlock Text="ColorInterpolation" Grid.Row="6" Grid.Column="0" Margin="2" />
                             <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.ColorInterpolation)}" Grid.Row="6" Grid.Column="1" Margin="2" />
                             <!-- ColorInterpolationFilters -->
