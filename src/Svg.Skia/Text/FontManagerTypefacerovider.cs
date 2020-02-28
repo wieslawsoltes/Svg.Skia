@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 using System;
+using System.IO;
 using System.Linq;
 using SkiaSharp;
 
@@ -15,6 +16,26 @@ namespace Svg.Skia
         public FontManagerTypefacerovider()
         {
             FontManager = SKFontManager.Default;
+        }
+
+        public SKTypeface CreateTypeface(Stream stream, int index = 0)
+        {
+           return FontManager.CreateTypeface(stream, index);
+        }
+
+        public SKTypeface CreateTypeface(SKStreamAsset stream, int index = 0)
+        {
+           return FontManager.CreateTypeface(stream, index);
+        }
+
+        public SKTypeface CreateTypeface(string path, int index = 0)
+        {
+            return FontManager.CreateTypeface(path, index);
+        }
+
+        public SKTypeface CreateTypeface(SKData data, int index = 0)
+        {
+            return FontManager.CreateTypeface(data, index);
         }
 
         public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
