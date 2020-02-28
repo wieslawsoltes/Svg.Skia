@@ -7,30 +7,28 @@
              xmlns:Svg="clr-namespace:Svg;assembly=SvgXml"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-        <Grid Margin="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <!-- Id -->
-            <TextBlock Text="Id" Grid.Row="0" Grid.Column="0" Margin="2" />
-            <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Id)}" Grid.Row="0" Grid.Column="1" Margin="2" />
-            <!-- Base -->
-            <TextBlock Text="Base" Grid.Row="1" Grid.Column="0" Margin="2" />
-            <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Base)}" Grid.Row="1" Grid.Column="1" Margin="2" />
-            <!-- Lang -->
-            <TextBlock Text="Lang" Grid.Row="2" Grid.Column="0" Margin="2" />
-            <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Lang)}" Grid.Row="2" Grid.Column="1" Margin="2" />
-            <!-- Space -->
-            <TextBlock Text="Space" Grid.Row="3" Grid.Column="0" Margin="2" />
-            <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Space)}" Grid.Row="3" Grid.Column="1" Margin="2" />
-        </Grid>
-    </ScrollViewer>
+    <Grid Margin="2">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <!-- Id -->
+        <TextBlock Text="Id" Grid.Row="0" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Id)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <!-- Base -->
+        <TextBlock Text="Base" Grid.Row="1" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Base)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+        <!-- Lang -->
+        <TextBlock Text="Lang" Grid.Row="2" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Lang)}" Grid.Row="2" Grid.Column="1" Margin="2" />
+        <!-- Space -->
+        <TextBlock Text="Space" Grid.Row="3" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Space)}" Grid.Row="3" Grid.Column="1" Margin="2" />
+    </Grid>
 </UserControl>

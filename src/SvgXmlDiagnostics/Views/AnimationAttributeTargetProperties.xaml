@@ -7,22 +7,20 @@
              xmlns:Svg="clr-namespace:Svg;assembly=SvgXml"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-        <Grid Margin="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <!-- AttributeType -->
-            <TextBlock Text="AttributeType" Grid.Row="0" Grid.Column="0" Margin="2" />
-            <TextBox Text="{Binding (Svg:ISvgAnimationAttributeTargetAttributes.AttributeType)}" Grid.Row="0" Grid.Column="1" Margin="2" />
-            <!-- AttributeName -->
-            <TextBlock Text="AttributeName" Grid.Row="1" Grid.Column="0" Margin="2" />
-            <TextBox Text="{Binding (Svg:ISvgAnimationAttributeTargetAttributes.AttributeName)}" Grid.Row="1" Grid.Column="1" Margin="2" />
-        </Grid>
-    </ScrollViewer>
+    <Grid Margin="2">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <!-- AttributeType -->
+        <TextBlock Text="AttributeType" Grid.Row="0" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgAnimationAttributeTargetAttributes.AttributeType)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <!-- AttributeName -->
+        <TextBlock Text="AttributeName" Grid.Row="1" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgAnimationAttributeTargetAttributes.AttributeName)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+    </Grid>
 </UserControl>
