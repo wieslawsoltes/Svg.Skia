@@ -710,6 +710,9 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
+                            <!-- ExternalResourcesRequired -->
+                            <TextBlock Text="ExternalResourcesRequired" Grid.Row="0" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgResourcesAttributes.ExternalResourcesRequired)}" Grid.Row="0" Grid.Column="1" Margin="2" />
                         </Grid>
                     </ScrollViewer>
                 </TabItem>
@@ -722,7 +725,14 @@
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
+                            <!-- Class -->
+                            <TextBlock Text="Class" Grid.Row="0" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgStylableAttributes.Class)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                            <!-- Style -->
+                            <TextBlock Text="Style" Grid.Row="1" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgStylableAttributes.Style)}" Grid.Row="1" Grid.Column="1" Margin="2" />
                         </Grid>
                     </ScrollViewer>
                 </TabItem>
@@ -735,7 +745,18 @@
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
+                            <!-- RequiredFeatures -->
+                            <TextBlock Text="RequiredFeatures" Grid.Row="0" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgTestsAttributes.RequiredFeatures)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                            <!-- RequiredExtensions -->
+                            <TextBlock Text="RequiredExtensions" Grid.Row="1" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgTestsAttributes.RequiredExtensions)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                            <!-- SystemLanguage -->
+                            <TextBlock Text="SystemLanguage" Grid.Row="2" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgTestsAttributes.SystemLanguage)}" Grid.Row="2" Grid.Column="1" Margin="2" />
                         </Grid>
                     </ScrollViewer>
                 </TabItem>
@@ -749,6 +770,9 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
+                            <!-- Transform -->
+                            <TextBlock Text="Transform" Grid.Row="0" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgTransformableAttributes.Transform)}" Grid.Row="0" Grid.Column="1" Margin="2" />
                         </Grid>
                     </ScrollViewer>
                 </TabItem>
@@ -761,7 +785,34 @@
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
+                            <!-- Href -->
+                            <TextBlock Text="Href" Grid.Row="0" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgXLinkAttributes.Href)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                            <!-- Show -->
+                            <TextBlock Text="Show" Grid.Row="1" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgXLinkAttributes.Show)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                            <!-- Actuate -->
+                            <TextBlock Text="Actuate" Grid.Row="2" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgXLinkAttributes.Actuate)}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                            <!-- Type -->
+                            <TextBlock Text="Type" Grid.Row="3" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgXLinkAttributes.Type)}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                            <!-- Role -->
+                            <TextBlock Text="Role" Grid.Row="4" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgXLinkAttributes.Role)}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                            <!-- Arcrole -->
+                            <TextBlock Text="Arcrole" Grid.Row="5" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgXLinkAttributes.Arcrole)}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                            <!-- Title -->
+                            <TextBlock Text="Title" Grid.Row="6" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgXLinkAttributes.Title)}" Grid.Row="6" Grid.Column="1" Margin="2" />
                         </Grid>
                     </ScrollViewer>
                 </TabItem>
@@ -829,6 +880,22 @@
                             </Grid.RowDefinitions>
                         </Grid>
                     </ScrollViewer>
+                </TabItem>
+                <TabItem Header="Attributes" Visibility="Visible">
+                    <ListBox ItemsSource="{Binding Attributes}" Grid.IsSharedSizeScope="True" Margin="2">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition SharedSizeGroup="Key" />
+                                        <ColumnDefinition SharedSizeGroup="Name" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Key}" Grid.Column="0" Margin="2" />
+                                    <TextBlock Text="{Binding Value}" Grid.Column="1" Margin="2" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </TabItem>
             </TabControl>
         </Grid>
