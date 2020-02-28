@@ -207,7 +207,7 @@ Supported formats: png, jpg, jpeg, webp, pdf, xps
 
 ## Build
 
-To build the projects you need to install [.NET Core 3.0](https://dotnet.microsoft.com/download/dotnet-core/3.0) version `SDK 3.0.100`.
+To build the projects you need to install [.NET Core 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1) version `SDK 3.1.102`.
 
 ```
 git clone git@github.com:wieslawsoltes/Svg.Skia.git
@@ -220,27 +220,27 @@ dotnet build -c Release
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet publish -c Release -f netcoreapp3.0 -r win7-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_netcoreapp3.0_win7-x64
+dotnet publish -c Release -f netcoreapp3.1 -r win7-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_netcoreapp3.1_win7-x64
 ```
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet publish -c Release -f netcoreapp3.0 -r ubuntu.14.04-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_netcoreapp3.0_ubuntu.14.04-x64
+dotnet publish -c Release -f netcoreapp3.1 -r ubuntu.14.04-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_netcoreapp3.1_ubuntu.14.04-x64
 ```
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet publish -c Release -f netcoreapp3.0 -r osx.10.12-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_netcoreapp3.0_osx.10.12-x64
+dotnet publish -c Release -f netcoreapp3.1 -r osx.10.12-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_netcoreapp3.1_osx.10.12-x64
 ```
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet publish -c Release -f netcoreapp3.0 -r debian.8-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_netcoreapp3.0_debian.8-x64
+dotnet publish -c Release -f netcoreapp3.1 -r debian.8-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_netcoreapp3.1_debian.8-x64
 ```
 
 ```
 cd ./src/SvgToPng
-dotnet publish -c Release -f netcoreapp3.0 -r win7-x64 -o SvgToPng_netcoreapp3.0_win7-x64
+dotnet publish -c Release -f netcoreapp3.1 -r win7-x64 -o SvgToPng_netcoreapp3.1_win7-x64
 ```
 
 ```
@@ -252,17 +252,17 @@ dotnet publish -c Release -f net461 -r win7-x64 -o SvgToPng_net461_win7-x64
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet publish -c Release -f netcoreapp3.0 -r win-x64 -o Svg.Skia.Converter_netcoreapp3.0_win-x64
+dotnet publish -c Release -f netcoreapp3.1 -r win-x64 -o Svg.Skia.Converter_netcoreapp3.1_win-x64
 ```
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet publish -c Release -f netcoreapp3.0 -r linux-x64 -o Svg.Skia.Converter_netcoreapp3.0_linux-x64
+dotnet publish -c Release -f netcoreapp3.1 -r linux-x64 -o Svg.Skia.Converter_netcoreapp3.1_linux-x64
 ```
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet publish -c Release -f netcoreapp3.0 -r osx-x64 -o Svg.Skia.Converter_netcoreapp3.0_osx-x64
+dotnet publish -c Release -f netcoreapp3.1 -r osx-x64 -o Svg.Skia.Converter_netcoreapp3.1_osx-x64
 ```
 
 ## Externals
