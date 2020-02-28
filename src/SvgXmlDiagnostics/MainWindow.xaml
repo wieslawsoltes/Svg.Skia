@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SvgXmlDiagnostics"
-        xmlns:views="clr-namespace:SvgXmlDiagnostics.Views"
+        xmlns:attributes="clr-namespace:SvgXmlDiagnostics.Views.Attributes"
         xmlns:Xml="clr-namespace:Xml;assembly=SvgXml"
         xmlns:Svg="clr-namespace:Svg;assembly=SvgXml"
         xmlns:SvgFilterEffects="clr-namespace:Svg.FilterEffects;assembly=SvgXml"
@@ -2464,42 +2464,42 @@
                         </ScrollViewer>
                     </TabItem>
                     <TabItem Header="Common" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgCommonAttributes}}">
-                        <views:CommonProperties/>
+                        <attributes:CommonProperties/>
                     </TabItem>
                     <TabItem Header="Presentation" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgPresentationAttributes}}">
-                        <views:PresentationProperties/>
+                        <attributes:PresentationProperties/>
                     </TabItem>
                     <TabItem Header="Resources" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgResourcesAttributes}}">
-                        <views:ResourcesProperties/>
+                        <attributes:ResourcesProperties/>
                     </TabItem>
                     <TabItem Header="Stylable" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgStylableAttributes}}">
-                        <views:StylableProperties/>
+                        <attributes:StylableProperties/>
                     </TabItem>
                     <TabItem Header="Tests" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgTestsAttributes}}">
-                        <views:TestsProperties/>
+                        <attributes:TestsProperties/>
                     </TabItem>
                     <TabItem Header="Transformable" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgTransformableAttributes}}">
-                        <views:TransformableProperties/>
+                        <attributes:TransformableProperties/>
                     </TabItem>
                     <TabItem Header="XLink" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgXLinkAttributes}}">
-                        <views:XLinkProperties/>
+                        <attributes:XLinkProperties/>
                     </TabItem>
                     <TabItem Header="Animation" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:SvgAnimationElement}}">
                         <TabControl>
                             <TabItem Header="Addition" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationAdditionAttributes}}">
-                                <views:AnimationAdditionProperties/>
+                                <attributes:AnimationAdditionProperties/>
                             </TabItem>
                             <TabItem Header="Attribute Target" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationAttributeTargetAttributes}}">
-                                <views:AnimationAttributeTargetProperties/>
+                                <attributes:AnimationAttributeTargetProperties/>
                             </TabItem>
                             <TabItem Header="Event" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationEventAttributes}}">
-                                <views:AnimationEventProperties/>
+                                <attributes:AnimationEventProperties/>
                             </TabItem>
                             <TabItem Header="Timing" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationTimingAttributes}}">
-                                <views:AnimationTimingProperties/>
+                                <attributes:AnimationTimingProperties/>
                             </TabItem>
                             <TabItem Header="Value" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationValueAttributes}}">
-                                <views:AnimationValueProperties/>
+                                <attributes:AnimationValueProperties/>
                             </TabItem>
                         </TabControl>
                     </TabItem>
