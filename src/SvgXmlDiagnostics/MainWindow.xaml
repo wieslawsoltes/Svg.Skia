@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SvgXmlDiagnostics"
+        xmlns:views="clr-namespace:SvgXmlDiagnostics.Views"
         xmlns:attributes="clr-namespace:SvgXmlDiagnostics.Views.Attributes"
         xmlns:Xml="clr-namespace:Xml;assembly=SvgXml"
         xmlns:Svg="clr-namespace:Svg;assembly=SvgXml"
@@ -30,17 +31,18 @@
                 <ColumnDefinition Width="4"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TreeView x:Name="DocumentTree" VirtualizingPanel.VirtualizationMode="Recycling" Grid.Column="0">
+            <TreeView x:Name="DocumentTree" ItemsSource="{Binding Items}" VirtualizingPanel.VirtualizationMode="Recycling" Grid.Column="0">
                 <TreeView.Resources>
                     <Style TargetType="{x:Type TreeViewItem}">
-                        <Setter Property="IsExpanded" Value="True"/>
+                        <Setter Property="IsExpanded" Value="False"/>
                     </Style>
-                </TreeView.Resources>
-                <TreeView.ItemTemplate>
-                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                    <HierarchicalDataTemplate DataType="{x:Type local:Item}" ItemsSource="{Binding Document.Children}">
+                        <TextBlock Text="{Binding Name}" />
+                    </HierarchicalDataTemplate>
+                    <HierarchicalDataTemplate DataType="{x:Type Svg:SvgElement}" ItemsSource="{Binding Children}">
                         <TextBlock Text="{Binding}" />
                     </HierarchicalDataTemplate>
-                </TreeView.ItemTemplate>
+                </TreeView.Resources>
             </TreeView>
             <GridSplitter Grid.Column="1" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
             <Grid Grid.Column="2">
@@ -51,6 +53,10 @@
                 </Grid.ColumnDefinitions>
                 <ContentControl Content="{Binding ElementName=DocumentTree, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}" Grid.Column="0">
                     <ContentControl.Resources>
+                        <!-- Item -->
+                        <DataTemplate DataType="{x:Type local:Item}">
+                            <ContentControl Content="{Binding Document}"/>
+                        </DataTemplate>
                         <!-- Xml -->
                         <DataTemplate DataType="{x:Type Xml:ContentElement}">
                             <TabControl>
@@ -4274,22 +4280,20 @@
                     </ContentControl.Resources>
                 </ContentControl>
                 <GridSplitter Grid.Column="1" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
-                <TabControl DataContext="{Binding ElementName=DocumentTree, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}" Grid.Column="2">
-                    <TabItem Header="Attributes" Visibility="Visible">
-                        <ListBox ItemsSource="{Binding Attributes}" Grid.IsSharedSizeScope="True" Margin="2">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition SharedSizeGroup="Key" />
-                                            <ColumnDefinition SharedSizeGroup="Name" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{Binding Key}" Grid.Column="0" Margin="2" />
-                                        <TextBlock Text="{Binding Value}" Grid.Column="1" Margin="2" />
-                                    </Grid>
+                <TabControl Grid.Column="2">
+                    <TabItem Header="Attributes">
+                        <ContentControl Content="{Binding ElementName=DocumentTree, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}">
+                            <ContentControl.Resources>
+                                <!-- Item -->
+                                <DataTemplate DataType="{x:Type local:Item}">
+                                    <views:ElementAttributes DataContext="{Binding Document.Attributes}"/>
                                 </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
+                                <!-- Element -->
+                                <DataTemplate DataType="{x:Type Xml:Element}">
+                                    <views:ElementAttributes DataContext="{Binding Attributes}"/>
+                                </DataTemplate>
+                            </ContentControl.Resources>
+                        </ContentControl>
                     </TabItem>
                 </TabControl>
             </Grid>
