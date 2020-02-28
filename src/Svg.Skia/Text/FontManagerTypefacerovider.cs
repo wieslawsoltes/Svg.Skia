@@ -10,6 +10,13 @@ namespace Svg.Skia
     {
         public static char[] s_fontFamilyTrim = new char[] { '\'' };
 
+        public SKFontManager FontManager { get; set; }
+
+        public FontManagerTypefacerovider()
+        {
+            FontManager = SKFontManager.Default;
+        }
+
         public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
         {
             var skTypeface = default(SKTypeface);
@@ -17,7 +24,7 @@ namespace Svg.Skia
             if (fontFamilyNames != null && fontFamilyNames.Length > 0)
             {
                 var defaultName = SKTypeface.Default.FamilyName;
-                var skFontManager = SKFontManager.Default;
+                var skFontManager = FontManager;
                 var skFontStyle = new SKFontStyle(fontWeight, fontWidth, fontStyle);
 
                 foreach (var fontFamilyName in fontFamilyNames)
