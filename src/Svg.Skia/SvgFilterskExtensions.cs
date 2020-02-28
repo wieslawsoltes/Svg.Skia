@@ -448,7 +448,7 @@ namespace Svg.Skia
                         var location = GetPoint3(svgSpotLight.X, svgSpotLight.Y, svgSpotLight.Z, skBounds, primitiveUnits);
                         var target = GetPoint3(svgSpotLight.PointsAtX, svgSpotLight.PointsAtY, svgSpotLight.PointsAtZ, skBounds, primitiveUnits);
                         float specularExponentSpotLight = svgSpotLight.SpecularExponent;
-                        float limitingConeAngle = svgSpotLight.LlimitingConeAngle;
+                        float limitingConeAngle = svgSpotLight.LimitingConeAngle;
                         if (float.IsNaN(limitingConeAngle) || limitingConeAngle > 90f || limitingConeAngle < -90f)
                         {
                             limitingConeAngle = 90f;
@@ -746,7 +746,7 @@ namespace Svg.Skia
                         var location = GetPoint3(svgSpotLight.X, svgSpotLight.Y, svgSpotLight.Z, skBounds, primitiveUnits);
                         var target = GetPoint3(svgSpotLight.PointsAtX, svgSpotLight.PointsAtY, svgSpotLight.PointsAtZ, skBounds, primitiveUnits);
                         float specularExponentSpotLight = svgSpotLight.SpecularExponent;
-                        float limitingConeAngle = svgSpotLight.LlimitingConeAngle;
+                        float limitingConeAngle = svgSpotLight.LimitingConeAngle;
                         if (float.IsNaN(limitingConeAngle) || limitingConeAngle > 90f || limitingConeAngle < -90f)
                         {
                             limitingConeAngle = 90f;
