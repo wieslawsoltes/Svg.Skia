@@ -1106,7 +1106,7 @@
                                     </Grid>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncR}">
-                                     <Grid Margin="2">
+                                    <Grid Margin="2">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
