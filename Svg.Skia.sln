@@ -84,7 +84,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgToPng", "src\SvgToPng\Sv
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgXml", "src\SvgXml\SvgXml.csproj", "{1C22281C-1BBB-4307-8B12-496D247697E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvgXmlDiagnostics", "src\SvgXmlDiagnostics\SvgXmlDiagnostics.csproj", "{8880DA27-A6B4-4C45-A1B7-75FD4E78335D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgXmlDiagnostics", "src\SvgXmlDiagnostics\SvgXmlDiagnostics.csproj", "{8880DA27-A6B4-4C45-A1B7-75FD4E78335D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
