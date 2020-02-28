@@ -47,518 +47,788 @@
             <GridSplitter Grid.Column="1" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
             <TabControl DataContext="{Binding ElementName=DocumentTree, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}" Grid.Column="2">
                 <TabItem Header="Element" Visibility="Visible">
-                    <ContentControl Content="{Binding}">
-                        <ContentControl.Resources>
-                            <!-- Xml -->
-                            <DataTemplate DataType="{x:Type Xml:ContentElement}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Xml:UnknownElement}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <!-- Animation -->
-                            <DataTemplate DataType="{x:Type Svg:SvgAnimate}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgAnimateColor}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgAnimateMotion}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgAnimateTransform}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgMotionPath}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgSet}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <!-- Basic Shapes -->
-                            <DataTemplate DataType="{x:Type Svg:SvgCircle}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgEllipse}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgLine}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgPolygon}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgPolyline}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgRectangle}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <!-- Clipping and Masking -->
-                            <DataTemplate DataType="{x:Type Svg:SvgClipPath}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgMask}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <!-- Color -->
-                            <DataTemplate DataType="{x:Type Svg:SvgColorProfile}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <!-- Document Structure -->
-                            <DataTemplate DataType="{x:Type Svg:SvgDefinitionList}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgDescription}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgDocumentMetadata}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgFragment}">
-                                <Grid Margin="2">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-                                    <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                    <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                                    <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
-                                    <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
-                                    <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
-                                    <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
-                                    <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
-                                    <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
-                                    <TextBlock Text="ViewBox" Grid.Row="4" Grid.Column="0" Margin="2" />
-                                    <TextBox Text="{Binding ViewBox}" Grid.Row="4" Grid.Column="1" Margin="2" />
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgGroup}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgImage}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgSwitch}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgSymbol}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgTitle}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgUse}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <!-- Extensibility -->
-                            <DataTemplate DataType="{x:Type Svg:SvgForeignObject}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <!-- Filter Effects -->
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFilter}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <!-- Filter Effects Primitives -->
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgBlend}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgColourMatrix}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgComponentTransfer}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgComposite}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgConvolveMatrix}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgDiffuseLighting}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgDisplacementMap}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgDistantLight}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFlood}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncA}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncB}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncG}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncR}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgGaussianBlur}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgImage}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgMerge}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgMergeNode}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgMorphology}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgOffset}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgPointLight}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgSpecularLighting}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgSpotLight}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgTile}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type SvgFilterEffects:SvgTurbulence}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <!-- Interactivity -->
-                            <DataTemplate DataType="{x:Type Svg:SvgCursor}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <!-- Linking -->
-                            <DataTemplate DataType="{x:Type Svg:SvgAnchor}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgView}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <!-- Painting -->
-                            <DataTemplate DataType="{x:Type Svg:SvgGradientStop}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgLinearGradientServer}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgMarker}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgRadialGradientServer}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgPatternServer}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <!-- Paths -->
-                            <DataTemplate DataType="{x:Type Svg:SvgPath}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <!-- Scripting -->
-                            <DataTemplate DataType="{x:Type Svg:SvgScript}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <!-- Styling -->
-                            <DataTemplate DataType="{x:Type Svg:SvgStyle}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <!-- Text -->
-                            <DataTemplate DataType="{x:Type Svg:SvgAltGlyph}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgAltGlyphDef}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgAltGlyphItem}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgFont}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgFontFace}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgFontFaceFormat}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgFontFaceName}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgFontFaceSrc}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgFontFaceUri}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgGlyph}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgGlyphRef}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgHorizontalKern}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgMissingGlyph}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgText}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgTextPath}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgTextRef}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgTextSpan}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                            <DataTemplate DataType="{x:Type Svg:SvgVerticalKern}">
-                                <Grid Margin="2">
-                                </Grid>
-                            </DataTemplate>
-                        </ContentControl.Resources>
-                    </ContentControl>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <ContentControl Content="{Binding}">
+                            <ContentControl.Resources>
+                                <!-- Xml -->
+                                <DataTemplate DataType="{x:Type Xml:ContentElement}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Xml:UnknownElement}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <!-- Animation -->
+                                <DataTemplate DataType="{x:Type Svg:SvgAnimate}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgAnimateColor}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgAnimateMotion}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgAnimateTransform}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgMotionPath}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgSet}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <!-- Basic Shapes -->
+                                <DataTemplate DataType="{x:Type Svg:SvgCircle}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgEllipse}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgLine}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgPolygon}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgPolyline}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgRectangle}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <!-- Clipping and Masking -->
+                                <DataTemplate DataType="{x:Type Svg:SvgClipPath}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgMask}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <!-- Color -->
+                                <DataTemplate DataType="{x:Type Svg:SvgColorProfile}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <!-- Document Structure -->
+                                <DataTemplate DataType="{x:Type Svg:SvgDefinitionList}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgDescription}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgDocumentMetadata}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgFragment}">
+                                    <Grid Margin="2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <!-- X -->
+                                        <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                        <!-- Y -->
+                                        <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                        <!-- Width -->
+                                        <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                        <!-- Height -->
+                                        <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                                        <!-- ViewBox -->
+                                        <TextBlock Text="ViewBox" Grid.Row="4" Grid.Column="0" Margin="2" />
+                                        <TextBox Text="{Binding ViewBox}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgGroup}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgImage}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgSwitch}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgSymbol}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgTitle}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgUse}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <!-- Extensibility -->
+                                <DataTemplate DataType="{x:Type Svg:SvgForeignObject}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <!-- Filter Effects -->
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFilter}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <!-- Filter Effects Primitives -->
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgBlend}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgColourMatrix}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgComponentTransfer}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgComposite}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgConvolveMatrix}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgDiffuseLighting}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgDisplacementMap}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgDistantLight}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFlood}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncA}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncB}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncG}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncR}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgGaussianBlur}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgImage}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgMerge}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgMergeNode}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgMorphology}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgOffset}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgPointLight}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgSpecularLighting}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgSpotLight}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgTile}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type SvgFilterEffects:SvgTurbulence}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <!-- Interactivity -->
+                                <DataTemplate DataType="{x:Type Svg:SvgCursor}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <!-- Linking -->
+                                <DataTemplate DataType="{x:Type Svg:SvgAnchor}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgView}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <!-- Painting -->
+                                <DataTemplate DataType="{x:Type Svg:SvgGradientStop}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgLinearGradientServer}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgMarker}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgRadialGradientServer}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgPatternServer}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <!-- Paths -->
+                                <DataTemplate DataType="{x:Type Svg:SvgPath}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <!-- Scripting -->
+                                <DataTemplate DataType="{x:Type Svg:SvgScript}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <!-- Styling -->
+                                <DataTemplate DataType="{x:Type Svg:SvgStyle}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <!-- Text -->
+                                <DataTemplate DataType="{x:Type Svg:SvgAltGlyph}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgAltGlyphDef}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgAltGlyphItem}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgFont}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgFontFace}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgFontFaceFormat}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgFontFaceName}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgFontFaceSrc}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgFontFaceUri}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgGlyph}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgGlyphRef}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgHorizontalKern}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgMissingGlyph}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgText}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgTextPath}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgTextRef}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgTextSpan}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type Svg:SvgVerticalKern}">
+                                    <Grid Margin="2">
+                                    </Grid>
+                                </DataTemplate>
+                            </ContentControl.Resources>
+                        </ContentControl>
+                    </ScrollViewer>
                 </TabItem>
                 <TabItem Header="Common" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgCommonAttributes}}">
-                    <Grid Margin="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock Text="Id" Grid.Row="0" Grid.Column="0" Margin="2" />
-                        <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Id)}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                        <TextBlock Text="Base" Grid.Row="1" Grid.Column="0" Margin="2" />
-                        <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Base)}" Grid.Row="1" Grid.Column="1" Margin="2" />
-                        <TextBlock Text="Lang" Grid.Row="2" Grid.Column="0" Margin="2" />
-                        <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Lang)}" Grid.Row="2" Grid.Column="1" Margin="2" />
-                        <TextBlock Text="Space" Grid.Row="3" Grid.Column="0" Margin="2" />
-                        <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Space)}" Grid.Row="3" Grid.Column="1" Margin="2" />
-                    </Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <!-- Id -->
+                            <TextBlock Text="Id" Grid.Row="0" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Id)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                            <!-- Base -->
+                            <TextBlock Text="Base" Grid.Row="1" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Base)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                            <!-- Lang -->
+                            <TextBlock Text="Lang" Grid.Row="2" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Lang)}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                            <!-- Space -->
+                            <TextBlock Text="Space" Grid.Row="3" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Space)}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                        </Grid>
+                    </ScrollViewer>
                 </TabItem>
                 <TabItem Header="Presentation" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgPresentationAttributes}}">
-                    <Grid Margin="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                    </Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <!-- AlignmentBaseline -->
+                            <TextBlock Text="AlignmentBaseline" Grid.Row="0" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.AlignmentBaseline)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                            <!-- BaselineShift -->
+                            <TextBlock Text="BaselineShift" Grid.Row="1" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.BaselineShift)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                            <!-- Clip -->
+                            <TextBlock Text="Clip" Grid.Row="2" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.Clip)}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                            <!-- ClipPath -->
+                            <TextBlock Text="ClipPath" Grid.Row="3" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.ClipPath)}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                            <!-- ClipRule -->
+                            <TextBlock Text="ClipRule" Grid.Row="4" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.ClipRule)}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                            <!-- Color -->
+                            <TextBlock Text="Color" Grid.Row="5" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.Color)}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                            <!-- ColorInterpolationFilters -->
+                            <TextBlock Text="ColorInterpolation" Grid.Row="6" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.ColorInterpolation)}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                            <!-- ColorInterpolationFilters -->
+                            <TextBlock Text="ColorInterpolationFilters" Grid.Row="7" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.ColorInterpolationFilters)}" Grid.Row="7" Grid.Column="1" Margin="2" />
+                            <!-- ColorProfile -->
+                            <TextBlock Text="ColorProfile" Grid.Row="8" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.ColorProfile)}" Grid.Row="8" Grid.Column="1" Margin="2" />
+                            <!-- ColorRendering -->
+                            <TextBlock Text="ColorRendering" Grid.Row="9" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.ColorRendering)}" Grid.Row="9" Grid.Column="1" Margin="2" />
+                            <!-- Cursor -->
+                            <TextBlock Text="Cursor" Grid.Row="10" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.Cursor)}" Grid.Row="10" Grid.Column="1" Margin="2" />
+                            <!-- Direction -->
+                            <TextBlock Text="Direction" Grid.Row="11" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.Direction)}" Grid.Row="11" Grid.Column="1" Margin="2" />
+                            <!-- Display -->
+                            <TextBlock Text="Display" Grid.Row="12" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.Display)}" Grid.Row="12" Grid.Column="1" Margin="2" />
+                            <!-- DominantBaseline -->
+                            <TextBlock Text="DominantBaseline" Grid.Row="13" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.DominantBaseline)}" Grid.Row="13" Grid.Column="1" Margin="2" />
+                            <!-- EnableBackground -->
+                            <TextBlock Text="EnableBackground" Grid.Row="14" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.EnableBackground)}" Grid.Row="14" Grid.Column="1" Margin="2" />
+                            <!-- Fill -->
+                            <TextBlock Text="Fill" Grid.Row="15" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.Fill)}" Grid.Row="15" Grid.Column="1" Margin="2" />
+                            <!-- FillOpacity -->
+                            <TextBlock Text="FillOpacity" Grid.Row="16" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.FillOpacity)}" Grid.Row="16" Grid.Column="1" Margin="2" />
+                            <!-- FillRule -->
+                            <TextBlock Text="FillRule" Grid.Row="17" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.FillRule)}" Grid.Row="17" Grid.Column="1" Margin="2" />
+                            <!-- Filter -->
+                            <TextBlock Text="Filter" Grid.Row="18" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.Filter)}" Grid.Row="18" Grid.Column="1" Margin="2" />
+                            <!-- FloodColor -->
+                            <TextBlock Text="FloodColor" Grid.Row="19" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.FloodColor)}" Grid.Row="19" Grid.Column="1" Margin="2" />
+                            <!-- FloodOpacity -->
+                            <TextBlock Text="FloodOpacity" Grid.Row="20" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.FloodOpacity)}" Grid.Row="20" Grid.Column="1" Margin="2" />
+                            <!-- FontFamily -->
+                            <TextBlock Text="FontFamily" Grid.Row="21" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.FontFamily)}" Grid.Row="21" Grid.Column="1" Margin="2" />
+                            <!-- FontSize -->
+                            <TextBlock Text="FontSize" Grid.Row="22" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.FontSize)}" Grid.Row="22" Grid.Column="1" Margin="2" />
+                            <!-- FontSizeAdjust -->
+                            <TextBlock Text="FontSizeAdjust" Grid.Row="23" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.FontSizeAdjust)}" Grid.Row="23" Grid.Column="1" Margin="2" />
+                            <!-- FontStretch -->
+                            <TextBlock Text="FontStretch" Grid.Row="24" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.FontStretch)}" Grid.Row="24" Grid.Column="1" Margin="2" />
+                            <!-- FontStyle -->
+                            <TextBlock Text="FontStyle" Grid.Row="25" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.FontStyle)}" Grid.Row="25" Grid.Column="1" Margin="2" />
+                            <!-- FontVariant -->
+                            <TextBlock Text="FontVariant" Grid.Row="26" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.FontVariant)}" Grid.Row="26" Grid.Column="1" Margin="2" />
+                            <!-- FontWeight -->
+                            <TextBlock Text="FontWeight" Grid.Row="27" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.FontWeight)}" Grid.Row="27" Grid.Column="1" Margin="2" />
+                            <!-- GlyphOrientationHorizontal -->
+                            <TextBlock Text="GlyphOrientationHorizontal" Grid.Row="28" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.GlyphOrientationHorizontal)}" Grid.Row="28" Grid.Column="1" Margin="2" />
+                            <!-- GlyphOrientationVertical -->
+                            <TextBlock Text="GlyphOrientationVertical" Grid.Row="29" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.GlyphOrientationVertical)}" Grid.Row="29" Grid.Column="1" Margin="2" />
+                            <!-- ImageRendering -->
+                            <TextBlock Text="ImageRendering" Grid.Row="30" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.ImageRendering)}" Grid.Row="30" Grid.Column="1" Margin="2" />
+                            <!-- Kerning -->
+                            <TextBlock Text="Kerning" Grid.Row="31" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.Kerning)}" Grid.Row="31" Grid.Column="1" Margin="2" />
+                            <!-- LetterSpacing -->
+                            <TextBlock Text="LetterSpacing" Grid.Row="32" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.LetterSpacing)}" Grid.Row="32" Grid.Column="1" Margin="2" />
+                            <!-- LightingColor -->
+                            <TextBlock Text="LightingColor" Grid.Row="33" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.LightingColor)}" Grid.Row="33" Grid.Column="1" Margin="2" />
+                            <!-- MarkerEnd -->
+                            <TextBlock Text="MarkerEnd" Grid.Row="34" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.MarkerEnd)}" Grid.Row="34" Grid.Column="1" Margin="2" />
+                            <!-- MarkerMid -->
+                            <TextBlock Text="MarkerMid" Grid.Row="35" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.MarkerMid)}" Grid.Row="35" Grid.Column="1" Margin="2" />
+                            <!-- MarkerStart -->
+                            <TextBlock Text="MarkerStart" Grid.Row="36" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.MarkerStart)}" Grid.Row="36" Grid.Column="1" Margin="2" />
+                            <!-- Mask -->
+                            <TextBlock Text="Mask" Grid.Row="37" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.Mask)}" Grid.Row="37" Grid.Column="1" Margin="2" />
+                            <!-- Opacity -->
+                            <TextBlock Text="Opacity" Grid.Row="38" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.Opacity)}" Grid.Row="38" Grid.Column="1" Margin="2" />
+                            <!-- Overflow -->
+                            <TextBlock Text="Overflow" Grid.Row="39" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.Overflow)}" Grid.Row="39" Grid.Column="1" Margin="2" />
+                            <!-- PointerEvents -->
+                            <TextBlock Text="PointerEvents" Grid.Row="40" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.PointerEvents)}" Grid.Row="40" Grid.Column="1" Margin="2" />
+                            <!-- ShapeRendering -->
+                            <TextBlock Text="ShapeRendering" Grid.Row="41" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.ShapeRendering)}" Grid.Row="41" Grid.Column="1" Margin="2" />
+                            <!-- StopColor -->
+                            <TextBlock Text="StopColor" Grid.Row="42" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.StopColor)}" Grid.Row="42" Grid.Column="1" Margin="2" />
+                            <!-- StopOpacity -->
+                            <TextBlock Text="StopOpacity" Grid.Row="43" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.StopOpacity)}" Grid.Row="43" Grid.Column="1" Margin="2" />
+                            <!-- Stroke -->
+                            <TextBlock Text="Stroke" Grid.Row="44" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.Stroke)}" Grid.Row="44" Grid.Column="1" Margin="2" />
+                            <!-- StrokeDasharray -->
+                            <TextBlock Text="StrokeDasharray" Grid.Row="45" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.StrokeDasharray)}" Grid.Row="45" Grid.Column="1" Margin="2" />
+                            <!-- StrokeDashoffset -->
+                            <TextBlock Text="StrokeDashoffset" Grid.Row="46" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.StrokeDashoffset)}" Grid.Row="46" Grid.Column="1" Margin="2" />
+                            <!-- StrokeLinecap -->
+                            <TextBlock Text="StrokeLinecap" Grid.Row="47" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.StrokeLinecap)}" Grid.Row="47" Grid.Column="1" Margin="2" />
+                            <!-- SrokeLinejoin -->
+                            <TextBlock Text="SrokeLinejoin" Grid.Row="48" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.SrokeLinejoin)}" Grid.Row="48" Grid.Column="1" Margin="2" />
+                            <!-- StrokeMiterlimit -->
+                            <TextBlock Text="StrokeMiterlimit" Grid.Row="49" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.StrokeMiterlimit)}" Grid.Row="49" Grid.Column="1" Margin="2" />
+                            <!-- StrokeOpacity -->
+                            <TextBlock Text="StrokeOpacity" Grid.Row="50" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.StrokeOpacity)}" Grid.Row="50" Grid.Column="1" Margin="2" />
+                            <!-- StrokeWidth -->
+                            <TextBlock Text="StrokeWidth" Grid.Row="51" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.StrokeWidth)}" Grid.Row="51" Grid.Column="1" Margin="2" />
+                            <!-- TextAnchor -->
+                            <TextBlock Text="TextAnchor" Grid.Row="52" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.TextAnchor)}" Grid.Row="52" Grid.Column="1" Margin="2" />
+                            <!-- TextDecoration -->
+                            <TextBlock Text="TextDecoration" Grid.Row="53" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.TextDecoration)}" Grid.Row="53" Grid.Column="1" Margin="2" />
+                            <!-- TextRendering -->
+                            <TextBlock Text="TextRendering" Grid.Row="54" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.TextRendering)}" Grid.Row="54" Grid.Column="1" Margin="2" />
+                            <!-- UnicodeBidi -->
+                            <TextBlock Text="UnicodeBidi" Grid.Row="55" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.UnicodeBidi)}" Grid.Row="55" Grid.Column="1" Margin="2" />
+                            <!-- Visibility -->
+                            <TextBlock Text="Visibility" Grid.Row="56" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.Visibility)}" Grid.Row="56" Grid.Column="1" Margin="2" />
+                            <!-- WordSpacing -->
+                            <TextBlock Text="WordSpacing" Grid.Row="57" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.WordSpacing)}" Grid.Row="57" Grid.Column="1" Margin="2" />
+                            <!-- WritingMode -->
+                            <TextBlock Text="WritingMode" Grid.Row="58" Grid.Column="0" Margin="2" />
+                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.WritingMode)}" Grid.Row="58" Grid.Column="1" Margin="2" />
+                        </Grid>
+                    </ScrollViewer>
                 </TabItem>
                 <TabItem Header="Resources" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgResourcesAttributes}}">
-                    <Grid Margin="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                    </Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                        </Grid>
+                    </ScrollViewer>
                 </TabItem>
                 <TabItem Header="Stylable" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgStylableAttributes}}">
-                    <Grid Margin="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                    </Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                        </Grid>
+                    </ScrollViewer>
                 </TabItem>
                 <TabItem Header="Tests" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgTestsAttributes}}">
-                    <Grid Margin="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                    </Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                        </Grid>
+                    </ScrollViewer>
                 </TabItem>
                 <TabItem Header="Transformable" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgTransformableAttributes}}">
-                    <Grid Margin="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                    </Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                        </Grid>
+                    </ScrollViewer>
                 </TabItem>
                 <TabItem Header="Xlink" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgXLinkAttributes}}">
-                    <Grid Margin="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                    </Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                        </Grid>
+                    </ScrollViewer>
                 </TabItem>
                 <TabItem Header="Animation Addition" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationAdditionAttributes}}">
-                    <Grid Margin="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                    </Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                        </Grid>
+                    </ScrollViewer>
                 </TabItem>
                 <TabItem Header="Animation Attribute Target" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationAttributeTargetAttributes}}">
-                    <Grid Margin="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                    </Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                        </Grid>
+                    </ScrollViewer>
                 </TabItem>
                 <TabItem Header="Animation Event" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationEventAttributes}}">
-                    <Grid Margin="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                    </Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                        </Grid>
+                    </ScrollViewer>
                 </TabItem>
                 <TabItem Header="Animation Timing" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationTimingAttributes}}">
-                    <Grid Margin="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                    </Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                        </Grid>
+                    </ScrollViewer>
                 </TabItem>
                 <TabItem Header="Animation Value" Visibility="{Binding Converter={StaticResource TypeVisibilityConverter}, ConverterParameter={x:Type Svg:ISvgAnimationValueAttributes}}">
-                    <Grid Margin="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                    </Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                        </Grid>
+                    </ScrollViewer>
                 </TabItem>
             </TabControl>
         </Grid>
