@@ -25,7 +25,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.0.100
+        dotnet-version: 3.1.102
     - name: Build
       run: dotnet build -c Release
     - name: Test
@@ -50,7 +50,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.0.100
+        dotnet-version: 3.1.102
     - name: Publish
       if: github.event_name != 'pull_request'
       run: dotnet publish -c Release -f netcoreapp3.0 -r win7-x64 -o ./artifacts/Svg.Skia.Converter-netcoreapp3.0-win7-x64 ./src/Svg.Skia.Converter/Svg.Skia.Converter.csproj
@@ -71,7 +71,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.0.100
+        dotnet-version: 3.1.102
     - name: Publish
       if: github.event_name != 'pull_request'
       run: |
@@ -100,7 +100,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.0.100
+        dotnet-version: 3.1.102
     - name: Publish
       if: github.event_name != 'pull_request'
       run: dotnet publish -c Release -f netcoreapp3.0 -r osx.10.12-x64 -o ./artifacts/Svg.Skia.Converter-netcoreapp3.0-osx.10.12-x64 ./src/Svg.Skia.Converter/Svg.Skia.Converter.csproj
@@ -121,7 +121,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.0.100
+        dotnet-version: 3.1.102
     - name: Publish
       if: github.event_name != 'pull_request'
       run: dotnet publish -c Release -f net461 -r win7-x64 -o ./artifacts/SvgToPng-net461-win7-x64 ./src/SvgToPng/SvgToPng.csproj
@@ -142,7 +142,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.0.100
+        dotnet-version: 3.1.102
     - name: Publish
       if: github.event_name != 'pull_request'
       run: |
@@ -164,7 +164,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.0.100
+        dotnet-version: 3.1.102
     - name: Publish
       if: github.event_name != 'pull_request'
       run: |
@@ -188,7 +188,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.0.100
+        dotnet-version: 3.1.102
     - name: Publish
       if: github.event_name != 'pull_request'
       run: |
