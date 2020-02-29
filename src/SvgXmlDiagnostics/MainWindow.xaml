@@ -13,6 +13,9 @@
         WindowStartupLocation="CenterScreen" WindowState="Normal"
         UseLayoutRounding="True" SnapsToDevicePixels="True" TextOptions.TextRenderingMode="ClearType"
         Title="SvgXml Diagnostics" Height="650" Width="1200">
+    <Window.Resources>
+        <local:TypeNameConverter x:Key="TypeNameConverter"/>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
