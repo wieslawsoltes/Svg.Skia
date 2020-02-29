@@ -43,7 +43,10 @@
                         <TextBlock Text="{Binding Name}" />
                     </HierarchicalDataTemplate>
                     <HierarchicalDataTemplate DataType="{x:Type Svg:SvgElement}" ItemsSource="{Binding Children}">
-                        <TextBlock Text="{Binding}" />
+                        <TextBlock Text="{Binding Converter={StaticResource ResourceKey=TypeNameConverter}}" />
+                    </HierarchicalDataTemplate>
+                    <HierarchicalDataTemplate DataType="{x:Type Xml:Element}" ItemsSource="{Binding Children}">
+                        <TextBlock Text="{Binding Converter={StaticResource ResourceKey=TypeNameConverter}}" />
                     </HierarchicalDataTemplate>
                 </TreeView.Resources>
             </TreeView>
