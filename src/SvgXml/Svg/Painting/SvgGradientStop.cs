@@ -12,7 +12,7 @@ namespace Svg
         [Attribute("offset", SvgNamespace)]
         public string? Offset
         {
-            get => this.GetAttribute("offset");
+            get => this.GetAttribute("offset", false, null);
             set => this.SetAttribute("offset", value);
         }
 
