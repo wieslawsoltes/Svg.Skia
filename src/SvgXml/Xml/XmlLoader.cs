@@ -161,11 +161,5 @@ namespace Xml
             var element = Open(reader, elementFactory);
             return element;
         }
-
-        public static Element? Open(string path, IElementFactory elementFactory)
-        {
-            using var stream = File.OpenRead(path);
-            return Open(stream, elementFactory);
-        }
     }
 }
