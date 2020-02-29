@@ -31,12 +31,8 @@ namespace Svg
 
         public static SvgDocument? OpenSvg(string path)
         {
-            var element = XmlLoader.Open(path, s_elementFactory);
-            if (element is SvgDocument svgDocument)
-            {
-                return svgDocument;
-            }
-            return null;
+            using var stream = File.OpenRead(path);
+            return Open(stream);
         }
 
         public static SvgDocument? OpenSvgz(string path)
