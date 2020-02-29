@@ -3085,10 +3085,18 @@
                                             </Grid.ColumnDefinitions>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
                                             <!-- Offset -->
                                             <TextBlock Text="Offset" Grid.Row="0" Grid.Column="0" Margin="2" />
                                             <TextBox Text="{Binding Offset}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                                            <!-- StopColor -->
+                                            <TextBlock Text="StopColor" Grid.Row="1" Grid.Column="0" Margin="2" />
+                                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.StopColor)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                            <!-- StopOpacity -->
+                                            <TextBlock Text="StopOpacity" Grid.Row="2" Grid.Column="0" Margin="2" />
+                                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.StopOpacity)}" Grid.Row="2" Grid.Column="1" Margin="2" />
                                         </Grid>
                                     </ScrollViewer>
                                 </TabItem>
