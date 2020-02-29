@@ -13,63 +13,35 @@ namespace Svg
         [Attribute("cx", SvgNamespace)]
         public string? CenterX
         {
-            get => this.GetAttribute("cx");
+            get => this.GetAttribute("cx", false, "50%");
             set => this.SetAttribute("cx", value);
         }
 
         [Attribute("cy", SvgNamespace)]
         public string? CenterY
         {
-            get => this.GetAttribute("cy");
+            get => this.GetAttribute("cy", false, "50%");
             set => this.SetAttribute("cy", value);
         }
 
         [Attribute("r", SvgNamespace)]
         public string? Radius
         {
-            get => this.GetAttribute("r");
+            get => this.GetAttribute("r", false, "50%");
             set => this.SetAttribute("r", value);
         }
         [Attribute("fx", SvgNamespace)]
         public string? FocalX
         {
-            get => this.GetAttribute("fx");
+            get => this.GetAttribute("fx", false, null);
             set => this.SetAttribute("fx", value);
         }
 
         [Attribute("fy", SvgNamespace)]
         public string? FocalY
         {
-            get => this.GetAttribute("fy");
+            get => this.GetAttribute("fy", false, null);
             set => this.SetAttribute("fy", value);
-        }
-
-        [Attribute("gradientUnits", SvgNamespace)]
-        public string? GradientUnits
-        {
-            get => this.GetAttribute("gradientUnits");
-            set => this.SetAttribute("gradientUnits", value);
-        }
-
-        [Attribute("gradientTransform", SvgNamespace)]
-        public string? GradientTransform
-        {
-            get => this.GetAttribute("gradientTransform");
-            set => this.SetAttribute("gradientTransform", value);
-        }
-
-        [Attribute("spreadMethod", SvgNamespace)]
-        public string? SpreadMethod
-        {
-            get => this.GetAttribute("spreadMethod");
-            set => this.SetAttribute("spreadMethod", value);
-        }
-
-        [Attribute("href", XLinkNamespace)]
-        public string? Href
-        {
-            get => this.GetAttribute("href");
-            set => this.SetAttribute("href", value);
         }
 
         public override void Print(Action<string> write, string indent)
@@ -95,22 +67,6 @@ namespace Svg
             if (FocalY != null)
             {
                 write($"{indent}{nameof(FocalY)}: \"{FocalY}\"");
-            }
-            if (GradientUnits != null)
-            {
-                write($"{indent}{nameof(GradientUnits)}: \"{GradientUnits}\"");
-            }
-            if (GradientTransform != null)
-            {
-                write($"{indent}{nameof(GradientTransform)}: \"{GradientTransform}\"");
-            }
-            if (SpreadMethod != null)
-            {
-                write($"{indent}{nameof(SpreadMethod)}: \"{SpreadMethod}\"");
-            }
-            if (Href != null)
-            {
-                write($"{indent}{nameof(Href)}: \"{Href}\"");
             }
         }
     }
