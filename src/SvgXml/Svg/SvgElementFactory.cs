@@ -1,10 +1,109 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Xml;
 
 namespace Svg
 {
     public class SvgElementFactory : IElementFactory
     {
+        public Dictionary<string, Type> Types { get; } = new Dictionary<string, Type>()
+        {
+            // Animation
+            ["animate"] = typeof(SvgAnimate),
+            ["animateColor"] = typeof(SvgAnimateColor),
+            ["animateMotion"] = typeof(SvgAnimateMotion),
+            ["animateTransform"] = typeof(SvgAnimateTransform),
+            ["set"] = typeof(SvgSet),
+            ["mpath"] = typeof(SvgMotionPath),
+            // Basic Shapes
+            ["circle"] = typeof(SvgCircle),
+            ["ellipse"] = typeof(SvgEllipse),
+            ["line"] = typeof(SvgLine),
+            ["polygon"] = typeof(SvgPolygon),
+            ["polyline"] = typeof(SvgPolyline),
+            ["rect"] = typeof(SvgRectangle),
+            // Clipping and Masking
+            ["clipPath"] = typeof(SvgClipPath),
+            ["mask"] = typeof(SvgMask),
+            // Color
+            ["color-profile"] = typeof(SvgColorProfile),
+            // Document Structure
+            ["defs"] = typeof(SvgDefinitionList),
+            ["desc"] = typeof(SvgDescription),
+            ["metadata"] = typeof(SvgDocumentMetadata),
+            ["svg"] = typeof(SvgDocument),
+            ["g"] = typeof(SvgGroup),
+            ["image"] = typeof(SvgImage),
+            ["switch"] = typeof(SvgSwitch),
+            ["symbol"] = typeof(SvgSymbol),
+            ["title"] = typeof(SvgTitle),
+            ["use"] = typeof(SvgUse),
+            // Extensibility
+            ["foreignObject"] = typeof(SvgForeignObject),
+            // Filter Effects
+            ["filter"] = typeof(FilterEffects.SvgFilter),
+            ["feBlend"] = typeof(FilterEffects.SvgBlend),
+            ["feColorMatrix"] = typeof(FilterEffects.SvgColourMatrix),
+            ["feComponentTransfer"] = typeof(FilterEffects.SvgComponentTransfer),
+            ["feComposite"] = typeof(FilterEffects.SvgComposite),
+            ["feConvolveMatrix"] = typeof(FilterEffects.SvgConvolveMatrix),
+            ["feDiffuseLighting"] = typeof(FilterEffects.SvgDiffuseLighting),
+            ["feDisplacementMap"] = typeof(FilterEffects.SvgDisplacementMap),
+            ["feDistantLight"] = typeof(FilterEffects.SvgDistantLight),
+            ["feFlood"] = typeof(FilterEffects.SvgFlood),
+            ["feFuncA"] = typeof(FilterEffects.SvgFuncA),
+            ["feFuncB"] = typeof(FilterEffects.SvgFuncB),
+            ["feFuncG"] = typeof(FilterEffects.SvgFuncG),
+            ["feFuncR"] = typeof(FilterEffects.SvgFuncR),
+            ["feGaussianBlur"] = typeof(FilterEffects.SvgGaussianBlur),
+            ["feImage"] = typeof(FilterEffects.SvgImage),
+            ["feMerge"] = typeof(FilterEffects.SvgMerge),
+            ["feMergeNode"] = typeof(FilterEffects.SvgMergeNode),
+            ["feMorphology"] = typeof(FilterEffects.SvgMorphology),
+            ["feOffset"] = typeof(FilterEffects.SvgOffset),
+            ["fePointLight"] = typeof(FilterEffects.SvgPointLight),
+            ["feSpecularLighting"] = typeof(FilterEffects.SvgSpecularLighting),
+            ["feSpotLight"] = typeof(FilterEffects.SvgSpotLight),
+            ["feTile"] = typeof(FilterEffects.SvgTile),
+            ["feTurbulence"] = typeof(FilterEffects.SvgTurbulence),
+            // Interactivity
+            ["cursor"] = typeof(SvgCursor),
+            // Linking
+            ["a"] = typeof(SvgAnchor),
+            ["view"] = typeof(SvgView),
+            // Painting
+            ["stop"] = typeof(SvgGradientStop),
+            ["linearGradient"] = typeof(SvgLinearGradientServer),
+            ["marker"] = typeof(SvgMarker),
+            ["pattern"] = typeof(SvgPatternServer),
+            ["radialGradient"] = typeof(SvgRadialGradientServer),
+            // Paths
+            ["path"] = typeof(SvgPath),
+            // Scripting
+            ["script"] = typeof(SvgScript),
+            // Styling
+            ["style"] = typeof(SvgStyle),
+            // Text
+            ["altGlyph"] = typeof(SvgAltGlyph),
+            ["altGlyphDef"] = typeof(SvgAltGlyphDef),
+            ["altGlyphItem"] = typeof(SvgAltGlyphItem),
+            ["font"] = typeof(SvgFont),
+            ["font-face"] = typeof(SvgFontFace),
+            ["font-face-format"] = typeof(SvgFontFaceFormat),
+            ["font-face-name"] = typeof(SvgFontFaceName),
+            ["font-face-src"] = typeof(SvgFontFaceSrc),
+            ["font-face-uri"] = typeof(SvgFontFaceUri),
+            ["glyph"] = typeof(SvgGlyph),
+            ["glyphRef"] = typeof(SvgGlyphRef),
+            ["hkern"] = typeof(SvgHorizontalKern),
+            ["vkern"] = typeof(SvgVerticalKern),
+            ["missing-glyph"] = typeof(SvgMissingGlyph),
+            ["text"] = typeof(SvgText),
+            ["textPath"] = typeof(SvgTextPath),
+            ["tref"] = typeof(SvgTextRef),
+            ["tspan"] = typeof(SvgTextSpan)
+        };
+
         public ISet<string> Namespaces { get; } = new HashSet<string>
         {
             SvgElement.SvgNamespace,
