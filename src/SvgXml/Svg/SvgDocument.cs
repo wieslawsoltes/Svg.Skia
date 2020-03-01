@@ -1,6 +1,12 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Xml;
+using Svg.ExCSS;
+using SvgXml.Css;
 using Xml;
 
 namespace Svg
@@ -9,6 +15,10 @@ namespace Svg
     {
         public static IElementFactory s_elementFactory = new SvgElementFactory();
 
+        public static string s_userAgentStyleSheet =
+            "svg, symbol, image, marker, pattern, foreignObject { overflow: hidden }" +
+            Environment.NewLine +
+            "svg { width: attr(width); height: attr(height) }";
 
         public static void GetElements<T>(Element element, List<T> elements)
         {
@@ -147,6 +157,112 @@ namespace Svg
                     return true;
                 default:
                     return false;
+            }
+        }
+
+        private static void SetProperties(Element element, Parser parser)
+        {
+            foreach (var child in element.Children)
+            {
+                foreach (var attribute in child.Attributes)
+                {
+                    if (attribute.Key.Equals("style"))
+                    {
+                        var sheet = parser.Parse("#a{" + attribute.Value + "}");
+                        foreach (var rule in sheet.StyleRules)
+                        {
+                            foreach (var decl in rule.Declarations)
+                            {
+                                var value = decl.Term.ToString();
+                                if (value != null)
+                                {
+                                    element.AddStyle(decl.Name, value, SvgElement.StyleSpecificity_InlineStyle);
+                                }
+                            }
+                        }
+                    }
+                    else if (IsStyleAttribute(attribute.Key))
+                    {
+                        if (attribute.Value != null)
+                        {
+                            element.AddStyle(attribute.Key, attribute.Value, SvgElement.StyleSpecificity_PresAttribute);
+                        }
+                    }
+                    else
+                    {
+                        element.SetPropertyValue(attribute.Key, attribute.Value);
+                    }
+                }
+
+                SetProperties(child, parser);
+            }
+        }
+
+        public void LoadStyles()
+        {
+            SetProperties(this, new Parser());
+
+            var styles = new List<SvgStyle>();
+            GetElements(this, styles);
+
+            var css = string.Empty;
+            css += s_userAgentStyleSheet;
+
+            if (styles.Count > 0)
+            {
+                foreach (var style in styles)
+                {
+                    foreach (var child in style.Children)
+                    {
+                        if (child is ContentElement content)
+                        {
+                            css += Environment.NewLine + content.Content;
+                        }
+                    }
+                }
+            }
+
+            var parser = new Parser();
+            var sheet = parser.Parse(css);
+
+            foreach (var rule in sheet.StyleRules)
+            {
+                IEnumerable<BaseSelector> selectors;
+                if (rule.Selector is AggregateSelectorList aggregateList && aggregateList.Delimiter == ",")
+                {
+                    selectors = aggregateList;
+                }
+                else
+                {
+                    selectors = Enumerable.Repeat(rule.Selector, 1);
+                }
+
+                foreach (var selector in selectors)
+                {
+                    try
+                    {
+                        var rootNode = new UnknownElement();
+                        rootNode.Children.Add(this);
+
+                        var elements = rootNode.QuerySelectorAll(rule.Selector.ToString(), s_elementFactory);
+                        foreach (var element in elements)
+                        {
+                            foreach (var decl in rule.Declarations)
+                            {
+                                var value = decl.Term.ToString();
+                                if (value != null)
+                                {
+                                    element.AddStyle(decl.Name, value, rule.Selector.GetSpecificity());
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                        Debug.WriteLine(ex.StackTrace);
+                    }
+                }
             }
         }
     }
