@@ -26,4 +26,8 @@
     <Compile Remove="..\..\externals\SVG\Source\External\ExCSS\ParserX.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Fizzler" Version="1.2.0" />
+  </ItemGroup>
+
 </Project>
