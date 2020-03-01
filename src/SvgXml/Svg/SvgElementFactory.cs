@@ -6,6 +6,8 @@ namespace Svg
 {
     public class SvgElementFactory : IElementFactory
     {
+        // https://www.w3.org/TR/SVG11/styling.html#SVGStylingProperties
+        // https://www.w3.org/TR/SVG11/propidx.html
         public Dictionary<string, Type> Types { get; } = new Dictionary<string, Type>()
         {
             // Animation
