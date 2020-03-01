@@ -4456,22 +4456,46 @@
                     </ContentControl.Resources>
                 </ContentControl>
                 <GridSplitter Grid.Column="1" Width="4" Background="Transparent" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
-                <TabControl Grid.Column="2">
-                    <TabItem Header="Attributes">
-                        <ContentControl Content="{Binding ElementName=DocumentTree, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}">
-                            <ContentControl.Resources>
-                                <!-- Item -->
-                                <DataTemplate DataType="{x:Type local:Item}">
-                                    <views:ElementAttributes DataContext="{Binding Document.Attributes}"/>
-                                </DataTemplate>
-                                <!-- Element -->
-                                <DataTemplate DataType="{x:Type Xml:Element}">
-                                    <views:ElementAttributes DataContext="{Binding Attributes}"/>
-                                </DataTemplate>
-                            </ContentControl.Resources>
-                        </ContentControl>
-                    </TabItem>
-                </TabControl>
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="50*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="50*"/>
+                    </Grid.RowDefinitions>
+                    <TabControl Grid.Row="0">
+                        <TabItem Header="Attributes">
+                            <ContentControl Content="{Binding ElementName=DocumentTree, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}">
+                                <ContentControl.Resources>
+                                    <!-- Item -->
+                                    <DataTemplate DataType="{x:Type local:Item}">
+                                        <views:ElementAttributes DataContext="{Binding Document.Attributes}"/>
+                                    </DataTemplate>
+                                    <!-- Element -->
+                                    <DataTemplate DataType="{x:Type Xml:Element}">
+                                        <views:ElementAttributes DataContext="{Binding Attributes}"/>
+                                    </DataTemplate>
+                                </ContentControl.Resources>
+                            </ContentControl>
+                        </TabItem>
+                    </TabControl>
+                    <GridSplitter Grid.Row="1" Height="4" Background="Transparent" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"/>
+                    <TabControl Grid.Row="2">
+                        <TabItem Header="Styles">
+                            <ContentControl Content="{Binding ElementName=DocumentTree, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}">
+                                <ContentControl.Resources>
+                                    <!-- Item -->
+                                    <DataTemplate DataType="{x:Type local:Item}">
+                                        <views:ElementStyles DataContext="{Binding Document.Styles}"/>
+                                    </DataTemplate>
+                                    <!-- Element -->
+                                    <DataTemplate DataType="{x:Type Xml:Element}">
+                                        <views:ElementStyles DataContext="{Binding Styles}"/>
+                                    </DataTemplate>
+                                </ContentControl.Resources>
+                            </ContentControl>
+                        </TabItem>
+                    </TabControl>
+                </Grid>
             </Grid>
         </Grid>
     </Grid>
