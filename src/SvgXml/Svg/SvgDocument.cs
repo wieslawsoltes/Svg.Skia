@@ -9,6 +9,21 @@ namespace Svg
     {
         public static IElementFactory s_elementFactory = new SvgElementFactory();
 
+
+        public static void GetElements<T>(Element element, List<T> elements)
+        {
+            foreach (var child in element.Children)
+            {
+                if (child is T t)
+                {
+                    elements.Add(t);
+                }
+                else
+                {
+                    GetElements(child, elements);
+                }
+            }
+        }
         public static SvgDocument? Open(XmlReader reader)
         {
             var element = XmlLoader.Read(reader, s_elementFactory);
