@@ -10,21 +10,22 @@ namespace Svg
         [Attribute("type", SvgNamespace)]
         public string? Type
         {
-            get => this.GetAttribute("type");
+            // TODO: https://www.w3.org/TR/SVG11/styling.html#StyleElement
+            get => this.GetAttribute("type", false, null);
             set => this.SetAttribute("type", value);
         }
 
         [Attribute("media", SvgNamespace)]
         public string? Media
         {
-            get => this.GetAttribute("media");
+            get => this.GetAttribute("media", false, "all");
             set => this.SetAttribute("media", value);
         }
 
         [Attribute("title", SvgNamespace)]
         public string? Title
         {
-            get => this.GetAttribute("title");
+            get => this.GetAttribute("title", false, null);
             set => this.SetAttribute("title", value);
         }
 
