@@ -132,6 +132,7 @@ namespace SvgXml
                     var document = SvgDocument.Open(path.FullName);
                     if (document != null)
                     {
+                        document.LoadStyles();
                         results.Add((path, document));
                     }
                 }
