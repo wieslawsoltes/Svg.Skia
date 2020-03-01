@@ -20,4 +20,10 @@
     <Compile Include="**\*.cs" Exclude="obj\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\..\externals\SVG\Source\External\**\*.cs" Exclude="..\..\externals\SVG\Source\External\obj\**" />
+    <Compile Remove="..\..\externals\SVG\Source\External\ExCSS\Parser.generated.cs" />
+    <Compile Remove="..\..\externals\SVG\Source\External\ExCSS\ParserX.cs" />
+  </ItemGroup>
+
 </Project>
