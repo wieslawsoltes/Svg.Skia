@@ -70,6 +70,7 @@ namespace SvgXmlDiagnostics
                             var svgDocument = SvgDocument.Open(path);
                             if (svgDocument != null)
                             {
+                                svgDocument.LoadStyles();
                                 var item = new Item()
                                 {
                                     Name = Path.GetFileNameWithoutExtension(path),
