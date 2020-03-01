@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using System.Xml;
 
@@ -25,7 +24,7 @@ namespace Xml
     }
 #nullable enable warnings
 
-    public static class XmlLoader
+    internal static class XmlLoader
     {
         public static XmlReaderSettings s_settings = new XmlReaderSettings()
         {
@@ -35,7 +34,7 @@ namespace Xml
             IgnoreComments = true
         };
 
-        public static Element? Open(XmlReader reader, IElementFactory elementFactory)
+        public static Element? Read(XmlReader reader, IElementFactory elementFactory)
         {
             var elements = new List<Element>();
             var stack = new Stack<Element>();
@@ -153,13 +152,6 @@ namespace Xml
                 return elements[0];
             }
             return null;
-        }
-
-        public static Element? Open(Stream stream, IElementFactory elementFactory)
-        {
-            using var reader = XmlReader.Create(stream, s_settings);
-            var element = Open(reader, elementFactory);
-            return element;
         }
     }
 }
