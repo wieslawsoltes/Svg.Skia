@@ -11,7 +11,7 @@ namespace Svg
 
         public static SvgDocument? Open(XmlReader reader)
         {
-            var element = XmlLoader.Open(reader, s_elementFactory);
+            var element = XmlLoader.Read(reader, s_elementFactory);
             if (element is SvgDocument svgDocument)
             {
                 return svgDocument;
@@ -21,12 +21,8 @@ namespace Svg
 
         public static SvgDocument? Open(Stream stream)
         {
-            var element = XmlLoader.Open(stream, s_elementFactory);
-            if (element is SvgDocument svgDocument)
-            {
-                return svgDocument;
-            }
-            return null;
+            using var reader = XmlReader.Create(stream, XmlLoader.s_settings);
+            return Open(reader);
         }
 
         public static SvgDocument? OpenSvg(string path)
