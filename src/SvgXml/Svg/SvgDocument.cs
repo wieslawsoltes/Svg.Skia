@@ -24,6 +24,7 @@ namespace Svg
                 }
             }
         }
+
         public static SvgDocument? Open(XmlReader reader)
         {
             var element = XmlLoader.Read(reader, s_elementFactory);
