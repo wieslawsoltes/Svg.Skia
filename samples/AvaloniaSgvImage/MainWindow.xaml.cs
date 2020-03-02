@@ -18,9 +18,7 @@ namespace AvaloniaSgvImage
         public MainWindow()
         {
             InitializeComponent();
-#if DEBUG
-            this.AttachDevTools();
-#endif
+
             _svgSourceImage = this.FindControl<Image>("svgSourceImage");
             _svgResourceImage = this.FindControl<Image>("svgResourceImage");
             _svgSourceDockPanel = this.FindControl<DockPanel>("svgSourceDockPanel");
