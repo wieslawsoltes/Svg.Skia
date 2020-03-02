@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFrameworks>netstandard2.1;netcoreapp3.0;netcoreapp3.1</TargetFrameworks>
     <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     <EnableDefaultItems>False</EnableDefaultItems>
@@ -12,22 +12,12 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\svg11.dtd">
-      <LogicalName>SvgXml.Resources.svg11.dtd</LogicalName>
+      <LogicalName>SvgXml.Xml.Resources.svg11.dtd</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\..\externals\SVG\Source\External\**\*.cs" Exclude="..\..\externals\SVG\Source\External\obj\**" />
-    <Compile Remove="..\..\externals\SVG\Source\External\ExCSS\Parser.generated.cs" />
-    <Compile Remove="..\..\externals\SVG\Source\External\ExCSS\ParserX.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Fizzler" Version="1.2.0" />
   </ItemGroup>
 
 </Project>

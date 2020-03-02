@@ -4,8 +4,8 @@ namespace Xml
 {
     public abstract class Element : IElement
     {
-        internal const int StyleSpecificity_PresAttribute = 0;
-        internal const int StyleSpecificity_InlineStyle = 1 << 16;
+        public const int StyleSpecificity_PresAttribute = 0;
+        public const int StyleSpecificity_InlineStyle = 1 << 16;
 
         public string Tag { get; set; }
         public string Content { get; set; }

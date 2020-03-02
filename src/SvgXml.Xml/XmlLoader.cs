@@ -6,9 +6,9 @@ using System.Xml;
 namespace Xml
 {
 #nullable disable warnings
-    internal class DtdXmlUrlResolver : XmlUrlResolver
+    public class DtdXmlUrlResolver : XmlUrlResolver
     {
-        public static string s_name = "SvgXml.Resources.svg11.dtd";
+        public static string s_name = "SvgXml.Xml.Resources.svg11.dtd";
 
         public override object GetEntity(Uri absoluteUri, string role, Type ofObjectToReturn)
         {
@@ -24,7 +24,7 @@ namespace Xml
     }
 #nullable enable warnings
 
-    internal static class XmlLoader
+    public static class XmlLoader
     {
         public static XmlReaderSettings s_settings = new XmlReaderSettings()
         {

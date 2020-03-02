@@ -7,7 +7,7 @@ using System.Linq;
 using Svg;
 using Xml;
 
-namespace SvgXml
+namespace SvgXml.Test
 {
     internal class Program
     {

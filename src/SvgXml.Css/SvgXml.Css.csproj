@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>netstandard2.1;netcoreapp3.0;netcoreapp3.1</TargetFrameworks>
+    <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
+    <EnableDefaultItems>False</EnableDefaultItems>
+    <IsPackable>False</IsPackable>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="**\*.cs" Exclude="obj\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\externals\SVG\Source\External\**\*.cs" Exclude="..\..\externals\SVG\Source\External\obj\**" />
+    <Compile Remove="..\..\externals\SVG\Source\External\ExCSS\Parser.generated.cs" />
+    <Compile Remove="..\..\externals\SVG\Source\External\ExCSS\ParserX.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fizzler" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SvgXml.Xml\SvgXml.Xml.csproj" />
+  </ItemGroup>
+
+</Project>

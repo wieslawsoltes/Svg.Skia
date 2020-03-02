@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SvgXml\SvgXml.csproj" />
+    <ProjectReference Include="..\SvgXml.Svg\SvgXml.Svg.csproj" />
   </ItemGroup>
 
 </Project>

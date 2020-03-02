@@ -7,11 +7,11 @@ using Xml;
 
 namespace SvgXml.Css
 {
-    internal static class CssQuery
+    public static class CssQuery
     {
         public static IEnumerable<Element> QuerySelectorAll(this Element element, string selector, IElementFactory elementFactory)
         {
-            var generator = new SelectorGenerator<Element>(new SvgElementOps(elementFactory));
+            var generator = new SelectorGenerator<Element>(new ElementOps(elementFactory));
             Fizzler.Parser.Parse(selector, generator);
             return generator.Selector(Enumerable.Repeat(element, 1));
         }

@@ -7,11 +7,11 @@ using Xml;
 
 namespace SvgXml.Css
 {
-    internal class SvgElementOps : IElementOps<Element>
+    public class ElementOps : IElementOps<Element>
     {
         private readonly IElementFactory _elementFactory;
 
-        public SvgElementOps(IElementFactory elementFactory)
+        public ElementOps(IElementFactory elementFactory)
         {
             _elementFactory = elementFactory;
         }
@@ -34,9 +34,9 @@ namespace SvgXml.Css
         {
             return nodes => nodes.Where(n =>
             {
-                if (n is ISvgCommonAttributes commonAttributes)
+                if (n is IId iid)
                 {
-                    return commonAttributes.Id == id;
+                    return iid.Id == id;
                 }
                 return false;
             });

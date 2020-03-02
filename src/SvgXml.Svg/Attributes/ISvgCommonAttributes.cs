@@ -3,10 +3,10 @@ using Xml;
 
 namespace Svg
 {
-    public interface ISvgCommonAttributes : IElement
+    public interface ISvgCommonAttributes : IElement, IId
     {
         [Attribute("id", SvgElement.SvgNamespace)]
-        public string? Id
+        string? IId.Id
         {
             get => this.GetAttribute("id", false, null);
             set => this.SetAttribute("id", value);
