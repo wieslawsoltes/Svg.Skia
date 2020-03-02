@@ -15,7 +15,7 @@ namespace Svg
 #nullable disable warnings
     public class DtdXmlUrlResolver : XmlUrlResolver
     {
-        public static string s_name = "SvgXml.Xml.Resources.svg11.dtd";
+        public static string s_name = "SvgXml.Svg.Resources.svg11.dtd";
 
         public override object GetEntity(Uri absoluteUri, string role, Type ofObjectToReturn)
         {
