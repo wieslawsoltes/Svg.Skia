@@ -1,0 +1,46 @@
+﻿<UserControl x:Class="SvgXml.Diagnostics.Views.Attributes.XLinkProperties"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SvgXml.Diagnostics.Views.Attributes;assembly=SvgXml.Diagnostics"
+             xmlns:Svg="clr-namespace:Svg;assembly=SvgXml.Svg"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Margin="2">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <!-- Href -->
+        <TextBlock Text="Href" Grid.Row="0" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgXLinkAttributes.Href)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <!-- Show -->
+        <TextBlock Text="Show" Grid.Row="1" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgXLinkAttributes.Show)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+        <!-- Actuate -->
+        <TextBlock Text="Actuate" Grid.Row="2" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgXLinkAttributes.Actuate)}" Grid.Row="2" Grid.Column="1" Margin="2" />
+        <!-- Type -->
+        <TextBlock Text="Type" Grid.Row="3" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgXLinkAttributes.Type)}" Grid.Row="3" Grid.Column="1" Margin="2" />
+        <!-- Role -->
+        <TextBlock Text="Role" Grid.Row="4" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgXLinkAttributes.Role)}" Grid.Row="4" Grid.Column="1" Margin="2" />
+        <!-- Arcrole -->
+        <TextBlock Text="Arcrole" Grid.Row="5" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgXLinkAttributes.Arcrole)}" Grid.Row="5" Grid.Column="1" Margin="2" />
+        <!-- Title -->
+        <TextBlock Text="Title" Grid.Row="6" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgXLinkAttributes.Title)}" Grid.Row="6" Grid.Column="1" Margin="2" />
+    </Grid>
+</UserControl>

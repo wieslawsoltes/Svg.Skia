@@ -1,0 +1,46 @@
+﻿<UserControl x:Class="SvgXml.Diagnostics.Views.Attributes.AnimationValueProperties"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SvgXml.Diagnostics.Views.Attributes;assembly=SvgXml.Diagnostics"
+             xmlns:Svg="clr-namespace:Svg;assembly=SvgXml.Svg"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Margin="2">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <!-- CalcMode -->
+        <TextBlock Text="CalcMode" Grid.Row="0" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.CalcMode)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <!-- Values -->
+        <TextBlock Text="Values" Grid.Row="1" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.Values)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+        <!-- KeyTimes -->
+        <TextBlock Text="KeyTimes" Grid.Row="2" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.KeyTimes)}" Grid.Row="2" Grid.Column="1" Margin="2" />
+        <!-- KeySplines -->
+        <TextBlock Text="KeySplines" Grid.Row="3" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.KeySplines)}" Grid.Row="3" Grid.Column="1" Margin="2" />
+        <!-- From -->
+        <TextBlock Text="From" Grid.Row="4" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.From)}" Grid.Row="4" Grid.Column="1" Margin="2" />
+        <!-- To -->
+        <TextBlock Text="To" Grid.Row="5" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.To)}" Grid.Row="5" Grid.Column="1" Margin="2" />
+        <!-- By -->
+        <TextBlock Text="By" Grid.Row="6" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.By)}" Grid.Row="6" Grid.Column="1" Margin="2" />
+    </Grid>
+</UserControl>
