@@ -85,13 +85,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgToPng", "src\SvgToPng\Sv
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgXmlDiagnostics", "src\SvgXmlDiagnostics\SvgXmlDiagnostics.csproj", "{8880DA27-A6B4-4C45-A1B7-75FD4E78335D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvgXml.Xml", "src\SvgXml.Xml\SvgXml.Xml.csproj", "{F7B2237D-69FB-41FE-A8BD-8250C12E6392}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgXml.Xml", "src\SvgXml.Xml\SvgXml.Xml.csproj", "{F7B2237D-69FB-41FE-A8BD-8250C12E6392}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvgXml.Css", "src\SvgXml.Css\SvgXml.Css.csproj", "{CD3B28F5-FF4D-4374-8090-E99524DDDE26}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgXml.Css", "src\SvgXml.Css\SvgXml.Css.csproj", "{CD3B28F5-FF4D-4374-8090-E99524DDDE26}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvgXml.Svg", "src\SvgXml.Svg\SvgXml.Svg.csproj", "{A6F303A5-F3B9-425B-90B3-579B829FA424}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgXml.Svg", "src\SvgXml.Svg\SvgXml.Svg.csproj", "{A6F303A5-F3B9-425B-90B3-579B829FA424}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvgXml.Test", "src\SvgXml.Test\SvgXml.Test.csproj", "{B9571665-DEB0-4983-B17B-AE3756484C70}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgXml.Test", "src\SvgXml.Test\SvgXml.Test.csproj", "{B9571665-DEB0-4983-B17B-AE3756484C70}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
