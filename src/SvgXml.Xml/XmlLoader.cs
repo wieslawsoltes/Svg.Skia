@@ -5,35 +5,8 @@ using System.Xml;
 
 namespace Xml
 {
-#nullable disable warnings
-    public class DtdXmlUrlResolver : XmlUrlResolver
-    {
-        public static string s_name = "SvgXml.Xml.Resources.svg11.dtd";
-
-        public override object GetEntity(Uri absoluteUri, string role, Type ofObjectToReturn)
-        {
-            if (absoluteUri.ToString().IndexOf("svg", StringComparison.InvariantCultureIgnoreCase) > -1)
-            {
-                return Assembly.GetExecutingAssembly().GetManifestResourceStream(s_name);
-            }
-            else
-            {
-                return base.GetEntity(absoluteUri, role, ofObjectToReturn);
-            }
-        }
-    }
-#nullable enable warnings
-
     public static class XmlLoader
     {
-        public static XmlReaderSettings s_settings = new XmlReaderSettings()
-        {
-            DtdProcessing = DtdProcessing.Parse,
-            XmlResolver = new DtdXmlUrlResolver(),
-            IgnoreWhitespace = true,
-            IgnoreComments = true
-        };
-
         public static Element? Read(XmlReader reader, IElementFactory elementFactory)
         {
             var elements = new List<Element>();

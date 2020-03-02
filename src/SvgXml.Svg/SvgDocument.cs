@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Xml;
 using Svg.ExCSS;
 using SvgXml.Css;
@@ -11,8 +12,35 @@ using Xml;
 
 namespace Svg
 {
+#nullable disable warnings
+    public class DtdXmlUrlResolver : XmlUrlResolver
+    {
+        public static string s_name = "SvgXml.Xml.Resources.svg11.dtd";
+
+        public override object GetEntity(Uri absoluteUri, string role, Type ofObjectToReturn)
+        {
+            if (absoluteUri.ToString().IndexOf("svg", StringComparison.InvariantCultureIgnoreCase) > -1)
+            {
+                return Assembly.GetExecutingAssembly().GetManifestResourceStream(s_name);
+            }
+            else
+            {
+                return base.GetEntity(absoluteUri, role, ofObjectToReturn);
+            }
+        }
+    }
+#nullable enable warnings
+
     public class SvgDocument : SvgFragment
     {
+        public static XmlReaderSettings s_settings = new XmlReaderSettings()
+        {
+            DtdProcessing = DtdProcessing.Parse,
+            XmlResolver = new DtdXmlUrlResolver(),
+            IgnoreWhitespace = true,
+            IgnoreComments = true
+        };
+
         public static IElementFactory s_elementFactory = new SvgElementFactory();
 
         public static string s_userAgentStyleSheet =
@@ -47,7 +75,7 @@ namespace Svg
 
         public static SvgDocument? Open(Stream stream)
         {
-            using var reader = XmlReader.Create(stream, XmlLoader.s_settings);
+            using var reader = XmlReader.Create(stream, s_settings);
             return Open(reader);
         }
 
