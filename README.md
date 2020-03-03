@@ -248,6 +248,11 @@ cd ./src/SvgToPng
 dotnet publish -c Release -f net461 -r win7-x64 -o SvgToPng_net461_win7-x64
 ```
 
+```
+cd ./src/SvgXml.Diagnostics
+dotnet publish -c Release -f netcoreapp3.1 -r win7-x64 -o SvgXml.Diagnostics_netcoreapp3.1_win7-x64
+```
+
 ### Publish Native
 
 ```
