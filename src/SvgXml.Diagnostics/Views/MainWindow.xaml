@@ -3988,9 +3988,9 @@
                                             <!-- ArabicForm -->
                                             <TextBlock Text="ArabicForm" Grid.Row="8" Grid.Column="0" Margin="2" />
                                             <TextBox Text="{Binding ArabicForm}" Grid.Row="8" Grid.Column="1" Margin="2" />
-                                            <!-- Lang -->
-                                            <TextBlock Text="Lang" Grid.Row="9" Grid.Column="0" Margin="2" />
-                                            <TextBox Text="{Binding Lang}" Grid.Row="9" Grid.Column="1" Margin="2" />
+                                            <!-- LanguageCodes -->
+                                            <TextBlock Text="LanguageCodes" Grid.Row="9" Grid.Column="0" Margin="2" />
+                                            <TextBox Text="{Binding LanguageCodes}" Grid.Row="9" Grid.Column="1" Margin="2" />
                                         </Grid>
                                     </ScrollViewer>
                                 </TabItem>
