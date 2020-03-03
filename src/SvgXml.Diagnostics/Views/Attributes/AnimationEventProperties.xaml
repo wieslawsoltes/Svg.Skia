@@ -20,15 +20,15 @@
         </Grid.RowDefinitions>
         <!-- OnBegin -->
         <TextBlock Text="OnBegin" Grid.Row="0" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationEventAttributes.OnBegin)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding OnBegin}" Grid.Row="0" Grid.Column="1" Margin="2" />
         <!-- OnEnd -->
         <TextBlock Text="OnEnd" Grid.Row="1" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationEventAttributes.OnEnd)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding OnEnd}" Grid.Row="1" Grid.Column="1" Margin="2" />
         <!-- OnRepeat -->
         <TextBlock Text="OnRepeat" Grid.Row="2" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationEventAttributes.OnRepeat)}" Grid.Row="2" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding OnRepeat}" Grid.Row="2" Grid.Column="1" Margin="2" />
         <!-- OnLoad -->
         <TextBlock Text="OnLoad" Grid.Row="3" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationEventAttributes.OnLoad)}" Grid.Row="3" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding OnLoad}" Grid.Row="3" Grid.Column="1" Margin="2" />
     </Grid>
 </UserControl>
