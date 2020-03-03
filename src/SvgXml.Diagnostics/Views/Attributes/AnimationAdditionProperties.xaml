@@ -18,9 +18,9 @@
         </Grid.RowDefinitions>
         <!-- Additive -->
         <TextBlock Text="Additive" Grid.Row="0" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationAdditionAttributes.Additive)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding Additive}" Grid.Row="0" Grid.Column="1" Margin="2" />
         <!-- Accumulate -->
         <TextBlock Text="Accumulate" Grid.Row="1" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationAdditionAttributes.Accumulate)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding Accumulate}" Grid.Row="1" Grid.Column="1" Margin="2" />
     </Grid>
 </UserControl>
