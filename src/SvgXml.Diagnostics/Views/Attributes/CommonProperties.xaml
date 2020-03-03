@@ -20,15 +20,15 @@
         </Grid.RowDefinitions>
         <!-- Id -->
         <TextBlock Text="Id" Grid.Row="0" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Id)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding Id}" Grid.Row="0" Grid.Column="1" Margin="2" />
         <!-- Base -->
         <TextBlock Text="Base" Grid.Row="1" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Base)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding Base}" Grid.Row="1" Grid.Column="1" Margin="2" />
         <!-- Lang -->
         <TextBlock Text="Lang" Grid.Row="2" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Lang)}" Grid.Row="2" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding Lang}" Grid.Row="2" Grid.Column="1" Margin="2" />
         <!-- Space -->
         <TextBlock Text="Space" Grid.Row="3" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgCommonAttributes.Space)}" Grid.Row="3" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding Space}" Grid.Row="3" Grid.Column="1" Margin="2" />
     </Grid>
 </UserControl>
