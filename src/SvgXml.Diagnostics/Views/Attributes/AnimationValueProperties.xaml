@@ -23,24 +23,24 @@
         </Grid.RowDefinitions>
         <!-- CalcMode -->
         <TextBlock Text="CalcMode" Grid.Row="0" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.CalcMode)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding CalcMode}" Grid.Row="0" Grid.Column="1" Margin="2" />
         <!-- Values -->
         <TextBlock Text="Values" Grid.Row="1" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.Values)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding Values}" Grid.Row="1" Grid.Column="1" Margin="2" />
         <!-- KeyTimes -->
         <TextBlock Text="KeyTimes" Grid.Row="2" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.KeyTimes)}" Grid.Row="2" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding KeyTimes}" Grid.Row="2" Grid.Column="1" Margin="2" />
         <!-- KeySplines -->
         <TextBlock Text="KeySplines" Grid.Row="3" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.KeySplines)}" Grid.Row="3" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding KeySplines}" Grid.Row="3" Grid.Column="1" Margin="2" />
         <!-- From -->
         <TextBlock Text="From" Grid.Row="4" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.From)}" Grid.Row="4" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding From}" Grid.Row="4" Grid.Column="1" Margin="2" />
         <!-- To -->
         <TextBlock Text="To" Grid.Row="5" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.To)}" Grid.Row="5" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding To}" Grid.Row="5" Grid.Column="1" Margin="2" />
         <!-- By -->
         <TextBlock Text="By" Grid.Row="6" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationValueAttributes.By)}" Grid.Row="6" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding By}" Grid.Row="6" Grid.Column="1" Margin="2" />
     </Grid>
 </UserControl>
