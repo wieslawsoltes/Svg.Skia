@@ -1,9 +1,6 @@
-﻿using System;
-using Xml;
-
-namespace Svg
+﻿namespace Svg
 {
-    public interface ISvgPresentationAttributes : IElement
+    public interface ISvgPresentationAttributes
     {
         string? AlignmentBaseline { get; set; }
         string? BaselineShift { get; set; }

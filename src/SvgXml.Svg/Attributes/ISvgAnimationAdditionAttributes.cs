@@ -1,9 +1,6 @@
-﻿using System;
-using Xml;
-
-namespace Svg
+﻿namespace Svg
 {
-    public interface ISvgAnimationAdditionAttributes : IElement
+    public interface ISvgAnimationAdditionAttributes
     {
         string? Additive { get; set; }
         string? Accumulate { get; set; }

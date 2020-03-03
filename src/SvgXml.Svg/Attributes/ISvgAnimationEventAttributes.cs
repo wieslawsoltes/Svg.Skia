@@ -1,9 +1,6 @@
-﻿using System;
-using Xml;
-
-namespace Svg
+﻿namespace Svg
 {
-    public interface ISvgAnimationEventAttributes : IElement
+    public interface ISvgAnimationEventAttributes
     {
         string? OnBegin { get; set; }
         string? OnEnd { get; set; }

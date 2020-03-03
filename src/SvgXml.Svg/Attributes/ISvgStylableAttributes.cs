@@ -1,9 +1,6 @@
-﻿using System;
-using Xml;
-
-namespace Svg
+﻿namespace Svg
 {
-    public interface ISvgStylableAttributes : IElement
+    public interface ISvgStylableAttributes
     {
         string? Class { get; set; }
         string? Style { get; set; }

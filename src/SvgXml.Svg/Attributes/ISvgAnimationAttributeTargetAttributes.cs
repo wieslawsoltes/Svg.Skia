@@ -1,9 +1,6 @@
-﻿using System;
-using Xml;
-
-namespace Svg
+﻿namespace Svg
 {
-    public interface ISvgAnimationAttributeTargetAttributes : IElement
+    public interface ISvgAnimationAttributeTargetAttributes
     {
         string? AttributeType { get; set; }
         string? AttributeName { get; set; }

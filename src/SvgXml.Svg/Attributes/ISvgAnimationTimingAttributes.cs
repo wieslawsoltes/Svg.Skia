@@ -1,9 +1,6 @@
-﻿using System;
-using Xml;
-
-namespace Svg
+﻿namespace Svg
 {
-    public interface ISvgAnimationTimingAttributes : IElement
+    public interface ISvgAnimationTimingAttributes
     {
         string? Begin { get; set; }
         string? Dur { get; set; }

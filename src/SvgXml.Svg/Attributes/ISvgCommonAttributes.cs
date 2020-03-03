@@ -1,9 +1,6 @@
-﻿using System;
-using Xml;
-
-namespace Svg
+﻿namespace Svg
 {
-    public interface ISvgCommonAttributes : IElement
+    public interface ISvgCommonAttributes
     {
         string? Id { get; set; }
         string? Base { get; set; }
