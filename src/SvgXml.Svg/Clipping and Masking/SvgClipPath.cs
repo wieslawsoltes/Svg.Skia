@@ -14,7 +14,7 @@ namespace Svg
     {
         // ISvgTransformableAttributes
 
-        [Attribute("transform", SvgElement.SvgNamespace)]
+        [Attribute("transform", SvgNamespace)]
         public string? Transform
         {
             get => this.GetAttribute("transform", false, null);

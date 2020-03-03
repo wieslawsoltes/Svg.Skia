@@ -13,28 +13,28 @@ namespace Svg
 
         // ISvgCommonAttributes
 
-        [Attribute("id", SvgElement.SvgNamespace)]
+        [Attribute("id", SvgNamespace)]
         public string? Id
         {
             get => this.GetAttribute("id", false, null);
             set => this.SetAttribute("id", value);
         }
 
-        [Attribute("base", SvgElement.XmlNamespace)]
+        [Attribute("base", XmlNamespace)]
         public string? Base
         {
             get => this.GetAttribute("base", false, null);
             set => this.SetAttribute("base", value);
         }
 
-        [Attribute("lang", SvgElement.XmlNamespace)]
+        [Attribute("lang", XmlNamespace)]
         public string? Lang
         {
             get => this.GetAttribute("lang", false, null);
             set => this.SetAttribute("lang", value);
         }
 
-        [Attribute("space", SvgElement.XmlNamespace)]
+        [Attribute("space", XmlNamespace)]
         public string? Space
         {
             get => this.GetAttribute("space", false, "default");

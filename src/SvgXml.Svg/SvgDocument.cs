@@ -204,7 +204,7 @@ namespace Svg
                                 var value = decl.Term.ToString();
                                 if (value != null)
                                 {
-                                    child.AddStyle(decl.Name, value, SvgElement.StyleSpecificity_InlineStyle);
+                                    child.AddStyle(decl.Name, value, StyleSpecificity_InlineStyle);
                                 }
                             }
                         }
@@ -213,7 +213,7 @@ namespace Svg
                     {
                         if (attribute.Value != null)
                         {
-                            child.AddStyle(attribute.Key, attribute.Value, SvgElement.StyleSpecificity_PresAttribute);
+                            child.AddStyle(attribute.Key, attribute.Value, StyleSpecificity_PresAttribute);
                         }
                     }
                     else

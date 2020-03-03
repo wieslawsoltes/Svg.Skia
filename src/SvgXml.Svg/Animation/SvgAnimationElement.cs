@@ -7,14 +7,14 @@ namespace Svg
     {
         // ISvgAnimationAdditionAttributes
 
-        [Attribute("additive", SvgElement.SvgNamespace)]
+        [Attribute("additive", SvgNamespace)]
         public virtual string? Additive
         {
             get => this.GetAttribute("additive");
             set => this.SetAttribute("additive", value);
         }
 
-        [Attribute("accumulate", SvgElement.SvgNamespace)]
+        [Attribute("accumulate", SvgNamespace)]
         public virtual string? Accumulate
         {
             get => this.GetAttribute("accumulate");
@@ -23,14 +23,14 @@ namespace Svg
 
         // ISvgAnimationAttributeTargetAttributes
 
-        [Attribute("attributeType", SvgElement.SvgNamespace)]
+        [Attribute("attributeType", SvgNamespace)]
         public virtual string? AttributeType
         {
             get => this.GetAttribute("attributeType");
             set => this.SetAttribute("attributeType", value);
         }
 
-        [Attribute("attributeName", SvgElement.SvgNamespace)]
+        [Attribute("attributeName", SvgNamespace)]
         public virtual string? AttributeName
         {
             get => this.GetAttribute("attributeName");
@@ -39,28 +39,28 @@ namespace Svg
 
         // ISvgAnimationEventAttributes
 
-        [Attribute("onbegin", SvgElement.SvgNamespace)]
+        [Attribute("onbegin", SvgNamespace)]
         public virtual string? OnBegin
         {
             get => this.GetAttribute("onbegin");
             set => this.SetAttribute("onbegin", value);
         }
 
-        [Attribute("onend", SvgElement.SvgNamespace)]
+        [Attribute("onend", SvgNamespace)]
         public virtual string? OnEnd
         {
             get => this.GetAttribute("onend");
             set => this.SetAttribute("onend", value);
         }
 
-        [Attribute("onrepeat", SvgElement.SvgNamespace)]
+        [Attribute("onrepeat", SvgNamespace)]
         public virtual string? OnRepeat
         {
             get => this.GetAttribute("onrepeat");
             set => this.SetAttribute("onrepeat", value);
         }
 
-        [Attribute("onload", SvgElement.SvgNamespace)]
+        [Attribute("onload", SvgNamespace)]
         public virtual string? OnLoad
         {
             get => this.GetAttribute("onload");
@@ -69,63 +69,63 @@ namespace Svg
 
         // ISvgAnimationTimingAttributes
 
-        [Attribute("begin", SvgElement.SvgNamespace)]
+        [Attribute("begin", SvgNamespace)]
         public virtual string? Begin
         {
             get => this.GetAttribute("begin");
             set => this.SetAttribute("begin", value);
         }
 
-        [Attribute("dur", SvgElement.SvgNamespace)]
+        [Attribute("dur", SvgNamespace)]
         public virtual string? Dur
         {
             get => this.GetAttribute("dur");
             set => this.SetAttribute("dur", value);
         }
 
-        [Attribute("end", SvgElement.SvgNamespace)]
+        [Attribute("end", SvgNamespace)]
         public virtual string? End
         {
             get => this.GetAttribute("end");
             set => this.SetAttribute("end", value);
         }
 
-        [Attribute("min", SvgElement.SvgNamespace)]
+        [Attribute("min", SvgNamespace)]
         public virtual string? Min
         {
             get => this.GetAttribute("min");
             set => this.SetAttribute("min", value);
         }
 
-        [Attribute("max", SvgElement.SvgNamespace)]
+        [Attribute("max", SvgNamespace)]
         public virtual string? Max
         {
             get => this.GetAttribute("max");
             set => this.SetAttribute("max", value);
         }
 
-        [Attribute("restart", SvgElement.SvgNamespace)]
+        [Attribute("restart", SvgNamespace)]
         public virtual string? Restart
         {
             get => this.GetAttribute("restart");
             set => this.SetAttribute("restart", value);
         }
 
-        [Attribute("repeatCount", SvgElement.SvgNamespace)]
+        [Attribute("repeatCount", SvgNamespace)]
         public virtual string? RepeatCount
         {
             get => this.GetAttribute("repeatCount");
             set => this.SetAttribute("repeatCount", value);
         }
 
-        [Attribute("repeatDur", SvgElement.SvgNamespace)]
+        [Attribute("repeatDur", SvgNamespace)]
         public virtual string? RepeatDur
         {
             get => this.GetAttribute("repeatDur");
             set => this.SetAttribute("repeatDur", value);
         }
 
-        [Attribute("fill", SvgElement.SvgNamespace)]
+        [Attribute("fill", SvgNamespace)]
         public override string? Fill
         {
             get => this.GetAttribute("fill");
@@ -134,49 +134,49 @@ namespace Svg
 
         // ISvgAnimationValueAttributes
 
-        [Attribute("calcMode", SvgElement.SvgNamespace)]
+        [Attribute("calcMode", SvgNamespace)]
         public virtual string? CalcMode
         {
             get => this.GetAttribute("calcMode");
             set => this.SetAttribute("calcMode", value);
         }
 
-        [Attribute("values", SvgElement.SvgNamespace)]
+        [Attribute("values", SvgNamespace)]
         public virtual string? Values
         {
             get => this.GetAttribute("values");
             set => this.SetAttribute("values", value);
         }
 
-        [Attribute("keyTimes", SvgElement.SvgNamespace)]
+        [Attribute("keyTimes", SvgNamespace)]
         public virtual string? KeyTimes
         {
             get => this.GetAttribute("keyTimes");
             set => this.SetAttribute("keyTimes", value);
         }
 
-        [Attribute("keySplines", SvgElement.SvgNamespace)]
+        [Attribute("keySplines", SvgNamespace)]
         public virtual string? KeySplines
         {
             get => this.GetAttribute("keySplines");
             set => this.SetAttribute("keySplines", value);
         }
 
-        [Attribute("from", SvgElement.SvgNamespace)]
+        [Attribute("from", SvgNamespace)]
         public virtual string? From
         {
             get => this.GetAttribute("from");
             set => this.SetAttribute("from", value);
         }
 
-        [Attribute("to", SvgElement.SvgNamespace)]
+        [Attribute("to", SvgNamespace)]
         public virtual string? To
         {
             get => this.GetAttribute("to");
             set => this.SetAttribute("to", value);
         }
 
-        [Attribute("by", SvgElement.SvgNamespace)]
+        [Attribute("by", SvgNamespace)]
         public virtual string? By
         {
             get => this.GetAttribute("by");
