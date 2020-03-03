@@ -18,9 +18,9 @@
         </Grid.RowDefinitions>
         <!-- AttributeType -->
         <TextBlock Text="AttributeType" Grid.Row="0" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationAttributeTargetAttributes.AttributeType)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding AttributeType}" Grid.Row="0" Grid.Column="1" Margin="2" />
         <!-- AttributeName -->
         <TextBlock Text="AttributeName" Grid.Row="1" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationAttributeTargetAttributes.AttributeName)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding AttributeName}" Grid.Row="1" Grid.Column="1" Margin="2" />
     </Grid>
 </UserControl>
