@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("use")]
-    public class SvgUse : SvgVisualElement,
+    public class SvgUse : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,

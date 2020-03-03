@@ -3,7 +3,7 @@
 namespace Svg
 {
     [Element("polyline")]
-    public class SvgPolyline : SvgPolygon,
+    public class SvgPolyline : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,

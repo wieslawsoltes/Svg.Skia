@@ -3,7 +3,7 @@
 namespace Svg
 {
     [Element("desc")]
-    public class SvgDescription : SvgElement,
+    public class SvgDescription : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgStylableAttributes
     {

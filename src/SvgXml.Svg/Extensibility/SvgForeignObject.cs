@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("foreignObject")]
-    public class SvgForeignObject : SvgVisualElement,
+    public class SvgForeignObject : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,

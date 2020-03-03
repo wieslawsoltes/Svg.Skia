@@ -3,7 +3,7 @@
 namespace Svg
 {
     [Element("switch")]
-    public class SvgSwitch : SvgVisualElement,
+    public class SvgSwitch : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,

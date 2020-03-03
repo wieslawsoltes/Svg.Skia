@@ -2,7 +2,7 @@
 
 namespace Svg
 {
-    public abstract class SvgAnimationElement : SvgElement
+    public abstract class SvgAnimationElement : SvgStylableElement
     {
         public override void Print(Action<string> write, string indent)
         {

@@ -3,7 +3,7 @@ using Xml;
 
 namespace Svg.FilterEffects
 {
-    public abstract class SvgFilterPrimitive : SvgElement
+    public abstract class SvgFilterPrimitive : SvgStylableElement
     {
         [Attribute("x", SvgNamespace)]
         public string? X

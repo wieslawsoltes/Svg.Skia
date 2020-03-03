@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("ellipse")]
-    public class SvgEllipse : SvgPathBasedElement,
+    public class SvgEllipse : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,

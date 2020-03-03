@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("a")]
-    public class SvgAnchor : SvgElement,
+    public class SvgAnchor : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,

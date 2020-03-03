@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("font")]
-    public class SvgFont : SvgElement,
+    public class SvgFont : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes,

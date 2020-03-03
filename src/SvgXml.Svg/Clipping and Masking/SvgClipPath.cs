@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("clipPath")]
-    public class SvgClipPath : SvgElement,
+    public class SvgClipPath : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,

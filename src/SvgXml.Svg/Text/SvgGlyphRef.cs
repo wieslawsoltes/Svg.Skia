@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("glyphRef")]
-    public class SvgGlyphRef : SvgElement,
+    public class SvgGlyphRef : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes

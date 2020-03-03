@@ -3,13 +3,43 @@ using Xml;
 
 namespace Svg
 {
-    public abstract class SvgElement : Element
+    public abstract class SvgElement : Element, IId
     {
         public const string SvgNamespace = "http://www.w3.org/2000/svg";
 
         public const string XLinkNamespace = "http://www.w3.org/1999/xlink";
 
         public const string XmlNamespace = "http://www.w3.org/XML/1998/namespace";
+
+        // ISvgCommonAttributes
+
+        [Attribute("id", SvgElement.SvgNamespace)]
+        public string? Id
+        {
+            get => this.GetAttribute("id", false, null);
+            set => this.SetAttribute("id", value);
+        }
+
+        [Attribute("base", SvgElement.XmlNamespace)]
+        public string? Base
+        {
+            get => this.GetAttribute("base", false, null);
+            set => this.SetAttribute("base", value);
+        }
+
+        [Attribute("lang", SvgElement.XmlNamespace)]
+        public string? Lang
+        {
+            get => this.GetAttribute("lang", false, null);
+            set => this.SetAttribute("lang", value);
+        }
+
+        [Attribute("space", SvgElement.XmlNamespace)]
+        public string? Space
+        {
+            get => this.GetAttribute("space", false, "default");
+            set => this.SetAttribute("space", value);
+        }
 
         public virtual void Print(Action<string> write, string indent)
         {

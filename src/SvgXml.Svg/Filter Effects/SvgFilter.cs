@@ -4,7 +4,7 @@ using Xml;
 namespace Svg.FilterEffects
 {
     [Element("filter")]
-    public class SvgFilter : SvgElement,
+    public class SvgFilter : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes,

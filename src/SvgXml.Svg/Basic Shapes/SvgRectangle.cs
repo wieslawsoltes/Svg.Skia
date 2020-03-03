@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("rect")]
-    public class SvgRectangle : SvgPathBasedElement,
+    public class SvgRectangle : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
