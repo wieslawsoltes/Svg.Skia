@@ -11,7 +11,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
         x:Class="SvgXml.Diagnostics.Views.MainWindow"
-        WindowStartupLocation="CenterScreen" 
+        WindowStartupLocation="CenterScreen"
         Width="1100" Height="600"
         UseLayoutRounding="True"
         Icon="/Assets/avalonia-logo.ico"
