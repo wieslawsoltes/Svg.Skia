@@ -12,7 +12,7 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="70*"/>
         </Grid.ColumnDefinitions>
-        <ListBox x:Name="StylesList" Items="{Binding}" Grid.IsSharedSizeScope="True" Margin="2,2,0,0" Grid.Column="0">
+        <ListBox x:Name="StylesList" Items="{Binding}" Grid.IsSharedSizeScope="True" Margin="2,2,0,2" Grid.Column="0">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding Key}" Grid.Column="0" Margin="2" />
