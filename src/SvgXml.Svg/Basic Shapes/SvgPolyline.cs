@@ -3,7 +3,7 @@
 namespace Svg
 {
     [Element("polyline")]
-    public class SvgPolyline : SvgPolygon,
+    public class SvgPolyline : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
@@ -11,5 +11,16 @@ namespace Svg
         ISvgResourcesAttributes,
         ISvgTransformableAttributes
     {
+        // ISvgTransformableAttributes
+
+        [Attribute("transform", SvgNamespace)]
+        public string? Transform
+        {
+            get => this.GetAttribute("transform", false, null);
+            set => this.SetAttribute("transform", value);
+        }
+
+        // SvgPolyline
+
     }
 }

@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("stop")]
-    public class SvgGradientStop : SvgElement,
+    public class SvgGradientStop : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes

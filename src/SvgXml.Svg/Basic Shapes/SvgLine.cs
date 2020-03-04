@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("line")]
-    public class SvgLine: SvgMarkerElement,
+    public class SvgLine: SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
@@ -12,6 +12,17 @@ namespace Svg
         ISvgResourcesAttributes,
         ISvgTransformableAttributes
     {
+        // ISvgTransformableAttributes
+
+        [Attribute("transform", SvgNamespace)]
+        public string? Transform
+        {
+            get => this.GetAttribute("transform", false, null);
+            set => this.SetAttribute("transform", value);
+        }
+
+        // SvgLine
+
         [Attribute("x1", SvgNamespace)]
         public string? StartX
         {

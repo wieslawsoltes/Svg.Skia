@@ -1,15 +1,7 @@
-﻿using System;
-using Xml;
-
-namespace Svg
+﻿namespace Svg
 {
-    public interface ISvgTransformableAttributes : IElement
+    public interface ISvgTransformableAttributes
     {
-        [Attribute("transform", SvgElement.SvgNamespace)]
-        public string? Transform
-        {
-            get => this.GetAttribute("transform", false, null);
-            set => this.SetAttribute("transform", value);
-        }
+        string? Transform { get; set; }
     }
 }

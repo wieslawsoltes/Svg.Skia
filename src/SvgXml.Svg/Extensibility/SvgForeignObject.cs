@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("foreignObject")]
-    public class SvgForeignObject : SvgVisualElement,
+    public class SvgForeignObject : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
@@ -12,6 +12,17 @@ namespace Svg
         ISvgResourcesAttributes,
         ISvgTransformableAttributes
     {
+        // ISvgTransformableAttributes
+
+        [Attribute("transform", SvgNamespace)]
+        public string? Transform
+        {
+            get => this.GetAttribute("transform", false, null);
+            set => this.SetAttribute("transform", value);
+        }
+
+        // SvgForeignObject
+
         [Attribute("x", SvgNamespace)]
         public string? X
         {

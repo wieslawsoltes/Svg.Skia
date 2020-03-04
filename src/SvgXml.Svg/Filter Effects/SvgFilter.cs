@@ -4,7 +4,7 @@ using Xml;
 namespace Svg.FilterEffects
 {
     [Element("filter")]
-    public class SvgFilter : SvgElement,
+    public class SvgFilter : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes,
@@ -60,7 +60,7 @@ namespace Svg.FilterEffects
         }
 
         [Attribute("href", XLinkNamespace)]
-        public string? Href
+        public override string? Href
         {
             get => this.GetAttribute("href");
             set => this.SetAttribute("href", value);

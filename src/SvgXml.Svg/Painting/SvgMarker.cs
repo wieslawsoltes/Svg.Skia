@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("marker")]
-    public class SvgMarker : SvgPathBasedElement,
+    public class SvgMarker : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes,

@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("mask")]
-    public class SvgMask : SvgElement,
+    public class SvgMask : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,

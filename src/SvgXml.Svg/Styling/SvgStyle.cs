@@ -8,7 +8,7 @@ namespace Svg
         ISvgCommonAttributes
     {
         [Attribute("type", SvgNamespace)]
-        public string? Type
+        public override string? Type
         {
             // TODO: https://www.w3.org/TR/SVG11/styling.html#StyleElement
             get => this.GetAttribute("type", false, null);
@@ -23,7 +23,7 @@ namespace Svg
         }
 
         [Attribute("title", SvgNamespace)]
-        public string? Title
+        public override string? Title
         {
             get => this.GetAttribute("title", false, null);
             set => this.SetAttribute("title", value);

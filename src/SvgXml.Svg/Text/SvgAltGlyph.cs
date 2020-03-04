@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("altGlyph")]
-    public class SvgAltGlyph : SvgElement,
+    public class SvgAltGlyph : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
@@ -61,7 +61,7 @@ namespace Svg
         }
 
         [Attribute("href", XLinkNamespace)]
-        public string? Href
+        public override string? Href
         {
             get => this.GetAttribute("href");
             set => this.SetAttribute("href", value);

@@ -2896,17 +2896,17 @@
                                             <TextBlock Text="BaseFrequency" Grid.Row="5" Grid.Column="0" Margin="2" />
                                             <TextBox Text="{Binding BaseFrequency}" Grid.Row="5" Grid.Column="1" Margin="2" />
                                             <!-- NumOctaves -->
-                                            <TextBlock Text="NumOctaves" Grid.Row="5" Grid.Column="0" Margin="2" />
-                                            <TextBox Text="{Binding NumOctaves}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                            <TextBlock Text="NumOctaves" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                            <TextBox Text="{Binding NumOctaves}" Grid.Row="6" Grid.Column="1" Margin="2" />
                                             <!-- Seed -->
-                                            <TextBlock Text="Seed" Grid.Row="5" Grid.Column="0" Margin="2" />
-                                            <TextBox Text="{Binding Seed}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                            <TextBlock Text="Seed" Grid.Row="7" Grid.Column="0" Margin="2" />
+                                            <TextBox Text="{Binding Seed}" Grid.Row="7" Grid.Column="1" Margin="2" />
                                             <!-- StitchTiles -->
-                                            <TextBlock Text="StitchTiles" Grid.Row="5" Grid.Column="0" Margin="2" />
-                                            <TextBox Text="{Binding StitchTiles}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                            <TextBlock Text="StitchTiles" Grid.Row="8" Grid.Column="0" Margin="2" />
+                                            <TextBox Text="{Binding StitchTiles}" Grid.Row="8" Grid.Column="1" Margin="2" />
                                             <!-- Type -->
-                                            <TextBlock Text="Type" Grid.Row="5" Grid.Column="0" Margin="2" />
-                                            <TextBox Text="{Binding Type}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                            <TextBlock Text="Type" Grid.Row="9" Grid.Column="0" Margin="2" />
+                                            <TextBox Text="{Binding Type}" Grid.Row="9" Grid.Column="1" Margin="2" />
                                         </Grid>
                                     </ScrollViewer>
                                 </TabItem>
@@ -3096,10 +3096,10 @@
                                             <TextBox Text="{Binding Offset}" Grid.Row="0" Grid.Column="1" Margin="2" />
                                             <!-- StopColor -->
                                             <TextBlock Text="StopColor" Grid.Row="1" Grid.Column="0" Margin="2" />
-                                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.StopColor)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                                            <TextBox Text="{Binding StopColor}" Grid.Row="1" Grid.Column="1" Margin="2" />
                                             <!-- StopOpacity -->
                                             <TextBlock Text="StopOpacity" Grid.Row="2" Grid.Column="0" Margin="2" />
-                                            <TextBox Text="{Binding (Svg:ISvgPresentationAttributes.StopOpacity)}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                                            <TextBox Text="{Binding StopOpacity}" Grid.Row="2" Grid.Column="1" Margin="2" />
                                         </Grid>
                                     </ScrollViewer>
                                 </TabItem>
@@ -3988,9 +3988,9 @@
                                             <!-- ArabicForm -->
                                             <TextBlock Text="ArabicForm" Grid.Row="8" Grid.Column="0" Margin="2" />
                                             <TextBox Text="{Binding ArabicForm}" Grid.Row="8" Grid.Column="1" Margin="2" />
-                                            <!-- Lang -->
-                                            <TextBlock Text="Lang" Grid.Row="9" Grid.Column="0" Margin="2" />
-                                            <TextBox Text="{Binding Lang}" Grid.Row="9" Grid.Column="1" Margin="2" />
+                                            <!-- LanguageCodes -->
+                                            <TextBlock Text="LanguageCodes" Grid.Row="9" Grid.Column="0" Margin="2" />
+                                            <TextBox Text="{Binding LanguageCodes}" Grid.Row="9" Grid.Column="1" Margin="2" />
                                         </Grid>
                                     </ScrollViewer>
                                 </TabItem>

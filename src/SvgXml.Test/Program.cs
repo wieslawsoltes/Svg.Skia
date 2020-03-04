@@ -163,7 +163,7 @@ namespace SvgXml.Test
                 Print(ex);
             }
 #endif
-#if true
+#if false
             foreach (var result in results)
             {
                 write($"# {result.path.FullName}");

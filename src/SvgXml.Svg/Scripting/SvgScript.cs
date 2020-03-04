@@ -9,14 +9,14 @@ namespace Svg
         ISvgResourcesAttributes
     {
         [Attribute("type", SvgNamespace)]
-        public string? Type
+        public override string? Type
         {
             get => this.GetAttribute("type");
             set => this.SetAttribute("type", value);
         }
 
         [Attribute("href", XLinkNamespace)]
-        public string? Href
+        public override string? Href
         {
             get => this.GetAttribute("href");
             set => this.SetAttribute("href", value);

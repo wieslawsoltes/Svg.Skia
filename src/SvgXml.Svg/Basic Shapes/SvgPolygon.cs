@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("polygon")]
-    public class SvgPolygon : SvgMarkerElement,
+    public class SvgPolygon : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
@@ -12,6 +12,17 @@ namespace Svg
         ISvgResourcesAttributes,
         ISvgTransformableAttributes
     {
+        // ISvgTransformableAttributes
+
+        [Attribute("transform", SvgNamespace)]
+        public string? Transform
+        {
+            get => this.GetAttribute("transform", false, null);
+            set => this.SetAttribute("transform", value);
+        }
+
+        // SvgPolygon
+
         [Attribute("points", SvgNamespace)]
         public string? Points
         {

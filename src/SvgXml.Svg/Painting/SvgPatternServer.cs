@@ -75,7 +75,7 @@ namespace Svg
         }
 
         [Attribute("href", XLinkNamespace)]
-        public string? Href
+        public override string? Href
         {
             get => this.GetAttribute("href", false, null);
             set => this.SetAttribute("href", value);

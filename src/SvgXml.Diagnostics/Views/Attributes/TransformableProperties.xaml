@@ -17,6 +17,6 @@
         </Grid.RowDefinitions>
         <!-- Transform -->
         <TextBlock Text="Transform" Grid.Row="0" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgTransformableAttributes.Transform)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding Transform}" Grid.Row="0" Grid.Column="1" Margin="2" />
     </Grid>
 </UserControl>

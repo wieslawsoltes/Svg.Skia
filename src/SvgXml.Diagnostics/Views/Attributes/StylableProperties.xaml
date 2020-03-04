@@ -18,9 +18,9 @@
         </Grid.RowDefinitions>
         <!-- Class -->
         <TextBlock Text="Class" Grid.Row="0" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgStylableAttributes.Class)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding Class}" Grid.Row="0" Grid.Column="1" Margin="2" />
         <!-- Style -->
         <TextBlock Text="Style" Grid.Row="1" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgStylableAttributes.Style)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding Style}" Grid.Row="1" Grid.Column="1" Margin="2" />
     </Grid>
 </UserControl>

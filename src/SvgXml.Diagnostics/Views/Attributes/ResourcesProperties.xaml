@@ -17,6 +17,6 @@
         </Grid.RowDefinitions>
         <!-- ExternalResourcesRequired -->
         <TextBlock Text="ExternalResourcesRequired" Grid.Row="0" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgResourcesAttributes.ExternalResourcesRequired)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding ExternalResourcesRequired}" Grid.Row="0" Grid.Column="1" Margin="2" />
     </Grid>
 </UserControl>

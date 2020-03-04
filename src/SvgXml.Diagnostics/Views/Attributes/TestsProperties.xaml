@@ -19,12 +19,12 @@
         </Grid.RowDefinitions>
         <!-- RequiredFeatures -->
         <TextBlock Text="RequiredFeatures" Grid.Row="0" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgTestsAttributes.RequiredFeatures)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding RequiredFeatures}" Grid.Row="0" Grid.Column="1" Margin="2" />
         <!-- RequiredExtensions -->
         <TextBlock Text="RequiredExtensions" Grid.Row="1" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgTestsAttributes.RequiredExtensions)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding RequiredExtensions}" Grid.Row="1" Grid.Column="1" Margin="2" />
         <!-- SystemLanguage -->
         <TextBlock Text="SystemLanguage" Grid.Row="2" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgTestsAttributes.SystemLanguage)}" Grid.Row="2" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding SystemLanguage}" Grid.Row="2" Grid.Column="1" Margin="2" />
     </Grid>
 </UserControl>

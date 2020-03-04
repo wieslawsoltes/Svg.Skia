@@ -3,7 +3,7 @@
 namespace Svg
 {
     [Element("switch")]
-    public class SvgSwitch : SvgVisualElement,
+    public class SvgSwitch : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
@@ -11,5 +11,15 @@ namespace Svg
         ISvgResourcesAttributes,
         ISvgTransformableAttributes
     {
+        // ISvgTransformableAttributes
+
+        [Attribute("transform", SvgNamespace)]
+        public string? Transform
+        {
+            get => this.GetAttribute("transform", false, null);
+            set => this.SetAttribute("transform", value);
+        }
+
+        // SvgSwitch
     }
 }

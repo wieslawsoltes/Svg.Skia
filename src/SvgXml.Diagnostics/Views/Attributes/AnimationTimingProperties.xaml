@@ -25,30 +25,30 @@
         </Grid.RowDefinitions>
         <!-- Begin -->
         <TextBlock Text="Begin" Grid.Row="0" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Begin)}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding Begin}" Grid.Row="0" Grid.Column="1" Margin="2" />
         <!-- Dur -->
         <TextBlock Text="Dur" Grid.Row="1" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Dur)}" Grid.Row="1" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding Dur}" Grid.Row="1" Grid.Column="1" Margin="2" />
         <!-- End -->
         <TextBlock Text="End" Grid.Row="2" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.End)}" Grid.Row="2" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding End}" Grid.Row="2" Grid.Column="1" Margin="2" />
         <!-- Min -->
         <TextBlock Text="Min" Grid.Row="3" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Min)}" Grid.Row="3" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding Min}" Grid.Row="3" Grid.Column="1" Margin="2" />
         <!-- Max -->
         <TextBlock Text="Max" Grid.Row="4" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Max)}" Grid.Row="4" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding Max}" Grid.Row="4" Grid.Column="1" Margin="2" />
         <!-- Restart -->
         <TextBlock Text="Restart" Grid.Row="5" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Restart)}" Grid.Row="5" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding Restart}" Grid.Row="5" Grid.Column="1" Margin="2" />
         <!-- RepeatCount -->
         <TextBlock Text="RepeatCount" Grid.Row="6" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.RepeatCount)}" Grid.Row="6" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding RepeatCount}" Grid.Row="6" Grid.Column="1" Margin="2" />
         <!-- RepeatDur -->
         <TextBlock Text="RepeatDur" Grid.Row="7" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.RepeatDur)}" Grid.Row="7" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding RepeatDur}" Grid.Row="7" Grid.Column="1" Margin="2" />
         <!-- Fill -->
         <TextBlock Text="Fill" Grid.Row="8" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding (Svg:ISvgAnimationTimingAttributes.Fill)}" Grid.Row="8" Grid.Column="1" Margin="2" />
+        <TextBox Text="{Binding Fill}" Grid.Row="8" Grid.Column="1" Margin="2" />
     </Grid>
 </UserControl>

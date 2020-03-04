@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("image")]
-    public class SvgImage : SvgVisualElement,
+    public class SvgImage : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
@@ -12,6 +12,17 @@ namespace Svg
         ISvgResourcesAttributes,
         ISvgTransformableAttributes
     {
+        // ISvgTransformableAttributes
+
+        [Attribute("transform", SvgNamespace)]
+        public string? Transform
+        {
+            get => this.GetAttribute("transform", false, null);
+            set => this.SetAttribute("transform", value);
+        }
+
+        // SvgImage
+
         [Attribute("preserveAspectRatio", SvgNamespace)]
         public string? AspectRatio
         {
@@ -48,7 +59,7 @@ namespace Svg
         }
 
         [Attribute("href", XLinkNamespace)]
-        public string? Href
+        public override string? Href
         {
             get => this.GetAttribute("href");
             set => this.SetAttribute("href", value);

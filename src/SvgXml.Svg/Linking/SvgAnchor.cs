@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("a")]
-    public class SvgAnchor : SvgElement,
+    public class SvgAnchor : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
@@ -12,22 +12,33 @@ namespace Svg
         ISvgResourcesAttributes,
         ISvgTransformableAttributes
     {
+        // ISvgTransformableAttributes
+
+        [Attribute("transform", SvgNamespace)]
+        public string? Transform
+        {
+            get => this.GetAttribute("transform", false, null);
+            set => this.SetAttribute("transform", value);
+        }
+
+        // SvgAnchor
+
         [Attribute("href", XLinkNamespace)]
-        public string? Href
+        public override string? Href
         {
             get => this.GetAttribute("href");
             set => this.SetAttribute("href", value);
         }
 
         [Attribute("show", XLinkNamespace)]
-        public string? Show
+        public override string? Show
         {
             get => this.GetAttribute("show");
             set => this.SetAttribute("show", value);
         }
 
         [Attribute("actuate", XLinkNamespace)]
-        public string? Actuate
+        public override string? Actuate
         {
             get => this.GetAttribute("actuate");
             set => this.SetAttribute("actuate", value);

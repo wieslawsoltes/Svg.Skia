@@ -3,7 +3,7 @@ using Xml;
 
 namespace Svg
 {
-    public abstract class SvgTextContent : SvgVisualElement
+    public abstract class SvgTextContent : SvgStylableElement
     {
         [Attribute("lengthAdjust", SvgNamespace)]
         public string? LengthAdjust

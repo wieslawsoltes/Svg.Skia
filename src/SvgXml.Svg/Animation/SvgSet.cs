@@ -14,7 +14,7 @@ namespace Svg
         ISvgAnimationTimingAttributes
     {
         [Attribute("to", SvgNamespace)]
-        public string? To
+        public override string? To
         {
             get => this.GetAttribute("to");
             set => this.SetAttribute("to", value);

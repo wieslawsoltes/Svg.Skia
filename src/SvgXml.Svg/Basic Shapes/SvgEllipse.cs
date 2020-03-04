@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("ellipse")]
-    public class SvgEllipse : SvgPathBasedElement,
+    public class SvgEllipse : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgTestsAttributes,
@@ -12,6 +12,17 @@ namespace Svg
         ISvgResourcesAttributes,
         ISvgTransformableAttributes
     {
+        // ISvgTransformableAttributes
+
+        [Attribute("transform", SvgNamespace)]
+        public string? Transform
+        {
+            get => this.GetAttribute("transform", false, null);
+            set => this.SetAttribute("transform", value);
+        }
+
+        // SvgEllipse
+
         [Attribute("cx", SvgNamespace)]
         public string? CenterX
         {

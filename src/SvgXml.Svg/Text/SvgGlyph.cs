@@ -4,7 +4,7 @@ using Xml;
 namespace Svg
 {
     [Element("glyph")]
-    public class SvgGlyph : SvgPathBasedElement,
+    public class SvgGlyph : SvgStylableElement,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
@@ -73,7 +73,7 @@ namespace Svg
         }
 
         [Attribute("lang", SvgNamespace)]
-        public string? Lang
+        public string? LanguageCodes
         {
             get => this.GetAttribute("lang");
             set => this.SetAttribute("lang", value);
@@ -121,7 +121,7 @@ namespace Svg
             }
             if (Lang != null)
             {
-                write($"{indent}{nameof(Lang)}: \"{Lang}\"");
+                write($"{indent}{nameof(LanguageCodes)}: \"{LanguageCodes}\"");
             }
         }
     }

@@ -1,6 +1,6 @@
 ﻿namespace Svg
 {
-    public abstract class SvgPaintServer : SvgElement
+    public abstract class SvgPaintServer : SvgStylableElement
     {
     }
 }
