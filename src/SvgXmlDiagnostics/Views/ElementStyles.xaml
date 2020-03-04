@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:SvgXmlDiagnostics.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid >
+    <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="30*"/>
             <ColumnDefinition Width="Auto"/>
@@ -35,5 +35,4 @@
             </ListBox.ItemTemplate>
         </ListBox>
     </Grid>
-
 </UserControl>
