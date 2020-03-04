@@ -6,7 +6,7 @@ namespace Svg.FilterEffects
     public abstract class SvgComponentTransferFunction : SvgElement
     {
         [Attribute("type", SvgNamespace)]
-        public string? Type
+        public override string? Type
         {
             get => this.GetAttribute("type");
             set => this.SetAttribute("type", value);

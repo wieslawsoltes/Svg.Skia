@@ -9,7 +9,7 @@ namespace Svg
         ISvgResourcesAttributes
     {
         [Attribute("href", XLinkNamespace)]
-        public string? Href
+        public override string? Href
         {
             get => this.GetAttribute("href");
             set => this.SetAttribute("href", value);
