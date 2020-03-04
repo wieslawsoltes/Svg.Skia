@@ -20,7 +20,7 @@
             </DataTemplate>
             <!-- Xml -->
             <DataTemplate DataType="{x:Type Xml:ContentElement}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Content">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -40,7 +40,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Xml:UnknownElement}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Unknown">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -61,7 +61,7 @@
             </DataTemplate>
             <!-- Animation -->
             <DataTemplate DataType="{x:Type Svg:SvgAnimate}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Animate">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -94,7 +94,7 @@
                         </ScrollViewer>
                     </TabItem>
                     <TabItem Header="Animation">
-                        <TabControl>
+                        <TabControl Margin="2">
                             <TabItem Header="Event">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                     <attributes:AnimationEventProperties/>
@@ -125,7 +125,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgAnimateColor}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="AnimateColor">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -158,7 +158,7 @@
                         </ScrollViewer>
                     </TabItem>
                     <TabItem Header="Animation">
-                        <TabControl>
+                        <TabControl Margin="2">
                             <TabItem Header="Event">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                     <attributes:AnimationEventProperties/>
@@ -189,7 +189,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgAnimateMotion}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="AnimateMotion">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -244,7 +244,7 @@
                         </ScrollViewer>
                     </TabItem>
                     <TabItem Header="Animation">
-                        <TabControl>
+                        <TabControl Margin="2">
                             <TabItem Header="Event">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                     <attributes:AnimationEventProperties/>
@@ -270,7 +270,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgAnimateTransform}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="AnimateTransform">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -308,7 +308,7 @@
                         </ScrollViewer>
                     </TabItem>
                     <TabItem Header="Animation">
-                        <TabControl>
+                        <TabControl Margin="2">
                             <TabItem Header="Event">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                     <attributes:AnimationEventProperties/>
@@ -339,7 +339,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgMotionPath}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="MotionPath">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -369,7 +369,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgSet}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Set">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -407,7 +407,7 @@
                         </ScrollViewer>
                     </TabItem>
                     <TabItem Header="Animation">
-                        <TabControl>
+                        <TabControl Margin="2">
                             <TabItem Header="Event">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                     <attributes:AnimationEventProperties/>
@@ -429,7 +429,7 @@
             </DataTemplate>
             <!-- Basic Shapes -->
             <DataTemplate DataType="{x:Type Svg:SvgCircle}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Circle">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -487,7 +487,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgEllipse}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Ellipse">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -549,7 +549,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgLine}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Line">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -611,7 +611,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgPolygon}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Polygon">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -661,7 +661,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgPolyline}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Polyline">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -711,7 +711,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgRectangle}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Rectangle">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -782,7 +782,7 @@
             </DataTemplate>
             <!-- Clipping and Masking -->
             <DataTemplate DataType="{x:Type Svg:SvgClipPath}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="ClipPath">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -832,7 +832,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgMask}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Mask">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -898,7 +898,7 @@
             </DataTemplate>
             <!-- Color -->
             <DataTemplate DataType="{x:Type Svg:SvgColorProfile}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="ColorProfile">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -936,7 +936,7 @@
             </DataTemplate>
             <!-- Document Structure -->
             <DataTemplate DataType="{x:Type Svg:SvgDefinitionList}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="DefinitionList">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -976,7 +976,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgDescription}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Description">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -996,7 +996,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgDocumentMetadata}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="DocumentMetadata">
                         <Grid Margin="2">
                         </Grid>
@@ -1009,7 +1009,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgFragment}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Fragment">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -1094,7 +1094,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgGroup}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Group">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -1134,7 +1134,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgImage}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Image">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -1204,7 +1204,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgSwitch}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Switch">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -1244,7 +1244,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgSymbol}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Symbol">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -1288,7 +1288,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgTitle}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Title">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -1308,7 +1308,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgUse}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Use">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -1375,7 +1375,7 @@
             </DataTemplate>
             <!-- Extensibility -->
             <DataTemplate DataType="{x:Type Svg:SvgForeignObject}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="ForeignObject">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -1438,7 +1438,7 @@
             </DataTemplate>
             <!-- Filter Effects -->
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFilter}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Filter">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -1507,7 +1507,7 @@
             </DataTemplate>
             <!-- Filter Effects Primitives -->
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgBlend}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Blend">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -1570,7 +1570,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgColourMatrix}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="ColourMatrix">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -1633,7 +1633,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgComponentTransfer}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="ComponentTransfer">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -1688,7 +1688,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgComposite}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Composite">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -1767,7 +1767,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgConvolveMatrix}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="ConvolveMatrix">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -1858,7 +1858,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgDiffuseLighting}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="DiffuseLighting">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -1925,7 +1925,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgDisplacementMap}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="DisplacementMap">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -1996,7 +1996,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgDistantLight}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="DistantLight">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2025,7 +2025,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFlood}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Flood">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2076,7 +2076,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncA}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="FuncA">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2125,7 +2125,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncB}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="FuncB">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2174,7 +2174,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncG}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="FuncG">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2223,7 +2223,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgFuncR}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="FuncR">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2272,7 +2272,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgGaussianBlur}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="GaussianBlur">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2331,7 +2331,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgImage}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Image">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2395,7 +2395,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgMerge}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Merge">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2446,7 +2446,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgMergeNode}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="MergeNode">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2471,7 +2471,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgMorphology}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Morphology">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2534,7 +2534,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgOffset}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Offset">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2597,7 +2597,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgPointLight}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="PointLight">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2630,7 +2630,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgSpecularLighting}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="SpecularLighting">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2701,7 +2701,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgSpotLight}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="SpotLight">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2754,7 +2754,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgTile}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Tile">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2809,7 +2809,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgTurbulence}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Turbulence">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2881,7 +2881,7 @@
             </DataTemplate>
             <!-- Interactivity -->
             <DataTemplate DataType="{x:Type Svg:SvgCursor}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Cursor">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2925,7 +2925,7 @@
             </DataTemplate>
             <!-- Linking -->
             <DataTemplate DataType="{x:Type Svg:SvgAnchor}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Anchor">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -2987,7 +2987,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgView}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="View">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3030,7 +3030,7 @@
             </DataTemplate>
             <!-- Painting -->
             <DataTemplate DataType="{x:Type Svg:SvgGradientStop}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="GradientStop">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3073,7 +3073,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgLinearGradientServer}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="LinearGradientServer">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3141,7 +3141,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgMarker}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Marker">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3209,7 +3209,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgPatternServer}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="PatternServer">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3290,7 +3290,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgRadialGradientServer}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="RadialGradientServer">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3363,7 +3363,7 @@
             </DataTemplate>
             <!-- Paths -->
             <DataTemplate DataType="{x:Type Svg:SvgPath}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Path">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3418,7 +3418,7 @@
             </DataTemplate>
             <!-- Scripting -->
             <DataTemplate DataType="{x:Type Svg:SvgScript}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Script">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3453,7 +3453,7 @@
             </DataTemplate>
             <!-- Styling -->
             <DataTemplate DataType="{x:Type Svg:SvgStyle}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Style">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3487,7 +3487,7 @@
             </DataTemplate>
             <!-- Text -->
             <DataTemplate DataType="{x:Type Svg:SvgAltGlyph}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="AltGlyph">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3560,7 +3560,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgAltGlyphDef}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="AltGlyphDef">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3575,7 +3575,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgAltGlyphItem}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="AltGlyphItem">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3590,7 +3590,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgFont}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Font">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3650,7 +3650,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgFontFace}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="FontFace">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3803,7 +3803,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgFontFaceFormat}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="FontFaceFormat">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3828,7 +3828,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgFontFaceName}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="FontFaceName">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3853,7 +3853,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgFontFaceSrc}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="FontFaceSrc">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3868,7 +3868,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgFontFaceUri}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="FontFaceUri">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3893,7 +3893,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgGlyph}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Glyph">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -3964,7 +3964,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgGlyphRef}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="GlyphRef">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -4023,7 +4023,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgHorizontalKern}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="HorizontalKern">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -4064,7 +4064,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgMissingGlyph}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="MissingGlyph">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -4089,7 +4089,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgText}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="Text">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -4163,7 +4163,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgTextPath}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="TextPath">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -4228,7 +4228,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgTextRef}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="TextRef">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -4300,7 +4300,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgTextSpan}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="TextSpan">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
@@ -4368,7 +4368,7 @@
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type Svg:SvgVerticalKern}">
-                <TabControl>
+                <TabControl Margin="2">
                     <TabItem Header="VerticalKern">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="2">
