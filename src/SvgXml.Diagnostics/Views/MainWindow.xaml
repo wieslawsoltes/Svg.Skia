@@ -16,7 +16,6 @@
         UseLayoutRounding="True"
         Icon="/Assets/SvgXml.Diagnostics.ico"
         Title="SvgXml Diagnostics"
-        Background="Transparent"
         DragDrop.AllowDrop="True">
     <Design.DataContext>
         <vm:MainWindowViewModel/>
