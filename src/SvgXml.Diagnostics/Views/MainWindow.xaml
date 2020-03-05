@@ -14,8 +14,9 @@
         WindowStartupLocation="CenterScreen"
         Width="1100" Height="600"
         UseLayoutRounding="True"
-        Icon="/Assets/avalonia-logo.ico"
-        Title="SvgXml Diagnostics">
+        Icon="/Assets/SvgXml.Diagnostics.ico"
+        Title="SvgXml Diagnostics"
+        DragDrop.AllowDrop="True">
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>

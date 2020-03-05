@@ -4,10 +4,12 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
@@ -34,15 +36,75 @@ namespace SvgXml.Diagnostics.Views
     {
         private volatile bool _isProcessing = false;
 
-
         public MainWindow()
         {
             InitializeComponent();
+            AddHandler(DragDrop.DropEvent, Drop);
+            AddHandler(DragDrop.DragOverEvent, DragOver);
         }
 
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
+        }
+
+        private async Task Open(string[] paths)
+        {
+            foreach (var path in paths)
+            {
+                var svgDocument = SvgDocument.Open(path);
+                if (svgDocument != null)
+                {
+                    svgDocument.LoadStyles();
+                    var item = new Item()
+                    {
+                        Name = Path.GetFileNameWithoutExtension(path),
+                        Path = path,
+                        Document = svgDocument
+                    };
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        if (DataContext is MainWindowViewModel mainWindowViewModel)
+                        {
+                            mainWindowViewModel.Items.Add(item);
+                        }
+                    });
+                }
+            }
+        }
+
+        private void DragOver(object sender, DragEventArgs e)
+        {
+            e.DragEffects = e.DragEffects & (DragDropEffects.Copy | DragDropEffects.Link);
+            if (!e.Data.Contains(DataFormats.FileNames))
+            {
+                e.DragEffects = DragDropEffects.None;
+            }
+        }
+
+        private async void Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.Contains(DataFormats.FileNames))
+            {
+                var paths = e.Data.GetFileNames().ToArray();
+                _isProcessing = true;
+                await Task.Factory.StartNew(async () =>
+                {
+                    try
+                    {
+                        await Open(paths);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                        Debug.WriteLine(ex.StackTrace);
+                    }
+                    finally
+                    {
+                        _isProcessing = false;
+                    }
+                });
+            }
         }
 
         private async void FileOpen_Click(object sender, RoutedEventArgs e)
@@ -67,32 +129,11 @@ namespace SvgXml.Diagnostics.Views
             }
 
             _isProcessing = true;
-
             await Task.Factory.StartNew(async () =>
             {
                 try
                 {
-                    foreach (var path in paths)
-                    {
-                        var svgDocument = SvgDocument.Open(path);
-                        if (svgDocument != null)
-                        {
-                            svgDocument.LoadStyles();
-                            var item = new Item()
-                            {
-                                Name = Path.GetFileNameWithoutExtension(path),
-                                Path = path,
-                                Document = svgDocument
-                            };
-                            await Dispatcher.UIThread.InvokeAsync(() =>
-                            {
-                                if (DataContext is MainWindowViewModel mainWindowViewModel)
-                                {
-                                    mainWindowViewModel.Items.Add(item);
-                                }
-                            });
-                        }
-                    }
+                    await Open(paths);
                 }
                 catch (Exception ex)
                 {
