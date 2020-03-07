@@ -88,6 +88,47 @@ namespace Svg
             set => this.SetAttribute("contentStyleType", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "x":
+                    X = value;
+                    break;
+                case "y":
+                    Y = value;
+                    break;
+                case "width":
+                    Width = value;
+                    break;
+                case "height":
+                    Height = value;
+                    break;
+                case "viewBox":
+                    ViewBox = value;
+                    break;
+                case "preserveAspectRatio":
+                    AspectRatio = value;
+                    break;
+                case "zoomAndPan":
+                    ZoomAndPan = value;
+                    break;
+                case "version":
+                    Version = value;
+                    break;
+                case "baseProfile":
+                    BaseProfile = value;
+                    break;
+                case "contentScriptType":
+                    ContentScriptType = value;
+                    break;
+                case "contentStyleType":
+                    ContentStyleType = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

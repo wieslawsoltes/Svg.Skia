@@ -21,5 +21,17 @@ namespace Svg
         }
 
         // SvgDefinitionList
+
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                // ISvgTransformableAttributes
+                case "transform":
+                    Transform = value;
+                    break;
+            }
+        }
     }
 }
