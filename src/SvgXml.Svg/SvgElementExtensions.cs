@@ -8,7 +8,7 @@ namespace Xml
         {
             bool inherit = false;
 
-            if (element.Attributes.TryGetValue(key, out var value))
+            if (element.TryGetAttribute(key, out var value))
             {
                 inherit = string.Equals(value?.ToString(), "inherit", StringComparison.OrdinalIgnoreCase);
                 if (!inherit)
