@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Xml
 {
@@ -97,6 +98,22 @@ namespace Xml
             }
 
             rules[specificity] = value;
+        }
+
+        public void FlushStyles(bool children = false)
+        {
+            foreach (var style in Styles)
+            {
+                SetPropertyValue(style.Key, style.Value.Last().Value);
+            }
+
+            if (children)
+            {
+                foreach (var child in Children)
+                {
+                    child.FlushStyles(children);
+                }
+            }
         }
 
         public IEnumerable<Element> Descendants()
