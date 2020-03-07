@@ -44,6 +44,29 @@ namespace Svg.FilterEffects
             set => this.SetAttribute("type", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "baseFrequency":
+                    BaseFrequency = value;
+                    break;
+                case "numOctaves":
+                    NumOctaves = value;
+                    break;
+                case "seed":
+                    Seed = value;
+                    break;
+                case "stitchTiles":
+                    StitchTiles = value;
+                    break;
+                case "type":
+                    Type = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

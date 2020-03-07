@@ -37,6 +37,26 @@ namespace Svg.FilterEffects
             set => this.SetAttribute("kernelUnitLength", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "in":
+                    Input = value;
+                    break;
+                case "surfaceScale":
+                    SurfaceScale = value;
+                    break;
+                case "diffuseConstant":
+                    DiffuseConstant = value;
+                    break;
+                case "kernelUnitLength":
+                    KernelUnitLength = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

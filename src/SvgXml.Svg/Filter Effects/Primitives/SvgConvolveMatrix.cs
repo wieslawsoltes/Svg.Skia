@@ -79,6 +79,44 @@ namespace Svg.FilterEffects
             set => this.SetAttribute("preserveAlpha", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "in":
+                    Input = value;
+                    break;
+                case "order":
+                    Order = value;
+                    break;
+                case "kernelMatrix":
+                    KernelMatrix = value;
+                    break;
+                case "divisor":
+                    Divisor = value;
+                    break;
+                case "bias":
+                    Bias = value;
+                    break;
+                case "targetX":
+                    TargetX = value;
+                    break;
+                case "targetY":
+                    TargetY = value;
+                    break;
+                case "edgeMode":
+                    EdgeMode = value;
+                    break;
+                case "kernelUnitLength":
+                    KernelUnitLength = value;
+                    break;
+                case "preserveAlpha":
+                    PreserveAlpha = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

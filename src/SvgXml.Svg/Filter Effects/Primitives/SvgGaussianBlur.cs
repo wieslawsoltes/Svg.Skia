@@ -1,7 +1,6 @@
 ﻿using System;
 using Xml;
 
-
 namespace Svg.FilterEffects
 {
     [Element("feGaussianBlur")]
@@ -22,6 +21,20 @@ namespace Svg.FilterEffects
         {
             get => this.GetAttribute("stdDeviation");
             set => this.SetAttribute("stdDeviation", value);
+        }
+
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "in":
+                    Input = value;
+                    break;
+                case "stdDeviation":
+                    StdDeviation = value;
+                    break;
+            }
         }
 
         public override void Print(Action<string> write, string indent)

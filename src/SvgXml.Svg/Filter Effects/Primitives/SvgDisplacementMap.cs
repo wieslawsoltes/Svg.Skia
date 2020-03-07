@@ -44,6 +44,29 @@ namespace Svg.FilterEffects
             set => this.SetAttribute("yChannelSelector", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "in":
+                    Input = value;
+                    break;
+                case "in2":
+                    Input2 = value;
+                    break;
+                case "scale":
+                    Scale = value;
+                    break;
+                case "xChannelSelector":
+                    XChannelSelector = value;
+                    break;
+                case "yChannelSelector":
+                    YChannelSelector = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

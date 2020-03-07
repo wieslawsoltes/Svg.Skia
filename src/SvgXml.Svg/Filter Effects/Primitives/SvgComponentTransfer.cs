@@ -54,6 +54,35 @@ namespace Svg.FilterEffects
             set => this.SetAttribute("offset", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "type":
+                    Type = value;
+                    break;
+                case "tableValues":
+                    TableValues = value;
+                    break;
+                case "slope":
+                    Slope = value;
+                    break;
+                case "intercept":
+                    Intercept = value;
+                    break;
+                case "amplitude":
+                    Amplitude = value;
+                    break;
+                case "exponent":
+                    Exponent = value;
+                    break;
+                case "offset":
+                    Offset = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);
@@ -100,6 +129,17 @@ namespace Svg.FilterEffects
         {
             get => this.GetAttribute("in");
             set => this.SetAttribute("in", value);
+        }
+
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "in":
+                    Input = value;
+                    break;
+            }
         }
 
         public override void Print(Action<string> write, string indent)
