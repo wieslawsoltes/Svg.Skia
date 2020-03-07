@@ -56,6 +56,7 @@ namespace SvgXml.Diagnostics.Views
                 if (svgDocument != null)
                 {
                     svgDocument.LoadStyles();
+                    svgDocument.FlushStyles(true);
                     var item = new Item()
                     {
                         Name = Path.GetFileNameWithoutExtension(path),
