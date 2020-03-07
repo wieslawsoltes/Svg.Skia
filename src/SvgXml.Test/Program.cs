@@ -129,11 +129,12 @@ namespace SvgXml.Test
             {
                 try
                 {
-                    var document = SvgDocument.Open(path.FullName);
-                    if (document != null)
+                    var svgDocument = SvgDocument.Open(path.FullName);
+                    if (svgDocument != null)
                     {
-                        document.LoadStyles();
-                        results.Add((path, document));
+                        svgDocument.LoadStyles();
+                        svgDocument.FlushStyles(true);
+                        results.Add((path, svgDocument));
                     }
                 }
                 catch (Exception ex)
