@@ -183,6 +183,91 @@ namespace Svg
             set => this.SetAttribute("by", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                // ISvgAnimationAdditionAttributes
+                case "additive":
+                    Additive = value;
+                    break;
+                case "accumulate":
+                    Accumulate = value;
+                    break;
+                // ISvgAnimationAttributeTargetAttributes
+                case "attributeType":
+                    AttributeType = value;
+                    break;
+                case "attributeName":
+                    AttributeName = value;
+                    break;
+                // ISvgAnimationEventAttributes
+                case "onbegin":
+                    OnBegin = value;
+                    break;
+                case "onend":
+                    OnEnd = value;
+                    break;
+                case "onrepeat":
+                    OnRepeat = value;
+                    break;
+                case "onload":
+                    OnLoad = value;
+                    break;
+                // ISvgAnimationTimingAttributes
+                case "begin":
+                    Begin = value;
+                    break;
+                case "dur":
+                    Dur = value;
+                    break;
+                case "end":
+                    End = value;
+                    break;
+                case "min":
+                    Min = value;
+                    break;
+                case "max":
+                    Max = value;
+                    break;
+                case "restart":
+                    Restart = value;
+                    break;
+                case "repeatCount":
+                    RepeatCount = value;
+                    break;
+                case "repeatDur":
+                    RepeatDur = value;
+                    break;
+                case "fill":
+                    Fill = value;
+                    break;
+                // ISvgAnimationValueAttributes
+                case "calcMode":
+                    CalcMode = value;
+                    break;
+                case "values":
+                    Values = value;
+                    break;
+                case "keyTimes":
+                    KeyTimes = value;
+                    break;
+                case "keySplines":
+                    KeySplines = value;
+                    break;
+                case "from":
+                    From = value;
+                    break;
+                case "to":
+                    To = value;
+                    break;
+                case "by":
+                    By = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);
