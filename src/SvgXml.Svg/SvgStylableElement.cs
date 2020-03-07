@@ -438,5 +438,198 @@ namespace Svg
             get => this.GetAttribute("writing-mode", true, "lr-tb");
             set => this.SetAttribute("writing-mode", value);
         }
+
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                // ISvgStylableAttributes
+                case "class":
+                    Class = value;
+                    break;
+                case "style":
+                    Style = value;
+                    break;
+                // ISvgPresentationAttributes
+                case "alignment-baseline":
+                    AlignmentBaseline = value;
+                    break;
+                case "baseline-shift":
+                    BaselineShift = value;
+                    break;
+                case "clip":
+                    Clip = value;
+                    break;
+                case "clip-path":
+                    ClipPath = value;
+                    break;
+                case "clip-rule":
+                    ClipRule = value;
+                    break;
+                case "color":
+                    Color = value;
+                    break;
+                case "color-interpolation":
+                    ColorInterpolation = value;
+                    break;
+                case "color-interpolation-filters":
+                    ColorInterpolationFilters = value;
+                    break;
+                case "color-profile":
+                    ColorProfile = value;
+                    break;
+                case "color-rendering":
+                    ColorRendering = value;
+                    break;
+                case "cursor":
+                    Cursor = value;
+                    break;
+                case "direction":
+                    Direction = value;
+                    break;
+                case "display":
+                    Display = value;
+                    break;
+                case "dominant-baseline":
+                    DominantBaseline = value;
+                    break;
+                case "enable-background":
+                    EnableBackground = value;
+                    break;
+                case "fill":
+                    Fill = value;
+                    break;
+                case "fill-opacity":
+                    FillOpacity = value;
+                    break;
+                case "fill-rule":
+                    FillRule = value;
+                    break;
+                case "filter":
+                    Filter = value;
+                    break;
+                case "flood-color":
+                    FloodColor = value;
+                    break;
+                case "flood-opacity":
+                    FloodOpacity = value;
+                    break;
+                case "font-family":
+                    FontFamily = value;
+                    break;
+                case "font-size":
+                    FontSize = value;
+                    break;
+                case "font-size-adjust":
+                    FontSizeAdjust = value;
+                    break;
+                case "font-stretch":
+                    FontStretch = value;
+                    break;
+                case "font-style":
+                    FontStyle = value;
+                    break;
+                case "font-variant":
+                    FontVariant = value;
+                    break;
+                case "font-weight":
+                    FontWeight = value;
+                    break;
+                case "glyph-orientation-horizontal":
+                    GlyphOrientationHorizontal = value;
+                    break;
+                case "glyph-orientation-vertical":
+                    GlyphOrientationVertical = value;
+                    break;
+                case "image-rendering":
+                    ImageRendering = value;
+                    break;
+                case "kerning":
+                    Kerning = value;
+                    break;
+                case "letter-spacing":
+                    LetterSpacing = value;
+                    break;
+                case "lighting-color":
+                    LightingColor = value;
+                    break;
+                case "marker-end":
+                    MarkerEnd = value;
+                    break;
+                case "marker-mid":
+                    MarkerMid = value;
+                    break;
+                case "marker-start":
+                    MarkerStart = value;
+                    break;
+                case "mask":
+                    Mask = value;
+                    break;
+                case "opacity":
+                    Opacity = value;
+                    break;
+                case "overflow":
+                    Overflow = value;
+                    break;
+                case "pointer-events":
+                    PointerEvents = value;
+                    break;
+                case "shape-rendering":
+                    ShapeRendering = value;
+                    break;
+                case "stop-color":
+                    StopColor = value;
+                    break;
+                case "stop-opacity":
+                    StopOpacity = value;
+                    break;
+                case "stroke":
+                    Stroke = value;
+                    break;
+                case "stroke-dasharray":
+                    StrokeDasharray = value;
+                    break;
+                case "stroke-dashoffset":
+                    StrokeDashoffset = value;
+                    break;
+                case "stroke-linecap":
+                    StrokeLinecap = value;
+                    break;
+                case "stroke-linejoin":
+                    SrokeLinejoin = value;
+                    break;
+                case "stroke-miterlimit":
+                    StrokeMiterlimit = value;
+                    break;
+                case "stroke-opacity":
+                    StrokeOpacity = value;
+                    break;
+                case "stroke-width":
+                    StrokeWidth = value;
+                    break;
+                case "text-anchor":
+                    TextAnchor = value;
+                    break;
+                case "text-decoration":
+                    TextDecoration = value;
+                    break;
+                case "text-rendering":
+                    TextRendering = value;
+                    break;
+                case "unicode-bidi":
+                    UnicodeBidi = value;
+                    break;
+                case "visibility":
+                    Visibility = value;
+                    break;
+                case "word-spacing":
+                    WordSpacing = value;
+                    break;
+                case "writing-mode":
+                    WritingMode = value;
+                    break;
+            }
+        }
     }
 }
