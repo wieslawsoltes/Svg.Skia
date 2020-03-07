@@ -21,6 +21,20 @@ namespace Svg.FilterEffects
             set => this.SetAttribute("elevation", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "azimuth":
+                    Azimuth = value;
+                    break;
+                case "elevation":
+                    Elevation = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

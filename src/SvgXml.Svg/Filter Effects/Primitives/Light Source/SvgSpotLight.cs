@@ -63,6 +63,38 @@ namespace Svg.FilterEffects
             set => this.SetAttribute("limitingConeAngle", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "x":
+                    X = value;
+                    break;
+                case "y":
+                    Y = value;
+                    break;
+                case "z":
+                    Z = value;
+                    break;
+                case "pointsAtX":
+                    PointsAtX = value;
+                    break;
+                case "pointsAtY":
+                    PointsAtY = value;
+                    break;
+                case "pointsAtZ":
+                    PointsAtZ = value;
+                    break;
+                case "specularExponent":
+                    SpecularExponent = value;
+                    break;
+                case "limitingConeAngle":
+                    LimitingConeAngle = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

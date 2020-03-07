@@ -28,6 +28,23 @@ namespace Svg.FilterEffects
             set => this.SetAttribute("z", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "x":
+                    X = value;
+                    break;
+                case "y":
+                    Y = value;
+                    break;
+                case "z":
+                    Z = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);
