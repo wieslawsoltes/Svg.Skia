@@ -124,6 +124,62 @@ namespace Svg
             set => this.SetAttribute("title", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            switch (key)
+            {
+                // ISvgCommonAttributes
+                case "id":
+                    Id = value;
+                    break;
+                case "base":
+                    Base = value;
+                    break;
+                case "lang":
+                    Lang = value;
+                    break;
+                case "space":
+                    Space = value;
+                    break;
+                // ISvgResourcesAttributes
+                case "externalResourcesRequired":
+                    ExternalResourcesRequired = value;
+                    break;
+                // ISvgTestsAttributes
+                case "requiredFeatures":
+                    RequiredFeatures = value;
+                    break;
+                case "requiredExtensions":
+                    RequiredExtensions = value;
+                    break;
+                case "systemLanguage":
+                    SystemLanguage = value;
+                    break;
+                // ISvgXLinkAttributes
+                case "href":
+                    Href = value;
+                    break;
+                case "show":
+                    Show = value;
+                    break;
+                case "actuate":
+                    Actuate = value;
+                    break;
+                case "type":
+                    Type = value;
+                    break;
+                case "role":
+                    Role = value;
+                    break;
+                case "arcrole":
+                    Arcrole = value;
+                    break;
+                case "title":
+                    Title = value;
+                    break;
+            }
+        }
+
         // Print
 
         public virtual void Print(Action<string> write, string indent)
