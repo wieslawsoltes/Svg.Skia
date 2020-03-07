@@ -30,6 +30,22 @@ namespace Svg
             set => this.SetAttribute("points", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                // ISvgTransformableAttributes
+                case "transform":
+                    Transform = value;
+                    break;
+                // SvgPolygon
+                case "points":
+                    Points = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

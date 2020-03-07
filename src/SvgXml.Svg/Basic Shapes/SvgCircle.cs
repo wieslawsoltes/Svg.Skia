@@ -44,6 +44,28 @@ namespace Svg
             set => this.SetAttribute("r", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                // ISvgTransformableAttributes
+                case "transform":
+                    Transform = value;
+                    break;
+                // SvgCircle
+                case "cx":
+                    CenterX = value;
+                    break;
+                case "cy":
+                    CenterY = value;
+                    break;
+                case "r":
+                    Radius = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

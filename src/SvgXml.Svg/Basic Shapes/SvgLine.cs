@@ -51,6 +51,31 @@ namespace Svg
             set => this.SetAttribute("y2", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                // ISvgTransformableAttributes
+                case "transform":
+                    Transform = value;
+                    break;
+                // SvgLine
+                case "x1":
+                    StartX = value;
+                    break;
+                case "y1":
+                    StartY = value;
+                    break;
+                case "x2":
+                    EndX = value;
+                    break;
+                case "y2":
+                    EndY = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);
