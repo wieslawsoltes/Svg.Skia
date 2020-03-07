@@ -25,12 +25,7 @@ namespace Xml
             Parent = null;
         }
 
-        //public abstract void SetPropertyValue(string key, string? value);
-
-        public void SetPropertyValue(string key, string? value)
-        {
-            // TODO: make abstract method
-        }
+        public abstract void SetPropertyValue(string key, string? value);
 
         public string? GetAttribute(string key)
         {
