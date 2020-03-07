@@ -30,6 +30,22 @@ namespace Svg
             set => this.SetAttribute("clipPathUnits", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                // ISvgTransformableAttributes
+                case "transform":
+                    Transform = value;
+                    break;
+                // SvgClipPath
+                case "clipPathUnits":
+                    ClipPathUnits = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);
