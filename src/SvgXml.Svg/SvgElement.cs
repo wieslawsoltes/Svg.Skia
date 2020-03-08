@@ -120,7 +120,7 @@ namespace Svg
         [Attribute("title", XLinkNamespace)]
         public virtual string? Title
         {
-            get => this.GetAttribute("title");
+            get => this.GetAttribute("title", false, null);
             set => this.SetAttribute("title", value);
         }
 
