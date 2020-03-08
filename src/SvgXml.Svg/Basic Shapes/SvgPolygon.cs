@@ -26,7 +26,7 @@ namespace Svg
         [Attribute("points", SvgNamespace)]
         public string? Points
         {
-            get => this.GetAttribute("points");
+            get => this.GetAttribute("points", false, null);
             set => this.SetAttribute("points", value);
         }
 
