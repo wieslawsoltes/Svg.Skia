@@ -13,14 +13,14 @@ namespace Svg.FilterEffects
         [Attribute("preserveAspectRatio", SvgNamespace)]
         public string? AspectRatio
         {
-            get => this.GetAttribute("preserveAspectRatio");
+            get => this.GetAttribute("preserveAspectRatio", false, "xMidYMid meet");
             set => this.SetAttribute("preserveAspectRatio", value);
         }
 
         [Attribute("href", XLinkNamespace)]
         public override string? Href
         {
-            get => this.GetAttribute("href");
+            get => this.GetAttribute("href", false, null);
             set => this.SetAttribute("href", value);
         }
 

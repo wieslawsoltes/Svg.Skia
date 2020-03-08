@@ -12,21 +12,21 @@ namespace Svg.FilterEffects
         [Attribute("in", SvgNamespace)]
         public string? Input
         {
-            get => this.GetAttribute("in");
+            get => this.GetAttribute("in", false, null);
             set => this.SetAttribute("in", value);
         }
 
         [Attribute("operator", SvgNamespace)]
         public string? Operator
         {
-            get => this.GetAttribute("operator");
+            get => this.GetAttribute("operator", false, "erode");
             set => this.SetAttribute("operator", value);
         }
 
         [Attribute("radius", SvgNamespace)]
         public string? Radius
         {
-            get => this.GetAttribute("radius");
+            get => this.GetAttribute("radius", false, "0");
             set => this.SetAttribute("radius", value);
         }
 

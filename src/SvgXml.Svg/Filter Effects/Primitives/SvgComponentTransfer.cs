@@ -8,49 +8,49 @@ namespace Svg.FilterEffects
         [Attribute("type", SvgNamespace)]
         public override string? Type
         {
-            get => this.GetAttribute("type");
+            get => this.GetAttribute("type", false, null); // TODO:
             set => this.SetAttribute("type", value);
         }
 
         [Attribute("tableValues", SvgNamespace)]
         public string? TableValues
         {
-            get => this.GetAttribute("tableValues");
+            get => this.GetAttribute("tableValues", false, "");
             set => this.SetAttribute("tableValues", value);
         }
 
         [Attribute("slope", SvgNamespace)]
         public string? Slope
         {
-            get => this.GetAttribute("slope");
+            get => this.GetAttribute("slope", false, "1");
             set => this.SetAttribute("slope", value);
         }
 
         [Attribute("intercept", SvgNamespace)]
         public string? Intercept
         {
-            get => this.GetAttribute("intercept");
+            get => this.GetAttribute("intercept", false, "0");
             set => this.SetAttribute("intercept", value);
         }
 
         [Attribute("amplitude", SvgNamespace)]
         public string? Amplitude
         {
-            get => this.GetAttribute("amplitude");
+            get => this.GetAttribute("amplitude", false, "1");
             set => this.SetAttribute("amplitude", value);
         }
 
         [Attribute("exponent", SvgNamespace)]
         public string? Exponent
         {
-            get => this.GetAttribute("exponent");
+            get => this.GetAttribute("exponent", false, "1");
             set => this.SetAttribute("exponent", value);
         }
 
         [Attribute("offset", SvgNamespace)]
         public string? Offset
         {
-            get => this.GetAttribute("offset");
+            get => this.GetAttribute("offset", false, "0");
             set => this.SetAttribute("offset", value);
         }
 
@@ -127,7 +127,7 @@ namespace Svg.FilterEffects
         [Attribute("in", SvgNamespace)]
         public string? Input
         {
-            get => this.GetAttribute("in");
+            get => this.GetAttribute("in", false, null);
             set => this.SetAttribute("in", value);
         }
 

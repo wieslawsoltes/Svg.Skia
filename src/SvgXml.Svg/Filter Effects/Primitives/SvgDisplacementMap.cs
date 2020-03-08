@@ -12,35 +12,35 @@ namespace Svg.FilterEffects
         [Attribute("in", SvgNamespace)]
         public string? Input
         {
-            get => this.GetAttribute("in");
+            get => this.GetAttribute("in", false, null);
             set => this.SetAttribute("in", value);
         }
 
         [Attribute("in2", SvgNamespace)]
         public string? Input2
         {
-            get => this.GetAttribute("in2");
+            get => this.GetAttribute("in2", false, null);
             set => this.SetAttribute("in2", value);
         }
 
         [Attribute("scale", SvgNamespace)]
         public string? Scale
         {
-            get => this.GetAttribute("scale");
+            get => this.GetAttribute("scale", false, "0");
             set => this.SetAttribute("scale", value);
         }
 
         [Attribute("xChannelSelector", SvgNamespace)]
         public string? XChannelSelector
         {
-            get => this.GetAttribute("xChannelSelector");
+            get => this.GetAttribute("xChannelSelector", false, "A");
             set => this.SetAttribute("xChannelSelector", value);
         }
 
         [Attribute("yChannelSelector", SvgNamespace)]
         public string? YChannelSelector
         {
-            get => this.GetAttribute("yChannelSelector");
+            get => this.GetAttribute("yChannelSelector", false, "A");
             set => this.SetAttribute("yChannelSelector", value);
         }
 

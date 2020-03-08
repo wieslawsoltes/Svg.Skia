@@ -10,21 +10,21 @@ namespace Svg.FilterEffects
         [Attribute("x", SvgNamespace)]
         public string? X
         {
-            get => this.GetAttribute("x");
+            get => this.GetAttribute("x", false, "0");
             set => this.SetAttribute("x", value);
         }
 
         [Attribute("y", SvgNamespace)]
         public string? Y
         {
-            get => this.GetAttribute("y");
+            get => this.GetAttribute("y", false, "0");
             set => this.SetAttribute("y", value);
         }
 
         [Attribute("z", SvgNamespace)]
         public string? Z
         {
-            get => this.GetAttribute("z");
+            get => this.GetAttribute("z", false, "0");
             set => this.SetAttribute("z", value);
         }
 

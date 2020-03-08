@@ -12,35 +12,35 @@ namespace Svg.FilterEffects
         [Attribute("in", SvgNamespace)]
         public string? Input
         {
-            get => this.GetAttribute("in");
+            get => this.GetAttribute("in", false, null);
             set => this.SetAttribute("in", value);
         }
 
         [Attribute("surfaceScale", SvgNamespace)]
         public string? SurfaceScale
         {
-            get => this.GetAttribute("surfaceScale");
+            get => this.GetAttribute("surfaceScale", false, "1");
             set => this.SetAttribute("surfaceScale", value);
         }
 
         [Attribute("specularConstant", SvgNamespace)]
         public string? SpecularConstant
         {
-            get => this.GetAttribute("specularConstant");
+            get => this.GetAttribute("specularConstant", false, "1");
             set => this.SetAttribute("specularConstant", value);
         }
 
         [Attribute("specularExponent", SvgNamespace)]
         public string? SpecularExponent
         {
-            get => this.GetAttribute("specularExponent");
+            get => this.GetAttribute("specularExponent", false, "1");
             set => this.SetAttribute("specularExponent", value);
         }
 
         [Attribute("kernelUnitLength", SvgNamespace)]
         public string? KernelUnitLength
         {
-            get => this.GetAttribute("kernelUnitLength");
+            get => this.GetAttribute("kernelUnitLength", false, "1"); // TODO:
             set => this.SetAttribute("kernelUnitLength", value);
         }
 

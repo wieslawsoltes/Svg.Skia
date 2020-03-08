@@ -12,14 +12,14 @@ namespace Svg.FilterEffects
         [Attribute("in", SvgNamespace)]
         public string? Input
         {
-            get => this.GetAttribute("in");
+            get => this.GetAttribute("in", false, null);
             set => this.SetAttribute("in", value);
         }
 
         [Attribute("stdDeviation", SvgNamespace)]
         public string? StdDeviation
         {
-            get => this.GetAttribute("stdDeviation");
+            get => this.GetAttribute("stdDeviation", false, "0");
             set => this.SetAttribute("stdDeviation", value);
         }
 

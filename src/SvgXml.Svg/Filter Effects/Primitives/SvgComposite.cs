@@ -12,49 +12,49 @@ namespace Svg.FilterEffects
         [Attribute("in", SvgNamespace)]
         public string? Input
         {
-            get => this.GetAttribute("in");
+            get => this.GetAttribute("in", false, null);
             set => this.SetAttribute("in", value);
         }
 
         [Attribute("in2", SvgNamespace)]
         public string? Input2
         {
-            get => this.GetAttribute("in2");
+            get => this.GetAttribute("in2", false, null);
             set => this.SetAttribute("in2", value);
         }
 
         [Attribute("operator", SvgNamespace)]
         public string? Operator
         {
-            get => this.GetAttribute("operator");
+            get => this.GetAttribute("operator", false, "over");
             set => this.SetAttribute("operator", value);
         }
 
         [Attribute("k1", SvgNamespace)]
         public string? K1
         {
-            get => this.GetAttribute("k1");
+            get => this.GetAttribute("k1", false, "0");
             set => this.SetAttribute("k1", value);
         }
 
         [Attribute("k2", SvgNamespace)]
         public string? K2
         {
-            get => this.GetAttribute("k2");
+            get => this.GetAttribute("k2", false, "0");
             set => this.SetAttribute("k2", value);
         }
 
         [Attribute("k3", SvgNamespace)]
         public string? K3
         {
-            get => this.GetAttribute("k3");
+            get => this.GetAttribute("k3", false, "0");
             set => this.SetAttribute("k3", value);
         }
 
         [Attribute("k4", SvgNamespace)]
         public string? K4
         {
-            get => this.GetAttribute("k4");
+            get => this.GetAttribute("k4", false, "0");
             set => this.SetAttribute("k4", value);
         }
 

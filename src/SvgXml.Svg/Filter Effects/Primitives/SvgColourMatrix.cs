@@ -12,21 +12,21 @@ namespace Svg.FilterEffects
         [Attribute("in", SvgNamespace)]
         public string? Input
         {
-            get => this.GetAttribute("in");
+            get => this.GetAttribute("in", false, null);
             set => this.SetAttribute("in", value);
         }
 
         [Attribute("type", SvgNamespace)]
         public override string? Type
         {
-            get => this.GetAttribute("type");
+            get => this.GetAttribute("type", false, "matrix");
             set => this.SetAttribute("type", value);
         }
 
         [Attribute("values", SvgNamespace)]
         public string? Values
         {
-            get => this.GetAttribute("values");
+            get => this.GetAttribute("values", false, null); // TODO:
             set => this.SetAttribute("values", value);
         }
 

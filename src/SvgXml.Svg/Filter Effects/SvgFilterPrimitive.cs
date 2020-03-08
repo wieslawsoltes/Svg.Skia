@@ -8,35 +8,35 @@ namespace Svg.FilterEffects
         [Attribute("x", SvgNamespace)]
         public string? X
         {
-            get => this.GetAttribute("x");
+            get => this.GetAttribute("x", false, "0%");
             set => this.SetAttribute("x", value);
         }
 
         [Attribute("y", SvgNamespace)]
         public string? Y
         {
-            get => this.GetAttribute("y");
+            get => this.GetAttribute("y", false, "0%");
             set => this.SetAttribute("y", value);
         }
 
         [Attribute("width", SvgNamespace)]
         public string? Width
         {
-            get => this.GetAttribute("width");
+            get => this.GetAttribute("width", false, "100%");
             set => this.SetAttribute("width", value);
         }
 
         [Attribute("height", SvgNamespace)]
         public string? Height
         {
-            get => this.GetAttribute("height");
+            get => this.GetAttribute("height", false, "100%");
             set => this.SetAttribute("height", value);
         }
 
         [Attribute("result", SvgNamespace)]
         public string? Result
         {
-            get => this.GetAttribute("result");
+            get => this.GetAttribute("result", false, null);
             set => this.SetAttribute("result", value);
         }
 
