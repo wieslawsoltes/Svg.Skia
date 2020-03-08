@@ -13,14 +13,14 @@ namespace Svg
         [Attribute("viewBox", SvgNamespace)]
         public string? ViewBox
         {
-            get => this.GetAttribute("viewBox");
+            get => this.GetAttribute("viewBox", false, null);
             set => this.SetAttribute("viewBox", value);
         }
 
         [Attribute("preserveAspectRatio", SvgNamespace)]
         public string? AspectRatio
         {
-            get => this.GetAttribute("preserveAspectRatio");
+            get => this.GetAttribute("preserveAspectRatio", false, "xMidYMid meet");
             set => this.SetAttribute("preserveAspectRatio", value);
         }
 
