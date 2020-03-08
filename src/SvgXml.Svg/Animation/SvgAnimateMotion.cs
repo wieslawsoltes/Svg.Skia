@@ -14,31 +14,42 @@ namespace Svg
         ISvgAnimationValueAttributes,
         ISvgAnimationAdditionAttributes
     {
+        // ISvgAnimationValueAttributes
+
+        [Attribute("calcMode", SvgNamespace)]
+        public override string? CalcMode
+        {
+            get => this.GetAttribute("calcMode", false, "paced");
+            set => this.SetAttribute("calcMode", value);
+        }
+
+        // SvgAnimateMotion
+
         [Attribute("path", SvgNamespace)]
         public string? Path
         {
-            get => this.GetAttribute("path");
+            get => this.GetAttribute("path", false, null);
             set => this.SetAttribute("path", value);
         }
 
         [Attribute("keyPoints", SvgNamespace)]
         public string? KeyPoints
         {
-            get => this.GetAttribute("keyPoints");
+            get => this.GetAttribute("keyPoints", false, null);
             set => this.SetAttribute("keyPoints", value);
         }
 
         [Attribute("rotate", SvgNamespace)]
         public string? Rotate
         {
-            get => this.GetAttribute("rotate");
+            get => this.GetAttribute("rotate", false, "0");
             set => this.SetAttribute("rotate", value);
         }
 
         [Attribute("origin", SvgNamespace)]
         public string? Origin
         {
-            get => this.GetAttribute("origin");
+            get => this.GetAttribute("origin", false, "default"); // TODO:
             set => this.SetAttribute("origin", value);
         }
 
@@ -47,6 +58,11 @@ namespace Svg
             base.SetPropertyValue(key, value);
             switch (key)
             {
+                // ISvgAnimationValueAttributes
+                case "calcMode":
+                    CalcMode = value;
+                    break;
+                // SvgAnimateMotion
                 case "path":
                     Path = value;
                     break;
