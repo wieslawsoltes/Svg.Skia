@@ -30,6 +30,7 @@ namespace Svg
             get => this.GetAttribute("r", false, "50%");
             set => this.SetAttribute("r", value);
         }
+
         [Attribute("fx", SvgNamespace)]
         public string? FocalX
         {
@@ -42,6 +43,29 @@ namespace Svg
         {
             get => this.GetAttribute("fy", false, null);
             set => this.SetAttribute("fy", value);
+        }
+
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "cx":
+                    CenterX = value;
+                    break;
+                case "cy":
+                    CenterY = value;
+                    break;
+                case "r":
+                    Radius = value;
+                    break;
+                case "fx":
+                    FocalX = value;
+                    break;
+                case "fy":
+                    FocalY = value;
+                    break;
+            }
         }
 
         public override void Print(Action<string> write, string indent)

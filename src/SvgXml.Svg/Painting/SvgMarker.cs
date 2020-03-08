@@ -66,6 +66,38 @@ namespace Svg
             set => this.SetAttribute("orient", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "viewBox":
+                    ViewBox = value;
+                    break;
+                case "preserveAspectRatio":
+                    AspectRatio = value;
+                    break;
+                case "refX":
+                    RefX = value;
+                    break;
+                case "refY":
+                    RefY = value;
+                    break;
+                case "markerUnits":
+                    MarkerUnits = value;
+                    break;
+                case "markerWidth":
+                    MarkerWidth = value;
+                    break;
+                case "markerHeight":
+                    MarkerHeight = value;
+                    break;
+                case "orient":
+                    Orient = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

@@ -37,6 +37,25 @@ namespace Svg
             set => this.SetAttribute("pathLength", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                // ISvgTransformableAttributes
+                case "transform":
+                    Transform = value;
+                    break;
+                // SvgPath
+                case "d":
+                    PathData = value;
+                    break;
+                case "pathLength":
+                    PathLength = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

@@ -36,6 +36,26 @@ namespace Svg
             set => this.SetAttribute("viewTarget", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "viewBox":
+                    ViewBox = value;
+                    break;
+                case "preserveAspectRatio":
+                    AspectRatio = value;
+                    break;
+                case "zoomAndPan":
+                    ZoomAndPan = value;
+                    break;
+                case "viewTarget":
+                    ViewTarget = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

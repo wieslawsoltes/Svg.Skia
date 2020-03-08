@@ -51,6 +51,31 @@ namespace Svg
             set => this.SetAttribute("target", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                // ISvgTransformableAttributes
+                case "transform":
+                    Transform = value;
+                    break;
+                // SvgAnchor
+                case "href":
+                    Href = value;
+                    break;
+                case "show":
+                    Show = value;
+                    break;
+                case "actuate":
+                    Actuate = value;
+                    break;
+                case "target":
+                    Target = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

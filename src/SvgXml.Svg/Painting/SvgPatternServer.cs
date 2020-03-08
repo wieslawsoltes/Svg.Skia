@@ -81,6 +81,44 @@ namespace Svg
             set => this.SetAttribute("href", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "viewBox":
+                    ViewBox = value;
+                    break;
+                case "preserveAspectRatio":
+                    AspectRatio = value;
+                    break;
+                case "x":
+                    X = value;
+                    break;
+                case "y":
+                    Y = value;
+                    break;
+                case "width":
+                    Width = value;
+                    break;
+                case "height":
+                    Height = value;
+                    break;
+                case "patternUnits":
+                    PatternUnits = value;
+                    break;
+                case "patternContentUnits":
+                    PatternContentUnits = value;
+                    break;
+                case "patternTransform":
+                    PatternTransform = value;
+                    break;
+                case "href":
+                    Href = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

@@ -38,6 +38,26 @@ namespace Svg
             set => this.SetAttribute("y2", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "x1":
+                    X1 = value;
+                    break;
+                case "y1":
+                    Y1 = value;
+                    break;
+                case "x2":
+                    X2 = value;
+                    break;
+                case "y2":
+                    Y2 = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);
