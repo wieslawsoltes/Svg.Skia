@@ -8,35 +8,35 @@ namespace Svg
         [Attribute("x", SvgNamespace)]
         public string? X
         {
-            get => this.GetAttribute("x");
+            get => this.GetAttribute("x", false, "0");
             set => this.SetAttribute("x", value);
         }
 
         [Attribute("y", SvgNamespace)]
         public string? Y
         {
-            get => this.GetAttribute("y");
+            get => this.GetAttribute("y", false, "0");
             set => this.SetAttribute("y", value);
         }
 
         [Attribute("dx", SvgNamespace)]
         public string? Dx
         {
-            get => this.GetAttribute("dx");
+            get => this.GetAttribute("dx", false, null); // TODO:
             set => this.SetAttribute("dx", value);
         }
 
         [Attribute("dy", SvgNamespace)]
         public string? Dy
         {
-            get => this.GetAttribute("dy");
+            get => this.GetAttribute("dy", false, null); // TODO:
             set => this.SetAttribute("dy", value);
         }
 
         [Attribute("rotate", SvgNamespace)]
         public string? Rotate
         {
-            get => this.GetAttribute("rotate");
+            get => this.GetAttribute("rotate", false, null); // TODO:
             set => this.SetAttribute("rotate", value);
         }
 

@@ -14,28 +14,28 @@ namespace Svg
         [Attribute("href", XLinkNamespace)]
         public override string? Href
         {
-            get => this.GetAttribute("href");
+            get => this.GetAttribute("href", false, null);
             set => this.SetAttribute("href", value);
         }
 
         [Attribute("startOffset", SvgNamespace)]
         public string? StartOffset
         {
-            get => this.GetAttribute("startOffset");
+            get => this.GetAttribute("startOffset", false, "0");
             set => this.SetAttribute("startOffset", value);
         }
 
         [Attribute("method", SvgNamespace)]
         public string? Method
         {
-            get => this.GetAttribute("method");
+            get => this.GetAttribute("method", false, "align");
             set => this.SetAttribute("method", value);
         }
 
         [Attribute("spacing", SvgNamespace)]
         public string? Spacing
         {
-            get => this.GetAttribute("spacing");
+            get => this.GetAttribute("spacing", false, "exact");
             set => this.SetAttribute("spacing", value);
         }
 

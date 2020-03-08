@@ -8,14 +8,14 @@ namespace Svg
         [Attribute("lengthAdjust", SvgNamespace)]
         public string? LengthAdjust
         {
-            get => this.GetAttribute("lengthAdjust");
+            get => this.GetAttribute("lengthAdjust", false, "spacing");
             set => this.SetAttribute("lengthAdjust", value);
         }
 
         [Attribute("textLength", SvgNamespace)]
         public string? TextLength
         {
-            get => this.GetAttribute("textLength");
+            get => this.GetAttribute("textLength", false, null);
             set => this.SetAttribute("textLength", value);
         }
 

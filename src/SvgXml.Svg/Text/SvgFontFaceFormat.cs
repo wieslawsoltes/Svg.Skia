@@ -10,7 +10,7 @@ namespace Svg
         [Attribute("string", SvgNamespace)]
         public string? String
         {
-            get => this.GetAttribute("string");
+            get => this.GetAttribute("string", false, null); // TODO:
             set => this.SetAttribute("string", value);
         }
 

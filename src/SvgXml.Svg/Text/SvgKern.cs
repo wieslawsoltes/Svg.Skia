@@ -9,35 +9,35 @@ namespace Svg
         [Attribute("u1", SvgNamespace)]
         public string? Unicode1
         {
-            get => this.GetAttribute("u1");
+            get => this.GetAttribute("u1", false, null);
             set => this.SetAttribute("u1", value);
         }
 
         [Attribute("g1", SvgNamespace)]
         public string? Glyph1
         {
-            get => this.GetAttribute("g1");
+            get => this.GetAttribute("g1", false, null);
             set => this.SetAttribute("g1", value);
         }
 
         [Attribute("u2", SvgNamespace)]
         public string? Unicode2
         {
-            get => this.GetAttribute("u2");
+            get => this.GetAttribute("u2", false, null);
             set => this.SetAttribute("u2", value);
         }
 
         [Attribute("g2", SvgNamespace)]
         public string? Glyph2
         {
-            get => this.GetAttribute("g2");
+            get => this.GetAttribute("g2", false, null);
             set => this.SetAttribute("g2", value);
         }
 
         [Attribute("k", SvgNamespace)]
         public string? Kerning
         {
-            get => this.GetAttribute("k");
+            get => this.GetAttribute("k", false, null);
             set => this.SetAttribute("k", value);
         }
 

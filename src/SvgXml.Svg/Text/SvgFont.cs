@@ -13,42 +13,42 @@ namespace Svg
         [Attribute("horiz-origin-x", SvgNamespace)]
         public string? HorizOriginX
         {
-            get => this.GetAttribute("horiz-origin-x");
+            get => this.GetAttribute("horiz-origin-x", false, "0");
             set => this.SetAttribute("horiz-origin-x", value);
         }
 
         [Attribute("horiz-origin-y", SvgNamespace)]
         public string? HorizOriginY
         {
-            get => this.GetAttribute("horiz-origin-y");
+            get => this.GetAttribute("horiz-origin-y", false, "0");
             set => this.SetAttribute("horiz-origin-y", value);
         }
 
         [Attribute("horiz-adv-x", SvgNamespace)]
         public string? HorizAdvX
         {
-            get => this.GetAttribute("horiz-adv-x");
+            get => this.GetAttribute("horiz-adv-x", false, null);
             set => this.SetAttribute("horiz-adv-x", value);
         }
 
         [Attribute("vert-origin-x", SvgNamespace)]
         public string? VertOriginX
         {
-            get => this.GetAttribute("vert-origin-x");
+            get => this.GetAttribute("vert-origin-x", false, null); // TODO:
             set => this.SetAttribute("vert-origin-x", value);
         }
 
         [Attribute("vert-origin-y", SvgNamespace)]
         public string? VertOriginY
         {
-            get => this.GetAttribute("vert-origin-y");
+            get => this.GetAttribute("vert-origin-y", false, null); // TODO:
             set => this.SetAttribute("vert-origin-y", value);
         }
 
         [Attribute("vert-adv-y", SvgNamespace)]
         public string? VertAdvY
         {
-            get => this.GetAttribute("vert-adv-y");
+            get => this.GetAttribute("vert-adv-y", false, null); // TODO:
             set => this.SetAttribute("vert-adv-y", value);
         }
 
