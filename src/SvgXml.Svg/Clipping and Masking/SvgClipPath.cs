@@ -26,7 +26,7 @@ namespace Svg
         [Attribute("clipPathUnits", SvgNamespace)]
         public string? ClipPathUnits
         {
-            get => this.GetAttribute("clipPathUnits");
+            get => this.GetAttribute("clipPathUnits", false, "userSpaceOnUse");
             set => this.SetAttribute("clipPathUnits", value);
         }
 
