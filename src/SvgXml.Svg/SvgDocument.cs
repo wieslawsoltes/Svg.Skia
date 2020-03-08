@@ -44,9 +44,9 @@ namespace Svg
         public static IElementFactory s_elementFactory = new SvgElementFactory();
 
         public static string s_userAgentStyleSheet =
-            "svg, symbol, image, marker, pattern, foreignObject { overflow: hidden }" +
+            "svg, symbol, image, marker, pattern, foreignObject { overflow: hidden }" /* +
             Environment.NewLine +
-            "svg { width: attr(width); height: attr(height) }";
+            "svg { width: attr(width); height: attr(height) }" */;
 
         public static void GetElements<T>(Element element, List<T> elements)
         {
