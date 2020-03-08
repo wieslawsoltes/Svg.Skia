@@ -11,28 +11,28 @@ namespace Svg
         [Attribute("viewBox", SvgNamespace)]
         public string? ViewBox
         {
-            get => this.GetAttribute("viewBox");
+            get => this.GetAttribute("viewBox", false, null);
             set => this.SetAttribute("viewBox", value);
         }
 
         [Attribute("preserveAspectRatio", SvgNamespace)]
         public string? AspectRatio
         {
-            get => this.GetAttribute("preserveAspectRatio");
+            get => this.GetAttribute("preserveAspectRatio", false, "xMidYMid meet");
             set => this.SetAttribute("preserveAspectRatio", value);
         }
 
         [Attribute("zoomAndPan", SvgNamespace)]
         public string? ZoomAndPan
         {
-            get => this.GetAttribute("zoomAndPan");
+            get => this.GetAttribute("zoomAndPan", false, "magnify");
             set => this.SetAttribute("zoomAndPan", value);
         }
 
         [Attribute("viewTarget", SvgNamespace)]
         public string? ViewTarget
         {
-            get => this.GetAttribute("viewTarget");
+            get => this.GetAttribute("viewTarget", false, null);
             set => this.SetAttribute("viewTarget", value);
         }
 
