@@ -11,14 +11,14 @@ namespace Svg
         [Attribute("type", SvgNamespace)]
         public override string? Type
         {
-            get => this.GetAttribute("type");
+            get => this.GetAttribute("type", false, null); // TODO: inherit from svg contentScriptType’
             set => this.SetAttribute("type", value);
         }
 
         [Attribute("href", XLinkNamespace)]
         public override string? Href
         {
-            get => this.GetAttribute("href");
+            get => this.GetAttribute("href", false, null);
             set => this.SetAttribute("href", value);
         }
 
