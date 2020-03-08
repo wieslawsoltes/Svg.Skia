@@ -192,7 +192,9 @@ namespace Svg
         {
             foreach (var child in element.Children)
             {
-                foreach (var attribute in child.Attributes)
+                var attributes = child.Attributes.ToList();
+
+                foreach (var attribute in attributes)
                 {
                     if (attribute.Key.Equals("style"))
                     {
