@@ -10,28 +10,28 @@ namespace Svg
         [Attribute("local", SvgNamespace)]
         public string? Local
         {
-            get => this.GetAttribute("local");
+            get => this.GetAttribute("local", false, null);
             set => this.SetAttribute("local", value);
         }
 
         [Attribute("name", SvgNamespace)]
         public string? Name
         {
-            get => this.GetAttribute("name");
+            get => this.GetAttribute("name", false, null);
             set => this.SetAttribute("name", value);
         }
 
         [Attribute("rendering-intent", SvgNamespace)]
         public string? RenderingIntent
         {
-            get => this.GetAttribute("rendering-intent");
+            get => this.GetAttribute("rendering-intent", false, "auto");
             set => this.SetAttribute("rendering-intent", value);
         }
 
         [Attribute("href", XLinkNamespace)]
         public override string? Href
         {
-            get => this.GetAttribute("href");
+            get => this.GetAttribute("href", false, null);
             set => this.SetAttribute("href", value);
         }
 
