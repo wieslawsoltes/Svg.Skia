@@ -26,42 +26,42 @@ namespace Svg
         [Attribute("x", SvgNamespace)]
         public string? X
         {
-            get => this.GetAttribute("x");
+            get => this.GetAttribute("x", false, "0");
             set => this.SetAttribute("x", value);
         }
 
         [Attribute("y", SvgNamespace)]
         public string? Y
         {
-            get => this.GetAttribute("y");
+            get => this.GetAttribute("y", false, "0");
             set => this.SetAttribute("y", value);
         }
 
         [Attribute("width", SvgNamespace)]
         public string? Width
         {
-            get => this.GetAttribute("width");
+            get => this.GetAttribute("width", false, null);
             set => this.SetAttribute("width", value);
         }
 
         [Attribute("height", SvgNamespace)]
         public string? Height
         {
-            get => this.GetAttribute("height");
+            get => this.GetAttribute("height", false, null);
             set => this.SetAttribute("height", value);
         }
 
         [Attribute("rx", SvgNamespace)]
         public string? CornerRadiusX
         {
-            get => this.GetAttribute("rx");
+            get => this.GetAttribute("rx", false, null); // TODO:
             set => this.SetAttribute("rx", value);
         }
 
         [Attribute("ry", SvgNamespace)]
         public string? CornerRadiusY
         {
-            get => this.GetAttribute("ry");
+            get => this.GetAttribute("ry", false, null); // TODO:
             set => this.SetAttribute("ry", value);
         }
 
