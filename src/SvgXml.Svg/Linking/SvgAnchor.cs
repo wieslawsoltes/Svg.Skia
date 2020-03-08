@@ -26,28 +26,28 @@ namespace Svg
         [Attribute("href", XLinkNamespace)]
         public override string? Href
         {
-            get => this.GetAttribute("href");
+            get => this.GetAttribute("href", false, null);
             set => this.SetAttribute("href", value);
         }
 
         [Attribute("show", XLinkNamespace)]
         public override string? Show
         {
-            get => this.GetAttribute("show");
+            get => this.GetAttribute("show", false, null); // TODO:
             set => this.SetAttribute("show", value);
         }
 
         [Attribute("actuate", XLinkNamespace)]
         public override string? Actuate
         {
-            get => this.GetAttribute("actuate");
+            get => this.GetAttribute("actuate", false, null); // TODO:
             set => this.SetAttribute("actuate", value);
         }
 
         [Attribute("target", SvgNamespace)]
         public string? Target
         {
-            get => this.GetAttribute("target");
+            get => this.GetAttribute("target", false, "_self"); // TODO:
             set => this.SetAttribute("target", value);
         }
 
