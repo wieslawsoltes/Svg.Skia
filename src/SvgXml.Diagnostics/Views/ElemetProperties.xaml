@@ -1607,11 +1607,11 @@
                                 <TextBlock Text="Input" Grid.Row="5" Grid.Column="0" Margin="2" />
                                 <TextBox Text="{Binding Input}" Grid.Row="5" Grid.Column="1" Margin="2" />
                                 <!-- Type -->
-                                <TextBlock Text="Type" Grid.Row="5" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding Type}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                <TextBlock Text="Type" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                <TextBox Text="{Binding Type}" Grid.Row="6" Grid.Column="1" Margin="2" />
                                 <!-- Values -->
-                                <TextBlock Text="Values" Grid.Row="5" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding Values}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                <TextBlock Text="Values" Grid.Row="7" Grid.Column="0" Margin="2" />
+                                <TextBox Text="{Binding Values}" Grid.Row="7" Grid.Column="1" Margin="2" />
                             </Grid>
                         </ScrollViewer>
                     </TabItem>
