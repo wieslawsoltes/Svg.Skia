@@ -26,28 +26,28 @@ namespace Svg
         [Attribute("cx", SvgNamespace)]
         public string? CenterX
         {
-            get => this.GetAttribute("cx");
+            get => this.GetAttribute("cx", false, "0");
             set => this.SetAttribute("cx", value);
         }
 
         [Attribute("cy", SvgNamespace)]
         public string? CenterY
         {
-            get => this.GetAttribute("cy");
+            get => this.GetAttribute("cy", false, "0");
             set => this.SetAttribute("cy", value);
         }
 
         [Attribute("rx", SvgNamespace)]
         public string? RadiusX
         {
-            get => this.GetAttribute("rx");
+            get => this.GetAttribute("rx", false, null);
             set => this.SetAttribute("rx", value);
         }
 
         [Attribute("ry", SvgNamespace)]
         public string? RadiusY
         {
-            get => this.GetAttribute("ry");
+            get => this.GetAttribute("ry", false, null);
             set => this.SetAttribute("ry", value);
         }
 
