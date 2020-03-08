@@ -10,14 +10,14 @@ namespace Svg
         [Attribute("additive", SvgNamespace)]
         public virtual string? Additive
         {
-            get => this.GetAttribute("additive");
+            get => this.GetAttribute("additive", false, "replace");
             set => this.SetAttribute("additive", value);
         }
 
         [Attribute("accumulate", SvgNamespace)]
         public virtual string? Accumulate
         {
-            get => this.GetAttribute("accumulate");
+            get => this.GetAttribute("accumulate", false, "none");
             set => this.SetAttribute("accumulate", value);
         }
 
@@ -26,14 +26,14 @@ namespace Svg
         [Attribute("attributeType", SvgNamespace)]
         public virtual string? AttributeType
         {
-            get => this.GetAttribute("attributeType");
+            get => this.GetAttribute("attributeType", false, "auto");
             set => this.SetAttribute("attributeType", value);
         }
 
         [Attribute("attributeName", SvgNamespace)]
         public virtual string? AttributeName
         {
-            get => this.GetAttribute("attributeName");
+            get => this.GetAttribute("attributeName", false, null);
             set => this.SetAttribute("attributeName", value);
         }
 
@@ -42,28 +42,28 @@ namespace Svg
         [Attribute("onbegin", SvgNamespace)]
         public virtual string? OnBegin
         {
-            get => this.GetAttribute("onbegin");
+            get => this.GetAttribute("onbegin", false, null);
             set => this.SetAttribute("onbegin", value);
         }
 
         [Attribute("onend", SvgNamespace)]
         public virtual string? OnEnd
         {
-            get => this.GetAttribute("onend");
+            get => this.GetAttribute("onend", false, null);
             set => this.SetAttribute("onend", value);
         }
 
         [Attribute("onrepeat", SvgNamespace)]
         public virtual string? OnRepeat
         {
-            get => this.GetAttribute("onrepeat");
+            get => this.GetAttribute("onrepeat", false, null);
             set => this.SetAttribute("onrepeat", value);
         }
 
         [Attribute("onload", SvgNamespace)]
         public virtual string? OnLoad
         {
-            get => this.GetAttribute("onload");
+            get => this.GetAttribute("onload", false, null);
             set => this.SetAttribute("onload", value);
         }
 
@@ -72,63 +72,63 @@ namespace Svg
         [Attribute("begin", SvgNamespace)]
         public virtual string? Begin
         {
-            get => this.GetAttribute("begin");
+            get => this.GetAttribute("begin", false, null); // TODO:
             set => this.SetAttribute("begin", value);
         }
 
         [Attribute("dur", SvgNamespace)]
         public virtual string? Dur
         {
-            get => this.GetAttribute("dur");
+            get => this.GetAttribute("dur", false, "indefinite");
             set => this.SetAttribute("dur", value);
         }
 
         [Attribute("end", SvgNamespace)]
         public virtual string? End
         {
-            get => this.GetAttribute("end");
+            get => this.GetAttribute("end", false, null); // TODO:
             set => this.SetAttribute("end", value);
         }
 
         [Attribute("min", SvgNamespace)]
         public virtual string? Min
         {
-            get => this.GetAttribute("min");
+            get => this.GetAttribute("min", false, "0");
             set => this.SetAttribute("min", value);
         }
 
         [Attribute("max", SvgNamespace)]
         public virtual string? Max
         {
-            get => this.GetAttribute("max");
+            get => this.GetAttribute("max", false, null);
             set => this.SetAttribute("max", value);
         }
 
         [Attribute("restart", SvgNamespace)]
         public virtual string? Restart
         {
-            get => this.GetAttribute("restart");
+            get => this.GetAttribute("restart", false, "always");
             set => this.SetAttribute("restart", value);
         }
 
         [Attribute("repeatCount", SvgNamespace)]
         public virtual string? RepeatCount
         {
-            get => this.GetAttribute("repeatCount");
+            get => this.GetAttribute("repeatCount", false, null);
             set => this.SetAttribute("repeatCount", value);
         }
 
         [Attribute("repeatDur", SvgNamespace)]
         public virtual string? RepeatDur
         {
-            get => this.GetAttribute("repeatDur");
+            get => this.GetAttribute("repeatDur", false, null);
             set => this.SetAttribute("repeatDur", value);
         }
 
         [Attribute("fill", SvgNamespace)]
         public override string? Fill
         {
-            get => this.GetAttribute("fill");
+            get => this.GetAttribute("fill", false, "remove");
             set => this.SetAttribute("fill", value);
         }
 
@@ -137,49 +137,49 @@ namespace Svg
         [Attribute("calcMode", SvgNamespace)]
         public virtual string? CalcMode
         {
-            get => this.GetAttribute("calcMode");
+            get => this.GetAttribute("calcMode", false, "linear");
             set => this.SetAttribute("calcMode", value);
         }
 
         [Attribute("values", SvgNamespace)]
         public virtual string? Values
         {
-            get => this.GetAttribute("values");
+            get => this.GetAttribute("values", false, null);
             set => this.SetAttribute("values", value);
         }
 
         [Attribute("keyTimes", SvgNamespace)]
         public virtual string? KeyTimes
         {
-            get => this.GetAttribute("keyTimes");
+            get => this.GetAttribute("keyTimes", false, null);
             set => this.SetAttribute("keyTimes", value);
         }
 
         [Attribute("keySplines", SvgNamespace)]
         public virtual string? KeySplines
         {
-            get => this.GetAttribute("keySplines");
+            get => this.GetAttribute("keySplines", false, null);
             set => this.SetAttribute("keySplines", value);
         }
 
         [Attribute("from", SvgNamespace)]
         public virtual string? From
         {
-            get => this.GetAttribute("from");
+            get => this.GetAttribute("from", false, null);
             set => this.SetAttribute("from", value);
         }
 
         [Attribute("to", SvgNamespace)]
         public virtual string? To
         {
-            get => this.GetAttribute("to");
+            get => this.GetAttribute("to", false, null);
             set => this.SetAttribute("to", value);
         }
 
         [Attribute("by", SvgNamespace)]
         public virtual string? By
         {
-            get => this.GetAttribute("by");
+            get => this.GetAttribute("by", false, null);
             set => this.SetAttribute("by", value);
         }
 
