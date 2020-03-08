@@ -58,6 +58,35 @@ namespace Svg
             set => this.SetAttribute("href", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "x":
+                    X = value;
+                    break;
+                case "y":
+                    Y = value;
+                    break;
+                case "dx":
+                    Dx = value;
+                    break;
+                case "dy":
+                    Dy = value;
+                    break;
+                case "glyphRef":
+                    GlyphRef = value;
+                    break;
+                case "format":
+                    Format = value;
+                    break;
+                case "href":
+                    Href = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

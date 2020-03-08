@@ -19,6 +19,20 @@ namespace Svg
             set => this.SetAttribute("textLength", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "lengthAdjust":
+                    LengthAdjust = value;
+                    break;
+                case "textLength":
+                    TextLength = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

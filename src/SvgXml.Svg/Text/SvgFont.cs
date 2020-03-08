@@ -52,6 +52,32 @@ namespace Svg
             set => this.SetAttribute("vert-adv-y", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "horiz-origin-x":
+                    HorizOriginX = value;
+                    break;
+                case "horiz-origin-y":
+                    HorizOriginY = value;
+                    break;
+                case "horiz-adv-x":
+                    HorizAdvX = value;
+                    break;
+                case "vert-origin-x":
+                    VertOriginX = value;
+                    break;
+                case "vert-origin-y":
+                    VertOriginY = value;
+                    break;
+                case "vert-adv-y":
+                    VertAdvY = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

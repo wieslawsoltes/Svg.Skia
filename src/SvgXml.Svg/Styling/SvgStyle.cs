@@ -29,6 +29,23 @@ namespace Svg
             set => this.SetAttribute("title", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "type":
+                    Type = value;
+                    break;
+                case "media":
+                    Media = value;
+                    break;
+                case "title":
+                    Title = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

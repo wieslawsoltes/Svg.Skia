@@ -79,6 +79,44 @@ namespace Svg
             set => this.SetAttribute("lang", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "d":
+                    PathData = value;
+                    break;
+                case "horiz-adv-x":
+                    HorizAdvX = value;
+                    break;
+                case "vert-origin-x":
+                    VertOriginX = value;
+                    break;
+                case "vert-origin-y":
+                    VertOriginY = value;
+                    break;
+                case "vert-adv-y":
+                    VertAdvY = value;
+                    break;
+                case "unicode":
+                    Unicode = value;
+                    break;
+                case "glyph-name":
+                    GlyphName = value;
+                    break;
+                case "orientation":
+                    Orientation = value;
+                    break;
+                case "arabic-form":
+                    ArabicForm = value;
+                    break;
+                case "lang":
+                    LanguageCodes = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

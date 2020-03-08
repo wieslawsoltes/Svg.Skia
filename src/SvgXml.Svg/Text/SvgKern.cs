@@ -41,6 +41,29 @@ namespace Svg
             set => this.SetAttribute("k", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "u1":
+                    Unicode1 = value;
+                    break;
+                case "g1":
+                    Glyph1 = value;
+                    break;
+                case "u2":
+                    Unicode2 = value;
+                    break;
+                case "g2":
+                    Glyph2 = value;
+                    break;
+                case "k":
+                    Kerning = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

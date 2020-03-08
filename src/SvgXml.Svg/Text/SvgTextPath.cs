@@ -39,6 +39,26 @@ namespace Svg
             set => this.SetAttribute("spacing", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "href":
+                    Href = value;
+                    break;
+                case "startOffset":
+                    StartOffset = value;
+                    break;
+                case "method":
+                    Method = value;
+                    break;
+                case "spacing":
+                    Spacing = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);

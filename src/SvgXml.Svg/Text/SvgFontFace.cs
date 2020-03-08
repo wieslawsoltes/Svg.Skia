@@ -238,6 +238,113 @@ namespace Svg
             set => this.SetAttribute("overline-thickness", value);
         }
 
+        public override void SetPropertyValue(string key, string? value)
+        {
+            base.SetPropertyValue(key, value);
+            switch (key)
+            {
+                case "font-family":
+                    FontFamily = value;
+                    break;
+                case "font-style":
+                    FontStyle = value;
+                    break;
+                case "font-variant":
+                    FontVariant = value;
+                    break;
+                case "font-weight":
+                    FontWeight = value;
+                    break;
+                case "font-stretch":
+                    FontStretch = value;
+                    break;
+                case "font-size":
+                    FontSize = value;
+                    break;
+                case "unicode-range":
+                    UnicodeRange = value;
+                    break;
+                case "units-per-em":
+                    UnitsPerEm = value;
+                    break;
+                case "panose-1":
+                    Panose1 = value;
+                    break;
+                case "stemv":
+                    StemV = value;
+                    break;
+                case "stemh":
+                    StemH = value;
+                    break;
+                case "slope":
+                    Slope = value;
+                    break;
+                case "cap-height":
+                    CapHeight = value;
+                    break;
+                case "x-height":
+                    XHeight = value;
+                    break;
+                case "accent-height":
+                    AccentHeight = value;
+                    break;
+                case "ascent":
+                    Ascent = value;
+                    break;
+                case "descent":
+                    Descent = value;
+                    break;
+                case "widths":
+                    Widths = value;
+                    break;
+                case "bbox":
+                    BBox = value;
+                    break;
+                case "ideographic":
+                    Ideographic = value;
+                    break;
+                case "alphabetic":
+                    Alphabetic = value;
+                    break;
+                case "mathematical":
+                    Mathematical = value;
+                    break;
+                case "hanging":
+                    Hanging = value;
+                    break;
+                case "v-ideographic":
+                    VIdeographic = value;
+                    break;
+                case "v-alphabetic":
+                    VAlphabetic = value;
+                    break;
+                case "v-mathematical":
+                    VMathematical = value;
+                    break;
+                case "v-hanging":
+                    VHanging = value;
+                    break;
+                case "underline-position":
+                    UnderlinePosition = value;
+                    break;
+                case "underline-thickness":
+                    UnderlineThickness = value;
+                    break;
+                case "strikethrough-position":
+                    StrikethroughPosition = value;
+                    break;
+                case "strikethrough-thickness":
+                    StrikethroughThickness = value;
+                    break;
+                case "overline-position":
+                    OverlinePosition = value;
+                    break;
+                case "overline-thickness":
+                    OverlineThickness = value;
+                    break;
+            }
+        }
+
         public override void Print(Action<string> write, string indent)
         {
             base.Print(write, indent);
