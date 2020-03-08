@@ -2039,6 +2039,8 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <!-- X -->
                                 <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
@@ -2055,6 +2057,12 @@
                                 <!-- Result -->
                                 <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
                                 <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                                <!-- FloodColor -->
+                                <TextBlock Text="FloodColor" Grid.Row="5" Grid.Column="0" Margin="2" />
+                                <TextBox Text="{Binding FloodColor}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                                <!-- FloodOpacity -->
+                                <TextBlock Text="FloodOpacity" Grid.Row="6" Grid.Column="0" Margin="2" />
+                                <TextBox Text="{Binding FloodOpacity}" Grid.Row="6" Grid.Column="1" Margin="2" />
                             </Grid>
                         </ScrollViewer>
                     </TabItem>
