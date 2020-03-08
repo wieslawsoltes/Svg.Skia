@@ -26,14 +26,14 @@ namespace Svg
         [Attribute("d", SvgNamespace)]
         public string? PathData
         {
-            get => this.GetAttribute("d");
+            get => this.GetAttribute("d", false, null);
             set => this.SetAttribute("d", value);
         }
 
         [Attribute("pathLength", SvgNamespace)]
         public string? PathLength
         {
-            get => this.GetAttribute("pathLength");
+            get => this.GetAttribute("pathLength", false, null);
             set => this.SetAttribute("pathLength", value);
         }
 
