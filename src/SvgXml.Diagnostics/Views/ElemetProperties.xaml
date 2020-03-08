@@ -2538,7 +2538,7 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <attributes:StylableProperties/>
                         </ScrollViewer>
-                    </TabItem> >
+                    </TabItem>
                 </TabControl>
             </DataTemplate>
             <DataTemplate DataType="{x:Type SvgFilterEffects:SvgOffset}">
