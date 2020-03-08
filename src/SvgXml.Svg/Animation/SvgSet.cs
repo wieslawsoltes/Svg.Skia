@@ -16,7 +16,7 @@ namespace Svg
         [Attribute("to", SvgNamespace)]
         public override string? To
         {
-            get => this.GetAttribute("to");
+            get => this.GetAttribute("to", false, null);
             set => this.SetAttribute("to", value);
         }
 
