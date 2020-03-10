@@ -1,0 +1,68 @@
+﻿<UserControl x:Class="SvgXml.Diagnostics.Views.Svg.SvgSetView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:SvgXml.Diagnostics.Views.Svg;assembly=SvgXml.Diagnostics"
+             xmlns:attributesviews="clr-namespace:SvgXml.Diagnostics.Views.Svg.Attributes;assembly=SvgXml.Diagnostics"
+             xmlns:Svg="clr-namespace:Svg;assembly=SvgXml.Svg"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <TabControl Margin="2">
+        <TabItem Header="Set">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <Grid Margin="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <!-- To -->
+                    <TextBlock Text="To" Grid.Row="0" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding To}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                </Grid>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Common">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <attributesviews:CommonProperties/>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Tests">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <attributesviews:TestsProperties/>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Resources">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <attributesviews:ResourcesProperties/>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="XLink">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <attributesviews:XLinkProperties/>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Animation">
+            <TabControl Margin="2">
+                <TabItem Header="Event">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <attributesviews:AnimationEventProperties/>
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem Header="Attribute Target">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <attributesviews:AnimationAttributeTargetProperties/>
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem Header="Timing">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <attributesviews:AnimationTimingProperties/>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+        </TabItem>
+    </TabControl>
+</UserControl>
