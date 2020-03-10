@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:m="clr-namespace:SvgXml.Diagnostics.Models;assembly=SvgXml.Diagnostics"
+             xmlns:local="clr-namespace:SvgXml.Diagnostics.Views;assembly=SvgXml.Diagnostics"
              xmlns:attributes="clr-namespace:SvgXml.Diagnostics.Views.Attributes;assembly=SvgXml.Diagnostics"
              xmlns:Xml="clr-namespace:Xml;assembly=SvgXml.Xml"
              xmlns:Svg="clr-namespace:Svg;assembly=SvgXml.Svg"
