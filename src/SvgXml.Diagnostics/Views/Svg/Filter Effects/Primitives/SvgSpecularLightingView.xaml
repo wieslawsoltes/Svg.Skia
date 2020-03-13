@@ -28,6 +28,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <!-- X -->
                     <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
@@ -59,6 +60,9 @@
                     <!-- KernelUnitLength -->
                     <TextBlock Text="KernelUnitLength" Grid.Row="9" Grid.Column="0" Margin="2" />
                     <TextBox Text="{Binding KernelUnitLength}" Grid.Row="9" Grid.Column="1" Margin="2" />
+                    <!-- LightingColor -->
+                    <TextBlock Text="LightingColor" Grid.Row="10" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding LightingColor}" Grid.Row="10" Grid.Column="1" Margin="2" />
                 </Grid>
             </ScrollViewer>
         </TabItem>
