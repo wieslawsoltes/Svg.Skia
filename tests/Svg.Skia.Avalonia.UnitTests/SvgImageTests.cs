@@ -22,8 +22,8 @@ namespace Svg.Skia.Avalonia.UnitTests
             var picture = svgSkia.Load(svgFile);
             Assert.NotNull(picture);
 
-            var image = new SvgImage() { Source = svgSkia };
-            Assert.NotNull(image);
+            var svgImage = new SvgImage() { Source = svgSkia };
+            Assert.NotNull(svgImage);
         }
     }
 }
