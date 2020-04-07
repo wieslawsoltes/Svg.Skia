@@ -109,6 +109,16 @@
                                     </ContentControl.DataTemplates>
                                 </ContentControl>
                             </TabItem>
+                            <TabItem Header="Ids">
+                                <ContentControl Content="{Binding ElementName=DocumentTree, Path=SelectedItem}">
+                                    <ContentControl.DataTemplates>
+                                        <!-- Item -->
+                                        <DataTemplate DataType="{x:Type m:Item}">
+                                            <views:DocumentIds DataContext="{Binding Document.Ids}"/>
+                                        </DataTemplate>
+                                    </ContentControl.DataTemplates>
+                                </ContentControl>
+                            </TabItem>
                         </TabControl>
                     </Border>
                 </Grid>
