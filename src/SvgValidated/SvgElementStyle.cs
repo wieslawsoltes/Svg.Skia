@@ -1,7 +1,7 @@
 ﻿using System;
-using Svg.DataTypes;
+using SvgValidated.DataTypes;
 
-namespace Svg
+namespace SvgValidated
 {
     public partial class SvgElement
     {

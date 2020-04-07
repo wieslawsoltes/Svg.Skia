@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Svg.FilterEffects
+namespace SvgValidated.FilterEffects
 {
     public abstract class SvgFilterPrimitive : SvgElement
     {

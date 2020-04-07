@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Svg
+namespace SvgValidated
 {
     public class SvgAttributeCollection : Dictionary<string, object>
     {

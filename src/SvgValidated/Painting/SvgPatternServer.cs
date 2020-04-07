@@ -1,6 +1,6 @@
-﻿using Svg.Transforms;
+﻿using SvgValidated.Transforms;
 
-namespace Svg
+namespace SvgValidated
 {
     public sealed class SvgPatternServer : SvgPaintServer, ISvgViewPort
     {

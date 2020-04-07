@@ -1,5 +1,5 @@
 ﻿
-namespace Svg.Pathing
+namespace SvgValidated.Pathing
 {
     public struct PointF
     {

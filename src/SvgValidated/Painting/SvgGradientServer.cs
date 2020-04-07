@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Svg.Transforms;
+using SvgValidated.Transforms;
 
-namespace Svg
+namespace SvgValidated
 {
     public abstract class SvgGradientServer : SvgPaintServer
     {

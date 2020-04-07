@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Svg
+namespace SvgValidated
 {
     public abstract class SvgMarkerElement : SvgPathBasedElement
     {

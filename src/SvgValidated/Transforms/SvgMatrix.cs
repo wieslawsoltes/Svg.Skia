@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Svg.Transforms
+namespace SvgValidated.Transforms
 {
     public class SvgMatrix : SvgTransform
     {

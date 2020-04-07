@@ -1,6 +1,6 @@
-﻿using Svg.Pathing;
+﻿using SvgValidated.Pathing;
 
-namespace Svg
+namespace SvgValidated
 {
     public class SvgGlyph : SvgPathBasedElement, ISvgPathElement
     {

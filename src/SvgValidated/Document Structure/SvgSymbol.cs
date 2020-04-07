@@ -1,5 +1,5 @@
 ﻿
-namespace Svg.Document_Structure
+namespace SvgValidated.Document_Structure
 {
     public class SvgSymbol : SvgVisualElement
     {

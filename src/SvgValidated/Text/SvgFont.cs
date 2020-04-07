@@ -1,5 +1,5 @@
 ﻿
-namespace Svg
+namespace SvgValidated
 {
     public class SvgFont : SvgElement
     {

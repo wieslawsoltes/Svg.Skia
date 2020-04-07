@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Xml;
 
-namespace Svg
+namespace SvgValidated
 {
     public class SvgFragment : SvgElement, ISvgViewPort
     {

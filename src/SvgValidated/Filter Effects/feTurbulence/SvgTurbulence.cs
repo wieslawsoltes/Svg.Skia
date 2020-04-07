@@ -1,5 +1,5 @@
 ﻿
-namespace Svg.FilterEffects
+namespace SvgValidated.FilterEffects
 {
     public class SvgTurbulence : SvgFilterPrimitive
     {

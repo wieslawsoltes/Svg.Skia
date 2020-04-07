@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Svg
+namespace SvgValidated
 {
     public class SvgPolyline : SvgPolygon
     {

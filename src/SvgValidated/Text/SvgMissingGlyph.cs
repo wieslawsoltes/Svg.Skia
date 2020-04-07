@@ -1,4 +1,4 @@
-namespace Svg
+namespace SvgValidated
 {
     public class SvgMissingGlyph : SvgGlyph
     {

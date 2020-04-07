@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Svg.Pathing
+namespace SvgValidated.Pathing
 {
     public class SvgPathSegmentList : List<SvgPathSegment>
     {

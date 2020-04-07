@@ -1,5 +1,5 @@
 ﻿
-namespace Svg.Transforms
+namespace SvgValidated.Transforms
 {
     public abstract class SvgTransform
     {

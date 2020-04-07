@@ -1,5 +1,5 @@
 ﻿
-namespace Svg.DataTypes
+namespace SvgValidated.DataTypes
 {
     public enum SvgColourInterpolation
     {

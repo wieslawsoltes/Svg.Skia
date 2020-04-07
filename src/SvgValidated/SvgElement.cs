@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Xml;
-using Svg.Transforms;
+using SvgValidated.Transforms;
 
-namespace Svg
+namespace SvgValidated
 {
     public abstract partial class SvgElement : ISvgElement, ISvgTransformable, ISvgNode
     {

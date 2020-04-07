@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Svg.Pathing
+namespace SvgValidated.Pathing
 {
     public class SvgArcSegment : SvgPathSegment
     {

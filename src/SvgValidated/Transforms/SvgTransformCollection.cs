@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Svg.Transforms
+namespace SvgValidated.Transforms
 {
     public class SvgTransformCollection : List<SvgTransform>
     {

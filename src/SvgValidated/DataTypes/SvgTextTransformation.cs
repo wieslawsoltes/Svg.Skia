@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Svg
+namespace SvgValidated
 {
     [Flags]
     public enum SvgTextTransformation
