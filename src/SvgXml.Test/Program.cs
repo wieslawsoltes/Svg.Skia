@@ -132,6 +132,7 @@ namespace SvgXml.Test
                     var svgDocument = SvgDocument.Open(path.FullName);
                     if (svgDocument != null)
                     {
+                        svgDocument.LoadIds();
                         svgDocument.LoadStyles();
                         svgDocument.FlushStyles(true);
                         results.Add((path, svgDocument));
