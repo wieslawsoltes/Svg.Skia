@@ -116,6 +116,10 @@
                                         <DataTemplate DataType="{x:Type m:Item}">
                                             <views:DocumentIds DataContext="{Binding Document.Ids}"/>
                                         </DataTemplate>
+                                        <!-- Element -->
+                                        <DataTemplate DataType="{x:Type Xml:Element}">
+                                            <TextBlock Text="{Binding Id}"/>
+                                        </DataTemplate>
                                     </ContentControl.DataTemplates>
                                 </ContentControl>
                             </TabItem>
