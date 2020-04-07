@@ -97,43 +97,5 @@ namespace Svg.FilterEffects
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (X != null)
-            {
-                write($"{indent}{nameof(X)}: \"{X}\"");
-            }
-            if (Y != null)
-            {
-                write($"{indent}{nameof(Y)}: \"{Y}\"");
-            }
-            if (Width != null)
-            {
-                write($"{indent}{nameof(Width)}: \"{Width}\"");
-            }
-            if (Height != null)
-            {
-                write($"{indent}{nameof(Height)}: \"{Height}\"");
-            }
-            if (FilterRes != null)
-            {
-                write($"{indent}{nameof(FilterRes)}: \"{FilterRes}\"");
-            }
-            if (FilterUnits != null)
-            {
-                write($"{indent}{nameof(FilterUnits)}: \"{FilterUnits}\"");
-            }
-            if (PrimitiveUnits != null)
-            {
-                write($"{indent}{nameof(PrimitiveUnits)}: \"{PrimitiveUnits}\"");
-            }
-            if (Href != null)
-            {
-                write($"{indent}{nameof(Href)}: \"{Href}\"");
-            }
-        }
     }
 }

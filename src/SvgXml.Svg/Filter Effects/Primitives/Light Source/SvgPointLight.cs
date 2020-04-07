@@ -44,23 +44,5 @@ namespace Svg.FilterEffects
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (X != null)
-            {
-                write($"{indent}{nameof(X)}: \"{X}\"");
-            }
-            if (Y != null)
-            {
-                write($"{indent}{nameof(Y)}: \"{Y}\"");
-            }
-            if (Z != null)
-            {
-                write($"{indent}{nameof(Z)}: \"{Z}\"");
-            }
-        }
     }
 }

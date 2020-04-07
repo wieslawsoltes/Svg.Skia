@@ -45,15 +45,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (Points != null)
-            {
-                write($"{indent}{nameof(Points)}: \"{Points}\"");
-            }
-        }
     }
 }

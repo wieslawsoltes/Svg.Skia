@@ -54,27 +54,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (Local != null)
-            {
-                write($"{indent}{nameof(Local)}: \"{Local}\"");
-            }
-            if (Name != null)
-            {
-                write($"{indent}{nameof(Name)}: \"{Name}\"");
-            }
-            if (RenderingIntent != null)
-            {
-                write($"{indent}{nameof(RenderingIntent)}: \"{RenderingIntent}\"");
-            }
-            if (Href != null)
-            {
-                write($"{indent}{nameof(Href)}: \"{Href}\"");
-            }
-        }
     }
 }

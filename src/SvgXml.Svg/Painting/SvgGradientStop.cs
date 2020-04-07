@@ -26,15 +26,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (Offset != null)
-            {
-                write($"{indent}{nameof(Offset)}: \"{Offset}\"");
-            }
-        }
     }
 }

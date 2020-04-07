@@ -52,27 +52,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (GradientUnits != null)
-            {
-                write($"{indent}{nameof(GradientUnits)}: \"{GradientUnits}\"");
-            }
-            if (GradientTransform != null)
-            {
-                write($"{indent}{nameof(GradientTransform)}: \"{GradientTransform}\"");
-            }
-            if (SpreadMethod != null)
-            {
-                write($"{indent}{nameof(SpreadMethod)}: \"{SpreadMethod}\"");
-            }
-            if (Href != null)
-            {
-                write($"{indent}{nameof(Href)}: \"{Href}\"");
-            }
-        }
     }
 }

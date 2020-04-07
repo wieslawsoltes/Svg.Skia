@@ -56,27 +56,5 @@ namespace Svg.FilterEffects
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (Input != null)
-            {
-                write($"{indent}{nameof(Input)}: \"{Input}\"");
-            }
-            if (SurfaceScale != null)
-            {
-                write($"{indent}{nameof(SurfaceScale)}: \"{SurfaceScale}\"");
-            }
-            if (DiffuseConstant != null)
-            {
-                write($"{indent}{nameof(DiffuseConstant)}: \"{DiffuseConstant}\"");
-            }
-            if (KernelUnitLength != null)
-            {
-                write($"{indent}{nameof(KernelUnitLength)}: \"{KernelUnitLength}\"");
-            }
-        }
     }
 }

@@ -128,55 +128,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (X != null)
-            {
-                write($"{indent}{nameof(X)}: \"{X}\"");
-            }
-            if (Y != null)
-            {
-                write($"{indent}{nameof(Y)}: \"{Y}\"");
-            }
-            if (Width != null)
-            {
-                write($"{indent}{nameof(Width)}: \"{Width}\"");
-            }
-            if (Height != null)
-            {
-                write($"{indent}{nameof(Height)}: \"{Height}\"");
-            }
-            if (ViewBox != null)
-            {
-                write($"{indent}{nameof(ViewBox)}: \"{ViewBox}\"");
-            }
-            if (AspectRatio != null)
-            {
-                write($"{indent}{nameof(AspectRatio)}: \"{AspectRatio}\"");
-            }
-            if (ZoomAndPan != null)
-            {
-                write($"{indent}{nameof(ZoomAndPan)}: \"{ZoomAndPan}\"");
-            }
-            if (Version != null)
-            {
-                write($"{indent}{nameof(Version)}: \"{Version}\"");
-            }
-            if (BaseProfile != null)
-            {
-                write($"{indent}{nameof(BaseProfile)}: \"{BaseProfile}\"");
-            }
-            if (ContentScriptType != null)
-            {
-                write($"{indent}{nameof(ContentScriptType)}: \"{ContentScriptType}\"");
-            }
-            if (ContentStyleType != null)
-            {
-                write($"{indent}{nameof(ContentStyleType)}: \"{ContentStyleType}\"");
-            }
-        }
     }
 }

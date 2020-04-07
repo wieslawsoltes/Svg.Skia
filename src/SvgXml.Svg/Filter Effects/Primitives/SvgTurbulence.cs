@@ -66,31 +66,5 @@ namespace Svg.FilterEffects
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (BaseFrequency != null)
-            {
-                write($"{indent}{nameof(BaseFrequency)}: \"{BaseFrequency}\"");
-            }
-            if (NumOctaves != null)
-            {
-                write($"{indent}{nameof(NumOctaves)}: \"{NumOctaves}\"");
-            }
-            if (Seed != null)
-            {
-                write($"{indent}{nameof(Seed)}: \"{Seed}\"");
-            }
-            if (StitchTiles != null)
-            {
-                write($"{indent}{nameof(StitchTiles)}: \"{StitchTiles}\"");
-            }
-            if (Type != null)
-            {
-                write($"{indent}{nameof(Type)}: \"{Type}\"");
-            }
-        }
     }
 }

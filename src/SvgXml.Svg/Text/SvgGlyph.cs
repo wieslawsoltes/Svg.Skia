@@ -116,51 +116,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (PathData != null)
-            {
-                write($"{indent}{nameof(PathData)}: \"{PathData}\"");
-            }
-            if (HorizAdvX != null)
-            {
-                write($"{indent}{nameof(HorizAdvX)}: \"{HorizAdvX}\"");
-            }
-            if (VertOriginX != null)
-            {
-                write($"{indent}{nameof(VertOriginX)}: \"{VertOriginX}\"");
-            }
-            if (VertOriginY != null)
-            {
-                write($"{indent}{nameof(VertOriginY)}: \"{VertOriginY}\"");
-            }
-            if (VertAdvY != null)
-            {
-                write($"{indent}{nameof(VertAdvY)}: \"{VertAdvY}\"");
-            }
-            if (Unicode != null)
-            {
-                write($"{indent}{nameof(Unicode)}: \"{Unicode}\"");
-            }
-            if (GlyphName != null)
-            {
-                write($"{indent}{nameof(GlyphName)}: \"{GlyphName}\"");
-            }
-            if (Orientation != null)
-            {
-                write($"{indent}{nameof(Orientation)}: \"{Orientation}\"");
-            }
-            if (ArabicForm != null)
-            {
-                write($"{indent}{nameof(ArabicForm)}: \"{ArabicForm}\"");
-            }
-            if (Lang != null)
-            {
-                write($"{indent}{nameof(LanguageCodes)}: \"{LanguageCodes}\"");
-            }
-        }
     }
 }

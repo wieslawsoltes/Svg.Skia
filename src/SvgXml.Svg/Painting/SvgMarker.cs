@@ -97,43 +97,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (ViewBox != null)
-            {
-                write($"{indent}{nameof(ViewBox)}: \"{ViewBox}\"");
-            }
-            if (AspectRatio != null)
-            {
-                write($"{indent}{nameof(AspectRatio)}: \"{AspectRatio}\"");
-            }
-            if (RefX != null)
-            {
-                write($"{indent}{nameof(RefX)}: \"{RefX}\"");
-            }
-            if (RefY != null)
-            {
-                write($"{indent}{nameof(RefY)}: \"{RefY}\"");
-            }
-            if (MarkerUnits != null)
-            {
-                write($"{indent}{nameof(MarkerUnits)}: \"{MarkerUnits}\"");
-            }
-            if (MarkerWidth != null)
-            {
-                write($"{indent}{nameof(MarkerWidth)}: \"{MarkerWidth}\"");
-            }
-            if (MarkerHeight != null)
-            {
-                write($"{indent}{nameof(MarkerHeight)}: \"{MarkerHeight}\"");
-            }
-            if (Orient != null)
-            {
-                write($"{indent}{nameof(Orient)}: \"{Orient}\"");
-            }
-        }
     }
 }

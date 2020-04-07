@@ -63,31 +63,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (Unicode1 != null)
-            {
-                write($"{indent}{nameof(Unicode1)}: \"{Unicode1}\"");
-            }
-            if (Glyph1 != null)
-            {
-                write($"{indent}{nameof(Glyph1)}: \"{Glyph1}\"");
-            }
-            if (Unicode2 != null)
-            {
-                write($"{indent}{nameof(Unicode2)}: \"{Unicode2}\"");
-            }
-            if (Glyph2 != null)
-            {
-                write($"{indent}{nameof(Glyph2)}: \"{Glyph2}\"");
-            }
-            if (Kerning != null)
-            {
-                write($"{indent}{nameof(Kerning)}: \"{Kerning}\"");
-            }
-        }
     }
 }

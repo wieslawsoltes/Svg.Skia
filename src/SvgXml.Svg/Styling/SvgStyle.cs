@@ -45,23 +45,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (Type != null)
-            {
-                write($"{indent}{nameof(Type)}: \"{Type}\"");
-            }
-            if (Media != null)
-            {
-                write($"{indent}{nameof(Media)}: \"{Media}\"");
-            }
-            if (Title != null)
-            {
-                write($"{indent}{nameof(Title)}: \"{Title}\"");
-            }
-        }
     }
 }

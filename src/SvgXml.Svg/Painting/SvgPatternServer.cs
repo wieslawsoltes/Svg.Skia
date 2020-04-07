@@ -118,51 +118,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (ViewBox != null)
-            {
-                write($"{indent}{nameof(ViewBox)}: \"{ViewBox}\"");
-            }
-            if (AspectRatio != null)
-            {
-                write($"{indent}{nameof(AspectRatio)}: \"{AspectRatio}\"");
-            }
-            if (X != null)
-            {
-                write($"{indent}{nameof(X)}: \"{X}\"");
-            }
-            if (Y != null)
-            {
-                write($"{indent}{nameof(Y)}: \"{Y}\"");
-            }
-            if (Width != null)
-            {
-                write($"{indent}{nameof(Width)}: \"{Width}\"");
-            }
-            if (Height != null)
-            {
-                write($"{indent}{nameof(Height)}: \"{Height}\"");
-            }
-            if (PatternUnits != null)
-            {
-                write($"{indent}{nameof(PatternUnits)}: \"{PatternUnits}\"");
-            }
-            if (PatternContentUnits != null)
-            {
-                write($"{indent}{nameof(PatternContentUnits)}: \"{PatternContentUnits}\"");
-            }
-            if (PatternTransform != null)
-            {
-                write($"{indent}{nameof(PatternTransform)}: \"{PatternTransform}\"");
-            }
-            if (Href != null)
-            {
-                write($"{indent}{nameof(Href)}: \"{Href}\"");
-            }
-        }
     }
 }

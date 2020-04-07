@@ -55,19 +55,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (PathData != null)
-            {
-                write($"{indent}{nameof(PathData)}: \"{PathData}\"");
-            }
-            if (PathLength != null)
-            {
-                write($"{indent}{nameof(PathLength)}: \"{PathLength}\"");
-            }
-        }
     }
 }

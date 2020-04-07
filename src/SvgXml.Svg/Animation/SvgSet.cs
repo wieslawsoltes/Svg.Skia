@@ -30,15 +30,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (To != null)
-            {
-                Console.WriteLine($"{indent}{nameof(To)}='{To}'");
-            }
-        }
     }
 }

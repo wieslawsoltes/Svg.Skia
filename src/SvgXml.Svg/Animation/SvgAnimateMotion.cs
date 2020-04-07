@@ -77,27 +77,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (Path != null)
-            {
-                Console.WriteLine($"{indent}{nameof(Path)}='{Path}'");
-            }
-            if (KeyPoints != null)
-            {
-                Console.WriteLine($"{indent}{nameof(KeyPoints)}='{KeyPoints}'");
-            }
-            if (Rotate != null)
-            {
-                Console.WriteLine($"{indent}{nameof(Rotate)}='{Rotate}'");
-            }
-            if (Origin != null)
-            {
-                Console.WriteLine($"{indent}{nameof(Origin)}='{Origin}'");
-            }
-        }
     }
 }

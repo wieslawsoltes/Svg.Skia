@@ -45,15 +45,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (ClipPathUnits != null)
-            {
-                write($"{indent}{nameof(ClipPathUnits)}: \"{ClipPathUnits}\"");
-            }
-        }
     }
 }

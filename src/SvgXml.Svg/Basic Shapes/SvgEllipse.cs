@@ -75,27 +75,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (CenterX != null)
-            {
-                write($"{indent}{nameof(CenterX)}: \"{CenterX}\"");
-            }
-            if (CenterY != null)
-            {
-                write($"{indent}{nameof(CenterY)}: \"{CenterY}\"");
-            }
-            if (RadiusX != null)
-            {
-                write($"{indent}{nameof(RadiusX)}: \"{RadiusX}\"");
-            }
-            if (RadiusY != null)
-            {
-                write($"{indent}{nameof(RadiusY)}: \"{RadiusY}\"");
-            }
-        }
     }
 }

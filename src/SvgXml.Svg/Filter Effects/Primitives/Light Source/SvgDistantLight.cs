@@ -34,19 +34,5 @@ namespace Svg.FilterEffects
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (Azimuth != null)
-            {
-                write($"{indent}{nameof(Azimuth)}: \"{Azimuth}\"");
-            }
-            if (Elevation != null)
-            {
-                write($"{indent}{nameof(Elevation)}: \"{Elevation}\"");
-            }
-        }
     }
 }

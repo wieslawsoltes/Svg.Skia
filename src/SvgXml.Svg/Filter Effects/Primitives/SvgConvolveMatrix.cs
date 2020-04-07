@@ -116,51 +116,5 @@ namespace Svg.FilterEffects
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (Input != null)
-            {
-                write($"{indent}{nameof(Input)}: \"{Input}\"");
-            }
-            if (Order != null)
-            {
-                write($"{indent}{nameof(Order)}: \"{Order}\"");
-            }
-            if (KernelMatrix != null)
-            {
-                write($"{indent}{nameof(KernelMatrix)}: \"{KernelMatrix}\"");
-            }
-            if (Divisor != null)
-            {
-                write($"{indent}{nameof(Divisor)}: \"{Divisor}\"");
-            }
-            if (Bias != null)
-            {
-                write($"{indent}{nameof(Bias)}: \"{Bias}\"");
-            }
-            if (TargetX != null)
-            {
-                write($"{indent}{nameof(TargetX)}: \"{TargetX}\"");
-            }
-            if (TargetY != null)
-            {
-                write($"{indent}{nameof(TargetY)}: \"{TargetY}\"");
-            }
-            if (EdgeMode != null)
-            {
-                write($"{indent}{nameof(EdgeMode)}: \"{EdgeMode}\"");
-            }
-            if (KernelUnitLength != null)
-            {
-                write($"{indent}{nameof(KernelUnitLength)}: \"{KernelUnitLength}\"");
-            }
-            if (PreserveAlpha != null)
-            {
-                write($"{indent}{nameof(PreserveAlpha)}: \"{PreserveAlpha}\"");
-            }
-        }
     }
 }

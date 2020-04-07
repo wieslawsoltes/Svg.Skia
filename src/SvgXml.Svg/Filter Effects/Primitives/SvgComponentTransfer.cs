@@ -82,40 +82,6 @@ namespace Svg.FilterEffects
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (Type != null)
-            {
-                write($"{indent}{nameof(Type)}: \"{Type}\"");
-            }
-            if (TableValues != null)
-            {
-                write($"{indent}{nameof(TableValues)}: \"{TableValues}\"");
-            }
-            if (Slope != null)
-            {
-                write($"{indent}{nameof(Slope)}: \"{Slope}\"");
-            }
-            if (Intercept != null)
-            {
-                write($"{indent}{nameof(Intercept)}: \"{Intercept}\"");
-            }
-            if (Amplitude != null)
-            {
-                write($"{indent}{nameof(Amplitude)}: \"{Amplitude}\"");
-            }
-            if (Exponent != null)
-            {
-                write($"{indent}{nameof(Exponent)}: \"{Exponent}\"");
-            }
-            if (Offset != null)
-            {
-                write($"{indent}{nameof(Offset)}: \"{Offset}\"");
-            }
-        }
     }
 
     [Element("feComponentTransfer")]
@@ -139,16 +105,6 @@ namespace Svg.FilterEffects
                 case "in":
                     Input = value;
                     break;
-            }
-        }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (Input != null)
-            {
-                write($"{indent}{nameof(Input)}: \"{Input}\"");
             }
         }
     }

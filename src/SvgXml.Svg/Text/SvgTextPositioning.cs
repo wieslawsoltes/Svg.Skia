@@ -62,31 +62,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (X != null)
-            {
-                write($"{indent}{nameof(X)}: \"{X}\"");
-            }
-            if (Y != null)
-            {
-                write($"{indent}{nameof(Y)}: \"{Y}\"");
-            }
-            if (Dx != null)
-            {
-                write($"{indent}{nameof(Dx)}: \"{Dx}\"");
-            }
-            if (Dy != null)
-            {
-                write($"{indent}{nameof(Dy)}: \"{Dy}\"");
-            }
-            if (Rotate != null)
-            {
-                write($"{indent}{nameof(Rotate)}: \"{Rotate}\"");
-            }
-        }
     }
 }

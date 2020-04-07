@@ -77,35 +77,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (HorizOriginX != null)
-            {
-                write($"{indent}{nameof(HorizOriginX)}: \"{HorizOriginX}\"");
-            }
-            if (HorizOriginY != null)
-            {
-                write($"{indent}{nameof(HorizOriginY)}: \"{HorizOriginY}\"");
-            }
-            if (HorizAdvX != null)
-            {
-                write($"{indent}{nameof(HorizAdvX)}: \"{HorizAdvX}\"");
-            }
-            if (VertOriginX != null)
-            {
-                write($"{indent}{nameof(VertOriginX)}: \"{VertOriginX}\"");
-            }
-            if (VertOriginY != null)
-            {
-                write($"{indent}{nameof(VertOriginY)}: \"{VertOriginY}\"");
-            }
-            if (VertAdvY != null)
-            {
-                write($"{indent}{nameof(VertAdvY)}: \"{VertAdvY}\"");
-            }
-        }
     }
 }

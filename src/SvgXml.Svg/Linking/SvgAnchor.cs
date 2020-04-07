@@ -75,27 +75,5 @@ namespace Svg
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (Href != null)
-            {
-                write($"{indent}{nameof(Href)}: \"{Href}\"");
-            }
-            if (Show != null)
-            {
-                write($"{indent}{nameof(Show)}: \"{Show}\"");
-            }
-            if (Actuate != null)
-            {
-                write($"{indent}{nameof(Actuate)}: \"{Actuate}\"");
-            }
-            if (Target != null)
-            {
-                write($"{indent}{nameof(Target)}: \"{Target}\"");
-            }
-        }
     }
 }

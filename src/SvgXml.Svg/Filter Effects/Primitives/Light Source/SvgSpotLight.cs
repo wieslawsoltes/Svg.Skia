@@ -94,43 +94,5 @@ namespace Svg.FilterEffects
                     break;
             }
         }
-
-        public override void Print(Action<string> write, string indent)
-        {
-            base.Print(write, indent);
-
-            if (X != null)
-            {
-                write($"{indent}{nameof(X)}: \"{X}\"");
-            }
-            if (Y != null)
-            {
-                write($"{indent}{nameof(Y)}: \"{Y}\"");
-            }
-            if (Z != null)
-            {
-                write($"{indent}{nameof(Z)}: \"{Z}\"");
-            }
-            if (PointsAtX != null)
-            {
-                write($"{indent}{nameof(PointsAtX)}: \"{PointsAtX}\"");
-            }
-            if (PointsAtY != null)
-            {
-                write($"{indent}{nameof(PointsAtY)}: \"{PointsAtY}\"");
-            }
-            if (PointsAtZ != null)
-            {
-                write($"{indent}{nameof(PointsAtZ)}: \"{PointsAtZ}\"");
-            }
-            if (SpecularExponent != null)
-            {
-                write($"{indent}{nameof(SpecularExponent)}: \"{SpecularExponent}\"");
-            }
-            if (LimitingConeAngle != null)
-            {
-                write($"{indent}{nameof(LimitingConeAngle)}: \"{LimitingConeAngle}\"");
-            }
-        }
     }
 }
