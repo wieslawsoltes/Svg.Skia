@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Reflection;
+using System.Text;
 using System.Xml;
 using Svg.ExCSS;
 using SvgXml.Css;
@@ -63,26 +65,28 @@ namespace Svg
             }
         }
 
-        public static SvgDocument? Open(XmlReader reader)
+        public static SvgDocument? Open(XmlReader reader, Uri? baseUri = null)
         {
             var element = XmlLoader.Read(reader, s_elementFactory);
             if (element is SvgDocument svgDocument)
             {
+                svgDocument.BaseUri = baseUri;
                 return svgDocument;
             }
             return null;
         }
 
-        public static SvgDocument? Open(Stream stream)
+        public static SvgDocument? Open(Stream stream, Uri? baseUri = null)
         {
             using var reader = XmlReader.Create(stream, s_settings);
-            return Open(reader);
+            return Open(reader, baseUri);
         }
 
         public static SvgDocument? OpenSvg(string path)
         {
             using var stream = File.OpenRead(path);
-            return Open(stream);
+            var baseUri = new Uri(Path.GetFullPath(path));
+            return Open(stream, baseUri);
         }
 
         public static SvgDocument? OpenSvgz(string path)
@@ -92,7 +96,8 @@ namespace Svg
             using var memoryStream = new MemoryStream();
             gzipStream.CopyTo(memoryStream);
             memoryStream.Position = 0;
-            return Open(memoryStream);
+            var baseUri = new Uri(Path.GetFullPath(path));
+            return Open(memoryStream, baseUri);
         }
 
         public static SvgDocument? Open(string path)
@@ -106,14 +111,14 @@ namespace Svg
             };
         }
 
-        public static SvgDocument? FromSvg(string svg)
+        public static SvgDocument? FromSvg(string svg, Uri? baseUri = null)
         {
             using var memoryStream = new MemoryStream();
             using var streamWriter = new StreamWriter(memoryStream);
             streamWriter.Write(svg);
             streamWriter.Flush();
             memoryStream.Position = 0;
-            return Open(memoryStream);
+            return Open(memoryStream, baseUri);
         }
 
         private static bool IsStyleAttribute(string name)
@@ -232,9 +237,79 @@ namespace Svg
 
         public IReadOnlyDictionary<string, SvgElement> Ids => _ids;
 
+        public Uri? BaseUri { get; set; }
+
         public SvgDocument()
         {
             _ids = new Dictionary<string, SvgElement>();
+        }
+
+        public SvgElement? GetElementById(string id)
+        {
+            id = GetUrlString(id);
+            if (id.StartsWith("#"))
+            {
+                id = id.Substring(1);
+            }
+            _ids.TryGetValue(id, out var element);
+            return element;
+        }
+
+        public SvgElement? GetElementById(Uri uri)
+        {
+            var urlString = GetUrlString(uri.ToString());
+
+            if (urlString.StartsWith("#"))
+            {
+                return GetElementById(urlString);
+            }
+
+            var index = urlString.LastIndexOf('#');
+            var fragment = urlString.Substring(index);
+
+            uri = new Uri(urlString.Remove(index, fragment.Length), UriKind.RelativeOrAbsolute);
+
+            if (!uri.IsAbsoluteUri && BaseUri != null)
+            {
+                uri = new Uri(BaseUri, uri);
+            }
+
+            if (!uri.IsAbsoluteUri)
+            {
+                return GetElementById(urlString);
+            }
+
+            if (uri.IsFile)
+            {
+                var document = Open(uri.LocalPath);
+                return document?.GetElementById(fragment);
+            }
+            else if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+            {
+                var httpRequest = WebRequest.Create(uri);
+                using var webResponse = httpRequest.GetResponse();
+                var document = Open(webResponse.GetResponseStream());
+                return document?.GetElementById(fragment);
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        private string GetUrlString(string url)
+        {
+            url = url.Trim();
+            if (url.StartsWith("url(", StringComparison.OrdinalIgnoreCase) && url.EndsWith(")"))
+            {
+                url = new StringBuilder(url).Remove(url.Length - 1, 1).Remove(0, 4).ToString().Trim();
+
+                if ((url.StartsWith("\"") && url.EndsWith("\"")) || (url.StartsWith("'") && url.EndsWith("'")))
+                {
+                    url = new StringBuilder(url).Remove(url.Length - 1, 1).Remove(0, 1).ToString().Trim();
+                }
+            }
+            return url;
         }
 
         private void LoadIds(List<Element> children)
