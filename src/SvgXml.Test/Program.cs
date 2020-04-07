@@ -103,7 +103,7 @@ namespace SvgXml.Test
 
             if (args.Length != 1)
             {
-                write($"Usage: {nameof(SvgXml)} <directory>");
+                write($"Usage: {nameof(SvgXml.Test)} <directory>");
                 return;
             }
 
