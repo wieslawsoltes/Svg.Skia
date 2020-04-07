@@ -1,5 +1,4 @@
-﻿using System;
-using SvgValidated.DataTypes;
+﻿using SvgValidated.DataTypes;
 
 namespace SvgValidated
 {

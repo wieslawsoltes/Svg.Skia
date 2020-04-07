@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SvgValidated
+﻿namespace SvgValidated
 {
     public class SvgRectangle : SvgPathBasedElement
     {

@@ -1,5 +1,4 @@
 ﻿using System;
-using SvgValidated.DataTypes;
 
 namespace SvgValidated.FilterEffects
 {

@@ -1,7 +1,4 @@
-﻿using System;
-using SvgValidated.DataTypes;
-
-namespace SvgValidated
+﻿namespace SvgValidated
 {
     public class SvgAspectRatio
     {
