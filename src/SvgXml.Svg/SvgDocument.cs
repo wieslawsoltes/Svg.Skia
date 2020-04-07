@@ -322,7 +322,7 @@ namespace Svg
             {
                 if (child is SvgElement element)
                 {
-                    if (!string.IsNullOrEmpty(element.Id))
+                    if (element.Id != null && !string.IsNullOrEmpty(element.Id))
                     {
                         _ids.Add(element.Id, element);
                     }
