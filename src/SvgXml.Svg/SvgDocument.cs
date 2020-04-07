@@ -228,6 +228,40 @@ namespace Svg
             }
         }
 
+        private Dictionary<string, SvgElement> _ids;
+
+        public IReadOnlyDictionary<string, SvgElement> Ids => _ids;
+
+        public SvgDocument()
+        {
+            _ids = new Dictionary<string, SvgElement>();
+        }
+
+        private void LoadIds(List<Element> children)
+        {
+            if (children == null)
+            {
+                return;
+            }
+            foreach (var child in children)
+            {
+                if (child is SvgElement element)
+                {
+                    if (!string.IsNullOrEmpty(element.Id))
+                    {
+                        _ids.Add(element.Id, element);
+                    }
+                }
+                LoadIds(child.Children);
+            }
+        }
+
+        public void LoadIds()
+        {
+            _ids.Clear();
+            LoadIds(Children);
+        }
+
         public void LoadStyles()
         {
             SetProperties(this, new Parser());
