@@ -145,7 +145,13 @@ namespace SvgXml.Test
 
             sw.Stop();
             write($"# {sw.Elapsed.TotalMilliseconds}ms [{sw.Elapsed}], {paths.Count} files");
-#if true
+
+            foreach (var (path, ex) in errors)
+            {
+                write($"{path.FullName}");
+                Print(ex);
+            }
+
             void Print(Exception ex)
             {
                 write(ex.Message);
@@ -158,23 +164,6 @@ namespace SvgXml.Test
                     Print(ex.InnerException);
                 }
             }
-            foreach (var (path, ex) in errors)
-            {
-                write($"{path.FullName}");
-                Print(ex);
-            }
-#endif
-#if false
-            foreach (var result in results)
-            {
-                write($"# {result.path.FullName}");
-                var document = result.document;
-                if (document != null)
-                {
-                    SvgElement.Print(document, write, printAttributes: true);
-                }
-            }
-#endif
         }
     }
 }
