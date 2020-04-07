@@ -55,6 +55,7 @@ namespace SvgXml.Diagnostics.Views
                 var svgDocument = SvgDocument.Open(path);
                 if (svgDocument != null)
                 {
+                    svgDocument.LoadIds();
                     svgDocument.LoadStyles();
                     svgDocument.FlushStyles(true);
                     var item = new Item()
