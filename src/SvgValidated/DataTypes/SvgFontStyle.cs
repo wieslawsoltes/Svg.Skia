@@ -9,6 +9,6 @@ namespace Svg
         Normal = 1,
         Oblique = 2,
         Italic = 4,
-        All = Normal | Oblique | Italic,
+        All = Normal | Oblique | Italic
     }
 }

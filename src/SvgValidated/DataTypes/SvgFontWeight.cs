@@ -19,6 +19,6 @@ namespace Svg
         W700 = 64 << 8,
         W800 = 128 << 8,
         W900 = 256 << 8,
-        All = Normal | Bold | W100 | W200 | W300 | W400 | W500 | W600 | W700 | W800 | W900,
+        All = Normal | Bold | W100 | W200 | W300 | W400 | W500 | W600 | W700 | W800 | W900
     }
 }
