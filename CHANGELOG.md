@@ -2,7 +2,7 @@
 
 ## vNext
 
-* 
+* Strong name signed assemblies.
 
 ## 0.1.6
 
