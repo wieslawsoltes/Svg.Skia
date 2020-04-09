@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{32B4A27D
 		build.ps1 = build.ps1
 		build.sh = build.sh
 		global.json = global.json
+		build\svg.skia.public.snk = build\svg.skia.public.snk
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{8F2FA341-A87B-4BF8-986F-95A123073091}"
