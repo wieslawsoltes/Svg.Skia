@@ -1,6 +1,6 @@
 # Svg.Skia Changelog
 
-## vNext
+## 0.1.7
 
 * Strong name signed assemblies.
 
