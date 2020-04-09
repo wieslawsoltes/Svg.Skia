@@ -17,14 +17,6 @@
     <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;png;convert</PackageTags>
   </PropertyGroup>
 
-  <!-- Sign assembly -->
-  <PropertyGroup>
-    <SignAssembly>True</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\..\build\svg.skia.public.snk</AssemblyOriginatorKeyFile>
-    <DelaySign>false</DelaySign>
-    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-  </PropertyGroup>
-
   <PropertyGroup>
     <PublishTrimmed>True</PublishTrimmed>
     <PublishSingleFile>False</PublishSingleFile>
