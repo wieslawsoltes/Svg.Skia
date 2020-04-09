@@ -18,6 +18,14 @@
     <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes</PackageTags>
   </PropertyGroup>
 
+  <!-- Sign assembly -->
+  <PropertyGroup>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\build\svg.skia.public.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+  </PropertyGroup>
+
   <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
 
