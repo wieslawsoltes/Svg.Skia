@@ -1,5 +1,9 @@
 # Svg.Skia Changelog
 
+## 0.1.9
+
+* Updated NuGet packages.
+
 ## 0.1.8
 
 * Added fixes for Xamarin.Forms Android/iOS.
