@@ -18,11 +18,11 @@ namespace Svg.Skia.Avalonia.UnitTests
             var svgFile = assetLoader.Open(uri);
             Assert.NotNull(svgFile);
 
-            var svgSkia = new SvgSkia();
-            var picture = svgSkia.Load(svgFile);
+            var svgSource = new SvgSource();
+            var picture = svgSource.Load(svgFile);
             Assert.NotNull(picture);
 
-            var svgImage = new SvgImage() { Source = svgSkia };
+            var svgImage = new SvgImage() { Source = svgSource };
             Assert.NotNull(svgImage);
         }
     }
