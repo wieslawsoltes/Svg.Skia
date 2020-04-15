@@ -18,16 +18,59 @@ namespace Svg.Skia.Avalonia
 {
     internal static class Extensions
     {
-        public static T GetService<T>(this IServiceProvider sp) => (T)sp?.GetService(typeof(T))!;
+        public static T GetService<T>(this IServiceProvider sp)
+            => (T)sp?.GetService(typeof(T))!;
 
-        public static Uri GetContextBaseUri(this IServiceProvider ctx) => ctx.GetService<IUriContext>().BaseUri;
+        public static Uri GetContextBaseUri(this IServiceProvider ctx)
+            => ctx.GetService<IUriContext>().BaseUri;
+    }
+
+    /// <summary>
+    /// Represents a <see cref="SvgSource"/> type converter.
+    /// </summary>
+    public class SvgSourceTypeConverter : TypeConverter
+    {
+        /// <inheritdoc/>
+        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+        {
+            return sourceType == typeof(string);
+        }
+
+        /// <inheritdoc/>
+        public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
+        {
+            var s = (string)value;
+            var uri = s.StartsWith("/")
+                ? new Uri(s, UriKind.Relative)
+                : new Uri(s, UriKind.RelativeOrAbsolute);
+            var svg = new SvgSource();
+            if (uri.IsAbsoluteUri && uri.IsFile)
+            {
+                svg.Load(uri.LocalPath);
+                return svg;
+            }
+            else
+            {
+                var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
+                svg.Load(assets.Open(uri, context.GetContextBaseUri()));
+            }
+            return svg;
+        }
+    }
+
+    /// <summary>
+    /// Represents a <see cref="SKPicture"/> based image.
+    /// </summary>
+    [TypeConverter(typeof(SvgSourceTypeConverter))]
+    public class SvgSource : SKSvg
+    {
     }
 
     internal class SvgCustomDrawOperation : ICustomDrawOperation
     {
-        private readonly ISvg _svg;
+        private readonly SvgSource _svg;
 
-        public SvgCustomDrawOperation(Rect bounds, ISvg svg)
+        public SvgCustomDrawOperation(Rect bounds, SvgSource svg)
         {
             _svg = svg;
             Bounds = bounds;
@@ -45,83 +88,40 @@ namespace Svg.Skia.Avalonia
 
         public void Render(IDrawingContextImpl context)
         {
+            if (_svg == null || _svg.Picture == null)
+            {
+                return;
+            }
             var canvas = (context as ISkiaDrawingContextImpl)?.SkCanvas;
-            if (canvas != null)
+            if (canvas == null)
             {
-                canvas.Save();
-                canvas.DrawPicture(_svg.Picture);
-                canvas.Restore();
+                return;
             }
+            canvas.Save();
+            canvas.DrawPicture(_svg.Picture);
+            canvas.Restore();
         }
     }
 
     /// <summary>
-    /// Represents a <see cref="SKPicture"/> image.
-    /// </summary>
-    [TypeConverter(typeof(SvgTypeConverter))]
-    public interface ISvg : IDisposable
-    {
-        /// <summary>
-        /// Gets or sets picture.
-        /// </summary>
-        SKPicture? Picture { get; set; }
-    }
-
-    public class SvgSkia : SKSvg, ISvg
-    {
-    }
-
-    /// <inheritdoc/>
-    public class SvgTypeConverter : TypeConverter
-    {
-        /// <inheritdoc/>
-        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
-        {
-            return sourceType == typeof(string);
-        }
-
-        /// <inheritdoc/>
-        public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
-        {
-            var s = (string)value;
-            var uri = s.StartsWith("/")
-                ? new Uri(s, UriKind.Relative)
-                : new Uri(s, UriKind.RelativeOrAbsolute);
-
-            var svg = new SvgSkia();
-            if (uri.IsAbsoluteUri && uri.IsFile)
-            {
-                svg.Load(uri.LocalPath);
-                return svg;
-            }
-            else
-            {
-                var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
-                svg.Load(assets.Open(uri, context.GetContextBaseUri()));
-            }
-            return svg;
-        }
-    }
-
-    /// <summary>
-    /// An <see cref="IImage"/> that uses a <see cref="ISvg"/> for content.
+    /// An <see cref="IImage"/> that uses a <see cref="SvgSource"/> for content.
     /// </summary>
     public class SvgImage : AvaloniaObject, IImage, IAffectsRender
     {
         /// <summary>
         /// Defines the <see cref="Source"/> property.
         /// </summary>
-        public static readonly StyledProperty<ISvg> SourceProperty =
-            AvaloniaProperty.Register<SvgImage, ISvg>(nameof(Source));
+        public static readonly StyledProperty<SvgSource> SourceProperty =
+            AvaloniaProperty.Register<SvgImage, SvgSource>(nameof(Source));
 
         /// <inheritdoc/>
         public event EventHandler? Invalidated;
 
         /// <summary>
-        /// Gets or sets the <see cref="ISvg"/> content.
+        /// Gets or sets the <see cref="SvgSource"/> content.
         /// </summary>
         [Content]
-        public ISvg Source
+        public SvgSource Source
         {
             get => GetValue(SourceProperty);
             set => SetValue(SourceProperty, value);
@@ -143,7 +143,6 @@ namespace Svg.Skia.Avalonia
             {
                 return;
             }
-
             var bounds = source.Picture.CullRect;
             var scale = Matrix.CreateScale(
                 destRect.Width / sourceRect.Width,
@@ -151,7 +150,6 @@ namespace Svg.Skia.Avalonia
             var translate = Matrix.CreateTranslation(
                 -sourceRect.X + destRect.X - bounds.Top,
                 -sourceRect.Y + destRect.Y - bounds.Left);
-
             using (context.PushClip(destRect))
             using (context.PushPreTransform(translate * scale))
             {
@@ -166,7 +164,6 @@ namespace Svg.Skia.Avalonia
         protected override void OnPropertyChanged<T>(AvaloniaProperty<T> property, Optional<T> oldValue, BindingValue<T> newValue, BindingPriority priority)
         {
             base.OnPropertyChanged(property, oldValue, newValue, priority);
-
             if (property == SourceProperty)
             {
                 RaiseInvalidated(EventArgs.Empty);

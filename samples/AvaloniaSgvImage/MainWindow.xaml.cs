@@ -70,7 +70,7 @@ namespace AvaloniaSgvImage
                 {
                     if (e.Source == _svgSourceDockPanel)
                     {
-                        var svg = new SvgSkia();
+                        var svg = new SvgSource();
                         var picture = svg.Load(fileName);
                         if (picture != null)
                         {
@@ -83,7 +83,7 @@ namespace AvaloniaSgvImage
 
                     if (e.Source == _svgResourceDockPanel)
                     {
-                        var svg = new SvgSkia();
+                        var svg = new SvgSource();
                         var picture = svg.Load(fileName);
                         if (picture != null)
                         {
