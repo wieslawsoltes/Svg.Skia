@@ -179,15 +179,15 @@ namespace Svg.Skia
                 float sy = DestRect.Height / SrcRect.Height;
                 var skTranslationMatrix = SKMatrix.MakeTranslation(dx, dy);
                 var skScaleMatrix = SKMatrix.MakeScale(sx, sy);
-                SKMatrix.PreConcat(ref FragmentTransform, ref skTranslationMatrix);
-                SKMatrix.PreConcat(ref FragmentTransform, ref skScaleMatrix);
+                FragmentTransform.PreConcat(skTranslationMatrix);
+                FragmentTransform.PreConcat(skScaleMatrix);
             }
 
             Fill = null;
             Stroke = null;
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
+            TransformedBounds = Transform.MapRect(TransformedBounds);
         }
 
         public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
@@ -212,7 +212,7 @@ namespace Svg.Skia
                 canvas.Save();
 
                 var skMatrixTotal = canvas.TotalMatrix;
-                SKMatrix.PreConcat(ref skMatrixTotal, ref FragmentTransform);
+                skMatrixTotal.PreConcat(FragmentTransform);
                 canvas.SetMatrix(skMatrixTotal);
 
                 FragmentDrawable.Draw(canvas, ignoreAttributes, until);

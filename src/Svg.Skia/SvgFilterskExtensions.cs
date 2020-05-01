@@ -632,8 +632,8 @@ namespace Svg.Skia
                 float sy = destRect.Height / srcRect.Height;
                 var skTranslationMatrix = SKMatrix.MakeTranslation(dx, dy);
                 var skScaleMatrix = SKMatrix.MakeScale(sx, sy);
-                SKMatrix.PreConcat(ref fragmentTransform, ref skTranslationMatrix);
-                SKMatrix.PreConcat(ref fragmentTransform, ref skScaleMatrix);
+                fragmentTransform.PreConcat(skTranslationMatrix);
+                fragmentTransform.PreConcat(skScaleMatrix);
 
                 using var fragmentDrawable = new FragmentDrawable(svgFragment, destRect, null, null, Attributes.None);
                 var skPicture = fragmentDrawable.Snapshot();

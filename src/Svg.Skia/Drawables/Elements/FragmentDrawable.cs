@@ -41,7 +41,7 @@ namespace Svg.Skia
 
             Transform = SvgTransformsExtensions.ToSKMatrix(svgFragment.Transforms);
             var skMatrixViewBox = SvgTransformsExtensions.ToSKMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
-            SKMatrix.PreConcat(ref Transform, ref skMatrixViewBox);
+            Transform.PreConcat(skMatrixViewBox);
 
             switch (svgFragment.Overflow)
             {
@@ -80,7 +80,7 @@ namespace Svg.Skia
             Stroke = null;
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
+            TransformedBounds = Transform.MapRect(TransformedBounds);
         }
 
         public override void PostProcess()

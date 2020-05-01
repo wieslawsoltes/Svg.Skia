@@ -68,10 +68,10 @@ namespace Svg.Skia
             if (maskContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
                 var skBoundsTranslateTransform = SKMatrix.MakeTranslation(skOwnerBounds.Left, skOwnerBounds.Top);
-                SKMatrix.PreConcat(ref skMatrix, ref skBoundsTranslateTransform);
+                skMatrix.PreConcat(skBoundsTranslateTransform);
 
                 var skBoundsScaleTransform = SKMatrix.MakeScale(skOwnerBounds.Width, skOwnerBounds.Height);
-                SKMatrix.PreConcat(ref skMatrix, ref skBoundsScaleTransform);
+                skMatrix.PreConcat(skBoundsScaleTransform);
             }
 
             CreateChildren(svgMask, skOwnerBounds, root, this, ignoreAttributes);
@@ -88,7 +88,7 @@ namespace Svg.Skia
             Stroke = null;
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
+            TransformedBounds = Transform.MapRect(TransformedBounds);
         }
 
         public override void PostProcess()

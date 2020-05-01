@@ -418,7 +418,7 @@ namespace Svg.Skia
                 if (svgGradientTransform != null && svgGradientTransform.Count > 0)
                 {
                     var gradientTransform = SvgTransformsExtensions.ToSKMatrix(svgGradientTransform);
-                    SKMatrix.PreConcat(ref skBoundingBoxTransform, ref gradientTransform);
+                    skBoundingBoxTransform.PreConcat(gradientTransform);
                 }
 
 #if USE_COLORSPACE
@@ -618,7 +618,7 @@ namespace Svg.Skia
                 if (svgGradientTransform != null && svgGradientTransform.Count > 0)
                 {
                     var gradientTransform = SvgTransformsExtensions.ToSKMatrix(svgGradientTransform);
-                    SKMatrix.PreConcat(ref skBoundingBoxTransform, ref gradientTransform);
+                    skBoundingBoxTransform.PreConcat(gradientTransform);
                 }
 
 #if USE_COLORSPACE
@@ -852,10 +852,10 @@ namespace Svg.Skia
             var skMatrix = SKMatrix.MakeIdentity();
 
             var skPatternTransformMatrix = SvgTransformsExtensions.ToSKMatrix(svgPatternServer.PatternTransform);
-            SKMatrix.PreConcat(ref skMatrix, ref skPatternTransformMatrix);
+            skMatrix.PreConcat(skPatternTransformMatrix);
 
             var translateTransform = SKMatrix.MakeTranslation(skRectTransformed.Left, skRectTransformed.Top);
-            SKMatrix.PreConcat(ref skMatrix, ref translateTransform);
+            skMatrix.PreConcat(translateTransform);
 
             SKMatrix skPictureTransform = SKMatrix.MakeIdentity();
             if (!viewBox.Equals(SvgViewBox.Empty))
@@ -867,14 +867,14 @@ namespace Svg.Skia
                     0f,
                     skRectTransformed.Width,
                     skRectTransformed.Height);
-                SKMatrix.PreConcat(ref skPictureTransform, ref viewBoxTransform);
+                skPictureTransform.PreConcat(viewBoxTransform);
             }
             else
             {
                 if (patternContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
                 {
                     var skBoundsScaleTransform = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
-                    SKMatrix.PreConcat(ref skPictureTransform, ref skBoundsScaleTransform);
+                    skPictureTransform.PreConcat(skBoundsScaleTransform);
                 }
             }
 

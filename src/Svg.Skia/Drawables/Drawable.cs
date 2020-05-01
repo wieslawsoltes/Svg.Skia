@@ -342,7 +342,7 @@ namespace Svg.Skia
             }
 
             var skMatrixTotal = canvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref Transform);
+            skMatrixTotal.PreConcat(Transform);
             canvas.SetMatrix(skMatrixTotal);
 
             if (Clip != null)

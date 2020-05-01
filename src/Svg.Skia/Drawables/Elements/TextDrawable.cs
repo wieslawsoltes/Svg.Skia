@@ -106,7 +106,7 @@ namespace Svg.Skia
             var skMatrix = SvgTransformsExtensions.ToSKMatrix(svgTextBase.Transforms);
 
             var skMatrixTotal = skCanvas.TotalMatrix;
-            SKMatrix.PreConcat(ref skMatrixTotal, ref skMatrix);
+            skMatrixTotal.PreConcat(skMatrix);
             skCanvas.SetMatrix(skMatrixTotal);
 
             if (enableClip == true)

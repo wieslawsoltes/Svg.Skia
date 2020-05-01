@@ -60,7 +60,7 @@ namespace Svg.Skia
             }
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
+            TransformedBounds = Transform.MapRect(TransformedBounds);
         }
     }
 }

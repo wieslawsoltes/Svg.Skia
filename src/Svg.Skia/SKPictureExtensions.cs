@@ -73,8 +73,7 @@ namespace Svg.Skia
                 return false;
             }
             using var skFileWStream = new SKFileWStream(path);
-            using var writer = new SKXmlStreamWriter(skFileWStream);
-            using var skCanvas = SKSvgCanvas.Create(SKRect.Create(0, 0, width, height), writer);
+            using var skCanvas = SKSvgCanvas.Create(SKRect.Create(0, 0, width, height), skFileWStream);
             Draw(skPicture, background, scaleX, scaleY, skCanvas);
             return true;
         }

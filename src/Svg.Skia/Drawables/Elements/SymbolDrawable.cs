@@ -66,13 +66,13 @@ namespace Svg.Skia
 
             Transform = SvgTransformsExtensions.ToSKMatrix(svgSymbol.Transforms);
             var skMatrixViewBox = SvgTransformsExtensions.ToSKMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
-            SKMatrix.PreConcat(ref Transform, ref skMatrixViewBox);
+            Transform.PreConcat(skMatrixViewBox);
 
             Fill = null;
             Stroke = null;
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
+            TransformedBounds = Transform.MapRect(TransformedBounds);
         }
     }
 }

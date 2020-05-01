@@ -99,14 +99,15 @@ namespace Svg.Skia
             if (!(svgReferencedElement is SvgSymbol))
             {
                 var skMatrixTranslateXY = SKMatrix.MakeTranslation(x, y);
-                SKMatrix.PreConcat(ref Transform, ref skMatrixTranslateXY);
+                Transform.PreConcat(skMatrixTranslateXY);
+                Transform.PreConcat(skMatrixTranslateXY);
             }
 
             Fill = null;
             Stroke = null;
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
+            TransformedBounds = Transform.MapRect(TransformedBounds);
 
             try
             {

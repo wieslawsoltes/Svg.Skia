@@ -33,10 +33,10 @@ namespace Svg.Skia
             var skMarkerMatrix = SKMatrix.MakeIdentity();
 
             var skMatrixMarkerPoint = SKMatrix.MakeTranslation(pMarkerPoint.X, pMarkerPoint.Y);
-            SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixMarkerPoint);
+            skMarkerMatrix.PreConcat(skMatrixMarkerPoint);
 
             var skMatrixAngle = SKMatrix.MakeRotationDegrees(svgMarker.Orient.IsAuto ? fAngle : svgMarker.Orient.Angle);
-            SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixAngle);
+            skMarkerMatrix.PreConcat(skMatrixAngle);
 
             var strokeWidth = pOwner.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
 
@@ -52,7 +52,7 @@ namespace Svg.Skia
                 case SvgMarkerUnits.StrokeWidth:
                     {
                         var skMatrixStrokeWidth = SKMatrix.MakeScale(strokeWidth, strokeWidth);
-                        SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixStrokeWidth);
+                        skMarkerMatrix.PreConcat(skMatrixStrokeWidth);
 
                         var viewBoxWidth = svgMarker.ViewBox.Width;
                         var viewBoxHeight = svgMarker.ViewBox.Height;
@@ -64,16 +64,16 @@ namespace Svg.Skia
                         viewBoxToMarkerUnitsScaleY = Math.Min(scaleFactorWidth, scaleFactorHeight);
 
                         var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX * viewBoxToMarkerUnitsScaleX, -refY * viewBoxToMarkerUnitsScaleY);
-                        SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixTranslateRefXY);
+                        skMarkerMatrix.PreConcat(skMatrixTranslateRefXY);
 
                         var skMatrixScaleXY = SKMatrix.MakeScale(viewBoxToMarkerUnitsScaleX, viewBoxToMarkerUnitsScaleY);
-                        SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixScaleXY);
+                        skMarkerMatrix.PreConcat(skMatrixScaleXY);
                     }
                     break;
                 case SvgMarkerUnits.UserSpaceOnUse:
                     {
                         var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX, -refY);
-                        SKMatrix.PreConcat(ref skMarkerMatrix, ref skMatrixTranslateRefXY);
+                        skMarkerMatrix.PreConcat(skMatrixTranslateRefXY);
                     }
                     break;
             }
@@ -110,13 +110,13 @@ namespace Svg.Skia
             TransformedBounds = MarkerElementDrawable.TransformedBounds;
 
             Transform = SvgTransformsExtensions.ToSKMatrix(svgMarker.Transforms);
-            SKMatrix.PreConcat(ref Transform, ref skMarkerMatrix);
+            Transform.PreConcat(skMarkerMatrix);
 
             Fill = null;
             Stroke = null;
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
+            TransformedBounds = Transform.MapRect(TransformedBounds);
         }
 
         internal SvgVisualElement? GetMarkerElement(SvgMarker svgMarker)

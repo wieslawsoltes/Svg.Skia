@@ -31,7 +31,7 @@ namespace Svg.Skia
             Stroke = null;
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
+            TransformedBounds = Transform.MapRect(TransformedBounds);
 
             ClipPath = null;
             MaskDrawable = null;

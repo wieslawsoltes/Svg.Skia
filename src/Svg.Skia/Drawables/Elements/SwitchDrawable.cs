@@ -68,7 +68,7 @@ namespace Svg.Skia
             Stroke = null;
 
             // TODO: Transform _skBounds using _skMatrix.
-            SKMatrix.MapRect(ref Transform, out TransformedBounds, ref TransformedBounds);
+            TransformedBounds = Transform.MapRect(TransformedBounds);
         }
 
         public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
