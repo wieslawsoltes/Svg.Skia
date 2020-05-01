@@ -1,5 +1,9 @@
 # Svg.Skia Changelog
 
+## 0.2.0
+
+* Updated NuGet packages.
+
 ## 0.1.9
 
 * Updated NuGet packages.
