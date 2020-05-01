@@ -100,7 +100,6 @@ namespace Svg.Skia
             {
                 var skMatrixTranslateXY = SKMatrix.MakeTranslation(x, y);
                 Transform.PreConcat(skMatrixTranslateXY);
-                Transform.PreConcat(skMatrixTranslateXY);
             }
 
             Fill = null;
