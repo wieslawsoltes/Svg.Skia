@@ -66,7 +66,7 @@ namespace Svg.Skia
 
             Transform = SvgTransformsExtensions.ToSKMatrix(svgSymbol.Transforms);
             var skMatrixViewBox = SvgTransformsExtensions.ToSKMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
-            Transform.PreConcat(skMatrixViewBox);
+            Transform = Transform.PreConcat(skMatrixViewBox);
 
             Fill = null;
             Stroke = null;

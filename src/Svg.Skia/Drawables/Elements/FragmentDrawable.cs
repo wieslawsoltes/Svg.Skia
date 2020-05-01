@@ -41,7 +41,7 @@ namespace Svg.Skia
 
             Transform = SvgTransformsExtensions.ToSKMatrix(svgFragment.Transforms);
             var skMatrixViewBox = SvgTransformsExtensions.ToSKMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
-            Transform.PreConcat(skMatrixViewBox);
+            Transform = Transform.PreConcat(skMatrixViewBox);
 
             switch (svgFragment.Overflow)
             {

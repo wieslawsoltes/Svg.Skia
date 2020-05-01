@@ -268,14 +268,14 @@ namespace Svg.Skia
                 if (svgClipPathRef.ClipPathUnits == SvgCoordinateUnits.ObjectBoundingBox)
                 {
                     var skScaleMatrix = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
-                    skMatrix.PostConcat(skScaleMatrix);
+                    skMatrix = skMatrix.PostConcat(skScaleMatrix);
 
                     var skTranslateMatrix = SKMatrix.MakeTranslation(skBounds.Left, skBounds.Top);
-                    skMatrix.PostConcat(skTranslateMatrix);
+                    skMatrix = skMatrix.PostConcat(skTranslateMatrix);
                 }
 
                 var skTransformsMatrix = SvgTransformsExtensions.ToSKMatrix(svgClipPathRef.Transforms);
-                skMatrix.PostConcat(skTransformsMatrix);
+                skMatrix = skMatrix.PostConcat(skTransformsMatrix);
 
                 clipPath.Transform(skMatrix);
             }
@@ -301,14 +301,14 @@ namespace Svg.Skia
                 if (svgClipPath.ClipPathUnits == SvgCoordinateUnits.ObjectBoundingBox)
                 {
                     var skScaleMatrix = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
-                    skMatrix.PostConcat(skScaleMatrix);
+                    skMatrix = skMatrix.PostConcat(skScaleMatrix);
 
                     var skTranslateMatrix = SKMatrix.MakeTranslation(skBounds.Left, skBounds.Top);
-                    skMatrix.PostConcat(skTranslateMatrix);
+                    skMatrix = skMatrix.PostConcat(skTranslateMatrix);
                 }
 
                 var skTransformsMatrix = SvgTransformsExtensions.ToSKMatrix(svgClipPath.Transforms);
-                skMatrix.PostConcat(skTransformsMatrix);
+                skMatrix = skMatrix.PostConcat(skTransformsMatrix);
 
                 clipPath.Transform(skMatrix);
 

@@ -40,19 +40,19 @@ namespace Svg.Skia
                     case SvgMatrix svgMatrix:
                         {
                             var skMatrix = svgMatrix.ToSKMatrix();
-                            skMatrixTotal.PreConcat(skMatrix);
+                            skMatrixTotal = skMatrixTotal.PreConcat(skMatrix);
                         }
                         break;
                     case SvgRotate svgRotate:
                         {
                             var skMatrixRotate = SKMatrix.MakeRotationDegrees(svgRotate.Angle, svgRotate.CenterX, svgRotate.CenterY);
-                            skMatrixTotal.PreConcat(skMatrixRotate);
+                            skMatrixTotal = skMatrixTotal.PreConcat(skMatrixRotate);
                         }
                         break;
                     case SvgScale svgScale:
                         {
                             var skMatrixScale = SKMatrix.MakeScale(svgScale.X, svgScale.Y);
-                            skMatrixTotal.PreConcat(skMatrixScale);
+                            skMatrixTotal = skMatrixTotal.PreConcat(skMatrixScale);
                         }
                         break;
                     case SvgShear svgShear:
@@ -65,13 +65,13 @@ namespace Svg.Skia
                             float sx = (float)Math.Tan(Math.PI * svgSkew.AngleX / 180);
                             float sy = (float)Math.Tan(Math.PI * svgSkew.AngleY / 180);
                             var skMatrixSkew = SKMatrix.MakeSkew(sx, sy);
-                            skMatrixTotal.PreConcat(skMatrixSkew);
+                            skMatrixTotal = skMatrixTotal.PreConcat(skMatrixSkew);
                         }
                         break;
                     case SvgTranslate svgTranslate:
                         {
                             var skMatrixTranslate = SKMatrix.MakeTranslation(svgTranslate.X, svgTranslate.Y);
-                            skMatrixTotal.PreConcat(skMatrixTranslate);
+                            skMatrixTotal = skMatrixTotal.PreConcat(skMatrixTranslate);
                         }
                         break;
                     default:
@@ -158,13 +158,13 @@ namespace Svg.Skia
             var skMatrixTotal = SKMatrix.MakeIdentity();
 
             var skMatrixXY = SKMatrix.MakeTranslation(x, y);
-            skMatrixTotal.PreConcat(skMatrixXY);
+            skMatrixTotal = skMatrixTotal.PreConcat(skMatrixXY);
 
             var skMatrixMinXY = SKMatrix.MakeTranslation(fMinX, fMinY);
-            skMatrixTotal.PreConcat(skMatrixMinXY);
+            skMatrixTotal = skMatrixTotal.PreConcat(skMatrixMinXY);
 
             var skMatrixScale = SKMatrix.MakeScale(fScaleX, fScaleY);
-            skMatrixTotal.PreConcat(skMatrixScale);
+            skMatrixTotal = skMatrixTotal.PreConcat(skMatrixScale);
 
             return skMatrixTotal;
         }

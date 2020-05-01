@@ -99,7 +99,7 @@ namespace Svg.Skia
             if (!(svgReferencedElement is SvgSymbol))
             {
                 var skMatrixTranslateXY = SKMatrix.MakeTranslation(x, y);
-                Transform.PreConcat(skMatrixTranslateXY);
+                Transform = Transform.PreConcat(skMatrixTranslateXY);
             }
 
             Fill = null;

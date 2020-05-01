@@ -33,10 +33,10 @@ namespace Svg.Skia
             var skMarkerMatrix = SKMatrix.MakeIdentity();
 
             var skMatrixMarkerPoint = SKMatrix.MakeTranslation(pMarkerPoint.X, pMarkerPoint.Y);
-            skMarkerMatrix.PreConcat(skMatrixMarkerPoint);
+            skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixMarkerPoint);
 
             var skMatrixAngle = SKMatrix.MakeRotationDegrees(svgMarker.Orient.IsAuto ? fAngle : svgMarker.Orient.Angle);
-            skMarkerMatrix.PreConcat(skMatrixAngle);
+            skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixAngle);
 
             var strokeWidth = pOwner.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
 
@@ -52,7 +52,7 @@ namespace Svg.Skia
                 case SvgMarkerUnits.StrokeWidth:
                     {
                         var skMatrixStrokeWidth = SKMatrix.MakeScale(strokeWidth, strokeWidth);
-                        skMarkerMatrix.PreConcat(skMatrixStrokeWidth);
+                        skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixStrokeWidth);
 
                         var viewBoxWidth = svgMarker.ViewBox.Width;
                         var viewBoxHeight = svgMarker.ViewBox.Height;
@@ -64,16 +64,16 @@ namespace Svg.Skia
                         viewBoxToMarkerUnitsScaleY = Math.Min(scaleFactorWidth, scaleFactorHeight);
 
                         var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX * viewBoxToMarkerUnitsScaleX, -refY * viewBoxToMarkerUnitsScaleY);
-                        skMarkerMatrix.PreConcat(skMatrixTranslateRefXY);
+                        skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixTranslateRefXY);
 
                         var skMatrixScaleXY = SKMatrix.MakeScale(viewBoxToMarkerUnitsScaleX, viewBoxToMarkerUnitsScaleY);
-                        skMarkerMatrix.PreConcat(skMatrixScaleXY);
+                        skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixScaleXY);
                     }
                     break;
                 case SvgMarkerUnits.UserSpaceOnUse:
                     {
                         var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX, -refY);
-                        skMarkerMatrix.PreConcat(skMatrixTranslateRefXY);
+                        skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixTranslateRefXY);
                     }
                     break;
             }
@@ -110,7 +110,7 @@ namespace Svg.Skia
             TransformedBounds = MarkerElementDrawable.TransformedBounds;
 
             Transform = SvgTransformsExtensions.ToSKMatrix(svgMarker.Transforms);
-            Transform.PreConcat(skMarkerMatrix);
+            Transform = Transform.PreConcat(skMarkerMatrix);
 
             Fill = null;
             Stroke = null;
