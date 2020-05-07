@@ -112,8 +112,7 @@ namespace SvgToPng.ViewModels
                 if (item.Svg != null)
                 {
                     var stopwatchToPicture = Stopwatch.StartNew();
-                    item.Picture = SKSvg.ToPicture(item.Svg, out var drawable);
-                    item.Drawable = drawable;
+                    item.Picture = SKSvg.ToPicture(item.Svg);
                     stopwatchToPicture.Stop();
                     statusToPicture?.Invoke($"{Math.Round(stopwatchToPicture.Elapsed.TotalMilliseconds, 3)}ms");
                     Debug.WriteLine($"ToPicture: {Math.Round(stopwatchToPicture.Elapsed.TotalMilliseconds, 3)}ms");
