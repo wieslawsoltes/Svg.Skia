@@ -4511,7 +4511,7 @@ namespace Svg.Skia
         }
     }
 
-    public static class SvgTextExtensions
+    internal static class SvgTextExtensions
     {
         public static SKFontStyleWeight SKFontStyleWeight(SvgFontWeight svgFontWeight)
         {
@@ -4634,12 +4634,12 @@ namespace Svg.Skia
             var fontStyle = ToSKFontStyleSlant(svgText.FontStyle);
             var fontFamily = svgText.FontFamily;
 
-            if (s_typefaceProviders == null || s_typefaceProviders.Count <= 0)
+            if (SKSvgSettings.s_typefaceProviders == null || SKSvgSettings.s_typefaceProviders.Count <= 0)
             {
                 return;
             }
 
-            foreach (var typefaceProviders in s_typefaceProviders)
+            foreach (var typefaceProviders in SKSvgSettings.s_typefaceProviders)
             {
                 var skTypeface = typefaceProviders.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
                 if (skTypeface != null)
