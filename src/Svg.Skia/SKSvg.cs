@@ -154,13 +154,11 @@ namespace Svg.Skia
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
-
             using var drawable = DrawableFactory.Create(svgFragment, skBounds, null, Attributes.None);
             if (drawable == null)
             {
                 return null;
             }
-
             drawable.PostProcess();
 
             if (skBounds.IsEmpty)
