@@ -11,31 +11,31 @@ namespace Svg.Skia
 {
     public static class SvgFiltersExtensions
     {
-        public static SKBlendMode GetSKBlendMode(FilterEffects.SvgBlendMode svgBlendMode)
+        public static SKBlendMode GetSKBlendMode(SvgBlendMode svgBlendMode)
         {
             return svgBlendMode switch
             {
-                FilterEffects.SvgBlendMode.Normal => SKBlendMode.SrcOver,
-                FilterEffects.SvgBlendMode.Multiply => SKBlendMode.Multiply,
-                FilterEffects.SvgBlendMode.Screen => SKBlendMode.Screen,
-                FilterEffects.SvgBlendMode.Overlay => SKBlendMode.Overlay,
-                FilterEffects.SvgBlendMode.Darken => SKBlendMode.Darken,
-                FilterEffects.SvgBlendMode.Lighten => SKBlendMode.Lighten,
-                FilterEffects.SvgBlendMode.ColorDodge => SKBlendMode.ColorDodge,
-                FilterEffects.SvgBlendMode.ColorBurn => SKBlendMode.ColorBurn,
-                FilterEffects.SvgBlendMode.HardLight => SKBlendMode.HardLight,
-                FilterEffects.SvgBlendMode.SoftLight => SKBlendMode.SoftLight,
-                FilterEffects.SvgBlendMode.Difference => SKBlendMode.Difference,
-                FilterEffects.SvgBlendMode.Exclusion => SKBlendMode.Exclusion,
-                FilterEffects.SvgBlendMode.Hue => SKBlendMode.Hue,
-                FilterEffects.SvgBlendMode.Saturation => SKBlendMode.Saturation,
-                FilterEffects.SvgBlendMode.Color => SKBlendMode.Color,
-                FilterEffects.SvgBlendMode.Luminosity => SKBlendMode.Luminosity,
+                SvgBlendMode.Normal => SKBlendMode.SrcOver,
+                SvgBlendMode.Multiply => SKBlendMode.Multiply,
+                SvgBlendMode.Screen => SKBlendMode.Screen,
+                SvgBlendMode.Overlay => SKBlendMode.Overlay,
+                SvgBlendMode.Darken => SKBlendMode.Darken,
+                SvgBlendMode.Lighten => SKBlendMode.Lighten,
+                SvgBlendMode.ColorDodge => SKBlendMode.ColorDodge,
+                SvgBlendMode.ColorBurn => SKBlendMode.ColorBurn,
+                SvgBlendMode.HardLight => SKBlendMode.HardLight,
+                SvgBlendMode.SoftLight => SKBlendMode.SoftLight,
+                SvgBlendMode.Difference => SKBlendMode.Difference,
+                SvgBlendMode.Exclusion => SKBlendMode.Exclusion,
+                SvgBlendMode.Hue => SKBlendMode.Hue,
+                SvgBlendMode.Saturation => SKBlendMode.Saturation,
+                SvgBlendMode.Color => SKBlendMode.Color,
+                SvgBlendMode.Luminosity => SKBlendMode.Luminosity,
                 _ => SKBlendMode.SrcOver,
             };
         }
 
-        public static SKImageFilter? CreateBlend(FilterEffects.SvgBlend svgBlend, SKImageFilter background, SKImageFilter? foreground = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateBlend(SvgBlend svgBlend, SKImageFilter background, SKImageFilter? foreground = null, SKImageFilter.CropRect? cropRect = null)
         {
             var mode = GetSKBlendMode(svgBlend.Mode);
             return SKImageFilter.CreateBlendMode(mode, background, foreground, cropRect);
@@ -52,13 +52,13 @@ namespace Svg.Skia
             };
         }
 
-        public static SKImageFilter? CreateColorMatrix(FilterEffects.SvgColourMatrix svgColourMatrix, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateColorMatrix(SvgColourMatrix svgColourMatrix, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             SKColorFilter skColorFilter;
 
             switch (svgColourMatrix.Type)
             {
-                case FilterEffects.SvgColourMatrixType.HueRotate:
+                case SvgColourMatrixType.HueRotate:
                     {
                         float value = (string.IsNullOrEmpty(svgColourMatrix.Values) ? 0 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture));
                         var hue = (float)SvgExtensions.DegreeToRadian(value);
@@ -81,7 +81,7 @@ namespace Svg.Skia
                         disposable.Add(skColorFilter);
                     }
                     break;
-                case FilterEffects.SvgColourMatrixType.LuminanceToAlpha:
+                case SvgColourMatrixType.LuminanceToAlpha:
                     {
                         float[] matrix = new float[]
                         {
@@ -94,7 +94,7 @@ namespace Svg.Skia
                         disposable.Add(skColorFilter);
                     }
                     break;
-                case FilterEffects.SvgColourMatrixType.Saturate:
+                case SvgColourMatrixType.Saturate:
                     {
                         float value = (string.IsNullOrEmpty(svgColourMatrix.Values) ? 1 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture));
                         float[] matrix = new float[]
@@ -109,7 +109,7 @@ namespace Svg.Skia
                     };
                     break;
                 default:
-                case FilterEffects.SvgColourMatrixType.Matrix:
+                case SvgColourMatrixType.Matrix:
                     {
                         float[] matrix;
                         if (string.IsNullOrEmpty(svgColourMatrix.Values))
@@ -254,7 +254,7 @@ namespace Svg.Skia
             }
         }
 
-        public static SKImageFilter? CreateComponentTransfer(FilterEffects.SvgComponentTransfer svgComponentTransfer, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateComponentTransfer(SvgComponentTransfer svgComponentTransfer, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             SvgFuncA? svgFuncA = s_identitySvgFuncA;
             SvgFuncR? svgFuncR = s_identitySvgFuncR;
@@ -301,7 +301,7 @@ namespace Svg.Skia
             return SKImageFilter.CreateColorFilter(cf, input, cropRect);
         }
 
-        public static SKImageFilter? CreateComposite(FilterEffects.SvgComposite svgComposite, SKImageFilter background, SKImageFilter? foreground = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateComposite(SvgComposite svgComposite, SKImageFilter background, SKImageFilter? foreground = null, SKImageFilter.CropRect? cropRect = null)
         {
             var oper = svgComposite.Operator;
             if (oper == SvgCompositeOperator.Arithmetic)
@@ -316,18 +316,18 @@ namespace Svg.Skia
             {
                 var mode = oper switch
                 {
-                    FilterEffects.SvgCompositeOperator.Over => SKBlendMode.SrcOver,
-                    FilterEffects.SvgCompositeOperator.In => SKBlendMode.SrcIn,
-                    FilterEffects.SvgCompositeOperator.Out => SKBlendMode.SrcOut,
-                    FilterEffects.SvgCompositeOperator.Atop => SKBlendMode.SrcATop,
-                    FilterEffects.SvgCompositeOperator.Xor => SKBlendMode.Xor,
+                    SvgCompositeOperator.Over => SKBlendMode.SrcOver,
+                    SvgCompositeOperator.In => SKBlendMode.SrcIn,
+                    SvgCompositeOperator.Out => SKBlendMode.SrcOut,
+                    SvgCompositeOperator.Atop => SKBlendMode.SrcATop,
+                    SvgCompositeOperator.Xor => SKBlendMode.Xor,
                     _ => SKBlendMode.SrcOver,
                 };
                 return SKImageFilter.CreateBlendMode(mode, background, foreground, cropRect);
             }
         }
 
-        public static SKImageFilter? CreateConvolveMatrix(FilterEffects.SvgConvolveMatrix svgConvolveMatrix, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateConvolveMatrix(SvgConvolveMatrix svgConvolveMatrix, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             SvgExtensions.GetOptionalNumbers(svgConvolveMatrix.Order, 3f, 3f, out var orderX, out var orderY);
 
@@ -414,7 +414,7 @@ namespace Svg.Skia
             return new SKPoint3(x, y, z);
         }
 
-        public static SKImageFilter? CreateDiffuseLighting(FilterEffects.SvgDiffuseLighting svgDiffuseLighting, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SvgVisualElement svgVisualElement, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateDiffuseLighting(SvgDiffuseLighting svgDiffuseLighting, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SvgVisualElement svgVisualElement, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             var lightColor = SvgPaintingExtensions.GetColor(svgVisualElement, svgDiffuseLighting.LightingColor);
             if (lightColor == null)
@@ -471,7 +471,7 @@ namespace Svg.Skia
             };
         }
 
-        public static SKImageFilter? CreateDisplacementMap(FilterEffects.SvgDisplacementMap svgDisplacementMap, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter displacement, SKImageFilter? inout = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateDisplacementMap(SvgDisplacementMap svgDisplacementMap, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter displacement, SKImageFilter? inout = null, SKImageFilter.CropRect? cropRect = null)
         {
             var xChannelSelector = GetSKDisplacementMapEffectChannelSelectorType(svgDisplacementMap.XChannelSelector);
             var yChannelSelector = GetSKDisplacementMapEffectChannelSelectorType(svgDisplacementMap.YChannelSelector);
@@ -485,7 +485,7 @@ namespace Svg.Skia
             return SKImageFilter.CreateDisplacementMapEffect(xChannelSelector, yChannelSelector, scale, displacement, inout, cropRect);
         }
 
-        public static SKImageFilter? CreateFlood(FilterEffects.SvgFlood svgFlood, SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateFlood(SvgFlood svgFlood, SvgVisualElement svgVisualElement, SKRect skBounds, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             var floodColor = SvgPaintingExtensions.GetColor(svgVisualElement, svgFlood.FloodColor);
             if (floodColor == null)
@@ -508,7 +508,7 @@ namespace Svg.Skia
             return SKImageFilter.CreateColorFilter(cf, input, cropRect);
         }
 
-        public static SKImageFilter? CreateBlur(FilterEffects.SvgGaussianBlur svgGaussianBlur, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateBlur(SvgGaussianBlur svgGaussianBlur, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             SvgExtensions.GetOptionalNumbers(svgGaussianBlur.StdDeviation, 0f, 0f, out var sigmaX, out var sigmaY);
 
@@ -645,9 +645,9 @@ namespace Svg.Skia
             return null;
         }
 
-        public static SKImageFilter? CreateMerge(FilterEffects.SvgMerge svgMerge, Dictionary<string, SKImageFilter> results, SKImageFilter? lastResult, IFilterSource filterSource, CompositeDisposable disposable, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateMerge(SvgMerge svgMerge, Dictionary<string, SKImageFilter> results, SKImageFilter? lastResult, IFilterSource filterSource, CompositeDisposable disposable, SKImageFilter.CropRect? cropRect = null)
         {
-            var children = svgMerge.Children.OfType<FilterEffects.SvgMergeNode>().ToList();
+            var children = svgMerge.Children.OfType<SvgMergeNode>().ToList();
             var filters = new SKImageFilter[children.Count];
 
             for (int i = 0; i < children.Count; i++)
@@ -668,7 +668,7 @@ namespace Svg.Skia
             return SKImageFilter.CreateMerge(filters, cropRect);
         }
 
-        public static SKImageFilter? CreateMorphology(FilterEffects.SvgMorphology svgMorphology, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateMorphology(SvgMorphology svgMorphology, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             SvgExtensions.GetOptionalNumbers(svgMorphology.Radius, 0f, 0f, out var radiusX, out var radiusY);
 
@@ -692,7 +692,7 @@ namespace Svg.Skia
             };
         }
 
-        public static SKImageFilter? CreateOffset(FilterEffects.SvgOffset svgOffset, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateOffset(SvgOffset svgOffset, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             var dxUnit = svgOffset.Dx;
             var dyUnit = svgOffset.Dy;
@@ -716,7 +716,7 @@ namespace Svg.Skia
             return SKImageFilter.CreateOffset(dx, dy, input, cropRect);
         }
 
-        public static SKImageFilter? CreateSpecularLighting(FilterEffects.SvgSpecularLighting svgSpecularLighting, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SvgVisualElement svgVisualElement, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateSpecularLighting(SvgSpecularLighting svgSpecularLighting, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SvgVisualElement svgVisualElement, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             var lightColor = SvgPaintingExtensions.GetColor(svgVisualElement, svgSpecularLighting.LightingColor);
             if (lightColor == null)
@@ -757,14 +757,14 @@ namespace Svg.Skia
             return null;
         }
 
-        public static SKImageFilter? CreateTile(FilterEffects.SvgTile svgTile, SKRect skBounds, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateTile(SvgTile svgTile, SKRect skBounds, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
             var src = skBounds;
             var dst = cropRect != null ? cropRect.Rect : skBounds;
             return SKImageFilter.CreateTile(src, dst, input);
         }
 
-        public static SKImageFilter? CreateTurbulence(FilterEffects.SvgTurbulence svgTurbulence, SKRect skBounds, SvgCoordinateUnits primitiveUnits, CompositeDisposable disposable, SKImageFilter.CropRect? cropRect = null)
+        public static SKImageFilter? CreateTurbulence(SvgTurbulence svgTurbulence, SKRect skBounds, SvgCoordinateUnits primitiveUnits, CompositeDisposable disposable, SKImageFilter.CropRect? cropRect = null)
         {
             SvgExtensions.GetOptionalNumbers(svgTurbulence.BaseFrequency, 0f, 0f, out var baseFrequencyX, out var baseFrequencyY);
 
@@ -1058,15 +1058,15 @@ namespace Svg.Skia
             return null;
         }
 
-        private static List<FilterEffects.SvgFilter>? GetLinkedFilter(SvgVisualElement svgVisualElement, HashSet<Uri> uris)
+        private static List<SvgFilter>? GetLinkedFilter(SvgVisualElement svgVisualElement, HashSet<Uri> uris)
         {
-            SvgFilter? currentFilter = SvgExtensions.GetReference<FilterEffects.SvgFilter>(svgVisualElement, svgVisualElement.Filter);
+            SvgFilter? currentFilter = SvgExtensions.GetReference<SvgFilter>(svgVisualElement, svgVisualElement.Filter);
             if (currentFilter == null)
             {
                 return null;
             }
 
-            var svgFilters = new List<FilterEffects.SvgFilter>();
+            var svgFilters = new List<SvgFilter>();
             do
             {
                 if (currentFilter != null)
@@ -1076,7 +1076,7 @@ namespace Svg.Skia
                     {
                         return svgFilters;
                     }
-                    currentFilter = SvgExtensions.GetReference<FilterEffects.SvgFilter>(currentFilter, currentFilter.Href);
+                    currentFilter = SvgExtensions.GetReference<SvgFilter>(currentFilter, currentFilter.Href);
                 }
             } while (currentFilter != null);
 
@@ -1101,13 +1101,13 @@ namespace Svg.Skia
 
             var svgFirstFilter = svgReferencedFilters[0];
 
-            FilterEffects.SvgFilter? firstChildren = null;
-            FilterEffects.SvgFilter? firstX = null;
-            FilterEffects.SvgFilter? firstY = null;
-            FilterEffects.SvgFilter? firstWidth = null;
-            FilterEffects.SvgFilter? firstHeight = null;
-            FilterEffects.SvgFilter? firstFilterUnits = null;
-            FilterEffects.SvgFilter? firstPrimitiveUnits = null;
+            SvgFilter? firstChildren = null;
+            SvgFilter? firstX = null;
+            SvgFilter? firstY = null;
+            SvgFilter? firstWidth = null;
+            SvgFilter? firstHeight = null;
+            SvgFilter? firstFilterUnits = null;
+            SvgFilter? firstPrimitiveUnits = null;
 
             foreach (var p in svgReferencedFilters)
             {
@@ -1218,18 +1218,18 @@ namespace Svg.Skia
 
             var skFilterRegion = SKRect.Create(x, y, width, height);
 
-            var svgFilterPrimitives = new List<FilterEffects.SvgFilterPrimitive>();
+            var svgFilterPrimitives = new List<SvgFilterPrimitive>();
             foreach (var child in firstChildren.Children)
             {
-                if (child is FilterEffects.SvgFilterPrimitive svgFilterPrimitive)
+                if (child is SvgFilterPrimitive svgFilterPrimitive)
                 {
                     svgFilterPrimitives.Add(svgFilterPrimitive);
                 }
             }
 
 #if DEBUG
-            var skFilterPrimitiveRegions = new List<(FilterEffects.SvgFilterPrimitive primitive, SKRect region)>();
-            var skImageFilterRegions = new List<(SKImageFilter filter, FilterEffects.SvgFilterPrimitive primitive, SKRect region)>();
+            var skFilterPrimitiveRegions = new List<(SvgFilterPrimitive primitive, SKRect region)>();
+            var skImageFilterRegions = new List<(SKImageFilter filter, SvgFilterPrimitive primitive, SKRect region)>();
 #endif
 
             int count = 0;
@@ -1289,7 +1289,7 @@ namespace Svg.Skia
 
                 switch (svgFilterPrimitive)
                 {
-                    case FilterEffects.SvgBlend svgBlend:
+                    case SvgBlend svgBlend:
                         {
                             var input1Key = svgBlend.Input;
                             var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, disposable, isFirst);
@@ -1309,7 +1309,7 @@ namespace Svg.Skia
 #endif
                         }
                         break;
-                    case FilterEffects.SvgColourMatrix svgColourMatrix:
+                    case SvgColourMatrix svgColourMatrix:
                         {
                             var inputKey = svgColourMatrix.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
@@ -1323,7 +1323,7 @@ namespace Svg.Skia
 #endif
                         }
                         break;
-                    case FilterEffects.SvgComponentTransfer svgComponentTransfer:
+                    case SvgComponentTransfer svgComponentTransfer:
                         {
                             var inputKey = svgComponentTransfer.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
@@ -1337,7 +1337,7 @@ namespace Svg.Skia
 #endif
                         }
                         break;
-                    case FilterEffects.SvgComposite svgComposite:
+                    case SvgComposite svgComposite:
                         {
                             var input1Key = svgComposite.Input;
                             var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, disposable, isFirst);
@@ -1357,7 +1357,7 @@ namespace Svg.Skia
 #endif
                         }
                         break;
-                    case FilterEffects.SvgConvolveMatrix svgConvolveMatrix:
+                    case SvgConvolveMatrix svgConvolveMatrix:
                         {
                             var inputKey = svgConvolveMatrix.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
@@ -1371,7 +1371,7 @@ namespace Svg.Skia
 #endif
                         }
                         break;
-                    case FilterEffects.SvgDiffuseLighting svgDiffuseLighting:
+                    case SvgDiffuseLighting svgDiffuseLighting:
                         {
                             var inputKey = svgDiffuseLighting.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
@@ -1385,7 +1385,7 @@ namespace Svg.Skia
 #endif
                         }
                         break;
-                    case FilterEffects.SvgDisplacementMap svgDisplacementMap:
+                    case SvgDisplacementMap svgDisplacementMap:
                         {
                             var input1Key = svgDisplacementMap.Input;
                             var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, disposable, isFirst);
@@ -1405,7 +1405,7 @@ namespace Svg.Skia
 #endif
                         }
                         break;
-                    case FilterEffects.SvgFlood svgFlood:
+                    case SvgFlood svgFlood:
                         {
                             var skImageFilter = CreateFlood(svgFlood, svgVisualElement, skFilterPrimitiveRegion, disposable, null, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
@@ -1417,7 +1417,7 @@ namespace Svg.Skia
 #endif
                         }
                         break;
-                    case FilterEffects.SvgGaussianBlur svgGaussianBlur:
+                    case SvgGaussianBlur svgGaussianBlur:
                         {
                             var inputKey = svgGaussianBlur.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
@@ -1443,7 +1443,7 @@ namespace Svg.Skia
 #endif
                         }
                         break;
-                    case FilterEffects.SvgMerge svgMerge:
+                    case SvgMerge svgMerge:
                         {
                             var skImageFilter = CreateMerge(svgMerge, results, lastResult, filterSource, disposable, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
@@ -1455,7 +1455,7 @@ namespace Svg.Skia
 #endif
                         }
                         break;
-                    case FilterEffects.SvgMorphology svgMorphology:
+                    case SvgMorphology svgMorphology:
                         {
                             var inputKey = svgMorphology.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
@@ -1469,7 +1469,7 @@ namespace Svg.Skia
 #endif
                         }
                         break;
-                    case FilterEffects.SvgOffset svgOffset:
+                    case SvgOffset svgOffset:
                         {
                             var inputKey = svgOffset.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
@@ -1483,7 +1483,7 @@ namespace Svg.Skia
 #endif
                         }
                         break;
-                    case FilterEffects.SvgSpecularLighting svgSpecularLighting:
+                    case SvgSpecularLighting svgSpecularLighting:
                         {
                             var inputKey = svgSpecularLighting.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
@@ -1497,7 +1497,7 @@ namespace Svg.Skia
 #endif
                         }
                         break;
-                    case FilterEffects.SvgTile svgTile:
+                    case SvgTile svgTile:
                         {
                             var inputKey = svgTile.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
@@ -1511,7 +1511,7 @@ namespace Svg.Skia
 #endif
                         }
                         break;
-                    case FilterEffects.SvgTurbulence svgTurbulence:
+                    case SvgTurbulence svgTurbulence:
                         {
                             var skImageFilter = CreateTurbulence(svgTurbulence, skFilterPrimitiveRegion, primitiveUnits, disposable, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
