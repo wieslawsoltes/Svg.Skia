@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SvgXml.Svg\SvgXml.Svg.csproj" />
+    <ProjectReference Include="..\..\src\SvgXml.Svg\SvgXml.Svg.csproj" />
   </ItemGroup>
 
 </Project>

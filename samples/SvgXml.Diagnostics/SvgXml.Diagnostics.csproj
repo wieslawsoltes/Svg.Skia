@@ -29,8 +29,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SvgXml.Xml\SvgXml.Xml.csproj" />
-    <ProjectReference Include="..\SvgXml.Svg\SvgXml.Svg.csproj" />
+    <ProjectReference Include="..\..\src\SvgXml.Xml\SvgXml.Xml.csproj" />
+    <ProjectReference Include="..\..\src\SvgXml.Svg\SvgXml.Svg.csproj" />
   </ItemGroup>
 
 </Project>
