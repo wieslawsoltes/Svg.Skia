@@ -6379,9 +6379,23 @@ namespace Svg.Skia
 
         internal virtual IEnumerable<ISvgNode> GetContentNodes(SvgTextBase svgTextBase)
         {
-            return svgTextBase.Nodes == null || svgTextBase.Nodes.Count < 1 ?
-                svgTextBase.Children.OfType<ISvgNode>().Where(o => !(o is ISvgDescriptiveElement)) :
-                svgTextBase.Nodes;
+            if (svgTextBase.Nodes == null || svgTextBase.Nodes.Count < 1)
+            {
+                foreach (var child in svgTextBase.Children)
+                {
+                    if (child is ISvgNode svgNode && !(svgNode is ISvgDescriptiveElement))
+                    {
+                        yield return svgNode;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var node in svgTextBase.Nodes)
+                {
+                    yield return node;
+                }
+            }
         }
 
         internal string PrepareText(SvgTextBase svgTextBase, string value)
