@@ -1,10 +1,189 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using SkiaSharp;
 
 namespace Svg.Skia
 {
+    public static class SKSvgSettings
+    {
+        public static SKAlphaType s_alphaType = SKAlphaType.Unpremul;
+
+        public static SKColorType s_colorType = SKImageInfo.PlatformColorType;
+
+        public static CultureInfo? s_systemLanguageOverride = null;
+
+        public static IList<ITypefaceProvider> s_typefaceProviders = new List<ITypefaceProvider>()
+        {
+            new FontManagerTypefacerovider(),
+            new DefaultTypefaceProvider()
+        };
+    }
+
+    public interface ITypefaceProvider
+    {
+        SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle);
+    }
+
+    public class DefaultTypefaceProvider : ITypefaceProvider
+    {
+        public static char[] s_fontFamilyTrim = new char[] { '\'' };
+
+        public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
+        {
+            var skTypeface = default(SKTypeface);
+            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
+            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
+            {
+                var defaultName = SKTypeface.Default.FamilyName;
+
+                foreach (var fontFamilyName in fontFamilyNames)
+                {
+                    skTypeface = SKTypeface.FromFamilyName(fontFamilyName, fontWeight, fontWidth, fontStyle);
+                    if (skTypeface != null)
+                    {
+                        if (!skTypeface.FamilyName.Equals(fontFamilyName, StringComparison.Ordinal)
+                            && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
+                        {
+                            skTypeface.Dispose();
+                            continue;
+                        }
+                        break;
+                    }
+                }
+            }
+            return skTypeface;
+        }
+    }
+
+    public class CustomTypefaceProvider : ITypefaceProvider, IDisposable
+    {
+        public static char[] s_fontFamilyTrim = new char[] { '\'' };
+
+        public SKTypeface? Typeface { get; set; }
+
+        public string FamilyName { get; set; }
+
+        public CustomTypefaceProvider(Stream stream, int index = 0)
+        {
+            Typeface = SKTypeface.FromStream(stream, index);
+            FamilyName = Typeface.FamilyName;
+        }
+
+        public CustomTypefaceProvider(SKStreamAsset stream, int index = 0)
+        {
+            Typeface = SKTypeface.FromStream(stream, index);
+            FamilyName = Typeface.FamilyName;
+        }
+
+        public CustomTypefaceProvider(string path, int index = 0)
+        {
+            Typeface = SKTypeface.FromFile(path, index);
+            FamilyName = Typeface.FamilyName;
+        }
+
+        public CustomTypefaceProvider(SKData data, int index = 0)
+        {
+            Typeface = SKTypeface.FromData(data, index);
+            FamilyName = Typeface.FamilyName;
+        }
+
+        public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
+        {
+            var skTypeface = default(SKTypeface);
+            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
+            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
+            {
+                foreach (var fontFamilyName in fontFamilyNames)
+                {
+                    if (fontFamily == FamilyName)
+                    {
+                        skTypeface = Typeface;
+                        break;
+                    }
+                }
+            }
+            return skTypeface;
+        }
+
+        public void Dispose()
+        {
+            if (Typeface != null)
+            {
+                Typeface.Dispose();
+                Typeface = null;
+            }
+        }
+    }
+
+    public class FontManagerTypefacerovider : ITypefaceProvider
+    {
+        public static char[] s_fontFamilyTrim = new char[] { '\'' };
+
+        public SKFontManager FontManager { get; set; }
+
+        public FontManagerTypefacerovider()
+        {
+            FontManager = SKFontManager.Default;
+        }
+
+        public SKTypeface CreateTypeface(Stream stream, int index = 0)
+        {
+            return FontManager.CreateTypeface(stream, index);
+        }
+
+        public SKTypeface CreateTypeface(SKStreamAsset stream, int index = 0)
+        {
+            return FontManager.CreateTypeface(stream, index);
+        }
+
+        public SKTypeface CreateTypeface(string path, int index = 0)
+        {
+            return FontManager.CreateTypeface(path, index);
+        }
+
+        public SKTypeface CreateTypeface(SKData data, int index = 0)
+        {
+            return FontManager.CreateTypeface(data, index);
+        }
+
+        public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
+        {
+            var skTypeface = default(SKTypeface);
+            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
+            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
+            {
+                var defaultName = SKTypeface.Default.FamilyName;
+                var skFontManager = FontManager;
+                var skFontStyle = new SKFontStyle(fontWeight, fontWidth, fontStyle);
+
+                foreach (var fontFamilyName in fontFamilyNames)
+                {
+                    var skFontStyleSet = skFontManager.GetFontStyles(fontFamilyName);
+                    if (skFontStyleSet.Count > 0)
+                    {
+                        skTypeface = skFontManager.MatchFamily(fontFamilyName, skFontStyle);
+                        if (skTypeface != null)
+                        {
+                            if (!defaultName.Equals(fontFamilyName, StringComparison.Ordinal)
+                                && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
+                            {
+                                skTypeface.Dispose();
+                                skTypeface = null;
+                                continue;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            return skTypeface;
+        }
+    }
+
     public static class SKPictureExtensions
     {
         public static void Draw(this SKPicture skPicture, SKColor background, float scaleX, float scaleY, SKCanvas skCanvas)
@@ -113,10 +292,6 @@ namespace Svg.Skia
 
     public class SKSvg : IDisposable
     {
-        public static SKAlphaType s_alphaType = SKAlphaType.Unpremul; // SKAlphaType.Unpremul, SKAlphaType.Premul
-
-        public static SKColorType s_colorType = SKImageInfo.PlatformColorType; // SKImageInfo.PlatformColorType, SKColorType.RgbaF16
-
         static SKSvg()
         {
             SvgDocument.SkipGdiPlusCapabilityCheck = true;
