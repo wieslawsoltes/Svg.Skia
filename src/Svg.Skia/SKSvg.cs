@@ -122,16 +122,6 @@ namespace Svg.Skia
             SvgDocument.SkipGdiPlusCapabilityCheck = true;
         }
 
-        public static SKRect GetBounds(Drawable drawable)
-        {
-            var skBounds = drawable.Bounds;
-            return SKRect.Create(
-                0f,
-                0f,
-                Math.Abs(skBounds.Left) + skBounds.Width,
-                Math.Abs(skBounds.Top) + skBounds.Height);
-        }
-
         public static void Draw(SKCanvas skCanvas, SvgFragment svgFragment)
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
@@ -163,7 +153,12 @@ namespace Svg.Skia
 
             if (skBounds.IsEmpty)
             {
-                skBounds = GetBounds(drawable);
+                var bounds = drawable.Bounds;
+                skBounds = SKRect.Create(
+                    0f,
+                    0f,
+                    Math.Abs(bounds.Left) + bounds.Width,
+                    Math.Abs(bounds.Top) + bounds.Height);
             }
 
             using var skPictureRecorder = new SKPictureRecorder();
@@ -181,30 +176,6 @@ namespace Svg.Skia
             // TODO:
             skCanvas.Restore();
 #endif
-            return skPictureRecorder.EndRecording();
-        }
-
-        public static SKPicture? ToPicture(SvgFragment svgFragment, out Drawable? drawable)
-        {
-            var skSize = SvgExtensions.GetDimensions(svgFragment);
-            var skBounds = SKRect.Create(skSize);
-
-            drawable = DrawableFactory.Create(svgFragment, skBounds, null, Attributes.None);
-            if (drawable == null)
-            {
-                return null;
-            }
-
-            drawable.PostProcess();
-
-            if (skBounds.IsEmpty)
-            {
-                skBounds = GetBounds(drawable);
-            }
-
-            using var skPictureRecorder = new SKPictureRecorder();
-            using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
-            drawable?.Draw(skCanvas, 0f, 0f);
             return skPictureRecorder.EndRecording();
         }
 
