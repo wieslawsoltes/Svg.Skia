@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Svg.Skia.Model
+namespace Svg.Model
 {
     public struct Point
     {
