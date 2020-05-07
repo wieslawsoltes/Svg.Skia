@@ -208,22 +208,6 @@ namespace Svg.Skia
             return skPictureRecorder.EndRecording();
         }
 
-        public static Drawable? ToDrawable(SvgFragment svgFragment)
-        {
-            var skSize = SvgExtensions.GetDimensions(svgFragment);
-            var skBounds = SKRect.Create(skSize);
-            var drawable = DrawableFactory.Create(svgFragment, skBounds, null, Attributes.None);
-            drawable?.PostProcess();
-            return drawable;
-        }
-
-        public static Drawable? ToDrawable(SvgElement svgElement, SKRect skBounds, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = DrawableFactory.Create(svgElement, skBounds, null, ignoreAttributes);
-            drawable?.PostProcess();
-            return drawable;
-        }
-
         public static SvgDocument? OpenSvg(string path)
         {
             var svgDocument = SvgDocument.Open<SvgDocument>(path, null);
