@@ -2,11 +2,37 @@
 
 namespace Svg.Skia.Model
 {
-    public enum PaintStyle
+    public struct Point
     {
-        Fill = 0,
-        Stroke = 1,
-        StrokeAndFill = 2
+        public float X { get; set; }
+        public float Y { get; set; }
+    }
+
+    public struct PointI
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+    }
+
+    public struct Rect
+    {
+        public float Left { get; set; }
+        public float Top { get; set; }
+        public float Right { get; set; }
+        public float Bottom { get; set; }
+    }
+
+    public struct Matrix
+    {
+        public float ScaleX { get; set; }
+        public float SkewX { get; set; }
+        public float TransX { get; set; }
+        public float ScaleY { get; set; }
+        public float SkewY { get; set; }
+        public float TransY { get; set; }
+        public float Persp0 { get; set; }
+        public float Persp1 { get; set; }
+        public float Persp2 { get; set; }
     }
 
     public struct Color
@@ -17,6 +43,13 @@ namespace Svg.Skia.Model
         public byte Blue { get; }
     }
 
+    public enum PaintStyle
+    {
+        Fill = 0,
+        Stroke = 1,
+        StrokeAndFill = 2
+    }
+
     public enum StrokeJoin
     {
         Miter = 0,
@@ -24,11 +57,114 @@ namespace Svg.Skia.Model
         Bevel = 2
     }
 
+    public enum BlendMode
+    {
+        Clear = 0,
+        Src = 1,
+        Dst = 2,
+        SrcOver = 3,
+        DstOver = 4,
+        SrcIn = 5,
+        DstIn = 6,
+        SrcOut = 7,
+        DstOut = 8,
+        SrcATop = 9,
+        DstATop = 10,
+        Xor = 11,
+        Plus = 12,
+        Modulate = 13,
+        Screen = 14,
+        Overlay = 15,
+        Darken = 16,
+        Lighten = 17,
+        ColorDodge = 18,
+        ColorBurn = 19,
+        HardLight = 20,
+        SoftLight = 21,
+        Difference = 22,
+        Exclusion = 23,
+        Multiply = 24,
+        Hue = 25,
+        Saturation = 26,
+        Color = 27,
+        Luminosity = 28
+    }
+
+    public enum FilterQuality
+    {
+        None = 0,
+        Low = 1,
+        Medium = 2,
+        High = 3
+    }
+
+    public enum FontStyleSlant
+    {
+        Upright = 0,
+        Italic = 1,
+        Oblique = 2
+    }
+
+    public enum TextAlign
+    {
+        Left = 0,
+        Center = 1,
+        Right = 2
+    }
+
+    public enum StrokeCap
+    {
+        Butt = 0,
+        Round = 1,
+        Square = 2
+    }
+
+    public enum ClipOperation
+    {
+        Difference = 0,
+        Intersect = 1
+    }
+
+    public enum PathFillType
+    {
+        Winding = 0,
+        EvenOdd = 1
+    }
+
+    public enum PathArcSize
+    {
+        Small = 0,
+        Large = 1
+    }
+
+    public enum PathDirection
+    {
+        Clockwise = 0,
+        CounterClockwise = 1
+    }
+
     public enum ShaderTileMode
     {
         Clamp = 0,
         Repeat = 1,
         Mirror = 2
+    }
+
+    public class FontStyle
+    {
+        public int Weight { get; }
+        public int Width { get; }
+        public FontStyleSlant Slant { get; }
+    }
+
+    public class Typeface
+    {
+        public string? FamilyName { get; }
+        public FontStyle? FontStyle { get; }
+        public int FontWidth { get; }
+        public bool IsBold { get; }
+        public bool IsItalic { get; }
+        public FontStyleSlant FontSlant { get; }
     }
 
     public abstract class Shader
@@ -97,78 +233,6 @@ namespace Svg.Skia.Model
     {
     }
 
-    public enum BlendMode
-    {
-        Clear = 0,
-        Src = 1,
-        Dst = 2,
-        SrcOver = 3,
-        DstOver = 4,
-        SrcIn = 5,
-        DstIn = 6,
-        SrcOut = 7,
-        DstOut = 8,
-        SrcATop = 9,
-        DstATop = 10,
-        Xor = 11,
-        Plus = 12,
-        Modulate = 13,
-        Screen = 14,
-        Overlay = 15,
-        Darken = 16,
-        Lighten = 17,
-        ColorDodge = 18,
-        ColorBurn = 19,
-        HardLight = 20,
-        SoftLight = 21,
-        Difference = 22,
-        Exclusion = 23,
-        Multiply = 24,
-        Hue = 25,
-        Saturation = 26,
-        Color = 27,
-        Luminosity = 28
-    }
-
-    public enum FilterQuality
-    {
-        None = 0,
-        Low = 1,
-        Medium = 2,
-        High = 3
-    }
-
-    public enum FontStyleSlant
-    {
-        Upright = 0,
-        Italic = 1,
-        Oblique = 2
-    }
-
-    public class FontStyle
-    {
-        public int Weight { get; }
-        public int Width { get; }
-        public FontStyleSlant Slant { get; }
-    }
-
-    public class Typeface
-    {
-        public string? FamilyName { get; }
-        public FontStyle? FontStyle { get; }
-        public int FontWidth { get; }
-        public bool IsBold { get; }
-        public bool IsItalic { get; }
-        public FontStyleSlant FontSlant { get; }
-    }
-
-    public enum TextAlign
-    {
-        Left = 0,
-        Center = 1,
-        Right = 2
-    }
-
     public abstract class PathEffect
     {
     }
@@ -177,13 +241,6 @@ namespace Svg.Skia.Model
     {
         public float[]? Intervals { get; set; }
         public float Phase { get; set; }
-    }
-
-    public enum StrokeCap
-    {
-        Butt = 0,
-        Round = 1,
-        Square = 2
     }
 
     public class Paint
@@ -206,52 +263,25 @@ namespace Svg.Skia.Model
         public StrokeCap StrokeCap { get; set; }
     }
 
-    public struct Matrix
-    {
-        public float ScaleX { get; set; }
-        public float SkewX { get; set; }
-        public float TransX { get; set; }
-        public float ScaleY { get; set; }
-        public float SkewY { get; set; }
-        public float TransY { get; set; }
-        public float Persp0 { get; set; }
-        public float Persp1 { get; set; }
-        public float Persp2 { get; set; }
-    }
-
-    public struct Rect
-    {
-        public float Left { get; set; }
-        public float Top { get; set; }
-        public float Right { get; set; }
-        public float Bottom { get; set; }
-    }
-
     public abstract class PictureCommand
     {
     }
 
-    public class SaveLayerCommand : PictureCommand
+    public class SaveLayerPictureCommand : PictureCommand
     {
         public Paint? Paint { get; set; }
     }
 
-    public class SetMatrixCommand : PictureCommand
+    public class SetMatrixPictureCommand : PictureCommand
     {
         public Matrix? Matrix { get; set; }
     }
- 
-    public class RestorePictureCommand : PictureCommand
+
+    public class RestorePicturePictureCommand : PictureCommand
     {
     }
 
-    public enum ClipOperation
-    {
-        Difference = 0,
-        Intersect = 1
-    }
-
-    public class ClipRectPictureCommand : PictureCommand
+    public class ClipRectPicturePictureCommand : PictureCommand
     {
         public Rect? Rect { get; set; }
         public ClipOperation Operation { get; set; }
@@ -275,24 +305,6 @@ namespace Svg.Skia.Model
     {
         public Rect CullRect { get; set; }
         public IList<PictureCommand>? Commands { get; set; }
-    }
-
-    public struct Point
-    {
-        public float X { get; set; }
-        public float Y { get; set; }
-    }
-
-    public struct PointI
-    {
-        public int X { get; set; }
-        public int Y { get; set; }
-    }
-
-    public enum PathFillType
-    {
-        Winding = 0,
-        EvenOdd = 1
     }
 
     public abstract class PathCommand
@@ -327,18 +339,6 @@ namespace Svg.Skia.Model
         public double Y0 { get; set; }
         public double X1 { get; set; }
         public double Y1 { get; set; }
-    }
-
-    public enum PathArcSize
-    {
-        Small = 0,
-        Large = 1
-    }
-
-    public enum PathDirection
-    {
-        Clockwise = 0,
-        CounterClockwise = 1
     }
 
     public class ArcToPathCommand : PathCommand
