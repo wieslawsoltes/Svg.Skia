@@ -616,30 +616,24 @@ namespace Svg.Skia
 
         public static SvgColourInterpolation GetColorInterpolation(SvgElement svgElement)
         {
-            switch (svgElement.ColorInterpolation)
+            return svgElement.ColorInterpolation switch
             {
-                case SvgColourInterpolation.Auto:
-                    return SvgColourInterpolation.SRGB;
-                case SvgColourInterpolation.SRGB:
-                    return SvgColourInterpolation.SRGB;
-                case SvgColourInterpolation.LinearRGB:
-                    return SvgColourInterpolation.LinearRGB;
-            }
-            return SvgColourInterpolation.SRGB;
+                SvgColourInterpolation.Auto => SvgColourInterpolation.SRGB,
+                SvgColourInterpolation.SRGB => SvgColourInterpolation.SRGB,
+                SvgColourInterpolation.LinearRGB => SvgColourInterpolation.LinearRGB,
+                _ => SvgColourInterpolation.SRGB,
+            };
         }
 
         public static SvgColourInterpolation GetColorInterpolationFilters(SvgElement svgElement)
         {
-            switch (svgElement.ColorInterpolationFilters)
+            return svgElement.ColorInterpolationFilters switch
             {
-                case SvgColourInterpolation.Auto:
-                    return SvgColourInterpolation.LinearRGB;
-                case SvgColourInterpolation.SRGB:
-                    return SvgColourInterpolation.SRGB;
-                case SvgColourInterpolation.LinearRGB:
-                    return SvgColourInterpolation.LinearRGB;
-            }
-            return SvgColourInterpolation.LinearRGB;
+                SvgColourInterpolation.Auto => SvgColourInterpolation.LinearRGB,
+                SvgColourInterpolation.SRGB => SvgColourInterpolation.SRGB,
+                SvgColourInterpolation.LinearRGB => SvgColourInterpolation.LinearRGB,
+                _ => SvgColourInterpolation.LinearRGB,
+            };
         }
 
 #if USE_COLORSPACE
@@ -2217,19 +2211,15 @@ namespace Svg.Skia
                     var encoding = string.IsNullOrEmpty(charset) ? Encoding.UTF8 : Encoding.GetEncoding(charset);
                     data = encoding.GetString(bytes);
                 }
-                using (var stream = new MemoryStream(Encoding.Default.GetBytes(data)))
-                {
-                    return LoadSvg(stream, svgOwnerDocument.BaseUri);
-                }
+                using var stream = new MemoryStream(Encoding.Default.GetBytes(data));
+                return LoadSvg(stream, svgOwnerDocument.BaseUri);
             }
             // support nonstandard "img" spelling of mimetype
             else if (mimeType.StartsWith("image/") || mimeType.StartsWith("img/"))
             {
                 var dataBytes = base64 ? Convert.FromBase64String(data) : Encoding.Default.GetBytes(data);
-                using (var stream = new MemoryStream(dataBytes))
-                {
-                    return SKImage.FromEncodedData(stream);
-                }
+                using var stream = new MemoryStream(dataBytes);
+                return SKImage.FromEncodedData(stream);
             }
             else
             {
@@ -3066,10 +3056,10 @@ namespace Svg.Skia
 
         public static SKImageFilter? CreateComponentTransfer(SvgComponentTransfer svgComponentTransfer, CompositeDisposable disposable, SKImageFilter? input = null, SKImageFilter.CropRect? cropRect = null)
         {
-            SvgFuncA? svgFuncA = s_identitySvgFuncA;
-            SvgFuncR? svgFuncR = s_identitySvgFuncR;
-            SvgFuncG? svgFuncG = s_identitySvgFuncG;
-            SvgFuncB? svgFuncB = s_identitySvgFuncB;
+            var svgFuncA = s_identitySvgFuncA;
+            var svgFuncR = s_identitySvgFuncR;
+            var svgFuncG = s_identitySvgFuncG;
+            var svgFuncB = s_identitySvgFuncB;
 
             foreach (var child in svgComponentTransfer.Children)
             {
@@ -3863,7 +3853,7 @@ namespace Svg.Skia
 
         private static List<SvgFilter>? GetLinkedFilter(SvgVisualElement svgVisualElement, HashSet<Uri> uris)
         {
-            SvgFilter? currentFilter = SvgExtensions.GetReference<SvgFilter>(svgVisualElement, svgVisualElement.Filter);
+            var currentFilter = SvgExtensions.GetReference<SvgFilter>(svgVisualElement, svgVisualElement.Filter);
             if (currentFilter == null)
             {
                 return null;
@@ -7413,7 +7403,7 @@ namespace Svg.Skia
                 }
             }
 
-            SvgOverflow svgOverflow = SvgOverflow.Hidden;
+            var svgOverflow = SvgOverflow.Hidden;
             if (svgSymbol.TryGetAttribute("overflow", out string overflowString))
             {
                 if (new SvgOverflowConverter().ConvertFromString(overflowString) is SvgOverflow _svgOverflow)
