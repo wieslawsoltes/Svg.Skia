@@ -18,6 +18,36 @@ using Svg.Transforms;
 
 namespace Svg.Skia
 {
+    public class CompositeDisposable : IDisposable
+    {
+        private List<IDisposable>? _disposables;
+
+        public CompositeDisposable()
+        {
+            _disposables = new List<IDisposable>();
+        }
+
+        public void Add(IDisposable disposable)
+        {
+            if (_disposables != null)
+            {
+                _disposables.Add(disposable);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_disposables != null)
+            {
+                foreach (var disposable in _disposables)
+                {
+                    disposable?.Dispose();
+                }
+            }
+            _disposables = null;
+        }
+    }
+
     public static class SvgExtensions
     {
         public static double DegreeToRadian(this double degrees)
