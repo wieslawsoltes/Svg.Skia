@@ -4801,15 +4801,6 @@ namespace Svg.Skia
             return SKRect.Empty;
         }
 
-        public virtual Drawable? HitTest(SKPoint skPoint)
-        {
-            if (TransformedBounds.Contains(skPoint))
-            {
-                return this;
-            }
-            return null;
-        }
-
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
@@ -5184,22 +5175,6 @@ namespace Svg.Skia
                 }
             }
         }
-
-        public override Drawable? HitTest(SKPoint skPoint)
-        {
-            if (MarkerDrawables != null)
-            {
-                foreach (var drawable in MarkerDrawables)
-                {
-                    var result = drawable.HitTest(skPoint);
-                    if (result != null)
-                    {
-                        return result;
-                    }
-                }
-            }
-            return base.HitTest(skPoint);
-        }
     }
 
     internal abstract class DrawableContainer : Drawable
@@ -5267,19 +5242,6 @@ namespace Svg.Skia
             {
                 child.PostProcess();
             }
-        }
-
-        public override Drawable? HitTest(SKPoint skPoint)
-        {
-            foreach (var drawable in ChildrenDrawables)
-            {
-                var result = drawable.HitTest(skPoint);
-                if (result != null)
-                {
-                    return result;
-                }
-            }
-            return base.HitTest(skPoint);
         }
     }
 
@@ -5677,28 +5639,6 @@ namespace Svg.Skia
             base.PostProcess();
             FragmentDrawable?.PostProcess();
         }
-
-        public override Drawable? HitTest(SKPoint skPoint)
-        {
-            if (Image != null)
-            {
-                if (DestRect.Contains(skPoint))
-                {
-                    return this;
-                }
-            }
-
-            if (FragmentDrawable != null)
-            {
-                var result = FragmentDrawable?.HitTest(skPoint);
-                if (result != null)
-                {
-                    return result;
-                }
-            }
-
-            return base.HitTest(skPoint);
-        }
     }
 
     internal class SwitchDrawable : Drawable
@@ -5779,16 +5719,6 @@ namespace Svg.Skia
         {
             base.PostProcess();
             FirstChild?.PostProcess();
-        }
-
-        public override Drawable? HitTest(SKPoint skPoint)
-        {
-            var result = FirstChild?.HitTest(skPoint);
-            if (result != null)
-            {
-                return result;
-            }
-            return base.HitTest(skPoint);
         }
     }
 
@@ -5920,16 +5850,6 @@ namespace Svg.Skia
             base.PostProcess();
             // TODO: Fix PostProcess() using correct ReferencedElement Parent.
             ReferencedDrawable?.PostProcess();
-        }
-
-        public override Drawable? HitTest(SKPoint skPoint)
-        {
-            var result = ReferencedDrawable?.HitTest(skPoint);
-            if (result != null)
-            {
-                return result;
-            }
-            return base.HitTest(skPoint);
         }
     }
 
@@ -7074,16 +6994,6 @@ namespace Svg.Skia
         {
             base.PostProcess();
             MarkerElementDrawable?.PostProcess();
-        }
-
-        public override Drawable? HitTest(SKPoint skPoint)
-        {
-            var result = MarkerElementDrawable?.HitTest(skPoint);
-            if (result != null)
-            {
-                return result;
-            }
-            return base.HitTest(skPoint);
         }
     }
 
