@@ -18,7 +18,177 @@ using Svg.Transforms;
 
 namespace Svg.Skia
 {
-    public class CompositeDisposable : IDisposable
+    public interface ITypefaceProvider
+    {
+        SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle);
+    }
+
+    public class DefaultTypefaceProvider : ITypefaceProvider
+    {
+        public static char[] s_fontFamilyTrim = new char[] { '\'' };
+
+        public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
+        {
+            var skTypeface = default(SKTypeface);
+            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
+            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
+            {
+                var defaultName = SKTypeface.Default.FamilyName;
+
+                foreach (var fontFamilyName in fontFamilyNames)
+                {
+                    skTypeface = SKTypeface.FromFamilyName(fontFamilyName, fontWeight, fontWidth, fontStyle);
+                    if (skTypeface != null)
+                    {
+                        if (!skTypeface.FamilyName.Equals(fontFamilyName, StringComparison.Ordinal)
+                            && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
+                        {
+                            skTypeface.Dispose();
+                            continue;
+                        }
+                        break;
+                    }
+                }
+            }
+            return skTypeface;
+        }
+    }
+
+    public class CustomTypefaceProvider : ITypefaceProvider, IDisposable
+    {
+        public static char[] s_fontFamilyTrim = new char[] { '\'' };
+
+        public SKTypeface? Typeface { get; set; }
+
+        public string FamilyName { get; set; }
+
+        public CustomTypefaceProvider(Stream stream, int index = 0)
+        {
+            Typeface = SKTypeface.FromStream(stream, index);
+            FamilyName = Typeface.FamilyName;
+        }
+
+        public CustomTypefaceProvider(SKStreamAsset stream, int index = 0)
+        {
+            Typeface = SKTypeface.FromStream(stream, index);
+            FamilyName = Typeface.FamilyName;
+        }
+
+        public CustomTypefaceProvider(string path, int index = 0)
+        {
+            Typeface = SKTypeface.FromFile(path, index);
+            FamilyName = Typeface.FamilyName;
+        }
+
+        public CustomTypefaceProvider(SKData data, int index = 0)
+        {
+            Typeface = SKTypeface.FromData(data, index);
+            FamilyName = Typeface.FamilyName;
+        }
+
+        public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
+        {
+            var skTypeface = default(SKTypeface);
+            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
+            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
+            {
+                foreach (var fontFamilyName in fontFamilyNames)
+                {
+                    if (fontFamily == FamilyName)
+                    {
+                        skTypeface = Typeface;
+                        break;
+                    }
+                }
+            }
+            return skTypeface;
+        }
+
+        public void Dispose()
+        {
+            if (Typeface != null)
+            {
+                Typeface.Dispose();
+                Typeface = null;
+            }
+        }
+    }
+
+    public class FontManagerTypefacerovider : ITypefaceProvider
+    {
+        public static char[] s_fontFamilyTrim = new char[] { '\'' };
+
+        public SKFontManager FontManager { get; set; }
+
+        public FontManagerTypefacerovider()
+        {
+            FontManager = SKFontManager.Default;
+        }
+
+        public SKTypeface CreateTypeface(Stream stream, int index = 0)
+        {
+            return FontManager.CreateTypeface(stream, index);
+        }
+
+        public SKTypeface CreateTypeface(SKStreamAsset stream, int index = 0)
+        {
+            return FontManager.CreateTypeface(stream, index);
+        }
+
+        public SKTypeface CreateTypeface(string path, int index = 0)
+        {
+            return FontManager.CreateTypeface(path, index);
+        }
+
+        public SKTypeface CreateTypeface(SKData data, int index = 0)
+        {
+            return FontManager.CreateTypeface(data, index);
+        }
+
+        public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
+        {
+            var skTypeface = default(SKTypeface);
+            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
+            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
+            {
+                var defaultName = SKTypeface.Default.FamilyName;
+                var skFontManager = FontManager;
+                var skFontStyle = new SKFontStyle(fontWeight, fontWidth, fontStyle);
+
+                foreach (var fontFamilyName in fontFamilyNames)
+                {
+                    var skFontStyleSet = skFontManager.GetFontStyles(fontFamilyName);
+                    if (skFontStyleSet.Count > 0)
+                    {
+                        skTypeface = skFontManager.MatchFamily(fontFamilyName, skFontStyle);
+                        if (skTypeface != null)
+                        {
+                            if (!defaultName.Equals(fontFamilyName, StringComparison.Ordinal)
+                                && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
+                            {
+                                skTypeface.Dispose();
+                                skTypeface = null;
+                                continue;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            return skTypeface;
+        }
+    }
+
+    public static class SKSvgSettings
+    {
+        public static IList<ITypefaceProvider> s_typefaceProviders = new List<ITypefaceProvider>()
+        {
+            new FontManagerTypefacerovider(),
+            new DefaultTypefaceProvider()
+        };
+    }
+
+    internal class CompositeDisposable : IDisposable
     {
         private List<IDisposable>? _disposables;
 
@@ -48,7 +218,7 @@ namespace Svg.Skia
         }
     }
 
-    public static class SvgExtensions
+    internal static class SvgExtensions
     {
         public static double DegreeToRadian(this double degrees)
         {
@@ -382,7 +552,7 @@ namespace Svg.Skia
         }
     }
 
-    public static class SvgPaintingExtensions
+    internal static class SvgPaintingExtensions
     {
         public static SKColorSpace SrgbLinear = SKColorSpace.CreateRgb(SKNamedGamma.Linear, SKColorSpaceGamut.Srgb); // SKColorSpace.CreateSrgbLinear();
 
@@ -1594,7 +1764,7 @@ namespace Svg.Skia
         }
     }
 
-    public static class SvgTransformsExtensions
+    internal static class SvgTransformsExtensions
     {
         public static SKMatrix ToSKMatrix(this SvgMatrix svgMatrix)
         {
@@ -1759,7 +1929,7 @@ namespace Svg.Skia
     }
 
     [Flags]
-    public enum PathPointType : byte
+    internal enum PathPointType : byte
     {
         Start = 0,
         Line = 1,
@@ -1771,7 +1941,7 @@ namespace Svg.Skia
         CloseSubpath = 0x80
     }
 
-    public static class SvgPathingExtensions
+    internal static class SvgPathingExtensions
     {
         public static List<(SKPoint Point, byte Type)> GetPathTypes(this SKPath skPath)
         {
@@ -2081,7 +2251,7 @@ namespace Svg.Skia
         }
     }
 
-    public static class SvgImageExtensions
+    internal static class SvgImageExtensions
     {
         private const string MimeTypeSvg = "image/svg+xml";
         private static byte[] s_gZipMagicHeaderBytes = { 0x1f, 0x8b };
@@ -2247,7 +2417,7 @@ namespace Svg.Skia
         }
     }
 
-    public static class SvgClippingExtensions
+    internal static class SvgClippingExtensions
     {
         public static bool CanDraw(SvgVisualElement svgVisualElement, Attributes ignoreAttributes)
         {
@@ -2628,7 +2798,7 @@ namespace Svg.Skia
         }
     }
 
-    public static class SvgMarkerExtensions
+    internal static class SvgMarkerExtensions
     {
         public static void AddMarkers(this SvgGroup svgGroup)
         {
@@ -2802,7 +2972,7 @@ namespace Svg.Skia
         }
     }
 
-    public static class SvgFiltersExtensions
+    internal static class SvgFiltersExtensions
     {
         public const string SourceGraphic = "SourceGraphic";
         public const string SourceAlpha = "SourceAlpha";
@@ -4341,175 +4511,8 @@ namespace Svg.Skia
         }
     }
 
-    public interface ITypefaceProvider
-    {
-        SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle);
-    }
-
-    public class DefaultTypefaceProvider : ITypefaceProvider
-    {
-        public static char[] s_fontFamilyTrim = new char[] { '\'' };
-
-        public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
-        {
-            var skTypeface = default(SKTypeface);
-            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
-            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
-            {
-                var defaultName = SKTypeface.Default.FamilyName;
-
-                foreach (var fontFamilyName in fontFamilyNames)
-                {
-                    skTypeface = SKTypeface.FromFamilyName(fontFamilyName, fontWeight, fontWidth, fontStyle);
-                    if (skTypeface != null)
-                    {
-                        if (!skTypeface.FamilyName.Equals(fontFamilyName, StringComparison.Ordinal)
-                            && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
-                        {
-                            skTypeface.Dispose();
-                            continue;
-                        }
-                        break;
-                    }
-                }
-            }
-            return skTypeface;
-        }
-    }
-
-    public class CustomTypefaceProvider : ITypefaceProvider, IDisposable
-    {
-        public static char[] s_fontFamilyTrim = new char[] { '\'' };
-
-        public SKTypeface? Typeface { get; set; }
-
-        public string FamilyName { get; set; }
-
-        public CustomTypefaceProvider(Stream stream, int index = 0)
-        {
-            Typeface = SKTypeface.FromStream(stream, index);
-            FamilyName = Typeface.FamilyName;
-        }
-
-        public CustomTypefaceProvider(SKStreamAsset stream, int index = 0)
-        {
-            Typeface = SKTypeface.FromStream(stream, index);
-            FamilyName = Typeface.FamilyName;
-        }
-
-        public CustomTypefaceProvider(string path, int index = 0)
-        {
-            Typeface = SKTypeface.FromFile(path, index);
-            FamilyName = Typeface.FamilyName;
-        }
-
-        public CustomTypefaceProvider(SKData data, int index = 0)
-        {
-            Typeface = SKTypeface.FromData(data, index);
-            FamilyName = Typeface.FamilyName;
-        }
-
-        public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
-        {
-            var skTypeface = default(SKTypeface);
-            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
-            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
-            {
-                foreach (var fontFamilyName in fontFamilyNames)
-                {
-                    if (fontFamily == FamilyName)
-                    {
-                        skTypeface = Typeface;
-                        break;
-                    }
-                }
-            }
-            return skTypeface;
-        }
-
-        public void Dispose()
-        {
-            if (Typeface != null)
-            {
-                Typeface.Dispose();
-                Typeface = null;
-            }
-        }
-    }
-
-    public class FontManagerTypefacerovider : ITypefaceProvider
-    {
-        public static char[] s_fontFamilyTrim = new char[] { '\'' };
-
-        public SKFontManager FontManager { get; set; }
-
-        public FontManagerTypefacerovider()
-        {
-            FontManager = SKFontManager.Default;
-        }
-
-        public SKTypeface CreateTypeface(Stream stream, int index = 0)
-        {
-            return FontManager.CreateTypeface(stream, index);
-        }
-
-        public SKTypeface CreateTypeface(SKStreamAsset stream, int index = 0)
-        {
-            return FontManager.CreateTypeface(stream, index);
-        }
-
-        public SKTypeface CreateTypeface(string path, int index = 0)
-        {
-            return FontManager.CreateTypeface(path, index);
-        }
-
-        public SKTypeface CreateTypeface(SKData data, int index = 0)
-        {
-            return FontManager.CreateTypeface(data, index);
-        }
-
-        public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
-        {
-            var skTypeface = default(SKTypeface);
-            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
-            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
-            {
-                var defaultName = SKTypeface.Default.FamilyName;
-                var skFontManager = FontManager;
-                var skFontStyle = new SKFontStyle(fontWeight, fontWidth, fontStyle);
-
-                foreach (var fontFamilyName in fontFamilyNames)
-                {
-                    var skFontStyleSet = skFontManager.GetFontStyles(fontFamilyName);
-                    if (skFontStyleSet.Count > 0)
-                    {
-                        skTypeface = skFontManager.MatchFamily(fontFamilyName, skFontStyle);
-                        if (skTypeface != null)
-                        {
-                            if (!defaultName.Equals(fontFamilyName, StringComparison.Ordinal)
-                                && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
-                            {
-                                skTypeface.Dispose();
-                                skTypeface = null;
-                                continue;
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-            return skTypeface;
-        }
-    }
-
     public static class SvgTextExtensions
     {
-        public static IList<ITypefaceProvider> s_typefaceProviders = new List<ITypefaceProvider>()
-        {
-            new FontManagerTypefacerovider(),
-            new DefaultTypefaceProvider()
-        };
-
         public static SKFontStyleWeight SKFontStyleWeight(SvgFontWeight svgFontWeight)
         {
             var fontWeight = SkiaSharp.SKFontStyleWeight.Normal;
@@ -4692,7 +4695,7 @@ namespace Svg.Skia
     }
 
     [Flags]
-    public enum Attributes
+    internal enum Attributes
     {
         None = 0,
         Display = 1,
@@ -4706,7 +4709,7 @@ namespace Svg.Skia
         SystemLanguage = 256
     }
 
-    public interface IFilterSource
+    internal interface IFilterSource
     {
         SKPicture? SourceGraphic();
         SKPicture? BackgroundImage();
@@ -4714,13 +4717,13 @@ namespace Svg.Skia
         SKPaint? StrokePaint();
     }
 
-    public interface IPictureSource
+    internal interface IPictureSource
     {
         void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until);
         void Draw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until);
     }
 
-    public abstract class Drawable : SKDrawable, IFilterSource, IPictureSource
+    internal abstract class Drawable : SKDrawable, IFilterSource, IPictureSource
     {
         public static CultureInfo? s_systemLanguageOverride = null;
 
@@ -5307,7 +5310,7 @@ namespace Svg.Skia
         SKPaint? IFilterSource.StrokePaint() => Stroke;
     }
 
-    public abstract class DrawablePath : Drawable
+    internal abstract class DrawablePath : Drawable
     {
         public SKPath? Path;
         public List<Drawable>? MarkerDrawables;
@@ -5373,7 +5376,7 @@ namespace Svg.Skia
         }
     }
 
-    public abstract class DrawableContainer : Drawable
+    internal abstract class DrawableContainer : Drawable
     {
         public List<Drawable> ChildrenDrawables = new List<Drawable>();
 
@@ -5454,7 +5457,7 @@ namespace Svg.Skia
         }
     }
 
-    public class AnchorDrawable : DrawableContainer
+    internal class AnchorDrawable : DrawableContainer
     {
         public AnchorDrawable(SvgAnchor svgAnchor, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
             : base(svgAnchor, parent)
@@ -5520,7 +5523,7 @@ namespace Svg.Skia
         }
     }
 
-    public class FragmentDrawable : DrawableContainer
+    internal class FragmentDrawable : DrawableContainer
     {
         public FragmentDrawable(SvgFragment svgFragment, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
             : base(svgFragment, parent)
@@ -5628,7 +5631,7 @@ namespace Svg.Skia
         }
     }
 
-    public class ImageDrawable : Drawable
+    internal class ImageDrawable : Drawable
     {
         public SKImage? Image;
         public FragmentDrawable? FragmentDrawable;
@@ -5872,7 +5875,7 @@ namespace Svg.Skia
         }
     }
 
-    public class SwitchDrawable : Drawable
+    internal class SwitchDrawable : Drawable
     {
         public Drawable? FirstChild;
 
@@ -5963,7 +5966,7 @@ namespace Svg.Skia
         }
     }
 
-    public class UseDrawable : Drawable
+    internal class UseDrawable : Drawable
     {
         public Drawable? ReferencedDrawable;
 
@@ -6104,7 +6107,7 @@ namespace Svg.Skia
         }
     }
 
-    public class CircleDrawable : DrawablePath
+    internal class CircleDrawable : DrawablePath
     {
         public CircleDrawable(SvgCircle svgCircle, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
             : base(svgCircle, parent)
@@ -6162,7 +6165,7 @@ namespace Svg.Skia
         }
     }
 
-    public class EllipseDrawable : DrawablePath
+    internal class EllipseDrawable : DrawablePath
     {
         public EllipseDrawable(SvgEllipse svgEllipse, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
             : base(svgEllipse, parent)
@@ -6220,7 +6223,7 @@ namespace Svg.Skia
         }
     }
 
-    public class RectangleDrawable : DrawablePath
+    internal class RectangleDrawable : DrawablePath
     {
         public RectangleDrawable(SvgRectangle svgRectangle, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
             : base(svgRectangle, parent)
@@ -6278,7 +6281,7 @@ namespace Svg.Skia
         }
     }
 
-    public class GroupDrawable : DrawableContainer
+    internal class GroupDrawable : DrawableContainer
     {
         public GroupDrawable(SvgGroup svgGroup, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
             : base(svgGroup, parent)
@@ -6322,7 +6325,7 @@ namespace Svg.Skia
         }
     }
 
-    public class LineDrawable : DrawablePath
+    internal class LineDrawable : DrawablePath
     {
         public LineDrawable(SvgLine svgLine, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
             : base(svgLine, parent)
@@ -6382,7 +6385,7 @@ namespace Svg.Skia
         }
     }
 
-    public class PathDrawable : DrawablePath
+    internal class PathDrawable : DrawablePath
     {
         public PathDrawable(SvgPath svgPath, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
             : base(svgPath, parent)
@@ -6442,7 +6445,7 @@ namespace Svg.Skia
         }
     }
 
-    public class PolylineDrawable : DrawablePath
+    internal class PolylineDrawable : DrawablePath
     {
         public PolylineDrawable(SvgPolyline svgPolyline, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
             : base(svgPolyline, parent)
@@ -6502,7 +6505,7 @@ namespace Svg.Skia
         }
     }
 
-    public class PolygonDrawable : DrawablePath
+    internal class PolygonDrawable : DrawablePath
     {
         public PolygonDrawable(SvgPolygon svgPolygon, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
             : base(svgPolygon, parent)
@@ -6562,7 +6565,7 @@ namespace Svg.Skia
         }
     }
 
-    public class TextDrawable : Drawable
+    internal class TextDrawable : Drawable
     {
         private static readonly Regex s_multipleSpaces = new Regex(@" {2,}", RegexOptions.Compiled);
 
@@ -7098,7 +7101,7 @@ namespace Svg.Skia
         }
     }
 
-    public class MarkerDrawable : Drawable
+    internal class MarkerDrawable : Drawable
     {
         public Drawable? MarkerElementDrawable;
         public SKRect? MarkerClipRect;
@@ -7258,7 +7261,7 @@ namespace Svg.Skia
         }
     }
 
-    public class MaskDrawable : DrawableContainer
+    internal class MaskDrawable : DrawableContainer
     {
         public MaskDrawable(SvgMask svgMask, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
             : base(svgMask, parent)
@@ -7374,7 +7377,7 @@ namespace Svg.Skia
 
     }
 
-    public class SymbolDrawable : DrawableContainer
+    internal class SymbolDrawable : DrawableContainer
     {
         public SymbolDrawable(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes)
             : base(svgSymbol, parent)
@@ -7443,7 +7446,7 @@ namespace Svg.Skia
         }
     }
 
-    public static class DrawableFactory
+    internal static class DrawableFactory
     {
         public static Drawable? Create(SvgElement svgElement, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
         {
