@@ -2814,6 +2814,37 @@ namespace Svg.Skia
 
     public static class SvgFiltersExtensions
     {
+        public const string SourceGraphic = "SourceGraphic";
+        public const string SourceAlpha = "SourceAlpha";
+        public const string BackgroundImage = "BackgroundImage";
+        public const string BackgroundAlpha = "BackgroundAlpha";
+        public const string FillPaint = "FillPaint";
+        public const string StrokePaint = "StrokePaint";
+
+        public static SvgFuncA s_identitySvgFuncA = new SvgFuncA()
+        {
+            Type = SvgComponentTransferType.Identity,
+            TableValues = new SvgNumberCollection()
+        };
+
+        public static SvgFuncR s_identitySvgFuncR = new SvgFuncR()
+        {
+            Type = SvgComponentTransferType.Identity,
+            TableValues = new SvgNumberCollection()
+        };
+
+        public static SvgFuncG s_identitySvgFuncG = new SvgFuncG()
+        {
+            Type = SvgComponentTransferType.Identity,
+            TableValues = new SvgNumberCollection()
+        };
+
+        public static SvgFuncB s_identitySvgFuncB = new SvgFuncB()
+        {
+            Type = SvgComponentTransferType.Identity,
+            TableValues = new SvgNumberCollection()
+        };
+
         public static SKBlendMode GetSKBlendMode(SvgBlendMode svgBlendMode)
         {
             return svgBlendMode switch
@@ -2947,30 +2978,6 @@ namespace Svg.Skia
 
             return SKImageFilter.CreateColorFilter(skColorFilter, input, cropRect);
         }
-
-        public static SvgFuncA s_identitySvgFuncA = new SvgFuncA()
-        {
-            Type = SvgComponentTransferType.Identity,
-            TableValues = new SvgNumberCollection()
-        };
-
-        public static SvgFuncR s_identitySvgFuncR = new SvgFuncR()
-        {
-            Type = SvgComponentTransferType.Identity,
-            TableValues = new SvgNumberCollection()
-        };
-
-        public static SvgFuncG s_identitySvgFuncG = new SvgFuncG()
-        {
-            Type = SvgComponentTransferType.Identity,
-            TableValues = new SvgNumberCollection()
-        };
-
-        public static SvgFuncB s_identitySvgFuncB = new SvgFuncB()
-        {
-            Type = SvgComponentTransferType.Identity,
-            TableValues = new SvgNumberCollection()
-        };
 
         public static void Identity(byte[] values, SvgComponentTransferFunction transferFunction)
         {
@@ -3626,13 +3633,6 @@ namespace Svg.Skia
 
             return SKImageFilter.CreatePaint(skPaint, cropRect);
         }
-
-        public const string SourceGraphic = "SourceGraphic";
-        public const string SourceAlpha = "SourceAlpha";
-        public const string BackgroundImage = "BackgroundImage";
-        public const string BackgroundAlpha = "BackgroundAlpha";
-        public const string FillPaint = "FillPaint";
-        public const string StrokePaint = "StrokePaint";
 
         public static SKImageFilter? GetGraphic(SKPicture skPicture, CompositeDisposable disposable)
         {
