@@ -242,7 +242,7 @@ namespace Svg.Skia.Converter
 
             if (settings.SystemLanguage != null)
             {
-                Drawable.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture(settings.SystemLanguage);
+                SKSvgSettings.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture(settings.SystemLanguage);
             }
 
             var sw = Stopwatch.StartNew();
@@ -292,7 +292,7 @@ namespace Svg.Skia.Converter
 
             if (settings.SystemLanguage != null)
             {
-                Drawable.s_systemLanguageOverride = null;
+                SKSvgSettings.s_systemLanguageOverride = null;
             }
 
             if (paths.Count > 0)
