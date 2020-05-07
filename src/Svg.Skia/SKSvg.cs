@@ -136,7 +136,7 @@ namespace Svg.Skia
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
-            using var drawable = DrawableFactory.Create(svgFragment, skBounds, null, null, Attributes.None);
+            using var drawable = DrawableFactory.Create(svgFragment, skBounds, null, Attributes.None);
             drawable?.PostProcess();
             drawable?.Draw(skCanvas, 0f, 0f);
         }
@@ -155,7 +155,7 @@ namespace Svg.Skia
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
 
-            using var drawable = DrawableFactory.Create(svgFragment, skBounds, null, null, Attributes.None);
+            using var drawable = DrawableFactory.Create(svgFragment, skBounds, null, Attributes.None);
             if (drawable == null)
             {
                 return null;
@@ -191,7 +191,7 @@ namespace Svg.Skia
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
 
-            drawable = DrawableFactory.Create(svgFragment, skBounds, null, null, Attributes.None);
+            drawable = DrawableFactory.Create(svgFragment, skBounds, null, Attributes.None);
             if (drawable == null)
             {
                 return null;
@@ -214,14 +214,14 @@ namespace Svg.Skia
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
-            var drawable = DrawableFactory.Create(svgFragment, skBounds, null, null, Attributes.None);
+            var drawable = DrawableFactory.Create(svgFragment, skBounds, null, Attributes.None);
             drawable?.PostProcess();
             return drawable;
         }
 
         public static Drawable? ToDrawable(SvgElement svgElement, SKRect skBounds, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = DrawableFactory.Create(svgElement, skBounds, null, null, ignoreAttributes);
+            var drawable = DrawableFactory.Create(svgElement, skBounds, null, ignoreAttributes);
             drawable?.PostProcess();
             return drawable;
         }
