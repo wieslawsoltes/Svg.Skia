@@ -2954,7 +2954,7 @@ namespace Svg.Skia
                         else
                         {
                             var parts = svgColourMatrix.Values.Split(new char[] { ' ', '\t', '\n', '\r', ',' }, StringSplitOptions.RemoveEmptyEntries);
-                            if (parts.Count() == 20)
+                            if (parts.Length == 20)
                             {
                                 matrix = new float[20];
                                 for (int i = 0; i < 20; i++)
