@@ -3458,7 +3458,16 @@ namespace Svg.Skia
 
         public static SKImageFilter? CreateMerge(SvgMerge svgMerge, Dictionary<string, SKImageFilter> results, SKImageFilter? lastResult, IFilterSource filterSource, CompositeDisposable disposable, SKImageFilter.CropRect? cropRect = null)
         {
-            var children = svgMerge.Children.OfType<SvgMergeNode>().ToList();
+            var children = new List<SvgMergeNode>();
+
+            foreach (var child in svgMerge.Children)
+            {
+                if (child is SvgMergeNode svgMergeNode)
+                {
+                    children.Add(svgMergeNode);
+                }
+            }
+
             var filters = new SKImageFilter[children.Count];
 
             for (int i = 0; i < children.Count; i++)
