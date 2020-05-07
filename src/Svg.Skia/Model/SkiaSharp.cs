@@ -220,6 +220,34 @@ namespace Svg.Skia
         }
     }
 
+    [Flags]
+    internal enum Attributes
+    {
+        None = 0,
+        Display = 1,
+        Visibility = 2,
+        Opacity = 4,
+        Filter = 8,
+        ClipPath = 16,
+        Mask = 32,
+        RequiredFeatures = 64,
+        RequiredExtensions = 128,
+        SystemLanguage = 256
+    }
+
+    [Flags]
+    internal enum PathPointType : byte
+    {
+        Start = 0,
+        Line = 1,
+        Bezier = 3,
+        Bezier3 = 3,
+        PathTypeMask = 0x7,
+        DashMode = 0x10,
+        PathMarker = 0x20,
+        CloseSubpath = 0x80
+    }
+
     internal static class SvgExtensions
     {
         public static double DegreeToRadian(this double degrees)
@@ -1928,19 +1956,6 @@ namespace Svg.Skia
 
             return skMatrixTotal;
         }
-    }
-
-    [Flags]
-    internal enum PathPointType : byte
-    {
-        Start = 0,
-        Line = 1,
-        Bezier = 3,
-        Bezier3 = 3,
-        PathTypeMask = 0x7,
-        DashMode = 0x10,
-        PathMarker = 0x20,
-        CloseSubpath = 0x80
     }
 
     internal static class SvgPathingExtensions
@@ -4694,21 +4709,6 @@ namespace Svg.Skia
 
             SetTypeface(svgText, skPaint, disposable);
         }
-    }
-
-    [Flags]
-    internal enum Attributes
-    {
-        None = 0,
-        Display = 1,
-        Visibility = 2,
-        Opacity = 4,
-        Filter = 8,
-        ClipPath = 16,
-        Mask = 32,
-        RequiredFeatures = 64,
-        RequiredExtensions = 128,
-        SystemLanguage = 256
     }
 
     internal interface IFilterSource
