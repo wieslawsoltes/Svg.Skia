@@ -226,7 +226,7 @@ namespace Svg.Skia
                 }
             }
         }
-#if USE_COLORSPACE
+
         public static SKColorF[] ToSkColorF(this SKColor[] skColors)
         {
             var skColorsF = new SKColorF[skColors.Length];
@@ -266,7 +266,6 @@ namespace Svg.Skia
             }
             return SvgColourInterpolation.LinearRGB;
         }
-#endif
 
 #if USE_COLORSPACE
         public static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes, SKColorSpace skColorSpace)
