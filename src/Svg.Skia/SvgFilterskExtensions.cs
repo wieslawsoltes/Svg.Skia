@@ -1407,9 +1407,7 @@ namespace Svg.Skia
                         break;
                     case FilterEffects.SvgFlood svgFlood:
                         {
-                            var inputKey = svgFlood.Input;
-                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                            var skImageFilter = CreateFlood(svgFlood, svgVisualElement, skFilterPrimitiveRegion, disposable, inputFilter, skCropRect);
+                            var skImageFilter = CreateFlood(svgFlood, svgVisualElement, skFilterPrimitiveRegion, disposable, null, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
 #if DEBUG
                             if (lastResult != null)
@@ -1435,8 +1433,6 @@ namespace Svg.Skia
                         break;
                     case FilterEffects.SvgImage svgImage:
                         {
-                            var inputKey = svgImage.Input;
-                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
                             var skImageFilter = CreateImage(svgImage, skFilterPrimitiveRegion, disposable, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
 #if DEBUG
@@ -1517,8 +1513,6 @@ namespace Svg.Skia
                         break;
                     case FilterEffects.SvgTurbulence svgTurbulence:
                         {
-                            var inputKey = svgTurbulence.Input;
-                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
                             var skImageFilter = CreateTurbulence(svgTurbulence, skFilterPrimitiveRegion, primitiveUnits, disposable, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
 #if DEBUG
