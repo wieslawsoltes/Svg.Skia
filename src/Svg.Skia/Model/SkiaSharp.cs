@@ -1298,7 +1298,7 @@ namespace Svg.Skia
 #if USE_COLORSPACE
                         var colorInterpolation = GetColorInterpolation(svgVisualElement);
                         var isLinearRGB = colorInterpolation == SvgColourInterpolation.LinearRGB;
-                        var skColorSpace = isLinearRGB ? SKSvgSettings.SrgbLinear : SKSvgSettings.Srgb;
+                        var skColorSpace = isLinearRGB ? SKSvgSettings.s_srgbLinear : SKSvgSettings.s_srgb;
                         var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
 #else
                         var skColorShader = SKShader.CreateColor(skColor);
@@ -1328,7 +1328,7 @@ namespace Svg.Skia
 #if USE_COLORSPACE
                                 var colorInterpolation = GetColorInterpolation(svgVisualElement);
                                 var isLinearRGB = colorInterpolation == SvgColourInterpolation.LinearRGB;
-                                var skColorSpace = isLinearRGB ? SKSvgSettings.SrgbLinear : SKSvgSettings.Srgb;
+                                var skColorSpace = isLinearRGB ? SKSvgSettings.s_srgbLinear : SKSvgSettings.s_srgb;
                                 var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
 #else
                                 var skColorShader = SKShader.CreateColor(skColor);
@@ -1353,7 +1353,7 @@ namespace Svg.Skia
 #if USE_COLORSPACE
                         var colorInterpolation = GetColorInterpolation(svgLinearGradientServer);
                         var isLinearRGB = colorInterpolation == SvgColourInterpolation.LinearRGB;
-                        var skColorSpace = isLinearRGB ? SKSvgSettings.SrgbLinear : SKSvgSettings.Srgb;
+                        var skColorSpace = isLinearRGB ? SKSvgSettings.s_srgbLinear : SKSvgSettings.s_srgb;
 #endif
                         if (svgLinearGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox && (skBounds.Width == 0f || skBounds.Height == 0f))
                         {
@@ -1412,7 +1412,7 @@ namespace Svg.Skia
 #if USE_COLORSPACE
                         var colorInterpolation = GetColorInterpolation(svgRadialGradientServer);
                         var isLinearRGB = colorInterpolation == SvgColourInterpolation.LinearRGB;
-                        var skColorSpace = isLinearRGB ? SKSvgSettings.SrgbLinear : SKSvgSettings.Srgb;
+                        var skColorSpace = isLinearRGB ? SKSvgSettings.s_srgbLinear : SKSvgSettings.s_srgb;
 #endif
                         if (svgRadialGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox && (skBounds.Width == 0f || skBounds.Height == 0f))
                         {

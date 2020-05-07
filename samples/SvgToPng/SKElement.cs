@@ -57,7 +57,7 @@ namespace SvgToPng
                 return;
 
 #if USE_COLORSPACE
-            var info = new SKImageInfo(size.Width, size.Height, SKImageInfo.PlatformColorType, SKAlphaType.Premul, SKSvgSettings.Srgb);
+            var info = new SKImageInfo(size.Width, size.Height, SKImageInfo.PlatformColorType, SKAlphaType.Premul, SKSvgSettings.s_srgb);
 #else
             var info = new SKImageInfo(size.Width, size.Height, SKImageInfo.PlatformColorType, SKAlphaType.Premul);
 #endif

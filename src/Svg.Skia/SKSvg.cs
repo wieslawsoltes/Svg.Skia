@@ -14,9 +14,9 @@ namespace Svg.Skia
 
         public static SKColorType s_colorType = SKImageInfo.PlatformColorType;
 
-        public static SKColorSpace SrgbLinear = SKColorSpace.CreateRgb(SKNamedGamma.Linear, SKColorSpaceGamut.Srgb); // SKColorSpace.CreateSrgbLinear();
+        public static SKColorSpace s_srgbLinear = SKColorSpace.CreateRgb(SKNamedGamma.Linear, SKColorSpaceGamut.Srgb); // SKColorSpace.CreateSrgbLinear();
 
-        public static SKColorSpace Srgb = SKColorSpace.CreateRgb(SKNamedGamma.Srgb, SKColorSpaceGamut.Srgb); // SKColorSpace.CreateSrgb();
+        public static SKColorSpace s_srgb = SKColorSpace.CreateRgb(SKNamedGamma.Srgb, SKColorSpaceGamut.Srgb); // SKColorSpace.CreateSrgb();
 
         public static CultureInfo? s_systemLanguageOverride = null;
 
@@ -451,7 +451,7 @@ namespace Svg.Skia
             if (Picture != null)
             {
 #if USE_COLORSPACE
-                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SKSvgSettings.Srgb);
+                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SKSvgSettings.s_srgb);
 #else
                 return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul);
 #endif
@@ -465,7 +465,7 @@ namespace Svg.Skia
             {
                 using var stream = File.OpenWrite(path);
 #if USE_COLORSPACE
-                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SKSvgSettings.Srgb);
+                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SKSvgSettings.s_srgb);
 #else
                 return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul);
 #endif

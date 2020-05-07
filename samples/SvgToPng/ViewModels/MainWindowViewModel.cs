@@ -143,7 +143,7 @@ namespace SvgToPng.ViewModels
 
                 using var codec = SKCodec.Create(new SKFileStream(item.ReferencePngPath));
 #if USE_COLORSPACE
-                var skImageInfo = new SKImageInfo(codec.Info.Width, codec.Info.Height, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.Srgb);
+                var skImageInfo = new SKImageInfo(codec.Info.Width, codec.Info.Height, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
 #else
                 var skImageInfo = new SKImageInfo(codec.Info.Width, codec.Info.Height, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType);
 #endif
@@ -159,7 +159,7 @@ namespace SvgToPng.ViewModels
                 float scaleX = skReferenceBitmap.Width / item.Picture.CullRect.Width;
                 float scaleY = skReferenceBitmap.Height / item.Picture.CullRect.Height;
 #if USE_COLORSPACE
-                using var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.Srgb);
+                using var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
 #else
                 using var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType);
 #endif
@@ -263,7 +263,7 @@ namespace SvgToPng.ViewModels
                 {
                     using var stream = File.OpenWrite(outputPath);
 #if USE_COLORSPACE
-                    picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.Srgb);
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
 #else
                     picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType);
 #endif
@@ -277,7 +277,7 @@ namespace SvgToPng.ViewModels
                 {
                     using var stream = File.OpenWrite(outputPath);
 #if USE_COLORSPACE
-                    picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.Srgb);
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
 #else
                     picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType);
 #endif
@@ -291,7 +291,7 @@ namespace SvgToPng.ViewModels
                 {
                     using var stream = File.OpenWrite(outputPath);
 #if USE_COLORSPACE
-                    picture.ToImage(stream, background, SKEncodedImageFormat.Png, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.Srgb);
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Png, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
 #else
                     picture.ToImage(stream, background, SKEncodedImageFormat.Png, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType);
 #endif
@@ -305,7 +305,7 @@ namespace SvgToPng.ViewModels
                 {
                     using var stream = File.OpenWrite(outputPath);
 #if USE_COLORSPACE
-                    picture.ToImage(stream, background, SKEncodedImageFormat.Webp, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.Srgb);
+                    picture.ToImage(stream, background, SKEncodedImageFormat.Webp, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
 #else
                     picture.ToImage(stream, background, SKEncodedImageFormat.Webp, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType);
 #endif
@@ -398,7 +398,7 @@ namespace SvgToPng.ViewModels
         unsafe public static SKBitmap PixelDiff(SKBitmap referenceBitmap, SKBitmap svgBitmap)
         {
 #if USE_COLORSPACE
-            var skImageInfo = new SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.Srgb);
+            var skImageInfo = new SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
 #else
             var skImageInfo = new SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType);
 #endif
