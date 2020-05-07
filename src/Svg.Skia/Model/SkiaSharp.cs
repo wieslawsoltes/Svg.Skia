@@ -18,6 +18,17 @@ using Svg.Transforms;
 
 namespace Svg.Skia
 {
+    public static class SKSvgSettings
+    {
+        public static CultureInfo? s_systemLanguageOverride = null;
+
+        public static IList<ITypefaceProvider> s_typefaceProviders = new List<ITypefaceProvider>()
+        {
+            new FontManagerTypefacerovider(),
+            new DefaultTypefaceProvider()
+        };
+    }
+
     public interface ITypefaceProvider
     {
         SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle);
@@ -177,15 +188,6 @@ namespace Svg.Skia
             }
             return skTypeface;
         }
-    }
-
-    public static class SKSvgSettings
-    {
-        public static IList<ITypefaceProvider> s_typefaceProviders = new List<ITypefaceProvider>()
-        {
-            new FontManagerTypefacerovider(),
-            new DefaultTypefaceProvider()
-        };
     }
 
     internal class CompositeDisposable : IDisposable
@@ -4725,8 +4727,6 @@ namespace Svg.Skia
 
     internal abstract class Drawable : SKDrawable, IFilterSource, IPictureSource
     {
-        public static CultureInfo? s_systemLanguageOverride = null;
-
         public static HashSet<string> s_supportedFeatures = new HashSet<string>()
         {
             "http://www.w3.org/TR/SVG11/feature#SVG",
@@ -4865,7 +4865,9 @@ namespace Svg.Skia
                     if (languages.Length > 0)
                     {
                         hasSystemLanguage = false;
-                        var systemLanguage = s_systemLanguageOverride != null ? s_systemLanguageOverride : CultureInfo.InstalledUICulture;
+                        var systemLanguage = SKSvgSettings.s_systemLanguageOverride != null ?
+                            SKSvgSettings.s_systemLanguageOverride : 
+                            CultureInfo.InstalledUICulture;
 
                         foreach (var language in languages)
                         {
