@@ -5256,6 +5256,122 @@ namespace Svg.Skia
         }
     }
 
+    internal class MaskDrawable : DrawableContainer
+    {
+        public MaskDrawable(SvgMask svgMask, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+            : base(svgMask, parent)
+        {
+            IgnoreAttributes = ignoreAttributes;
+            IsDrawable = true;
+
+            if (!IsDrawable)
+            {
+                return;
+            }
+            var maskUnits = svgMask.MaskUnits;
+            var maskContentUnits = svgMask.MaskContentUnits;
+            var xUnit = svgMask.X;
+            var yUnit = svgMask.Y;
+            var widthUnit = svgMask.Width;
+            var heightUnit = svgMask.Height;
+            float x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skOwnerBounds);
+            float y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgMask, skOwnerBounds);
+            float width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skOwnerBounds);
+            float height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgMask, skOwnerBounds);
+
+            if (width <= 0 || height <= 0)
+            {
+                IsDrawable = false;
+                return;
+            }
+
+            if (maskUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            {
+                if (xUnit.Type != SvgUnitType.Percentage)
+                {
+                    x *= skOwnerBounds.Width;
+                }
+
+                if (yUnit.Type != SvgUnitType.Percentage)
+                {
+                    y *= skOwnerBounds.Height;
+                }
+
+                if (widthUnit.Type != SvgUnitType.Percentage)
+                {
+                    width *= skOwnerBounds.Width;
+                }
+
+                if (heightUnit.Type != SvgUnitType.Percentage)
+                {
+                    height *= skOwnerBounds.Height;
+                }
+
+                x += skOwnerBounds.Left;
+                y += skOwnerBounds.Top;
+            }
+
+            SKRect skRectTransformed = SKRect.Create(x, y, width, height);
+
+            var skMatrix = SKMatrix.MakeIdentity();
+
+            if (maskContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            {
+                var skBoundsTranslateTransform = SKMatrix.MakeTranslation(skOwnerBounds.Left, skOwnerBounds.Top);
+                skMatrix = skMatrix.PreConcat(skBoundsTranslateTransform);
+
+                var skBoundsScaleTransform = SKMatrix.MakeScale(skOwnerBounds.Width, skOwnerBounds.Height);
+                skMatrix = skMatrix.PreConcat(skBoundsScaleTransform);
+            }
+
+            CreateChildren(svgMask, skOwnerBounds, this, ignoreAttributes);
+
+            Overflow = skRectTransformed;
+
+            IsAntialias = SvgPaintingExtensions.IsAntialias(svgMask);
+
+            TransformedBounds = skRectTransformed;
+
+            Transform = skMatrix;
+
+            Fill = null;
+            Stroke = null;
+
+            // TODO: Transform _skBounds using _skMatrix.
+            TransformedBounds = Transform.MapRect(TransformedBounds);
+        }
+
+        public override void PostProcess()
+        {
+            var element = Element;
+            if (element == null)
+            {
+                return;
+            }
+
+            var enableMask = !IgnoreAttributes.HasFlag(Attributes.Mask);
+
+            ClipPath = null;
+
+            if (enableMask == true)
+            {
+                MaskDrawable = SvgClippingExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), _disposable);
+                if (MaskDrawable != null)
+                {
+                    CreateMaskPaints();
+                }
+            }
+            else
+            {
+                MaskDrawable = null;
+            }
+
+            Opacity = null;
+            Filter = null;
+        }
+
+    }
+
     internal class AnchorDrawable : DrawableContainer
     {
         public AnchorDrawable(SvgAnchor svgAnchor, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
@@ -5733,6 +5849,75 @@ namespace Svg.Skia
         }
     }
 
+    internal class SymbolDrawable : DrawableContainer
+    {
+        public SymbolDrawable(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes)
+            : base(svgSymbol, parent)
+        {
+            IgnoreAttributes = ignoreAttributes;
+            IsDrawable = CanDraw(svgSymbol, IgnoreAttributes) && HasFeatures(svgSymbol, IgnoreAttributes);
+
+            if (!IsDrawable)
+            {
+                return;
+            }
+
+            if (svgSymbol.CustomAttributes.TryGetValue("width", out string? _widthString))
+            {
+                if (new SvgUnitConverter().ConvertFromString(_widthString) is SvgUnit _width)
+                {
+                    width = _width.ToDeviceValue(UnitRenderingType.Horizontal, svgSymbol, skOwnerBounds);
+                }
+            }
+
+            if (svgSymbol.CustomAttributes.TryGetValue("height", out string? heightString))
+            {
+                if (new SvgUnitConverter().ConvertFromString(heightString) is SvgUnit _height)
+                {
+                    height = _height.ToDeviceValue(UnitRenderingType.Vertical, svgSymbol, skOwnerBounds);
+                }
+            }
+
+            var svgOverflow = SvgOverflow.Hidden;
+            if (svgSymbol.TryGetAttribute("overflow", out string overflowString))
+            {
+                if (new SvgOverflowConverter().ConvertFromString(overflowString) is SvgOverflow _svgOverflow)
+                {
+                    svgOverflow = _svgOverflow;
+                }
+            }
+
+            switch (svgOverflow)
+            {
+                case SvgOverflow.Auto:
+                case SvgOverflow.Visible:
+                case SvgOverflow.Inherit:
+                    break;
+                default:
+                    Overflow = SKRect.Create(x, y, width, height);
+                    break;
+            }
+
+            CreateChildren(svgSymbol, skOwnerBounds, this, ignoreAttributes);
+
+            IsAntialias = SvgPaintingExtensions.IsAntialias(svgSymbol);
+
+            TransformedBounds = SKRect.Empty;
+
+            CreateTransformedBounds();
+
+            Transform = SvgTransformsExtensions.ToSKMatrix(svgSymbol.Transforms);
+            var skMatrixViewBox = SvgTransformsExtensions.ToSKMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
+            Transform = Transform.PreConcat(skMatrixViewBox);
+
+            Fill = null;
+            Stroke = null;
+
+            // TODO: Transform _skBounds using _skMatrix.
+            TransformedBounds = Transform.MapRect(TransformedBounds);
+        }
+    }
+
     internal class UseDrawable : Drawable
     {
         public Drawable? ReferencedDrawable;
@@ -6035,6 +6220,156 @@ namespace Svg.Skia
 
             // TODO: Transform _skBounds using _skMatrix.
             TransformedBounds = Transform.MapRect(TransformedBounds);
+        }
+    }
+
+    internal class MarkerDrawable : Drawable
+    {
+        public Drawable? MarkerElementDrawable;
+        public SKRect? MarkerClipRect;
+
+        public MarkerDrawable(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+            : base(svgMarker, parent)
+        {
+            IgnoreAttributes = Attributes.Display | ignoreAttributes;
+            IsDrawable = true;
+
+            if (!IsDrawable)
+            {
+                return;
+            }
+
+            var markerElement = GetMarkerElement(svgMarker);
+            if (markerElement == null)
+            {
+                IsDrawable = false;
+                return;
+            }
+
+            var skMarkerMatrix = SKMatrix.MakeIdentity();
+
+            var skMatrixMarkerPoint = SKMatrix.MakeTranslation(pMarkerPoint.X, pMarkerPoint.Y);
+            skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixMarkerPoint);
+
+            var skMatrixAngle = SKMatrix.MakeRotationDegrees(svgMarker.Orient.IsAuto ? fAngle : svgMarker.Orient.Angle);
+            skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixAngle);
+
+            var strokeWidth = pOwner.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
+
+            var refX = svgMarker.RefX.ToDeviceValue(UnitRenderingType.Horizontal, svgMarker, skOwnerBounds);
+            var refY = svgMarker.RefY.ToDeviceValue(UnitRenderingType.Vertical, svgMarker, skOwnerBounds);
+            float markerWidth = svgMarker.MarkerWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
+            float markerHeight = svgMarker.MarkerHeight.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
+            float viewBoxToMarkerUnitsScaleX = 1f;
+            float viewBoxToMarkerUnitsScaleY = 1f;
+
+            switch (svgMarker.MarkerUnits)
+            {
+                case SvgMarkerUnits.StrokeWidth:
+                    {
+                        var skMatrixStrokeWidth = SKMatrix.MakeScale(strokeWidth, strokeWidth);
+                        skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixStrokeWidth);
+
+                        var viewBoxWidth = svgMarker.ViewBox.Width;
+                        var viewBoxHeight = svgMarker.ViewBox.Height;
+
+                        var scaleFactorWidth = (viewBoxWidth <= 0) ? 1 : (markerWidth / viewBoxWidth);
+                        var scaleFactorHeight = (viewBoxHeight <= 0) ? 1 : (markerHeight / viewBoxHeight);
+
+                        viewBoxToMarkerUnitsScaleX = Math.Min(scaleFactorWidth, scaleFactorHeight);
+                        viewBoxToMarkerUnitsScaleY = Math.Min(scaleFactorWidth, scaleFactorHeight);
+
+                        var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX * viewBoxToMarkerUnitsScaleX, -refY * viewBoxToMarkerUnitsScaleY);
+                        skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixTranslateRefXY);
+
+                        var skMatrixScaleXY = SKMatrix.MakeScale(viewBoxToMarkerUnitsScaleX, viewBoxToMarkerUnitsScaleY);
+                        skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixScaleXY);
+                    }
+                    break;
+                case SvgMarkerUnits.UserSpaceOnUse:
+                    {
+                        var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX, -refY);
+                        skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixTranslateRefXY);
+                    }
+                    break;
+            }
+
+            switch (svgMarker.Overflow)
+            {
+                case SvgOverflow.Auto:
+                case SvgOverflow.Visible:
+                case SvgOverflow.Inherit:
+                    break;
+                default:
+                    MarkerClipRect = SKRect.Create(
+                        svgMarker.ViewBox.MinX,
+                        svgMarker.ViewBox.MinY,
+                        markerWidth / viewBoxToMarkerUnitsScaleX,
+                        markerHeight / viewBoxToMarkerUnitsScaleY);
+                    break;
+            }
+
+            var drawable = DrawableFactory.Create(markerElement, skOwnerBounds, this, Attributes.Display);
+            if (drawable != null)
+            {
+                MarkerElementDrawable = drawable;
+                _disposable.Add(MarkerElementDrawable);
+            }
+            else
+            {
+                IsDrawable = false;
+                return;
+            }
+
+            IsAntialias = SvgPaintingExtensions.IsAntialias(svgMarker);
+
+            TransformedBounds = MarkerElementDrawable.TransformedBounds;
+
+            Transform = SvgTransformsExtensions.ToSKMatrix(svgMarker.Transforms);
+            Transform = Transform.PreConcat(skMarkerMatrix);
+
+            Fill = null;
+            Stroke = null;
+
+            // TODO: Transform _skBounds using _skMatrix.
+            TransformedBounds = Transform.MapRect(TransformedBounds);
+        }
+
+        internal SvgVisualElement? GetMarkerElement(SvgMarker svgMarker)
+        {
+            SvgVisualElement? markerElement = null;
+
+            foreach (var child in svgMarker.Children)
+            {
+                if (child is SvgVisualElement svgVisualElement)
+                {
+                    markerElement = svgVisualElement;
+                    break;
+                }
+            }
+
+            return markerElement;
+        }
+
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
+        {
+            if (until != null && this == until)
+            {
+                return;
+            }
+
+            if (MarkerClipRect != null)
+            {
+                canvas.ClipRect(MarkerClipRect.Value, SKClipOperation.Intersect);
+            }
+
+            MarkerElementDrawable?.Draw(canvas, ignoreAttributes, until);
+        }
+
+        public override void PostProcess()
+        {
+            base.PostProcess();
+            MarkerElementDrawable?.PostProcess();
         }
     }
 
@@ -6869,341 +7204,6 @@ namespace Svg.Skia
         public override void PostProcess()
         {
             // TODO:
-        }
-    }
-
-    internal class MarkerDrawable : Drawable
-    {
-        public Drawable? MarkerElementDrawable;
-        public SKRect? MarkerClipRect;
-
-        public MarkerDrawable(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
-            : base(svgMarker, parent)
-        {
-            IgnoreAttributes = Attributes.Display | ignoreAttributes;
-            IsDrawable = true;
-
-            if (!IsDrawable)
-            {
-                return;
-            }
-
-            var markerElement = GetMarkerElement(svgMarker);
-            if (markerElement == null)
-            {
-                IsDrawable = false;
-                return;
-            }
-
-            var skMarkerMatrix = SKMatrix.MakeIdentity();
-
-            var skMatrixMarkerPoint = SKMatrix.MakeTranslation(pMarkerPoint.X, pMarkerPoint.Y);
-            skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixMarkerPoint);
-
-            var skMatrixAngle = SKMatrix.MakeRotationDegrees(svgMarker.Orient.IsAuto ? fAngle : svgMarker.Orient.Angle);
-            skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixAngle);
-
-            var strokeWidth = pOwner.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
-
-            var refX = svgMarker.RefX.ToDeviceValue(UnitRenderingType.Horizontal, svgMarker, skOwnerBounds);
-            var refY = svgMarker.RefY.ToDeviceValue(UnitRenderingType.Vertical, svgMarker, skOwnerBounds);
-            float markerWidth = svgMarker.MarkerWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
-            float markerHeight = svgMarker.MarkerHeight.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
-            float viewBoxToMarkerUnitsScaleX = 1f;
-            float viewBoxToMarkerUnitsScaleY = 1f;
-
-            switch (svgMarker.MarkerUnits)
-            {
-                case SvgMarkerUnits.StrokeWidth:
-                    {
-                        var skMatrixStrokeWidth = SKMatrix.MakeScale(strokeWidth, strokeWidth);
-                        skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixStrokeWidth);
-
-                        var viewBoxWidth = svgMarker.ViewBox.Width;
-                        var viewBoxHeight = svgMarker.ViewBox.Height;
-
-                        var scaleFactorWidth = (viewBoxWidth <= 0) ? 1 : (markerWidth / viewBoxWidth);
-                        var scaleFactorHeight = (viewBoxHeight <= 0) ? 1 : (markerHeight / viewBoxHeight);
-
-                        viewBoxToMarkerUnitsScaleX = Math.Min(scaleFactorWidth, scaleFactorHeight);
-                        viewBoxToMarkerUnitsScaleY = Math.Min(scaleFactorWidth, scaleFactorHeight);
-
-                        var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX * viewBoxToMarkerUnitsScaleX, -refY * viewBoxToMarkerUnitsScaleY);
-                        skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixTranslateRefXY);
-
-                        var skMatrixScaleXY = SKMatrix.MakeScale(viewBoxToMarkerUnitsScaleX, viewBoxToMarkerUnitsScaleY);
-                        skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixScaleXY);
-                    }
-                    break;
-                case SvgMarkerUnits.UserSpaceOnUse:
-                    {
-                        var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX, -refY);
-                        skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixTranslateRefXY);
-                    }
-                    break;
-            }
-
-            switch (svgMarker.Overflow)
-            {
-                case SvgOverflow.Auto:
-                case SvgOverflow.Visible:
-                case SvgOverflow.Inherit:
-                    break;
-                default:
-                    MarkerClipRect = SKRect.Create(
-                        svgMarker.ViewBox.MinX,
-                        svgMarker.ViewBox.MinY,
-                        markerWidth / viewBoxToMarkerUnitsScaleX,
-                        markerHeight / viewBoxToMarkerUnitsScaleY);
-                    break;
-            }
-
-            var drawable = DrawableFactory.Create(markerElement, skOwnerBounds, this, Attributes.Display);
-            if (drawable != null)
-            {
-                MarkerElementDrawable = drawable;
-                _disposable.Add(MarkerElementDrawable);
-            }
-            else
-            {
-                IsDrawable = false;
-                return;
-            }
-
-            IsAntialias = SvgPaintingExtensions.IsAntialias(svgMarker);
-
-            TransformedBounds = MarkerElementDrawable.TransformedBounds;
-
-            Transform = SvgTransformsExtensions.ToSKMatrix(svgMarker.Transforms);
-            Transform = Transform.PreConcat(skMarkerMatrix);
-
-            Fill = null;
-            Stroke = null;
-
-            // TODO: Transform _skBounds using _skMatrix.
-            TransformedBounds = Transform.MapRect(TransformedBounds);
-        }
-
-        internal SvgVisualElement? GetMarkerElement(SvgMarker svgMarker)
-        {
-            SvgVisualElement? markerElement = null;
-
-            foreach (var child in svgMarker.Children)
-            {
-                if (child is SvgVisualElement svgVisualElement)
-                {
-                    markerElement = svgVisualElement;
-                    break;
-                }
-            }
-
-            return markerElement;
-        }
-
-        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
-        {
-            if (until != null && this == until)
-            {
-                return;
-            }
-
-            if (MarkerClipRect != null)
-            {
-                canvas.ClipRect(MarkerClipRect.Value, SKClipOperation.Intersect);
-            }
-
-            MarkerElementDrawable?.Draw(canvas, ignoreAttributes, until);
-        }
-
-        public override void PostProcess()
-        {
-            base.PostProcess();
-            MarkerElementDrawable?.PostProcess();
-        }
-    }
-
-    internal class MaskDrawable : DrawableContainer
-    {
-        public MaskDrawable(SvgMask svgMask, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
-            : base(svgMask, parent)
-        {
-            IgnoreAttributes = ignoreAttributes;
-            IsDrawable = true;
-
-            if (!IsDrawable)
-            {
-                return;
-            }
-            var maskUnits = svgMask.MaskUnits;
-            var maskContentUnits = svgMask.MaskContentUnits;
-            var xUnit = svgMask.X;
-            var yUnit = svgMask.Y;
-            var widthUnit = svgMask.Width;
-            var heightUnit = svgMask.Height;
-            float x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skOwnerBounds);
-            float y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgMask, skOwnerBounds);
-            float width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skOwnerBounds);
-            float height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgMask, skOwnerBounds);
-
-            if (width <= 0 || height <= 0)
-            {
-                IsDrawable = false;
-                return;
-            }
-
-            if (maskUnits == SvgCoordinateUnits.ObjectBoundingBox)
-            {
-                if (xUnit.Type != SvgUnitType.Percentage)
-                {
-                    x *= skOwnerBounds.Width;
-                }
-
-                if (yUnit.Type != SvgUnitType.Percentage)
-                {
-                    y *= skOwnerBounds.Height;
-                }
-
-                if (widthUnit.Type != SvgUnitType.Percentage)
-                {
-                    width *= skOwnerBounds.Width;
-                }
-
-                if (heightUnit.Type != SvgUnitType.Percentage)
-                {
-                    height *= skOwnerBounds.Height;
-                }
-
-                x += skOwnerBounds.Left;
-                y += skOwnerBounds.Top;
-            }
-
-            SKRect skRectTransformed = SKRect.Create(x, y, width, height);
-
-            var skMatrix = SKMatrix.MakeIdentity();
-
-            if (maskContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
-            {
-                var skBoundsTranslateTransform = SKMatrix.MakeTranslation(skOwnerBounds.Left, skOwnerBounds.Top);
-                skMatrix = skMatrix.PreConcat(skBoundsTranslateTransform);
-
-                var skBoundsScaleTransform = SKMatrix.MakeScale(skOwnerBounds.Width, skOwnerBounds.Height);
-                skMatrix = skMatrix.PreConcat(skBoundsScaleTransform);
-            }
-
-            CreateChildren(svgMask, skOwnerBounds, this, ignoreAttributes);
-
-            Overflow = skRectTransformed;
-
-            IsAntialias = SvgPaintingExtensions.IsAntialias(svgMask);
-
-            TransformedBounds = skRectTransformed;
-
-            Transform = skMatrix;
-
-            Fill = null;
-            Stroke = null;
-
-            // TODO: Transform _skBounds using _skMatrix.
-            TransformedBounds = Transform.MapRect(TransformedBounds);
-        }
-
-        public override void PostProcess()
-        {
-            var element = Element;
-            if (element == null)
-            {
-                return;
-            }
-
-            var enableMask = !IgnoreAttributes.HasFlag(Attributes.Mask);
-
-            ClipPath = null;
-
-            if (enableMask == true)
-            {
-                MaskDrawable = SvgClippingExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), _disposable);
-                if (MaskDrawable != null)
-                {
-                    CreateMaskPaints();
-                }
-            }
-            else
-            {
-                MaskDrawable = null;
-            }
-
-            Opacity = null;
-            Filter = null;
-        }
-
-    }
-
-    internal class SymbolDrawable : DrawableContainer
-    {
-        public SymbolDrawable(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes)
-            : base(svgSymbol, parent)
-        {
-            IgnoreAttributes = ignoreAttributes;
-            IsDrawable = CanDraw(svgSymbol, IgnoreAttributes) && HasFeatures(svgSymbol, IgnoreAttributes);
-
-            if (!IsDrawable)
-            {
-                return;
-            }
-
-            if (svgSymbol.CustomAttributes.TryGetValue("width", out string? _widthString))
-            {
-                if (new SvgUnitConverter().ConvertFromString(_widthString) is SvgUnit _width)
-                {
-                    width = _width.ToDeviceValue(UnitRenderingType.Horizontal, svgSymbol, skOwnerBounds);
-                }
-            }
-
-            if (svgSymbol.CustomAttributes.TryGetValue("height", out string? heightString))
-            {
-                if (new SvgUnitConverter().ConvertFromString(heightString) is SvgUnit _height)
-                {
-                    height = _height.ToDeviceValue(UnitRenderingType.Vertical, svgSymbol, skOwnerBounds);
-                }
-            }
-
-            var svgOverflow = SvgOverflow.Hidden;
-            if (svgSymbol.TryGetAttribute("overflow", out string overflowString))
-            {
-                if (new SvgOverflowConverter().ConvertFromString(overflowString) is SvgOverflow _svgOverflow)
-                {
-                    svgOverflow = _svgOverflow;
-                }
-            }
-
-            switch (svgOverflow)
-            {
-                case SvgOverflow.Auto:
-                case SvgOverflow.Visible:
-                case SvgOverflow.Inherit:
-                    break;
-                default:
-                    Overflow = SKRect.Create(x, y, width, height);
-                    break;
-            }
-
-            CreateChildren(svgSymbol, skOwnerBounds, this, ignoreAttributes);
-
-            IsAntialias = SvgPaintingExtensions.IsAntialias(svgSymbol);
-
-            TransformedBounds = SKRect.Empty;
-
-            CreateTransformedBounds();
-
-            Transform = SvgTransformsExtensions.ToSKMatrix(svgSymbol.Transforms);
-            var skMatrixViewBox = SvgTransformsExtensions.ToSKMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
-            Transform = Transform.PreConcat(skMatrixViewBox);
-
-            Fill = null;
-            Stroke = null;
-
-            // TODO: Transform _skBounds using _skMatrix.
-            TransformedBounds = Transform.MapRect(TransformedBounds);
         }
     }
 
