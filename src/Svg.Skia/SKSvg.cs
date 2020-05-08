@@ -306,8 +306,11 @@ namespace Svg.Skia
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
             using var drawable = DrawableFactory.Create(svgFragment, skBounds, null, Attributes.None);
-            drawable?.PostProcess();
-            drawable?.Draw(skCanvas, 0f, 0f);
+            if (drawable != null)
+            {
+                drawable.PostProcess();
+                drawable.Draw(skCanvas, 0f, 0f);
+            }
         }
 
         public static void Draw(SKCanvas skCanvas, string path)
