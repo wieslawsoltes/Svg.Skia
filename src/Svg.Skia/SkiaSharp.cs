@@ -670,6 +670,22 @@ namespace Svg.Skia
 
         public static SKColor TransparentBlack = new SKColor(0, 0, 0, 255);
 
+        private const string MimeTypeSvg = "image/svg+xml";
+
+        private static byte[] s_gZipMagicHeaderBytes = { 0x1f, 0x8b };
+
+        public const string SourceGraphic = "SourceGraphic";
+
+        public const string SourceAlpha = "SourceAlpha";
+
+        public const string BackgroundImage = "BackgroundImage";
+
+        public const string BackgroundAlpha = "BackgroundAlpha";
+
+        public const string FillPaint = "FillPaint";
+
+        public const string StrokePaint = "StrokePaint";
+
         public static float AdjustSvgOpacity(float opacity)
         {
             return Math.Min(Math.Max(opacity, 0), 1);
@@ -2294,9 +2310,6 @@ namespace Svg.Skia
             return skPath;
         }
 
-        private const string MimeTypeSvg = "image/svg+xml";
-        private static byte[] s_gZipMagicHeaderBytes = { 0x1f, 0x8b };
-
         public static object? GetImage(string uriString, SvgDocument svgOwnerDocument)
         {
             try
@@ -3005,13 +3018,6 @@ namespace Svg.Skia
                 }
             }
         }
-
-        public const string SourceGraphic = "SourceGraphic";
-        public const string SourceAlpha = "SourceAlpha";
-        public const string BackgroundImage = "BackgroundImage";
-        public const string BackgroundAlpha = "BackgroundAlpha";
-        public const string FillPaint = "FillPaint";
-        public const string StrokePaint = "StrokePaint";
 
         public static SvgFuncA s_identitySvgFuncA = new SvgFuncA()
         {
