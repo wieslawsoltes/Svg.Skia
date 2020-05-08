@@ -336,7 +336,7 @@ namespace Svg.Skia
 
         public static SvgUnit Normalize(this SvgUnit svgUnit, SvgCoordinateUnits svgCoordinateUnits)
         {
-            return svgUnit.Type == SvgUnitType.Percentage 
+            return svgUnit.Type == SvgUnitType.Percentage
                 && svgCoordinateUnits == SvgCoordinateUnits.ObjectBoundingBox ?
                     new SvgUnit(SvgUnitType.User, svgUnit.Value / 100) : svgUnit;
         }
@@ -353,7 +353,7 @@ namespace Svg.Skia
                 if (svgFragment.ViewBox.Width > 0 && svgFragment.ViewBox.Height > 0)
                 {
                     bounds = new SKRect(
-                        svgFragment.ViewBox.MinX, svgFragment.ViewBox.MinY, 
+                        svgFragment.ViewBox.MinX, svgFragment.ViewBox.MinY,
                         svgFragment.ViewBox.Width, svgFragment.ViewBox.Height);
                 }
                 else
@@ -5447,8 +5447,8 @@ namespace Svg.Skia
             var svgClipPath = svgFragment.GetUriElementReference<SvgClipPath>("clip-path", clipPathUris);
             if (svgClipPath != null && svgClipPath.Children != null)
             {
-                drawable.ClipPath = drawable.IgnoreAttributes.HasFlag(Attributes.ClipPath) ? 
-                    null : 
+                drawable.ClipPath = drawable.IgnoreAttributes.HasFlag(Attributes.ClipPath) ?
+                    null :
                     SvgExtensions.GetClipPath(svgClipPath, drawable.TransformedBounds, clipPathUris, drawable.Disposable);
             }
             else
@@ -6650,7 +6650,7 @@ namespace Svg.Skia
 
             if (SvgExtensions.IsValidStroke(svgPolyline, drawable.TransformedBounds))
             {
-               drawable.Stroke = SvgExtensions.GetStrokeSKPaint(svgPolyline, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Stroke = SvgExtensions.GetStrokeSKPaint(svgPolyline, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
                 if (drawable.Stroke == null)
                 {
                     canDrawStroke = false;
