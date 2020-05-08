@@ -1087,8 +1087,11 @@ namespace Svg.Skia
             foreach (var svgElement in svgElementCollection)
             {
                 using var drawable = DrawableFactory.Create(svgElement, skBounds, null, ignoreAttributes);
-                drawable?.PostProcess();
-                drawable?.Draw(skCanvas, ignoreAttributes, null);
+                if (drawable != null)
+                {
+                    drawable.PostProcess();
+                    drawable.Draw(skCanvas, ignoreAttributes, null);
+                }
             }
 
             if (skPaintOpacity != null)
