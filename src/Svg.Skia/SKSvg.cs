@@ -348,7 +348,7 @@ namespace Svg.Skia
 #if USE_EXPERIMENTAL_LINEAR_RGB
             // TODO:
             using var skPaint = new SKPaint();
-            using var skColorFilter = SKColorFilter.CreateTable(null, SvgPaintingExtensions.s_LinearRGBtoSRGB, SvgPaintingExtensions.s_LinearRGBtoSRGB, SvgPaintingExtensions.s_LinearRGBtoSRGB);
+            using var skColorFilter = SKColorFilter.CreateTable(null, SvgExtensions.s_LinearRGBtoSRGB, SvgExtensions.s_LinearRGBtoSRGB, SvgExtensions.s_LinearRGBtoSRGB);
             using var skImageFilter = SKImageFilter.CreateColorFilter(skColorFilter);
             skPaint.ImageFilter = skImageFilter;
             skCanvas.SaveLayer(skPaint);
