@@ -1,5 +1,10 @@
 # Svg.Skia Changelog
 
+## 0.3.0
+
+* Updated NuGet packages.
+* Update SVG sources.
+
 ## 0.2.0
 
 * Updated NuGet packages.
