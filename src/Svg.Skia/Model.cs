@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#if false
+using System.Collections.Generic;
 
 namespace Svg.Model
 {
@@ -392,3 +393,4 @@ namespace Svg.Model
         public IList<PathCommand>? Commands { get; set; }
     }
 }
+#endif
