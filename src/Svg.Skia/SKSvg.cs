@@ -1,40 +1,316 @@
-﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using SkiaSharp;
 
 namespace Svg.Skia
 {
+    public static class SKSvgSettings
+    {
+        public static SKAlphaType s_alphaType = SKAlphaType.Unpremul;
+
+        public static SKColorType s_colorType = SKImageInfo.PlatformColorType;
+
+        public static SKColorSpace s_srgbLinear = SKColorSpace.CreateRgb(SKNamedGamma.Linear, SKColorSpaceGamut.Srgb); // SKColorSpace.CreateSrgbLinear();
+
+        public static SKColorSpace s_srgb = SKColorSpace.CreateRgb(SKNamedGamma.Srgb, SKColorSpaceGamut.Srgb); // SKColorSpace.CreateSrgb();
+
+        public static CultureInfo? s_systemLanguageOverride = null;
+
+        public static IList<ITypefaceProvider> s_typefaceProviders = new List<ITypefaceProvider>()
+        {
+            new FontManagerTypefacerovider(),
+            new DefaultTypefaceProvider()
+        };
+    }
+
+    public interface ITypefaceProvider
+    {
+        SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle);
+    }
+
+    public class DefaultTypefaceProvider : ITypefaceProvider
+    {
+        public static char[] s_fontFamilyTrim = new char[] { '\'' };
+
+        public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
+        {
+            var skTypeface = default(SKTypeface);
+            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
+            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
+            {
+                var defaultName = SKTypeface.Default.FamilyName;
+
+                foreach (var fontFamilyName in fontFamilyNames)
+                {
+                    skTypeface = SKTypeface.FromFamilyName(fontFamilyName, fontWeight, fontWidth, fontStyle);
+                    if (skTypeface != null)
+                    {
+                        if (!skTypeface.FamilyName.Equals(fontFamilyName, StringComparison.Ordinal)
+                            && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
+                        {
+                            skTypeface.Dispose();
+                            continue;
+                        }
+                        break;
+                    }
+                }
+            }
+            return skTypeface;
+        }
+    }
+
+    public class CustomTypefaceProvider : ITypefaceProvider, IDisposable
+    {
+        public static char[] s_fontFamilyTrim = new char[] { '\'' };
+
+        public SKTypeface? Typeface { get; set; }
+
+        public string FamilyName { get; set; }
+
+        public CustomTypefaceProvider(Stream stream, int index = 0)
+        {
+            Typeface = SKTypeface.FromStream(stream, index);
+            FamilyName = Typeface.FamilyName;
+        }
+
+        public CustomTypefaceProvider(SKStreamAsset stream, int index = 0)
+        {
+            Typeface = SKTypeface.FromStream(stream, index);
+            FamilyName = Typeface.FamilyName;
+        }
+
+        public CustomTypefaceProvider(string path, int index = 0)
+        {
+            Typeface = SKTypeface.FromFile(path, index);
+            FamilyName = Typeface.FamilyName;
+        }
+
+        public CustomTypefaceProvider(SKData data, int index = 0)
+        {
+            Typeface = SKTypeface.FromData(data, index);
+            FamilyName = Typeface.FamilyName;
+        }
+
+        public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
+        {
+            var skTypeface = default(SKTypeface);
+            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
+            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
+            {
+                foreach (var fontFamilyName in fontFamilyNames)
+                {
+                    if (fontFamily == FamilyName)
+                    {
+                        skTypeface = Typeface;
+                        break;
+                    }
+                }
+            }
+            return skTypeface;
+        }
+
+        public void Dispose()
+        {
+            if (Typeface != null)
+            {
+                Typeface.Dispose();
+                Typeface = null;
+            }
+        }
+    }
+
+    public class FontManagerTypefacerovider : ITypefaceProvider
+    {
+        public static char[] s_fontFamilyTrim = new char[] { '\'' };
+
+        public SKFontManager FontManager { get; set; }
+
+        public FontManagerTypefacerovider()
+        {
+            FontManager = SKFontManager.Default;
+        }
+
+        public SKTypeface CreateTypeface(Stream stream, int index = 0)
+        {
+            return FontManager.CreateTypeface(stream, index);
+        }
+
+        public SKTypeface CreateTypeface(SKStreamAsset stream, int index = 0)
+        {
+            return FontManager.CreateTypeface(stream, index);
+        }
+
+        public SKTypeface CreateTypeface(string path, int index = 0)
+        {
+            return FontManager.CreateTypeface(path, index);
+        }
+
+        public SKTypeface CreateTypeface(SKData data, int index = 0)
+        {
+            return FontManager.CreateTypeface(data, index);
+        }
+
+        public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
+        {
+            var skTypeface = default(SKTypeface);
+            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
+            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
+            {
+                var defaultName = SKTypeface.Default.FamilyName;
+                var skFontManager = FontManager;
+                var skFontStyle = new SKFontStyle(fontWeight, fontWidth, fontStyle);
+
+                foreach (var fontFamilyName in fontFamilyNames)
+                {
+                    var skFontStyleSet = skFontManager.GetFontStyles(fontFamilyName);
+                    if (skFontStyleSet.Count > 0)
+                    {
+                        skTypeface = skFontManager.MatchFamily(fontFamilyName, skFontStyle);
+                        if (skTypeface != null)
+                        {
+                            if (!defaultName.Equals(fontFamilyName, StringComparison.Ordinal)
+                                && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
+                            {
+                                skTypeface.Dispose();
+                                skTypeface = null;
+                                continue;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            return skTypeface;
+        }
+    }
+
+    public static class SKPictureExtensions
+    {
+        public static void Draw(this SKPicture skPicture, SKColor background, float scaleX, float scaleY, SKCanvas skCanvas)
+        {
+            skCanvas.DrawColor(background);
+            skCanvas.Save();
+            skCanvas.Scale(scaleX, scaleY);
+            skCanvas.DrawPicture(skPicture);
+            skCanvas.Restore();
+        }
+#if USE_COLORSPACE
+        public static SKBitmap? ToBitmap(this SKPicture skPicture, SKColor background, float scaleX, float scaleY, SKColorType skColorType, SKAlphaType skAlphaType, SKColorSpace skColorSpace)
+#else
+        public static SKBitmap? ToBitmap(this SKPicture skPicture, SKColor background, float scaleX, float scaleY, SKColorType skColorType, SKAlphaType skAlphaType)
+#endif
+        {
+            float width = skPicture.CullRect.Width * scaleX;
+            float height = skPicture.CullRect.Height * scaleY;
+            if (width > 0 && height > 0)
+            {
+#if USE_COLORSPACE
+                var skImageInfo = new SKImageInfo((int)width, (int)height, skColorType, skAlphaType, skColorSpace);
+#else
+                var skImageInfo = new SKImageInfo((int)width, (int)height, skColorType, skAlphaType);
+#endif
+                var skBitmap = new SKBitmap(skImageInfo);
+                using var skCanvas = new SKCanvas(skBitmap);
+                Draw(skPicture, background, scaleX, scaleY, skCanvas);
+                return skBitmap;
+            }
+            return null;
+        }
+
+#if USE_COLORSPACE
+        public static bool ToImage(this SKPicture skPicture, Stream stream, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY, SKColorType skColorType, SKAlphaType skAlphaType, SKColorSpace skColorSpace)
+        {
+            using (var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY, skColorType, skAlphaType, skColorSpace))
+            {
+#else
+        public static bool ToImage(this SKPicture skPicture, Stream stream, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY, SKColorType skColorType, SKAlphaType skAlphaType)
+        {
+            using (var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY, skColorType, skAlphaType))
+            {
+#endif
+                if (skBitmap == null)
+                {
+                    return false;
+                }
+                using var skImage = SKImage.FromBitmap(skBitmap);
+                using var skData = skImage.Encode(format, quality);
+                if (skData != null)
+                {
+                    skData.SaveTo(stream);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool ToSvg(this SKPicture skPicture, string path, SKColor background, float scaleX, float scaleY)
+        {
+            float width = skPicture.CullRect.Width * scaleX;
+            float height = skPicture.CullRect.Height * scaleY;
+            if (width <= 0 || height <= 0)
+            {
+                return false;
+            }
+            using var skFileWStream = new SKFileWStream(path);
+            using var skCanvas = SKSvgCanvas.Create(SKRect.Create(0, 0, width, height), skFileWStream);
+            Draw(skPicture, background, scaleX, scaleY, skCanvas);
+            return true;
+        }
+
+        public static bool ToPdf(this SKPicture skPicture, string path, SKColor background, float scaleX, float scaleY)
+        {
+            float width = skPicture.CullRect.Width * scaleX;
+            float height = skPicture.CullRect.Height * scaleY;
+            if (width <= 0 || height <= 0)
+            {
+                return false;
+            }
+            using var skFileWStream = new SKFileWStream(path);
+            using var skDocument = SKDocument.CreatePdf(skFileWStream, SKDocument.DefaultRasterDpi);
+            using var skCanvas = skDocument.BeginPage(width, height);
+            Draw(skPicture, background, scaleX, scaleY, skCanvas);
+            skDocument.Close();
+            return true;
+        }
+
+        public static bool ToXps(this SKPicture skPicture, string path, SKColor background, float scaleX, float scaleY)
+        {
+            float width = skPicture.CullRect.Width * scaleX;
+            float height = skPicture.CullRect.Height * scaleY;
+            if (width <= 0 || height <= 0)
+            {
+                return false;
+            }
+            using var skFileWStream = new SKFileWStream(path);
+            using var skDocument = SKDocument.CreateXps(skFileWStream, SKDocument.DefaultRasterDpi);
+            using var skCanvas = skDocument.BeginPage(width, height);
+            Draw(skPicture, background, scaleX, scaleY, skCanvas);
+            skDocument.Close();
+            return true;
+        }
+    }
+
     public class SKSvg : IDisposable
     {
-        public static SKAlphaType s_alphaType = SKAlphaType.Unpremul; // SKAlphaType.Unpremul, SKAlphaType.Premul
-
-        public static SKColorType s_colorType = SKImageInfo.PlatformColorType; // SKImageInfo.PlatformColorType, SKColorType.RgbaF16
-
         static SKSvg()
         {
             SvgDocument.SkipGdiPlusCapabilityCheck = true;
-        }
-
-        public static SKRect GetBounds(Drawable drawable)
-        {
-            var skBounds = drawable.Bounds;
-            return SKRect.Create(
-                0f,
-                0f,
-                Math.Abs(skBounds.Left) + skBounds.Width,
-                Math.Abs(skBounds.Top) + skBounds.Height);
         }
 
         public static void Draw(SKCanvas skCanvas, SvgFragment svgFragment)
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
-            using var drawable = DrawableFactory.Create(svgFragment, skBounds, null, null, Attributes.None);
-            drawable?.PostProcess();
-            drawable?.Draw(skCanvas, 0f, 0f);
+            using var drawable = DrawableFactory.Create(svgFragment, skBounds, null, Attributes.None);
+            if (drawable != null)
+            {
+                drawable.PostProcess();
+                drawable.Draw(skCanvas, 0f, 0f);
+            }
         }
 
         public static void Draw(SKCanvas skCanvas, string path)
@@ -50,18 +326,21 @@ namespace Svg.Skia
         {
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
-
-            using var drawable = DrawableFactory.Create(svgFragment, skBounds, null, null, Attributes.None);
+            using var drawable = DrawableFactory.Create(svgFragment, skBounds, null, Attributes.None);
             if (drawable == null)
             {
                 return null;
             }
-
             drawable.PostProcess();
 
             if (skBounds.IsEmpty)
             {
-                skBounds = GetBounds(drawable);
+                var bounds = drawable.Bounds;
+                skBounds = SKRect.Create(
+                    0f,
+                    0f,
+                    Math.Abs(bounds.Left) + bounds.Width,
+                    Math.Abs(bounds.Top) + bounds.Height);
             }
 
             using var skPictureRecorder = new SKPictureRecorder();
@@ -69,7 +348,7 @@ namespace Svg.Skia
 #if USE_EXPERIMENTAL_LINEAR_RGB
             // TODO:
             using var skPaint = new SKPaint();
-            using var skColorFilter = SKColorFilter.CreateTable(null, SvgPaintingExtensions.s_LinearRGBtoSRGB, SvgPaintingExtensions.s_LinearRGBtoSRGB, SvgPaintingExtensions.s_LinearRGBtoSRGB);
+            using var skColorFilter = SKColorFilter.CreateTable(null, SvgExtensions.s_LinearRGBtoSRGB, SvgExtensions.s_LinearRGBtoSRGB, SvgExtensions.s_LinearRGBtoSRGB);
             using var skImageFilter = SKImageFilter.CreateColorFilter(skColorFilter);
             skPaint.ImageFilter = skImageFilter;
             skCanvas.SaveLayer(skPaint);
@@ -80,46 +359,6 @@ namespace Svg.Skia
             skCanvas.Restore();
 #endif
             return skPictureRecorder.EndRecording();
-        }
-
-        public static SKPicture? ToPicture(SvgFragment svgFragment, out Drawable? drawable)
-        {
-            var skSize = SvgExtensions.GetDimensions(svgFragment);
-            var skBounds = SKRect.Create(skSize);
-
-            drawable = DrawableFactory.Create(svgFragment, skBounds, null, null, Attributes.None);
-            if (drawable == null)
-            {
-                return null;
-            }
-
-            drawable.PostProcess();
-
-            if (skBounds.IsEmpty)
-            {
-                skBounds = GetBounds(drawable);
-            }
-
-            using var skPictureRecorder = new SKPictureRecorder();
-            using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
-            drawable?.Draw(skCanvas, 0f, 0f);
-            return skPictureRecorder.EndRecording();
-        }
-
-        public static Drawable? ToDrawable(SvgFragment svgFragment)
-        {
-            var skSize = SvgExtensions.GetDimensions(svgFragment);
-            var skBounds = SKRect.Create(skSize);
-            var drawable = DrawableFactory.Create(svgFragment, skBounds, null, null, Attributes.None);
-            drawable?.PostProcess();
-            return drawable;
-        }
-
-        public static Drawable? ToDrawable(SvgElement svgElement, SKRect skBounds, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = DrawableFactory.Create(svgElement, skBounds, null, null, ignoreAttributes);
-            drawable?.PostProcess();
-            return drawable;
         }
 
         public static SvgDocument? OpenSvg(string path)
@@ -215,7 +454,7 @@ namespace Svg.Skia
             if (Picture != null)
             {
 #if USE_COLORSPACE
-                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SvgPaintingExtensions.Srgb);
+                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SKSvgSettings.s_srgb);
 #else
                 return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul);
 #endif
@@ -229,7 +468,7 @@ namespace Svg.Skia
             {
                 using var stream = File.OpenWrite(path);
 #if USE_COLORSPACE
-                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SvgPaintingExtensions.Srgb);
+                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SKSvgSettings.s_srgb);
 #else
                 return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul);
 #endif

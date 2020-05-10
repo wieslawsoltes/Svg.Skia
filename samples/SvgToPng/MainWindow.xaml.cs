@@ -25,7 +25,7 @@ namespace SvgToPng
         {
             InitializeComponent();
 #if DEBUG
-            Drawable.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture("en-US");
+            SKSvgSettings.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture("en-US");
 #endif
             var vm = MainWindowViewModel.Load<MainWindowViewModel>("VM.json");
             if (vm != null)
@@ -71,39 +71,13 @@ namespace SvgToPng
             skElementSvg.PaintSurface += OnPaintCanvasSvg;
             skElementPng.PaintSurface += OnPaintCanvasPng;
             skElementDiff.PaintSurface += OnPaintCanvasDiff;
-#if DEBUG
-            skElementSvg.MouseMove += Svg_MouseMove;
-#endif
+
             DataContext = this.VM;
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             VM.ItemsView.Refresh();
-        }
-
-        private void Svg_MouseMove(object sender, MouseEventArgs e)
-        {
-            var point = e.GetPosition(skElementSvg);
-
-            if (items.SelectedItem is Item item && item.Drawable != null)
-            {
-                var skPoint = new SKPoint((float)point.X, (float)point.Y);
-                var drawable = item.Drawable.HitTest(skPoint);
-                if (drawable != null)
-                {
-                    Debug.WriteLine($"{point} {drawable.GetType().Name}");
-#if false
-                    if (drawable is DrawablePath drawablePath)
-                    {
-                        var sb = new StringBuilder();
-                        CSharpCodeGen.Generate(drawablePath.Path, sb);
-                        CSharpCodeGen.Generate(drawablePath.Transform, sb);
-                        Debug.WriteLine(sb.ToString());
-                    }
-#endif
-                }
-            }
         }
 
         private bool ItemsViewFilter(object obj)

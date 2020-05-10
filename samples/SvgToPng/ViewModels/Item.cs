@@ -28,9 +28,6 @@ namespace SvgToPng.ViewModels
         public SKPicture Picture { get; set; }
 
         [IgnoreDataMember]
-        public Drawable Drawable { get; set; }
-
-        [IgnoreDataMember]
         public SKBitmap ReferencePng { get; set; }
 
         [IgnoreDataMember]
@@ -41,8 +38,6 @@ namespace SvgToPng.ViewModels
             Svg = null;
             Picture?.Dispose();
             Picture = null;
-            Drawable?.Dispose();
-            Drawable = null;
             ReferencePng?.Dispose();
             ReferencePng = null;
             PixelDiff?.Dispose();
