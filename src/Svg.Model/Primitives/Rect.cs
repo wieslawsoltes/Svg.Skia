@@ -1,4 +1,6 @@
-﻿namespace Svg.Model
+﻿using System;
+
+namespace Svg.Model
 {
     public struct Rect
     {

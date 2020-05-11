@@ -2,12 +2,12 @@
 {
     public class ArcToPathCommand : PathCommand
     {
-        public double RX { get; set; }
-        public double RY { get; set; }
-        public double XAxisRotate { get; set; }
+        public float RX { get; set; }
+        public float RY { get; set; }
+        public float XAxisRotate { get; set; }
         public PathArcSize LargeArc { get; set; }
         public PathDirection Sweep { get; set; }
-        public double X { get; set; }
-        public double Y { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
     }
 }

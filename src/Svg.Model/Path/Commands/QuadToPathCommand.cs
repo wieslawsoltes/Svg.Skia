@@ -2,9 +2,9 @@
 {
     public class QuadToPathCommand : PathCommand
     {
-        public double X0 { get; set; }
-        public double Y0 { get; set; }
-        public double X1 { get; set; }
-        public double Y1 { get; set; }
+        public float X0 { get; set; }
+        public float Y0 { get; set; }
+        public float X1 { get; set; }
+        public float Y1 { get; set; }
     }
 }
