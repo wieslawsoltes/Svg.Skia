@@ -328,7 +328,7 @@ namespace Svg.Skia
                     {
                         return SKColorFilter.CreateBlendMode(
                             blendModeColorFilter.Color.ToSKColor(),
-                            blendModeColorFilter.Mode.ToSKBlendMode());  
+                            blendModeColorFilter.Mode.ToSKBlendMode());
                     }
                 case ColorMatrixColorFilter colorMatrixColorFilter:
                     {
