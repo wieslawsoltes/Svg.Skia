@@ -17,7 +17,7 @@ namespace Svg.Skia
 
             for (int i = 0; i < points.Count; i++)
             {
-                skPoints[i] = new SKPoint(points[i].X, points[i].Y);
+                skPoints[i] = points[i].ToSKPoint();
             }
 
             return skPoints;
