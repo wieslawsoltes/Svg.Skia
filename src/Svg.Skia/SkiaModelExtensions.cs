@@ -393,7 +393,6 @@ namespace Svg.Skia
                             dashPathEffect.Intervals,
                             dashPathEffect.Phase);
                     }
-                // TODO:
                 default:
                     return null;
             }
