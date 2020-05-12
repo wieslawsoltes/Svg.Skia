@@ -254,8 +254,34 @@ namespace Svg.Skia
                     }
                 case TwoPointConicalGradientShader twoPointConicalGradientShader:
                     {
-                        // TODO:
-                        return null;
+                        if (twoPointConicalGradientShader.Colors == null || twoPointConicalGradientShader.ColorPos == null)
+                        {
+                            return null;
+                        }
+
+                        if (twoPointConicalGradientShader.LocalMatrix != null)
+                        {
+                            return SKShader.CreateTwoPointConicalGradient(
+                                twoPointConicalGradientShader.Start.ToSKPoint(),
+                                twoPointConicalGradientShader.StartRadius,
+                                twoPointConicalGradientShader.End.ToSKPoint(),
+                                twoPointConicalGradientShader.EndRadius,
+                                twoPointConicalGradientShader.Colors.ToSKColors(),
+                                twoPointConicalGradientShader.ColorPos,
+                                twoPointConicalGradientShader.Mode.ToSKShaderTileMode(),
+                                twoPointConicalGradientShader.LocalMatrix.Value.ToSKMatrix());
+                        }
+                        else
+                        {
+                            return SKShader.CreateTwoPointConicalGradient(
+                                twoPointConicalGradientShader.Start.ToSKPoint(),
+                                twoPointConicalGradientShader.StartRadius,
+                                twoPointConicalGradientShader.End.ToSKPoint(),
+                                twoPointConicalGradientShader.EndRadius,
+                                twoPointConicalGradientShader.Colors.ToSKColors(),
+                                twoPointConicalGradientShader.ColorPos,
+                                twoPointConicalGradientShader.Mode.ToSKShaderTileMode());
+                        }
                     }
                 case PictureShader pictureShader:
                     {
