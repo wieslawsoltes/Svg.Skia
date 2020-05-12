@@ -197,7 +197,6 @@ namespace Svg.Skia
             {
                 case ColorShader colorShader:
                     {
-                        // TODO:
                         return SKShader.CreateColor(colorShader.Color.ToSKColor());
                     }
                 case LinearGradientShader linearGradientShader:
