@@ -299,8 +299,12 @@ namespace Svg.Skia
                     }
                 case PerlinNoiseFractalNoiseShader perlinNoiseFractalNoiseShader:
                     {
-                        // TODO:
-                        return null;
+                        return SKShader.CreatePerlinNoiseFractalNoise(
+                            perlinNoiseFractalNoiseShader.BaseFrequencyX,
+                            perlinNoiseFractalNoiseShader.BaseFrequencyY,
+                            perlinNoiseFractalNoiseShader.NumOctaves,
+                            perlinNoiseFractalNoiseShader.Seed,
+                            perlinNoiseFractalNoiseShader.TileSize.ToSKPointI());
                     }
                 case PerlinNoiseTurbulenceShader perlinNoiseTurbulenceShader:
                     {
