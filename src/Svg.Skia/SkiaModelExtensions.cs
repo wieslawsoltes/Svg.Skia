@@ -285,8 +285,17 @@ namespace Svg.Skia
                     }
                 case PictureShader pictureShader:
                     {
-                        // TODO:
-                        return null;
+                        if (pictureShader.Src == null)
+                        {
+                            return null;
+                        }
+
+                        return SKShader.CreatePicture(
+                            pictureShader.Src.ToSKPicture(),
+                            SKShaderTileMode.Repeat,
+                            SKShaderTileMode.Repeat,
+                            pictureShader.LocalMatrix.ToSKMatrix(),
+                            pictureShader.Tile.ToSKRect());
                     }
                 case PerlinNoiseFractalNoiseShader perlinNoiseFractalNoiseShader:
                     {
