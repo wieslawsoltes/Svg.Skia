@@ -103,6 +103,76 @@ namespace Svg.Skia
             }
         }
 
+        public static SKFontStyleWeight ToSKFontStyleWeight(this FontStyleWeight fontStyleWeight)
+        {
+            switch (fontStyleWeight)
+            {
+                default:
+                case FontStyleWeight.Invisible:
+                    return SKFontStyleWeight.Invisible;
+                case FontStyleWeight.Thin:
+                    return SKFontStyleWeight.Thin;
+                case FontStyleWeight.ExtraLight:
+                    return SKFontStyleWeight.ExtraLight;
+                case FontStyleWeight.Light:
+                    return SKFontStyleWeight.Light;
+                case FontStyleWeight.Normal:
+                    return SKFontStyleWeight.Normal;
+                case FontStyleWeight.Medium:
+                    return SKFontStyleWeight.Medium;
+                case FontStyleWeight.SemiBold:
+                    return SKFontStyleWeight.SemiBold;
+                case FontStyleWeight.Bold:
+                    return SKFontStyleWeight.Bold;
+                case FontStyleWeight.ExtraBold:
+                    return SKFontStyleWeight.ExtraBold;
+                case FontStyleWeight.Black:
+                    return SKFontStyleWeight.Black;
+                case FontStyleWeight.ExtraBlack:
+                    return SKFontStyleWeight.ExtraBlack;
+            }
+        }
+
+        public static SKFontStyleWidth ToSKFontStyleWidth(this FontStyleWidth fontStyleWidth)
+        {
+            switch (fontStyleWidth)
+            {
+                default:
+                case FontStyleWidth.UltraCondensed:
+                    return SKFontStyleWidth.UltraCondensed;
+                case FontStyleWidth.ExtraCondensed:
+                    return SKFontStyleWidth.ExtraCondensed;
+                case FontStyleWidth.Condensed:
+                    return SKFontStyleWidth.Condensed;
+                case FontStyleWidth.SemiCondensed:
+                    return SKFontStyleWidth.SemiCondensed;
+                case FontStyleWidth.Normal:
+                    return SKFontStyleWidth.Normal;
+                case FontStyleWidth.SemiExpanded:
+                    return SKFontStyleWidth.SemiExpanded;
+                case FontStyleWidth.Expanded:
+                    return SKFontStyleWidth.Expanded;
+                case FontStyleWidth.ExtraExpanded:
+                    return SKFontStyleWidth.ExtraExpanded;
+                case FontStyleWidth.UltraExpanded:
+                    return SKFontStyleWidth.UltraExpanded;
+            }
+        }
+
+        public static SKFontStyleSlant ToSKFontStyleSlant(this FontStyleSlant fontStyleSlant)
+        {
+            switch (fontStyleSlant)
+            {
+                default:
+                case FontStyleSlant.Upright:
+                    return SKFontStyleSlant.Upright;
+                case FontStyleSlant.Italic:
+                    return SKFontStyleSlant.Italic;
+                case FontStyleSlant.Oblique:
+                    return SKFontStyleSlant.Oblique;
+            }
+        }
+
         public static SKTypeface? ToSKTypeface(this Typeface? typeface)
         {
             // TODO:
