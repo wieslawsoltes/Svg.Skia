@@ -352,8 +352,8 @@ namespace Svg.Skia
                             return null;
                         }
                         return SKColorFilter.CreateTable(
-                            tableColorFilter.TableA, 
-                            tableColorFilter.TableR, 
+                            tableColorFilter.TableA,
+                            tableColorFilter.TableR,
                             tableColorFilter.TableG,
                             tableColorFilter.TableB);
                     }
