@@ -191,6 +191,18 @@ namespace Svg.Skia
             return new SKColor(color.Red, color.Green, color.Blue, color.Alpha);
         }
 
+        public static SKColor[] ToSKColors(this Color[] colors)
+        {
+            var skColors = new SKColor[colors.Length];
+
+            for (int i = 0; i < colors.Length; i++)
+            {
+                skColors[i] = colors[i].ToSKColor();
+            }
+
+            return skColors;
+        }
+
         public static SKShader? ToSKShader(this Shader? shader)
         {
             switch (shader)
