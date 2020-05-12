@@ -175,8 +175,15 @@ namespace Svg.Skia
 
         public static SKTypeface? ToSKTypeface(this Typeface? typeface)
         {
-            // TODO:
-            return null;
+            if (typeface == null || typeface.FamilyName == null)
+            {
+                return null;
+            }
+            return SKTypeface.FromFamilyName(
+                    typeface.FamilyName,
+                    typeface.Weight.ToSKFontStyleWeight(),
+                    typeface.Width.ToSKFontStyleWidth(),
+                    typeface.Style.ToSKFontStyleSlant());
         }
 
         public static SKColor ToSKColor(this Color color)
