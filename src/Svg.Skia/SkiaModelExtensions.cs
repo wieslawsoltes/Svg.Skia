@@ -324,7 +324,21 @@ namespace Svg.Skia
         {
             switch (colorFilter)
             {
-                case LumaColorColorFilter lumaColorColorFilter:
+                case BlendModeColorFilter blendModeColorFilter:
+                    {
+                        return SKColorFilter.CreateBlendMode(
+                            blendModeColorFilter.Color.ToSKColor(),
+                            blendModeColorFilter.Mode.ToSKBlendMode());  
+                    }
+                case ColorMatrixColorFilter colorMatrixColorFilter:
+                    {
+                        if (colorMatrixColorFilter.Matrix == null)
+                        {
+                            return null;
+                        }
+                        return SKColorFilter.CreateColorMatrix(colorMatrixColorFilter.Matrix);
+                    }
+                case LumaColorColorFilter _:
                     {
                         return SKColorFilter.CreateLumaColor();
                     }
