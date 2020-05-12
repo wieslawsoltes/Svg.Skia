@@ -342,7 +342,21 @@ namespace Svg.Skia
                     {
                         return SKColorFilter.CreateLumaColor();
                     }
-                // TODO:
+                case TableColorFilter tableColorFilter:
+                    {
+                        if (tableColorFilter.TableA == null 
+                            || tableColorFilter.TableR == null
+                            || tableColorFilter.TableG == null
+                            || tableColorFilter.TableB == null)
+                        {
+                            return null;
+                        }
+                        return SKColorFilter.CreateTable(
+                            tableColorFilter.TableA, 
+                            tableColorFilter.TableR, 
+                            tableColorFilter.TableG,
+                            tableColorFilter.TableB);
+                    }
                 default:
                     return null;
             }
