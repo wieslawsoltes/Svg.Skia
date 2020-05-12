@@ -203,6 +203,20 @@ namespace Svg.Skia
             return skColors;
         }
 
+        public static SKShaderTileMode ToSKShaderTileMode(this ShaderTileMode shaderTileMode)
+        {
+            switch (shaderTileMode)
+            {
+                default:
+                case ShaderTileMode.Clamp:
+                    return SKShaderTileMode.Clamp;
+                case ShaderTileMode.Repeat:
+                    return SKShaderTileMode.Repeat;
+                case ShaderTileMode.Mirror:
+                    return SKShaderTileMode.Mirror;
+            }
+        }
+
         public static SKShader? ToSKShader(this Shader? shader)
         {
             switch (shader)
