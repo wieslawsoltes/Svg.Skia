@@ -371,6 +371,71 @@ namespace Svg.Skia
         {
             switch (imageFilter)
             {
+                case ArithmeticImageFilter arithmeticImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case BlendModeImageFilter blendModeImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case BlurImageFilter blurImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case ColorFilterImageFilter colorFilterImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case DilateImageFilter dilateImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case DisplacementMapEffectImageFilter displacementMapEffectImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case DistantLitDiffuseImageFilter distantLitDiffuseImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case DistantLitSpecularImageFilter distantLitSpecularImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case ErodeImageFilter erodeImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case ImageImageFilter imageImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case MatrixConvolutionImageFilter matrixConvolutionImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case MergeImageFilter mergeImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case OffsetImageFilter offsetImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
                 case PaintImageFilter paintImageFilter:
                     {
                         if (paintImageFilter.Paint == null || paintImageFilter.CropRect == null)
@@ -382,7 +447,36 @@ namespace Svg.Skia
                             paintImageFilter.Paint.ToSKPaint(),
                             paintImageFilter.CropRect.ToCropRect());
                     }
-                // TODO:
+                case PictureImageFilter pictureImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case PointLitDiffuseImageFilter pointLitDiffuseImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case PointLitSpecularImageFilter pointLitSpecularImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case SpotLitDiffuseImageFilter spotLitDiffuseImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case SpotLitSpecularImageFilter spotLitSpecularImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
+                case TileImageFilter tileImageFilter:
+                    {
+                        // TODO:
+                        return null;
+                    }
                 default:
                     return null;
             }
