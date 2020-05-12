@@ -308,8 +308,12 @@ namespace Svg.Skia
                     }
                 case PerlinNoiseTurbulenceShader perlinNoiseTurbulenceShader:
                     {
-                        // TODO:
-                        return null;
+                        return SKShader.CreatePerlinNoiseTurbulence(
+                            perlinNoiseTurbulenceShader.BaseFrequencyX,
+                            perlinNoiseTurbulenceShader.BaseFrequencyY,
+                            perlinNoiseTurbulenceShader.NumOctaves,
+                            perlinNoiseTurbulenceShader.Seed,
+                            perlinNoiseTurbulenceShader.TileSize.ToSKPointI());
                     }
                 default:
                     return null;
