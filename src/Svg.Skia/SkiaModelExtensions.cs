@@ -227,8 +227,30 @@ namespace Svg.Skia
                     }
                 case LinearGradientShader linearGradientShader:
                     {
-                        // TODO:
-                        return null;
+                        if (linearGradientShader.Colors == null || linearGradientShader.ColorPos == null)
+                        {
+                            return null;
+                        }
+
+                        if (linearGradientShader.LocalMatrix != null)
+                        {
+                            return SKShader.CreateLinearGradient(
+                                linearGradientShader.Start.ToSKPoint(),
+                                linearGradientShader.End.ToSKPoint(),
+                                linearGradientShader.Colors.ToSKColors(),
+                                linearGradientShader.ColorPos,
+                                linearGradientShader.Mode.ToSKShaderTileMode(),
+                                linearGradientShader.LocalMatrix.Value.ToSKMatrix());
+                        }
+                        else
+                        {
+                            return SKShader.CreateLinearGradient(
+                                linearGradientShader.Start.ToSKPoint(),
+                                linearGradientShader.End.ToSKPoint(),
+                                linearGradientShader.Colors.ToSKColors(),
+                                linearGradientShader.ColorPos,
+                                linearGradientShader.Mode.ToSKShaderTileMode());
+                        }
                     }
                 case TwoPointConicalGradientShader twoPointConicalGradientShader:
                     {
