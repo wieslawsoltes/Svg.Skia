@@ -344,7 +344,7 @@ namespace Svg.Skia
                     }
                 case TableColorFilter tableColorFilter:
                     {
-                        if (tableColorFilter.TableA == null 
+                        if (tableColorFilter.TableA == null
                             || tableColorFilter.TableR == null
                             || tableColorFilter.TableG == null
                             || tableColorFilter.TableB == null)
