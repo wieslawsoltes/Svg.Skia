@@ -2,7 +2,15 @@
 {
     public struct PointI
     {
-        public int X { get; set; }
-        public int Y { get; set; }
+        public int X;
+        public int Y;
+
+        public static readonly PointI Empty;
+
+        public PointI(int x, int y)
+        {
+            X = x;
+            Y = y;
+        }
     }
 }
