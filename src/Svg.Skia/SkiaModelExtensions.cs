@@ -469,8 +469,21 @@ namespace Svg.Skia
                     }
                 case MatrixConvolutionImageFilter matrixConvolutionImageFilter:
                     {
-                        // TODO:
-                        return null;
+                        if (matrixConvolutionImageFilter.Kernel == null)
+                        {
+                            return null;
+                        }
+
+                        return SKImageFilter.CreateMatrixConvolution(
+                            matrixConvolutionImageFilter.KernelSize.ToSKSizeI(), 
+                            matrixConvolutionImageFilter.Kernel, 
+                            matrixConvolutionImageFilter.Gain, 
+                            matrixConvolutionImageFilter.Bias, 
+                            matrixConvolutionImageFilter.KernelOffset.ToSKPointI(), 
+                            matrixConvolutionImageFilter.TileMode.ToSKMatrixConvolutionTileMode(), 
+                            matrixConvolutionImageFilter.ConvolveAlpha, 
+                            matrixConvolutionImageFilter.Input?.ToSKImageFilter(),
+                            matrixConvolutionImageFilter.CropRect?.ToCropRect());
                     }
                 case MergeImageFilter mergeImageFilter:
                     {
