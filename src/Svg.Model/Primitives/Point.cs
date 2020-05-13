@@ -2,7 +2,15 @@
 {
     public struct Point
     {
-        public float X { get; set; }
-        public float Y { get; set; }
+        public float X;
+        public float Y;
+
+        public static readonly Point Empty;
+
+        public Point(float x, float y)
+        {
+            X = x;
+            Y = y;
+        }
     }
 }
