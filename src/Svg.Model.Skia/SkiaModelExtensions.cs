@@ -33,6 +33,11 @@ namespace Svg.Skia
             return new SKPointI(pointI.X, pointI.Y);
         }
 
+        public static SKSize ToSKSize(this Size size)
+        {
+            return new SKSize(size.Width, size.Height);
+        }
+
         public static SKSizeI ToSKSizeI(this SizeI sizeI)
         {
             return new SKSizeI(sizeI.Width, sizeI.Height);
