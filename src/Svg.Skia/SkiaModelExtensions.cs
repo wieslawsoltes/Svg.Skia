@@ -497,14 +497,14 @@ namespace Svg.Skia
                     }
                 case PaintImageFilter paintImageFilter:
                     {
-                        if (paintImageFilter.Paint == null || paintImageFilter.CropRect == null)
+                        if (paintImageFilter.Paint == null)
                         {
                             return null;
                         }
 
                         return SKImageFilter.CreatePaint(
                             paintImageFilter.Paint.ToSKPaint(),
-                            paintImageFilter.CropRect.ToCropRect());
+                            paintImageFilter.CropRect?.ToCropRect());
                     }
                 case PictureImageFilter pictureImageFilter:
                     {
