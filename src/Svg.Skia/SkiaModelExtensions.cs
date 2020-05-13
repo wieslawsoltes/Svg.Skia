@@ -478,8 +478,18 @@ namespace Svg.Skia
                     }
                 case DisplacementMapEffectImageFilter displacementMapEffectImageFilter:
                     {
-                        // TODO:
-                        return null;
+                        if (displacementMapEffectImageFilter.Displacement == null)
+                        {
+                            return null;
+                        }
+
+                        return SKImageFilter.CreateDisplacementMapEffect(
+                            displacementMapEffectImageFilter.XChannelSelector.ToSKDisplacementMapEffectChannelSelectorType(),
+                            displacementMapEffectImageFilter.YChannelSelector.ToSKDisplacementMapEffectChannelSelectorType(),
+                            displacementMapEffectImageFilter.Scale,
+                            displacementMapEffectImageFilter.Displacement?.ToSKImageFilter(),
+                            displacementMapEffectImageFilter.Input?.ToSKImageFilter(),
+                            displacementMapEffectImageFilter.CropRect?.ToCropRect());
                     }
                 case DistantLitDiffuseImageFilter distantLitDiffuseImageFilter:
                     {
