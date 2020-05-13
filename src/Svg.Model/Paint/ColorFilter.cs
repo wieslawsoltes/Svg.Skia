@@ -1,7 +1,13 @@
-﻿namespace Svg.Model
+﻿using System;
+
+namespace Svg.Model
 {
-    public abstract class ColorFilter
+    public abstract class ColorFilter : IDisposable
     {
+        public void Dispose()
+        {
+        }
+
         public static ColorFilter CreateColorMatrix(float[] matrix)
         {
             return new ColorMatrixColorFilter
