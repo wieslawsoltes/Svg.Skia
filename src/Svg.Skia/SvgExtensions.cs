@@ -18,6 +18,42 @@ using Svg.FilterEffects;
 using Svg.Pathing;
 using Svg.Transforms;
 
+#if USE_MODEL
+using SKBlendMode = Svg.Model.BlendMode;
+using SKCanvas = Svg.Model.Canvas;
+using SKClipOperation = Svg.Model.ClipOperation;
+using SKColor = Svg.Model.Color;
+using SKColorFilter = Svg.Model.ColorFilter;
+using SKDrawable = Svg.Model.Drawable;
+using SKFilterQuality = Svg.Model.FilterQuality;
+using SKFontStyleSlant = Svg.Model.FontStyleSlant;
+using SKFontStyleWeight = Svg.Model.FontStyleWeight;
+using SKFontStyleWidth = Svg.Model.FontStyleWidth;
+using SKImage = Svg.Model.Image;
+using SKImageFilter = Svg.Model.ImageFilter;
+using CropRect = Svg.Model.CropRect;
+using SKMatrix = Svg.Model.Matrix;
+using SKPaint = Svg.Model.Paint;
+using SKPaintStyle = Svg.Model.PaintStyle;
+using SKPath = Svg.Model.Path;
+using SKPathArcSize = Svg.Model.PathArcSize;
+using SKPathDirection = Svg.Model.PathDirection;
+using SKPathEffect = Svg.Model.PathEffect;
+using SKPathFillType = Svg.Model.PathFillType;
+using SKPicture = Svg.Model.Picture;
+using SKPoint = Svg.Model.Point;
+using SKPoint3 = Svg.Model.Point3;
+using SKPointI = Svg.Model.PointI;
+using SKRect = Svg.Model.Rect;
+using SKShader = Svg.Model.Shader;
+using SKSize = Svg.Model.Size;
+using SKSizeI = Svg.Model.SizeI;
+using SKStrokeCap = Svg.Model.StrokeCap;
+using SKStrokeJoin = Svg.Model.StrokeJoin;
+using SKTextAlign = Svg.Model.TextAlign;
+using SKTypeface = Svg.Model.Typeface;
+#endif
+
 namespace Svg.Skia
 {
     internal static class SvgExtensions
