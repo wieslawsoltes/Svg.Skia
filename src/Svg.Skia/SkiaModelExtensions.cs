@@ -583,8 +583,14 @@ namespace Svg.Skia
                     }
                 case PictureImageFilter pictureImageFilter:
                     {
-                        // TODO:
-                        return null;
+                        if (pictureImageFilter.Picture == null)
+                        {
+                            return null;
+                        }
+
+                        return SKImageFilter.CreatePicture(
+                            pictureImageFilter.Picture.ToSKPicture(),
+                            pictureImageFilter.Picture.CullRect.ToSKRect());
                     }
                 case PointLitDiffuseImageFilter pointLitDiffuseImageFilter:
                     {
