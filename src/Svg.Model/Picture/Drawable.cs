@@ -1,6 +1,8 @@
-﻿namespace Svg.Model
+﻿using System;
+
+namespace Svg.Model
 {
-    public abstract class Drawable
+    public abstract class Drawable : IDisposable
     {
         protected virtual void OnDraw(Canvas canvas)
         {
@@ -12,6 +14,10 @@
         }
 
         protected virtual void Dispose(bool disposing)
+        {
+        }
+
+        public void Dispose()
         {
         }
     }
