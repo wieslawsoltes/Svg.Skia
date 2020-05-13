@@ -647,8 +647,8 @@ namespace Svg.Skia
             {
                 return GetColor(stopColorSvgColourServer, 1f, Attributes.None);
             }
-
-            return SKColors.Black;
+            
+            return new SKColor(0x00, 0x00, 0x00, 0xFF);
         }
 
         public static SKPathEffect? CreateDash(SvgElement svgElement, SKRect skBounds)
