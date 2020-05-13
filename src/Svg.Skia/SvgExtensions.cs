@@ -4677,6 +4677,26 @@ namespace Svg.Skia
         }
     }
 
+#if USE_MODEL
+    internal class CompositeDisposable : IDisposable
+    {
+        private readonly List<object> _disposables;
+
+        public CompositeDisposable()
+        {
+            _disposables = new List<object>();
+        }
+
+        public void Add(object disposable)
+        {
+            _disposables.Add(disposable);
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+#else
     internal class CompositeDisposable : IDisposable
     {
         private readonly List<IDisposable> _disposables;
@@ -4699,6 +4719,7 @@ namespace Svg.Skia
             }
         }
     }
+#endif
 
     [Flags]
     internal enum Attributes
