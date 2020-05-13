@@ -522,8 +522,16 @@ namespace Svg.Skia
                     }
                 case ImageImageFilter imageImageFilter:
                     {
-                        // TODO:
-                        return null;
+                        if (imageImageFilter.Image == null)
+                        {
+                            return null;
+                        }
+
+                        return SKImageFilter.CreateImage(
+                            imageImageFilter.Image.ToSKImage(),
+                            imageImageFilter.Src.ToSKRect(),
+                            imageImageFilter.Dst.ToSKRect(),
+                            SKFilterQuality.High);
                     }
                 case MatrixConvolutionImageFilter matrixConvolutionImageFilter:
                     {
