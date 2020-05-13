@@ -2,6 +2,8 @@
 {
     public class ColorFilterImageFilter : ImageFilter
     {
-        // TODO:
+        public ColorFilter? ColorFilter { get; set; }
+        public ImageFilter? Input { get; set; }
+        public CropRect? CropRect { get; set; }
     }
 }
