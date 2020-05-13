@@ -409,8 +409,16 @@ namespace Svg.Skia
                     }
                 case BlendModeImageFilter blendModeImageFilter:
                     {
-                        // TODO:
-                        return null;
+                        if (blendModeImageFilter.Background == null)
+                        {
+                            return null;
+                        }
+
+                        return SKImageFilter.CreateBlendMode(
+                            blendModeImageFilter.Mode.ToSKBlendMode(),
+                            blendModeImageFilter.Background?.ToSKImageFilter(),
+                            blendModeImageFilter.Foreground?.ToSKImageFilter(),
+                            blendModeImageFilter.CropRect?.ToCropRect());
                     }
                 case BlurImageFilter blurImageFilter:
                     {
