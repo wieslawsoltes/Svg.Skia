@@ -2,9 +2,19 @@
 {
     public struct Color
     {
-        public byte Red { get; }
-        public byte Green { get; }
-        public byte Blue { get; }
-        public byte Alpha { get; }
+        public byte Red;
+        public byte Green;
+        public byte Blue;
+        public byte Alpha;
+
+        public static readonly Color Empty;
+
+        public Color(byte red, byte green, byte blue, byte alpha)
+        {
+            Red = red;
+            Green = green;
+            Blue = blue;
+            Alpha = alpha;
+        }
     }
 }
