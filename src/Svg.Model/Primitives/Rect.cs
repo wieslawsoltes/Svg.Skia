@@ -10,6 +10,14 @@ namespace Svg.Model
 
         public static readonly Rect Empty;
 
+        public float Width => Right - Left;
+
+        public float Height => Bottom - Top;
+
+        public Size Size => new Size(Width, Height);
+
+        public Point Location => new Point(Left, Top);
+
         public Rect(float left, float top, float right, float bottom)
         {
             Left = left;
