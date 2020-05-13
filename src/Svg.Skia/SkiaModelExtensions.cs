@@ -450,8 +450,11 @@ namespace Svg.Skia
                     }
                 case BlurImageFilter blurImageFilter:
                     {
-                        // TODO:
-                        return null;
+                        return SKImageFilter.CreateBlur(
+                            blurImageFilter.SigmaX,
+                            blurImageFilter.SigmaY,
+                            blurImageFilter.Input?.ToSKImageFilter(),
+                            blurImageFilter.CropRect?.ToCropRect());
                     }
                 case ColorFilterImageFilter colorFilterImageFilter:
                     {
