@@ -628,8 +628,17 @@ namespace Svg.Skia
                     }
                 case SpotLitSpecularImageFilter spotLitSpecularImageFilter:
                     {
-                        // TODO:
-                        return null;
+                        return SKImageFilter.CreateSpotLitSpecular(
+                            spotLitSpecularImageFilter.Location.ToSKPoint3(),
+                            spotLitSpecularImageFilter.Target.ToSKPoint3(),
+                            spotLitSpecularImageFilter.SpecularExponent,
+                            spotLitSpecularImageFilter.CutoffAngle,
+                            spotLitSpecularImageFilter.LightColor.ToSKColor(),
+                            spotLitSpecularImageFilter.SurfaceScale,
+                            spotLitSpecularImageFilter.KS,
+                            spotLitSpecularImageFilter.SpecularExponent,
+                            spotLitSpecularImageFilter.Input?.ToSKImageFilter(),
+                            spotLitSpecularImageFilter.CropRect?.ToCropRect());
                     }
                 case TileImageFilter tileImageFilter:
                     {
