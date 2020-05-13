@@ -36,5 +36,10 @@ namespace Svg.Model
                 Bottom = y + height
             };
         }
+
+        public static Rect Create(Size size)
+        {
+            return Create(0, 0, size.Width, size.Height);
+        }
     }
 }
