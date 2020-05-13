@@ -514,8 +514,11 @@ namespace Svg.Skia
                     }
                 case ErodeImageFilter erodeImageFilter:
                     {
-                        // TODO:
-                        return null;
+                        return SKImageFilter.CreateErode(
+                            erodeImageFilter.RadiusX,
+                            erodeImageFilter.RadiusY,
+                            erodeImageFilter.Input?.ToSKImageFilter(),
+                            erodeImageFilter.CropRect?.ToCropRect());
                     }
                 case ImageImageFilter imageImageFilter:
                     {
