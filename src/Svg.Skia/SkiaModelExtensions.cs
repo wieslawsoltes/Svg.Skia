@@ -564,8 +564,11 @@ namespace Svg.Skia
                     }
                 case OffsetImageFilter offsetImageFilter:
                     {
-                        // TODO:
-                        return null;
+                        return SKImageFilter.CreateOffset(
+                            offsetImageFilter.DX,
+                            offsetImageFilter.DY,
+                            offsetImageFilter.Input?.ToSKImageFilter(),
+                            offsetImageFilter.CropRect?.ToCropRect());
                     }
                 case PaintImageFilter paintImageFilter:
                     {
