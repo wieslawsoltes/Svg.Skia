@@ -1437,15 +1437,15 @@ namespace Svg.Skia
 
             SKRect skRectTransformed = SKRect.Create(x, y, width, height);
 
-            var skMatrix = SKMatrix.MakeIdentity();
+            var skMatrix = SKMatrix.CreateIdentity();
 
             var skPatternTransformMatrix = ToSKMatrix(svgPatternServer.PatternTransform);
             skMatrix = skMatrix.PreConcat(skPatternTransformMatrix);
 
-            var translateTransform = SKMatrix.MakeTranslation(skRectTransformed.Left, skRectTransformed.Top);
+            var translateTransform = SKMatrix.CreateTranslation(skRectTransformed.Left, skRectTransformed.Top);
             skMatrix = skMatrix.PreConcat(translateTransform);
 
-            SKMatrix skPictureTransform = SKMatrix.MakeIdentity();
+            SKMatrix skPictureTransform = SKMatrix.CreateIdentity();
             if (!viewBox.Equals(SvgViewBox.Empty))
             {
                 var viewBoxTransform = ToSKMatrix(
@@ -1461,7 +1461,7 @@ namespace Svg.Skia
             {
                 if (patternContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
                 {
-                    var skBoundsScaleTransform = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
+                    var skBoundsScaleTransform = SKMatrix.CreateScale(skBounds.Width, skBounds.Height);
                     skPictureTransform = skPictureTransform.PreConcat(skBoundsScaleTransform);
                 }
             }
@@ -1831,7 +1831,7 @@ namespace Svg.Skia
 
         public static SKMatrix ToSKMatrix(this SvgTransformCollection svgTransformCollection)
         {
-            var skMatrixTotal = SKMatrix.MakeIdentity();
+            var skMatrixTotal = SKMatrix.CreateIdentity();
 
             if (svgTransformCollection == null)
             {
@@ -1850,13 +1850,13 @@ namespace Svg.Skia
                         break;
                     case SvgRotate svgRotate:
                         {
-                            var skMatrixRotate = SKMatrix.MakeRotationDegrees(svgRotate.Angle, svgRotate.CenterX, svgRotate.CenterY);
+                            var skMatrixRotate = SKMatrix.CreateRotationDegrees(svgRotate.Angle, svgRotate.CenterX, svgRotate.CenterY);
                             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixRotate);
                         }
                         break;
                     case SvgScale svgScale:
                         {
-                            var skMatrixScale = SKMatrix.MakeScale(svgScale.X, svgScale.Y);
+                            var skMatrixScale = SKMatrix.CreateScale(svgScale.X, svgScale.Y);
                             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixScale);
                         }
                         break;
@@ -1864,13 +1864,13 @@ namespace Svg.Skia
                         {
                             float sx = (float)Math.Tan(Math.PI * svgSkew.AngleX / 180);
                             float sy = (float)Math.Tan(Math.PI * svgSkew.AngleY / 180);
-                            var skMatrixSkew = SKMatrix.MakeSkew(sx, sy);
+                            var skMatrixSkew = SKMatrix.CreateSkew(sx, sy);
                             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixSkew);
                         }
                         break;
                     case SvgTranslate svgTranslate:
                         {
-                            var skMatrixTranslate = SKMatrix.MakeTranslation(svgTranslate.X, svgTranslate.Y);
+                            var skMatrixTranslate = SKMatrix.CreateTranslation(svgTranslate.X, svgTranslate.Y);
                             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixTranslate);
                         }
                         break;
@@ -1886,7 +1886,7 @@ namespace Svg.Skia
         {
             if (svgViewBox.Equals(SvgViewBox.Empty))
             {
-                return SKMatrix.MakeTranslation(x, y);
+                return SKMatrix.CreateTranslation(x, y);
             }
 
             float fScaleX = width / svgViewBox.Width;
@@ -1955,15 +1955,15 @@ namespace Svg.Skia
                 }
             }
 
-            var skMatrixTotal = SKMatrix.MakeIdentity();
+            var skMatrixTotal = SKMatrix.CreateIdentity();
 
-            var skMatrixXY = SKMatrix.MakeTranslation(x, y);
+            var skMatrixXY = SKMatrix.CreateTranslation(x, y);
             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixXY);
 
-            var skMatrixMinXY = SKMatrix.MakeTranslation(fMinX, fMinY);
+            var skMatrixMinXY = SKMatrix.CreateTranslation(fMinX, fMinY);
             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixMinXY);
 
-            var skMatrixScale = SKMatrix.MakeScale(fScaleX, fScaleY);
+            var skMatrixScale = SKMatrix.CreateScale(fScaleX, fScaleY);
             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixScale);
 
             return skMatrixTotal;
@@ -2687,14 +2687,14 @@ namespace Svg.Skia
             var clipPath = GetClipPath(svgClipPathRef, skBounds, uris, disposable);
             if (clipPath != null)
             {
-                var skMatrix = SKMatrix.MakeIdentity();
+                var skMatrix = SKMatrix.CreateIdentity();
 
                 if (svgClipPathRef.ClipPathUnits == SvgCoordinateUnits.ObjectBoundingBox)
                 {
-                    var skScaleMatrix = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
+                    var skScaleMatrix = SKMatrix.CreateScale(skBounds.Width, skBounds.Height);
                     skMatrix = skMatrix.PostConcat(skScaleMatrix);
 
-                    var skTranslateMatrix = SKMatrix.MakeTranslation(skBounds.Left, skBounds.Top);
+                    var skTranslateMatrix = SKMatrix.CreateTranslation(skBounds.Left, skBounds.Top);
                     skMatrix = skMatrix.PostConcat(skTranslateMatrix);
                 }
 
@@ -2720,14 +2720,14 @@ namespace Svg.Skia
             var clipPath = GetClipPath(svgClipPath.Children, skBounds, uris, disposable);
             if (clipPath != null)
             {
-                var skMatrix = SKMatrix.MakeIdentity();
+                var skMatrix = SKMatrix.CreateIdentity();
 
                 if (svgClipPath.ClipPathUnits == SvgCoordinateUnits.ObjectBoundingBox)
                 {
-                    var skScaleMatrix = SKMatrix.MakeScale(skBounds.Width, skBounds.Height);
+                    var skScaleMatrix = SKMatrix.CreateScale(skBounds.Width, skBounds.Height);
                     skMatrix = skMatrix.PostConcat(skScaleMatrix);
 
-                    var skTranslateMatrix = SKMatrix.MakeTranslation(skBounds.Left, skBounds.Top);
+                    var skTranslateMatrix = SKMatrix.CreateTranslation(skBounds.Left, skBounds.Top);
                     skMatrix = skMatrix.PostConcat(skTranslateMatrix);
                 }
 
@@ -3574,13 +3574,13 @@ namespace Svg.Skia
 
             if (svgFragment != null)
             {
-                var fragmentTransform = SKMatrix.MakeIdentity();
+                var fragmentTransform = SKMatrix.CreateIdentity();
                 float dx = destRect.Left;
                 float dy = destRect.Top;
                 float sx = destRect.Width / srcRect.Width;
                 float sy = destRect.Height / srcRect.Height;
-                var skTranslationMatrix = SKMatrix.MakeTranslation(dx, dy);
-                var skScaleMatrix = SKMatrix.MakeScale(sx, sy);
+                var skTranslationMatrix = SKMatrix.CreateTranslation(dx, dy);
+                var skScaleMatrix = SKMatrix.CreateScale(sx, sy);
                 fragmentTransform = fragmentTransform.PreConcat(skTranslationMatrix);
                 fragmentTransform = fragmentTransform.PreConcat(skScaleMatrix);
 
@@ -5300,14 +5300,14 @@ namespace Svg.Skia
 
             SKRect skRectTransformed = SKRect.Create(x, y, width, height);
 
-            var skMatrix = SKMatrix.MakeIdentity();
+            var skMatrix = SKMatrix.CreateIdentity();
 
             if (maskContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
-                var skBoundsTranslateTransform = SKMatrix.MakeTranslation(skOwnerBounds.Left, skOwnerBounds.Top);
+                var skBoundsTranslateTransform = SKMatrix.CreateTranslation(skOwnerBounds.Left, skOwnerBounds.Top);
                 skMatrix = skMatrix.PreConcat(skBoundsTranslateTransform);
 
-                var skBoundsScaleTransform = SKMatrix.MakeScale(skOwnerBounds.Width, skOwnerBounds.Height);
+                var skBoundsScaleTransform = SKMatrix.CreateScale(skOwnerBounds.Width, skOwnerBounds.Height);
                 skMatrix = skMatrix.PreConcat(skBoundsScaleTransform);
             }
 
@@ -5730,15 +5730,15 @@ namespace Svg.Skia
             }
 
             drawable.Transform = SvgExtensions.ToSKMatrix(svgImage.Transforms);
-            drawable.FragmentTransform = SKMatrix.MakeIdentity();
+            drawable.FragmentTransform = SKMatrix.CreateIdentity();
             if (drawable.FragmentDrawable != null)
             {
                 float dx = drawable.DestRect.Left;
                 float dy = drawable.DestRect.Top;
                 float sx = drawable.DestRect.Width / drawable.SrcRect.Width;
                 float sy = drawable.DestRect.Height / drawable.SrcRect.Height;
-                var skTranslationMatrix = SKMatrix.MakeTranslation(dx, dy);
-                var skScaleMatrix = SKMatrix.MakeScale(sx, sy);
+                var skTranslationMatrix = SKMatrix.CreateTranslation(dx, dy);
+                var skScaleMatrix = SKMatrix.CreateScale(sx, sy);
                 drawable.FragmentTransform = drawable.FragmentTransform.PreConcat(skTranslationMatrix);
                 drawable.FragmentTransform = drawable.FragmentTransform.PreConcat(skScaleMatrix);
                 // TODO: FragmentTransform
@@ -6054,7 +6054,7 @@ namespace Svg.Skia
             drawable.Transform = SvgExtensions.ToSKMatrix(svgUse.Transforms);
             if (!(svgReferencedElement is SvgSymbol))
             {
-                var skMatrixTranslateXY = SKMatrix.MakeTranslation(x, y);
+                var skMatrixTranslateXY = SKMatrix.CreateTranslation(x, y);
                 drawable.Transform = drawable.Transform.PreConcat(skMatrixTranslateXY);
             }
 
@@ -6337,12 +6337,12 @@ namespace Svg.Skia
                 return drawable;
             }
 
-            var skMarkerMatrix = SKMatrix.MakeIdentity();
+            var skMarkerMatrix = SKMatrix.CreateIdentity();
 
-            var skMatrixMarkerPoint = SKMatrix.MakeTranslation(pMarkerPoint.X, pMarkerPoint.Y);
+            var skMatrixMarkerPoint = SKMatrix.CreateTranslation(pMarkerPoint.X, pMarkerPoint.Y);
             skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixMarkerPoint);
 
-            var skMatrixAngle = SKMatrix.MakeRotationDegrees(svgMarker.Orient.IsAuto ? fAngle : svgMarker.Orient.Angle);
+            var skMatrixAngle = SKMatrix.CreateRotationDegrees(svgMarker.Orient.IsAuto ? fAngle : svgMarker.Orient.Angle);
             skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixAngle);
 
             var strokeWidth = pOwner.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
@@ -6358,7 +6358,7 @@ namespace Svg.Skia
             {
                 case SvgMarkerUnits.StrokeWidth:
                     {
-                        var skMatrixStrokeWidth = SKMatrix.MakeScale(strokeWidth, strokeWidth);
+                        var skMatrixStrokeWidth = SKMatrix.CreateScale(strokeWidth, strokeWidth);
                         skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixStrokeWidth);
 
                         var viewBoxWidth = svgMarker.ViewBox.Width;
@@ -6370,16 +6370,16 @@ namespace Svg.Skia
                         viewBoxToMarkerUnitsScaleX = Math.Min(scaleFactorWidth, scaleFactorHeight);
                         viewBoxToMarkerUnitsScaleY = Math.Min(scaleFactorWidth, scaleFactorHeight);
 
-                        var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX * viewBoxToMarkerUnitsScaleX, -refY * viewBoxToMarkerUnitsScaleY);
+                        var skMatrixTranslateRefXY = SKMatrix.CreateTranslation(-refX * viewBoxToMarkerUnitsScaleX, -refY * viewBoxToMarkerUnitsScaleY);
                         skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixTranslateRefXY);
 
-                        var skMatrixScaleXY = SKMatrix.MakeScale(viewBoxToMarkerUnitsScaleX, viewBoxToMarkerUnitsScaleY);
+                        var skMatrixScaleXY = SKMatrix.CreateScale(viewBoxToMarkerUnitsScaleX, viewBoxToMarkerUnitsScaleY);
                         skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixScaleXY);
                     }
                     break;
                 case SvgMarkerUnits.UserSpaceOnUse:
                     {
-                        var skMatrixTranslateRefXY = SKMatrix.MakeTranslation(-refX, -refY);
+                        var skMatrixTranslateRefXY = SKMatrix.CreateTranslation(-refX, -refY);
                         skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixTranslateRefXY);
                     }
                     break;
