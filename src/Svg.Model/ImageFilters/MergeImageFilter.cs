@@ -2,6 +2,7 @@
 {
     public class MergeImageFilter : ImageFilter
     {
-        // TODO:
+        public ImageFilter[]? Filters { get; set; }
+        public CropRect? CropRect { get; set; }
     }
 }
