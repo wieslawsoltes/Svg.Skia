@@ -426,12 +426,12 @@ namespace Svg.Skia
                         }
 
                         return SKImageFilter.CreateArithmetic(
-                            arithmeticImageFilter.K1, 
-                            arithmeticImageFilter.K2, 
-                            arithmeticImageFilter.K3, 
-                            arithmeticImageFilter.K4, 
-                            arithmeticImageFilter.EforcePMColor, 
-                            arithmeticImageFilter.Background?.ToSKImageFilter(), 
+                            arithmeticImageFilter.K1,
+                            arithmeticImageFilter.K2,
+                            arithmeticImageFilter.K3,
+                            arithmeticImageFilter.K4,
+                            arithmeticImageFilter.EforcePMColor,
+                            arithmeticImageFilter.Background?.ToSKImageFilter(),
                             arithmeticImageFilter.Foreground?.ToSKImageFilter(),
                             arithmeticImageFilter.CropRect?.ToCropRect());
                     }
