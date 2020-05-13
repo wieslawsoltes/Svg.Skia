@@ -2,7 +2,7 @@
 {
     public class PaintImageFilter : ImageFilter
     {
-        public Paint? Paint { get; set; }
-        public CropRect? CropRect { get; set; }
+        public Paint? Paint;
+        public CropRect? CropRect;
     }
 }

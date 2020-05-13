@@ -2,7 +2,7 @@
 {
     public class BlendModeColorFilter : ColorFilter
     {
-        public Color Color { get; set; }
-        public BlendMode Mode { get; set; }
+        public Color Color;
+        public BlendMode Mode;
     }
 }

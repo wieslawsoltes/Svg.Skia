@@ -2,7 +2,7 @@
 {
     public class SaveLayerPictureCommand : PictureCommand
     {
-        public Paint? Paint { get; set; }
+        public Paint? Paint;
 
         public SaveLayerPictureCommand()
         {

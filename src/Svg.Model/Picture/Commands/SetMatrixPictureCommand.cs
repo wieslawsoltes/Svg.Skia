@@ -2,7 +2,7 @@
 {
     public class SetMatrixPictureCommand : PictureCommand
     {
-        public Matrix Matrix { get; set; }
+        public Matrix Matrix;
 
         public SetMatrixPictureCommand(Matrix matrix)
         {

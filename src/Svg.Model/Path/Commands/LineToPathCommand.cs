@@ -2,7 +2,7 @@
 {
     public class LineToPathCommand : PathCommand
     {
-        public float X { get; set; }
-        public float Y { get; set; }
+        public float X;
+        public float Y;
     }
 }

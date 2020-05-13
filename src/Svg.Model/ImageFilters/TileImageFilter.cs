@@ -2,8 +2,8 @@
 {
     public class TileImageFilter : ImageFilter
     {
-        public Rect Src { get; set; }
-        public Rect Dst { get; set; }
-        public ImageFilter? Input { get; set; }
+        public Rect Src;
+        public Rect Dst;
+        public ImageFilter? Input;
     }
 }

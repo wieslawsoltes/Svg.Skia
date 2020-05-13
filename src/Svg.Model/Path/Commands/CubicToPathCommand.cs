@@ -2,11 +2,11 @@
 {
     public class CubicToPathCommand : PathCommand
     {
-        public float X0 { get; set; }
-        public float Y0 { get; set; }
-        public float X1 { get; set; }
-        public float Y1 { get; set; }
-        public float X2 { get; set; }
-        public float Y2 { get; set; }
+        public float X0;
+        public float Y0;
+        public float X1;
+        public float Y1;
+        public float X2;
+        public float Y2;
     }
 }

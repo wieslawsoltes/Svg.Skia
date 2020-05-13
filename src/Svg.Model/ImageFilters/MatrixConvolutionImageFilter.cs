@@ -2,14 +2,14 @@
 {
     public class MatrixConvolutionImageFilter : ImageFilter
     {
-        public SizeI KernelSize { get; set; }
-        public float[]? Kernel { get; set; }
-        public float Gain { get; set; }
-        public float Bias { get; set; }
-        public PointI KernelOffset { get; set; }
-        public MatrixConvolutionTileMode TileMode { get; set; }
-        public bool ConvolveAlpha { get; set; }
-        public ImageFilter? Input { get; set; }
-        public CropRect? CropRect { get; set; }
+        public SizeI KernelSize;
+        public float[]? Kernel;
+        public float Gain;
+        public float Bias;
+        public PointI KernelOffset;
+        public MatrixConvolutionTileMode TileMode;
+        public bool ConvolveAlpha;
+        public ImageFilter? Input;
+        public CropRect? CropRect;
     }
 }

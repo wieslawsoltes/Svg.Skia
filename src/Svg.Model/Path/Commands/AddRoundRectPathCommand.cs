@@ -2,8 +2,8 @@
 {
     public class AddRoundRectPathCommand : PathCommand
     {
-        public Rect Rect { get; set; }
-        public float RX { get; set; }
-        public float RY { get; set; }
+        public Rect Rect;
+        public float RX;
+        public float RY;
     }
 }

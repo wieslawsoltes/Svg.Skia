@@ -2,9 +2,9 @@
 {
     public class ClipPathPictureCommand : PictureCommand
     {
-        public Path Path { get; set; }
-        public ClipOperation Operation { get; set; }
-        public bool Antialias { get; set; }
+        public Path Path;
+        public ClipOperation Operation;
+        public bool Antialias;
 
         public ClipPathPictureCommand(Path path, ClipOperation operation, bool antialias)
         {

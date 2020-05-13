@@ -4,7 +4,7 @@ namespace Svg.Model
 {
     public class Picture
     {
-        public Rect CullRect { get; set; }
-        public IList<PictureCommand>? Commands { get; set; }
+        public Rect CullRect;
+        public IList<PictureCommand>? Commands;
     }
 }

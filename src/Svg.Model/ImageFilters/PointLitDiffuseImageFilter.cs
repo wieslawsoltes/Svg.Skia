@@ -2,11 +2,11 @@
 {
     public class PointLitDiffuseImageFilter : ImageFilter
     {
-        public Point3 Location { get; set; }
-        public Color LightColor { get; set; }
-        public float SurfaceScale { get; set; }
-        public float KD { get; set; }
-        public ImageFilter? Input { get; set; }
-        public CropRect? CropRect { get; set; }
+        public Point3 Location;
+        public Color LightColor;
+        public float SurfaceScale;
+        public float KD;
+        public ImageFilter? Input;
+        public CropRect? CropRect;
     }
 }

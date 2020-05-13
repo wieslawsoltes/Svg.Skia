@@ -2,10 +2,10 @@
 {
     public class PerlinNoiseFractalNoiseShader : Shader
     {
-        public float BaseFrequencyX { get; set; }
-        public float BaseFrequencyY { get; set; }
-        public int NumOctaves { get; set; }
-        public float Seed { get; set; }
-        public PointI TileSize { get; set; }
+        public float BaseFrequencyX;
+        public float BaseFrequencyY;
+        public int NumOctaves;
+        public float Seed;
+        public PointI TileSize;
     }
 }
