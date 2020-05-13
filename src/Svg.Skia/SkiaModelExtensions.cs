@@ -493,8 +493,13 @@ namespace Svg.Skia
                     }
                 case DistantLitDiffuseImageFilter distantLitDiffuseImageFilter:
                     {
-                        // TODO:
-                        return null;
+                        return SKImageFilter.CreateDistantLitDiffuse(
+                            distantLitDiffuseImageFilter.Direction.ToSKPoint3(),
+                            distantLitDiffuseImageFilter.LightColor.ToSKColor(),
+                            distantLitDiffuseImageFilter.SurfaceScale,
+                            distantLitDiffuseImageFilter.KD,
+                            distantLitDiffuseImageFilter.Input?.ToSKImageFilter(),
+                            distantLitDiffuseImageFilter.CropRect?.ToCropRect());
                     }
                 case DistantLitSpecularImageFilter distantLitSpecularImageFilter:
                     {
