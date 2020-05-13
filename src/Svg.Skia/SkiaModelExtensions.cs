@@ -372,6 +372,20 @@ namespace Svg.Skia
             return new SKImageFilter.CropRect(cropRect.Rect.ToSKRect());
         }
 
+        public static SKMatrixConvolutionTileMode ToSKMatrixConvolutionTileMode(this MatrixConvolutionTileMode matrixConvolutionTileMode)
+        {
+            switch (matrixConvolutionTileMode)
+            {
+                default:
+                case MatrixConvolutionTileMode.Clamp:
+                    return SKMatrixConvolutionTileMode.Clamp;
+                case MatrixConvolutionTileMode.Repeat:
+                    return SKMatrixConvolutionTileMode.Repeat;
+                case MatrixConvolutionTileMode.ClampToBlack:
+                    return SKMatrixConvolutionTileMode.ClampToBlack;
+            }
+        }
+
         public static SKImageFilter? ToSKImageFilter(this ImageFilter? imageFilter)
         {
             switch (imageFilter)
