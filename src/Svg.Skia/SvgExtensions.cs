@@ -7,7 +7,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
+#if !USE_MODEL
 using SkiaSharp;
+#endif
 using System.Text;
 using System.Text.RegularExpressions;
 using Svg.DataTypes;
