@@ -392,8 +392,20 @@ namespace Svg.Skia
             {
                 case ArithmeticImageFilter arithmeticImageFilter:
                     {
-                        // TODO:
-                        return null;
+                        if (arithmeticImageFilter.Background == null)
+                        {
+                            return null;
+                        }
+
+                        return SKImageFilter.CreateArithmetic(
+                            arithmeticImageFilter.K1, 
+                            arithmeticImageFilter.K2, 
+                            arithmeticImageFilter.K3, 
+                            arithmeticImageFilter.K4, 
+                            arithmeticImageFilter.EforcePMColor, 
+                            arithmeticImageFilter.Background?.ToSKImageFilter(), 
+                            arithmeticImageFilter.Foreground?.ToSKImageFilter(),
+                            arithmeticImageFilter.CropRect?.ToCropRect());
                     }
                 case BlendModeImageFilter blendModeImageFilter:
                     {
