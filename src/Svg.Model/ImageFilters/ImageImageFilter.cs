@@ -2,6 +2,9 @@
 {
     public class ImageImageFilter : ImageFilter
     {
-        // TODO:
+        public Image? Image { get; set; }
+        public Rect Src { get; set; }
+        public Rect Dst { get; set; }
+        public FilterQuality FilterQuality { get; set; }
     }
 }
