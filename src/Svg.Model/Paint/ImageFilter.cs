@@ -1,12 +1,18 @@
-﻿namespace Svg.Model
+﻿using System;
+
+namespace Svg.Model
 {
     public class CropRect
     {
         public Rect Rect { get; }
     }
 
-    public abstract class ImageFilter
+    public abstract class ImageFilter : IDisposable
     {
+        public void Dispose()
+        {
+        }
+
         public static ImageFilter CreateArithmetic(float k1, float k2, float k3, float k4, bool enforcePMColor, ImageFilter background, ImageFilter? foreground = null, CropRect? cropRect = null)
         {
             return new ArithmeticImageFilter()
