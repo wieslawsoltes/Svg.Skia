@@ -541,13 +541,13 @@ namespace Svg.Skia
                         }
 
                         return SKImageFilter.CreateMatrixConvolution(
-                            matrixConvolutionImageFilter.KernelSize.ToSKSizeI(), 
-                            matrixConvolutionImageFilter.Kernel, 
-                            matrixConvolutionImageFilter.Gain, 
-                            matrixConvolutionImageFilter.Bias, 
-                            matrixConvolutionImageFilter.KernelOffset.ToSKPointI(), 
-                            matrixConvolutionImageFilter.TileMode.ToSKMatrixConvolutionTileMode(), 
-                            matrixConvolutionImageFilter.ConvolveAlpha, 
+                            matrixConvolutionImageFilter.KernelSize.ToSKSizeI(),
+                            matrixConvolutionImageFilter.Kernel,
+                            matrixConvolutionImageFilter.Gain,
+                            matrixConvolutionImageFilter.Bias,
+                            matrixConvolutionImageFilter.KernelOffset.ToSKPointI(),
+                            matrixConvolutionImageFilter.TileMode.ToSKMatrixConvolutionTileMode(),
+                            matrixConvolutionImageFilter.ConvolveAlpha,
                             matrixConvolutionImageFilter.Input?.ToSKImageFilter(),
                             matrixConvolutionImageFilter.CropRect?.ToCropRect());
                     }
