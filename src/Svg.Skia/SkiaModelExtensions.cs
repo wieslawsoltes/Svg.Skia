@@ -382,6 +382,24 @@ namespace Svg.Skia
             return new SKImageFilter.CropRect(cropRect.Rect.ToSKRect());
         }
 
+        public static SKDisplacementMapEffectChannelSelectorType ToSKDisplacementMapEffectChannelSelectorType(this DisplacementMapEffectChannelSelectorType displacementMapEffectChannelSelectorType)
+        {
+            switch (displacementMapEffectChannelSelectorType)
+            {
+                default:
+                case DisplacementMapEffectChannelSelectorType.Unknown:
+                    return SKDisplacementMapEffectChannelSelectorType.Unknown;
+                case DisplacementMapEffectChannelSelectorType.R:
+                    return SKDisplacementMapEffectChannelSelectorType.R;
+                case DisplacementMapEffectChannelSelectorType.G:
+                    return SKDisplacementMapEffectChannelSelectorType.G;
+                case DisplacementMapEffectChannelSelectorType.B:
+                    return SKDisplacementMapEffectChannelSelectorType.B;
+                case DisplacementMapEffectChannelSelectorType.A:
+                    return SKDisplacementMapEffectChannelSelectorType.A;
+            }
+        }
+
         public static SKMatrixConvolutionTileMode ToSKMatrixConvolutionTileMode(this MatrixConvolutionTileMode matrixConvolutionTileMode)
         {
             switch (matrixConvolutionTileMode)
