@@ -615,8 +615,16 @@ namespace Svg.Skia
                     }
                 case SpotLitDiffuseImageFilter spotLitDiffuseImageFilter:
                     {
-                        // TODO:
-                        return null;
+                        return SKImageFilter.CreateSpotLitDiffuse(
+                            spotLitDiffuseImageFilter.Location.ToSKPoint3(),
+                            spotLitDiffuseImageFilter.Target.ToSKPoint3(),
+                            spotLitDiffuseImageFilter.SpecularExponent,
+                            spotLitDiffuseImageFilter.CutoffAngle,
+                            spotLitDiffuseImageFilter.LightColor.ToSKColor(),
+                            spotLitDiffuseImageFilter.SurfaceScale,
+                            spotLitDiffuseImageFilter.KD,
+                            spotLitDiffuseImageFilter.Input?.ToSKImageFilter(),
+                            spotLitDiffuseImageFilter.CropRect?.ToCropRect());
                     }
                 case SpotLitSpecularImageFilter spotLitSpecularImageFilter:
                     {
