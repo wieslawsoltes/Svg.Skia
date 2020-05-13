@@ -427,8 +427,15 @@ namespace Svg.Skia
                     }
                 case ColorFilterImageFilter colorFilterImageFilter:
                     {
-                        // TODO:
-                        return null;
+                        if (colorFilterImageFilter.ColorFilter == null)
+                        {
+                            return null;
+                        }
+
+                        return SKImageFilter.CreateColorFilter(
+                            colorFilterImageFilter.ColorFilter?.ToSKColorFilter(),
+                            colorFilterImageFilter.Input?.ToSKImageFilter(),
+                            colorFilterImageFilter.CropRect?.ToCropRect());
                     }
                 case DilateImageFilter dilateImageFilter:
                     {
