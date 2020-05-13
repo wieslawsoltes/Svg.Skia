@@ -11,6 +11,11 @@ namespace Svg.Skia
             return new SKPoint(point.X, point.Y);
         }
 
+        public static SKPoint3 ToSKPoint3(this Point3 point3)
+        {
+            return new SKPoint3(point3.X, point3.Y, point3.Z);
+        }
+
         public static SKPoint[] ToSKPoints(this IList<Point> points)
         {
             var skPoints = new SKPoint[points.Count];
