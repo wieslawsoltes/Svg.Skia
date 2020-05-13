@@ -553,8 +553,14 @@ namespace Svg.Skia
                     }
                 case MergeImageFilter mergeImageFilter:
                     {
-                        // TODO:
-                        return null;
+                        if (mergeImageFilter.Filters == null)
+                        {
+                            return null;
+                        }
+
+                        return SKImageFilter.CreateMerge(
+                            mergeImageFilter.Filters?.ToSKImageFilters(),
+                            mergeImageFilter.CropRect?.ToCropRect());
                     }
                 case OffsetImageFilter offsetImageFilter:
                     {
