@@ -1,7 +1,13 @@
-﻿namespace Svg.Model
+﻿using System;
+
+namespace Svg.Model
 {
-    public abstract class Shader
+    public abstract class Shader : IDisposable
     {
+        public void Dispose()
+        {
+        }
+
         public static Shader CreateColor(Color color)
         {
             return new ColorShader()
