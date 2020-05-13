@@ -2,6 +2,7 @@
 {
     public class PictureImageFilter : ImageFilter
     {
-        // TODO:
+        public Picture? Picture { get; set; }
+        public Rect? CropRect { get; set; }
     }
 }
