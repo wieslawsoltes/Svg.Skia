@@ -1,12 +1,32 @@
-﻿using System;
-
+﻿
 namespace Svg.Model
 {
     public struct Rect
     {
-        public float Left { get; set; }
-        public float Top { get; set; }
-        public float Right { get; set; }
-        public float Bottom { get; set; }
+        public float Left;
+        public float Top;
+        public float Right;
+        public float Bottom;
+
+        public static readonly Rect Empty;
+
+        public Rect(float left, float top, float right, float bottom)
+        {
+            Left = left;
+            Right = right;
+            Top = top;
+            Bottom = bottom;
+        }
+
+        public static Rect Create(float x, float y, float width, float height)
+        {
+            return new Rect()
+            {
+                Left = x,
+                Top = y,
+                Right = x + width,
+                Bottom = y + height
+            };
+        }
     }
 }
