@@ -57,6 +57,11 @@ namespace Svg.Skia
                 matrix.Persp2);
         }
 
+        public static SKImage ToSKImage(this Image image)
+        {
+            return SKImage.FromEncodedData(image.Data);
+        }
+
         public static SKPaintStyle ToSKPaintStyle(this PaintStyle paintStyle)
         {
             switch (paintStyle)
