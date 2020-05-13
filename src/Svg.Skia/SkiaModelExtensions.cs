@@ -652,6 +652,31 @@ namespace Svg.Skia
             }
         }
 
+        public static SKImageFilter[]? ToSKImageFilters(this ImageFilter[]? imageFilters)
+        {
+            if (imageFilters == null)
+            {
+                return null;
+            }
+
+            var skImageFilters = new SKImageFilter[imageFilters.Length];
+
+            for (int i = 0; i < imageFilters.Length; i++)
+            {
+                var imageFilter = imageFilters[i];
+                if (imageFilter != null)
+                {
+                    var skImageFilter = imageFilter.ToSKImageFilter();
+                    if (skImageFilter != null)
+                    {
+                        skImageFilters[i] = skImageFilter;
+                    }
+                }
+            }
+
+            return skImageFilters;
+        }
+
         public static SKPathEffect? ToSKPathEffect(this PathEffect? pathEffect)
         {
             switch (pathEffect)
