@@ -642,8 +642,10 @@ namespace Svg.Skia
                     }
                 case TileImageFilter tileImageFilter:
                     {
-                        // TODO:
-                        return null;
+                        return SKImageFilter.CreateTile(
+                            tileImageFilter.Src.ToSKRect(),
+                            tileImageFilter.Dst.ToSKRect(),
+                            tileImageFilter.Input?.ToSKImageFilter());
                     }
                 default:
                     return null;
