@@ -777,7 +777,7 @@ namespace Svg.Skia
                 }
             }
         }
-
+#if USE_COLORSPACE
         public static SKColorF[] ToSkColorF(this SKColor[] skColors)
         {
             var skColorsF = new SKColorF[skColors.Length];
@@ -789,7 +789,7 @@ namespace Svg.Skia
 
             return skColorsF;
         }
-
+#endif
         public static SvgColourInterpolation GetColorInterpolation(SvgElement svgElement)
         {
             return svgElement.ColorInterpolation switch
