@@ -1,6 +1,8 @@
-﻿namespace Svg.Model
+﻿using System;
+
+namespace Svg.Model
 {
-    public class Paint
+    public class Paint : IDisposable
     {
         public PaintStyle Style;
         public bool IsAntialias;
@@ -18,5 +20,9 @@
         public PathEffect? PathEffect;
         public BlendMode BlendMode;
         public FilterQuality FilterQuality;
+
+        public void Dispose()
+        {
+        }
     }
 }
