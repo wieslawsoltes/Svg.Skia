@@ -470,8 +470,11 @@ namespace Svg.Skia
                     }
                 case DilateImageFilter dilateImageFilter:
                     {
-                        // TODO:
-                        return null;
+                        return SKImageFilter.CreateDilate(
+                            dilateImageFilter.RadiusX,
+                            dilateImageFilter.RadiusY,
+                            dilateImageFilter.Input?.ToSKImageFilter(),
+                            dilateImageFilter.CropRect?.ToCropRect());
                     }
                 case DisplacementMapEffectImageFilter displacementMapEffectImageFilter:
                     {
