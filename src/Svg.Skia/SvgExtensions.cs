@@ -973,9 +973,9 @@ namespace Svg.Skia
             if (skColors.Length == 0)
             {
 #if USE_COLORSPACE
-                return SKShader.CreateColor(SKColors.Transparent, skColorSpace);
+                return SKShader.CreateColor(new SKColor(0xFF, 0xFF, 0xFF, 0x00), skColorSpace);
 #else
-                return SKShader.CreateColor(SKColors.Transparent);
+                return SKShader.CreateColor(new SKColor(0xFF, 0xFF, 0xFF, 0x00));
 #endif
             }
             else if (skColors.Length == 1)
@@ -1173,9 +1173,9 @@ namespace Svg.Skia
             if (skColors.Length == 0)
             {
 #if USE_COLORSPACE
-                return SKShader.CreateColor(SKColors.Transparent, skColorSpace);
+                return SKShader.CreateColor(new SKColor(0xFF, 0xFF, 0xFF, 0x00), skColorSpace);
 #else
-                return SKShader.CreateColor(SKColors.Transparent);
+                return SKShader.CreateColor(new SKColor(0xFF, 0xFF, 0xFF, 0x00));
 #endif
             }
             else if (skColors.Length == 1)
