@@ -13,6 +13,9 @@ namespace Svg.Model
         public Typeface? Typeface;
         public float TextSize;
         public TextAlign TextAlign;
+        public bool LcdRenderText;
+        public bool SubpixelText;
+        public TextEncoding TextEncoding;
         public Color? Color;
         public Shader? Shader;
         public ColorFilter? ColorFilter;
