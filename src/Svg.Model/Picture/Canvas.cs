@@ -36,6 +36,11 @@ namespace Svg.Model
             Commands?.Add(new DrawTextPictureCommand(text, x, y, paint));
         }
 
+        public void DrawTextOnPath(string text, Path path, float hOffset, float vOffset, Paint paint)
+        {
+            Commands?.Add(new DrawTextOnPathPictureCommand(text, path, hOffset, vOffset, paint));
+        }
+
         public void SetMatrix(Matrix matrix)
         {
             // TODO: Update TotalMatrix.
