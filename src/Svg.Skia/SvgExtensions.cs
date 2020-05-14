@@ -3451,7 +3451,7 @@ namespace Svg.Skia
 
             if (cropRect == null)
             {
-                cropRect = new SKImageFilter.CropRect(skBounds);
+                cropRect = new CropRect(skBounds);
             }
 
             var cf = SKColorFilter.CreateBlendMode(floodColor.Value, SKBlendMode.Src);
@@ -3779,7 +3779,7 @@ namespace Svg.Skia
 
             if (cropRect == null)
             {
-                cropRect = new SKImageFilter.CropRect(skBounds);
+                cropRect = new CropRect(skBounds);
             }
 
             return SKImageFilter.CreatePaint(skPaint, cropRect);
@@ -4236,7 +4236,7 @@ namespace Svg.Skia
 
                 var skFilterPrimitiveRegion = SKRect.Create(xChild, yChild, widthChild, heightChild);
 
-                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
+                var skCropRect = new CropRect(skFilterPrimitiveRegion);
 #if DEBUG
                 skFilterPrimitiveRegions.Add((svgFilterPrimitive, skFilterPrimitiveRegion));
 #endif
