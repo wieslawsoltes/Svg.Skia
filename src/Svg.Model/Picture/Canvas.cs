@@ -21,6 +21,11 @@ namespace Svg.Model
             Commands?.Add(new ClipRectPictureCommand(rect, operation, antialias));
         }
 
+        public void DrawImage(Image image, Rect source, Rect dest, Paint? paint = null)
+        {
+            Commands?.Add(new DrawImagePictureCommand(image, source, dest, paint));
+        }
+
         public void DrawPath(Path path, Paint paint)
         {
             Commands?.Add(new DrawPathPictureCommand(path, paint));
