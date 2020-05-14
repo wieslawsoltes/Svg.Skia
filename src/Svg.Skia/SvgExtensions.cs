@@ -4628,6 +4628,16 @@ namespace Svg.Skia
                 return;
             }
 
+#if USE_MODEL
+            // TODO:
+            return new SKTypeface()
+            {
+                FamilyName = fontFamily,
+                Weight = fontWeight,
+                Width = fontWidth,
+                Style = fontStyle
+            };
+#else
             foreach (var typefaceProviders in SKSvgSettings.s_typefaceProviders)
             {
                 var skTypeface = typefaceProviders.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
@@ -4638,6 +4648,7 @@ namespace Svg.Skia
                     break;
                 }
             }
+#endif
         }
 
         public static void SetSKPaintText(SvgTextBase svgText, SKRect skBounds, SKPaint skPaint, CompositeDisposable disposable)
