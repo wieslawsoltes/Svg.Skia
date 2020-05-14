@@ -38,6 +38,11 @@ namespace Svg.Model
             throw new NotImplementedException();
         }
 
+        public static Matrix CreateSkew(float x, float y)
+        {
+            throw new NotImplementedException();
+        }
+
         public static Matrix CreateTranslation(float x, float y)
         {
             throw new NotImplementedException();
