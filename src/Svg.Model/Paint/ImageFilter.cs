@@ -5,6 +5,15 @@ namespace Svg.Model
     public class CropRect
     {
         public Rect Rect { get; }
+
+        public CropRect()
+        {
+        }
+
+        public CropRect(Rect rect)
+        {
+            Rect = rect;
+        }
     }
 
     public abstract class ImageFilter : IDisposable
