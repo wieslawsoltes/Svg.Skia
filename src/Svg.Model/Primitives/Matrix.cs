@@ -23,6 +23,11 @@ namespace Svg.Model
             return new Matrix { ScaleX = 1, ScaleY = 1, Persp2 = 1 };
         }
 
+        public static Matrix CreateRotationDegrees(float degrees)
+        {
+            throw new NotImplementedException();
+        }
+
         public static Matrix CreateRotationDegrees(float degrees, float pivotX, float pivotY)
         {
             throw new NotImplementedException();
