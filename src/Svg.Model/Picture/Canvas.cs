@@ -26,6 +26,11 @@ namespace Svg.Model
             Commands?.Add(new DrawPathPictureCommand(path, paint));
         }
 
+        public void DrawPositionedText(string text, Point[] points, Paint paint)
+        {
+            Commands?.Add(new DrawPositionedTextPictureCommand(text, points, paint));
+        }
+
         public void DrawText(string text, float x, float y, Paint paint)
         {
             Commands?.Add(new DrawTextPictureCommand(text, x, y, paint));
