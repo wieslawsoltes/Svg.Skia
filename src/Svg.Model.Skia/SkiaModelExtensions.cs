@@ -1014,6 +1014,15 @@ namespace Svg.Skia
                                     drawPathPictureCommand.Paint.ToSKPaint());
                             }
                             break;
+                        case DrawTextPictureCommand drawTextPictureCommand:
+                            {
+                                skCanvas.DrawText(
+                                    drawTextPictureCommand.Text,
+                                    drawTextPictureCommand.X,
+                                    drawTextPictureCommand.Y,
+                                    drawTextPictureCommand.Paint.ToSKPaint());
+                            }
+                            break;
                         default:
                             break;
                     }
