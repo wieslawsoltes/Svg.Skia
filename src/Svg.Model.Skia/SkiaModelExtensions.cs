@@ -1026,6 +1026,15 @@ namespace Svg.Skia
                                 }
                             }
                             break;
+                        case DrawImagePictureCommand drawImagePictureCommand:
+                            {
+                                skCanvas.DrawImage(
+                                    drawImagePictureCommand.Image.ToSKImage(),
+                                    drawImagePictureCommand.Source.ToSKRect(),
+                                    drawImagePictureCommand.Dest.ToSKRect(),
+                                    drawImagePictureCommand.Paint?.ToSKPaint());
+                            }
+                            break;
                         case DrawPathPictureCommand drawPathPictureCommand:
                             {
                                 skCanvas.DrawPath(
