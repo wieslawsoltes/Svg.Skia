@@ -123,6 +123,22 @@ namespace Svg.Skia
             }
         }
 
+        public static SKTextEncoding ToSKTextEncoding(this TextEncoding textEncoding)
+        {
+            switch (textEncoding)
+            {
+                default:
+                case TextEncoding.Utf8:
+                    return SKTextEncoding.Utf8;
+                case TextEncoding.Utf16:
+                    return SKTextEncoding.Utf16;
+                case TextEncoding.Utf32:
+                    return SKTextEncoding.Utf32;
+                case TextEncoding.GlyphId:
+                    return SKTextEncoding.GlyphId;
+            }
+        }
+
         public static SKFontStyleWeight ToSKFontStyleWeight(this FontStyleWeight fontStyleWeight)
         {
             switch (fontStyleWeight)
