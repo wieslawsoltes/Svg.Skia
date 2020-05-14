@@ -56,6 +56,7 @@ using SKSizeI = Svg.Model.SizeI;
 using SKStrokeCap = Svg.Model.StrokeCap;
 using SKStrokeJoin = Svg.Model.StrokeJoin;
 using SKTextAlign = Svg.Model.TextAlign;
+using SKTextEncoding = Svg.Model.TextEncoding;
 using SKTypeface = Svg.Model.Typeface;
 #endif
 
