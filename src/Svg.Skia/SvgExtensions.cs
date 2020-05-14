@@ -4630,7 +4630,7 @@ namespace Svg.Skia
 
 #if USE_MODEL
             // TODO:
-            return new SKTypeface()
+            skPaint.Typeface = new Svg.Model.Typeface()
             {
                 FamilyName = fontFamily,
                 Weight = fontWeight,
