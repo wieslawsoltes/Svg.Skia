@@ -7017,7 +7017,7 @@ namespace Svg.Skia
                 skCanvas.Restore();
             }
 
-            if (maskDrawable != null && enableMask == true)
+            if (maskDrawable != null && enableMask == true && maskDstIn != null)
             {
                 skCanvas.SaveLayer(maskDstIn);
                 maskDrawable.Draw(skCanvas, ignoreAttributes, until);
