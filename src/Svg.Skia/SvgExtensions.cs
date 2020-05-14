@@ -4502,9 +4502,9 @@ namespace Svg.Skia
             return null;
         }
 
-        public static SKFontStyleWeight SKFontStyleWeight(SvgFontWeight svgFontWeight)
+        public static SKFontStyleWeight ToSKFontStyleWeight(SvgFontWeight svgFontWeight)
         {
-            var fontWeight = SkiaSharp.SKFontStyleWeight.Normal;
+            var fontWeight = SKFontStyleWeight.Normal;
 
             switch (svgFontWeight)
             {
@@ -4518,31 +4518,31 @@ namespace Svg.Skia
                     // TODO: Implement SvgFontWeight.Lighter
                     break;
                 case SvgFontWeight.W100:
-                    fontWeight = SkiaSharp.SKFontStyleWeight.Thin;
+                    fontWeight = SKFontStyleWeight.Thin;
                     break;
                 case SvgFontWeight.W200:
-                    fontWeight = SkiaSharp.SKFontStyleWeight.ExtraLight;
+                    fontWeight = SKFontStyleWeight.ExtraLight;
                     break;
                 case SvgFontWeight.W300:
-                    fontWeight = SkiaSharp.SKFontStyleWeight.Light;
+                    fontWeight = SKFontStyleWeight.Light;
                     break;
                 case SvgFontWeight.W400: // SvgFontWeight.Normal:
-                    fontWeight = SkiaSharp.SKFontStyleWeight.Normal;
+                    fontWeight = SKFontStyleWeight.Normal;
                     break;
                 case SvgFontWeight.W500:
-                    fontWeight = SkiaSharp.SKFontStyleWeight.Medium;
+                    fontWeight = SKFontStyleWeight.Medium;
                     break;
                 case SvgFontWeight.W600:
-                    fontWeight = SkiaSharp.SKFontStyleWeight.SemiBold;
+                    fontWeight = SKFontStyleWeight.SemiBold;
                     break;
                 case SvgFontWeight.W700: // SvgFontWeight.Bold:
-                    fontWeight = SkiaSharp.SKFontStyleWeight.Bold;
+                    fontWeight = SKFontStyleWeight.Bold;
                     break;
                 case SvgFontWeight.W800:
-                    fontWeight = SkiaSharp.SKFontStyleWeight.ExtraBold;
+                    fontWeight = SKFontStyleWeight.ExtraBold;
                     break;
                 case SvgFontWeight.W900:
-                    fontWeight = SkiaSharp.SKFontStyleWeight.Black;
+                    fontWeight = SKFontStyleWeight.Black;
                     break;
             }
 
@@ -4618,7 +4618,7 @@ namespace Svg.Skia
 
         private static void SetTypeface(SvgTextBase svgText, SKPaint skPaint, CompositeDisposable disposable)
         {
-            var fontWeight = SKFontStyleWeight(svgText.FontWeight);
+            var fontWeight = ToSKFontStyleWeight(svgText.FontWeight);
             var fontWidth = ToSKFontStyleWidth(svgText.FontStretch);
             var fontStyle = ToSKFontStyleSlant(svgText.FontStyle);
             var fontFamily = svgText.FontFamily;
