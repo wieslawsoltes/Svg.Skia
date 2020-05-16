@@ -45,5 +45,14 @@ namespace Svg.Model
         {
             return Create(0, 0, size.Width, size.Height);
         }
+
+        public static Rect Union(Rect a, Rect b)
+        {
+            return new Rect(
+                Math.Min(a.Left, b.Left),
+                Math.Min(a.Top, b.Top),
+                Math.Max(a.Right, b.Right),
+                Math.Max(a.Bottom, b.Bottom));
+        }
     }
 }
