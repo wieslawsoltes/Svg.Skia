@@ -100,7 +100,7 @@ namespace Svg.Model
                 Direction = direction,
                 LightColor = lightColor,
                 SurfaceScale = surfaceScale,
-                KD = kd,
+                Kd = kd,
                 Input = input,
                 CropRect = cropRect
             };
@@ -113,7 +113,7 @@ namespace Svg.Model
                 Direction = direction,
                 LightColor = lightColor,
                 SurfaceScale = surfaceScale,
-                KS = ks,
+                Ks = ks,
                 Shininess = shininess,
                 Input = input,
                 CropRect = cropRect
@@ -171,8 +171,8 @@ namespace Svg.Model
         {
             return new OffsetImageFilter()
             {
-                DX = dx,
-                DY = dy,
+                Dx = dx,
+                Dy = dy,
                 Input = input,
                 CropRect = cropRect
             };
@@ -203,7 +203,7 @@ namespace Svg.Model
                 Location = location,
                 LightColor = lightColor,
                 SurfaceScale = surfaceScale,
-                KD = kd,
+                Kd = kd,
                 Input = input,
                 CropRect = cropRect
             };
@@ -216,7 +216,7 @@ namespace Svg.Model
                 Location = location,
                 LightColor = lightColor,
                 SurfaceScale = surfaceScale,
-                KS = ks,
+                Ks = ks,
                 Shininess = shininess,
                 Input = input,
                 CropRect = cropRect
@@ -233,7 +233,7 @@ namespace Svg.Model
                 CutoffAngle = cutoffAngle,
                 LightColor = lightColor,
                 SurfaceScale = surfaceScale,
-                KD = kd,
+                Kd = kd,
                 Input = input,
                 CropRect = cropRect
             };
@@ -249,7 +249,7 @@ namespace Svg.Model
                 CutoffAngle = cutoffAngle,
                 LightColor = lightColor,
                 SurfaceScale = surfaceScale,
-                KS = ks,
+                Ks = ks,
                 Shininess = shininess,
                 Input = input,
                 CropRect = cropRect
