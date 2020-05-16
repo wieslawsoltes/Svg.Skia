@@ -3450,7 +3450,7 @@ namespace Svg.Skia
 
             var floodOpacity = svgFlood.FloodOpacity;
             var floodAlpha = CombineWithOpacity(floodColor.Value.Alpha, floodOpacity);
-            floodColor = floodColor.Value.WithAlpha(floodAlpha);
+            floodColor = new SKColor(floodColor.Value.Red, floodColor.Value.Green, floodColor.Value.Blue, floodAlpha);
 
             if (cropRect == null)
             {
