@@ -10,6 +10,8 @@ namespace Svg.Model
 
         public bool IsEmpty => Commands?.Count == 0;
 
+        public Rect Bounds => Rect.Empty; // TODO:
+
         public void MoveTo(float x, float y)
         {
             Commands?.Add(new MoveToPathCommand(x, y));
