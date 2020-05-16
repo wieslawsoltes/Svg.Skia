@@ -2,7 +2,7 @@
 {
     public class DrawImagePictureCommand : PictureCommand
     {
-        public Image Image;
+        public Image? Image;
         public Rect Source;
         public Rect Dest;
         public Paint? Paint;
