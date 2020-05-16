@@ -6821,9 +6821,9 @@ namespace Svg.Skia
                 drawable.IsDrawable = false;
                 return drawable;
             }
-
+#if !USE_MODEL
             SvgExtensions.CreateMarkers(svgPolygon, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
-
+#endif
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
 
