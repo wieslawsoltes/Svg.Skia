@@ -2,5 +2,8 @@
 {
     public class ClosePathCommand : PathCommand
     {
+        public ClosePathCommand()
+        {
+        }
     }
 }
