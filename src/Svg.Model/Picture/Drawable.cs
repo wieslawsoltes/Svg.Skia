@@ -8,9 +8,13 @@ namespace Svg.Model
 
         public Picture Snapshot()
         {
-            var skBounds = OnGetBounds();
+            return Snapshot(OnGetBounds());
+        }
+
+        public Picture Snapshot(Rect bounds)
+        {
             using var skPictureRecorder = new PictureRecorder();
-            using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
+            using var skCanvas = skPictureRecorder.BeginRecording(bounds);
             OnDraw(skCanvas);
             return skPictureRecorder.EndRecording();
         }
