@@ -306,6 +306,20 @@ namespace Svg.Skia
 
         public static void Draw(SKCanvas skCanvas, SvgFragment svgFragment)
         {
+#if USE_MODEL
+            var size = SvgExtensions.GetDimensions(svgFragment);
+            var bounds = Rect.Create(size);
+            using var drawable = DrawableFactory.Create(svgFragment, bounds, null, Attributes.None);
+            if (drawable != null)
+            {
+                drawable.PostProcess();
+                var picture = drawable.Snapshot(bounds);
+                if (picture != null)
+                {
+                    picture.Draw(skCanvas);
+                }
+            }
+#else
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
             using var drawable = DrawableFactory.Create(svgFragment, skBounds, null, Attributes.None);
@@ -314,6 +328,7 @@ namespace Svg.Skia
                 drawable.PostProcess();
                 drawable.Draw(skCanvas, 0f, 0f);
             }
+#endif
         }
 
         public static void Draw(SKCanvas skCanvas, string path)
