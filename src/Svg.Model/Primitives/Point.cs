@@ -7,6 +7,8 @@
 
         public static readonly Point Empty;
 
+        public bool IsEmpty => X == default && Y == default;
+
         public Point(float x, float y)
         {
             X = x;
