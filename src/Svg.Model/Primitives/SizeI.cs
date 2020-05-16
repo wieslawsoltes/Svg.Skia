@@ -7,6 +7,8 @@
 
         public static readonly SizeI Empty;
 
+        public bool IsEmpty => Width == default && Height == default;
+
         public SizeI(int width, int height)
         {
             Width = width;
