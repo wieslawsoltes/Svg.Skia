@@ -2894,7 +2894,7 @@ namespace Svg.Skia
             var markerDrawable = MarkerDrawable.Create(svgMarker, pOwner, pRefPoint, fAngle1, skOwnerBounds, null, ignoreAttributes);
             if (markerDrawables == null)
             {
-                markerDrawables = new List<Drawable>();
+                markerDrawables = new List<DrawableBase>();
             }
             markerDrawables.Add(markerDrawable);
             disposable.Add(markerDrawable);
@@ -2912,7 +2912,7 @@ namespace Svg.Skia
             var markerDrawable = MarkerDrawable.Create(svgMarker, pOwner, pRefPoint, (fAngle1 + fAngle2) / 2, skOwnerBounds, null);
             if (markerDrawables == null)
             {
-                markerDrawables = new List<Drawable>();
+                markerDrawables = new List<DrawableBase>();
             }
             markerDrawables.Add(markerDrawable);
             disposable.Add(markerDrawable);
