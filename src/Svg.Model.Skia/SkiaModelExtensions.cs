@@ -518,7 +518,7 @@ namespace Svg.Skia
                             distantLitDiffuseImageFilter.Direction.ToSKPoint3(),
                             distantLitDiffuseImageFilter.LightColor.ToSKColor(),
                             distantLitDiffuseImageFilter.SurfaceScale,
-                            distantLitDiffuseImageFilter.KD,
+                            distantLitDiffuseImageFilter.Kd,
                             distantLitDiffuseImageFilter.Input?.ToSKImageFilter(),
                             distantLitDiffuseImageFilter.CropRect?.ToCropRect());
                     }
@@ -528,7 +528,7 @@ namespace Svg.Skia
                             distantLitSpecularImageFilter.Direction.ToSKPoint3(),
                             distantLitSpecularImageFilter.LightColor.ToSKColor(),
                             distantLitSpecularImageFilter.SurfaceScale,
-                            distantLitSpecularImageFilter.KS,
+                            distantLitSpecularImageFilter.Ks,
                             distantLitSpecularImageFilter.Shininess,
                             distantLitSpecularImageFilter.Input?.ToSKImageFilter(),
                             distantLitSpecularImageFilter.CropRect?.ToCropRect());
@@ -586,8 +586,8 @@ namespace Svg.Skia
                 case OffsetImageFilter offsetImageFilter:
                     {
                         return SKImageFilter.CreateOffset(
-                            offsetImageFilter.DX,
-                            offsetImageFilter.DY,
+                            offsetImageFilter.Dx,
+                            offsetImageFilter.Dy,
                             offsetImageFilter.Input?.ToSKImageFilter(),
                             offsetImageFilter.CropRect?.ToCropRect());
                     }
@@ -619,7 +619,7 @@ namespace Svg.Skia
                             pointLitDiffuseImageFilter.Location.ToSKPoint3(),
                             pointLitDiffuseImageFilter.LightColor.ToSKColor(),
                             pointLitDiffuseImageFilter.SurfaceScale,
-                            pointLitDiffuseImageFilter.KD,
+                            pointLitDiffuseImageFilter.Kd,
                             pointLitDiffuseImageFilter.Input?.ToSKImageFilter(),
                             pointLitDiffuseImageFilter.CropRect?.ToCropRect());
                     }
@@ -629,7 +629,7 @@ namespace Svg.Skia
                             pointLitSpecularImageFilter.Location.ToSKPoint3(),
                             pointLitSpecularImageFilter.LightColor.ToSKColor(),
                             pointLitSpecularImageFilter.SurfaceScale,
-                            pointLitSpecularImageFilter.KS,
+                            pointLitSpecularImageFilter.Ks,
                             pointLitSpecularImageFilter.Shininess,
                             pointLitSpecularImageFilter.Input?.ToSKImageFilter(),
                             pointLitSpecularImageFilter.CropRect?.ToCropRect());
@@ -643,7 +643,7 @@ namespace Svg.Skia
                             spotLitDiffuseImageFilter.CutoffAngle,
                             spotLitDiffuseImageFilter.LightColor.ToSKColor(),
                             spotLitDiffuseImageFilter.SurfaceScale,
-                            spotLitDiffuseImageFilter.KD,
+                            spotLitDiffuseImageFilter.Kd,
                             spotLitDiffuseImageFilter.Input?.ToSKImageFilter(),
                             spotLitDiffuseImageFilter.CropRect?.ToCropRect());
                     }
@@ -656,7 +656,7 @@ namespace Svg.Skia
                             spotLitSpecularImageFilter.CutoffAngle,
                             spotLitSpecularImageFilter.LightColor.ToSKColor(),
                             spotLitSpecularImageFilter.SurfaceScale,
-                            spotLitSpecularImageFilter.KS,
+                            spotLitSpecularImageFilter.Ks,
                             spotLitSpecularImageFilter.SpecularExponent,
                             spotLitSpecularImageFilter.Input?.ToSKImageFilter(),
                             spotLitSpecularImageFilter.CropRect?.ToCropRect());
