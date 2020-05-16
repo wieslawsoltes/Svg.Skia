@@ -256,7 +256,7 @@ namespace Svg.Model
             };
         }
 
-        public static ImageFilter CreateTile(Rect src, Rect dst, ImageFilter input)
+        public static ImageFilter CreateTile(Rect src, Rect dst, ImageFilter? input)
         {
             return new TileImageFilter()
             {
