@@ -1972,7 +1972,7 @@ namespace Svg.Skia
 
             return skMatrixTotal;
         }
-
+#if !USE_MODEL
         public static List<(SKPoint Point, byte Type)> GetPathTypes(this SKPath skPath)
         {
             // System.Drawing.Drawing2D.GraphicsPath.PathTypes
@@ -2033,7 +2033,7 @@ namespace Svg.Skia
             }
             return pathTypes;
         }
-
+#endif
         public static SKPath? ToSKPath(this SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule, CompositeDisposable disposable)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
