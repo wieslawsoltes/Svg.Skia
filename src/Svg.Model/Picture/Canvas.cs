@@ -6,10 +6,16 @@ namespace Svg.Model
     public class Canvas : IDisposable
     {
         private int _count = 0;
+        private Matrix _oldTotalMatrix;
 
         public IList<PictureCommand>? Commands;
-
         public Matrix TotalMatrix; // TODO:
+
+        public Canvas()
+        {
+            Commands = new List<PictureCommand>();
+            TotalMatrix = Matrix.Identity;
+        }
 
         public void ClipPath(Path path, ClipOperation operation = ClipOperation.Intersect, bool antialias = false)
         {
@@ -48,12 +54,14 @@ namespace Svg.Model
 
         public void SetMatrix(Matrix matrix)
         {
+            TotalMatrix = matrix;
             // TODO: Update TotalMatrix.
             Commands?.Add(new SetMatrixPictureCommand(matrix));
         }
 
         public int Save()
         {
+            _oldTotalMatrix = TotalMatrix;
             // TODO: Save TotalMatrix.
             Commands?.Add(new SavePictureCommand());
             _count++;
@@ -62,6 +70,7 @@ namespace Svg.Model
 
         public int SaveLayer(Paint paint)
         {
+            _oldTotalMatrix = TotalMatrix;
             // TODO: Save TotalMatrix.
             Commands?.Add(new SaveLayerPictureCommand(paint));
             _count++;
@@ -70,6 +79,7 @@ namespace Svg.Model
 
         public void Restore()
         {
+            TotalMatrix = _oldTotalMatrix;
             // TODO: Restore TotalMatrix.
             Commands?.Add(new RestorePictureCommand());
             _count = 0;
