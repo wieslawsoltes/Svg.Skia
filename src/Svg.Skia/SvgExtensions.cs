@@ -5161,7 +5161,7 @@ namespace Svg.Skia
             {
                 canvas.DrawPath(Path, Stroke);
             }
-
+#if !USE_MODEL
             if (MarkerDrawables != null)
             {
                 foreach (var drawable in MarkerDrawables)
@@ -5169,12 +5169,13 @@ namespace Svg.Skia
                     drawable.Draw(canvas, ignoreAttributes, until);
                 }
             }
+#endif
         }
 
         public override void PostProcess()
         {
             base.PostProcess();
-
+#if !USE_MODEL
             if (MarkerDrawables != null)
             {
                 foreach (var drawable in MarkerDrawables)
@@ -5182,6 +5183,7 @@ namespace Svg.Skia
                     drawable.PostProcess();
                 }
             }
+#endif
         }
     }
 
