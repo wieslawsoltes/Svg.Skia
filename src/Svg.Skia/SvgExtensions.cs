@@ -2445,7 +2445,9 @@ namespace Svg.Skia
             bool display = ignoreDisplay ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
             return visible && display;
         }
-
+#if USE_MODEL
+        // TODO:
+#else
         public static SKPath? GetClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {
             if (!CanDraw(svgVisualElement, Attributes.None))
@@ -2781,7 +2783,7 @@ namespace Svg.Skia
 
             return GetClipPath(svgClipPath, skBounds, uris, disposable);
         }
-
+#endif
         public static SKRect? GetClipRect(SvgVisualElement svgVisualElement, SKRect skRectBounds)
         {
             var clip = svgVisualElement.Clip;
