@@ -2877,7 +2877,7 @@ namespace Svg.Skia
             }
         }
 #if !USE_MODEL // TODO:
-        public static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skOwnerBounds, ref List<Drawable>? markerDrawables, CompositeDisposable disposable, Attributes ignoreAttributes = Attributes.None)
+        public static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable, Attributes ignoreAttributes = Attributes.None)
         {
             float fAngle1 = 0f;
             if (svgMarker.Orient.IsAuto)
@@ -2900,7 +2900,7 @@ namespace Svg.Skia
             disposable.Add(markerDrawable);
         }
 
-        public static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, SKPoint pMarkerPoint3, SKRect skOwnerBounds, ref List<Drawable>? markerDrawables, CompositeDisposable disposable)
+        public static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, SKPoint pMarkerPoint3, SKRect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable)
         {
             float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
             float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
@@ -2918,7 +2918,7 @@ namespace Svg.Skia
             disposable.Add(markerDrawable);
         }
 
-        public static void CreateMarkers(this SvgMarkerElement svgMarkerElement, SKPath skPath, SKRect skOwnerBounds, ref List<Drawable>? markerDrawables, CompositeDisposable disposable)
+        public static void CreateMarkers(this SvgMarkerElement svgMarkerElement, SKPath skPath, SKRect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable)
         {
             var pathTypes = skPath.GetPathTypes();
             var pathLength = pathTypes.Count;
