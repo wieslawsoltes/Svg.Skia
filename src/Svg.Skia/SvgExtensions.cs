@@ -2877,7 +2877,7 @@ namespace Svg.Skia
                 }
             }
         }
-
+#if !USE_MODEL
         public static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skOwnerBounds, ref List<Drawable>? markerDrawables, CompositeDisposable disposable, Attributes ignoreAttributes = Attributes.None)
         {
             float fAngle1 = 0f;
@@ -2989,7 +2989,7 @@ namespace Svg.Skia
                 }
             }
         }
-
+#endif
         public static SKBlendMode GetSKBlendMode(SvgBlendMode svgBlendMode)
         {
             return svgBlendMode switch
