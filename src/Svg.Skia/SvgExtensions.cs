@@ -4942,6 +4942,9 @@ namespace Svg.Skia
             var enableOpacity = !IgnoreAttributes.HasFlag(Attributes.Opacity);
             var enableFilter = !IgnoreAttributes.HasFlag(Attributes.Filter);
 
+#if USE_MODEL
+            ClipPath = null;
+#else
             if (visualElement != null && enableClip == true)
             {
                 ClipPath = SvgExtensions.GetSvgVisualElementClipPath(visualElement, TransformedBounds, new HashSet<Uri>(), Disposable);
@@ -4950,6 +4953,7 @@ namespace Svg.Skia
             {
                 ClipPath = null;
             }
+#endif
 
             if (enableMask == true)
             {
