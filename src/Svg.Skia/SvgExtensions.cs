@@ -5152,12 +5152,12 @@ namespace Svg.Skia
                 return;
             }
 
-            if (Fill != null)
+            if (Fill != null && Path != null)
             {
                 canvas.DrawPath(Path, Fill);
             }
 
-            if (Stroke != null)
+            if (Stroke != null && Path != null)
             {
                 canvas.DrawPath(Path, Stroke);
             }
