@@ -8,7 +8,11 @@ namespace Svg.Model
 
         public Picture Snapshot()
         {
-            throw new NotImplementedException();
+            var skBounds = OnGetBounds();
+            using var skPictureRecorder = new PictureRecorder();
+            using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
+            OnDraw(skCanvas);
+            return skPictureRecorder.EndRecording();
         }
 
         protected virtual void OnDraw(Canvas canvas)
