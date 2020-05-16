@@ -5,6 +5,8 @@ namespace Svg.Model
     public class Image
     {
         public byte[]? Data;
+        public float Width; // TODO:
+        public float Height; // TODO:
 
         public static Image FromEncodedData(Stream sourceStream)
         {
