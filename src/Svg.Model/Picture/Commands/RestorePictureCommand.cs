@@ -2,5 +2,8 @@
 {
     public class RestorePictureCommand : PictureCommand
     {
+        public RestorePictureCommand()
+        {
+        }
     }
 }
