@@ -1105,12 +1105,14 @@ namespace Svg.Skia
 
         public static void Draw(this Picture picture, SKCanvas skCanvas)
         {
-            if (picture.Commands != null)
+            if (picture.Commands == null)
             {
-                foreach (var pictureCommand in picture.Commands)
-                {
-                    pictureCommand.Draw(skCanvas);
-                }
+                return;
+            }
+
+            foreach (var pictureCommand in picture.Commands)
+            {
+                pictureCommand.Draw(skCanvas);
             }
         }
     }
