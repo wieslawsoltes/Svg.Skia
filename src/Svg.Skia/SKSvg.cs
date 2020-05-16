@@ -345,19 +345,7 @@ namespace Svg.Skia
 
             using var skPictureRecorder = new SKPictureRecorder();
             using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
-#if USE_EXPERIMENTAL_LINEAR_RGB
-            // TODO:
-            using var skPaint = new SKPaint();
-            using var skColorFilter = SKColorFilter.CreateTable(null, SvgExtensions.s_LinearRGBtoSRGB, SvgExtensions.s_LinearRGBtoSRGB, SvgExtensions.s_LinearRGBtoSRGB);
-            using var skImageFilter = SKImageFilter.CreateColorFilter(skColorFilter);
-            skPaint.ImageFilter = skImageFilter;
-            skCanvas.SaveLayer(skPaint);
-#endif
             drawable?.Draw(skCanvas, 0f, 0f);
-#if USE_EXPERIMENTAL_LINEAR_RGB
-            // TODO:
-            skCanvas.Restore();
-#endif
             return skPictureRecorder.EndRecording();
         }
 
