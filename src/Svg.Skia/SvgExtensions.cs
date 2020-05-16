@@ -5520,6 +5520,9 @@ namespace Svg.Skia
                     break;
             }
 
+#if USE_MODEL
+            drawable.ClipPath = null;
+#else
             var clipPathUris = new HashSet<Uri>();
             var svgClipPath = svgFragment.GetUriElementReference<SvgClipPath>("clip-path", clipPathUris);
             if (svgClipPath != null && svgClipPath.Children != null)
@@ -5531,7 +5534,8 @@ namespace Svg.Skia
             else
             {
                 drawable.ClipPath = null;
-            }
+            } 
+#endif
 
             drawable.Fill = null;
             drawable.Stroke = null;
