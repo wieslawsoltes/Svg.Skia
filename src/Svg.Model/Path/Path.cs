@@ -10,11 +10,128 @@ namespace Svg.Model
 
         public bool IsEmpty => Commands == null || Commands.Count == 0;
 
-        public Rect Bounds => Rect.Empty; // TODO:
+        public Rect Bounds => GetBounds();
 
         public Path()
         {
             Commands = new List<PathCommand>();
+        }
+
+        private void ComputePointBounds(float x, float y, ref Rect bounds)
+        {
+            bounds.Left = Math.Min(x, bounds.Left);
+            bounds.Right = Math.Max(x, bounds.Right);
+            bounds.Top = Math.Min(y, bounds.Top);
+            bounds.Bottom = Math.Max(y, bounds.Bottom);
+        }
+
+        private Rect GetBounds()
+        {
+            if (Commands == null || Commands.Count == 0)
+            {
+                return Rect.Empty;
+            }
+
+            var bounds = new Rect(float.MaxValue, float.MaxValue, float.MinValue, float.MinValue);
+
+            foreach (var pathCommand in Commands)
+            {
+                switch (pathCommand)
+                {
+                    case MoveToPathCommand moveToPathCommand:
+                        {
+                            var x = moveToPathCommand.X;
+                            var y = moveToPathCommand.Y;
+                            ComputePointBounds(x, y, ref bounds);
+                        }
+                        break;
+                    case LineToPathCommand lineToPathCommand:
+                        {
+                            var x = lineToPathCommand.X;
+                            var y = lineToPathCommand.Y;
+                            ComputePointBounds(x, y, ref bounds);
+                        }
+                        break;
+                    case ArcToPathCommand arcToPathCommand:
+                        {
+                            var x = arcToPathCommand.X;
+                            var y = arcToPathCommand.Y;
+                            ComputePointBounds(x, y, ref bounds);
+                        }
+                        break;
+                    case QuadToPathCommand quadToPathCommand:
+                        {
+                            var x0 = quadToPathCommand.X0;
+                            var y0 = quadToPathCommand.Y0;
+                            var x1 = quadToPathCommand.X1;
+                            var y1 = quadToPathCommand.Y1;
+                            ComputePointBounds(x0, y0, ref bounds);
+                            ComputePointBounds(x1, y1, ref bounds);
+                        }
+                        break;
+                    case CubicToPathCommand cubicToPathCommand:
+                        {
+                            var x0 = cubicToPathCommand.X0;
+                            var y0 = cubicToPathCommand.Y0;
+                            var x1 = cubicToPathCommand.X1;
+                            var y1 = cubicToPathCommand.Y1;
+                            var x2 = cubicToPathCommand.X2;
+                            var y2 = cubicToPathCommand.Y2;
+                            ComputePointBounds(x0, y0, ref bounds);
+                            ComputePointBounds(x1, y1, ref bounds);
+                            ComputePointBounds(x2, y2, ref bounds);
+                        }
+                        break;
+                    case ClosePathCommand _:
+                        break;
+                    case AddRectPathCommand addRectPathCommand:
+                        {
+                            var rect = addRectPathCommand.Rect;
+                            ComputePointBounds(rect.Left, rect.Top, ref bounds);
+                            ComputePointBounds(rect.Right, rect.Bottom, ref bounds);
+                        }
+                        break;
+                    case AddRoundRectPathCommand addRoundRectPathCommand:
+                        {
+                            var rect = addRoundRectPathCommand.Rect;
+                            ComputePointBounds(rect.Left, rect.Top, ref bounds);
+                            ComputePointBounds(rect.Right, rect.Bottom, ref bounds);
+                        }
+                        break;
+                    case AddOvalPathCommand addOvalPathCommand:
+                        {
+                            var rect = addOvalPathCommand.Rect;
+                            ComputePointBounds(rect.Left, rect.Top, ref bounds);
+                            ComputePointBounds(rect.Right, rect.Bottom, ref bounds);
+                        }
+                        break;
+                    case AddCirclePathCommand addCirclePathCommand:
+                        {
+                            var x = addCirclePathCommand.X;
+                            var y = addCirclePathCommand.Y;
+                            var radius = addCirclePathCommand.Radius;
+                            ComputePointBounds(x - radius, y - radius, ref bounds);
+                            ComputePointBounds(x + radius, y + radius, ref bounds);
+                        }
+                        break;
+                    case AddPolyPathCommand addPolyPathCommand:
+                        {
+                            if (addPolyPathCommand.Points != null)
+                            {
+                                var points = addPolyPathCommand.Points;
+                                foreach (var point in points)
+                                {
+                                    ComputePointBounds(point.X, point.Y, ref bounds);
+                                }
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return bounds;
         }
 
         public void MoveTo(float x, float y)
