@@ -3,8 +3,8 @@
     public class DrawPositionedTextPictureCommand : PictureCommand
     {
         public string Text;
-        public Point[] Points;
-        public Paint Paint;
+        public Point[]? Points;
+        public Paint? Paint;
 
         public DrawPositionedTextPictureCommand(string text, Point[] points, Paint paint)
         {
