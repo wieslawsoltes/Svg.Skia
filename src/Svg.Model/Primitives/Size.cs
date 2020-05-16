@@ -7,6 +7,8 @@
 
         public static readonly Size Empty;
 
+        public bool IsEmpty => Width == default && Height == default;
+
         public Size(float width, float height)
         {
             Width = width;
