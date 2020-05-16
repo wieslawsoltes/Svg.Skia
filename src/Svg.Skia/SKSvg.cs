@@ -432,7 +432,7 @@ namespace Svg.Skia
 
         public static SvgDocument? Open(string path)
         {
-            var extension = Path.GetExtension(path);
+            var extension = System.IO.Path.GetExtension(path);
             return extension.ToLower() switch
             {
                 ".svg" => OpenSvg(path),
