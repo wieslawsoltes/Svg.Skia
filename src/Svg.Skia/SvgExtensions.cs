@@ -4888,7 +4888,7 @@ namespace Svg.Skia
                 canvas.ClipPath(ClipPath, SKClipOperation.Intersect, IsAntialias);
             }
 
-            if (MaskDrawable != null && enableMask == true)
+            if (MaskDrawable != null && Mask != null && enableMask == true)
             {
                 canvas.SaveLayer(Mask);
             }
