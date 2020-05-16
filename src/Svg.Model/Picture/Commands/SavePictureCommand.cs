@@ -2,8 +2,11 @@
 {
     public class SavePictureCommand : PictureCommand
     {
-        public SavePictureCommand()
+        public int Count;
+
+        public SavePictureCommand(int count)
         {
+            Count = count;
         }
     }
 }
