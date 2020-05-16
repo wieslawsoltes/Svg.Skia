@@ -5,6 +5,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using SkiaSharp;
+#if USE_MODEL
+using Svg.Model;
+#endif
 
 namespace Svg.Skia
 {
