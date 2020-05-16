@@ -8,7 +8,7 @@
         public float CutoffAngle;
         public Color LightColor;
         public float SurfaceScale;
-        public float KD;
+        public float Kd;
         public ImageFilter? Input;
         public CropRect? CropRect;
     }
