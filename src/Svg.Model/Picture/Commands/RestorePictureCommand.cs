@@ -2,8 +2,11 @@
 {
     public class RestorePictureCommand : PictureCommand
     {
-        public RestorePictureCommand()
+        public int Count;
+
+        public RestorePictureCommand(int count)
         {
+            Count = count;
         }
     }
 }
