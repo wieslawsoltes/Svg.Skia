@@ -3591,7 +3591,7 @@ namespace Svg.Skia
                 fragmentTransform = fragmentTransform.PreConcat(skScaleMatrix);
 
                 using var fragmentDrawable = FragmentDrawable.Create(svgFragment, destRect, null, Attributes.None);
-                var skPicture = fragmentDrawable.Snapshot();
+                var skPicture = fragmentDrawable.Snapshot(); // TODO:
                 disposable.Add(skPicture);
 
                 return SKImageFilter.CreatePicture(skPicture, destRect);
