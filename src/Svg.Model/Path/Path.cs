@@ -8,7 +8,7 @@ namespace Svg.Model
         public PathFillType FillType;
         public IList<PathCommand>? Commands;
 
-        public bool IsEmpty => Commands?.Count == 0;
+        public bool IsEmpty => Commands == null || Commands.Count == 0;
 
         public Rect Bounds => Rect.Empty; // TODO:
 
