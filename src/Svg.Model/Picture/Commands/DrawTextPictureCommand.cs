@@ -5,7 +5,7 @@
         public string Text;
         public float X;
         public float Y;
-        public Paint Paint;
+        public Paint? Paint;
 
         public DrawTextPictureCommand(string text, float x, float y, Paint paint)
         {
