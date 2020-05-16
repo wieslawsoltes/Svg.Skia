@@ -6604,8 +6604,9 @@ namespace Svg.Skia
                 return drawable;
             }
 
+#if !USE_MODEL
             SvgExtensions.CreateMarkers(svgLine, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
-
+#endif
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
 
