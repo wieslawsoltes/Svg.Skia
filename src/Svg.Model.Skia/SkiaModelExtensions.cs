@@ -964,12 +964,14 @@ namespace Svg.Skia
                 FillType = path.FillType.ToSKPathFillType()
             };
 
-            if (path.Commands != null)
+            if (path.Commands == null)
             {
-                foreach (var pathCommand in path.Commands)
-                {
-                    pathCommand.ToSKPath(skPath);
-                }
+                return skPath;
+            }
+
+            foreach (var pathCommand in path.Commands)
+            {
+                pathCommand.ToSKPath(skPath);
             }
 
             return skPath;
