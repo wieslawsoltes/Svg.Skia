@@ -8,6 +8,8 @@
 
         public static readonly Point3 Empty;
 
+        public bool IsEmpty => X == default && Y == default && Z == default;
+
         public Point3(float x, float y, float z)
         {
             X = x;
