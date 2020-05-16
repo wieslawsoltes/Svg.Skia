@@ -4,6 +4,8 @@ namespace Svg.Model
 {
     public abstract class Drawable : IDisposable
     {
+        public Rect Bounds => OnGetBounds();
+
         public Picture Snapshot()
         {
             throw new NotImplementedException();
