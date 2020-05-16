@@ -1013,12 +1013,12 @@ namespace Svg.Skia
                             clipRectPictureCommand.Antialias);
                     }
                     break;
-                case SavePictureCommand savePictureCommand:
+                case SavePictureCommand _:
                     {
                         skCanvas.Save();
                     }
                     break;
-                case RestorePictureCommand restorePictureCommand:
+                case RestorePictureCommand _:
                     {
                         skCanvas.Restore();
                     }
