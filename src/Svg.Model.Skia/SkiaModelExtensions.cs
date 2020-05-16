@@ -869,6 +869,93 @@ namespace Svg.Skia
             }
         }
 
+        public static void ToSKPath(this PathCommand pathCommand, SKPath skPath)
+        {
+            switch (pathCommand)
+            {
+                case MoveToPathCommand moveToPathCommand:
+                    {
+                        skPath.MoveTo(moveToPathCommand.X, moveToPathCommand.Y);
+                    }
+                    break;
+                case LineToPathCommand lineToPathCommand:
+                    {
+                        skPath.LineTo(lineToPathCommand.X, lineToPathCommand.Y);
+                    }
+                    break;
+                case ArcToPathCommand arcToPathCommand:
+                    {
+                        skPath.ArcTo(
+                            arcToPathCommand.Rx,
+                            arcToPathCommand.Ry,
+                            arcToPathCommand.XAxisRotate,
+                            arcToPathCommand.LargeArc.ToSKPathArcSize(),
+                            arcToPathCommand.Sweep.ToSKPathDirection(),
+                            arcToPathCommand.X,
+                            arcToPathCommand.Y);
+                    }
+                    break;
+                case QuadToPathCommand quadToPathCommand:
+                    {
+                        skPath.QuadTo(
+                            quadToPathCommand.X0, quadToPathCommand.Y0,
+                            quadToPathCommand.X1, quadToPathCommand.Y1);
+                    }
+                    break;
+                case CubicToPathCommand cubicToPathCommand:
+                    {
+                        skPath.CubicTo(
+                            cubicToPathCommand.X0, cubicToPathCommand.Y0,
+                            cubicToPathCommand.X1, cubicToPathCommand.Y1,
+                            cubicToPathCommand.X2, cubicToPathCommand.Y2);
+                    }
+                    break;
+                case ClosePathCommand _:
+                    {
+                        skPath.Close();
+                    }
+                    break;
+                case AddRectPathCommand addRectPathCommand:
+                    {
+                        skPath.AddRect(addRectPathCommand.Rect.ToSKRect());
+                    }
+                    break;
+                case AddRoundRectPathCommand addRoundRectPathCommand:
+                    {
+                        skPath.AddRoundRect(
+                            addRoundRectPathCommand.Rect.ToSKRect(),
+                            addRoundRectPathCommand.Rx,
+                            addRoundRectPathCommand.Ry);
+                    }
+                    break;
+                case AddOvalPathCommand addOvalPathCommand:
+                    {
+                        skPath.AddOval(addOvalPathCommand.Rect.ToSKRect());
+                    }
+                    break;
+                case AddCirclePathCommand addCirclePathCommand:
+                    {
+                        skPath.AddCircle(
+                            addCirclePathCommand.X,
+                            addCirclePathCommand.Y,
+                            addCirclePathCommand.Radius);
+                    }
+                    break;
+                case AddPolyPathCommand addPolyPathCommand:
+                    {
+                        if (addPolyPathCommand.Points != null)
+                        {
+                            skPath.AddPoly(
+                                addPolyPathCommand.Points.ToSKPoints(),
+                                addPolyPathCommand.Close);
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
         public static SKPath ToSKPath(this Path path)
         {
             var skPath = new SKPath()
@@ -880,89 +967,7 @@ namespace Svg.Skia
             {
                 foreach (var pathCommand in path.Commands)
                 {
-                    switch (pathCommand)
-                    {
-                        case MoveToPathCommand moveToPathCommand:
-                            {
-                                skPath.MoveTo(moveToPathCommand.X, moveToPathCommand.Y);
-                            }
-                            break;
-                        case LineToPathCommand lineToPathCommand:
-                            {
-                                skPath.LineTo(lineToPathCommand.X, lineToPathCommand.Y);
-                            }
-                            break;
-                        case ArcToPathCommand arcToPathCommand:
-                            {
-                                skPath.ArcTo(
-                                    arcToPathCommand.Rx,
-                                    arcToPathCommand.Ry,
-                                    arcToPathCommand.XAxisRotate,
-                                    arcToPathCommand.LargeArc.ToSKPathArcSize(),
-                                    arcToPathCommand.Sweep.ToSKPathDirection(),
-                                    arcToPathCommand.X,
-                                    arcToPathCommand.Y);
-                            }
-                            break;
-                        case QuadToPathCommand quadToPathCommand:
-                            {
-                                skPath.QuadTo(
-                                    quadToPathCommand.X0, quadToPathCommand.Y0,
-                                    quadToPathCommand.X1, quadToPathCommand.Y1);
-                            }
-                            break;
-                        case CubicToPathCommand cubicToPathCommand:
-                            {
-                                skPath.CubicTo(
-                                    cubicToPathCommand.X0, cubicToPathCommand.Y0,
-                                    cubicToPathCommand.X1, cubicToPathCommand.Y1,
-                                    cubicToPathCommand.X2, cubicToPathCommand.Y2);
-                            }
-                            break;
-                        case ClosePathCommand _:
-                            {
-                                skPath.Close();
-                            }
-                            break;
-                        case AddRectPathCommand addRectPathCommand:
-                            {
-                                skPath.AddRect(addRectPathCommand.Rect.ToSKRect());
-                            }
-                            break;
-                        case AddRoundRectPathCommand addRoundRectPathCommand:
-                            {
-                                skPath.AddRoundRect(
-                                    addRoundRectPathCommand.Rect.ToSKRect(),
-                                    addRoundRectPathCommand.Rx,
-                                    addRoundRectPathCommand.Ry);
-                            }
-                            break;
-                        case AddOvalPathCommand addOvalPathCommand:
-                            {
-                                skPath.AddOval(addOvalPathCommand.Rect.ToSKRect());
-                            }
-                            break;
-                        case AddCirclePathCommand addCirclePathCommand:
-                            {
-                                skPath.AddCircle(
-                                    addCirclePathCommand.X,
-                                    addCirclePathCommand.Y,
-                                    addCirclePathCommand.Radius);
-                            }
-                            break;
-                        case AddPolyPathCommand addPolyPathCommand:
-                            {
-                                if (addPolyPathCommand.Points != null)
-                                {
-                                    skPath.AddPoly(
-                                        addPolyPathCommand.Points.ToSKPoints(),
-                                        addPolyPathCommand.Close);
-                                }
-                            }
-                            break;
-                        default:
-                            break;
-                    }
+                    pathCommand.ToSKPath(skPath);
                 }
             }
 
@@ -980,120 +985,130 @@ namespace Svg.Skia
             using var skPictureRecorder = new SKPictureRecorder();
             using var skCanvas = skPictureRecorder.BeginRecording(skRect);
 
+            picture.Draw(skCanvas);
+
+            return skPictureRecorder.EndRecording();
+        }
+
+        public static void Draw(this PictureCommand pictureCommand, SKCanvas skCanvas)
+        {
+            switch (pictureCommand)
+            {
+                case ClipPathPictureCommand clipPathPictureCommand:
+                    {
+                        skCanvas.ClipPath(
+                            clipPathPictureCommand.Path.ToSKPath(),
+                            clipPathPictureCommand.Operation.ToSKClipOperation(),
+                            clipPathPictureCommand.Antialias);
+                    }
+                    break;
+                case ClipRectPictureCommand clipRectPictureCommand:
+                    {
+                        skCanvas.ClipRect(
+                            clipRectPictureCommand.Rect.ToSKRect(),
+                            clipRectPictureCommand.Operation.ToSKClipOperation(),
+                            clipRectPictureCommand.Antialias);
+                    }
+                    break;
+                case SavePictureCommand savePictureCommand:
+                    {
+                        skCanvas.Save();
+                    }
+                    break;
+                case RestorePictureCommand restorePictureCommand:
+                    {
+                        skCanvas.Restore();
+                    }
+                    break;
+                case SetMatrixPictureCommand setMatrixPictureCommand:
+                    {
+                        skCanvas.SetMatrix(setMatrixPictureCommand.Matrix.ToSKMatrix());
+                    }
+                    break;
+                case SaveLayerPictureCommand saveLayerPictureCommand:
+                    {
+                        if (saveLayerPictureCommand.Paint != null)
+                        {
+                            skCanvas.SaveLayer(saveLayerPictureCommand.Paint.ToSKPaint());
+                        }
+                        else
+                        {
+                            skCanvas.SaveLayer();
+                        }
+                    }
+                    break;
+                case DrawImagePictureCommand drawImagePictureCommand:
+                    {
+                        if (drawImagePictureCommand.Image != null)
+                        {
+                            skCanvas.DrawImage(
+                                drawImagePictureCommand.Image.ToSKImage(),
+                                drawImagePictureCommand.Source.ToSKRect(),
+                                drawImagePictureCommand.Dest.ToSKRect(),
+                                drawImagePictureCommand.Paint?.ToSKPaint());
+                        }
+                    }
+                    break;
+                case DrawPathPictureCommand drawPathPictureCommand:
+                    {
+                        if (drawPathPictureCommand.Path != null && drawPathPictureCommand.Paint != null)
+                        {
+                            skCanvas.DrawPath(
+                                drawPathPictureCommand.Path.ToSKPath(),
+                                drawPathPictureCommand.Paint.ToSKPaint());
+                        }
+                    }
+                    break;
+                case DrawPositionedTextPictureCommand drawPositionedTextPictureCommand:
+                    {
+                        if (drawPositionedTextPictureCommand.Points != null && drawPositionedTextPictureCommand.Paint != null)
+                        {
+                            skCanvas.DrawPositionedText(
+                                drawPositionedTextPictureCommand.Text,
+                                drawPositionedTextPictureCommand.Points.ToSKPoints(),
+                                drawPositionedTextPictureCommand.Paint.ToSKPaint());
+                        }
+                    }
+                    break;
+                case DrawTextPictureCommand drawTextPictureCommand:
+                    {
+                        if (drawTextPictureCommand.Paint != null)
+                        {
+                            skCanvas.DrawText(
+                                drawTextPictureCommand.Text,
+                                drawTextPictureCommand.X,
+                                drawTextPictureCommand.Y,
+                                drawTextPictureCommand.Paint.ToSKPaint());
+                        }
+                    }
+                    break;
+                case DrawTextOnPathPictureCommand drawTextOnPathPictureCommand:
+                    {
+                        if (drawTextOnPathPictureCommand.Path != null && drawTextOnPathPictureCommand.Paint != null)
+                        {
+                            skCanvas.DrawTextOnPath(
+                                drawTextOnPathPictureCommand.Text,
+                                drawTextOnPathPictureCommand.Path.ToSKPath(),
+                                drawTextOnPathPictureCommand.HOffset,
+                                drawTextOnPathPictureCommand.VOffset,
+                                drawTextOnPathPictureCommand.Paint.ToSKPaint());
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        public static void Draw(this Picture picture, SKCanvas skCanvas)
+        {
             if (picture.Commands != null)
             {
                 foreach (var pictureCommand in picture.Commands)
                 {
-                    switch (pictureCommand)
-                    {
-                        case ClipPathPictureCommand clipPathPictureCommand:
-                            {
-                                skCanvas.ClipPath(
-                                    clipPathPictureCommand.Path.ToSKPath(),
-                                    clipPathPictureCommand.Operation.ToSKClipOperation(),
-                                    clipPathPictureCommand.Antialias);
-                            }
-                            break;
-                        case ClipRectPictureCommand clipRectPictureCommand:
-                            {
-                                skCanvas.ClipRect(
-                                    clipRectPictureCommand.Rect.ToSKRect(),
-                                    clipRectPictureCommand.Operation.ToSKClipOperation(),
-                                    clipRectPictureCommand.Antialias);
-                            }
-                            break;
-                        case SavePictureCommand savePictureCommand:
-                            {
-                                skCanvas.Save();
-                            }
-                            break;
-                        case RestorePictureCommand restorePictureCommand:
-                            {
-                                skCanvas.Restore();
-                            }
-                            break;
-                        case SetMatrixPictureCommand setMatrixPictureCommand:
-                            {
-                                skCanvas.SetMatrix(setMatrixPictureCommand.Matrix.ToSKMatrix());
-                            }
-                            break;
-                        case SaveLayerPictureCommand saveLayerPictureCommand:
-                            {
-                                if (saveLayerPictureCommand.Paint != null)
-                                {
-                                    skCanvas.SaveLayer(saveLayerPictureCommand.Paint.ToSKPaint());
-                                }
-                                else
-                                {
-                                    skCanvas.SaveLayer();
-                                }
-                            }
-                            break;
-                        case DrawImagePictureCommand drawImagePictureCommand:
-                            {
-                                if (drawImagePictureCommand.Image != null)
-                                {
-                                    skCanvas.DrawImage(
-                                        drawImagePictureCommand.Image.ToSKImage(),
-                                        drawImagePictureCommand.Source.ToSKRect(),
-                                        drawImagePictureCommand.Dest.ToSKRect(),
-                                        drawImagePictureCommand.Paint?.ToSKPaint());
-                                }
-                            }
-                            break;
-                        case DrawPathPictureCommand drawPathPictureCommand:
-                            {
-                                if (drawPathPictureCommand.Path != null && drawPathPictureCommand.Paint != null)
-                                {
-                                    skCanvas.DrawPath(
-                                        drawPathPictureCommand.Path.ToSKPath(),
-                                        drawPathPictureCommand.Paint.ToSKPaint()); 
-                                }
-                            }
-                            break;
-                        case DrawPositionedTextPictureCommand drawPositionedTextPictureCommand:
-                            {
-                                if (drawPositionedTextPictureCommand.Points != null && drawPositionedTextPictureCommand.Paint != null)
-                                {
-                                    skCanvas.DrawPositionedText(
-                                        drawPositionedTextPictureCommand.Text,
-                                        drawPositionedTextPictureCommand.Points.ToSKPoints(),
-                                        drawPositionedTextPictureCommand.Paint.ToSKPaint()); 
-                                }
-                            }
-                            break;
-                        case DrawTextPictureCommand drawTextPictureCommand:
-                            {
-                                if (drawTextPictureCommand.Paint != null)
-                                {
-                                    skCanvas.DrawText(
-                                        drawTextPictureCommand.Text,
-                                        drawTextPictureCommand.X,
-                                        drawTextPictureCommand.Y,
-                                        drawTextPictureCommand.Paint.ToSKPaint()); 
-                                }
-                            }
-                            break;
-                        case DrawTextOnPathPictureCommand drawTextOnPathPictureCommand:
-                            {
-                                if (drawTextOnPathPictureCommand.Path != null && drawTextOnPathPictureCommand.Paint != null)
-                                {
-                                    skCanvas.DrawTextOnPath(
-                                        drawTextOnPathPictureCommand.Text,
-                                        drawTextOnPathPictureCommand.Path.ToSKPath(),
-                                        drawTextOnPathPictureCommand.HOffset,
-                                        drawTextOnPathPictureCommand.VOffset,
-                                        drawTextOnPathPictureCommand.Paint.ToSKPaint()); 
-                                }
-                            }
-                            break;
-                        default:
-                            break;
-                    }
+                    pictureCommand.Draw(skCanvas);
                 }
             }
-
-            return skPictureRecorder.EndRecording();
         }
     }
 }
