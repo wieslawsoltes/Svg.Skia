@@ -5,11 +5,11 @@ namespace Svg.Model
 {
     public class Canvas : IDisposable
     {
-        private int _count = 0;
-        private Matrix _oldTotalMatrix;
+        private int _saveCount = 0;
+        private Stack<Matrix> _totalMatrices = new Stack<Matrix>();
 
         public IList<PictureCommand>? Commands;
-        public Matrix TotalMatrix; // TODO:
+        public Matrix TotalMatrix;
 
         public Canvas()
         {
@@ -55,34 +55,30 @@ namespace Svg.Model
         public void SetMatrix(Matrix matrix)
         {
             TotalMatrix = matrix;
-            // TODO: Update TotalMatrix.
             Commands?.Add(new SetMatrixPictureCommand(matrix));
         }
 
         public int Save()
         {
-            _oldTotalMatrix = TotalMatrix;
-            // TODO: Save TotalMatrix.
-            Commands?.Add(new SavePictureCommand());
-            _count++;
-            return _count;
+            _totalMatrices.Push(TotalMatrix);
+            Commands?.Add(new SavePictureCommand(_saveCount));
+            _saveCount++;
+            return _saveCount;
         }
 
         public int SaveLayer(Paint paint)
         {
-            _oldTotalMatrix = TotalMatrix;
-            // TODO: Save TotalMatrix.
-            Commands?.Add(new SaveLayerPictureCommand(paint));
-            _count++;
-            return _count;
+            _totalMatrices.Push(TotalMatrix);
+            Commands?.Add(new SaveLayerPictureCommand(_saveCount, paint));
+            _saveCount++;
+            return _saveCount;
         }
 
         public void Restore()
         {
-            TotalMatrix = _oldTotalMatrix;
-            // TODO: Restore TotalMatrix.
-            Commands?.Add(new RestorePictureCommand());
-            _count--;
+            TotalMatrix = _totalMatrices.Pop();
+            _saveCount--;
+            Commands?.Add(new RestorePictureCommand(_saveCount));
         }
 
         public void Dispose()
