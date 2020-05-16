@@ -399,6 +399,7 @@ namespace Svg.Skia
             using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
             drawable?.Draw(skCanvas, 0f, 0f);
             return skPictureRecorder.EndRecording();
+#endif
         }
 
         public static SvgDocument? OpenSvg(string path)
