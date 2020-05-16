@@ -82,7 +82,7 @@ namespace Svg.Model
             TotalMatrix = _oldTotalMatrix;
             // TODO: Restore TotalMatrix.
             Commands?.Add(new RestorePictureCommand());
-            _count = 0;
+            _count--;
         }
 
         public void Dispose()
