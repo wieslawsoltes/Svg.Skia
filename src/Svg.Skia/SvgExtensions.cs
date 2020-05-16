@@ -4765,15 +4765,15 @@ namespace Svg.Skia
 
     internal interface IPictureSource
     {
-        void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until);
-        void Draw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until);
+        void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until);
+        void Draw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until);
     }
 
-    internal abstract class Drawable : SKDrawable, IFilterSource, IPictureSource
+    internal abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
     {
         public readonly CompositeDisposable Disposable;
         public SvgElement? Element;
-        public Drawable? Parent;
+        public DrawableBase? Parent;
         public bool IsDrawable;
         public Attributes IgnoreAttributes;
         public bool IsAntialias;
@@ -4790,7 +4790,7 @@ namespace Svg.Skia
         public SKPaint? Fill;
         public SKPaint? Stroke;
 
-        protected Drawable()
+        protected DrawableBase()
         {
             Disposable = new CompositeDisposable();
         }
@@ -4849,9 +4849,9 @@ namespace Svg.Skia
             return visible && display;
         }
 
-        public abstract void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until);
+        public abstract void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until);
 
-        public virtual void Draw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
+        public virtual void Draw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
             if (!IsDrawable)
             {
@@ -4992,7 +4992,7 @@ namespace Svg.Skia
             }
         }
 
-        public Drawable? FindContainerParentBackground(Drawable? drawable, out SKRect skClipRect)
+        public DrawableBase? FindContainerParentBackground(DrawableBase? drawable, out SKRect skClipRect)
         {
             skClipRect = SKRect.Empty;
 
@@ -5049,7 +5049,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public SKPicture? RecordGraphic(Drawable? drawable, Attributes ignoreAttributes)
+        public SKPicture? RecordGraphic(DrawableBase? drawable, Attributes ignoreAttributes)
         {
             // TODO: Record using SKColorSpace.CreateSrgbLinear because .color-interpolation-filters. is by default linearRGB.
             if (drawable == null)
@@ -5084,7 +5084,7 @@ namespace Svg.Skia
             return skPictureRecorder.EndRecording();
         }
 
-        public SKPicture? RecordBackground(Drawable? drawable, Attributes ignoreAttributes)
+        public SKPicture? RecordBackground(DrawableBase? drawable, Attributes ignoreAttributes)
         {
             // TODO: Record using SKColorSpace.CreateSrgbLinear because 'color-interpolation-filters' is by default linearRGB.
             if (drawable == null)
@@ -5135,17 +5135,17 @@ namespace Svg.Skia
         SKPaint? IFilterSource.StrokePaint() => Stroke;
     }
 
-    internal abstract class DrawablePath : Drawable
+    internal abstract class DrawablePath : DrawableBase
     {
         public SKPath? Path;
-        public List<Drawable>? MarkerDrawables;
+        public List<DrawableBase>? MarkerDrawables;
 
         protected DrawablePath()
             : base()
         {
         }
 
-        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
             if (until != null && this == until)
             {
@@ -5185,17 +5185,17 @@ namespace Svg.Skia
         }
     }
 
-    internal abstract class DrawableContainer : Drawable
+    internal abstract class DrawableContainer : DrawableBase
     {
-        public readonly List<Drawable> ChildrenDrawables;
+        public readonly List<DrawableBase> ChildrenDrawables;
 
         protected DrawableContainer()
             : base()
         {
-            ChildrenDrawables = new List<Drawable>();
+            ChildrenDrawables = new List<DrawableBase>();
         }
 
-        protected virtual void CreateChildren(SvgElement svgElement, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes)
+        protected virtual void CreateChildren(SvgElement svgElement, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes)
         {
             foreach (var child in svgElement.Children)
             {
@@ -5226,7 +5226,7 @@ namespace Svg.Skia
             }
         }
 
-        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
             if (until != null && this == until)
             {
@@ -5261,7 +5261,7 @@ namespace Svg.Skia
         {
         }
 
-        public static MaskDrawable Create(SvgMask svgMask, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static MaskDrawable Create(SvgMask svgMask, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new MaskDrawable();
 
@@ -5388,7 +5388,7 @@ namespace Svg.Skia
         {
         }
 
-        public static AnchorDrawable Create(SvgAnchor svgAnchor, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static AnchorDrawable Create(SvgAnchor svgAnchor, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new AnchorDrawable();
 
@@ -5465,7 +5465,7 @@ namespace Svg.Skia
         {
         }
 
-        public static FragmentDrawable Create(SvgFragment svgFragment, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static FragmentDrawable Create(SvgFragment svgFragment, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new FragmentDrawable();
 
@@ -5583,7 +5583,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class ImageDrawable : Drawable
+    internal class ImageDrawable : DrawableBase
     {
         public SKImage? Image;
         public FragmentDrawable? FragmentDrawable;
@@ -5596,7 +5596,7 @@ namespace Svg.Skia
         {
         }
 
-        public static ImageDrawable Create(SvgImage svgImage, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static ImageDrawable Create(SvgImage svgImage, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new ImageDrawable();
 
@@ -5778,7 +5778,7 @@ namespace Svg.Skia
             return drawable;
         }
 
-        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
             if (until != null && this == until)
             {
@@ -5816,16 +5816,16 @@ namespace Svg.Skia
         }
     }
 
-    internal class SwitchDrawable : Drawable
+    internal class SwitchDrawable : DrawableBase
     {
-        public Drawable? FirstChild;
+        public DrawableBase? FirstChild;
 
         private SwitchDrawable()
             : base()
         {
         }
 
-        public static SwitchDrawable Create(SvgSwitch svgSwitch, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static SwitchDrawable Create(SvgSwitch svgSwitch, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new SwitchDrawable();
 
@@ -5884,7 +5884,7 @@ namespace Svg.Skia
             return drawable;
         }
 
-        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
             if (until != null && this == until)
             {
@@ -5908,7 +5908,7 @@ namespace Svg.Skia
         {
         }
 
-        public static SymbolDrawable Create(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes)
+        public static SymbolDrawable Create(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes)
         {
             var drawable = new SymbolDrawable();
 
@@ -5981,16 +5981,16 @@ namespace Svg.Skia
         }
     }
 
-    internal class UseDrawable : Drawable
+    internal class UseDrawable : DrawableBase
     {
-        public Drawable? ReferencedDrawable;
+        public DrawableBase? ReferencedDrawable;
 
         private UseDrawable()
             : base()
         {
         }
 
-        public static UseDrawable Create(SvgUse svgUse, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static UseDrawable Create(SvgUse svgUse, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new UseDrawable();
 
@@ -6105,7 +6105,7 @@ namespace Svg.Skia
             return drawable;
         }
 
-        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
             if (until != null && this == until)
             {
@@ -6130,7 +6130,7 @@ namespace Svg.Skia
         {
         }
 
-        public static CircleDrawable Create(SvgCircle svgCircle, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static CircleDrawable Create(SvgCircle svgCircle, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new CircleDrawable();
 
@@ -6199,7 +6199,7 @@ namespace Svg.Skia
         {
         }
 
-        public static EllipseDrawable Create(SvgEllipse svgEllipse, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static EllipseDrawable Create(SvgEllipse svgEllipse, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new EllipseDrawable();
 
@@ -6268,7 +6268,7 @@ namespace Svg.Skia
         {
         }
 
-        public static RectangleDrawable Create(SvgRectangle svgRectangle, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static RectangleDrawable Create(SvgRectangle svgRectangle, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new RectangleDrawable();
 
@@ -6330,9 +6330,9 @@ namespace Svg.Skia
         }
     }
 
-    internal class MarkerDrawable : Drawable
+    internal class MarkerDrawable : DrawableBase
     {
-        public Drawable? MarkerElementDrawable;
+        public DrawableBase? MarkerElementDrawable;
         public SKRect? MarkerClipRect;
 
         private MarkerDrawable()
@@ -6340,7 +6340,7 @@ namespace Svg.Skia
         {
         }
 
-        public static MarkerDrawable Create(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static MarkerDrawable Create(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new MarkerDrawable();
 
@@ -6469,7 +6469,7 @@ namespace Svg.Skia
             return markerElement;
         }
 
-        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
             if (until != null && this == until)
             {
@@ -6498,7 +6498,7 @@ namespace Svg.Skia
         {
         }
 
-        public static GroupDrawable Create(SvgGroup svgGroup, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static GroupDrawable Create(SvgGroup svgGroup, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new GroupDrawable();
 
@@ -6553,7 +6553,7 @@ namespace Svg.Skia
         {
         }
 
-        public static LineDrawable Create(SvgLine svgLine, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static LineDrawable Create(SvgLine svgLine, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new LineDrawable();
 
@@ -6625,7 +6625,7 @@ namespace Svg.Skia
         {
         }
 
-        public static PathDrawable Create(SvgPath svgPath, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static PathDrawable Create(SvgPath svgPath, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new PathDrawable();
 
@@ -6696,7 +6696,7 @@ namespace Svg.Skia
         {
         }
 
-        public static PolylineDrawable Create(SvgPolyline svgPolyline, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static PolylineDrawable Create(SvgPolyline svgPolyline, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new PolylineDrawable();
 
@@ -6767,7 +6767,7 @@ namespace Svg.Skia
         {
         }
 
-        public static PolygonDrawable Create(SvgPolygon svgPolygon, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static PolygonDrawable Create(SvgPolygon svgPolygon, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new PolygonDrawable();
 
@@ -6831,7 +6831,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class TextDrawable : Drawable
+    internal class TextDrawable : DrawableBase
     {
         private static readonly Regex s_multipleSpaces = new Regex(@" {2,}", RegexOptions.Compiled);
 
@@ -6844,7 +6844,7 @@ namespace Svg.Skia
         {
         }
 
-        public static TextDrawable Create(SvgText svgText, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static TextDrawable Create(SvgText svgText, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new TextDrawable();
 
@@ -7026,7 +7026,7 @@ namespace Svg.Skia
             }
         }
 
-        internal void EndDraw(SKCanvas skCanvas, Attributes ignoreAttributes, MaskDrawable? maskDrawable, SKPaint? maskDstIn, SKPaint? skPaintOpacity, SKPaint? skPaintFilter, Drawable? until)
+        internal void EndDraw(SKCanvas skCanvas, Attributes ignoreAttributes, MaskDrawable? maskDrawable, SKPaint? maskDstIn, SKPaint? skPaintOpacity, SKPaint? skPaintFilter, DrawableBase? until)
         {
             var enableMask = !ignoreAttributes.HasFlag(Attributes.Mask);
             var enableOpacity = !ignoreAttributes.HasFlag(Attributes.Opacity);
@@ -7053,7 +7053,7 @@ namespace Svg.Skia
             skCanvas.Restore();
         }
 
-        internal void DrawTextString(SvgTextBase svgTextBase, string text, float x, float y, SKRect skOwnerBounds, Attributes ignoreAttributes, SKCanvas skCanvas, Drawable? until)
+        internal void DrawTextString(SvgTextBase svgTextBase, string text, float x, float y, SKRect skOwnerBounds, Attributes ignoreAttributes, SKCanvas skCanvas, DrawableBase? until)
         {
             // TODO: Calculate correct bounds.
             var skBounds = skOwnerBounds;
@@ -7097,7 +7097,7 @@ namespace Svg.Skia
             }
         }
 
-        internal void DrawTextBase(SvgTextBase svgTextBase, string? text, float currentX, float currentY, SKRect skOwnerBounds, Attributes ignoreAttributes, SKCanvas skCanvas, Drawable? until)
+        internal void DrawTextBase(SvgTextBase svgTextBase, string? text, float currentX, float currentY, SKRect skOwnerBounds, Attributes ignoreAttributes, SKCanvas skCanvas, DrawableBase? until)
         {
             // TODO: Fix SvgTextBase rendering.
             bool isValidFill = SvgExtensions.IsValidFill(svgTextBase);
@@ -7164,7 +7164,7 @@ namespace Svg.Skia
             }
         }
 
-        internal void DrawTextPath(SvgTextPath svgTextPath, float currentX, float currentY, SKRect skOwnerBounds, Attributes ignoreAttributes, SKCanvas skCanvas, Drawable? until)
+        internal void DrawTextPath(SvgTextPath svgTextPath, float currentX, float currentY, SKRect skOwnerBounds, Attributes ignoreAttributes, SKCanvas skCanvas, DrawableBase? until)
         {
             if (!CanDraw(svgTextPath, ignoreAttributes) || !HasFeatures(svgTextPath, ignoreAttributes))
             {
@@ -7241,7 +7241,7 @@ namespace Svg.Skia
             EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, until);
         }
 
-        internal void DrawTextRef(SvgTextRef svgTextRef, float currentX, float currentY, SKRect skOwnerBounds, Attributes ignoreAttributes, SKCanvas skCanvas, Drawable? until)
+        internal void DrawTextRef(SvgTextRef svgTextRef, float currentX, float currentY, SKRect skOwnerBounds, Attributes ignoreAttributes, SKCanvas skCanvas, DrawableBase? until)
         {
             if (!CanDraw(svgTextRef, ignoreAttributes) || !HasFeatures(svgTextRef, ignoreAttributes))
             {
@@ -7276,7 +7276,7 @@ namespace Svg.Skia
             EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, until);
         }
 
-        internal void DrawTextSpan(SvgTextSpan svgTextSpan, float currentX, float currentY, SKRect skOwnerBounds, Attributes ignoreAttributes, SKCanvas skCanvas, Drawable? until)
+        internal void DrawTextSpan(SvgTextSpan svgTextSpan, float currentX, float currentY, SKRect skOwnerBounds, Attributes ignoreAttributes, SKCanvas skCanvas, DrawableBase? until)
         {
             if (!CanDraw(svgTextSpan, ignoreAttributes) || !HasFeatures(svgTextSpan, ignoreAttributes))
             {
@@ -7300,7 +7300,7 @@ namespace Svg.Skia
             EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, until);
         }
 
-        internal void DrawText(SvgText svgText, SKRect skOwnerBounds, Attributes ignoreAttributes, SKCanvas skCanvas, Drawable? until)
+        internal void DrawText(SvgText svgText, SKRect skOwnerBounds, Attributes ignoreAttributes, SKCanvas skCanvas, DrawableBase? until)
         {
             if (!CanDraw(svgText, ignoreAttributes) || !HasFeatures(svgText, ignoreAttributes))
             {
@@ -7363,7 +7363,7 @@ namespace Svg.Skia
             EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, until);
         }
 
-        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
             if (until != null && this == until)
             {
@@ -7373,7 +7373,7 @@ namespace Svg.Skia
             // TODO: Currently using custom OnDraw override.
         }
 
-        public override void Draw(SKCanvas canvas, Attributes ignoreAttributes, Drawable? until)
+        public override void Draw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
             if (until != null && this == until)
             {
@@ -7400,7 +7400,7 @@ namespace Svg.Skia
 
     internal static class DrawableFactory
     {
-        public static Drawable? Create(SvgElement svgElement, SKRect skOwnerBounds, Drawable? parent, Attributes ignoreAttributes = Attributes.None)
+        public static DrawableBase? Create(SvgElement svgElement, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
             return svgElement switch
             {
