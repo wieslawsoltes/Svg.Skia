@@ -1,37 +1,35 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Svg.Model
 {
     public class PictureRecorder : IDisposable
     {
-        private Canvas _recordingCanvas;
-        private Rect _cullRect;
-
-        public Canvas RecordingCanvas => _recordingCanvas;
-
-        public PictureRecorder()
-        {
-            _recordingCanvas = new Canvas()
-            {
-                Commands = new List<PictureCommand>()
-            };
-        }
+        public Rect CullRect;
+        public Canvas? RecordingCanvas;
 
         public Canvas BeginRecording(Rect cullRect)
         {
-            _cullRect = cullRect;
-            _recordingCanvas.Commands?.Clear();
-            return _recordingCanvas;
+            CullRect = cullRect;
+
+            RecordingCanvas = new Canvas();
+            RecordingCanvas.Commands?.Clear();
+
+            return RecordingCanvas;
         }
 
         public Picture EndRecording()
         {
-            return new Picture()
+            var picture = new Picture()
             {
-                CullRect = _cullRect,
-                Commands = _recordingCanvas.Commands
+                CullRect = CullRect,
+                Commands = RecordingCanvas?.Commands
             };
+
+            CullRect = Rect.Empty;
+            RecordingCanvas = null;
+
+            return picture;
         }
 
         public void Dispose()
