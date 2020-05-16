@@ -61,14 +61,35 @@ namespace Svg.Model
             Persp2 = persp2;
         }
 
+        private static float MulAddMul(float a, float b, float c, float d)
+        {
+            return (float)((double)a * (double)b + (double)c * (double)d);
+        }
+
+        private static Matrix Concat(Matrix a, Matrix b) 
+        {
+            return new Matrix
+            {
+                ScaleX = MulAddMul(a.ScaleX, b.ScaleX, a.SkewX, b.SkewY),
+                SkewX = MulAddMul(a.ScaleX, b.SkewX, a.SkewX, b.ScaleY),
+                TransX = MulAddMul(a.ScaleX, b.TransX, a.SkewX, b.TransY) + a.TransX,
+                SkewY = MulAddMul(a.SkewY, b.ScaleX, a.ScaleY, b.SkewY),
+                ScaleY = MulAddMul(a.SkewY, b.SkewX, a.ScaleY, b.ScaleY),
+                TransY = MulAddMul(a.SkewY, b.TransX, a.ScaleY, b.TransY) + a.TransY,
+                Persp0 = 0,
+                Persp1 = 0,
+                Persp2 = 1
+            };
+        }
+
         public readonly Matrix PreConcat(Matrix matrix)
         {
-            throw new NotImplementedException(); // TODO:
+            return Concat(this, matrix);
         }
 
         public readonly Matrix PostConcat(Matrix matrix)
         {
-            throw new NotImplementedException(); // TODO:
+            return Concat(matrix, this);
         }
 
         public readonly Rect MapRect(Rect source)
