@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace Svg.Model
 {
     public struct Rect
@@ -9,6 +11,8 @@ namespace Svg.Model
         public float Bottom;
 
         public static readonly Rect Empty;
+
+        public bool IsEmpty => Left == default && Top == default && Right == default && Bottom == default;
 
         public float Width => Right - Left;
 
