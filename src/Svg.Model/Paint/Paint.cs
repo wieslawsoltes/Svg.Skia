@@ -24,6 +24,29 @@ namespace Svg.Model
         public BlendMode BlendMode;
         public FilterQuality FilterQuality;
 
+        public Paint()
+        {
+            Style = PaintStyle.Fill;
+            IsAntialias = false;
+            StrokeWidth = 0;
+            StrokeCap = StrokeCap.Butt;
+            StrokeJoin = StrokeJoin.Miter;
+            StrokeMiter = 4;
+            Typeface = null;
+            TextSize = 12;
+            TextAlign = TextAlign.Left;
+            LcdRenderText = false;
+            SubpixelText = false;
+            TextEncoding = TextEncoding.Utf8;
+            Color = new Color(0x00, 0x00, 0x00, 0xFF);
+            Shader = null;
+            ColorFilter = null;
+            ImageFilter = null;
+            PathEffect = null;
+            BlendMode = BlendMode.SrcOver;
+            FilterQuality = FilterQuality.None;
+        }
+
         public void Dispose()
         {
         }
