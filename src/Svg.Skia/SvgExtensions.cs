@@ -5137,8 +5137,9 @@ namespace Svg.Skia
     internal abstract class DrawablePath : DrawableBase
     {
         public SKPath? Path;
+#if !USE_MODEL
         public List<DrawableBase>? MarkerDrawables;
-
+#endif
         protected DrawablePath()
             : base()
         {
