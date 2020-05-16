@@ -3,10 +3,10 @@
     public class DrawTextOnPathPictureCommand : PictureCommand
     {
         public string Text;
-        public Path Path;
+        public Path? Path;
         public float HOffset;
         public float VOffset;
-        public Paint Paint;
+        public Paint? Paint;
 
         public DrawTextOnPathPictureCommand(string text, Path path, float hOffset, float vOffset, Paint paint)
         {
