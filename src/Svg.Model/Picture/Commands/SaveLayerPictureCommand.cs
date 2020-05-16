@@ -2,14 +2,17 @@
 {
     public class SaveLayerPictureCommand : PictureCommand
     {
+        public int Count;
         public Paint? Paint;
 
-        public SaveLayerPictureCommand()
+        public SaveLayerPictureCommand(int count)
         {
+            Count = count;
         }
 
-        public SaveLayerPictureCommand(Paint paint)
+        public SaveLayerPictureCommand(int count, Paint paint)
         {
+            Count = count;
             Paint = paint;
         }
     }
