@@ -1972,7 +1972,7 @@ namespace Svg.Skia
 
             return skMatrixTotal;
         }
-#if !USE_MODEL
+#if !USE_MODEL // TODO:
         public static List<(SKPoint Point, byte Type)> GetPathTypes(this SKPath skPath)
         {
             // System.Drawing.Drawing2D.GraphicsPath.PathTypes
@@ -2877,7 +2877,7 @@ namespace Svg.Skia
                 }
             }
         }
-#if !USE_MODEL
+#if !USE_MODEL // TODO:
         public static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skOwnerBounds, ref List<Drawable>? markerDrawables, CompositeDisposable disposable, Attributes ignoreAttributes = Attributes.None)
         {
             float fAngle1 = 0f;
@@ -4942,7 +4942,7 @@ namespace Svg.Skia
             var enableOpacity = !IgnoreAttributes.HasFlag(Attributes.Opacity);
             var enableFilter = !IgnoreAttributes.HasFlag(Attributes.Filter);
 
-#if USE_MODEL
+#if USE_MODEL // TODO:
             ClipPath = null;
 #else
             if (visualElement != null && enableClip == true)
@@ -5526,7 +5526,7 @@ namespace Svg.Skia
                     break;
             }
 
-#if USE_MODEL
+#if USE_MODEL // TODO:
             drawable.ClipPath = null;
 #else
             var clipPathUris = new HashSet<Uri>();
@@ -6608,7 +6608,7 @@ namespace Svg.Skia
                 return drawable;
             }
 
-#if !USE_MODEL
+#if !USE_MODEL // TODO:
             SvgExtensions.CreateMarkers(svgLine, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
 #endif
             // TODO: Transform _skBounds using _skMatrix.
@@ -6679,7 +6679,7 @@ namespace Svg.Skia
                 drawable.IsDrawable = false;
                 return drawable;
             }
-#if !USE_MODEL
+#if !USE_MODEL // TODO:
             SvgExtensions.CreateMarkers(svgPath, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
 #endif
             // TODO: Transform _skBounds using _skMatrix.
@@ -6750,7 +6750,7 @@ namespace Svg.Skia
                 drawable.IsDrawable = false;
                 return drawable;
             }
-#if !USE_MODEL
+#if !USE_MODEL // TODO:
             SvgExtensions.CreateMarkers(svgPolyline, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
 #endif
             // TODO: Transform _skBounds using _skMatrix.
@@ -6821,7 +6821,7 @@ namespace Svg.Skia
                 drawable.IsDrawable = false;
                 return drawable;
             }
-#if !USE_MODEL
+#if !USE_MODEL // TODO:
             SvgExtensions.CreateMarkers(svgPolygon, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
 #endif
             // TODO: Transform _skBounds using _skMatrix.
@@ -6952,6 +6952,7 @@ namespace Svg.Skia
             skMatrixTotal = skMatrixTotal.PreConcat(skMatrix);
             skCanvas.SetMatrix(skMatrixTotal);
 
+#if !USE_MODEL // TODO:
             if (enableClip == true)
             {
                 var skPathClip = SvgExtensions.GetSvgVisualElementClipPath(svgTextBase, skBounds, new HashSet<Uri>(), disposable);
@@ -6960,7 +6961,8 @@ namespace Svg.Skia
                     bool antialias = SvgExtensions.IsAntialias(svgTextBase);
                     skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
                 }
-            }
+            } 
+#endif
 
             if (enableMask == true)
             {
@@ -7186,8 +7188,10 @@ namespace Svg.Skia
                 return;
             }
 
+#if !USE_MODEL // TODO:
             var skMatrixPath = SvgExtensions.ToSKMatrix(svgPath.Transforms);
-            skPath.Transform(skMatrixPath);
+            skPath.Transform(skMatrixPath); 
+#endif
 
             // TODO: Implement StartOffset
             var startOffset = svgTextPath.StartOffset.ToDeviceValue(UnitRenderingType.Other, svgTextPath, skOwnerBounds);
