@@ -13,7 +13,6 @@ namespace Svg.Model
             CullRect = cullRect;
 
             RecordingCanvas = new Canvas();
-            RecordingCanvas.Commands?.Clear();
 
             return RecordingCanvas;
         }
