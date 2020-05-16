@@ -12,6 +12,11 @@ namespace Svg.Model
 
         public Rect Bounds => Rect.Empty; // TODO:
 
+        public Path()
+        {
+            Commands = new List<PathCommand>();
+        }
+
         public void MoveTo(float x, float y)
         {
             Commands?.Add(new MoveToPathCommand(x, y));
