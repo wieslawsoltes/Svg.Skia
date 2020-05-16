@@ -215,6 +215,7 @@ namespace Svg.Skia
             {
                 return null;
             }
+
             return SKTypeface.FromFamilyName(
                     typeface.FamilyName,
                     typeface.Weight.ToSKFontStyleWeight(),
