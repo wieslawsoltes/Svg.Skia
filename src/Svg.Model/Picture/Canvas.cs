@@ -9,60 +9,60 @@ namespace Svg.Model
         private int _saveCount = 0;
         private Stack<Matrix> _totalMatrices = new Stack<Matrix>();
 
-        public IList<PictureCommand>? Commands;
+        public IList<CanvasCommand>? Commands;
         public Matrix TotalMatrix;
 
         public Canvas()
         {
-            Commands = new List<PictureCommand>();
+            Commands = new List<CanvasCommand>();
             TotalMatrix = Matrix.Identity;
         }
 
         public void ClipPath(Path path, ClipOperation operation = ClipOperation.Intersect, bool antialias = false)
         {
-            Commands?.Add(new ClipPathPictureCommand(path, operation, antialias));
+            Commands?.Add(new ClipPathCanvasCommand(path, operation, antialias));
         }
 
         public void ClipRect(Rect rect, ClipOperation operation = ClipOperation.Intersect, bool antialias = false)
         {
-            Commands?.Add(new ClipRectPictureCommand(rect, operation, antialias));
+            Commands?.Add(new ClipRectCanvasCommand(rect, operation, antialias));
         }
 
         public void DrawImage(Image image, Rect source, Rect dest, Paint? paint = null)
         {
-            Commands?.Add(new DrawImagePictureCommand(image, source, dest, paint));
+            Commands?.Add(new DrawImageCanvasCommand(image, source, dest, paint));
         }
 
         public void DrawPath(Path path, Paint paint)
         {
-            Commands?.Add(new DrawPathPictureCommand(path, paint));
+            Commands?.Add(new DrawPathCanvasCommand(path, paint));
         }
 
         public void DrawPositionedText(string text, Point[] points, Paint paint)
         {
-            Commands?.Add(new DrawPositionedTextPictureCommand(text, points, paint));
+            Commands?.Add(new DrawPositionedTextCanvasCommand(text, points, paint));
         }
 
         public void DrawText(string text, float x, float y, Paint paint)
         {
-            Commands?.Add(new DrawTextPictureCommand(text, x, y, paint));
+            Commands?.Add(new DrawTextCanvasCommand(text, x, y, paint));
         }
 
         public void DrawTextOnPath(string text, Path path, float hOffset, float vOffset, Paint paint)
         {
-            Commands?.Add(new DrawTextOnPathPictureCommand(text, path, hOffset, vOffset, paint));
+            Commands?.Add(new DrawTextOnPathCanvasCommand(text, path, hOffset, vOffset, paint));
         }
 
         public void SetMatrix(Matrix matrix)
         {
             TotalMatrix = matrix;
-            Commands?.Add(new SetMatrixPictureCommand(matrix));
+            Commands?.Add(new SetMatrixCanvasCommand(matrix));
         }
 
         public int Save()
         {
             _totalMatrices.Push(TotalMatrix);
-            Commands?.Add(new SavePictureCommand(_saveCount));
+            Commands?.Add(new SaveCanvasCommand(_saveCount));
             _saveCount++;
             return _saveCount;
         }
@@ -70,7 +70,7 @@ namespace Svg.Model
         public int SaveLayer(Paint paint)
         {
             _totalMatrices.Push(TotalMatrix);
-            Commands?.Add(new SaveLayerPictureCommand(_saveCount, paint));
+            Commands?.Add(new SaveLayerCanvasCommand(_saveCount, paint));
             _saveCount++;
             return _saveCount;
         }
@@ -86,7 +86,7 @@ namespace Svg.Model
                 TotalMatrix = _totalMatrices.Pop();
                 _saveCount--;
             }
-            Commands?.Add(new RestorePictureCommand(_saveCount));
+            Commands?.Add(new RestoreCanvasCommand(_saveCount));
         }
 
         public void Dispose()

@@ -1,6 +1,6 @@
 ﻿namespace Svg.Model
 {
-    public class DrawTextOnPathPictureCommand : PictureCommand
+    public class DrawTextOnPathCanvasCommand : CanvasCommand
     {
         public string Text;
         public Path? Path;
@@ -8,7 +8,7 @@
         public float VOffset;
         public Paint? Paint;
 
-        public DrawTextOnPathPictureCommand(string text, Path path, float hOffset, float vOffset, Paint paint)
+        public DrawTextOnPathCanvasCommand(string text, Path path, float hOffset, float vOffset, Paint paint)
         {
             Text = text;
             Path = path;

@@ -1,10 +1,10 @@
 ﻿namespace Svg.Model
 {
-    public class SavePictureCommand : PictureCommand
+    public class RestoreCanvasCommand : CanvasCommand
     {
         public int Count;
 
-        public SavePictureCommand(int count)
+        public RestoreCanvasCommand(int count)
         {
             Count = count;
         }

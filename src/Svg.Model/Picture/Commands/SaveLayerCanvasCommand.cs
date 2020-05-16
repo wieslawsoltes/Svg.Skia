@@ -1,16 +1,16 @@
 ﻿namespace Svg.Model
 {
-    public class SaveLayerPictureCommand : PictureCommand
+    public class SaveLayerCanvasCommand : CanvasCommand
     {
         public int Count;
         public Paint? Paint;
 
-        public SaveLayerPictureCommand(int count)
+        public SaveLayerCanvasCommand(int count)
         {
             Count = count;
         }
 
-        public SaveLayerPictureCommand(int count, Paint paint)
+        public SaveLayerCanvasCommand(int count, Paint paint)
         {
             Count = count;
             Paint = paint;

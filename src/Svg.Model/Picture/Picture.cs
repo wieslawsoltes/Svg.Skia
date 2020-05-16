@@ -6,7 +6,7 @@ namespace Svg.Model
     public class Picture : IDisposable
     {
         public Rect CullRect;
-        public IList<PictureCommand>? Commands;
+        public IList<CanvasCommand>? Commands;
 
         public void Dispose()
         {

@@ -1021,47 +1021,47 @@ namespace Svg.Skia
             return skPictureRecorder.EndRecording();
         }
 
-        public static void Draw(this PictureCommand pictureCommand, SKCanvas skCanvas)
+        public static void Draw(this CanvasCommand canvasCommand, SKCanvas skCanvas)
         {
-            switch (pictureCommand)
+            switch (canvasCommand)
             {
-                case ClipPathPictureCommand clipPathPictureCommand:
+                case ClipPathCanvasCommand clipPathCanvasCommand:
                     {
-                        var path = clipPathPictureCommand.Path.ToSKPath();
-                        var operation = clipPathPictureCommand.Operation.ToSKClipOperation();
-                        var antialias = clipPathPictureCommand.Antialias;
+                        var path = clipPathCanvasCommand.Path.ToSKPath();
+                        var operation = clipPathCanvasCommand.Operation.ToSKClipOperation();
+                        var antialias = clipPathCanvasCommand.Antialias;
                         skCanvas.ClipPath(path, operation, antialias);
                     }
                     break;
-                case ClipRectPictureCommand clipRectPictureCommand:
+                case ClipRectCanvasCommand clipRectCanvasCommand:
                     {
-                        var rect = clipRectPictureCommand.Rect.ToSKRect();
-                        var operation = clipRectPictureCommand.Operation.ToSKClipOperation();
-                        var antialias = clipRectPictureCommand.Antialias;
+                        var rect = clipRectCanvasCommand.Rect.ToSKRect();
+                        var operation = clipRectCanvasCommand.Operation.ToSKClipOperation();
+                        var antialias = clipRectCanvasCommand.Antialias;
                         skCanvas.ClipRect(rect, operation, antialias);
                     }
                     break;
-                case SavePictureCommand _:
+                case SaveCanvasCommand _:
                     {
                         skCanvas.Save();
                     }
                     break;
-                case RestorePictureCommand _:
+                case RestoreCanvasCommand _:
                     {
                         skCanvas.Restore();
                     }
                     break;
-                case SetMatrixPictureCommand setMatrixPictureCommand:
+                case SetMatrixCanvasCommand setMatrixCanvasCommand:
                     {
-                        var matrix = setMatrixPictureCommand.Matrix.ToSKMatrix();
+                        var matrix = setMatrixCanvasCommand.Matrix.ToSKMatrix();
                         skCanvas.SetMatrix(matrix);
                     }
                     break;
-                case SaveLayerPictureCommand saveLayerPictureCommand:
+                case SaveLayerCanvasCommand saveLayerCanvasCommand:
                     {
-                        if (saveLayerPictureCommand.Paint != null)
+                        if (saveLayerCanvasCommand.Paint != null)
                         {
-                            var paint = saveLayerPictureCommand.Paint.ToSKPaint();
+                            var paint = saveLayerCanvasCommand.Paint.ToSKPaint();
                             skCanvas.SaveLayer(paint);
                         }
                         else
@@ -1070,60 +1070,60 @@ namespace Svg.Skia
                         }
                     }
                     break;
-                case DrawImagePictureCommand drawImagePictureCommand:
+                case DrawImageCanvasCommand drawImageCanvasCommand:
                     {
-                        if (drawImagePictureCommand.Image != null)
+                        if (drawImageCanvasCommand.Image != null)
                         {
-                            var image = drawImagePictureCommand.Image.ToSKImage();
-                            var source = drawImagePictureCommand.Source.ToSKRect();
-                            var dest = drawImagePictureCommand.Dest.ToSKRect();
-                            var paint = drawImagePictureCommand.Paint?.ToSKPaint();
+                            var image = drawImageCanvasCommand.Image.ToSKImage();
+                            var source = drawImageCanvasCommand.Source.ToSKRect();
+                            var dest = drawImageCanvasCommand.Dest.ToSKRect();
+                            var paint = drawImageCanvasCommand.Paint?.ToSKPaint();
                             skCanvas.DrawImage(image, source, dest, paint);
                         }
                     }
                     break;
-                case DrawPathPictureCommand drawPathPictureCommand:
+                case DrawPathCanvasCommand drawPathCanvasCommand:
                     {
-                        if (drawPathPictureCommand.Path != null && drawPathPictureCommand.Paint != null)
+                        if (drawPathCanvasCommand.Path != null && drawPathCanvasCommand.Paint != null)
                         {
-                            var path = drawPathPictureCommand.Path.ToSKPath();
-                            var paint = drawPathPictureCommand.Paint.ToSKPaint();
+                            var path = drawPathCanvasCommand.Path.ToSKPath();
+                            var paint = drawPathCanvasCommand.Paint.ToSKPaint();
                             skCanvas.DrawPath(path, paint);
                         }
                     }
                     break;
-                case DrawPositionedTextPictureCommand drawPositionedTextPictureCommand:
+                case DrawPositionedTextCanvasCommand drawPositionedTextCanvasCommand:
                     {
-                        if (drawPositionedTextPictureCommand.Points != null && drawPositionedTextPictureCommand.Paint != null)
+                        if (drawPositionedTextCanvasCommand.Points != null && drawPositionedTextCanvasCommand.Paint != null)
                         {
-                            var text = drawPositionedTextPictureCommand.Text;
-                            var points = drawPositionedTextPictureCommand.Points.ToSKPoints();
-                            var paint = drawPositionedTextPictureCommand.Paint.ToSKPaint();
+                            var text = drawPositionedTextCanvasCommand.Text;
+                            var points = drawPositionedTextCanvasCommand.Points.ToSKPoints();
+                            var paint = drawPositionedTextCanvasCommand.Paint.ToSKPaint();
                             skCanvas.DrawPositionedText(text, points, paint);
                         }
                     }
                     break;
-                case DrawTextPictureCommand drawTextPictureCommand:
+                case DrawTextCanvasCommand drawTextCanvasCommand:
                     {
-                        if (drawTextPictureCommand.Paint != null)
+                        if (drawTextCanvasCommand.Paint != null)
                         {
-                            var text = drawTextPictureCommand.Text;
-                            var x = drawTextPictureCommand.X;
-                            var y = drawTextPictureCommand.Y;
-                            var paint = drawTextPictureCommand.Paint.ToSKPaint();
+                            var text = drawTextCanvasCommand.Text;
+                            var x = drawTextCanvasCommand.X;
+                            var y = drawTextCanvasCommand.Y;
+                            var paint = drawTextCanvasCommand.Paint.ToSKPaint();
                             skCanvas.DrawText(text, x, y, paint);
                         }
                     }
                     break;
-                case DrawTextOnPathPictureCommand drawTextOnPathPictureCommand:
+                case DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand:
                     {
-                        if (drawTextOnPathPictureCommand.Path != null && drawTextOnPathPictureCommand.Paint != null)
+                        if (drawTextOnPathCanvasCommand.Path != null && drawTextOnPathCanvasCommand.Paint != null)
                         {
-                            var text = drawTextOnPathPictureCommand.Text;
-                            var path = drawTextOnPathPictureCommand.Path.ToSKPath();
-                            var hOffset = drawTextOnPathPictureCommand.HOffset;
-                            var vOffset = drawTextOnPathPictureCommand.VOffset;
-                            var paint = drawTextOnPathPictureCommand.Paint.ToSKPaint();
+                            var text = drawTextOnPathCanvasCommand.Text;
+                            var path = drawTextOnPathCanvasCommand.Path.ToSKPath();
+                            var hOffset = drawTextOnPathCanvasCommand.HOffset;
+                            var vOffset = drawTextOnPathCanvasCommand.VOffset;
+                            var paint = drawTextOnPathCanvasCommand.Paint.ToSKPaint();
                             skCanvas.DrawTextOnPath(text, path, hOffset, vOffset, paint);
                         }
                     }
@@ -1140,9 +1140,9 @@ namespace Svg.Skia
                 return;
             }
 
-            foreach (var pictureCommand in picture.Commands)
+            foreach (var canvasCommand in picture.Commands)
             {
-                pictureCommand.Draw(skCanvas);
+                canvasCommand.Draw(skCanvas);
             }
         }
     }

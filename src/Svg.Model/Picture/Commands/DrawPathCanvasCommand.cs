@@ -1,11 +1,11 @@
 ﻿namespace Svg.Model
 {
-    public class DrawPathPictureCommand : PictureCommand
+    public class DrawPathCanvasCommand : CanvasCommand
     {
         public Path? Path;
         public Paint? Paint;
 
-        public DrawPathPictureCommand(Path path, Paint paint)
+        public DrawPathCanvasCommand(Path path, Paint paint)
         {
             Path = path;
             Paint = paint;

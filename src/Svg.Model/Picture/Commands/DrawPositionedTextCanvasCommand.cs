@@ -1,12 +1,12 @@
 ﻿namespace Svg.Model
 {
-    public class DrawPositionedTextPictureCommand : PictureCommand
+    public class DrawPositionedTextCanvasCommand : CanvasCommand
     {
         public string Text;
         public Point[]? Points;
         public Paint? Paint;
 
-        public DrawPositionedTextPictureCommand(string text, Point[] points, Paint paint)
+        public DrawPositionedTextCanvasCommand(string text, Point[] points, Paint paint)
         {
             Text = text;
             Points = points;

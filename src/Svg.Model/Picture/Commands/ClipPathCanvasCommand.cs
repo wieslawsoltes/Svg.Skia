@@ -1,14 +1,14 @@
 ﻿namespace Svg.Model
 {
-    public class ClipRectPictureCommand : PictureCommand
+    public class ClipPathCanvasCommand : CanvasCommand
     {
-        public Rect Rect;
+        public Path Path;
         public ClipOperation Operation;
         public bool Antialias;
 
-        public ClipRectPictureCommand(Rect rect, ClipOperation operation, bool antialias)
+        public ClipPathCanvasCommand(Path path, ClipOperation operation, bool antialias)
         {
-            Rect = rect;
+            Path = path;
             Operation = operation;
             Antialias = antialias;
         }

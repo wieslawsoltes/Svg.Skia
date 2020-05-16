@@ -1,10 +1,10 @@
 ﻿namespace Svg.Model
 {
-    public class SetMatrixPictureCommand : PictureCommand
+    public class SetMatrixCanvasCommand : CanvasCommand
     {
         public Matrix Matrix;
 
-        public SetMatrixPictureCommand(Matrix matrix)
+        public SetMatrixCanvasCommand(Matrix matrix)
         {
             Matrix = matrix;
         }
