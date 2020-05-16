@@ -4,6 +4,11 @@ namespace Svg.Model
 {
     public abstract class Drawable : IDisposable
     {
+        public Picture Snapshot()
+        {
+            throw new NotImplementedException();
+        }
+
         protected virtual void OnDraw(Canvas canvas)
         {
         }
