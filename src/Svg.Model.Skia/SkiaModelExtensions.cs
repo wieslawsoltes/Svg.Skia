@@ -211,16 +211,19 @@ namespace Svg.Skia
 
         public static SKTypeface? ToSKTypeface(this Typeface? typeface)
         {
-            if (typeface == null || typeface.FamilyName == null)
+            if (typeface == null)
             {
                 return null;
             }
 
-            return SKTypeface.FromFamilyName(
-                    typeface.FamilyName,
-                    typeface.Weight.ToSKFontStyleWeight(),
-                    typeface.Width.ToSKFontStyleWidth(),
-                    typeface.Style.ToSKFontStyleSlant());
+            var familyName = typeface.FamilyName;
+            var weight = typeface.Weight.ToSKFontStyleWeight();
+            var width = typeface.Width.ToSKFontStyleWidth();
+            var slant = typeface.Style.ToSKFontStyleSlant();
+
+            // TODO: SKSvgSettings.s_typefaceProviders
+
+            return SKTypeface.FromFamilyName(familyName, weight, width, slant);
         }
 
         public static SKColor ToSKColor(this Color color)
@@ -798,27 +801,41 @@ namespace Svg.Skia
 
         public static SKPaint ToSKPaint(this Paint paint)
         {
+            var style = paint.Style.ToSKPaintStyle();
+            var strokeCap = paint.StrokeCap.ToSKStrokeCap();
+            var strokeJoin = paint.StrokeJoin.ToSKStrokeJoin();
+            var textAlign = paint.TextAlign.ToSKTextAlign();
+            var typeface = paint.Typeface?.ToSKTypeface();
+            var textEncoding = paint.TextEncoding.ToSKTextEncoding();
+            var color = paint.Color == null ? SKColor.Empty : ToSKColor(paint.Color.Value);
+            var shader = paint.Shader?.ToSKShader();
+            var colorFilter = paint.ColorFilter?.ToSKColorFilter();
+            var imageFilter = paint.ImageFilter?.ToSKImageFilter();
+            var pathEffect = paint.PathEffect?.ToSKPathEffect();
+            var blendMode = paint.BlendMode.ToSKBlendMode();
+            var filterQuality = paint.FilterQuality.ToSKFilterQuality();
+
             return new SKPaint()
             {
-                Style = paint.Style.ToSKPaintStyle(),
+                Style = style,
                 IsAntialias = paint.IsAntialias,
                 StrokeWidth = paint.StrokeWidth,
-                StrokeCap = paint.StrokeCap.ToSKStrokeCap(),
-                StrokeJoin = paint.StrokeJoin.ToSKStrokeJoin(),
+                StrokeCap = strokeCap,
+                StrokeJoin = strokeJoin,
                 StrokeMiter = paint.StrokeMiter,
                 TextSize = paint.TextSize,
-                TextAlign = paint.TextAlign.ToSKTextAlign(),
-                Typeface = paint.Typeface?.ToSKTypeface(),
+                TextAlign = textAlign,
+                Typeface = typeface,
                 LcdRenderText = paint.LcdRenderText,
                 SubpixelText = paint.SubpixelText,
-                TextEncoding = paint.TextEncoding.ToSKTextEncoding(),
-                Color = paint.Color == null ? SKColor.Empty : ToSKColor(paint.Color.Value),
-                Shader = paint.Shader?.ToSKShader(),
-                ColorFilter = paint.ColorFilter?.ToSKColorFilter(),
-                ImageFilter = paint.ImageFilter?.ToSKImageFilter(),
-                PathEffect = paint.PathEffect?.ToSKPathEffect(),
-                BlendMode = paint.BlendMode.ToSKBlendMode(),
-                FilterQuality = paint.FilterQuality.ToSKFilterQuality()
+                TextEncoding = textEncoding,
+                Color = color,
+                Shader = shader,
+                ColorFilter = colorFilter,
+                ImageFilter = imageFilter,
+                PathEffect = pathEffect,
+                BlendMode = blendMode,
+                FilterQuality = filterQuality
             };
         }
 
@@ -876,39 +893,48 @@ namespace Svg.Skia
             {
                 case MoveToPathCommand moveToPathCommand:
                     {
-                        skPath.MoveTo(moveToPathCommand.X, moveToPathCommand.Y);
+                        var x = moveToPathCommand.X;
+                        var y = moveToPathCommand.Y;
+                        skPath.MoveTo(x, y);
                     }
                     break;
                 case LineToPathCommand lineToPathCommand:
                     {
-                        skPath.LineTo(lineToPathCommand.X, lineToPathCommand.Y);
+                        var x = lineToPathCommand.X;
+                        var y = lineToPathCommand.Y;
+                        skPath.LineTo(x, y);
                     }
                     break;
                 case ArcToPathCommand arcToPathCommand:
                     {
-                        skPath.ArcTo(
-                            arcToPathCommand.Rx,
-                            arcToPathCommand.Ry,
-                            arcToPathCommand.XAxisRotate,
-                            arcToPathCommand.LargeArc.ToSKPathArcSize(),
-                            arcToPathCommand.Sweep.ToSKPathDirection(),
-                            arcToPathCommand.X,
-                            arcToPathCommand.Y);
+                        var rx = arcToPathCommand.Rx;
+                        var ry = arcToPathCommand.Ry;
+                        var xAxisRotate = arcToPathCommand.XAxisRotate;
+                        var largeArc = arcToPathCommand.LargeArc.ToSKPathArcSize();
+                        var sweep = arcToPathCommand.Sweep.ToSKPathDirection();
+                        var x = arcToPathCommand.X;
+                        var y = arcToPathCommand.Y;
+                        skPath.ArcTo(rx, ry, xAxisRotate, largeArc, sweep, x, y);
                     }
                     break;
                 case QuadToPathCommand quadToPathCommand:
                     {
-                        skPath.QuadTo(
-                            quadToPathCommand.X0, quadToPathCommand.Y0,
-                            quadToPathCommand.X1, quadToPathCommand.Y1);
+                        var x0 = quadToPathCommand.X0;
+                        var y0 = quadToPathCommand.Y0;
+                        var x1 = quadToPathCommand.X1;
+                        var y1 = quadToPathCommand.Y1;
+                        skPath.QuadTo(x0, y0, x1, y1);
                     }
                     break;
                 case CubicToPathCommand cubicToPathCommand:
                     {
-                        skPath.CubicTo(
-                            cubicToPathCommand.X0, cubicToPathCommand.Y0,
-                            cubicToPathCommand.X1, cubicToPathCommand.Y1,
-                            cubicToPathCommand.X2, cubicToPathCommand.Y2);
+                        var x0 = cubicToPathCommand.X0;
+                        var y0 = cubicToPathCommand.Y0;
+                        var x1 = cubicToPathCommand.X1;
+                        var y1 = cubicToPathCommand.Y1;
+                        var x2 = cubicToPathCommand.X2;
+                        var y2 = cubicToPathCommand.Y2;
+                        skPath.CubicTo(x0, y0, x1, y1, x2, y2);
                     }
                     break;
                 case ClosePathCommand _:
@@ -918,37 +944,39 @@ namespace Svg.Skia
                     break;
                 case AddRectPathCommand addRectPathCommand:
                     {
-                        skPath.AddRect(addRectPathCommand.Rect.ToSKRect());
+                        var rect = addRectPathCommand.Rect.ToSKRect();
+                        skPath.AddRect(rect);
                     }
                     break;
                 case AddRoundRectPathCommand addRoundRectPathCommand:
                     {
-                        skPath.AddRoundRect(
-                            addRoundRectPathCommand.Rect.ToSKRect(),
-                            addRoundRectPathCommand.Rx,
-                            addRoundRectPathCommand.Ry);
+                        var rect = addRoundRectPathCommand.Rect.ToSKRect();
+                        var rx = addRoundRectPathCommand.Rx;
+                        var ry = addRoundRectPathCommand.Ry;
+                        skPath.AddRoundRect(rect, rx, ry);
                     }
                     break;
                 case AddOvalPathCommand addOvalPathCommand:
                     {
-                        skPath.AddOval(addOvalPathCommand.Rect.ToSKRect());
+                        var rect = addOvalPathCommand.Rect.ToSKRect();
+                        skPath.AddOval(rect);
                     }
                     break;
                 case AddCirclePathCommand addCirclePathCommand:
                     {
-                        skPath.AddCircle(
-                            addCirclePathCommand.X,
-                            addCirclePathCommand.Y,
-                            addCirclePathCommand.Radius);
+                        var x = addCirclePathCommand.X;
+                        var y = addCirclePathCommand.Y;
+                        var radius = addCirclePathCommand.Radius;
+                        skPath.AddCircle(x, y, radius);
                     }
                     break;
                 case AddPolyPathCommand addPolyPathCommand:
                     {
                         if (addPolyPathCommand.Points != null)
                         {
-                            skPath.AddPoly(
-                                addPolyPathCommand.Points.ToSKPoints(),
-                                addPolyPathCommand.Close);
+                            var points = addPolyPathCommand.Points.ToSKPoints();
+                            var close = addPolyPathCommand.Close;
+                            skPath.AddPoly(points, close);
                         }
                     }
                     break;
@@ -999,18 +1027,18 @@ namespace Svg.Skia
             {
                 case ClipPathPictureCommand clipPathPictureCommand:
                     {
-                        skCanvas.ClipPath(
-                            clipPathPictureCommand.Path.ToSKPath(),
-                            clipPathPictureCommand.Operation.ToSKClipOperation(),
-                            clipPathPictureCommand.Antialias);
+                        var path = clipPathPictureCommand.Path.ToSKPath();
+                        var operation = clipPathPictureCommand.Operation.ToSKClipOperation();
+                        var antialias = clipPathPictureCommand.Antialias;
+                        skCanvas.ClipPath(path, operation, antialias);
                     }
                     break;
                 case ClipRectPictureCommand clipRectPictureCommand:
                     {
-                        skCanvas.ClipRect(
-                            clipRectPictureCommand.Rect.ToSKRect(),
-                            clipRectPictureCommand.Operation.ToSKClipOperation(),
-                            clipRectPictureCommand.Antialias);
+                        var rect = clipRectPictureCommand.Rect.ToSKRect();
+                        var operation = clipRectPictureCommand.Operation.ToSKClipOperation();
+                        var antialias = clipRectPictureCommand.Antialias;
+                        skCanvas.ClipRect(rect, operation, antialias);
                     }
                     break;
                 case SavePictureCommand _:
@@ -1025,14 +1053,16 @@ namespace Svg.Skia
                     break;
                 case SetMatrixPictureCommand setMatrixPictureCommand:
                     {
-                        skCanvas.SetMatrix(setMatrixPictureCommand.Matrix.ToSKMatrix());
+                        var matrix = setMatrixPictureCommand.Matrix.ToSKMatrix();
+                        skCanvas.SetMatrix(matrix);
                     }
                     break;
                 case SaveLayerPictureCommand saveLayerPictureCommand:
                     {
                         if (saveLayerPictureCommand.Paint != null)
                         {
-                            skCanvas.SaveLayer(saveLayerPictureCommand.Paint.ToSKPaint());
+                            var paint = saveLayerPictureCommand.Paint.ToSKPaint();
+                            skCanvas.SaveLayer(paint);
                         }
                         else
                         {
@@ -1044,11 +1074,11 @@ namespace Svg.Skia
                     {
                         if (drawImagePictureCommand.Image != null)
                         {
-                            skCanvas.DrawImage(
-                                drawImagePictureCommand.Image.ToSKImage(),
-                                drawImagePictureCommand.Source.ToSKRect(),
-                                drawImagePictureCommand.Dest.ToSKRect(),
-                                drawImagePictureCommand.Paint?.ToSKPaint());
+                            var image = drawImagePictureCommand.Image.ToSKImage();
+                            var source = drawImagePictureCommand.Source.ToSKRect();
+                            var dest = drawImagePictureCommand.Dest.ToSKRect();
+                            var paint = drawImagePictureCommand.Paint?.ToSKPaint();
+                            skCanvas.DrawImage(image, source, dest, paint);
                         }
                     }
                     break;
@@ -1056,9 +1086,9 @@ namespace Svg.Skia
                     {
                         if (drawPathPictureCommand.Path != null && drawPathPictureCommand.Paint != null)
                         {
-                            skCanvas.DrawPath(
-                                drawPathPictureCommand.Path.ToSKPath(),
-                                drawPathPictureCommand.Paint.ToSKPaint());
+                            var path = drawPathPictureCommand.Path.ToSKPath();
+                            var paint = drawPathPictureCommand.Paint.ToSKPaint();
+                            skCanvas.DrawPath(path, paint);
                         }
                     }
                     break;
@@ -1066,10 +1096,10 @@ namespace Svg.Skia
                     {
                         if (drawPositionedTextPictureCommand.Points != null && drawPositionedTextPictureCommand.Paint != null)
                         {
-                            skCanvas.DrawPositionedText(
-                                drawPositionedTextPictureCommand.Text,
-                                drawPositionedTextPictureCommand.Points.ToSKPoints(),
-                                drawPositionedTextPictureCommand.Paint.ToSKPaint());
+                            var text = drawPositionedTextPictureCommand.Text;
+                            var points = drawPositionedTextPictureCommand.Points.ToSKPoints();
+                            var paint = drawPositionedTextPictureCommand.Paint.ToSKPaint();
+                            skCanvas.DrawPositionedText(text, points, paint);
                         }
                     }
                     break;
@@ -1077,11 +1107,11 @@ namespace Svg.Skia
                     {
                         if (drawTextPictureCommand.Paint != null)
                         {
-                            skCanvas.DrawText(
-                                drawTextPictureCommand.Text,
-                                drawTextPictureCommand.X,
-                                drawTextPictureCommand.Y,
-                                drawTextPictureCommand.Paint.ToSKPaint());
+                            var text = drawTextPictureCommand.Text;
+                            var x = drawTextPictureCommand.X;
+                            var y = drawTextPictureCommand.Y;
+                            var paint = drawTextPictureCommand.Paint.ToSKPaint();
+                            skCanvas.DrawText(text, x, y, paint);
                         }
                     }
                     break;
@@ -1089,12 +1119,12 @@ namespace Svg.Skia
                     {
                         if (drawTextOnPathPictureCommand.Path != null && drawTextOnPathPictureCommand.Paint != null)
                         {
-                            skCanvas.DrawTextOnPath(
-                                drawTextOnPathPictureCommand.Text,
-                                drawTextOnPathPictureCommand.Path.ToSKPath(),
-                                drawTextOnPathPictureCommand.HOffset,
-                                drawTextOnPathPictureCommand.VOffset,
-                                drawTextOnPathPictureCommand.Paint.ToSKPaint());
+                            var text = drawTextOnPathPictureCommand.Text;
+                            var path = drawTextOnPathPictureCommand.Path.ToSKPath();
+                            var hOffset = drawTextOnPathPictureCommand.HOffset;
+                            var vOffset = drawTextOnPathPictureCommand.VOffset;
+                            var paint = drawTextOnPathPictureCommand.Paint.ToSKPaint();
+                            skCanvas.DrawTextOnPath(text, path, hOffset, vOffset, paint);
                         }
                     }
                     break;
