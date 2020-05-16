@@ -368,6 +368,14 @@ namespace Svg.Skia
 
         public static SKPicture? ToPicture(SvgFragment svgFragment)
         {
+#if USE_MODEL
+            var picture = ToModel(svgFragment);
+            if (picture != null)
+            {
+                return picture.ToSKPicture();
+            }
+            return null;
+#else
             var skSize = SvgExtensions.GetDimensions(svgFragment);
             var skBounds = SKRect.Create(skSize);
             using var drawable = DrawableFactory.Create(svgFragment, skBounds, null, Attributes.None);
@@ -379,12 +387,12 @@ namespace Svg.Skia
 
             if (skBounds.IsEmpty)
             {
-                var bounds = drawable.Bounds;
+                var drawableBounds = drawable.Bounds;
                 skBounds = SKRect.Create(
                     0f,
                     0f,
-                    Math.Abs(bounds.Left) + bounds.Width,
-                    Math.Abs(bounds.Top) + bounds.Height);
+                    Math.Abs(drawableBounds.Left) + drawableBounds.Width,
+                    Math.Abs(drawableBounds.Top) + drawableBounds.Height);
             }
 
             using var skPictureRecorder = new SKPictureRecorder();
