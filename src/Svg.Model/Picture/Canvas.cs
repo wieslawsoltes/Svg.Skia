@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Svg.Model
 {
@@ -76,8 +77,15 @@ namespace Svg.Model
 
         public void Restore()
         {
-            TotalMatrix = _totalMatrices.Pop();
-            _saveCount--;
+            if (_totalMatrices.Count == 0)
+            {
+                Debug.WriteLine($"Invalid Save and Restore balance.");
+            }
+            else
+            {
+                TotalMatrix = _totalMatrices.Pop();
+                _saveCount--;
+            }
             Commands?.Add(new RestorePictureCommand(_saveCount));
         }
 
