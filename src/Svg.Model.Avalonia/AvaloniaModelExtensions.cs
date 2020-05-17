@@ -612,8 +612,14 @@ namespace Svg.Skia
                             var fontSize = drawTextCanvasCommand.Paint.TextSize;
                             // TODO: drawTextCanvasCommand.Paint.LcdRenderText
                             // TODO: drawTextCanvasCommand.Paint.SubpixelText
-                            var ft = new AM.FormattedText(text, typeface, fontSize, textAlignment, AM.TextWrapping.NoWrap, A.Size.Empty);
-
+                            var ft = new AM.FormattedText()
+                            {
+                                Text = text,
+                                Typeface = typeface,
+                                FontSize = fontSize,
+                                TextAlignment = textAlignment,
+                                TextWrapping = AM.TextWrapping.NoWrap
+                            };
                             context.DrawText(brush, origin, ft);
                         }
                     }
