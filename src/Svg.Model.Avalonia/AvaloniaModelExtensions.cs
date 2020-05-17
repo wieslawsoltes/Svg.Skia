@@ -604,7 +604,8 @@ namespace Svg.Skia
                             var x = drawTextCanvasCommand.X;
                             var y = drawTextCanvasCommand.Y;
                             var origin = new A.Point(x, y);
-                            (var brush, var pen) = drawTextCanvasCommand.Paint.ToBrushAndPen();
+
+                            (var brush, _) = drawTextCanvasCommand.Paint.ToBrushAndPen();
 
                             var text = drawTextCanvasCommand.Text;
                             var typeface = drawTextCanvasCommand.Paint.Typeface?.ToTypeface();
