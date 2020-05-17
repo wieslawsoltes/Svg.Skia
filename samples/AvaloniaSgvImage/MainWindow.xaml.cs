@@ -25,8 +25,11 @@ namespace AvaloniaSgvImage
             _svgSourceDockPanel = this.FindControl<DockPanel>("svgSourceDockPanel");
             _svgResourceDockPanel = this.FindControl<DockPanel>("svgResourceDockPanel");
 
-            AddHandler(DragDrop.DropEvent, Drop);
-            AddHandler(DragDrop.DragOverEvent, DragOver);
+            _svgSourceDockPanel.AddHandler(DragDrop.DropEvent, Drop);
+            _svgSourceDockPanel.AddHandler(DragDrop.DragOverEvent, DragOver);
+
+            _svgResourceDockPanel.AddHandler(DragDrop.DropEvent, Drop);
+            _svgResourceDockPanel.AddHandler(DragDrop.DragOverEvent, DragOver);
         }
 
         private void InitializeComponent()
@@ -69,7 +72,7 @@ namespace AvaloniaSgvImage
                 var fileName = e.Data.GetFileNames()?.FirstOrDefault();
                 if (!string.IsNullOrWhiteSpace(fileName))
                 {
-                    if (e.Source == _svgSourceDockPanel)
+                    if (sender == _svgSourceDockPanel)
                     {
                         var svg = new SvgSource();
 #if USE_MODEL
@@ -98,7 +101,7 @@ namespace AvaloniaSgvImage
 #endif
                     }
 
-                    if (e.Source == _svgResourceDockPanel)
+                    if (sender == _svgResourceDockPanel)
                     {
 #if USE_MODEL
                         var svg = new SvgSource();
