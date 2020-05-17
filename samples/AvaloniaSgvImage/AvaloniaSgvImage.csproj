@@ -21,6 +21,10 @@
   <Import Project="..\..\build\Avalonia.props" />
   <Import Project="..\..\build\Avalonia.Desktop.props" />
 
+  <PropertyGroup>
+    <!--<DefineConstants>$(DefineConstants);USE_MODEL</DefineConstants>-->
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Svg.Skia.Avalonia\Svg.Skia.Avalonia.csproj" />
   </ItemGroup>
