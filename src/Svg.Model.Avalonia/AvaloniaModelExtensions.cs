@@ -243,7 +243,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static AM.IBrush? ToLinearGradientBrush(TwoPointConicalGradientShader twoPointConicalGradientShader)
+        public static AM.IBrush? ToRadialGradientBrush(TwoPointConicalGradientShader twoPointConicalGradientShader)
         {
             if (twoPointConicalGradientShader.Colors != null && twoPointConicalGradientShader.ColorPos != null)
             {
@@ -287,7 +287,7 @@ namespace Svg.Skia
                 case LinearGradientShader linearGradientShader:
                     return ToLinearGradientBrush(linearGradientShader);
                 case TwoPointConicalGradientShader twoPointConicalGradientShader:
-                    return ToLinearGradientBrush(twoPointConicalGradientShader);
+                    return ToRadialGradientBrush(twoPointConicalGradientShader);
                 case PictureShader pictureShader:
                     // TODO:
                     return null;
