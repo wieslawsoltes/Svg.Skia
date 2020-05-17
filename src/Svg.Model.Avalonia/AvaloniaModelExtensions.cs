@@ -703,12 +703,16 @@ namespace Svg.Skia
                 return;
             }
 
+            var transformContainerState = context.PushTransformContainer();
+
             var pushedStates = new Stack<Stack<IDisposable>>();
 
             foreach (var canvasCommand in picture.Commands)
             {
                 canvasCommand.Draw(context, pushedStates);
             }
+
+            transformContainerState.Dispose();
         }
     }
 }
