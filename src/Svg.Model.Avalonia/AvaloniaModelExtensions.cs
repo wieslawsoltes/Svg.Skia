@@ -616,7 +616,8 @@ namespace Svg.Skia
                                     case AddOvalPathCommand addOvalPathCommand:
                                         {
                                             var rect = addOvalPathCommand.Rect.ToSKRect();
-                                            // TODO:
+                                            var ellipseGeometry = new AM.EllipseGeometry(rect);
+                                            context.DrawGeometry(brush, pen, ellipseGeometry);
                                             success = true;
                                         }
                                         break;
