@@ -647,6 +647,19 @@ namespace Svg.Skia
                                     break;
                                 }
                             }
+                            if (drawPathCanvasCommand.Path.Commands?.Count == 2)
+                            {
+                                var pathCommand1 = drawPathCanvasCommand.Path.Commands[0];
+                                var pathCommand2 = drawPathCanvasCommand.Path.Commands[1];
+
+                                if (pathCommand1 is MoveToPathCommand moveTo && pathCommand2 is LineToPathCommand lineTo)
+                                {
+                                    var p1 = new A.Point(moveTo.X, moveTo.Y);
+                                    var p2 = new A.Point(lineTo.X, lineTo.Y);
+                                    context.DrawLine(pen, p1, p2);
+                                    break;
+                                }
+                            }
 
                             var geometry = drawPathCanvasCommand.Path.ToGeometry();
                             context.DrawGeometry(brush, pen, geometry);
