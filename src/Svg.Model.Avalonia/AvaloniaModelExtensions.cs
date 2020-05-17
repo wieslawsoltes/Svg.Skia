@@ -534,20 +534,20 @@ namespace Svg.Skia
                         // TODO:
                         throw new NotImplementedException();
                     }
-                //break;
+                    //break;
                 case RestoreCanvasCommand _:
                     {
                         // TODO:
                         throw new NotImplementedException();
                     }
-                //break;
+                    //break;
                 case SetMatrixCanvasCommand setMatrixCanvasCommand:
                     {
                         var matrix = setMatrixCanvasCommand.Matrix.ToMatrix();
                         // TODO:
                         throw new NotImplementedException();
                     }
-                //break;
+                    //break;
                 case SaveLayerCanvasCommand saveLayerCanvasCommand:
                     {
                         // TODO:
