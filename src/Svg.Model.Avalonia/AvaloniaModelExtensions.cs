@@ -586,8 +586,69 @@ namespace Svg.Skia
                     {
                         if (drawPathCanvasCommand.Path != null && drawPathCanvasCommand.Paint != null)
                         {
-                            var geometry = drawPathCanvasCommand.Path.ToGeometry();
                             (var brush, var pen) = drawPathCanvasCommand.Paint.ToBrushAndPen();
+
+                            if (drawPathCanvasCommand.Path.Commands?.Count == 1)
+                            {
+                                var pathCommand = drawPathCanvasCommand.Path.Commands[0];
+                                var success = false;
+
+                                switch (pathCommand)
+                                {
+                                    case AddRectPathCommand addRectPathCommand:
+                                        {
+                                            var rect = addRectPathCommand.Rect.ToSKRect();
+                                            context.DrawRectangle(brush, pen, rect);
+                                            success = true;
+                                        }
+                                        break;
+                                    case AddRoundRectPathCommand addRoundRectPathCommand:
+                                        {
+                                            var rect = addRoundRectPathCommand.Rect.ToSKRect();
+                                            var rx = addRoundRectPathCommand.Rx;
+                                            var ry = addRoundRectPathCommand.Ry;
+                                            context.DrawRectangle(brush, pen, rect, rx, ry);
+                                            success = true;
+                                        }
+                                        break;
+                                    /*
+                                    case AddOvalPathCommand addOvalPathCommand:
+                                        {
+                                            var rect = addOvalPathCommand.Rect.ToSKRect();
+                                            // TODO:
+                                            success = true;
+                                        }
+                                        break;
+                                    case AddCirclePathCommand addCirclePathCommand:
+                                        {
+                                            var x = addCirclePathCommand.X;
+                                            var y = addCirclePathCommand.Y;
+                                            var radius = addCirclePathCommand.Radius;
+                                            // TODO:
+                                            success = true;
+                                        }
+                                        break;
+                                    case AddPolyPathCommand addPolyPathCommand:
+                                        {
+                                            if (addPolyPathCommand.Points != null)
+                                            {
+                                                var points = addPolyPathCommand.Points.ToPoints();
+                                                var close = addPolyPathCommand.Close;
+                                                // TODO:
+                                                success = true;
+                                            }
+                                        }
+                                        break;
+                                    */
+                                }
+
+                                if (success)
+                                {
+                                    break;
+                                }
+                            }
+
+                            var geometry = drawPathCanvasCommand.Path.ToGeometry();
                             context.DrawGeometry(brush, pen, geometry);
                         }
                     }
