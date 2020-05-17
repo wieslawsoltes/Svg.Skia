@@ -556,10 +556,10 @@ namespace Svg.Skia
                     {
                         var matrix = setMatrixCanvasCommand.Matrix.ToMatrix();
                         // TODO:
-                        var transformContainerState = context.PushTransformContainer();
+                        //var transformContainerState = context.PushTransformContainer();
                         var transformPreTransform = context.PushPreTransform(matrix);
                         var currentPushedStates = pushedStates.Peek();
-                        currentPushedStates.Push(transformContainerState);
+                        //currentPushedStates.Push(transformContainerState);
                         currentPushedStates.Push(transformPreTransform);
                     }
                     break;
