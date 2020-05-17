@@ -613,7 +613,6 @@ namespace Svg.Skia
                                             success = true;
                                         }
                                         break;
-                                    /*
                                     case AddOvalPathCommand addOvalPathCommand:
                                         {
                                             var rect = addOvalPathCommand.Rect.ToSKRect();
@@ -641,7 +640,6 @@ namespace Svg.Skia
                                             }
                                         }
                                         break;
-                                    */
                                 }
 
                                 if (success)
