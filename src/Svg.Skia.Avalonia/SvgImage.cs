@@ -161,10 +161,10 @@ namespace Svg.Skia.Avalonia
         }
 
         /// <inheritdoc/>
-        protected override void OnPropertyChanged<T>(AvaloniaProperty<T> property, Optional<T> oldValue, BindingValue<T> newValue, BindingPriority priority)
+        protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
         {
-            base.OnPropertyChanged(property, oldValue, newValue, priority);
-            if (property == SourceProperty)
+            base.OnPropertyChanged(change);
+            if (change.Property == SourceProperty)
             {
                 RaiseInvalidated(EventArgs.Empty);
             }
