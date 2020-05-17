@@ -441,6 +441,11 @@ namespace Svg.Skia
             };
         }
 
+        public static SvgDocument? Open(Stream stream)
+        {
+            return SvgDocument.Open<SvgDocument>(stream, null);
+        }
+
         public SKPicture? Picture { get; set; }
 
         public SKPicture? Load(Stream stream)
