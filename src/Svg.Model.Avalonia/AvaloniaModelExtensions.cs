@@ -626,7 +626,9 @@ namespace Svg.Skia
                                             var x = addCirclePathCommand.X;
                                             var y = addCirclePathCommand.Y;
                                             var radius = addCirclePathCommand.Radius;
-                                            // TODO:
+                                            var rect = new A.Rect(x - radius, y - radius, radius + radius, radius + radius);
+                                            var ellipseGeometry = new AM.EllipseGeometry(rect);
+                                            context.DrawGeometry(brush, pen, ellipseGeometry);
                                             success = true;
                                         }
                                         break;
