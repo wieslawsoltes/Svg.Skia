@@ -638,7 +638,8 @@ namespace Svg.Skia
                                             {
                                                 var points = addPolyPathCommand.Points.ToPoints();
                                                 var close = addPolyPathCommand.Close;
-                                                // TODO:
+                                                var polylineGeometry = new AM.PolylineGeometry(points, close);
+                                                context.DrawGeometry(brush, pen, polylineGeometry);
                                                 success = true;
                                             }
                                         }
