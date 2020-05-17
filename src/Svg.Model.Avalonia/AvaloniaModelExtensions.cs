@@ -509,7 +509,7 @@ namespace Svg.Skia
             return streamGeometry;
         }
 
-        public static void Draw(this CanvasCommand canvasCommand, AM.DrawingContext context)
+        public static void Draw(this CanvasCommand canvasCommand, AM.DrawingContext context, Stack<Stack<IDisposable>> pushedStates)
         {
             switch (canvasCommand)
             {
@@ -518,7 +518,9 @@ namespace Svg.Skia
                         var path = clipPathCanvasCommand.Path.ToGeometry();
                         // TODO: clipPathCanvasCommand.Operation;
                         // TODO: clipPathCanvasCommand.Antialias;
-                        context.PushGeometryClip(path);
+                        var geometryPushedState = context.PushGeometryClip(path);
+                        var currentPushedStates = pushedStates.Peek();
+                        currentPushedStates.Push(geometryPushedState);
                     }
                     break;
                 case ClipRectCanvasCommand clipRectCanvasCommand:
@@ -526,31 +528,46 @@ namespace Svg.Skia
                         var rect = clipRectCanvasCommand.Rect.ToSKRect();
                         // TODO: clipRectCanvasCommand.Operation;
                         // TODO: clipRectCanvasCommand.Antialias;
-                        context.PushClip(rect);
+                        var clipPushedState = context.PushClip(rect);
+                        var currentPushedStates = pushedStates.Peek();
+                        currentPushedStates.Push(clipPushedState);
                     }
                     break;
                 case SaveCanvasCommand _:
                     {
                         // TODO:
-                        throw new NotImplementedException();
+                        //throw new NotImplementedException();
+                        pushedStates.Push(new Stack<IDisposable>());
                     }
-                    //break;
+                    break;
                 case RestoreCanvasCommand _:
                     {
                         // TODO:
-                        throw new NotImplementedException();
+                        //throw new NotImplementedException();
+                        var currentPushedStates = pushedStates.Pop();
+                        while (currentPushedStates.Count > 0)
+                        {
+                            var pushedState = currentPushedStates.Pop();
+                            pushedState.Dispose();
+                        }
                     }
-                    //break;
+                    break;
                 case SetMatrixCanvasCommand setMatrixCanvasCommand:
                     {
                         var matrix = setMatrixCanvasCommand.Matrix.ToMatrix();
                         // TODO:
-                        throw new NotImplementedException();
+                        var transformContainerState = context.PushTransformContainer();
+                        var transformPreTransform = context.PushPreTransform(matrix);
+                        var currentPushedStates = pushedStates.Peek();
+                        currentPushedStates.Push(transformContainerState);
+                        currentPushedStates.Push(transformPreTransform);
                     }
-                    //break;
+                    break;
                 case SaveLayerCanvasCommand saveLayerCanvasCommand:
                     {
                         // TODO:
+                        //throw new NotImplementedException();
+                        pushedStates.Push(new Stack<IDisposable>());
                     }
                     break;
                 case DrawImageCanvasCommand drawImageCanvasCommand:
@@ -618,9 +635,11 @@ namespace Svg.Skia
                 return;
             }
 
+            var pushedStates = new Stack<Stack<IDisposable>>();
+
             foreach (var canvasCommand in picture.Commands)
             {
-                canvasCommand.Draw(context);
+                canvasCommand.Draw(context, pushedStates);
             }
         }
     }
