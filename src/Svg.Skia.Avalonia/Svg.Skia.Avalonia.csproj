@@ -32,4 +32,8 @@
     <Compile Include="**\*.cs" Exclude="obj\**" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <!--<DefineConstants>$(DefineConstants);USE_MODEL</DefineConstants>-->
+  </PropertyGroup>
+
 </Project>
