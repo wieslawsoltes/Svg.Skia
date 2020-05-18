@@ -351,6 +351,27 @@ namespace Svg.Skia
             return (brush, pen);
         }
 
+        public static AM.FormattedText ToFormattedText(this Paint paint, string text)
+        {
+            var typeface = paint.Typeface?.ToTypeface();
+            var textAlignment = paint.TextAlign.ToTextAlignment();
+            var fontSize = paint.TextSize;
+            // TODO: paint.TextEncoding
+            // TODO: paint.LcdRenderText
+            // TODO: paint.SubpixelText
+
+            var ft = new AM.FormattedText()
+            {
+                Text = text,
+                Typeface = typeface,
+                FontSize = fontSize,
+                TextAlignment = textAlignment,
+                TextWrapping = AM.TextWrapping.NoWrap
+            };
+
+            return ft;
+        }
+
         public static AM.FillRule ToSKPathFillType(this PathFillType pathFillType)
         {
             switch (pathFillType)
@@ -635,31 +656,12 @@ namespace Svg.Skia
                     {
                         if (drawTextCanvasCommand.Paint != null)
                         {
-                            var paint = drawTextCanvasCommand.Paint;
+                            (var brush, _) = drawTextCanvasCommand.Paint.ToBrushAndPen();
+                            var text = drawTextCanvasCommand.Paint.ToFormattedText(drawTextCanvasCommand.Text);
                             var x = drawTextCanvasCommand.X;
                             var y = drawTextCanvasCommand.Y;
                             var origin = new A.Point(x, y);
-
-                            (var brush, _) = paint.ToBrushAndPen();
-
-                            var text = drawTextCanvasCommand.Text;
-                            var typeface = paint.Typeface?.ToTypeface();
-                            var textAlignment = paint.TextAlign.ToTextAlignment();
-                            var fontSize = paint.TextSize;
-                            // TODO: paint.TextEncoding
-                            // TODO: paint.LcdRenderText
-                            // TODO: paint.SubpixelText
-
-                            var ft = new AM.FormattedText()
-                            {
-                                Text = text,
-                                Typeface = typeface,
-                                FontSize = fontSize,
-                                TextAlignment = textAlignment,
-                                TextWrapping = AM.TextWrapping.NoWrap
-                            };
-
-                            context.DrawText(brush, origin, ft);
+                            context.DrawText(brush, origin, text);
                         }
                     }
                     break;
