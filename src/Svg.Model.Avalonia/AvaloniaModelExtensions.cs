@@ -383,10 +383,13 @@ namespace Svg.Skia
 
         public static void ToStreamGeometry(this PathCommand pathCommand, AM.StreamGeometryContext streamGeometryContext)
         {
+            bool endFigure = false;
+
             switch (pathCommand)
             {
                 case MoveToPathCommand moveToPathCommand:
                     {
+                        endFigure = true;
                         var x = moveToPathCommand.X;
                         var y = moveToPathCommand.Y;
                         var point = new A.Point(x, y);
@@ -442,6 +445,7 @@ namespace Svg.Skia
                     break;
                 case ClosePathCommand _:
                     {
+                        endFigure = false;
                         streamGeometryContext.EndFigure(true);
                     }
                     break;
@@ -485,6 +489,11 @@ namespace Svg.Skia
                     break;
                 default:
                     break;
+            }
+
+            if (endFigure)
+            {
+                streamGeometryContext.EndFigure(false);
             }
         }
 
