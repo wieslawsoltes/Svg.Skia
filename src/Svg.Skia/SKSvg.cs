@@ -7,6 +7,7 @@ using System.Linq;
 using SkiaSharp;
 #if USE_MODEL
 using Svg.Model;
+using Svg.Model.Skia;
 #endif
 
 namespace Svg.Skia
