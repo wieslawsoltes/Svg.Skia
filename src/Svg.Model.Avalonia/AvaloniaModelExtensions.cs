@@ -517,14 +517,12 @@ namespace Svg.Skia
                 case SaveCanvasCommand _:
                     {
                         // TODO:
-                        //throw new NotImplementedException();
                         pushedStates.Push(new Stack<IDisposable>());
                     }
                     break;
                 case RestoreCanvasCommand _:
                     {
                         // TODO:
-                        //throw new NotImplementedException();
                         var currentPushedStates = pushedStates.Pop();
                         while (currentPushedStates.Count > 0)
                         {
@@ -544,7 +542,6 @@ namespace Svg.Skia
                 case SaveLayerCanvasCommand saveLayerCanvasCommand:
                     {
                         // TODO:
-                        //throw new NotImplementedException();
                         pushedStates.Push(new Stack<IDisposable>());
                     }
                     break;
