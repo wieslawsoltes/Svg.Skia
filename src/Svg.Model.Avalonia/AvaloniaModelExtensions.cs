@@ -41,8 +41,8 @@ namespace Svg.Skia
         {
             return new A.Matrix(
                 matrix.ScaleX,
-                matrix.SkewX,
                 matrix.SkewY,
+                matrix.SkewX,
                 matrix.ScaleY,
                 matrix.TransX,
                 matrix.TransY);
