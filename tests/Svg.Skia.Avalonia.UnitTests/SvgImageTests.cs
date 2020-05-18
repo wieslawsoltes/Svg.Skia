@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !USE_MODEL
+using System;
 using Avalonia;
 using Avalonia.Platform;
 using Avalonia.Shared.PlatformSupport;
@@ -27,3 +28,4 @@ namespace Svg.Skia.Avalonia.UnitTests
         }
     }
 }
+#endif

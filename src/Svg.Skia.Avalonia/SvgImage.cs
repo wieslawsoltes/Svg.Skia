@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using Avalonia;
 using Avalonia.Data;
@@ -46,26 +47,54 @@ namespace Svg.Skia.Avalonia
             var svg = new SvgSource();
             if (uri.IsAbsoluteUri && uri.IsFile)
             {
+#if USE_MODEL
+                var document = SKSvg.Open(uri.LocalPath);
+                if (document != null)
+                {
+                    svg.Picture = SKSvg.ToModel(document);
+                }
+#else
                 svg.Load(uri.LocalPath);
+#endif
                 return svg;
             }
             else
             {
                 var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
+#if USE_MODEL
+                var document = SKSvg.Open(assets.Open(uri, context.GetContextBaseUri()));
+                if (document != null)
+                {
+                    svg.Picture = SKSvg.ToModel(document);
+                }
+#else
                 svg.Load(assets.Open(uri, context.GetContextBaseUri()));
+#endif
             }
             return svg;
         }
     }
 
+#if USE_MODEL
+    /// <summary>
+    /// Represents a Svg based image.
+    /// </summary>
+    [TypeConverter(typeof(SvgSourceTypeConverter))]
+    public class SvgSource
+    {
+        public Svg.Model.Picture? Picture { get; set; }
+    }
+#else
     /// <summary>
     /// Represents a <see cref="SKPicture"/> based image.
     /// </summary>
     [TypeConverter(typeof(SvgSourceTypeConverter))]
     public class SvgSource : SKSvg
     {
-    }
+    } 
+#endif
 
+#if !USE_MODEL
     internal class SvgCustomDrawOperation : ICustomDrawOperation
     {
         private readonly SvgSource _svg;
@@ -102,6 +131,7 @@ namespace Svg.Skia.Avalonia
             canvas.Restore();
         }
     }
+#endif
 
     /// <summary>
     /// An <see cref="IImage"/> that uses a <see cref="SvgSource"/> for content.
@@ -153,18 +183,33 @@ namespace Svg.Skia.Avalonia
             using (context.PushClip(destRect))
             using (context.PushPreTransform(translate * scale))
             {
+#if USE_MODEL
+                try
+                {
+                    if (source.Picture != null)
+                    {
+                        source.Picture.Draw(context);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"{ex.Message}");
+                    Debug.WriteLine($"{ex.StackTrace}");
+                }
+#else
                 context.Custom(
                     new SvgCustomDrawOperation(
                         new Rect(0, 0, bounds.Width, bounds.Height),
                         source));
+#endif
             }
         }
 
         /// <inheritdoc/>
-        protected override void OnPropertyChanged<T>(AvaloniaProperty<T> property, Optional<T> oldValue, BindingValue<T> newValue, BindingPriority priority)
+        protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
         {
-            base.OnPropertyChanged(property, oldValue, newValue, priority);
-            if (property == SourceProperty)
+            base.OnPropertyChanged(change);
+            if (change.Property == SourceProperty)
             {
                 RaiseInvalidated(EventArgs.Empty);
             }

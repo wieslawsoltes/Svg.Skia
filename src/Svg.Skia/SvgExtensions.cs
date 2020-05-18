@@ -2120,12 +2120,7 @@ namespace Svg.Skia
                 skPoints[i / 2] = new SKPoint(x, y);
             }
 
-            skPath.AddPoly(skPoints, false);
-
-            if (isClosed)
-            {
-                skPath.Close();
-            }
+            skPath.AddPoly(skPoints, isClosed);
 
             disposable.Add(skPath);
             return skPath;

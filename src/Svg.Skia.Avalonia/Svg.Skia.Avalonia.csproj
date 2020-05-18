@@ -25,11 +25,16 @@
   <Import Project="..\..\build\Avalonia.Skia.props" />
 
   <ItemGroup>
+    <ProjectReference Include="..\Svg.Model.Avalonia\Svg.Model.Avalonia.csproj" />
     <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);USE_MODEL</DefineConstants>
+  </PropertyGroup>
 
 </Project>

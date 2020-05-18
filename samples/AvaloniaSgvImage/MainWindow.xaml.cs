@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Svg.Skia;
 using Svg.Skia.Avalonia;
 
 namespace AvaloniaSgvImage
@@ -24,8 +25,11 @@ namespace AvaloniaSgvImage
             _svgSourceDockPanel = this.FindControl<DockPanel>("svgSourceDockPanel");
             _svgResourceDockPanel = this.FindControl<DockPanel>("svgResourceDockPanel");
 
-            AddHandler(DragDrop.DropEvent, Drop);
-            AddHandler(DragDrop.DragOverEvent, DragOver);
+            _svgSourceDockPanel.AddHandler(DragDrop.DropEvent, Drop);
+            _svgSourceDockPanel.AddHandler(DragDrop.DragOverEvent, DragOver);
+
+            _svgResourceDockPanel.AddHandler(DragDrop.DropEvent, Drop);
+            _svgResourceDockPanel.AddHandler(DragDrop.DragOverEvent, DragOver);
         }
 
         private void InitializeComponent()
@@ -68,9 +72,24 @@ namespace AvaloniaSgvImage
                 var fileName = e.Data.GetFileNames()?.FirstOrDefault();
                 if (!string.IsNullOrWhiteSpace(fileName))
                 {
-                    if (e.Source == _svgSourceDockPanel)
+                    if (sender == _svgSourceDockPanel)
                     {
                         var svg = new SvgSource();
+#if USE_MODEL
+                        var document = SKSvg.Open(fileName);
+                        if (document != null)
+                        {
+                            var picture = SKSvg.ToModel(document);
+                            if (picture != null)
+                            {
+                                svg.Picture = picture;
+                                _svgSourceImage.Source = new SvgImage()
+                                {
+                                    Source = svg
+                                };
+                            }
+                        }
+#else
                         var picture = svg.Load(fileName);
                         if (picture != null)
                         {
@@ -79,10 +98,27 @@ namespace AvaloniaSgvImage
                                 Source = svg
                             };
                         }
+#endif
                     }
 
-                    if (e.Source == _svgResourceDockPanel)
+                    if (sender == _svgResourceDockPanel)
                     {
+#if USE_MODEL
+                        var svg = new SvgSource();
+                        var document = SKSvg.Open(fileName);
+                        if (document != null)
+                        {
+                            var picture = SKSvg.ToModel(document);
+                            if (picture != null)
+                            {
+                                svg.Picture = picture;
+                                _svgResourceImage.Source = new SvgImage()
+                                {
+                                    Source = svg
+                                };
+                            }
+                        }
+#else
                         var svg = new SvgSource();
                         var picture = svg.Load(fileName);
                         if (picture != null)
@@ -92,7 +128,8 @@ namespace AvaloniaSgvImage
                                 Source = svg
                             };
                         }
-                    }
+#endif
+                        }
                 }
             }
         }
