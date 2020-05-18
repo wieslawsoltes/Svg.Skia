@@ -341,18 +341,12 @@ namespace Svg.Skia
             }
 
             // TODO: paint.IsAntialias
-            // TODO: paint.Color
+            // TODO: paint.Color.ToColor()
             // TODO: paint.ColorFilter
             // TODO: paint.ImageFilter
             // TODO: paint.PathEffect
             // TODO: paint.BlendMode
             // TODO: paint.FilterQuality.ToBitmapInterpolationMode()
-            // TODO: paint.TextEncoding
-            // TODO: paint.TextAlign.ToTextAlignment()
-            // TODO: paint.Typeface?.ToTypeface()
-            // TODO: paint.TextSize
-            // TODO: paint.LcdRenderText
-            // TODO: paint.SubpixelText
 
             return (brush, pen);
         }
@@ -641,18 +635,21 @@ namespace Svg.Skia
                     {
                         if (drawTextCanvasCommand.Paint != null)
                         {
+                            var paint = drawTextCanvasCommand.Paint;
                             var x = drawTextCanvasCommand.X;
                             var y = drawTextCanvasCommand.Y;
                             var origin = new A.Point(x, y);
 
-                            (var brush, _) = drawTextCanvasCommand.Paint.ToBrushAndPen();
+                            (var brush, _) = paint.ToBrushAndPen();
 
                             var text = drawTextCanvasCommand.Text;
-                            var typeface = drawTextCanvasCommand.Paint.Typeface?.ToTypeface();
-                            var textAlignment = drawTextCanvasCommand.Paint.TextAlign.ToTextAlignment();
-                            var fontSize = drawTextCanvasCommand.Paint.TextSize;
-                            // TODO: drawTextCanvasCommand.Paint.LcdRenderText
-                            // TODO: drawTextCanvasCommand.Paint.SubpixelText
+                            var typeface = paint.Typeface?.ToTypeface();
+                            var textAlignment = paint.TextAlign.ToTextAlignment();
+                            var fontSize = paint.TextSize;
+                            // TODO: paint.TextEncoding
+                            // TODO: paint.LcdRenderText
+                            // TODO: paint.SubpixelText
+
                             var ft = new AM.FormattedText()
                             {
                                 Text = text,
@@ -661,6 +658,7 @@ namespace Svg.Skia
                                 TextAlignment = textAlignment,
                                 TextWrapping = AM.TextWrapping.NoWrap
                             };
+
                             context.DrawText(brush, origin, ft);
                         }
                     }
