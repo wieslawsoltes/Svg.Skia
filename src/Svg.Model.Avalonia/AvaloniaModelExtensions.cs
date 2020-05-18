@@ -381,122 +381,6 @@ namespace Svg.Skia
             }
         }
 
-        public static void ToStreamGeometry(this PathCommand pathCommand, AM.StreamGeometryContext streamGeometryContext)
-        {
-            bool endFigure = false;
-
-            switch (pathCommand)
-            {
-                case MoveToPathCommand moveToPathCommand:
-                    {
-                        endFigure = true;
-                        var x = moveToPathCommand.X;
-                        var y = moveToPathCommand.Y;
-                        var point = new A.Point(x, y);
-                        streamGeometryContext.BeginFigure(point, false); // TODO: isFilled
-                    }
-                    break;
-                case LineToPathCommand lineToPathCommand:
-                    {
-                        var x = lineToPathCommand.X;
-                        var y = lineToPathCommand.Y;
-                        var point = new A.Point(x, y);
-                        streamGeometryContext.LineTo(point);
-                    }
-                    break;
-                case ArcToPathCommand arcToPathCommand:
-                    {
-                        var x = arcToPathCommand.X;
-                        var y = arcToPathCommand.Y;
-                        var point = new A.Point(x, y);
-                        var rx = arcToPathCommand.Rx;
-                        var ry = arcToPathCommand.Ry;
-                        var size = new A.Size(rx, ry);
-                        var rotationAngle = arcToPathCommand.XAxisRotate;
-                        var isLargeArc = arcToPathCommand.LargeArc == PathArcSize.Large;
-                        var sweep = arcToPathCommand.Sweep.ToSweepDirection();
-                        streamGeometryContext.ArcTo(point, size, rotationAngle, isLargeArc, sweep);
-                    }
-                    break;
-                case QuadToPathCommand quadToPathCommand:
-                    {
-                        var x0 = quadToPathCommand.X0;
-                        var y0 = quadToPathCommand.Y0;
-                        var x1 = quadToPathCommand.X1;
-                        var y1 = quadToPathCommand.Y1;
-                        var control = new A.Point(x0, y0);
-                        var endPoint = new A.Point(x1, y1);
-                        streamGeometryContext.QuadraticBezierTo(control, endPoint);
-                    }
-                    break;
-                case CubicToPathCommand cubicToPathCommand:
-                    {
-                        var x0 = cubicToPathCommand.X0;
-                        var y0 = cubicToPathCommand.Y0;
-                        var x1 = cubicToPathCommand.X1;
-                        var y1 = cubicToPathCommand.Y1;
-                        var x2 = cubicToPathCommand.X2;
-                        var y2 = cubicToPathCommand.Y2;
-                        var point1 = new A.Point(x0, y0);
-                        var point2 = new A.Point(x1, y1);
-                        var point3 = new A.Point(x2, y2);
-                        streamGeometryContext.CubicBezierTo(point1, point2, point3);
-                    }
-                    break;
-                case ClosePathCommand _:
-                    {
-                        endFigure = false;
-                        streamGeometryContext.EndFigure(true);
-                    }
-                    break;
-                case AddRectPathCommand addRectPathCommand:
-                    {
-                        var rect = addRectPathCommand.Rect.ToSKRect();
-                        // TODO:
-                    }
-                    break;
-                case AddRoundRectPathCommand addRoundRectPathCommand:
-                    {
-                        var rect = addRoundRectPathCommand.Rect.ToSKRect();
-                        var rx = addRoundRectPathCommand.Rx;
-                        var ry = addRoundRectPathCommand.Ry;
-                        // TODO:
-                    }
-                    break;
-                case AddOvalPathCommand addOvalPathCommand:
-                    {
-                        var rect = addOvalPathCommand.Rect.ToSKRect();
-                        // TODO:
-                    }
-                    break;
-                case AddCirclePathCommand addCirclePathCommand:
-                    {
-                        var x = addCirclePathCommand.X;
-                        var y = addCirclePathCommand.Y;
-                        var radius = addCirclePathCommand.Radius;
-                        // TODO:
-                    }
-                    break;
-                case AddPolyPathCommand addPolyPathCommand:
-                    {
-                        if (addPolyPathCommand.Points != null)
-                        {
-                            var points = addPolyPathCommand.Points.ToPoints();
-                            var close = addPolyPathCommand.Close;
-                            // TODO:
-                        }
-                    }
-                    break;
-                default:
-                    break;
-            }
-
-            if (endFigure)
-            {
-                streamGeometryContext.EndFigure(false);
-            }
-        }
-
         public static AM.Geometry ToGeometry(this Path path)
         {
             var streamGeometry = new AM.StreamGeometry();
@@ -510,9 +394,82 @@ namespace Svg.Skia
                 return streamGeometry;
             }
 
+            bool endFigure = false;
+
             foreach (var pathCommand in path.Commands)
             {
-                pathCommand.ToStreamGeometry(streamGeometryContext);
+                switch (pathCommand)
+                {
+                    case MoveToPathCommand moveToPathCommand:
+                        {
+                            endFigure = true;
+                            var x = moveToPathCommand.X;
+                            var y = moveToPathCommand.Y;
+                            var point = new A.Point(x, y);
+                            streamGeometryContext.BeginFigure(point, false); // TODO: isFilled
+                        }
+                        break;
+                    case LineToPathCommand lineToPathCommand:
+                        {
+                            var x = lineToPathCommand.X;
+                            var y = lineToPathCommand.Y;
+                            var point = new A.Point(x, y);
+                            streamGeometryContext.LineTo(point);
+                        }
+                        break;
+                    case ArcToPathCommand arcToPathCommand:
+                        {
+                            var x = arcToPathCommand.X;
+                            var y = arcToPathCommand.Y;
+                            var point = new A.Point(x, y);
+                            var rx = arcToPathCommand.Rx;
+                            var ry = arcToPathCommand.Ry;
+                            var size = new A.Size(rx, ry);
+                            var rotationAngle = arcToPathCommand.XAxisRotate;
+                            var isLargeArc = arcToPathCommand.LargeArc == PathArcSize.Large;
+                            var sweep = arcToPathCommand.Sweep.ToSweepDirection();
+                            streamGeometryContext.ArcTo(point, size, rotationAngle, isLargeArc, sweep);
+                        }
+                        break;
+                    case QuadToPathCommand quadToPathCommand:
+                        {
+                            var x0 = quadToPathCommand.X0;
+                            var y0 = quadToPathCommand.Y0;
+                            var x1 = quadToPathCommand.X1;
+                            var y1 = quadToPathCommand.Y1;
+                            var control = new A.Point(x0, y0);
+                            var endPoint = new A.Point(x1, y1);
+                            streamGeometryContext.QuadraticBezierTo(control, endPoint);
+                        }
+                        break;
+                    case CubicToPathCommand cubicToPathCommand:
+                        {
+                            var x0 = cubicToPathCommand.X0;
+                            var y0 = cubicToPathCommand.Y0;
+                            var x1 = cubicToPathCommand.X1;
+                            var y1 = cubicToPathCommand.Y1;
+                            var x2 = cubicToPathCommand.X2;
+                            var y2 = cubicToPathCommand.Y2;
+                            var point1 = new A.Point(x0, y0);
+                            var point2 = new A.Point(x1, y1);
+                            var point3 = new A.Point(x2, y2);
+                            streamGeometryContext.CubicBezierTo(point1, point2, point3);
+                        }
+                        break;
+                    case ClosePathCommand _:
+                        {
+                            endFigure = false;
+                            streamGeometryContext.EndFigure(true);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (endFigure)
+            {
+                streamGeometryContext.EndFigure(false);
             }
 
             return streamGeometry;
@@ -660,6 +617,7 @@ namespace Svg.Skia
                                     break;
                                 }
                             }
+
                             if (drawPathCanvasCommand.Path.Commands?.Count == 2)
                             {
                                 var pathCommand1 = drawPathCanvasCommand.Path.Commands[0];
