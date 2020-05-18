@@ -411,7 +411,7 @@ namespace Svg.Skia
                         var point = new A.Point(x, y);
                         var rx = arcToPathCommand.Rx;
                         var ry = arcToPathCommand.Ry;
-                        var size = new A.Size(rx + rx, ry + ry);
+                        var size = new A.Size(rx, ry);
                         var rotationAngle = arcToPathCommand.XAxisRotate;
                         var isLargeArc = arcToPathCommand.LargeArc == PathArcSize.Large;
                         var sweep = arcToPathCommand.Sweep.ToSweepDirection();
