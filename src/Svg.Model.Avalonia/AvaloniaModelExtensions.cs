@@ -396,36 +396,70 @@ namespace Svg.Model.Avalonia
             }
         }
 
-        public static AM.Geometry ToGeometry(this Path path)
+        public static AM.Geometry? ToGeometry(this Path path, bool isFilled)
         {
+            if (path.Commands == null)
+            {
+                return null;
+            }
+
             var streamGeometry = new AM.StreamGeometry();
 
             using var streamGeometryContext = streamGeometry.Open();
 
             streamGeometryContext.SetFillRule(path.FillType.ToSKPathFillType());
 
-            if (path.Commands == null)
-            {
-                return streamGeometry;
-            }
-
             bool endFigure = false;
+            bool haveFigure = false;
 
-            foreach (var pathCommand in path.Commands)
+            for (int i = 0; i < path.Commands.Count; i++)
             {
+                var pathCommand = path.Commands[i];
+                var isLast = i == path.Commands.Count - 1;
+
                 switch (pathCommand)
                 {
                     case MoveToPathCommand moveToPathCommand:
                         {
+                            if (endFigure == true && haveFigure == false)
+                            {
+                                return null;
+                            }
+                            if (haveFigure == true)
+                            {
+                                streamGeometryContext.EndFigure(false);
+                            }
+                            if (isLast == true)
+                            {
+                                return streamGeometry;
+                            }
+                            else
+                            {
+                                if (path.Commands[i + 1] is MoveToPathCommand)
+                                {
+                                    return streamGeometry;
+                                }
+
+                                if (path.Commands[i + 1] is ClosePathCommand)
+                                {
+                                    return streamGeometry;
+                                }
+                            }
                             endFigure = true;
+                            haveFigure = false;
                             var x = moveToPathCommand.X;
                             var y = moveToPathCommand.Y;
                             var point = new A.Point(x, y);
-                            streamGeometryContext.BeginFigure(point, false); // TODO: isFilled
+                            streamGeometryContext.BeginFigure(point, isFilled); // TODO: isFilled
                         }
                         break;
                     case LineToPathCommand lineToPathCommand:
                         {
+                            if (endFigure == false)
+                            {
+                                return null;
+                            }
+                            haveFigure = true;
                             var x = lineToPathCommand.X;
                             var y = lineToPathCommand.Y;
                             var point = new A.Point(x, y);
@@ -434,6 +468,11 @@ namespace Svg.Model.Avalonia
                         break;
                     case ArcToPathCommand arcToPathCommand:
                         {
+                            if (endFigure == false)
+                            {
+                                return null;
+                            }
+                            haveFigure = true;
                             var x = arcToPathCommand.X;
                             var y = arcToPathCommand.Y;
                             var point = new A.Point(x, y);
@@ -448,6 +487,11 @@ namespace Svg.Model.Avalonia
                         break;
                     case QuadToPathCommand quadToPathCommand:
                         {
+                            if (endFigure == false)
+                            {
+                                return null;
+                            }
+                            haveFigure = true;
                             var x0 = quadToPathCommand.X0;
                             var y0 = quadToPathCommand.Y0;
                             var x1 = quadToPathCommand.X1;
@@ -459,6 +503,11 @@ namespace Svg.Model.Avalonia
                         break;
                     case CubicToPathCommand cubicToPathCommand:
                         {
+                            if (endFigure == false)
+                            {
+                                return null;
+                            }
+                            haveFigure = true;
                             var x0 = cubicToPathCommand.X0;
                             var y0 = cubicToPathCommand.Y0;
                             var x1 = cubicToPathCommand.X1;
@@ -473,7 +522,16 @@ namespace Svg.Model.Avalonia
                         break;
                     case ClosePathCommand _:
                         {
+                            if (endFigure == false)
+                            {
+                                return null;
+                            }
+                            if (haveFigure == false)
+                            {
+                                return null;
+                            }
                             endFigure = false;
+                            haveFigure = false;
                             streamGeometryContext.EndFigure(true);
                         }
                         break;
@@ -484,6 +542,10 @@ namespace Svg.Model.Avalonia
 
             if (endFigure)
             {
+                if (haveFigure == false)
+                {
+                    return null;
+                }
                 streamGeometryContext.EndFigure(false);
             }
 
@@ -496,12 +558,15 @@ namespace Svg.Model.Avalonia
             {
                 case ClipPathCanvasCommand clipPathCanvasCommand:
                     {
-                        var path = clipPathCanvasCommand.Path.ToGeometry();
-                        // TODO: clipPathCanvasCommand.Operation;
-                        // TODO: clipPathCanvasCommand.Antialias;
-                        var geometryPushedState = context.PushGeometryClip(path);
-                        var currentPushedStates = pushedStates.Peek();
-                        currentPushedStates.Push(geometryPushedState);
+                        var path = clipPathCanvasCommand.Path.ToGeometry(false);
+                        if (path != null)
+                        {
+                            // TODO: clipPathCanvasCommand.Operation;
+                            // TODO: clipPathCanvasCommand.Antialias;
+                            var geometryPushedState = context.PushGeometryClip(path);
+                            var currentPushedStates = pushedStates.Peek();
+                            currentPushedStates.Push(geometryPushedState); 
+                        }
                     }
                     break;
                 case ClipRectCanvasCommand clipRectCanvasCommand:
@@ -639,8 +704,11 @@ namespace Svg.Model.Avalonia
                                 }
                             }
 
-                            var geometry = drawPathCanvasCommand.Path.ToGeometry();
-                            context.DrawGeometry(brush, pen, geometry);
+                            var geometry = drawPathCanvasCommand.Path.ToGeometry(brush != null);
+                            if (geometry != null)
+                            {
+                                context.DrawGeometry(brush, pen, geometry);
+                            }
                         }
                     }
                     break;
@@ -707,10 +775,13 @@ namespace Svg.Model.Avalonia
                 {
                     case ClipPathCanvasCommand clipPathCanvasCommand:
                         {
-                            var path = clipPathCanvasCommand.Path.ToGeometry();
-                            // TODO: clipPathCanvasCommand.Operation;
-                            // TODO: clipPathCanvasCommand.Antialias;
-                            avaloniaPicture.Commands.Add(new GeometryClipDrawCommand(path));
+                            var path = clipPathCanvasCommand.Path.ToGeometry(false);
+                            if (path != null)
+                            {
+                                // TODO: clipPathCanvasCommand.Operation;
+                                // TODO: clipPathCanvasCommand.Antialias;
+                                avaloniaPicture.Commands.Add(new GeometryClipDrawCommand(path)); 
+                            }
                         }
                         break;
                     case ClipRectCanvasCommand clipRectCanvasCommand:
@@ -838,8 +909,11 @@ namespace Svg.Model.Avalonia
                                     }
                                 }
 
-                                var geometry = drawPathCanvasCommand.Path.ToGeometry();
-                                avaloniaPicture.Commands.Add(new GeometryDrawCommand(brush, pen, geometry));
+                                var geometry = drawPathCanvasCommand.Path.ToGeometry(brush != null);
+                                if (geometry != null)
+                                {
+                                    avaloniaPicture.Commands.Add(new GeometryDrawCommand(brush, pen, geometry));
+                                }
                             }
                         }
                         break;
