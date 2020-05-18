@@ -161,6 +161,9 @@ namespace Svg.Skia.Avalonia
         public Size Size =>
             Source?.Picture != null ? new Size(Source.Picture.CullRect.Width, Source.Picture.CullRect.Height) : default;
 
+        private Model.Picture? _previousPicture = null;
+        private AvaloniaPicture? _avaloniaPicture = null;
+
         /// <inheritdoc/>
         void IImage.Draw(
             DrawingContext context,
@@ -171,6 +174,8 @@ namespace Svg.Skia.Avalonia
             var source = Source;
             if (source == null || source.Picture == null)
             {
+                _previousPicture = null;
+                _avaloniaPicture = null;
                 return;
             }
             var bounds = source.Picture.CullRect;
@@ -186,10 +191,22 @@ namespace Svg.Skia.Avalonia
 #if USE_MODEL
                 try
                 {
+#if true
+                    if (_avaloniaPicture == null || source.Picture != _previousPicture)
+                    {
+                        _previousPicture = source.Picture;
+                        _avaloniaPicture = source.Picture.Record();
+                    }
+                    if (_avaloniaPicture != null)
+                    {
+                        _avaloniaPicture.Draw(context);
+                    }
+#else
                     if (source.Picture != null)
                     {
                         source.Picture.Draw(context);
                     }
+#endif
                 }
                 catch (Exception ex)
                 {
