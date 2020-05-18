@@ -475,8 +475,6 @@ namespace Svg.Skia
             return streamGeometry;
         }
 
-        static System.Reflection.MethodBase PushSetTransform = typeof(AM.DrawingContext).GetMethod("PushSetTransform", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
         public static void Draw(this CanvasCommand canvasCommand, AM.DrawingContext context, Stack<Stack<IDisposable>> pushedStates)
         {
             switch (canvasCommand)
@@ -523,10 +521,7 @@ namespace Svg.Skia
                 case SetMatrixCanvasCommand setMatrixCanvasCommand:
                     {
                         var matrix = setMatrixCanvasCommand.Matrix.ToMatrix();
-                        // TODO:
-                        //var transformPreTransform = context.PushPreTransform(matrix); // TODO: PushSetTransform
-                        // HACK: https://github.com/AvaloniaUI/Avalonia/issues/3954
-                        var transformPreTransform = (AM.DrawingContext.PushedState)PushSetTransform.Invoke(context, new object[] { matrix });
+                        var transformPreTransform = context.PushSetTransform(matrix);
                         var currentPushedStates = pushedStates.Peek();
                         currentPushedStates.Push(transformPreTransform);
                     }
