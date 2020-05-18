@@ -679,7 +679,7 @@ namespace Svg.Skia
                 return;
             }
 
-            var transformContainerState = context.PushTransformContainer();
+            using var transformContainerState = context.PushTransformContainer();
 
             var pushedStates = new Stack<Stack<IDisposable>>();
 
