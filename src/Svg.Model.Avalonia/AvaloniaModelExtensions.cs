@@ -143,7 +143,7 @@ namespace Svg.Skia
             }
         }
 
-        public static AM.Typeface? ToTypeface(this Model.Typeface? typeface)
+        public static AM.Typeface? ToTypeface(this Typeface? typeface)
         {
             if (typeface == null)
             {
@@ -158,12 +158,12 @@ namespace Svg.Skia
             return new AM.Typeface(familyName, weight, slant);
         }
 
-        public static AM.Color ToColor(this Model.Color color)
+        public static AM.Color ToColor(this Color color)
         {
             return new AM.Color(color.Alpha, color.Red, color.Green, color.Blue);
         }
 
-        public static AM.Color[] ToSKColors(this Model.Color[] colors)
+        public static AM.Color[] ToSKColors(this Color[] colors)
         {
             var skColors = new AM.Color[colors.Length];
 
