@@ -22,7 +22,7 @@
   <Import Project="..\..\build\Avalonia.Desktop.props" />
 
   <PropertyGroup>
-    <!--<DefineConstants>$(DefineConstants);USE_MODEL</DefineConstants>-->
+    <DefineConstants>$(DefineConstants);USE_MODEL</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
