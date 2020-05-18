@@ -14,7 +14,10 @@ using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Visuals.Media.Imaging;
 using SkiaSharp;
-
+#if USE_MODEL
+using SM = Svg.Model;
+using SMA = Svg.Model.Avalonia;
+#endif
 namespace Svg.Skia.Avalonia
 {
     internal static class Extensions
@@ -82,7 +85,7 @@ namespace Svg.Skia.Avalonia
     [TypeConverter(typeof(SvgSourceTypeConverter))]
     public class SvgSource
     {
-        public Svg.Model.Picture? Picture { get; set; }
+        public SM.Picture? Picture { get; set; }
     }
 #else
     /// <summary>
@@ -161,8 +164,8 @@ namespace Svg.Skia.Avalonia
         public Size Size =>
             Source?.Picture != null ? new Size(Source.Picture.CullRect.Width, Source.Picture.CullRect.Height) : default;
 
-        private Model.Picture? _previousPicture = null;
-        private AvaloniaPicture? _avaloniaPicture = null;
+        private SM.Picture? _previousPicture = null;
+        private SMA.AvaloniaPicture? _avaloniaPicture = null;
 
         /// <inheritdoc/>
         void IImage.Draw(
@@ -195,7 +198,7 @@ namespace Svg.Skia.Avalonia
                     if (_avaloniaPicture == null || source.Picture != _previousPicture)
                     {
                         _previousPicture = source.Picture;
-                        _avaloniaPicture = source.Picture.Record();
+                        _avaloniaPicture = SMA.AvaloniaModelExtensions.Record(source.Picture);
                     }
                     if (_avaloniaPicture != null)
                     {
