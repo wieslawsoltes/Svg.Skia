@@ -191,7 +191,7 @@ namespace Svg.Skia
             }
         }
 
-        private static AM.SolidColorBrush ToSolidColorBrush(ColorShader colorShader)
+        private static AM.SolidColorBrush ToSolidColorBrush(this ColorShader colorShader)
         {
             var color = colorShader.Color.ToColor();
             return new AM.SolidColorBrush(color);
@@ -211,7 +211,7 @@ namespace Svg.Skia
             }
         }
 
-        public static AM.IBrush? ToLinearGradientBrush(LinearGradientShader linearGradientShader)
+        public static AM.IBrush? ToLinearGradientBrush(this LinearGradientShader linearGradientShader)
         {
             if (linearGradientShader.Colors != null && linearGradientShader.ColorPos != null)
             {
@@ -243,7 +243,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static AM.IBrush? ToRadialGradientBrush(TwoPointConicalGradientShader twoPointConicalGradientShader)
+        public static AM.IBrush? ToRadialGradientBrush(this TwoPointConicalGradientShader twoPointConicalGradientShader)
         {
             if (twoPointConicalGradientShader.Colors != null && twoPointConicalGradientShader.ColorPos != null)
             {
@@ -278,7 +278,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static AM.IBrush? ToBrush(Shader? shader)
+        public static AM.IBrush? ToBrush(this Shader? shader)
         {
             switch (shader)
             {
@@ -296,7 +296,7 @@ namespace Svg.Skia
             }
         }
 
-        private static AM.IPen ToPen(Paint paint)
+        private static AM.IPen ToPen(this Paint paint)
         {
             var brush = ToBrush(paint.Shader);
             var lineCap = paint.StrokeCap.ToPenLineCap();
