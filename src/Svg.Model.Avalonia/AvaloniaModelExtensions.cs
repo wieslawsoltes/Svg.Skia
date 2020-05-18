@@ -308,9 +308,9 @@ namespace Svg.Skia
                 var dashes = new List<double>();
                 foreach (var interval in dashPathEffect.Intervals)
                 {
-                    dashes.Add(interval);
+                    dashes.Add(interval / paint.StrokeWidth);
                 }
-                var offset = dashPathEffect.Phase;
+                var offset = dashPathEffect.Phase / paint.StrokeWidth;
                 dashStyle = new AM.DashStyle(dashes, offset);
             }
 
