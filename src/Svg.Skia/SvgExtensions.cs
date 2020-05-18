@@ -2035,18 +2035,51 @@ namespace Svg.Skia
 #endif
         public static SKPath? ToSKPath(this SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule, CompositeDisposable disposable)
         {
+            if (svgPathSegmentList == null || svgPathSegmentList.Count <= 0)
+            {
+                return null;
+            }
+
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
             var skPath = new SKPath()
             {
                 FillType = fillType
             };
 
-            foreach (var svgSegment in svgPathSegmentList)
+            bool endFigure = false;
+            bool haveFigure = false;
+
+            for (int i = 0; i < svgPathSegmentList.Count; i++)
             {
+                var svgSegment = svgPathSegmentList[i];
+                var isLast = i == svgPathSegmentList.Count - 1;
+
                 switch (svgSegment)
                 {
                     case SvgMoveToSegment svgMoveToSegment:
                         {
+                            if (endFigure == true && haveFigure == false)
+                            {
+                                return null;
+                            }
+                            if (isLast == true)
+                            {
+                                return skPath;
+                            }
+                            else
+                            {
+                                if (svgPathSegmentList[i + 1] is SvgMoveToSegment)
+                                {
+                                    return skPath;
+                                }
+
+                                if (svgPathSegmentList[i + 1] is SvgClosePathSegment)
+                                {
+                                    return skPath;
+                                }
+                            }
+                            endFigure = true;
+                            haveFigure = false;
                             float x = svgMoveToSegment.Start.X;
                             float y = svgMoveToSegment.Start.Y;
                             skPath.MoveTo(x, y);
@@ -2054,6 +2087,11 @@ namespace Svg.Skia
                         break;
                     case SvgLineSegment svgLineSegment:
                         {
+                            if (endFigure == false)
+                            {
+                                return null;
+                            }
+                            haveFigure = true;
                             float x = svgLineSegment.End.X;
                             float y = svgLineSegment.End.Y;
                             skPath.LineTo(x, y);
@@ -2061,6 +2099,11 @@ namespace Svg.Skia
                         break;
                     case SvgCubicCurveSegment svgCubicCurveSegment:
                         {
+                            if (endFigure == false)
+                            {
+                                return null;
+                            }
+                            haveFigure = true;
                             float x0 = svgCubicCurveSegment.FirstControlPoint.X;
                             float y0 = svgCubicCurveSegment.FirstControlPoint.Y;
                             float x1 = svgCubicCurveSegment.SecondControlPoint.X;
@@ -2072,6 +2115,11 @@ namespace Svg.Skia
                         break;
                     case SvgQuadraticCurveSegment svgQuadraticCurveSegment:
                         {
+                            if (endFigure == false)
+                            {
+                                return null;
+                            }
+                            haveFigure = true;
                             float x0 = svgQuadraticCurveSegment.ControlPoint.X;
                             float y0 = svgQuadraticCurveSegment.ControlPoint.Y;
                             float x1 = svgQuadraticCurveSegment.End.X;
@@ -2081,6 +2129,11 @@ namespace Svg.Skia
                         break;
                     case SvgArcSegment svgArcSegment:
                         {
+                            if (endFigure == false)
+                            {
+                                return null;
+                            }
+                            haveFigure = true;
                             float rx = svgArcSegment.RadiusX;
                             float ry = svgArcSegment.RadiusY;
                             float xAxisRotate = svgArcSegment.Angle;
@@ -2093,9 +2146,27 @@ namespace Svg.Skia
                         break;
                     case SvgClosePathSegment _:
                         {
+                            if (endFigure == false)
+                            {
+                                return null;
+                            }
+                            if (haveFigure == false)
+                            {
+                                return null;
+                            }
+                            endFigure = false;
+                            haveFigure = false;
                             skPath.Close();
                         }
                         break;
+                }
+            }
+
+            if (endFigure)
+            {
+                if (haveFigure == false)
+                {
+                    return null;
                 }
             }
 
