@@ -688,7 +688,6 @@ namespace Svg.Skia
                 canvasCommand.Draw(context, pushedStates);
             }
 
-            transformContainerState.Dispose();
         }
     }
 }
