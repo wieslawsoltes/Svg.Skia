@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using Avalonia;
 using Avalonia.Data;
@@ -183,9 +184,17 @@ namespace Svg.Skia.Avalonia
             using (context.PushPreTransform(translate * scale))
             {
 #if USE_MODEL
-                if (source.Picture != null)
+                try
                 {
-                    source.Picture.Draw(context);
+                    if (source.Picture != null)
+                    {
+                        source.Picture.Draw(context);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"{ex.Message}");
+                    Debug.WriteLine($"{ex.StackTrace}");
                 }
 #else
                 context.Custom(
