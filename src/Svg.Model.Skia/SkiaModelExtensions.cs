@@ -2,7 +2,7 @@
 using SkiaSharp;
 using Svg.Model;
 
-namespace Svg.Skia
+namespace Svg.Model.Skia
 {
     public static class SkiaModelExtensions
     {
