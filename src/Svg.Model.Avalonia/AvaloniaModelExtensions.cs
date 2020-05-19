@@ -940,10 +940,7 @@ namespace Svg.Model.Avalonia
 
         public static AvaloniaPicture Record(this Picture picture)
         {
-            var avaloniaPicture = new AvaloniaPicture()
-            {
-                Commands = new List<DrawCommand>()
-            };
+            var avaloniaPicture = new AvaloniaPicture();
 
             if (picture.Commands == null)
             {
