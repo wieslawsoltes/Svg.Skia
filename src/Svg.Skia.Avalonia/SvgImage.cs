@@ -199,7 +199,7 @@ namespace Svg.Skia.Avalonia
                     {
                         _previousPicture = source.Picture;
                         _avaloniaPicture?.Dispose();
-                        _avaloniaPicture = SMA.AvaloniaPictureRecorder.Record(source.Picture);
+                        _avaloniaPicture = SMA.AvaloniaPicture.Record(source.Picture);
                     }
 
                     if (_avaloniaPicture != null)
