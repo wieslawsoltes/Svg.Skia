@@ -159,16 +159,94 @@ namespace Svg.Model.Avalonia
             Commands = new List<DrawCommand>();
         }
 
-        public void Dispose()
+        private void Draw(AM.DrawingContext context, DrawCommand command, Stack<Stack<IDisposable>> pushedStates)
         {
-            if (Commands == null)
+            switch (command)
             {
-                return;
-            }
-
-            foreach (var command in Commands)
-            {
-                command.Dispose();
+                case GeometryClipDrawCommand geometryClipDrawCommand:
+                    {
+                        var geometryPushedState = context.PushGeometryClip(geometryClipDrawCommand.Clip);
+                        var currentPushedStates = pushedStates.Peek();
+                        currentPushedStates.Push(geometryPushedState);
+                    }
+                    break;
+                case ClipDrawCommand clipDrawCommand:
+                    {
+                        var clipPushedState = context.PushClip(clipDrawCommand.Clip);
+                        var currentPushedStates = pushedStates.Peek();
+                        currentPushedStates.Push(clipPushedState);
+                    }
+                    break;
+                case SaveDrawCommand _:
+                    {
+                        pushedStates.Push(new Stack<IDisposable>());
+                    }
+                    break;
+                case RestoreDrawCommand _:
+                    {
+                        var currentPushedStates = pushedStates.Pop();
+                        while (currentPushedStates.Count > 0)
+                        {
+                            var pushedState = currentPushedStates.Pop();
+                            pushedState.Dispose();
+                        }
+                    }
+                    break;
+                case SetTransformDrawCommand setTransformDrawCommand:
+                    {
+                        var transformPreTransform = context.PushSetTransform(setTransformDrawCommand.Matrix);
+                        var currentPushedStates = pushedStates.Peek();
+                        currentPushedStates.Push(transformPreTransform);
+                    }
+                    break;
+                case SaveLayerDrawCommand saveLayerDrawCommand:
+                    {
+                        pushedStates.Push(new Stack<IDisposable>());
+                    }
+                    break;
+                case ImageDrawCommand imageDrawCommand:
+                    {
+                        context.DrawImage(
+                            imageDrawCommand.Source,
+                            imageDrawCommand.SourceRect,
+                            imageDrawCommand.DestRect,
+                            imageDrawCommand.BitmapInterpolationMode);
+                    }
+                    break;
+                case GeometryDrawCommand geometryDrawCommand:
+                    {
+                        context.DrawGeometry(
+                            geometryDrawCommand.Brush,
+                            geometryDrawCommand.Pen,
+                            geometryDrawCommand.Geometry);
+                    }
+                    break;
+                case LineDrawCommand lineDrawCommand:
+                    {
+                        context.DrawLine(
+                            lineDrawCommand.Pen,
+                            lineDrawCommand.P1,
+                            lineDrawCommand.P2);
+                    }
+                    break;
+                case RectangleDrawCommand rectangleDrawCommand:
+                    {
+                        context.DrawRectangle(
+                            rectangleDrawCommand.Brush,
+                            rectangleDrawCommand.Pen,
+                            rectangleDrawCommand.Rect,
+                            rectangleDrawCommand.RadiusX,
+                            rectangleDrawCommand.RadiusY);
+                    }
+                    break;
+                case TextDrawCommand textDrawCommand:
+                    {
+                        context.DrawText(
+                            textDrawCommand.Brush,
+                            textDrawCommand.Origin,
+                            textDrawCommand.FormattedText);
+                    }
+                    break;
             }
         }
 
@@ -185,93 +263,20 @@ namespace Svg.Model.Avalonia
 
             foreach (var command in Commands)
             {
-                switch (command)
-                {
-                    case GeometryClipDrawCommand geometryClipDrawCommand:
-                        {
-                            var geometryPushedState = context.PushGeometryClip(geometryClipDrawCommand.Clip);
-                            var currentPushedStates = pushedStates.Peek();
-                            currentPushedStates.Push(geometryPushedState);
-                        }
-                        break;
-                    case ClipDrawCommand clipDrawCommand:
-                        {
-                            var clipPushedState = context.PushClip(clipDrawCommand.Clip);
-                            var currentPushedStates = pushedStates.Peek();
-                            currentPushedStates.Push(clipPushedState);
-                        }
-                        break;
-                    case SaveDrawCommand _:
-                        {
-                            pushedStates.Push(new Stack<IDisposable>());
-                        }
-                        break;
-                    case RestoreDrawCommand _:
-                        {
-                            var currentPushedStates = pushedStates.Pop();
-                            while (currentPushedStates.Count > 0)
-                            {
-                                var pushedState = currentPushedStates.Pop();
-                                pushedState.Dispose();
-                            }
-                        }
-                        break;
-                    case SetTransformDrawCommand setTransformDrawCommand:
-                        {
-                            var transformPreTransform = context.PushSetTransform(setTransformDrawCommand.Matrix);
-                            var currentPushedStates = pushedStates.Peek();
-                            currentPushedStates.Push(transformPreTransform);
-                        }
-                        break;
-                    case SaveLayerDrawCommand saveLayerDrawCommand:
-                        {
-                            pushedStates.Push(new Stack<IDisposable>());
-                        }
-                        break;
-                    case ImageDrawCommand imageDrawCommand:
-                        {
-                            context.DrawImage(
-                                imageDrawCommand.Source,
-                                imageDrawCommand.SourceRect,
-                                imageDrawCommand.DestRect,
-                                imageDrawCommand.BitmapInterpolationMode);
-                        }
-                        break;
-                    case GeometryDrawCommand geometryDrawCommand:
-                        {
-                            context.DrawGeometry(
-                                geometryDrawCommand.Brush,
-                                geometryDrawCommand.Pen,
-                                geometryDrawCommand.Geometry);
-                        }
-                        break;
-                    case LineDrawCommand lineDrawCommand:
-                        {
-                            context.DrawLine(
-                                lineDrawCommand.Pen,
-                                lineDrawCommand.P1,
-                                lineDrawCommand.P2);
-                        }
-                        break;
-                    case RectangleDrawCommand rectangleDrawCommand:
-                        {
-                            context.DrawRectangle(
-                                rectangleDrawCommand.Brush,
-                                rectangleDrawCommand.Pen,
-                                rectangleDrawCommand.Rect,
-                                rectangleDrawCommand.RadiusX,
-                                rectangleDrawCommand.RadiusY);
-                        }
-                        break;
-                    case TextDrawCommand textDrawCommand:
-                        {
-                            context.DrawText(
-                                textDrawCommand.Brush,
-                                textDrawCommand.Origin,
-                                textDrawCommand.FormattedText);
-                        }
-                        break;
-                }
+                Draw(context, command, pushedStates);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (Commands == null)
+            {
+                return;
+            }
+
+            foreach (var command in Commands)
+            {
+                command.Dispose();
             }
         }
     }
