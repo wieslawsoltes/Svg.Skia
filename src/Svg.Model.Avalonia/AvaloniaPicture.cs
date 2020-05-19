@@ -139,7 +139,12 @@ namespace Svg.Model.Avalonia
 
     public class AvaloniaPicture
     {
-        public IList<DrawCommand>? Commands;
+        public readonly IList<DrawCommand>? Commands;
+
+        public AvaloniaPicture()
+        {
+            Commands = new List<DrawCommand>();
+        }
 
         public void Draw(AM.DrawingContext context)
         {
