@@ -6,8 +6,11 @@ using AVMI = Avalonia.Visuals.Media.Imaging;
 
 namespace Svg.Model.Avalonia
 {
-    public abstract class DrawCommand
+    public abstract class DrawCommand : IDisposable
     {
+        public virtual void Dispose()
+        {
+        }
     }
 
     public class GeometryClipDrawCommand : DrawCommand
@@ -75,6 +78,16 @@ namespace Svg.Model.Avalonia
             DestRect = destRect;
             BitmapInterpolationMode = bitmapInterpolationMode;
         }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            if (Source is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
     }
 
     public class GeometryDrawCommand : DrawCommand
@@ -137,13 +150,26 @@ namespace Svg.Model.Avalonia
         }
     }
 
-    public class AvaloniaPicture
+    public class AvaloniaPicture : IDisposable
     {
         public readonly IList<DrawCommand>? Commands;
 
         public AvaloniaPicture()
         {
             Commands = new List<DrawCommand>();
+        }
+
+        public void Dispose()
+        {
+            if (Commands == null)
+            {
+                return;
+            }
+
+            foreach (var command in Commands)
+            {
+                command.Dispose();
+            }
         }
 
         public void Draw(AM.DrawingContext context)
