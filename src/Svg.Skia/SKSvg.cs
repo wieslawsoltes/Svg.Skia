@@ -317,7 +317,7 @@ namespace Svg.Skia
                 var picture = drawable.Snapshot(bounds);
                 if (picture != null)
                 {
-                    picture.Draw(skCanvas);
+                    SkiaPicture.Draw(picture, skCanvas);
                 }
             }
 #else
@@ -373,7 +373,7 @@ namespace Svg.Skia
             var picture = ToModel(svgFragment);
             if (picture != null)
             {
-                return picture.ToSKPicture();
+                return SkiaPicture.Record(picture);
             }
             return null;
 #else
