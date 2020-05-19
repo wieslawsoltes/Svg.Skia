@@ -20,6 +20,9 @@ namespace AvaloniaSgvImage
         {
             InitializeComponent();
 
+            //VisualRoot.Renderer.DrawDirtyRects = true;
+            //VisualRoot.Renderer.DrawFps = true;
+
             _svgSourceImage = this.FindControl<Image>("svgSourceImage");
             _svgResourceImage = this.FindControl<Image>("svgResourceImage");
             _svgSourceDockPanel = this.FindControl<DockPanel>("svgSourceDockPanel");
