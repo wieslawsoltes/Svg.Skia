@@ -152,7 +152,7 @@ namespace Svg.Model.Avalonia
 
     public class AvaloniaPicture : IDisposable
     {
-        public readonly IList<DrawCommand>? Commands;
+        public IList<DrawCommand>? Commands { get; }
 
         public AvaloniaPicture()
         {
