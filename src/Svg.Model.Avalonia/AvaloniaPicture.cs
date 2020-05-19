@@ -12,7 +12,7 @@ namespace Svg.Model.Avalonia
 
     public class GeometryClipDrawCommand : DrawCommand
     {
-        public AM.Geometry? Clip;
+        public readonly AM.Geometry? Clip;
 
         public GeometryClipDrawCommand(AM.Geometry? clip)
         {
@@ -22,7 +22,7 @@ namespace Svg.Model.Avalonia
 
     public class ClipDrawCommand : DrawCommand
     {
-        public A.Rect Clip;
+        public readonly A.Rect Clip;
 
         public ClipDrawCommand(A.Rect clip)
         {
@@ -46,7 +46,7 @@ namespace Svg.Model.Avalonia
 
     public class SetTransformDrawCommand : DrawCommand
     {
-        public A.Matrix Matrix;
+        public readonly A.Matrix Matrix;
 
         public SetTransformDrawCommand(A.Matrix matrix)
         {
@@ -63,10 +63,10 @@ namespace Svg.Model.Avalonia
 
     public class ImageDrawCommand : DrawCommand
     {
-        public AM.IImage? Source;
-        public A.Rect SourceRect;
-        public A.Rect DestRect;
-        public AVMI.BitmapInterpolationMode BitmapInterpolationMode;
+        public readonly AM.IImage? Source;
+        public readonly A.Rect SourceRect;
+        public readonly A.Rect DestRect;
+        public readonly AVMI.BitmapInterpolationMode BitmapInterpolationMode;
 
         public ImageDrawCommand(AM.IImage? source, A.Rect sourceRect, A.Rect destRect, AVMI.BitmapInterpolationMode bitmapInterpolationMode)
         {
@@ -79,9 +79,9 @@ namespace Svg.Model.Avalonia
 
     public class GeometryDrawCommand : DrawCommand
     {
-        public AM.IBrush? Brush;
-        public AM.IPen? Pen;
-        public AM.Geometry? Geometry;
+        public readonly AM.IBrush? Brush;
+        public readonly AM.IPen? Pen;
+        public readonly AM.Geometry? Geometry;
 
         public GeometryDrawCommand(AM.IBrush? brush, AM.IPen? pen, AM.Geometry? geometry)
         {
@@ -93,9 +93,9 @@ namespace Svg.Model.Avalonia
 
     public class LineDrawCommand : DrawCommand
     {
-        public AM.IPen? Pen;
-        public A.Point P1;
-        public A.Point P2;
+        public readonly AM.IPen? Pen;
+        public readonly A.Point P1;
+        public readonly A.Point P2;
 
         public LineDrawCommand(AM.IPen? pen, A.Point p1, A.Point p2)
         {
@@ -107,11 +107,11 @@ namespace Svg.Model.Avalonia
 
     public class RectangleDrawCommand : DrawCommand
     {
-        public AM.IBrush? Brush;
-        public AM.IPen? Pen;
-        public A.Rect Rect;
-        public double RadiusX;
-        public double RadiusY;
+        public readonly AM.IBrush? Brush;
+        public readonly AM.IPen? Pen;
+        public readonly A.Rect Rect;
+        public readonly double RadiusX;
+        public readonly double RadiusY;
 
         public RectangleDrawCommand(AM.IBrush? brush, AM.IPen? pen, A.Rect rect, double radiusX, double radiusY)
         {
@@ -125,9 +125,9 @@ namespace Svg.Model.Avalonia
 
     public class TextDrawCommand : DrawCommand
     {
-        public AM.IBrush? Brush;
-        public A.Point Origin;
-        public AM.FormattedText? FormattedText;
+        public readonly AM.IBrush? Brush;
+        public readonly A.Point Origin;
+        public readonly AM.FormattedText? FormattedText;
 
         public TextDrawCommand(AM.IBrush? brush, A.Point origin, AM.FormattedText? formattedText)
         {
