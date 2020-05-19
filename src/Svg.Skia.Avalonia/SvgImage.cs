@@ -194,7 +194,6 @@ namespace Svg.Skia.Avalonia
 #if USE_MODEL
                 try
                 {
-#if true
                     if (_avaloniaPicture == null || source.Picture != _previousPicture)
                     {
                         _previousPicture = source.Picture;
@@ -204,12 +203,6 @@ namespace Svg.Skia.Avalonia
                     {
                         _avaloniaPicture.Draw(context);
                     }
-#else
-                    if (source.Picture != null)
-                    {
-                        source.Picture.Draw(context);
-                    }
-#endif
                 }
                 catch (Exception ex)
                 {
