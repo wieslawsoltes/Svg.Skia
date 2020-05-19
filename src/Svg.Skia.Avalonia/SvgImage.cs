@@ -178,6 +178,7 @@ namespace Svg.Skia.Avalonia
             if (source == null || source.Picture == null)
             {
                 _previousPicture = null;
+                _avaloniaPicture?.Dispose();
                 _avaloniaPicture = null;
                 return;
             }
@@ -197,8 +198,10 @@ namespace Svg.Skia.Avalonia
                     if (_avaloniaPicture == null || source.Picture != _previousPicture)
                     {
                         _previousPicture = source.Picture;
+                        _avaloniaPicture?.Dispose();
                         _avaloniaPicture = SMA.AvaloniaModelExtensions.Record(source.Picture);
                     }
+
                     if (_avaloniaPicture != null)
                     {
                         _avaloniaPicture.Draw(context);
