@@ -33,7 +33,6 @@
   <ItemGroup>
     <!--<ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />-->
     <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
-    <ProjectReference Include="..\Svg.Picture.Skia\Svg.Picture.Skia.csproj" />
     <ProjectReference Include="..\Svg.Picture\Svg.Picture.csproj" />
   </ItemGroup>
 

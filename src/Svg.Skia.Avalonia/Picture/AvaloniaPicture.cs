@@ -72,10 +72,13 @@ namespace Svg.Picture.Avalonia
                         if (drawImageCanvasCommand.Image != null)
                         {
                             var image = drawImageCanvasCommand.Image.ToBitmap();
-                            var source = drawImageCanvasCommand.Source.ToSKRect();
-                            var dest = drawImageCanvasCommand.Dest.ToSKRect();
-                            var bitmapInterpolationMode = drawImageCanvasCommand.Paint?.FilterQuality.ToBitmapInterpolationMode() ?? AVMI.BitmapInterpolationMode.Default;
-                            avaloniaPicture.Commands.Add(new ImageDrawCommand(image, source, dest, bitmapInterpolationMode));
+                            if (image != null)
+                            {
+                                var source = drawImageCanvasCommand.Source.ToSKRect();
+                                var dest = drawImageCanvasCommand.Dest.ToSKRect();
+                                var bitmapInterpolationMode = drawImageCanvasCommand.Paint?.FilterQuality.ToBitmapInterpolationMode() ?? AVMI.BitmapInterpolationMode.Default;
+                                avaloniaPicture.Commands.Add(new ImageDrawCommand(image, source, dest, bitmapInterpolationMode)); 
+                            }
                         }
                     }
                     break;

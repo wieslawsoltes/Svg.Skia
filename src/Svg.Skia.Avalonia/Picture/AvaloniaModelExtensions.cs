@@ -51,10 +51,14 @@ namespace Svg.Picture.Avalonia
             // TODO: matrix.Persp2
         }
 
-        public static AMI.Bitmap ToBitmap(this Image image)
+        public static AMI.Bitmap? ToBitmap(this Image image)
         {
+            if (image.Data == null)
+            {
+                return null;
+            }
             using var memoryStream = new System.IO.MemoryStream(image.Data);
-            return new AMI.Bitmap(memoryStream);
+            return new AMI.Bitmap(memoryStream); 
         }
 
         public static AM.PenLineCap ToPenLineCap(this StrokeCap strokeCap)

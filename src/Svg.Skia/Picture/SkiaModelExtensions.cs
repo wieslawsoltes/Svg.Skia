@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using SkiaSharp;
-using Svg.Picture;
 
 namespace Svg.Picture.Skia
 {
