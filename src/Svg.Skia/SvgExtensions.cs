@@ -6,7 +6,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
-#if !USE_MODEL
+#if !USE_PICTURE
 using SkiaSharp;
 using CropRect = SkiaSharp.SKImageFilter.CropRect;
 #endif
@@ -18,45 +18,45 @@ using Svg.FilterEffects;
 using Svg.Pathing;
 using Svg.Transforms;
 
-#if USE_MODEL
-using SKBlendMode = Svg.Model.BlendMode;
-using SKCanvas = Svg.Model.Canvas;
-using SKClipOperation = Svg.Model.ClipOperation;
-using SKColor = Svg.Model.Color;
-using SKColorFilter = Svg.Model.ColorFilter;
-using SKDisplacementMapEffectChannelSelectorType = Svg.Model.DisplacementMapEffectChannelSelectorType;
-using SKDrawable = Svg.Model.Drawable;
-using SKFilterQuality = Svg.Model.FilterQuality;
-using SKFontStyleSlant = Svg.Model.FontStyleSlant;
-using SKFontStyleWeight = Svg.Model.FontStyleWeight;
-using SKFontStyleWidth = Svg.Model.FontStyleWidth;
-using SKImage = Svg.Model.Image;
-using SKImageFilter = Svg.Model.ImageFilter;
-using CropRect = Svg.Model.CropRect;
-using SKMatrix = Svg.Model.Matrix;
-using SKMatrixConvolutionTileMode = Svg.Model.MatrixConvolutionTileMode;
-using SKPaint = Svg.Model.Paint;
-using SKPaintStyle = Svg.Model.PaintStyle;
-using SKPath = Svg.Model.Path;
-using SKPathArcSize = Svg.Model.PathArcSize;
-using SKPathDirection = Svg.Model.PathDirection;
-using SKPathEffect = Svg.Model.PathEffect;
-using SKPathFillType = Svg.Model.PathFillType;
-using SKPicture = Svg.Model.Picture;
-using SKPictureRecorder = Svg.Model.PictureRecorder;
-using SKPoint = Svg.Model.Point;
-using SKPoint3 = Svg.Model.Point3;
-using SKPointI = Svg.Model.PointI;
-using SKRect = Svg.Model.Rect;
-using SKShader = Svg.Model.Shader;
-using SKShaderTileMode = Svg.Model.ShaderTileMode;
-using SKSize = Svg.Model.Size;
-using SKSizeI = Svg.Model.SizeI;
-using SKStrokeCap = Svg.Model.StrokeCap;
-using SKStrokeJoin = Svg.Model.StrokeJoin;
-using SKTextAlign = Svg.Model.TextAlign;
-using SKTextEncoding = Svg.Model.TextEncoding;
-using SKTypeface = Svg.Model.Typeface;
+#if USE_PICTURE
+using SKBlendMode = Svg.Picture.BlendMode;
+using SKCanvas = Svg.Picture.Canvas;
+using SKClipOperation = Svg.Picture.ClipOperation;
+using SKColor = Svg.Picture.Color;
+using SKColorFilter = Svg.Picture.ColorFilter;
+using SKDisplacementMapEffectChannelSelectorType = Svg.Picture.DisplacementMapEffectChannelSelectorType;
+using SKDrawable = Svg.Picture.Drawable;
+using SKFilterQuality = Svg.Picture.FilterQuality;
+using SKFontStyleSlant = Svg.Picture.FontStyleSlant;
+using SKFontStyleWeight = Svg.Picture.FontStyleWeight;
+using SKFontStyleWidth = Svg.Picture.FontStyleWidth;
+using SKImage = Svg.Picture.Image;
+using SKImageFilter = Svg.Picture.ImageFilter;
+using CropRect = Svg.Picture.CropRect;
+using SKMatrix = Svg.Picture.Matrix;
+using SKMatrixConvolutionTileMode = Svg.Picture.MatrixConvolutionTileMode;
+using SKPaint = Svg.Picture.Paint;
+using SKPaintStyle = Svg.Picture.PaintStyle;
+using SKPath = Svg.Picture.Path;
+using SKPathArcSize = Svg.Picture.PathArcSize;
+using SKPathDirection = Svg.Picture.PathDirection;
+using SKPathEffect = Svg.Picture.PathEffect;
+using SKPathFillType = Svg.Picture.PathFillType;
+using SKPicture = Svg.Picture.Picture;
+using SKPictureRecorder = Svg.Picture.PictureRecorder;
+using SKPoint = Svg.Picture.Point;
+using SKPoint3 = Svg.Picture.Point3;
+using SKPointI = Svg.Picture.PointI;
+using SKRect = Svg.Picture.Rect;
+using SKShader = Svg.Picture.Shader;
+using SKShaderTileMode = Svg.Picture.ShaderTileMode;
+using SKSize = Svg.Picture.Size;
+using SKSizeI = Svg.Picture.SizeI;
+using SKStrokeCap = Svg.Picture.StrokeCap;
+using SKStrokeJoin = Svg.Picture.StrokeJoin;
+using SKTextAlign = Svg.Picture.TextAlign;
+using SKTextEncoding = Svg.Picture.TextEncoding;
+using SKTypeface = Svg.Picture.Typeface;
 #endif
 
 namespace Svg.Skia
@@ -1971,7 +1971,7 @@ namespace Svg.Skia
 
             return skMatrixTotal;
         }
-#if !USE_MODEL // TODO:
+#if !USE_PICTURE // TODO:
         public static List<(SKPoint Point, byte Type)> GetPathTypes(this SKPath skPath)
         {
             // System.Drawing.Drawing2D.GraphicsPath.PathTypes
@@ -2510,7 +2510,7 @@ namespace Svg.Skia
             bool display = ignoreDisplay ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
             return visible && display;
         }
-#if USE_MODEL
+#if USE_PICTURE
         // TODO:
 #else
         public static SKPath? GetClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
@@ -2942,7 +2942,7 @@ namespace Svg.Skia
                 }
             }
         }
-#if !USE_MODEL // TODO:
+#if !USE_PICTURE // TODO:
         public static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable, Attributes ignoreAttributes = Attributes.None)
         {
             float fAngle1 = 0f;
@@ -4695,9 +4695,9 @@ namespace Svg.Skia
                 return;
             }
 
-#if USE_MODEL
+#if USE_PICTURE
             // TODO:
-            skPaint.Typeface = new Svg.Model.Typeface()
+            skPaint.Typeface = new Svg.Picture.Typeface()
             {
                 FamilyName = fontFamily,
                 Weight = fontWeight,
@@ -4761,7 +4761,7 @@ namespace Svg.Skia
         }
     }
 
-#if USE_MODEL
+#if USE_PICTURE
     internal class CompositeDisposable : IDisposable
     {
         public CompositeDisposable()
@@ -5003,7 +5003,7 @@ namespace Svg.Skia
             var enableOpacity = !IgnoreAttributes.HasFlag(Attributes.Opacity);
             var enableFilter = !IgnoreAttributes.HasFlag(Attributes.Filter);
 
-#if USE_MODEL // TODO:
+#if USE_PICTURE // TODO:
             ClipPath = null;
 #else
             if (visualElement != null && enableClip == true)
@@ -5199,7 +5199,7 @@ namespace Svg.Skia
     internal abstract class DrawablePath : DrawableBase
     {
         public SKPath? Path;
-#if !USE_MODEL
+#if !USE_PICTURE
         public List<DrawableBase>? MarkerDrawables;
 #endif
         protected DrawablePath()
@@ -5223,7 +5223,7 @@ namespace Svg.Skia
             {
                 canvas.DrawPath(Path, Stroke);
             }
-#if !USE_MODEL
+#if !USE_PICTURE
             if (MarkerDrawables != null)
             {
                 foreach (var drawable in MarkerDrawables)
@@ -5237,7 +5237,7 @@ namespace Svg.Skia
         public override void PostProcess()
         {
             base.PostProcess();
-#if !USE_MODEL
+#if !USE_PICTURE
             if (MarkerDrawables != null)
             {
                 foreach (var drawable in MarkerDrawables)
@@ -5590,7 +5590,7 @@ namespace Svg.Skia
                     break;
             }
 
-#if USE_MODEL // TODO:
+#if USE_PICTURE // TODO:
             drawable.ClipPath = null;
 #else
             var clipPathUris = new HashSet<Uri>();
@@ -6672,7 +6672,7 @@ namespace Svg.Skia
                 return drawable;
             }
 
-#if !USE_MODEL // TODO:
+#if !USE_PICTURE // TODO:
             SvgExtensions.CreateMarkers(svgLine, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
 #endif
             // TODO: Transform _skBounds using _skMatrix.
@@ -6743,7 +6743,7 @@ namespace Svg.Skia
                 drawable.IsDrawable = false;
                 return drawable;
             }
-#if !USE_MODEL // TODO:
+#if !USE_PICTURE // TODO:
             SvgExtensions.CreateMarkers(svgPath, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
 #endif
             // TODO: Transform _skBounds using _skMatrix.
@@ -6814,7 +6814,7 @@ namespace Svg.Skia
                 drawable.IsDrawable = false;
                 return drawable;
             }
-#if !USE_MODEL // TODO:
+#if !USE_PICTURE // TODO:
             SvgExtensions.CreateMarkers(svgPolyline, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
 #endif
             // TODO: Transform _skBounds using _skMatrix.
@@ -6885,7 +6885,7 @@ namespace Svg.Skia
                 drawable.IsDrawable = false;
                 return drawable;
             }
-#if !USE_MODEL // TODO:
+#if !USE_PICTURE // TODO:
             SvgExtensions.CreateMarkers(svgPolygon, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
 #endif
             // TODO: Transform _skBounds using _skMatrix.
@@ -7016,7 +7016,7 @@ namespace Svg.Skia
             skMatrixTotal = skMatrixTotal.PreConcat(skMatrix);
             skCanvas.SetMatrix(skMatrixTotal);
 
-#if !USE_MODEL // TODO:
+#if !USE_PICTURE // TODO:
             if (enableClip == true)
             {
                 var skPathClip = SvgExtensions.GetSvgVisualElementClipPath(svgTextBase, skBounds, new HashSet<Uri>(), disposable);
@@ -7252,7 +7252,7 @@ namespace Svg.Skia
                 return;
             }
 
-#if !USE_MODEL // TODO:
+#if !USE_PICTURE // TODO:
             var skMatrixPath = SvgExtensions.ToSKMatrix(svgPath.Transforms);
             skPath.Transform(skMatrixPath); 
 #endif

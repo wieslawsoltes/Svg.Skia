@@ -89,11 +89,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgToPng", "samples\SvgToPn
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Skia.Converter", "samples\Svg.Skia.Converter\Svg.Skia.Converter.csproj", "{CA040840-EB98-4A35-8B20-D85AD8381EBB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Model", "src\Svg.Model\Svg.Model.csproj", "{4C970B2C-6C96-445B-B80B-4EFBF803FD5F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Picture", "src\Svg.Picture\Svg.Picture.csproj", "{4C970B2C-6C96-445B-B80B-4EFBF803FD5F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Model.Skia", "src\Svg.Model.Skia\Svg.Model.Skia.csproj", "{EC278447-C5A6-4058-BACC-BAD08040F3F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Picture.Skia", "src\Svg.Picture.Skia\Svg.Picture.Skia.csproj", "{EC278447-C5A6-4058-BACC-BAD08040F3F2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Model.Avalonia", "src\Svg.Model.Avalonia\Svg.Model.Avalonia.csproj", "{92D20712-A152-436C-AE6A-DB27266F21A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Picture.Avalonia", "src\Svg.Picture.Avalonia\Svg.Picture.Avalonia.csproj", "{92D20712-A152-436C-AE6A-DB27266F21A1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgXml.Xml", "experimental\SvgXml.Xml\SvgXml.Xml.csproj", "{FA865204-74D9-45A7-842D-B4F8825EE2F3}"
 EndProject

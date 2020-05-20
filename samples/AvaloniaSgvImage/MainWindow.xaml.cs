@@ -78,7 +78,7 @@ namespace AvaloniaSgvImage
                     if (sender == _svgSourceDockPanel)
                     {
                         var svg = new SvgSource();
-#if USE_MODEL
+#if USE_PICTURE
                         var document = SKSvg.Open(fileName);
                         if (document != null)
                         {
@@ -106,7 +106,7 @@ namespace AvaloniaSgvImage
 
                     if (sender == _svgResourceDockPanel)
                     {
-#if USE_MODEL
+#if USE_PICTURE
                         var svg = new SvgSource();
                         var document = SKSvg.Open(fileName);
                         if (document != null)

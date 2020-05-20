@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_MODEL</DefineConstants>
+    <DefineConstants>$(DefineConstants);USE_PICTURE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

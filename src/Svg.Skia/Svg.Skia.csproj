@@ -24,7 +24,7 @@
   <Import Project="..\..\build\SkiaSharp.HarfBuzz.props" />
 
   <PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_MODEL</DefineConstants>
+    <DefineConstants>$(DefineConstants);USE_PICTURE</DefineConstants>
     <!--<DefineConstants>$(DefineConstants);USE_COLORSPACE</DefineConstants>-->
     <!--<DefineConstants>$(DefineConstants);USE_EXPERIMENTAL_LINEAR_RGB</DefineConstants>-->
   </PropertyGroup>
@@ -33,8 +33,8 @@
   <ItemGroup>
     <!--<ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />-->
     <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
-    <ProjectReference Include="..\Svg.Model.Skia\Svg.Model.Skia.csproj" />
-    <ProjectReference Include="..\Svg.Model\Svg.Model.csproj" />
+    <ProjectReference Include="..\Svg.Picture.Skia\Svg.Picture.Skia.csproj" />
+    <ProjectReference Include="..\Svg.Picture\Svg.Picture.csproj" />
   </ItemGroup>
 
   <ItemGroup>

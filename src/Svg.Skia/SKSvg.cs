@@ -2,9 +2,9 @@
 using System.IO;
 using System.IO.Compression;
 using SkiaSharp;
-#if USE_MODEL
-using Svg.Model;
-using Svg.Model.Skia;
+#if USE_PICTURE
+using SP = Svg.Picture;
+using SPS = Svg.Picture.Skia;
 #endif
 
 namespace Svg.Skia
@@ -18,9 +18,9 @@ namespace Svg.Skia
 
         public static void Draw(SKCanvas skCanvas, SvgFragment svgFragment)
         {
-#if USE_MODEL
+#if USE_PICTURE
             var size = SvgExtensions.GetDimensions(svgFragment);
-            var bounds = Rect.Create(size);
+            var bounds = SP.Rect.Create(size);
             using var drawable = DrawableFactory.Create(svgFragment, bounds, null, Attributes.None);
             if (drawable != null)
             {
@@ -28,7 +28,7 @@ namespace Svg.Skia
                 var picture = drawable.Snapshot(bounds);
                 if (picture != null)
                 {
-                    SkiaPicture.Draw(picture, skCanvas);
+                    SPS.SkiaPicture.Draw(picture, skCanvas);
                 }
             }
 #else
@@ -52,11 +52,11 @@ namespace Svg.Skia
             }
         }
 
-#if USE_MODEL
-        public static Picture? ToModel(SvgFragment svgFragment)
+#if USE_PICTURE
+        public static SP.Picture? ToModel(SvgFragment svgFragment)
         {
             var size = SvgExtensions.GetDimensions(svgFragment);
-            var bounds = Rect.Create(size);
+            var bounds = SP.Rect.Create(size);
             using var drawable = DrawableFactory.Create(svgFragment, bounds, null, Attributes.None);
             if (drawable == null)
             {
@@ -67,7 +67,7 @@ namespace Svg.Skia
             if (bounds.IsEmpty)
             {
                 var drawableBounds = drawable.Bounds;
-                bounds = Rect.Create(
+                bounds = SP.Rect.Create(
                     0f,
                     0f,
                     Math.Abs(drawableBounds.Left) + drawableBounds.Width,
@@ -80,11 +80,11 @@ namespace Svg.Skia
 
         public static SKPicture? ToPicture(SvgFragment svgFragment)
         {
-#if USE_MODEL
+#if USE_PICTURE
             var picture = ToModel(svgFragment);
             if (picture != null)
             {
-                return SkiaPicture.Record(picture);
+                return SPS.SkiaPicture.Record(picture);
             }
             return null;
 #else

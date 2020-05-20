@@ -1,4 +1,4 @@
-﻿#if !USE_MODEL
+﻿#if !USE_PICTURE
 using System;
 using Avalonia;
 using Avalonia.Platform;

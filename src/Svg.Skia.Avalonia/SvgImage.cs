@@ -10,14 +10,16 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Platform;
+using Avalonia.Visuals.Media.Imaging;
+#if USE_PICTURE
+using SP = Svg.Picture;
+using SPA = Svg.Picture.Avalonia;
+#else
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
-using Avalonia.Visuals.Media.Imaging;
 using SkiaSharp;
-#if USE_MODEL
-using SM = Svg.Model;
-using SMA = Svg.Model.Avalonia;
 #endif
+
 namespace Svg.Skia.Avalonia
 {
     internal static class Extensions
@@ -50,7 +52,7 @@ namespace Svg.Skia.Avalonia
             var svg = new SvgSource();
             if (uri.IsAbsoluteUri && uri.IsFile)
             {
-#if USE_MODEL
+#if USE_PICTURE
                 var document = SKSvg.Open(uri.LocalPath);
                 if (document != null)
                 {
@@ -64,7 +66,7 @@ namespace Svg.Skia.Avalonia
             else
             {
                 var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
-#if USE_MODEL
+#if USE_PICTURE
                 var document = SKSvg.Open(assets.Open(uri, context.GetContextBaseUri()));
                 if (document != null)
                 {
@@ -78,14 +80,14 @@ namespace Svg.Skia.Avalonia
         }
     }
 
-#if USE_MODEL
+#if USE_PICTURE
     /// <summary>
     /// Represents a Svg based image.
     /// </summary>
     [TypeConverter(typeof(SvgSourceTypeConverter))]
     public class SvgSource
     {
-        public SM.Picture? Picture { get; set; }
+        public SP.Picture? Picture { get; set; }
     }
 #else
     /// <summary>
@@ -97,7 +99,7 @@ namespace Svg.Skia.Avalonia
     } 
 #endif
 
-#if !USE_MODEL
+#if !USE_PICTURE
     internal class SvgCustomDrawOperation : ICustomDrawOperation
     {
         private readonly SvgSource _svg;
@@ -164,8 +166,8 @@ namespace Svg.Skia.Avalonia
         public Size Size =>
             Source?.Picture != null ? new Size(Source.Picture.CullRect.Width, Source.Picture.CullRect.Height) : default;
 
-        private SM.Picture? _previousPicture = null;
-        private SMA.AvaloniaPicture? _avaloniaPicture = null;
+        private SP.Picture? _previousPicture = null;
+        private SPA.AvaloniaPicture? _avaloniaPicture = null;
 
         /// <inheritdoc/>
         void IImage.Draw(
@@ -192,14 +194,14 @@ namespace Svg.Skia.Avalonia
             using (context.PushClip(destRect))
             using (context.PushPreTransform(translate * scale))
             {
-#if USE_MODEL
+#if USE_PICTURE
                 try
                 {
                     if (_avaloniaPicture == null || source.Picture != _previousPicture)
                     {
                         _previousPicture = source.Picture;
                         _avaloniaPicture?.Dispose();
-                        _avaloniaPicture = SMA.AvaloniaPicture.Record(source.Picture);
+                        _avaloniaPicture = SPA.AvaloniaPicture.Record(source.Picture);
                     }
 
                     if (_avaloniaPicture != null)
