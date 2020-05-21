@@ -1972,7 +1972,6 @@ namespace Svg.Skia
             return skMatrixTotal;
         }
 #if USE_PICTURE
-        // TODO: Fix markers.
         public static List<(Svg.Picture.Point Point, byte Type)> GetPathTypes(this Svg.Picture.Path path)
         {
             // System.Drawing.Drawing2D.GraphicsPath.PathTypes
