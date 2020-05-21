@@ -3015,7 +3015,7 @@ namespace Svg.Skia
                 }
             }
         }
-#if !USE_PICTURE // TODO:
+
         public static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable, Attributes ignoreAttributes = Attributes.None)
         {
             float fAngle1 = 0f;
@@ -3070,7 +3070,7 @@ namespace Svg.Skia
                 {
                     var refPoint1 = pathTypes[0].Point;
                     var index = 1;
-                    while (index < pathLength && pathTypes[index].Point == refPoint1)
+                    while (index < pathLength && pathTypes[index].Point.X == refPoint1.X && pathTypes[index].Point.Y == refPoint1.Y)
                     {
                         ++index;
                     }
@@ -3117,7 +3117,7 @@ namespace Svg.Skia
                     if (pathLength > 1)
                     {
                         --index;
-                        while (index > 0 && pathTypes[index].Point == refPoint1)
+                        while (index > 0 && pathTypes[index].Point.X == refPoint1.X && pathTypes[index].Point.Y == refPoint1.Y)
                         {
                             --index;
                         }
@@ -3127,7 +3127,7 @@ namespace Svg.Skia
                 }
             }
         }
-#endif
+
         public static SKBlendMode GetSKBlendMode(SvgBlendMode svgBlendMode)
         {
             return svgBlendMode switch
