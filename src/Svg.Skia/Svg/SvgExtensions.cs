@@ -1971,13 +1971,85 @@ namespace Svg.Skia
 
             return skMatrixTotal;
         }
-#if !USE_PICTURE // TODO:
+#if USE_PICTURE
+        public static List<(Svg.Picture.Point Point, byte Type)> GetPathTypes(this Svg.Picture.Path path)
+        {
+            // System.Drawing.Drawing2D.GraphicsPath.PathTypes
+            // System.Drawing.Drawing2D.PathPointType
+            // byte -> PathPointType
+            var pathTypes = new List<(Svg.Picture.Point Point, byte Type)>();
+
+            if (path.Commands == null)
+            {
+                return pathTypes;
+            }
+            var points = new Svg.Picture.Point[4];
+            (Svg.Picture.Point Point, byte Type) lastPoint = (default, 0);
+            foreach (var pathCommand in path.Commands)
+            {
+                switch (pathCommand)
+                {
+                    case Svg.Picture.MoveToPathCommand moveToPathCommand:
+                        {
+                            points[0] = new Svg.Picture.Point(moveToPathCommand.X, moveToPathCommand.Y);
+                            pathTypes.Add((points[0], (byte)PathPointType.Start));
+                            lastPoint = (points[0], (byte)PathPointType.Start);
+                        }
+                        break;
+
+                    case Svg.Picture.LineToPathCommand lineToPathCommand:
+                        {
+                            points[1] = new Svg.Picture.Point(lineToPathCommand.X, lineToPathCommand.Y);
+                            pathTypes.Add((points[1], (byte)PathPointType.Line));
+                            lastPoint = (points[1], (byte)PathPointType.Line);
+                        }
+                        break;
+                    case Svg.Picture.CubicToPathCommand cubicToPathCommand:
+                        {
+                            points[1] = new Svg.Picture.Point(cubicToPathCommand.X0, cubicToPathCommand.Y0);
+                            points[2] = new Svg.Picture.Point(cubicToPathCommand.X1, cubicToPathCommand.Y1);
+                            points[3] = new Svg.Picture.Point(cubicToPathCommand.X2, cubicToPathCommand.Y2);
+                            pathTypes.Add((points[1], (byte)PathPointType.Bezier));
+                            pathTypes.Add((points[2], (byte)PathPointType.Bezier));
+                            pathTypes.Add((points[3], (byte)PathPointType.Bezier));
+                            lastPoint = (points[3], (byte)PathPointType.Bezier);
+                        }
+                        break;
+                    case Svg.Picture.QuadToPathCommand quadToPathCommand:
+                        {
+                            points[1] = new Svg.Picture.Point(quadToPathCommand.X0, quadToPathCommand.Y0);
+                            points[2] = new Svg.Picture.Point(quadToPathCommand.X1, quadToPathCommand.Y1);
+                            pathTypes.Add((points[1], (byte)PathPointType.Bezier));
+                            pathTypes.Add((points[2], (byte)PathPointType.Bezier));
+                            lastPoint = (points[2], (byte)PathPointType.Bezier);
+                        }
+                        break;
+                    case Svg.Picture.ArcToPathCommand arcToPathCommand:
+                        {
+                            points[1] = new SKPoint(arcToPathCommand.X, arcToPathCommand.Y);
+                            pathTypes.Add((points[1], (byte)PathPointType.Bezier));
+                            lastPoint = (points[1], (byte)PathPointType.Bezier);
+                        }
+                        break;
+                    case Svg.Picture.ClosePathCommand closePathCommand:
+                        {
+                            lastPoint = (lastPoint.Point, (byte)((lastPoint.Type | (byte)PathPointType.CloseSubpath)));
+                            pathTypes[pathTypes.Count - 1] = lastPoint;
+                        }
+                        break;
+                }
+            }
+
+            return pathTypes;
+        }
+#else
         public static List<(SKPoint Point, byte Type)> GetPathTypes(this SKPath skPath)
         {
             // System.Drawing.Drawing2D.GraphicsPath.PathTypes
             // System.Drawing.Drawing2D.PathPointType
             // byte -> PathPointType
             var pathTypes = new List<(SKPoint Point, byte Type)>();
+
             using (var iterator = skPath.CreateRawIterator())
             {
                 var points = new SKPoint[4];
@@ -2030,6 +2102,7 @@ namespace Svg.Skia
                     }
                 }
             }
+
             return pathTypes;
         }
 #endif
