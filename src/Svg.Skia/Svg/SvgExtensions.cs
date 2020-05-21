@@ -5272,9 +5272,9 @@ namespace Svg.Skia
     internal abstract class DrawablePath : DrawableBase
     {
         public SKPath? Path;
-#if !USE_PICTURE
+
         public List<DrawableBase>? MarkerDrawables;
-#endif
+
         protected DrawablePath()
             : base()
         {
@@ -5296,7 +5296,7 @@ namespace Svg.Skia
             {
                 canvas.DrawPath(Path, Stroke);
             }
-#if !USE_PICTURE
+
             if (MarkerDrawables != null)
             {
                 foreach (var drawable in MarkerDrawables)
@@ -5304,13 +5304,12 @@ namespace Svg.Skia
                     drawable.Draw(canvas, ignoreAttributes, until);
                 }
             }
-#endif
         }
 
         public override void PostProcess()
         {
             base.PostProcess();
-#if !USE_PICTURE
+
             if (MarkerDrawables != null)
             {
                 foreach (var drawable in MarkerDrawables)
@@ -5318,7 +5317,6 @@ namespace Svg.Skia
                     drawable.PostProcess();
                 }
             }
-#endif
         }
     }
 
@@ -6745,9 +6743,8 @@ namespace Svg.Skia
                 return drawable;
             }
 
-#if !USE_PICTURE // TODO:
             SvgExtensions.CreateMarkers(svgLine, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
-#endif
+
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
 
@@ -6816,9 +6813,9 @@ namespace Svg.Skia
                 drawable.IsDrawable = false;
                 return drawable;
             }
-#if !USE_PICTURE // TODO:
+
             SvgExtensions.CreateMarkers(svgPath, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
-#endif
+
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
 
@@ -6887,9 +6884,9 @@ namespace Svg.Skia
                 drawable.IsDrawable = false;
                 return drawable;
             }
-#if !USE_PICTURE // TODO:
+
             SvgExtensions.CreateMarkers(svgPolyline, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
-#endif
+
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
 
@@ -6958,9 +6955,9 @@ namespace Svg.Skia
                 drawable.IsDrawable = false;
                 return drawable;
             }
-#if !USE_PICTURE // TODO:
+
             SvgExtensions.CreateMarkers(svgPolygon, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
-#endif
+
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
 
