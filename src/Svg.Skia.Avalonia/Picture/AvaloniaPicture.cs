@@ -26,7 +26,7 @@ namespace Svg.Picture.Avalonia
             {
                 case ClipPathCanvasCommand clipPathCanvasCommand:
                     {
-                        var path = clipPathCanvasCommand.Path.ToGeometry(false);
+                        var path = clipPathCanvasCommand.ClipPath.ToGeometry(false);
                         if (path != null)
                         {
                             // TODO: clipPathCanvasCommand.Operation;
