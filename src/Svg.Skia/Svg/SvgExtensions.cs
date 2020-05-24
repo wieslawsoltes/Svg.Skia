@@ -2607,7 +2607,6 @@ namespace Svg.Skia
             {
                 return false;
             }
-
             switch (svgVisualElement)
             {
                 case SvgPath svgPath:
@@ -2624,7 +2623,9 @@ namespace Svg.Skia
                             };
                             clipPath.Clips?.Add(pathClip);
 
-                            return GetSvgVisualElementClipPath(svgPath, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+                            GetSvgVisualElementClipPath(svgPath, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+
+                            return true;
                         }
                     }
                     break;
@@ -2642,7 +2643,9 @@ namespace Svg.Skia
                             };
                             clipPath.Clips?.Add(pathClip);
 
-                            return GetSvgVisualElementClipPath(svgRectangle, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+                            GetSvgVisualElementClipPath(svgRectangle, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+
+                            return true;
                         }
                     }
                     break;
@@ -2660,7 +2663,9 @@ namespace Svg.Skia
                             };
                             clipPath.Clips?.Add(pathClip);
 
-                            return GetSvgVisualElementClipPath(svgCircle, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+                            GetSvgVisualElementClipPath(svgCircle, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+
+                            return true;
                         }
                     }
                     break;
@@ -2678,7 +2683,9 @@ namespace Svg.Skia
                             };
                             clipPath.Clips?.Add(pathClip);
 
-                            return GetSvgVisualElementClipPath(svgEllipse, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+                            GetSvgVisualElementClipPath(svgEllipse, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+
+                            return true;
                         }
                     }
                     break;
@@ -2696,7 +2703,9 @@ namespace Svg.Skia
                             };
                             clipPath.Clips?.Add(pathClip);
 
-                            return GetSvgVisualElementClipPath(svgLine, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+                            GetSvgVisualElementClipPath(svgLine, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+
+                            return true;
                         }
                     }
                     break;
@@ -2714,7 +2723,9 @@ namespace Svg.Skia
                             };
                             clipPath.Clips?.Add(pathClip);
 
-                            return GetSvgVisualElementClipPath(svgPolyline, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+                            GetSvgVisualElementClipPath(svgPolyline, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+
+                            return true;
                         }
                     }
                     break;
@@ -2732,7 +2743,9 @@ namespace Svg.Skia
                             };
                             clipPath.Clips?.Add(pathClip);
 
-                            return GetSvgVisualElementClipPath(svgPolygon, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+                            GetSvgVisualElementClipPath(svgPolygon, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+
+                            return true;
                         }
                     }
                     break;
@@ -2757,10 +2770,12 @@ namespace Svg.Skia
                         var result = GetClipPath(svgReferencedVisualElement, skBounds, uris, disposable, clipPath, pathOp);
                         if (result == true)
                         {
-                            return GetSvgVisualElementClipPath(svgUse, skBounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+                            GetSvgVisualElementClipPath(svgUse, skBounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+
+                            return true;
                         }
-                        return result;
                     }
+                    break;
                 case SvgText svgText:
                     {
                         // TODO: Get path from SvgText.
