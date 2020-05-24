@@ -6,7 +6,7 @@ namespace Svg.Picture
     {
         public Path? Path;
         public Matrix? Transform;
-        public PathOp Op;
+        public ClipPath? Clip;
 
         public void Dispose()
         {
