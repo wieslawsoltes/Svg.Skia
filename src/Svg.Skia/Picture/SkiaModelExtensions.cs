@@ -1025,7 +1025,7 @@ namespace Svg.Picture.Skia
 
         public static SKPath? ToSKPath(this ClipPath clipPath)
         {
-            if (clipPath.Clips == null || clipPath.Clips.Count == 0)
+            if (clipPath.Clips == null)
             {
                 return null;
             }
@@ -1071,7 +1071,7 @@ namespace Svg.Picture.Skia
 
             if (skPathResult != null)
             {
-                if (clipPath.Clip != null && clipPath.Clip.Clips != null && clipPath.Clip.Clips.Count > 0)
+                if (clipPath.Clip != null && clipPath.Clip.Clips != null)
                 {
                     var skPathClip = clipPath.Clip.ToSKPath();
                     if (skPathClip != null)
