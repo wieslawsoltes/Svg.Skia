@@ -2,13 +2,13 @@
 {
     public class ClipPathCanvasCommand : CanvasCommand
     {
-        public Path Path;
+        public ClipPath ClipPath;
         public ClipOperation Operation;
         public bool Antialias;
 
-        public ClipPathCanvasCommand(Path path, ClipOperation operation, bool antialias)
+        public ClipPathCanvasCommand(ClipPath clipPath, ClipOperation operation, bool antialias)
         {
-            Path = path;
+            ClipPath = clipPath;
             Operation = operation;
             Antialias = antialias;
         }
