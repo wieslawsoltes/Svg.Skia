@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using SkiaSharp;
 
 namespace Svg.Picture.Skia
@@ -1093,7 +1094,7 @@ namespace Svg.Picture.Skia
             {
                 case ClipPathCanvasCommand clipPathCanvasCommand:
                     {
-                        var path = clipPathCanvasCommand.Path.ToSKPath();
+                        var path = clipPathCanvasCommand.ClipPath.ToSKPath();
                         var operation = clipPathCanvasCommand.Operation.ToSKClipOperation();
                         var antialias = clipPathCanvasCommand.Antialias;
                         skCanvas.ClipPath(path, operation, antialias);
