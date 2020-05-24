@@ -555,5 +555,10 @@ namespace Svg.Picture.Avalonia
 
             return streamGeometry;
         }
+
+        public static AM.Geometry? ToGeometry(this ClipPath clipPath, bool isFilled)
+        {
+            return null; // TODO:
+        }
     }
 }
