@@ -886,6 +886,24 @@ namespace Svg.Picture.Skia
             }
         }
 
+        public static SKPathOp ToSKPathOp(this PathOp pathOp)
+        {
+            switch (pathOp)
+            {
+                default:
+                case PathOp.Difference:
+                    return SKPathOp.Difference;
+                case PathOp.Intersect:
+                    return SKPathOp.Intersect;
+                case PathOp.Union:
+                    return SKPathOp.Union;
+                case PathOp.Xor:
+                    return SKPathOp.Xor;
+                case PathOp.ReverseDifference:
+                    return SKPathOp.ReverseDifference;
+            }
+        }
+
         public static void ToSKPath(this PathCommand pathCommand, SKPath skPath)
         {
             switch (pathCommand)
