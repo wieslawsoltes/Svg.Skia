@@ -2797,7 +2797,15 @@ namespace Svg.Skia
                         // TODO:
                         GetClipPath(svgReferencedVisualElement, skBounds, uris, disposable, clipPath);
 
-                        //GetSvgVisualElementClipPath(svgUse, skBounds, uris, disposable, clipPath);
+                        if (clipPath.Clips != null && clipPath.Clips.Count > 0)
+                        {
+                            // TODO:
+                            var lastClip = clipPath.Clips[clipPath.Clips.Count - 1];
+                            if (lastClip.Clip != null)
+                            {
+                                GetSvgVisualElementClipPath(svgUse, skBounds, uris, disposable, lastClip.Clip);
+                            }
+                        }
                     }
                     break;
                 case SvgText svgText:
