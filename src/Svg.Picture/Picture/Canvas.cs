@@ -18,9 +18,9 @@ namespace Svg.Picture
             TotalMatrix = Matrix.Identity;
         }
 
-        public void ClipPath(Path path, ClipOperation operation = ClipOperation.Intersect, bool antialias = false)
+        public void ClipPath(ClipPath clipPath, ClipOperation operation = ClipOperation.Intersect, bool antialias = false)
         {
-            Commands?.Add(new ClipPathCanvasCommand(path, operation, antialias));
+            Commands?.Add(new ClipPathCanvasCommand(clipPath, operation, antialias));
         }
 
         public void ClipRect(Rect rect, ClipOperation operation = ClipOperation.Intersect, bool antialias = false)
