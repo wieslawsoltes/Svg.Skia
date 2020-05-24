@@ -1022,6 +1022,55 @@ namespace Svg.Picture.Skia
             return skPath;
         }
 
+        public static SKPath? ToSKPath(this ClipPath clipPath)
+        {
+            if (clipPath.Clips == null || clipPath.Clips.Count == 0)
+            {
+                return null;
+            }
+
+            var skPathClip = default(SKPath);
+
+            foreach (var pathClip in clipPath.Clips)
+            {
+                if (pathClip.Path == null)
+                {
+                    return null;
+                }
+
+                var skPath = pathClip.Path.ToSKPath();
+                if (skPath != null)
+                {
+                    if (pathClip.Transform != null)
+                    {
+                        var skMatrix = pathClip.Transform.Value.ToSKMatrix();
+                        skPath.Transform(skMatrix); 
+                    }
+
+                    if (skPathClip == null)
+                    {
+                        skPathClip = skPath;
+                    }
+                    else
+                    {
+                        var result = skPathClip.Op(skPath, pathClip.Op.ToSKPathOp());
+                        skPathClip = result;
+                    }
+                }
+            }
+
+            if (skPathClip != null)
+            {
+                if (clipPath.Transform != null)
+                {
+                    var skMatrix = clipPath.Transform.Value.ToSKMatrix();
+                    skPathClip.Transform(skMatrix);
+                }
+            }
+
+            return skPathClip;
+        }
+
         public static SKPicture? ToSKPicture(this Picture? picture)
         {
             if (picture == null)
