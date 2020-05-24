@@ -1030,46 +1030,64 @@ namespace Svg.Picture.Skia
                 return null;
             }
 
-            var skPathClip = default(SKPath);
+            var skPathResult = default(SKPath);
 
-            foreach (var pathClip in clipPath.Clips)
+            foreach (var clip in clipPath.Clips)
             {
-                if (pathClip.Path == null)
+                if (clip.Path == null)
                 {
                     return null;
                 }
 
-                var skPath = pathClip.Path.ToSKPath();
+                var skPath = clip.Path.ToSKPath();
                 if (skPath != null)
                 {
-                    if (pathClip.Transform != null)
+                    if (clip.Transform != null)
                     {
-                        var skMatrix = pathClip.Transform.Value.ToSKMatrix();
+                        var skMatrix = clip.Transform.Value.ToSKMatrix();
                         skPath.Transform(skMatrix); 
                     }
 
-                    if (skPathClip == null)
+                    if (clip.Clip != null)
                     {
-                        skPathClip = skPath;
+                        var skPathClip = clip.Clip.ToSKPath();
+                        if (skPathClip != null)
+                        {
+                            skPath = skPath.Op(skPathClip, SKPathOp.Intersect);
+                        }
+                    }
+
+                    if (skPathResult == null)
+                    {
+                        skPathResult = skPath;
                     }
                     else
                     {
-                        var result = skPathClip.Op(skPath, pathClip.Op.ToSKPathOp());
-                        skPathClip = result;
+                        var result = skPathResult.Op(skPath, SKPathOp.Union);
+                        skPathResult = result;
                     }
                 }
             }
 
-            if (skPathClip != null)
+            if (skPathResult != null)
             {
+                if (clipPath.Clip != null && clipPath.Clip.Clips != null && clipPath.Clip.Clips.Count > 0)
+                {
+                    var skPathClip = clipPath.Clip.ToSKPath();
+                    if (skPathClip != null)
+                    {
+                        skPathResult = skPathResult.Op(skPathClip, SKPathOp.Intersect);
+                    }
+                }
+
                 if (clipPath.Transform != null)
                 {
                     var skMatrix = clipPath.Transform.Value.ToSKMatrix();
-                    skPathClip.Transform(skMatrix);
+                    skPathResult.Transform(skMatrix);
                 }
             }
 
-            return skPathClip;
+            return skPathResult;
         }
 
         public static SKPicture? ToSKPicture(this Picture? picture)
