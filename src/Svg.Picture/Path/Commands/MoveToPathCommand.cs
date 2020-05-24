@@ -2,8 +2,8 @@
 {
     public class MoveToPathCommand : PathCommand
     {
-        public float X;
-        public float Y;
+        public float X { get; set; }
+        public float Y { get; set; }
 
         public MoveToPathCommand(float x, float y)
         {

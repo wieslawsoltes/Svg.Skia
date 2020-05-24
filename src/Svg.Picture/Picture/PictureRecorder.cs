@@ -5,8 +5,8 @@ namespace Svg.Picture
 {
     public class PictureRecorder : IDisposable
     {
-        public Rect CullRect;
-        public Canvas? RecordingCanvas;
+        public Rect CullRect { get; set; }
+        public Canvas? RecordingCanvas { get; set; }
 
         public Canvas BeginRecording(Rect cullRect)
         {

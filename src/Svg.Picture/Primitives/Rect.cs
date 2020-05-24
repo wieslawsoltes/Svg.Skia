@@ -5,10 +5,10 @@ namespace Svg.Picture
 {
     public struct Rect
     {
-        public float Left;
-        public float Top;
-        public float Right;
-        public float Bottom;
+        public float Left { get; set; }
+        public float Top { get; set; }
+        public float Right { get; set; }
+        public float Bottom { get; set; }
 
         public static readonly Rect Empty;
 

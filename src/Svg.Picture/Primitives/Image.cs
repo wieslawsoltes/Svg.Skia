@@ -4,9 +4,9 @@ namespace Svg.Picture
 {
     public class Image
     {
-        public byte[]? Data;
-        public float Width; // TODO:
-        public float Height; // TODO:
+        public byte[]? Data { get; set; }
+        public float Width { get; set; } // TODO:
+        public float Height { get; set; } // TODO:
 
         public static Image FromEncodedData(Stream sourceStream)
         {

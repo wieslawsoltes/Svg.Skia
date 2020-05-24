@@ -2,9 +2,9 @@
 {
     public class DilateImageFilter : ImageFilter
     {
-        public int RadiusX;
-        public int RadiusY;
-        public ImageFilter? Input;
-        public CropRect? CropRect;
+        public int RadiusX { get; set; }
+        public int RadiusY { get; set; }
+        public ImageFilter? Input { get; set; }
+        public CropRect? CropRect { get; set; }
     }
 }

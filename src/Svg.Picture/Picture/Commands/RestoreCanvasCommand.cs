@@ -2,7 +2,7 @@
 {
     public class RestoreCanvasCommand : CanvasCommand
     {
-        public int Count;
+        public int Count { get; set; }
 
         public RestoreCanvasCommand(int count)
         {

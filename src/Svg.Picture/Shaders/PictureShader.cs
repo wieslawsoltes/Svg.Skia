@@ -2,10 +2,10 @@
 {
     public class PictureShader : Shader
     {
-        public Picture? Src;
-        public ShaderTileMode TmX;
-        public ShaderTileMode TmY;
-        public Matrix LocalMatrix;
-        public Rect Tile;
+        public Picture? Src { get; set; }
+        public ShaderTileMode TmX { get; set; }
+        public ShaderTileMode TmY { get; set; }
+        public Matrix LocalMatrix { get; set; }
+        public Rect Tile { get; set; }
     }
 }

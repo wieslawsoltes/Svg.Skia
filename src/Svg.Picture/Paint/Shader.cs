@@ -4,10 +4,6 @@ namespace Svg.Picture
 {
     public abstract class Shader : IDisposable
     {
-        public void Dispose()
-        {
-        }
-
         public static Shader CreateColor(Color color)
         {
             return new ColorShader()
@@ -104,6 +100,10 @@ namespace Svg.Picture
                 Mode = mode,
                 LocalMatrix = localMatrix
             };
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

@@ -2,7 +2,7 @@
 {
     public class AddOvalPathCommand : PathCommand
     {
-        public Rect Rect;
+        public Rect Rect { get; set; }
 
         public AddOvalPathCommand(Rect rect)
         {

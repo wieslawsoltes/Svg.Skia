@@ -2,13 +2,13 @@
 {
     public class TwoPointConicalGradientShader : Shader
     {
-        public Point Start;
-        public float StartRadius;
-        public Point End;
-        public float EndRadius;
-        public Color[]? Colors;
-        public float[]? ColorPos;
-        public ShaderTileMode Mode;
-        public Matrix? LocalMatrix;
+        public Point Start { get; set; }
+        public float StartRadius { get; set; }
+        public Point End { get; set; }
+        public float EndRadius { get; set; }
+        public Color[]? Colors { get; set; }
+        public float[]? ColorPos { get; set; }
+        public ShaderTileMode Mode { get; set; }
+        public Matrix? LocalMatrix { get; set; }
     }
 }

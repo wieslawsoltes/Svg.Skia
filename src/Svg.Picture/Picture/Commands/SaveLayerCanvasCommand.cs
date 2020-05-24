@@ -2,8 +2,8 @@
 {
     public class SaveLayerCanvasCommand : CanvasCommand
     {
-        public int Count;
-        public Paint? Paint;
+        public int Count { get; set; }
+        public Paint? Paint { get; set; }
 
         public SaveLayerCanvasCommand(int count)
         {

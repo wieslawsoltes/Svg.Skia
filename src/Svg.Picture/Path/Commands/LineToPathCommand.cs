@@ -2,8 +2,8 @@
 {
     public class LineToPathCommand : PathCommand
     {
-        public float X;
-        public float Y;
+        public float X { get; set; }
+        public float Y { get; set; }
 
         public LineToPathCommand(float x, float y)
         {

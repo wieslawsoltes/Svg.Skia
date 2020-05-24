@@ -5,8 +5,8 @@ namespace Svg.Picture
 {
     public class Path : IDisposable
     {
-        public PathFillType FillType;
-        public IList<PathCommand>? Commands;
+        public PathFillType FillType { get; set; }
+        public IList<PathCommand>? Commands { get; set; }
 
         public bool IsEmpty => Commands == null || Commands.Count == 0;
 

@@ -2,13 +2,13 @@
 {
     public class ArithmeticImageFilter : ImageFilter
     {
-        public float K1;
-        public float K2;
-        public float K3;
-        public float K4;
-        public bool EforcePMColor;
-        public ImageFilter? Background;
-        public ImageFilter? Foreground;
-        public CropRect? CropRect;
+        public float K1 { get; set; }
+        public float K2 { get; set; }
+        public float K3 { get; set; }
+        public float K4 { get; set; }
+        public bool EforcePMColor { get; set; }
+        public ImageFilter? Background { get; set; }
+        public ImageFilter? Foreground { get; set; }
+        public CropRect? CropRect { get; set; }
     }
 }

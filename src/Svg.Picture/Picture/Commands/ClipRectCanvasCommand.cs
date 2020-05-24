@@ -2,9 +2,9 @@
 {
     public class ClipRectCanvasCommand : CanvasCommand
     {
-        public Rect Rect;
-        public ClipOperation Operation;
-        public bool Antialias;
+        public Rect Rect { get; set; }
+        public ClipOperation Operation { get; set; }
+        public bool Antialias { get; set; }
 
         public ClipRectCanvasCommand(Rect rect, ClipOperation operation, bool antialias)
         {

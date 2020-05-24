@@ -2,7 +2,7 @@
 {
     public class DashPathEffect : PathEffect
     {
-        public float[]? Intervals;
-        public float Phase;
+        public float[]? Intervals { get; set; }
+        public float Phase { get; set; }
     }
 }

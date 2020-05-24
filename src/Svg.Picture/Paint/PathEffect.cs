@@ -4,10 +4,6 @@ namespace Svg.Picture
 {
     public abstract class PathEffect : IDisposable
     {
-        public void Dispose()
-        {
-        }
-
         public static PathEffect CreateDash(float[] intervals, float phase)
         {
             return new DashPathEffect()
@@ -15,6 +11,10 @@ namespace Svg.Picture
                 Intervals = intervals,
                 Phase = phase
             };
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

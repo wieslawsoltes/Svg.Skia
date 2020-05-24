@@ -4,10 +4,6 @@ namespace Svg.Picture
 {
     public abstract class ColorFilter : IDisposable
     {
-        public void Dispose()
-        {
-        }
-
         public static ColorFilter CreateColorMatrix(float[] matrix)
         {
             return new ColorMatrixColorFilter
@@ -41,6 +37,10 @@ namespace Svg.Picture
             return new LumaColorColorFilter
             {
             };
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

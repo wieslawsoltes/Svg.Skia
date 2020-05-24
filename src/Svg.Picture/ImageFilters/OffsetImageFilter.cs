@@ -2,9 +2,9 @@
 {
     public class OffsetImageFilter : ImageFilter
     {
-        public float Dx;
-        public float Dy;
-        public ImageFilter? Input;
-        public CropRect? CropRect;
+        public float Dx { get; set; }
+        public float Dy { get; set; }
+        public ImageFilter? Input { get; set; }
+        public CropRect? CropRect { get; set; }
     }
 }

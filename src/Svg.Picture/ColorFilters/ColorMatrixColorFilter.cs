@@ -2,6 +2,6 @@
 {
     public class ColorMatrixColorFilter : ColorFilter
     {
-        public float[]? Matrix;
+        public float[]? Matrix { get; set; }
     }
 }

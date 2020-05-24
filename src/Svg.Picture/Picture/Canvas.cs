@@ -9,8 +9,8 @@ namespace Svg.Picture
         private int _saveCount = 0;
         private Stack<Matrix> _totalMatrices = new Stack<Matrix>();
 
-        public IList<CanvasCommand>? Commands;
-        public Matrix TotalMatrix;
+        public IList<CanvasCommand>? Commands { get; set; }
+        public Matrix TotalMatrix { get; set; }
 
         public Canvas()
         {

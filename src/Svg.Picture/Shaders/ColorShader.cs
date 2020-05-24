@@ -2,6 +2,6 @@
 {
     public class ColorShader : Shader
     {
-        public Color Color;
+        public Color Color { get; set; }
     }
 }

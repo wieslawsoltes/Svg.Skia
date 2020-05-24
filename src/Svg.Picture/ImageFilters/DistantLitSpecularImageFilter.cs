@@ -2,12 +2,12 @@
 {
     public class DistantLitSpecularImageFilter : ImageFilter
     {
-        public Point3 Direction;
-        public Color LightColor;
-        public float SurfaceScale;
-        public float Ks;
-        public float Shininess;
-        public ImageFilter? Input;
-        public CropRect? CropRect;
+        public Point3 Direction { get; set; }
+        public Color LightColor { get; set; }
+        public float SurfaceScale { get; set; }
+        public float Ks { get; set; }
+        public float Shininess { get; set; }
+        public ImageFilter? Input { get; set; }
+        public CropRect? CropRect { get; set; }
     }
 }

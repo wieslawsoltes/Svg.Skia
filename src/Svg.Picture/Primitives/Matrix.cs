@@ -4,15 +4,15 @@ namespace Svg.Picture
 {
     public struct Matrix
     {
-        public float ScaleX;
-        public float SkewX;
-        public float TransX;
-        public float ScaleY;
-        public float SkewY;
-        public float TransY;
-        public float Persp0;
-        public float Persp1;
-        public float Persp2;
+        public float ScaleX { get; set; }
+        public float SkewX { get; set; }
+        public float TransX { get; set; }
+        public float ScaleY { get; set; }
+        public float SkewY { get; set; }
+        public float TransY { get; set; }
+        public float Persp0 { get; set; }
+        public float Persp1 { get; set; }
+        public float Persp2 { get; set; }
 
         internal const float DegreesToRadians = (float)Math.PI / 180.0f;
 

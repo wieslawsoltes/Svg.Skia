@@ -2,7 +2,7 @@
 {
     public class SetMatrixCanvasCommand : CanvasCommand
     {
-        public Matrix Matrix;
+        public Matrix Matrix { get; set; }
 
         public SetMatrixCanvasCommand(Matrix matrix)
         {

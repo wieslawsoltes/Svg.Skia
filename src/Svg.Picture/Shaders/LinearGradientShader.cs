@@ -2,11 +2,11 @@
 {
     public class LinearGradientShader : Shader
     {
-        public Point Start;
-        public Point End;
-        public Color[]? Colors;
-        public float[]? ColorPos;
-        public ShaderTileMode Mode;
-        public Matrix? LocalMatrix;
+        public Point Start { get; set; }
+        public Point End { get; set; }
+        public Color[]? Colors { get; set; }
+        public float[]? ColorPos { get; set; }
+        public ShaderTileMode Mode { get; set; }
+        public Matrix? LocalMatrix { get; set; }
     }
 }

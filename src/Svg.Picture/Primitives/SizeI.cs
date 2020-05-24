@@ -2,8 +2,8 @@
 {
     public struct SizeI
     {
-        public int Width;
-        public int Height;
+        public int Width { get; set; }
+        public int Height { get; set; }
 
         public static readonly SizeI Empty;
 

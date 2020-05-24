@@ -4,25 +4,25 @@ namespace Svg.Picture
 {
     public class Paint : IDisposable
     {
-        public PaintStyle Style;
-        public bool IsAntialias;
-        public float StrokeWidth;
-        public StrokeCap StrokeCap;
-        public StrokeJoin StrokeJoin;
-        public float StrokeMiter;
-        public Typeface? Typeface;
-        public float TextSize;
-        public TextAlign TextAlign;
-        public bool LcdRenderText;
-        public bool SubpixelText;
-        public TextEncoding TextEncoding;
-        public Color? Color;
-        public Shader? Shader;
-        public ColorFilter? ColorFilter;
-        public ImageFilter? ImageFilter;
-        public PathEffect? PathEffect;
-        public BlendMode BlendMode;
-        public FilterQuality FilterQuality;
+        public PaintStyle Style { get; set; }
+        public bool IsAntialias { get; set; }
+        public float StrokeWidth { get; set; }
+        public StrokeCap StrokeCap { get; set; }
+        public StrokeJoin StrokeJoin { get; set; }
+        public float StrokeMiter { get; set; }
+        public Typeface? Typeface { get; set; }
+        public float TextSize { get; set; }
+        public TextAlign TextAlign { get; set; }
+        public bool LcdRenderText { get; set; }
+        public bool SubpixelText { get; set; }
+        public TextEncoding TextEncoding { get; set; }
+        public Color? Color { get; set; }
+        public Shader? Shader { get; set; }
+        public ColorFilter? ColorFilter { get; set; }
+        public ImageFilter? ImageFilter { get; set; }
+        public PathEffect? PathEffect { get; set; }
+        public BlendMode BlendMode { get; set; }
+        public FilterQuality FilterQuality { get; set; }
 
         public Paint()
         {
