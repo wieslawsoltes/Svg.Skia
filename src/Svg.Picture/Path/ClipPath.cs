@@ -7,6 +7,7 @@ namespace Svg.Picture
     {
         public IList<PathClip>? Clips;
         public Matrix? Transform;
+        public ClipPath? Clip;
 
         public bool IsEmpty => Clips == null || Clips.Count == 0;
 
