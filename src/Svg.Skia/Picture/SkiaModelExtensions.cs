@@ -1042,12 +1042,6 @@ namespace Svg.Picture.Skia
                 var skPath = clip.Path.ToSKPath();
                 if (skPath != null)
                 {
-                    if (clip.Transform != null)
-                    {
-                        var skMatrix = clip.Transform.Value.ToSKMatrix();
-                        skPath.Transform(skMatrix); 
-                    }
-
                     if (clip.Clip != null)
                     {
                         var skPathClip = clip.Clip.ToSKPath();
@@ -1055,6 +1049,12 @@ namespace Svg.Picture.Skia
                         {
                             skPath = skPath.Op(skPathClip, SKPathOp.Intersect);
                         }
+                    }
+
+                    if (clip.Transform != null)
+                    {
+                        var skMatrix = clip.Transform.Value.ToSKMatrix();
+                        skPath.Transform(skMatrix);
                     }
 
                     if (skPathResult == null)
