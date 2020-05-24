@@ -5410,6 +5410,7 @@ namespace Svg.Skia
 
             if (visualElement != null && enableClip == true)
             {
+#if USE_PICTURE
                 var clipPath = new Svg.Picture.ClipPath()
                 {
                     Clip = new Svg.Picture.ClipPath()
@@ -5423,6 +5424,17 @@ namespace Svg.Skia
                 {
                     ClipPath = null;
                 }
+#else
+                var clipPath = SvgExtensions.GetSvgVisualElementClipPath(visualElement, TransformedBounds, new HashSet<Uri>(), Disposable);
+                if (clipPath != null)
+                {
+                    ClipPath = clipPath;
+                }
+                else
+                {
+                    ClipPath = null;
+                }
+#endif
             }
             else
             {
