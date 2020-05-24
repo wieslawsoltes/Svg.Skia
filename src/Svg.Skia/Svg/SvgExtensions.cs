@@ -2600,8 +2600,301 @@ namespace Svg.Skia
             bool display = ignoreDisplay ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
             return visible && display;
         }
-#if USE_PICTURE
-        // TODO:
+#if USE_PICTURE // TODO:
+        public static bool GetClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Picture.ClipPath clipPath, Svg.Picture.PathOp pathOp)
+        {
+            if (!CanDraw(svgVisualElement, Attributes.None))
+            {
+                return false;
+            }
+            switch (svgVisualElement)
+            {
+                case SvgPath svgPath:
+                    {
+                        var fillRule = (svgPath.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var skPath = svgPath.PathData?.ToSKPath(fillRule, disposable);
+                        if (skPath != null)
+                        {
+                            var pathClip = new Svg.Picture.PathClip
+                            {
+                                Path = skPath,
+                                Transform = ToSKMatrix(svgPath.Transforms),
+                                Op = pathOp
+                            };
+                            clipPath.Clips?.Add(pathClip);
+
+                            GetSvgVisualElementClipPath(svgPath, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+
+                            return true;
+                        }
+                    }
+                    break;
+                case SvgRectangle svgRectangle:
+                    {
+                        var fillRule = (svgRectangle.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var skPath = svgRectangle.ToSKPath(fillRule, skBounds, disposable);
+                        if (skPath != null)
+                        {
+                            var pathClip = new Svg.Picture.PathClip
+                            {
+                                Path = skPath,
+                                Transform = ToSKMatrix(svgRectangle.Transforms),
+                                Op = pathOp
+                            };
+                            clipPath.Clips?.Add(pathClip);
+
+                            GetSvgVisualElementClipPath(svgRectangle, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+
+                            return true;
+                        }
+                    }
+                    break;
+                case SvgCircle svgCircle:
+                    {
+                        var fillRule = (svgCircle.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var skPath = svgCircle.ToSKPath(fillRule, skBounds, disposable);
+                        if (skPath != null)
+                        {
+                            var pathClip = new Svg.Picture.PathClip
+                            {
+                                Path = skPath,
+                                Transform = ToSKMatrix(svgCircle.Transforms),
+                                Op = pathOp
+                            };
+                            clipPath.Clips?.Add(pathClip);
+
+                            GetSvgVisualElementClipPath(svgCircle, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+
+                            return true;
+                        }
+                    }
+                    break;
+                case SvgEllipse svgEllipse:
+                    {
+                        var fillRule = (svgEllipse.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var skPath = svgEllipse.ToSKPath(fillRule, skBounds, disposable);
+                        if (skPath != null)
+                        {
+                            var pathClip = new Svg.Picture.PathClip
+                            {
+                                Path = skPath,
+                                Transform = ToSKMatrix(svgEllipse.Transforms),
+                                Op = pathOp
+                            };
+                            clipPath.Clips?.Add(pathClip);
+
+                            GetSvgVisualElementClipPath(svgEllipse, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+
+                            return true;
+                        }
+                    }
+                    break;
+                case SvgLine svgLine:
+                    {
+                        var fillRule = (svgLine.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var skPath = svgLine.ToSKPath(fillRule, skBounds, disposable);
+                        if (skPath != null)
+                        {
+                            var pathClip = new Svg.Picture.PathClip
+                            {
+                                Path = skPath,
+                                Transform = ToSKMatrix(svgLine.Transforms),
+                                Op = pathOp
+                            };
+                            clipPath.Clips?.Add(pathClip);
+
+                            GetSvgVisualElementClipPath(svgLine, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+
+                            return true;
+                        }
+                    }
+                    break;
+                case SvgPolyline svgPolyline:
+                    {
+                        var fillRule = (svgPolyline.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var skPath = svgPolyline.Points?.ToSKPath(fillRule, false, skBounds, disposable);
+                        if (skPath != null)
+                        {
+                            var pathClip = new Svg.Picture.PathClip
+                            {
+                                Path = skPath,
+                                Transform = ToSKMatrix(svgPolyline.Transforms),
+                                Op = pathOp
+                            };
+                            clipPath.Clips?.Add(pathClip);
+
+                            GetSvgVisualElementClipPath(svgPolyline, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+
+                            return true;
+                        }
+                    }
+                    break;
+                case SvgPolygon svgPolygon:
+                    {
+                        var fillRule = (svgPolygon.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var skPath = svgPolygon.Points?.ToSKPath(fillRule, true, skBounds, disposable);
+                        if (skPath != null)
+                        {
+                            var pathClip = new Svg.Picture.PathClip
+                            {
+                                Path = skPath,
+                                Transform = ToSKMatrix(svgPolygon.Transforms),
+                                Op = pathOp
+                            };
+                            clipPath.Clips?.Add(pathClip);
+
+                            GetSvgVisualElementClipPath(svgPolygon, skPath.Bounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+
+                            return true;
+                        }
+                    }
+                    break;
+                case SvgUse svgUse:
+                    {
+                        if (HasRecursiveReference(svgUse, (e) => e.ReferencedElement, new HashSet<Uri>()))
+                        {
+                            break;
+                        }
+
+                        var svgReferencedVisualElement = GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
+                        if (svgReferencedVisualElement == null || svgReferencedVisualElement is SvgSymbol)
+                        {
+                            break;
+                        }
+
+                        if (!CanDraw(svgReferencedVisualElement, Attributes.None))
+                        {
+                            break;
+                        }
+
+                        var result = GetClipPath(svgReferencedVisualElement, skBounds, uris, disposable, clipPath, pathOp);
+                        if (result == true)
+                        {
+                            GetSvgVisualElementClipPath(svgUse, skBounds, uris, disposable, clipPath, Svg.Picture.PathOp.Intersect);
+
+                            return true;
+                        }
+                    }
+                    break;
+                case SvgText svgText:
+                    {
+                        // TODO: Get path from SvgText.
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return false;
+        }
+
+        private static bool GetClipPath(SvgElementCollection svgElementCollection, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Picture.ClipPath clipPath, Svg.Picture.PathOp pathOp)
+        {
+            bool result = false;
+
+            foreach (var svgElement in svgElementCollection)
+            {
+                if (svgElement is SvgVisualElement visualChild)
+                {
+                    if (!CanDraw(visualChild, Attributes.None))
+                    {
+                        continue;
+                    }
+
+                    if (GetClipPath(visualChild, skBounds, uris, disposable, clipPath, pathOp))
+                    {
+                        result = true;
+                    }    
+                }
+            }
+
+            return result;
+        }
+
+        public static bool GetClipPathClipPath(SvgClipPath svgClipPath, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Picture.ClipPath clipPath, Svg.Picture.PathOp pathOp)
+        {
+            var svgClipPathRef = svgClipPath.GetUriElementReference<SvgClipPath>("clip-path", uris);
+            if (svgClipPathRef == null || svgClipPathRef.Children == null)
+            {
+                return false;
+            }
+
+            if (GetClipPath(svgClipPathRef, skBounds, uris, disposable, clipPath, pathOp))
+            {
+                var skMatrix = SKMatrix.CreateIdentity();
+
+                if (svgClipPathRef.ClipPathUnits == SvgCoordinateUnits.ObjectBoundingBox)
+                {
+                    var skScaleMatrix = SKMatrix.CreateScale(skBounds.Width, skBounds.Height);
+                    skMatrix = skMatrix.PostConcat(skScaleMatrix);
+
+                    var skTranslateMatrix = SKMatrix.CreateTranslation(skBounds.Left, skBounds.Top);
+                    skMatrix = skMatrix.PostConcat(skTranslateMatrix);
+                }
+
+                var skTransformsMatrix = ToSKMatrix(svgClipPathRef.Transforms);
+                skMatrix = skMatrix.PostConcat(skTransformsMatrix);
+
+                clipPath.Transform = skMatrix; // TODO:
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool GetClipPath(SvgClipPath svgClipPath, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Picture.ClipPath clipPath, Svg.Picture.PathOp pathOp)
+        {
+            bool result = false;
+
+            if (GetClipPathClipPath(svgClipPath, skBounds, uris, disposable, clipPath, pathOp))
+            {
+                result = true;
+            }
+
+            if (GetClipPath(svgClipPath.Children, skBounds, uris, disposable, clipPath, pathOp))
+            {
+                var skMatrix = SKMatrix.CreateIdentity();
+
+                if (svgClipPath.ClipPathUnits == SvgCoordinateUnits.ObjectBoundingBox)
+                {
+                    var skScaleMatrix = SKMatrix.CreateScale(skBounds.Width, skBounds.Height);
+                    skMatrix = skMatrix.PostConcat(skScaleMatrix);
+
+                    var skTranslateMatrix = SKMatrix.CreateTranslation(skBounds.Left, skBounds.Top);
+                    skMatrix = skMatrix.PostConcat(skTranslateMatrix);
+                }
+
+                var skTransformsMatrix = ToSKMatrix(svgClipPath.Transforms);
+                skMatrix = skMatrix.PostConcat(skTransformsMatrix);
+
+                clipPath.Transform = skMatrix; // TODO:
+
+                result = true;
+            }
+
+            return result;
+        }
+
+        public static bool GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Picture.ClipPath clipPath, Svg.Picture.PathOp pathOp)
+        {
+            if (svgVisualElement == null || svgVisualElement.ClipPath == null)
+            {
+                return false;
+            }
+
+            if (HasRecursiveReference(svgVisualElement, (e) => e.ClipPath, uris))
+            {
+                return false;
+            }
+
+            var svgClipPath = GetReference<SvgClipPath>(svgVisualElement, svgVisualElement.ClipPath);
+            if (svgClipPath == null || svgClipPath.Children == null)
+            {
+                return false;
+            }
+
+            return GetClipPath(svgClipPath, skBounds, uris, disposable, clipPath, pathOp);
+        }
 #else
         public static SKPath? GetClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {
@@ -4932,7 +5225,11 @@ namespace Svg.Skia
         public SKMatrix Transform;
         public SKRect? Overflow;
         public SKRect? Clip;
+#if USE_PICTURE
+        public Svg.Picture.ClipPath? ClipPath;
+#else
         public SKPath? ClipPath;
+#endif
         public MaskDrawable? MaskDrawable;
         public SKPaint? Mask;
         public SKPaint? MaskDstIn;
@@ -5093,18 +5390,23 @@ namespace Svg.Skia
             var enableOpacity = !IgnoreAttributes.HasFlag(Attributes.Opacity);
             var enableFilter = !IgnoreAttributes.HasFlag(Attributes.Filter);
 
-#if USE_PICTURE // TODO:
-            ClipPath = null;
-#else
             if (visualElement != null && enableClip == true)
             {
-                ClipPath = SvgExtensions.GetSvgVisualElementClipPath(visualElement, TransformedBounds, new HashSet<Uri>(), Disposable);
+                var clipPath = new Svg.Picture.ClipPath();
+                SvgExtensions.GetSvgVisualElementClipPath(visualElement, TransformedBounds, new HashSet<Uri>(), Disposable, clipPath, Svg.Picture.PathOp.Union);
+                if (clipPath.Clips != null && clipPath.Clips.Count > 0)
+                {
+                    ClipPath = clipPath;
+                }
+                else
+                {
+                    ClipPath = null;
+                }
             }
             else
             {
                 ClipPath = null;
             }
-#endif
 
             if (enableMask == true)
             {
@@ -5678,22 +5980,31 @@ namespace Svg.Skia
                     break;
             }
 
-#if USE_PICTURE // TODO:
-            drawable.ClipPath = null;
-#else
             var clipPathUris = new HashSet<Uri>();
             var svgClipPath = svgFragment.GetUriElementReference<SvgClipPath>("clip-path", clipPathUris);
             if (svgClipPath != null && svgClipPath.Children != null)
             {
+#if USE_PICTURE
+                var clipPath = new Svg.Picture.ClipPath();
+                SvgExtensions.GetClipPath(svgClipPath, drawable.TransformedBounds, clipPathUris, drawable.Disposable, clipPath, Svg.Picture.PathOp.Union);
+                if (clipPath.Clips != null && clipPath.Clips.Count > 0 && !drawable.IgnoreAttributes.HasFlag(Attributes.ClipPath))
+                {
+                    drawable.ClipPath = clipPath;
+                }
+                else
+                {
+                    drawable.ClipPath = null;
+                }
+#else
                 drawable.ClipPath = drawable.IgnoreAttributes.HasFlag(Attributes.ClipPath) ?
                     null :
                     SvgExtensions.GetClipPath(svgClipPath, drawable.TransformedBounds, clipPathUris, drawable.Disposable);
+#endif
             }
             else
             {
                 drawable.ClipPath = null;
             } 
-#endif
 
             drawable.Fill = null;
             drawable.Stroke = null;
@@ -7103,17 +7414,25 @@ namespace Svg.Skia
             skMatrixTotal = skMatrixTotal.PreConcat(skMatrix);
             skCanvas.SetMatrix(skMatrixTotal);
 
-#if !USE_PICTURE // TODO:
             if (enableClip == true)
             {
+#if USE_PICTURE
+                var clipPath = new Svg.Picture.ClipPath();
+                SvgExtensions.GetSvgVisualElementClipPath(svgTextBase, TransformedBounds, new HashSet<Uri>(), disposable, clipPath, Svg.Picture.PathOp.Union);
+                if (clipPath.Clips != null && clipPath.Clips.Count > 0 && !IgnoreAttributes.HasFlag(Attributes.ClipPath))
+                {
+                    bool antialias = SvgExtensions.IsAntialias(svgTextBase);
+                    skCanvas.ClipPath(clipPath, SKClipOperation.Intersect, antialias);
+                }
+#else
                 var skPathClip = SvgExtensions.GetSvgVisualElementClipPath(svgTextBase, skBounds, new HashSet<Uri>(), disposable);
                 if (skPathClip != null && !IgnoreAttributes.HasFlag(Attributes.ClipPath))
                 {
                     bool antialias = SvgExtensions.IsAntialias(svgTextBase);
                     skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
                 }
-            } 
 #endif
+            } 
 
             if (enableMask == true)
             {
