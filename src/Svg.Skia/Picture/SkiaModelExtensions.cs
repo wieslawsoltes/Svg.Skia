@@ -243,6 +243,23 @@ namespace Svg.Picture.Skia
             return skColors;
         }
 
+        public static SKColorF ToSKColorF(this ColorF color)
+        {
+            return new SKColorF(color.Red, color.Green, color.Blue, color.Alpha);
+        }
+
+        public static SKColorF[] ToSKColors(this ColorF[] colors)
+        {
+            var skColors = new SKColorF[colors.Length];
+
+            for (int i = 0; i < colors.Length; i++)
+            {
+                skColors[i] = colors[i].ToSKColorF();
+            }
+
+            return skColors;
+        }
+
         public static SKShaderTileMode ToSKShaderTileMode(this ShaderTileMode shaderTileMode)
         {
             switch (shaderTileMode)
