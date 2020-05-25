@@ -5123,15 +5123,10 @@ namespace Svg.Skia
 
         private static void SetTypeface(SvgTextBase svgText, SKPaint skPaint, CompositeDisposable disposable)
         {
+            var fontFamily = svgText.FontFamily;
             var fontWeight = ToSKFontStyleWeight(svgText.FontWeight);
             var fontWidth = ToSKFontStyleWidth(svgText.FontStretch);
             var fontStyle = ToSKFontStyleSlant(svgText.FontStyle);
-            var fontFamily = svgText.FontFamily;
-
-            if (SKSvgSettings.s_typefaceProviders == null || SKSvgSettings.s_typefaceProviders.Count <= 0)
-            {
-                return;
-            }
 
 #if USE_PICTURE
             // TODO:
@@ -5143,6 +5138,14 @@ namespace Svg.Skia
                 Style = fontStyle
             };
 #else
+            if (SKSvgSettings.s_typefaceProviders == null || SKSvgSettings.s_typefaceProviders.Count <= 0)
+            {
+                var skTypeface = SKTypeface.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
+                disposable.Add(skTypeface);
+                skPaint.Typeface = skTypeface;
+                return;
+            }
+
             foreach (var typefaceProviders in SKSvgSettings.s_typefaceProviders)
             {
                 var skTypeface = typefaceProviders.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
