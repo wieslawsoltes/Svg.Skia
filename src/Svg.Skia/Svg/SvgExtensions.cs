@@ -691,7 +691,7 @@ namespace Svg.Skia
             {
                 return GetColor(stopColorSvgColourServer, 1f, Attributes.None);
             }
-            
+
             return new SKColor(0x00, 0x00, 0x00, 0xFF);
         }
 
@@ -6076,7 +6076,7 @@ namespace Svg.Skia
             else
             {
                 drawable.ClipPath = null;
-            } 
+            }
 
             drawable.Fill = null;
             drawable.Stroke = null;
@@ -7507,7 +7507,7 @@ namespace Svg.Skia
                     skCanvas.ClipPath(skPathClip, SKClipOperation.Intersect, antialias);
                 }
 #endif
-            } 
+            }
 
             if (enableMask == true)
             {
