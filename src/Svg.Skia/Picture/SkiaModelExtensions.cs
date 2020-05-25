@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using SkiaSharp;
+using Svg.Skia;
 
 namespace Svg.Picture.Skia
 {
@@ -211,19 +212,29 @@ namespace Svg.Picture.Skia
 
         public static SKTypeface? ToSKTypeface(this Typeface? typeface)
         {
-            if (typeface == null)
+            if (typeface == null || typeface.FamilyName == null)
             {
-                return null;
+                return SKTypeface.Default;
             }
 
-            var familyName = typeface.FamilyName;
-            var weight = typeface.Weight.ToSKFontStyleWeight();
-            var width = typeface.Width.ToSKFontStyleWidth();
-            var slant = typeface.Style.ToSKFontStyleSlant();
+            var fontFamily = typeface.FamilyName;
+            var fontWeight = typeface.Weight.ToSKFontStyleWeight();
+            var fontWidth = typeface.Width.ToSKFontStyleWidth();
+            var fontStyle = typeface.Style.ToSKFontStyleSlant();
 
-            // TODO: SKSvgSettings.s_typefaceProviders
+            if (SKSvgSettings.s_typefaceProviders != null && SKSvgSettings.s_typefaceProviders.Count > 0)
+            {
+                foreach (var typefaceProviders in SKSvgSettings.s_typefaceProviders)
+                {
+                    var skTypeface = typefaceProviders.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
+                    if (skTypeface != null)
+                    {
+                        return skTypeface;
+                    }
+                }
+            }
 
-            return SKTypeface.FromFamilyName(familyName, weight, width, slant);
+            return SKTypeface.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
         }
 
         public static SKColor ToSKColor(this Color color)
