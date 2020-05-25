@@ -2891,6 +2891,17 @@ namespace Svg.Skia
             skMatrix = skMatrix.PostConcat(skTransformsMatrix);
 
             clipPath.Transform = skMatrix; // TODO:
+
+            if (clipPath.Clips != null && clipPath.Clips.Count == 0)
+            {
+                var pathClip = new Svg.Picture.PathClip
+                {
+                    Path = new Svg.Picture.Path(),
+                    Transform = Svg.Picture.Matrix.CreateIdentity(),
+                    Clip = null
+                };
+                clipPath.Clips.Add(pathClip);
+            }
         }
 
         public static void GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Picture.ClipPath clipPath)
