@@ -2602,6 +2602,30 @@ namespace Svg.Skia
         }
 #if USE_PICTURE // TODO:
         public static void GetClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Picture.ClipPath? clipPath)
+        private static SvgFillRule ToFillRule(SvgVisualElement svgVisualElement, SvgClipRule? svgClipPathClipRule)
+        {
+            var svgClipRule = (svgClipPathClipRule != null ? svgClipPathClipRule.Value : svgVisualElement.ClipRule);
+            return svgClipRule == SvgClipRule.EvenOdd ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+        }
+
+        private static SvgClipRule? GetSvgClipRule(SvgClipPath svgClipPath)
+        {
+            svgClipPath.GetAttribute("clip-rule", out var clipRuleString);
+
+            switch (clipRuleString)
+            {
+                case "nonzero":
+                    return SvgClipRule.NonZero;
+                case "evenodd":
+                    return SvgClipRule.EvenOdd;
+                case "inherit":
+                    return SvgClipRule.Inherit; // TODO:
+                default:
+                    return null;
+            }
+        }
+
+        public static void GetClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Picture.ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
         {
             if (clipPath == null)
             {
