@@ -6493,6 +6493,8 @@ namespace Svg.Skia
 
     internal class UseDrawable : DrawableBase
     {
+        internal static FieldInfo? s_referencedElementParent = typeof(SvgElement).GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
+
         public DrawableBase? ReferencedDrawable;
 
         private UseDrawable()
@@ -6544,14 +6546,12 @@ namespace Svg.Skia
             }
 
             var originalReferencedElementParent = svgReferencedElement.Parent;
-            var referencedElementParent = default(FieldInfo);
 
             try
             {
-                referencedElementParent = svgReferencedElement.GetType().GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
-                if (referencedElementParent != null)
+                if (s_referencedElementParent != null)
                 {
-                    referencedElementParent.SetValue(svgReferencedElement, svgUse);
+                    s_referencedElementParent.SetValue(svgReferencedElement, svgUse);
                 }
             }
             catch (Exception ex)
@@ -6601,9 +6601,9 @@ namespace Svg.Skia
 
             try
             {
-                if (referencedElementParent != null)
+                if (s_referencedElementParent != null)
                 {
-                    referencedElementParent.SetValue(svgReferencedElement, originalReferencedElementParent);
+                    s_referencedElementParent.SetValue(svgReferencedElement, originalReferencedElementParent);
                 }
             }
             catch (Exception ex)
