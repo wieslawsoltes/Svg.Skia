@@ -23,6 +23,7 @@ using SKBlendMode = Svg.Picture.BlendMode;
 using SKCanvas = Svg.Picture.Canvas;
 using SKClipOperation = Svg.Picture.ClipOperation;
 using SKColor = Svg.Picture.Color;
+using SKColorF = Svg.Picture.ColorF;
 using SKColorFilter = Svg.Picture.ColorFilter;
 using SKDisplacementMapEffectChannelSelectorType = Svg.Picture.DisplacementMapEffectChannelSelectorType;
 using SKDrawable = Svg.Picture.Drawable;
