@@ -2601,7 +2601,6 @@ namespace Svg.Skia
             return visible && display;
         }
 #if USE_PICTURE // TODO:
-        public static void GetClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Picture.ClipPath? clipPath)
         private static SvgFillRule ToFillRule(SvgVisualElement svgVisualElement, SvgClipRule? svgClipPathClipRule)
         {
             var svgClipRule = (svgClipPathClipRule != null ? svgClipPathClipRule.Value : svgVisualElement.ClipRule);
@@ -2641,7 +2640,7 @@ namespace Svg.Skia
             {
                 case SvgPath svgPath:
                     {
-                        var fillRule = (svgPath.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var fillRule = ToFillRule(svgPath, svgClipPathClipRule);
                         var skPath = svgPath.PathData?.ToSKPath(fillRule, disposable);
                         if (skPath == null)
                         {
@@ -2664,7 +2663,7 @@ namespace Svg.Skia
                     break;
                 case SvgRectangle svgRectangle:
                     {
-                        var fillRule = (svgRectangle.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var fillRule = ToFillRule(svgRectangle, svgClipPathClipRule);
                         var skPath = svgRectangle.ToSKPath(fillRule, skBounds, disposable);
                         if (skPath == null)
                         {
@@ -2687,7 +2686,7 @@ namespace Svg.Skia
                     break;
                 case SvgCircle svgCircle:
                     {
-                        var fillRule = (svgCircle.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var fillRule = ToFillRule(svgCircle, svgClipPathClipRule);
                         var skPath = svgCircle.ToSKPath(fillRule, skBounds, disposable);
                         if (skPath == null)
                         {
@@ -2710,7 +2709,7 @@ namespace Svg.Skia
                     break;
                 case SvgEllipse svgEllipse:
                     {
-                        var fillRule = (svgEllipse.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var fillRule = ToFillRule(svgEllipse, svgClipPathClipRule);
                         var skPath = svgEllipse.ToSKPath(fillRule, skBounds, disposable);
                         if (skPath == null)
                         {
@@ -2733,7 +2732,7 @@ namespace Svg.Skia
                     break;
                 case SvgLine svgLine:
                     {
-                        var fillRule = (svgLine.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var fillRule = ToFillRule(svgLine, svgClipPathClipRule);
                         var skPath = svgLine.ToSKPath(fillRule, skBounds, disposable);
                         if (skPath == null)
                         {
@@ -2756,7 +2755,7 @@ namespace Svg.Skia
                     break;
                 case SvgPolyline svgPolyline:
                     {
-                        var fillRule = (svgPolyline.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var fillRule = ToFillRule(svgPolyline, svgClipPathClipRule);
                         var skPath = svgPolyline.Points?.ToSKPath(fillRule, false, skBounds, disposable);
                         if (skPath == null)
                         {
@@ -2779,7 +2778,7 @@ namespace Svg.Skia
                     break;
                 case SvgPolygon svgPolygon:
                     {
-                        var fillRule = (svgPolygon.ClipRule == SvgClipRule.EvenOdd) ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
+                        var fillRule = ToFillRule(svgPolygon, svgClipPathClipRule);
                         var skPath = svgPolygon.Points?.ToSKPath(fillRule, true, skBounds, disposable);
                         if (skPath == null)
                         {
@@ -2819,7 +2818,7 @@ namespace Svg.Skia
                         }
 
                         // TODO:
-                        GetClipPath(svgReferencedVisualElement, skBounds, uris, disposable, clipPath);
+                        GetClipPath(svgReferencedVisualElement, skBounds, uris, disposable, clipPath, svgClipPathClipRule);
 
                         if (clipPath.Clips != null && clipPath.Clips.Count > 0)
                         {
@@ -2842,7 +2841,7 @@ namespace Svg.Skia
             }
         }
 
-        private static void GetClipPath(SvgElementCollection svgElementCollection, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Picture.ClipPath? clipPath)
+        private static void GetClipPath(SvgElementCollection svgElementCollection, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Picture.ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
         {
             foreach (var svgElement in svgElementCollection)
             {
@@ -2852,7 +2851,7 @@ namespace Svg.Skia
                     {
                         continue;
                     }
-                    GetClipPath(visualChild, skBounds, uris, disposable, clipPath);
+                    GetClipPath(visualChild, skBounds, uris, disposable, clipPath, svgClipPathClipRule);
                 }
             }
         }
@@ -2898,7 +2897,9 @@ namespace Svg.Skia
 
             GetClipPathClipPath(svgClipPath, skBounds, uris, disposable, clipPath.Clip);
 
-            GetClipPath(svgClipPath.Children, skBounds, uris, disposable, clipPath);
+            var clipPathClipRule = GetSvgClipRule(svgClipPath);
+
+            GetClipPath(svgClipPath.Children, skBounds, uris, disposable, clipPath, clipPathClipRule);
 
             var skMatrix = SKMatrix.CreateIdentity();
 
