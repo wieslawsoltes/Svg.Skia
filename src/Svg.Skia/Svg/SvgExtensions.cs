@@ -63,6 +63,10 @@ namespace Svg.Skia
 {
     internal static class SvgExtensions
     {
+        private static readonly char[] s_space_tab = new char[2] { ' ', '\t' };
+
+        private static readonly char[] s_comma = new char[] { ',' };
+
         [Flags]
         internal enum PathPointType : byte
         {
@@ -534,8 +538,6 @@ namespace Svg.Skia
             return hasRequiredFeatures;
         }
 
-        private static readonly char[] s_space_tab = new char[2] { ' ', '\t' };
-
         public static bool HasRequiredExtensions(this SvgElement svgElement)
         {
             bool hasRequiredExtensions = true;
@@ -569,8 +571,6 @@ namespace Svg.Skia
 
             return hasRequiredExtensions;
         }
-
-        private static readonly char[] s_comma = new char[] { ',' };
 
         public static bool HasSystemLanguage(this SvgElement svgElement)
         {
