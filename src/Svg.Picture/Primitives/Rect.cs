@@ -10,7 +10,7 @@ namespace Svg.Picture
         public float Right { get; set; }
         public float Bottom { get; set; }
 
-        public static readonly Rect Empty;
+        public static readonly Rect Empty = default;
 
         public bool IsEmpty => Left == default && Top == default && Right == default && Bottom == default;
 
@@ -32,7 +32,7 @@ namespace Svg.Picture
 
         public static Rect Create(float x, float y, float width, float height)
         {
-            return new Rect()
+            return new Rect
             {
                 Left = x,
                 Top = y,

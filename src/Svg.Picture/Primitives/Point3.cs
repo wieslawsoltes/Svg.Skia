@@ -1,10 +1,10 @@
 ﻿namespace Svg.Picture
 {
-    public struct Point3
+    public readonly struct Point3
     {
-        public float X { get; set; }
-        public float Y { get; set; }
-        public float Z { get; set; }
+        public float X { get; }
+        public float Y { get; }
+        public float Z { get; }
 
         public static readonly Point3 Empty;
 
