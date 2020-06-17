@@ -4,7 +4,7 @@ namespace Svg.Picture.Avalonia
 {
     public sealed class SetTransformDrawCommand : DrawCommand
     {
-        public readonly A.Matrix Matrix;
+        public A.Matrix Matrix { get; }
 
         public SetTransformDrawCommand(A.Matrix matrix)
         {

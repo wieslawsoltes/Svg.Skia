@@ -7,10 +7,10 @@ namespace Svg.Picture.Avalonia
 {
     public sealed class ImageDrawCommand : DrawCommand
     {
-        public readonly AM.IImage? Source;
-        public readonly A.Rect SourceRect;
-        public readonly A.Rect DestRect;
-        public readonly AVMI.BitmapInterpolationMode BitmapInterpolationMode;
+        public AM.IImage? Source { get; }
+        public A.Rect SourceRect { get; }
+        public A.Rect DestRect { get; }
+        public AVMI.BitmapInterpolationMode BitmapInterpolationMode { get; }
 
         public ImageDrawCommand(AM.IImage? source, A.Rect sourceRect, A.Rect destRect, AVMI.BitmapInterpolationMode bitmapInterpolationMode)
         {

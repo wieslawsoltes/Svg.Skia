@@ -1,4 +1,5 @@
-﻿namespace Svg.Picture.Avalonia
+﻿
+namespace Svg.Picture.Avalonia
 {
     public sealed class SaveDrawCommand : DrawCommand
     {

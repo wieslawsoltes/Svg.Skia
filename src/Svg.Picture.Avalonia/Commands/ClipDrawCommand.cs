@@ -4,7 +4,7 @@ namespace Svg.Picture.Avalonia
 {
     public sealed class ClipDrawCommand : DrawCommand
     {
-        public readonly A.Rect Clip;
+        public A.Rect Clip { get; }
 
         public ClipDrawCommand(A.Rect clip)
         {

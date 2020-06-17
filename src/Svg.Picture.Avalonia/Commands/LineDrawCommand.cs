@@ -5,9 +5,9 @@ namespace Svg.Picture.Avalonia
 {
     public sealed class LineDrawCommand : DrawCommand
     {
-        public readonly AM.IPen? Pen;
-        public readonly A.Point P1;
-        public readonly A.Point P2;
+        public AM.IPen? Pen { get; }
+        public A.Point P1 { get; }
+        public A.Point P2 { get; }
 
         public LineDrawCommand(AM.IPen? pen, A.Point p1, A.Point p2)
         {
