@@ -18,7 +18,7 @@ namespace Svg.Picture
 
         public static readonly Matrix Empty;
 
-        public readonly static Matrix Identity = new Matrix { ScaleX = 1, ScaleY = 1, Persp2 = 1 };
+        public static readonly Matrix Identity = new Matrix { ScaleX = 1, ScaleY = 1, Persp2 = 1 };
 
         public static Matrix CreateIdentity()
         {
