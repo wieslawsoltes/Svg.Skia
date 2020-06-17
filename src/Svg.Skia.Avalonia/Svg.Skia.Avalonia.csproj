@@ -25,6 +25,7 @@
   <!--<Import Project="..\..\build\Avalonia.Skia.props" />-->
 
   <ItemGroup>
+    <ProjectReference Include="..\Svg.Picture.Avalonia\Svg.Picture.Avalonia.csproj" />
     <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" />
   </ItemGroup>
 
