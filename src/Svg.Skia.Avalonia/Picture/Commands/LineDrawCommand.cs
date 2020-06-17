@@ -3,7 +3,7 @@ using AM = Avalonia.Media;
 
 namespace Svg.Picture.Avalonia
 {
-    internal class LineDrawCommand : DrawCommand
+    public sealed class LineDrawCommand : DrawCommand
     {
         public readonly AM.IPen? Pen;
         public readonly A.Point P1;

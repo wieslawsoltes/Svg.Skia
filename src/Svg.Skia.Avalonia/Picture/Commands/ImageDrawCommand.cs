@@ -5,7 +5,7 @@ using AVMI = Avalonia.Visuals.Media.Imaging;
 
 namespace Svg.Picture.Avalonia
 {
-    internal class ImageDrawCommand : DrawCommand
+    public sealed class ImageDrawCommand : DrawCommand
     {
         public readonly AM.IImage? Source;
         public readonly A.Rect SourceRect;

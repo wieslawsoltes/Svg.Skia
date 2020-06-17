@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture.Avalonia
 {
-    internal class SaveDrawCommand : DrawCommand
+    public sealed class SaveDrawCommand : DrawCommand
     {
         public SaveDrawCommand()
         {

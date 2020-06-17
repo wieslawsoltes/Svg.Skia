@@ -3,7 +3,7 @@ using AM = Avalonia.Media;
 
 namespace Svg.Picture.Avalonia
 {
-    internal class RectangleDrawCommand : DrawCommand
+    public sealed class RectangleDrawCommand : DrawCommand
     {
         public readonly AM.IBrush? Brush;
         public readonly AM.IPen? Pen;

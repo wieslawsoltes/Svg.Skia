@@ -2,7 +2,7 @@
 
 namespace Svg.Picture.Skia
 {
-    public class SkiaPicture
+    public sealed class SkiaPicture
     {
         private SkiaPicture()
         {

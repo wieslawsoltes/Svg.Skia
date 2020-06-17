@@ -6301,7 +6301,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class SwitchDrawable : DrawableBase
+    internal sealed class SwitchDrawable : DrawableBase
     {
         public DrawableBase? FirstChild;
 

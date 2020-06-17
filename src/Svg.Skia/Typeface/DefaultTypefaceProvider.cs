@@ -4,7 +4,7 @@ using SkiaSharp;
 
 namespace Svg.Skia
 {
-    public class DefaultTypefaceProvider : ITypefaceProvider
+    public sealed class DefaultTypefaceProvider : ITypefaceProvider
     {
         public static char[] s_fontFamilyTrim = new char[] { '\'' };
 

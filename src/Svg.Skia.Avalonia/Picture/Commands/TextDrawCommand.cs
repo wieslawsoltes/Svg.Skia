@@ -3,7 +3,7 @@ using AM = Avalonia.Media;
 
 namespace Svg.Picture.Avalonia
 {
-    internal class TextDrawCommand : DrawCommand
+    public sealed class TextDrawCommand : DrawCommand
     {
         public readonly AM.IBrush? Brush;
         public readonly A.Point Origin;

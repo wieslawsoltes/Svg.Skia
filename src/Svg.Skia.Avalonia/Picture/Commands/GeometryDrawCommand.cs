@@ -2,7 +2,7 @@
 
 namespace Svg.Picture.Avalonia
 {
-    internal class GeometryDrawCommand : DrawCommand
+    public sealed class GeometryDrawCommand : DrawCommand
     {
         public readonly AM.IBrush? Brush;
         public readonly AM.IPen? Pen;
