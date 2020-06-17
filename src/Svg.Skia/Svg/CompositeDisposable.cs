@@ -1,5 +1,7 @@
 ﻿using System;
+#if !USE_PICTURE
 using System.Collections.Generic;
+#endif
 
 namespace Svg.Skia
 {
