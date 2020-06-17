@@ -1,4 +1,5 @@
-﻿namespace Svg.Picture
+﻿
+namespace Svg.Picture
 {
     public sealed class CubicToPathCommand : PathCommand
     {
