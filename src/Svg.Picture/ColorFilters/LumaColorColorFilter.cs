@@ -1,7 +1,7 @@
 ﻿
 namespace Svg.Picture
 {
-    public class LumaColorColorFilter : ColorFilter
+    public sealed class LumaColorColorFilter : ColorFilter
     {
     }
 }

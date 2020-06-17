@@ -1,7 +1,7 @@
 ﻿
 namespace Svg.Picture
 {
-    public class ColorMatrixColorFilter : ColorFilter
+    public sealed class ColorMatrixColorFilter : ColorFilter
     {
         public float[]? Matrix { get; set; }
     }

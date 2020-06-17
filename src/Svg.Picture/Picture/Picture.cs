@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Svg.Picture
 {
-    public class Picture : IDisposable
+    public sealed class Picture : IDisposable
     {
         public Rect CullRect { get; set; }
         public IList<CanvasCommand>? Commands { get; set; }

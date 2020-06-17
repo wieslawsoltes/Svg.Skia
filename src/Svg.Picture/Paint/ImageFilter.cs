@@ -2,7 +2,7 @@
 
 namespace Svg.Picture
 {
-    public class CropRect
+    public sealed class CropRect
     {
         public Rect Rect { get; }
 

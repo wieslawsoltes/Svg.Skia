@@ -2,7 +2,7 @@
 
 namespace Svg.Picture
 {
-    public class Paint : IDisposable
+    public sealed class Paint : IDisposable
     {
         public PaintStyle Style { get; set; }
         public bool IsAntialias { get; set; }

@@ -2,7 +2,7 @@
 
 namespace Svg.Picture
 {
-    public class PictureRecorder : IDisposable
+    public sealed class PictureRecorder : IDisposable
     {
         public Rect CullRect { get; set; }
         public Canvas? RecordingCanvas { get; set; }
