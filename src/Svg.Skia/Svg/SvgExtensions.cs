@@ -1893,7 +1893,7 @@ namespace Svg.Skia
             float fMinY = -svgViewBox.MinY * fScaleY;
 
             svgAspectRatio ??= new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid);
-            
+
 
             if (svgAspectRatio.Align != SvgPreserveAspectRatio.none)
             {
