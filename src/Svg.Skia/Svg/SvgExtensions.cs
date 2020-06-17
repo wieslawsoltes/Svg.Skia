@@ -7744,9 +7744,7 @@ namespace Svg.Skia
             // TODO: Calculate correct bounds.
             var skBounds = skOwnerBounds;
 
-            SKPaint? maskDstIn, skPaintOpacity, skPaintFilter;
-            MaskDrawable? maskDrawable;
-            BeginDraw(svgTextSpan, skCanvas, skBounds, ignoreAttributes, Disposable, out maskDrawable, out maskDstIn, out skPaintOpacity, out skPaintFilter);
+            BeginDraw(svgTextSpan, skCanvas, skBounds, ignoreAttributes, Disposable, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter);
 
             // TODO: Implement SvgTextSpan drawing.
             if (!string.IsNullOrEmpty(svgTextSpan.Text))
