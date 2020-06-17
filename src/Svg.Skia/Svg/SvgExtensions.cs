@@ -185,7 +185,7 @@ namespace Svg.Skia
 
         private const string MimeTypeSvg = "image/svg+xml";
 
-        private static byte[] s_gZipMagicHeaderBytes = { 0x1f, 0x8b };
+        private static readonly byte[] s_gZipMagicHeaderBytes = { 0x1f, 0x8b };
 
         public const string SourceGraphic = "SourceGraphic";
 
@@ -242,7 +242,7 @@ namespace Svg.Skia
         {
             value1 = defaultValue1;
             value2 = defaultValue2;
-            if (svgNumberCollection == null)
+            if (svgNumberCollection is null)
             {
                 return;
             }
@@ -393,7 +393,7 @@ namespace Svg.Skia
 
         public static T? GetReference<T>(this SvgElement svgElement, Uri uri) where T : SvgElement
         {
-            if (uri == null)
+            if (uri is null)
             {
                 return null;
             }
@@ -409,7 +409,7 @@ namespace Svg.Skia
 
         public static bool ElementReferencesUri<T>(this T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris, SvgElement? svgReferencedElement) where T : SvgElement
         {
-            if (svgReferencedElement == null)
+            if (svgReferencedElement is null)
             {
                 return false;
             }
@@ -418,7 +418,7 @@ namespace Svg.Skia
             {
                 var referencedElementUri = getUri(svgElementT);
 
-                if (referencedElementUri == null)
+                if (referencedElementUri is null)
                 {
                     return false;
                 }
@@ -454,7 +454,7 @@ namespace Svg.Skia
         public static bool HasRecursiveReference<T>(this T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris) where T : SvgElement
         {
             var referencedElementUri = getUri(svgElement);
-            if (referencedElementUri == null)
+            if (referencedElementUri is null)
             {
                 return false;
             }
@@ -476,13 +476,9 @@ namespace Svg.Skia
             return null;
         }
 
-        public static bool GetAttribute(this SvgElement svgElement, string name, out string value)
+        public static bool TryGetAttribute(this SvgElement svgElement, string name, out string value)
         {
-            if (svgElement.TryGetAttribute(name, out value))
-            {
-                return true;
-            }
-            return false;
+            return svgElement.TryGetAttribute(name, out value);
         }
 
         public static T? GetUriElementReference<T>(this SvgElement svgOwnerElement, string name, HashSet<Uri> uris) where T : SvgElement
@@ -496,7 +492,7 @@ namespace Svg.Skia
                 }
 
                 var svgElement = GetReference<T>(svgOwnerElement, uri);
-                if (svgElement == null)
+                if (svgElement is null)
                 {
                     return null;
                 }
@@ -509,7 +505,7 @@ namespace Svg.Skia
         {
             bool hasRequiredFeatures = true;
 
-            if (svgElement.GetAttribute("requiredFeatures", out var requiredFeaturesString) == true)
+            if (TryGetAttribute(svgElement, "requiredFeatures", out var requiredFeaturesString))
             {
                 if (string.IsNullOrEmpty(requiredFeaturesString))
                 {
@@ -539,11 +535,13 @@ namespace Svg.Skia
             return hasRequiredFeatures;
         }
 
+        private static readonly char[] s_space_tab = new char[2] { ' ', '\t' };
+
         public static bool HasRequiredExtensions(this SvgElement svgElement)
         {
             bool hasRequiredExtensions = true;
 
-            if (svgElement.GetAttribute("requiredExtensions", out var requiredExtensionsString) == true)
+            if (TryGetAttribute(svgElement, "requiredExtensions", out var requiredExtensionsString))
             {
                 if (string.IsNullOrEmpty(requiredExtensionsString))
                 {
@@ -551,7 +549,7 @@ namespace Svg.Skia
                 }
                 else
                 {
-                    var extensions = requiredExtensionsString.Trim().Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    var extensions = requiredExtensionsString.Trim().Split(s_space_tab, StringSplitOptions.RemoveEmptyEntries);
                     if (extensions.Length > 0)
                     {
                         foreach (var extension in extensions)
@@ -573,11 +571,13 @@ namespace Svg.Skia
             return hasRequiredExtensions;
         }
 
+        private static readonly char[] s_comma = new char[] { ',' };
+
         public static bool HasSystemLanguage(this SvgElement svgElement)
         {
             bool hasSystemLanguage = true;
 
-            if (svgElement.GetAttribute("systemLanguage", out var systemLanguageString) == true)
+            if (TryGetAttribute(svgElement, "systemLanguage", out var systemLanguageString))
             {
                 if (string.IsNullOrEmpty(systemLanguageString))
                 {
@@ -585,13 +585,11 @@ namespace Svg.Skia
                 }
                 else
                 {
-                    var languages = systemLanguageString.Trim().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    var languages = systemLanguageString.Trim().Split(s_comma, StringSplitOptions.RemoveEmptyEntries);
                     if (languages.Length > 0)
                     {
                         hasSystemLanguage = false;
-                        var systemLanguage = SKSvgSettings.s_systemLanguageOverride != null ?
-                            SKSvgSettings.s_systemLanguageOverride :
-                            CultureInfo.InstalledUICulture;
+                        var systemLanguage = SKSvgSettings.s_systemLanguageOverride ?? CultureInfo.InstalledUICulture;
 
                         foreach (var language in languages)
                         {
@@ -756,7 +754,7 @@ namespace Svg.Skia
             var currentGradientServer = svgGradientServer;
             do
             {
-                svgGradientServers.Add((SvgGradientServer)currentGradientServer);
+                svgGradientServers.Add(currentGradientServer);
                 currentGradientServer = SvgDeferredPaintServer.TryGet<SvgGradientServer>(currentGradientServer.InheritGradient, svgVisualElement);
             } while (currentGradientServer != null);
             return svgGradientServers;
@@ -772,7 +770,7 @@ namespace Svg.Skia
                     if (server is SvgDeferredPaintServer svgDeferredPaintServer)
                     {
                         server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServer, svgVisualElement);
-                        if (server == null)
+                        if (server is null)
                         {
                             // TODO: server is sometimes null with currentColor
                         }
@@ -875,7 +873,7 @@ namespace Svg.Skia
 
             foreach (var p in svgReferencedGradientServers)
             {
-                if (firstSpreadMethod == null)
+                if (firstSpreadMethod is null)
                 {
                     var pSpreadMethod = p.SpreadMethod;
                     if (pSpreadMethod != SvgGradientSpreadMethod.Pad)
@@ -883,7 +881,7 @@ namespace Svg.Skia
                         firstSpreadMethod = p;
                     }
                 }
-                if (firstGradientTransform == null)
+                if (firstGradientTransform is null)
                 {
                     var pGradientTransform = p.GradientTransform;
                     if (pGradientTransform != null && pGradientTransform.Count > 0)
@@ -891,7 +889,7 @@ namespace Svg.Skia
                         firstGradientTransform = p;
                     }
                 }
-                if (firstGradientUnits == null)
+                if (firstGradientUnits is null)
                 {
                     var pGradientUnits = p.GradientUnits;
                     if (pGradientUnits != SvgCoordinateUnits.ObjectBoundingBox)
@@ -902,34 +900,34 @@ namespace Svg.Skia
 
                 if (p is SvgLinearGradientServer svgLinearGradientServerHref)
                 {
-                    if (firstX1 == null)
+                    if (firstX1 is null)
                     {
                         var pX1 = svgLinearGradientServerHref.X1;
-                        if (pX1 != null && pX1 != SvgUnit.None && svgLinearGradientServerHref.GetAttribute("x1", out _) == true)
+                        if (pX1 != null && pX1 != SvgUnit.None && TryGetAttribute(svgLinearGradientServerHref, "x1", out _))
                         {
                             firstX1 = svgLinearGradientServerHref;
                         }
                     }
-                    if (firstY1 == null)
+                    if (firstY1 is null)
                     {
                         var pY1 = svgLinearGradientServerHref.Y1;
-                        if (pY1 != null && pY1 != SvgUnit.None && svgLinearGradientServerHref.GetAttribute("y1", out _) == true)
+                        if (pY1 != null && pY1 != SvgUnit.None && TryGetAttribute(svgLinearGradientServerHref, "y1", out _))
                         {
                             firstY1 = svgLinearGradientServerHref;
                         }
                     }
-                    if (firstX2 == null)
+                    if (firstX2 is null)
                     {
                         var pX2 = svgLinearGradientServerHref.X2;
-                        if (pX2 != null && pX2 != SvgUnit.None && svgLinearGradientServerHref.GetAttribute("x2", out _) == true)
+                        if (pX2 != null && pX2 != SvgUnit.None && TryGetAttribute(svgLinearGradientServerHref, "x2", out _))
                         {
                             firstX2 = svgLinearGradientServerHref;
                         }
                     }
-                    if (firstY2 == null)
+                    if (firstY2 is null)
                     {
                         var pY2 = svgLinearGradientServerHref.Y2;
-                        if (pY2 != null && pY2 != SvgUnit.None && svgLinearGradientServerHref.GetAttribute("y2", out _) == true)
+                        if (pY2 != null && pY2 != SvgUnit.None && TryGetAttribute(svgLinearGradientServerHref, "y2", out _))
                         {
                             firstY2 = svgLinearGradientServerHref;
                         }
@@ -937,13 +935,13 @@ namespace Svg.Skia
                 }
             }
 
-            var svgSpreadMethod = firstSpreadMethod == null ? SvgGradientSpreadMethod.Pad : firstSpreadMethod.SpreadMethod;
+            var svgSpreadMethod = firstSpreadMethod is null ? SvgGradientSpreadMethod.Pad : firstSpreadMethod.SpreadMethod;
             var svgGradientTransform = firstGradientTransform?.GradientTransform;
-            var svgGradientUnits = firstGradientUnits == null ? SvgCoordinateUnits.ObjectBoundingBox : firstGradientUnits.GradientUnits;
-            var x1Unit = firstX1 == null ? new SvgUnit(SvgUnitType.Percentage, 0f) : firstX1.X1;
-            var y1Unit = firstY1 == null ? new SvgUnit(SvgUnitType.Percentage, 0f) : firstY1.Y1;
-            var x2Unit = firstX2 == null ? new SvgUnit(SvgUnitType.Percentage, 100f) : firstX2.X2;
-            var y2Unit = firstY2 == null ? new SvgUnit(SvgUnitType.Percentage, 0f) : firstY2.Y2;
+            var svgGradientUnits = firstGradientUnits is null ? SvgCoordinateUnits.ObjectBoundingBox : firstGradientUnits.GradientUnits;
+            var x1Unit = firstX1 is null ? new SvgUnit(SvgUnitType.Percentage, 0f) : firstX1.X1;
+            var y1Unit = firstY1 is null ? new SvgUnit(SvgUnitType.Percentage, 0f) : firstY1.Y1;
+            var x2Unit = firstX2 is null ? new SvgUnit(SvgUnitType.Percentage, 100f) : firstX2.X2;
+            var y2Unit = firstY2 is null ? new SvgUnit(SvgUnitType.Percentage, 0f) : firstY2.Y2;
 
             var normalizedX1 = x1Unit.Normalize(svgGradientUnits);
             var normalizedY1 = y1Unit.Normalize(svgGradientUnits);
@@ -1060,7 +1058,7 @@ namespace Svg.Skia
 
             foreach (var p in svgReferencedGradientServers)
             {
-                if (firstSpreadMethod == null)
+                if (firstSpreadMethod is null)
                 {
                     var pSpreadMethod = p.SpreadMethod;
                     if (pSpreadMethod != SvgGradientSpreadMethod.Pad)
@@ -1068,7 +1066,7 @@ namespace Svg.Skia
                         firstSpreadMethod = p;
                     }
                 }
-                if (firstGradientTransform == null)
+                if (firstGradientTransform is null)
                 {
                     var pGradientTransform = p.GradientTransform;
                     if (pGradientTransform != null && pGradientTransform.Count > 0)
@@ -1076,7 +1074,7 @@ namespace Svg.Skia
                         firstGradientTransform = p;
                     }
                 }
-                if (firstGradientUnits == null)
+                if (firstGradientUnits is null)
                 {
                     var pGradientUnits = p.GradientUnits;
                     if (pGradientUnits != SvgCoordinateUnits.ObjectBoundingBox)
@@ -1087,42 +1085,42 @@ namespace Svg.Skia
 
                 if (p is SvgRadialGradientServer svgRadialGradientServerHref)
                 {
-                    if (firstCenterX == null)
+                    if (firstCenterX is null)
                     {
                         var pCenterX = svgRadialGradientServerHref.CenterX;
-                        if (pCenterX != null && pCenterX != SvgUnit.None && svgRadialGradientServerHref.GetAttribute("cx", out _) == true)
+                        if (pCenterX != null && pCenterX != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "cx", out _))
                         {
                             firstCenterX = svgRadialGradientServerHref;
                         }
                     }
-                    if (firstCenterY == null)
+                    if (firstCenterY is null)
                     {
                         var pCenterY = svgRadialGradientServerHref.CenterY;
-                        if (pCenterY != null && pCenterY != SvgUnit.None && svgRadialGradientServerHref.GetAttribute("cy", out _) == true)
+                        if (pCenterY != null && pCenterY != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "cy", out _))
                         {
                             firstCenterY = svgRadialGradientServerHref;
                         }
                     }
-                    if (firstRadius == null)
+                    if (firstRadius is null)
                     {
                         var pRadius = svgRadialGradientServerHref.Radius;
-                        if (pRadius != null && pRadius != SvgUnit.None && svgRadialGradientServerHref.GetAttribute("r", out _) == true)
+                        if (pRadius != null && pRadius != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "r", out _))
                         {
                             firstRadius = svgRadialGradientServerHref;
                         }
                     }
-                    if (firstFocalX == null)
+                    if (firstFocalX is null)
                     {
                         var pFocalX = svgRadialGradientServerHref.FocalX;
-                        if (pFocalX != null && pFocalX != SvgUnit.None && svgRadialGradientServerHref.GetAttribute("fx", out _) == true)
+                        if (pFocalX != null && pFocalX != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "fx", out _))
                         {
                             firstFocalX = svgRadialGradientServerHref;
                         }
                     }
-                    if (firstFocalY == null)
+                    if (firstFocalY is null)
                     {
                         var pFocalY = svgRadialGradientServerHref.FocalY;
-                        if (pFocalY != null && pFocalY != SvgUnit.None && svgRadialGradientServerHref.GetAttribute("fy", out _) == true)
+                        if (pFocalY != null && pFocalY != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "fy", out _))
                         {
                             firstFocalY = svgRadialGradientServerHref;
                         }
@@ -1130,14 +1128,14 @@ namespace Svg.Skia
                 }
             }
 
-            var svgSpreadMethod = firstSpreadMethod == null ? SvgGradientSpreadMethod.Pad : firstSpreadMethod.SpreadMethod;
+            var svgSpreadMethod = firstSpreadMethod is null ? SvgGradientSpreadMethod.Pad : firstSpreadMethod.SpreadMethod;
             var svgGradientTransform = firstGradientTransform?.GradientTransform;
-            var svgGradientUnits = firstGradientUnits == null ? SvgCoordinateUnits.ObjectBoundingBox : firstGradientUnits.GradientUnits;
-            var centerXUnit = firstCenterX == null ? new SvgUnit(SvgUnitType.Percentage, 50f) : firstCenterX.CenterX;
-            var centerYUnit = firstCenterY == null ? new SvgUnit(SvgUnitType.Percentage, 50f) : firstCenterY.CenterY;
-            var radiusUnit = firstRadius == null ? new SvgUnit(SvgUnitType.Percentage, 50f) : firstRadius.Radius;
-            var focalXUnit = firstFocalX == null ? centerXUnit : firstFocalX.FocalX;
-            var focalYUnit = firstFocalY == null ? centerYUnit : firstFocalY.FocalY;
+            var svgGradientUnits = firstGradientUnits is null ? SvgCoordinateUnits.ObjectBoundingBox : firstGradientUnits.GradientUnits;
+            var centerXUnit = firstCenterX is null ? new SvgUnit(SvgUnitType.Percentage, 50f) : firstCenterX.CenterX;
+            var centerYUnit = firstCenterY is null ? new SvgUnit(SvgUnitType.Percentage, 50f) : firstCenterY.CenterY;
+            var radiusUnit = firstRadius is null ? new SvgUnit(SvgUnitType.Percentage, 50f) : firstRadius.Radius;
+            var focalXUnit = firstFocalX is null ? centerXUnit : firstFocalX.FocalX;
+            var focalYUnit = firstFocalY is null ? centerYUnit : firstFocalY.FocalY;
 
             var normalizedCenterX = centerXUnit.Normalize(svgGradientUnits);
             var normalizedCenterY = centerYUnit.Normalize(svgGradientUnits);
@@ -1318,14 +1316,12 @@ namespace Svg.Skia
 
             foreach (var p in svgReferencedPatternServers)
             {
-                if (firstChildren == null)
+                if (firstChildren is null && p.Children.Count > 0)
                 {
-                    if (p.Children.Count > 0)
-                    {
-                        firstChildren = p;
-                    }
+                    firstChildren = p;
                 }
-                if (firstX == null)
+
+                if (firstX is null)
                 {
                     var pX = p.X;
                     if (pX != null && pX != SvgUnit.None)
@@ -1333,7 +1329,7 @@ namespace Svg.Skia
                         firstX = p;
                     }
                 }
-                if (firstY == null)
+                if (firstY is null)
                 {
                     var pY = p.Y;
                     if (pY != null && pY != SvgUnit.None)
@@ -1341,7 +1337,7 @@ namespace Svg.Skia
                         firstY = p;
                     }
                 }
-                if (firstWidth == null)
+                if (firstWidth is null)
                 {
                     var pWidth = p.Width;
                     if (pWidth != null && pWidth != SvgUnit.None)
@@ -1349,7 +1345,7 @@ namespace Svg.Skia
                         firstWidth = p;
                     }
                 }
-                if (firstHeight == null)
+                if (firstHeight is null)
                 {
                     var pHeight = p.Height;
                     if (pHeight != null && pHeight != SvgUnit.None)
@@ -1357,21 +1353,21 @@ namespace Svg.Skia
                         firstHeight = p;
                     }
                 }
-                if (firstPatternUnit == null)
+                if (firstPatternUnit is null)
                 {
-                    if (p.GetAttribute("patternUnits", out _) == true)
+                    if (TryGetAttribute(p, "patternUnits", out _))
                     {
                         firstPatternUnit = p;
                     }
                 }
                 if (firstPatternContentUnit == null)
                 {
-                    if (p.GetAttribute("patternContentUnits", out _) == true)
+                    if (TryGetAttribute(p, "patternContentUnits", out _))
                     {
                         firstPatternContentUnit = p;
                     }
                 }
-                if (firstViewBox == null)
+                if (firstViewBox is null)
                 {
                     var pViewBox = p.ViewBox;
                     if (pViewBox != null && pViewBox != SvgViewBox.Empty)
@@ -1379,7 +1375,7 @@ namespace Svg.Skia
                         firstViewBox = p;
                     }
                 }
-                if (firstAspectRatio == null)
+                if (firstAspectRatio is null)
                 {
                     var pAspectRatio = p.AspectRatio;
                     if (pAspectRatio != null && pAspectRatio.Align != SvgPreserveAspectRatio.xMidYMid)
@@ -1389,19 +1385,19 @@ namespace Svg.Skia
                 }
             }
 
-            if (firstChildren == null || firstWidth == null || firstHeight == null)
+            if (firstChildren is null || firstWidth is null || firstHeight is null)
             {
                 return null;
             }
 
-            var xUnit = firstX == null ? new SvgUnit(0f) : firstX.X;
-            var yUnit = firstY == null ? new SvgUnit(0f) : firstY.Y;
+            var xUnit = firstX is null ? new SvgUnit(0f) : firstX.X;
+            var yUnit = firstY is null ? new SvgUnit(0f) : firstY.Y;
             var widthUnit = firstWidth.Width;
             var heightUnit = firstHeight.Height;
-            var patternUnits = firstPatternUnit == null ? SvgCoordinateUnits.ObjectBoundingBox : firstPatternUnit.PatternUnits;
-            var patternContentUnits = firstPatternContentUnit == null ? SvgCoordinateUnits.UserSpaceOnUse : firstPatternContentUnit.PatternContentUnits;
-            var viewBox = firstViewBox == null ? SvgViewBox.Empty : firstViewBox.ViewBox;
-            var aspectRatio = firstAspectRatio == null ? new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid, false) : firstAspectRatio.AspectRatio;
+            var patternUnits = firstPatternUnit is null ? SvgCoordinateUnits.ObjectBoundingBox : firstPatternUnit.PatternUnits;
+            var patternContentUnits = firstPatternContentUnit is null ? SvgCoordinateUnits.UserSpaceOnUse : firstPatternContentUnit.PatternContentUnits;
+            var viewBox = firstViewBox is null ? SvgViewBox.Empty : firstViewBox.ViewBox;
+            var aspectRatio = firstAspectRatio is null ? new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid, false) : firstAspectRatio.AspectRatio;
 
             float x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgPatternServer, skBounds);
             float y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgPatternServer, skBounds);
@@ -1794,13 +1790,12 @@ namespace Svg.Skia
         {
             if (opacity < 1f)
             {
-                var skPaint = new SKPaint()
+                return new SKPaint
                 {
                     IsAntialias = true,
                     Color = new SKColor(255, 255, 255, (byte)Math.Round(opacity * 255)),
                     Style = SKPaintStyle.StrokeAndFill
                 };
-                return skPaint;
             }
             return null;
         }
@@ -1837,7 +1832,7 @@ namespace Svg.Skia
         {
             var skMatrixTotal = SKMatrix.CreateIdentity();
 
-            if (svgTransformCollection == null)
+            if (svgTransformCollection is null)
             {
                 return skMatrixTotal;
             }
@@ -1898,10 +1893,8 @@ namespace Svg.Skia
             float fMinX = -svgViewBox.MinX * fScaleX;
             float fMinY = -svgViewBox.MinY * fScaleY;
 
-            if (svgAspectRatio == null)
-            {
-                svgAspectRatio = new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid);
-            }
+            svgAspectRatio ??= new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid);
+            
 
             if (svgAspectRatio.Align != SvgPreserveAspectRatio.none)
             {
@@ -2137,7 +2130,7 @@ namespace Svg.Skia
                 FillType = fillType
             };
 
-            bool endFigure = false;
+            bool isEndFigure = false;
             bool haveFigure = false;
 
             for (int i = 0; i < svgPathSegmentList.Count; i++)
@@ -2149,11 +2142,12 @@ namespace Svg.Skia
                 {
                     case SvgMoveToSegment svgMoveToSegment:
                         {
-                            if (endFigure == true && haveFigure == false)
+                            if (isEndFigure && haveFigure == false)
                             {
                                 return null;
                             }
-                            if (isLast == true)
+
+                            if (isLast)
                             {
                                 return skPath;
                             }
@@ -2169,7 +2163,7 @@ namespace Svg.Skia
                                     return skPath;
                                 }
                             }
-                            endFigure = true;
+                            isEndFigure = true;
                             haveFigure = false;
                             float x = svgMoveToSegment.Start.X;
                             float y = svgMoveToSegment.Start.Y;
@@ -2178,7 +2172,7 @@ namespace Svg.Skia
                         break;
                     case SvgLineSegment svgLineSegment:
                         {
-                            if (endFigure == false)
+                            if (isEndFigure == false)
                             {
                                 return null;
                             }
@@ -2190,7 +2184,7 @@ namespace Svg.Skia
                         break;
                     case SvgCubicCurveSegment svgCubicCurveSegment:
                         {
-                            if (endFigure == false)
+                            if (isEndFigure == false)
                             {
                                 return null;
                             }
@@ -2206,7 +2200,7 @@ namespace Svg.Skia
                         break;
                     case SvgQuadraticCurveSegment svgQuadraticCurveSegment:
                         {
-                            if (endFigure == false)
+                            if (isEndFigure == false)
                             {
                                 return null;
                             }
@@ -2220,7 +2214,7 @@ namespace Svg.Skia
                         break;
                     case SvgArcSegment svgArcSegment:
                         {
-                            if (endFigure == false)
+                            if (isEndFigure == false)
                             {
                                 return null;
                             }
@@ -2237,7 +2231,7 @@ namespace Svg.Skia
                         break;
                     case SvgClosePathSegment _:
                         {
-                            if (endFigure == false)
+                            if (isEndFigure == false)
                             {
                                 return null;
                             }
@@ -2245,7 +2239,7 @@ namespace Svg.Skia
                             {
                                 return null;
                             }
-                            endFigure = false;
+                            isEndFigure = false;
                             haveFigure = false;
                             skPath.Close();
                         }
@@ -2253,7 +2247,7 @@ namespace Svg.Skia
                 }
             }
 
-            if (endFigure)
+            if (isEndFigure)
             {
                 if (haveFigure == false)
                 {
@@ -2596,9 +2590,9 @@ namespace Svg.Skia
 
         public static bool CanDraw(SvgVisualElement svgVisualElement, Attributes ignoreAttributes)
         {
-            bool visible = svgVisualElement.Visible == true;
+            bool visible = svgVisualElement.Visible;
             bool ignoreDisplay = ignoreAttributes.HasFlag(Attributes.Display);
-            bool display = ignoreDisplay ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
+            bool display = ignoreDisplay || !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
             return visible && display;
         }
 #if USE_PICTURE // TODO:
@@ -2610,24 +2604,20 @@ namespace Svg.Skia
 
         private static SvgClipRule? GetSvgClipRule(SvgClipPath svgClipPath)
         {
-            svgClipPath.GetAttribute("clip-rule", out var clipRuleString);
+            TryGetAttribute(svgClipPath, "clip-rule", out var clipRuleString);
 
-            switch (clipRuleString)
+            return clipRuleString switch
             {
-                case "nonzero":
-                    return SvgClipRule.NonZero;
-                case "evenodd":
-                    return SvgClipRule.EvenOdd;
-                case "inherit":
-                    return SvgClipRule.Inherit; // TODO:
-                default:
-                    return null;
-            }
+                "nonzero" => SvgClipRule.NonZero,
+                "evenodd" => SvgClipRule.EvenOdd,
+                "inherit" => SvgClipRule.Inherit,// TODO:
+                _ => null
+            };
         }
 
         public static void GetClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Picture.ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
         {
-            if (clipPath == null)
+            if (clipPath is null)
             {
                 return;
             }
@@ -4571,58 +4561,43 @@ namespace Svg.Skia
 
             foreach (var p in svgReferencedFilters)
             {
-                if (firstChildren == null)
+                if (firstChildren is null && p.Children.Count > 0)
                 {
-                    if (p.Children.Count > 0)
-                    {
-                        firstChildren = p;
-                    }
+                    firstChildren = p;
                 }
-                if (firstX == null)
+
+                if (firstX is null && TryGetAttribute(p, "x", out _))
                 {
-                    if (p.GetAttribute("x", out _) == true)
-                    {
-                        firstX = p;
-                    }
+                    firstX = p;
                 }
-                if (firstY == null)
+
+                if (firstY is null && TryGetAttribute(p, "y", out _))
                 {
-                    if (p.GetAttribute("y", out _) == true)
-                    {
-                        firstY = p;
-                    }
+                    firstY = p;
                 }
-                if (firstWidth == null)
+
+                if (firstWidth is null && TryGetAttribute(p, "width", out _))
                 {
-                    if (p.GetAttribute("width", out _) == true)
-                    {
-                        firstWidth = p;
-                    }
+                    firstWidth = p;
                 }
-                if (firstHeight == null)
+
+                if (firstHeight is null && TryGetAttribute(p, "height", out _))
                 {
-                    if (p.GetAttribute("height", out _) == true)
-                    {
-                        firstHeight = p;
-                    }
+                    firstHeight = p;
                 }
-                if (firstFilterUnits == null)
+
+                if (firstFilterUnits is null && TryGetAttribute(p, "filterUnits", out _))
                 {
-                    if (p.GetAttribute("filterUnits", out _) == true)
-                    {
-                        firstFilterUnits = p;
-                    }
+                    firstFilterUnits = p;
                 }
-                if (firstPrimitiveUnits == null)
+
+                if (firstPrimitiveUnits is null && TryGetAttribute(p, "primitiveUnits", out _))
                 {
-                    if (p.GetAttribute("primitiveUnits", out _) == true)
-                    {
-                        firstPrimitiveUnits = p;
-                    }
+                    firstPrimitiveUnits = p;
                 }
             }
 
-            if (firstChildren == null)
+            if (firstChildren is null)
             {
                 isValid = false;
                 return null;
@@ -5203,7 +5178,7 @@ namespace Svg.Skia
     }
 
 #if USE_PICTURE
-    internal class CompositeDisposable : IDisposable
+    internal sealed class CompositeDisposable : IDisposable
     {
         public CompositeDisposable()
         {
@@ -5218,7 +5193,7 @@ namespace Svg.Skia
         }
     }
 #else
-    internal class CompositeDisposable : IDisposable
+    internal sealed class CompositeDisposable : IDisposable
     {
         private readonly List<IDisposable> _disposables;
 
@@ -5342,17 +5317,17 @@ namespace Svg.Skia
 
         protected virtual bool HasFeatures(SvgElement svgElement, Attributes ignoreAttributes)
         {
-            bool hasRequiredFeatures = ignoreAttributes.HasFlag(Attributes.RequiredFeatures) ? true : svgElement.HasRequiredFeatures();
-            bool hasRequiredExtensions = ignoreAttributes.HasFlag(Attributes.RequiredExtensions) ? true : svgElement.HasRequiredExtensions();
-            bool hasSystemLanguage = ignoreAttributes.HasFlag(Attributes.SystemLanguage) ? true : svgElement.HasSystemLanguage();
+            bool hasRequiredFeatures = ignoreAttributes.HasFlag(Attributes.RequiredFeatures) || svgElement.HasRequiredFeatures();
+            bool hasRequiredExtensions = ignoreAttributes.HasFlag(Attributes.RequiredExtensions) || svgElement.HasRequiredExtensions();
+            bool hasSystemLanguage = ignoreAttributes.HasFlag(Attributes.SystemLanguage) || svgElement.HasSystemLanguage();
             return hasRequiredFeatures && hasRequiredExtensions && hasSystemLanguage;
         }
 
         protected virtual bool CanDraw(SvgVisualElement svgVisualElement, Attributes ignoreAttributes)
         {
-            bool visible = ignoreAttributes.HasFlag(Attributes.Visibility) ? true : string.Equals(svgVisualElement.Visibility, "visible", StringComparison.OrdinalIgnoreCase);
-            bool display = ignoreAttributes.HasFlag(Attributes.Display) ? true : !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
-            return visible && display;
+            bool isVisible = ignoreAttributes.HasFlag(Attributes.Visibility) || string.Equals(svgVisualElement.Visibility, "visible", StringComparison.OrdinalIgnoreCase);
+            bool isDisplay = ignoreAttributes.HasFlag(Attributes.Display) || !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
+            return isVisible && isDisplay;
         }
 
         public abstract void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until);
@@ -5390,39 +5365,39 @@ namespace Svg.Skia
                 canvas.ClipRect(Clip.Value, SKClipOperation.Intersect);
             }
 
-            if (ClipPath != null && enableClip == true)
+            if (ClipPath != null && enableClip)
             {
                 canvas.ClipPath(ClipPath, SKClipOperation.Intersect, IsAntialias);
             }
 
-            if (MaskDrawable != null && Mask != null && enableMask == true)
+            if (MaskDrawable != null && Mask != null && enableMask)
             {
                 canvas.SaveLayer(Mask);
             }
 
-            if (Opacity != null && enableOpacity == true)
+            if (Opacity != null && enableOpacity)
             {
                 canvas.SaveLayer(Opacity);
             }
 
-            if (Filter != null && enableFilter == true)
+            if (Filter != null && enableFilter)
             {
                 canvas.SaveLayer(Filter);
             }
 
             OnDraw(canvas, ignoreAttributes, until);
 
-            if (Filter != null && enableFilter == true)
+            if (Filter != null && enableFilter)
             {
                 canvas.Restore();
             }
 
-            if (Opacity != null && enableOpacity == true)
+            if (Opacity != null && enableOpacity)
             {
                 canvas.Restore();
             }
 
-            if (MaskDrawable != null && MaskDstIn != null && enableMask == true)
+            if (MaskDrawable != null && MaskDstIn != null && enableMask)
             {
                 canvas.SaveLayer(MaskDstIn);
                 MaskDrawable.Draw(canvas, ignoreAttributes, until);
@@ -5448,7 +5423,7 @@ namespace Svg.Skia
             var enableOpacity = !IgnoreAttributes.HasFlag(Attributes.Opacity);
             var enableFilter = !IgnoreAttributes.HasFlag(Attributes.Filter);
 
-            if (visualElement != null && enableClip == true)
+            if (visualElement != null && enableClip)
             {
 #if USE_PICTURE
                 var clipPath = new Svg.Picture.ClipPath()
@@ -5481,7 +5456,7 @@ namespace Svg.Skia
                 ClipPath = null;
             }
 
-            if (enableMask == true)
+            if (enableMask)
             {
                 MaskDrawable = SvgExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), Disposable);
                 if (MaskDrawable != null)
@@ -5494,16 +5469,9 @@ namespace Svg.Skia
                 MaskDrawable = null;
             }
 
-            if (enableOpacity == true)
-            {
-                Opacity = SvgExtensions.GetOpacitySKPaint(element, Disposable);
-            }
-            else
-            {
-                Opacity = null;
-            }
+            Opacity = enableOpacity ? SvgExtensions.GetOpacitySKPaint(element, Disposable) : null;
 
-            if (visualElement != null && enableFilter == true)
+            if (visualElement != null && enableFilter)
             {
                 Filter = SvgExtensions.GetFilterSKPaint(visualElement, TransformedBounds, this, Disposable, out var isValid);
                 if (isValid == false)
@@ -5539,7 +5507,7 @@ namespace Svg.Skia
                 {
                     enableBackground = enableBackground.Trim();
 
-                    if (enableBackground == "accumulate")
+                    if (enableBackground.Equals("accumulate", StringComparison.Ordinal))
                     {
                         // TODO:
                     }
@@ -5781,7 +5749,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class MaskDrawable : DrawableContainer
+    internal sealed class MaskDrawable : DrawableContainer
     {
         private MaskDrawable()
             : base()
@@ -5790,13 +5758,13 @@ namespace Svg.Skia
 
         public static MaskDrawable Create(SvgMask svgMask, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new MaskDrawable();
-
-            drawable.Element = svgMask;
-            drawable.Parent = parent;
-
-            drawable.IgnoreAttributes = ignoreAttributes;
-            drawable.IsDrawable = true;
+            var drawable = new MaskDrawable
+            {
+                Element = svgMask,
+                Parent = parent,
+                IgnoreAttributes = ignoreAttributes,
+                IsDrawable = true
+            };
 
             if (!drawable.IsDrawable)
             {
@@ -5881,7 +5849,7 @@ namespace Svg.Skia
         public override void PostProcess()
         {
             var element = Element;
-            if (element == null)
+            if (element is null)
             {
                 return;
             }
@@ -5890,7 +5858,7 @@ namespace Svg.Skia
 
             ClipPath = null;
 
-            if (enableMask == true)
+            if (enableMask)
             {
                 MaskDrawable = SvgExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), Disposable);
                 if (MaskDrawable != null)
@@ -5908,7 +5876,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class AnchorDrawable : DrawableContainer
+    internal sealed class AnchorDrawable : DrawableContainer
     {
         private AnchorDrawable()
             : base()
@@ -5917,18 +5885,13 @@ namespace Svg.Skia
 
         public static AnchorDrawable Create(SvgAnchor svgAnchor, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new AnchorDrawable();
-
-            drawable.Element = svgAnchor;
-            drawable.Parent = parent;
-
-            drawable.IgnoreAttributes = ignoreAttributes;
-            drawable.IsDrawable = true;
-
-            if (!drawable.IsDrawable)
+            var drawable = new AnchorDrawable
             {
-                return drawable;
-            }
+                Element = svgAnchor,
+                Parent = parent,
+                IgnoreAttributes = ignoreAttributes,
+                IsDrawable = true
+            };
 
             drawable.CreateChildren(svgAnchor, skOwnerBounds, drawable, ignoreAttributes);
 
@@ -5957,7 +5920,7 @@ namespace Svg.Skia
         public override void PostProcess()
         {
             var element = Element;
-            if (element == null)
+            if (element is null)
             {
                 return;
             }
@@ -5966,16 +5929,7 @@ namespace Svg.Skia
 
             ClipPath = null;
             MaskDrawable = null;
-
-            if (enableOpacity == true)
-            {
-                Opacity = SvgExtensions.GetOpacitySKPaint(element, Disposable);
-            }
-            else
-            {
-                Opacity = null;
-            }
-
+            Opacity = enableOpacity ? SvgExtensions.GetOpacitySKPaint(element, Disposable) : null;
             Filter = null;
 
             foreach (var child in ChildrenDrawables)
@@ -5985,7 +5939,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class FragmentDrawable : DrawableContainer
+    internal sealed class FragmentDrawable : DrawableContainer
     {
         private FragmentDrawable()
             : base()
@@ -5994,12 +5948,13 @@ namespace Svg.Skia
 
         public static FragmentDrawable Create(SvgFragment svgFragment, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new FragmentDrawable();
+            var drawable = new FragmentDrawable
+            {
+                Element = svgFragment,
+                Parent = parent,
+                IgnoreAttributes = ignoreAttributes
+            };
 
-            drawable.Element = svgFragment;
-            drawable.Parent = parent;
-
-            drawable.IgnoreAttributes = ignoreAttributes;
             drawable.IsDrawable = drawable.HasFeatures(svgFragment, drawable.IgnoreAttributes);
 
             if (!drawable.IsDrawable)
@@ -6009,8 +5964,8 @@ namespace Svg.Skia
 
             var svgFragmentParent = svgFragment.Parent;
 
-            float x = svgFragmentParent == null ? 0f : svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skOwnerBounds);
-            float y = svgFragmentParent == null ? 0f : svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skOwnerBounds);
+            float x = svgFragmentParent is null ? 0f : svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skOwnerBounds);
+            float y = svgFragmentParent is null ? 0f : svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skOwnerBounds);
 
             var skSize = SvgExtensions.GetDimensions(svgFragment);
 
@@ -6094,7 +6049,7 @@ namespace Svg.Skia
         public override void PostProcess()
         {
             var element = Element;
-            if (element == null)
+            if (element is null)
             {
                 return;
             }
@@ -6103,16 +6058,7 @@ namespace Svg.Skia
 
             ClipPath = null;
             MaskDrawable = null;
-
-            if (enableOpacity == true)
-            {
-                Opacity = SvgExtensions.GetOpacitySKPaint(element, Disposable);
-            }
-            else
-            {
-                Opacity = null;
-            }
-
+            Opacity = enableOpacity ? SvgExtensions.GetOpacitySKPaint(element, Disposable) : null;
             Filter = null;
 
             foreach (var child in ChildrenDrawables)
@@ -6122,7 +6068,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class ImageDrawable : DrawableBase
+    internal sealed class ImageDrawable : DrawableBase
     {
         public SKImage? Image;
         public FragmentDrawable? FragmentDrawable;
@@ -6137,12 +6083,13 @@ namespace Svg.Skia
 
         public static ImageDrawable Create(SvgImage svgImage, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new ImageDrawable();
+            var drawable = new ImageDrawable
+            {
+                Element = svgImage,
+                Parent = parent,
+                IgnoreAttributes = ignoreAttributes
+            };
 
-            drawable.Element = svgImage;
-            drawable.Parent = parent;
-
-            drawable.IgnoreAttributes = ignoreAttributes;
             drawable.IsDrawable = drawable.CanDraw(svgImage, drawable.IgnoreAttributes) && drawable.HasFeatures(svgImage, drawable.IgnoreAttributes);
 
             if (!drawable.IsDrawable)
@@ -6156,7 +6103,7 @@ namespace Svg.Skia
             float y = svgImage.Location.Y.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skOwnerBounds);
             var location = new SKPoint(x, y);
 
-            if (width <= 0f || height <= 0f || svgImage.Href == null)
+            if (width <= 0f || height <= 0f || svgImage.Href is null)
             {
                 drawable.IsDrawable = false;
                 return drawable;
@@ -6172,7 +6119,7 @@ namespace Svg.Skia
             var image = SvgExtensions.GetImage(svgImage.Href, svgImage.OwnerDocument);
             var skImage = image as SKImage;
             var svgFragment = image as SvgFragment;
-            if (skImage == null && svgFragment == null)
+            if (skImage is null && svgFragment is null)
             {
                 drawable.IsDrawable = false;
                 return drawable;
@@ -6440,7 +6387,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class SymbolDrawable : DrawableContainer
+    internal sealed class SymbolDrawable : DrawableContainer
     {
         private SymbolDrawable()
             : base()
@@ -6449,12 +6396,13 @@ namespace Svg.Skia
 
         public static SymbolDrawable Create(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes)
         {
-            var drawable = new SymbolDrawable();
+            var drawable = new SymbolDrawable
+            {
+                Element = svgSymbol,
+                Parent = parent,
+                IgnoreAttributes = ignoreAttributes
+            };
 
-            drawable.Element = svgSymbol;
-            drawable.Parent = parent;
-
-            drawable.IgnoreAttributes = ignoreAttributes;
             drawable.IsDrawable = drawable.CanDraw(svgSymbol, drawable.IgnoreAttributes) && drawable.HasFeatures(svgSymbol, drawable.IgnoreAttributes);
 
             if (!drawable.IsDrawable)
@@ -6520,7 +6468,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class UseDrawable : DrawableBase
+    internal sealed class UseDrawable : DrawableBase
     {
         internal static FieldInfo? s_referencedElementParent = typeof(SvgElement).GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -6533,12 +6481,13 @@ namespace Svg.Skia
 
         public static UseDrawable Create(SvgUse svgUse, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new UseDrawable();
+            var drawable = new UseDrawable
+            {
+                Element = svgUse,
+                Parent = parent,
+                IgnoreAttributes = ignoreAttributes
+            };
 
-            drawable.Element = svgUse;
-            drawable.Parent = parent;
-
-            drawable.IgnoreAttributes = ignoreAttributes;
             drawable.IsDrawable = drawable.CanDraw(svgUse, drawable.IgnoreAttributes) && drawable.HasFeatures(svgUse, drawable.IgnoreAttributes);
 
             if (!drawable.IsDrawable)
@@ -6553,7 +6502,7 @@ namespace Svg.Skia
             }
 
             var svgReferencedElement = SvgExtensions.GetReference<SvgElement>(svgUse, svgUse.ReferencedElement);
-            if (svgReferencedElement == null)
+            if (svgReferencedElement is null)
             {
                 drawable.IsDrawable = false;
                 return drawable;
@@ -6662,7 +6611,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class CircleDrawable : DrawablePath
+    internal sealed class CircleDrawable : DrawablePath
     {
         private CircleDrawable()
             : base()
@@ -6671,12 +6620,13 @@ namespace Svg.Skia
 
         public static CircleDrawable Create(SvgCircle svgCircle, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new CircleDrawable();
+            var drawable = new CircleDrawable
+            {
+                Element = svgCircle,
+                Parent = parent,
+                IgnoreAttributes = ignoreAttributes
+            };
 
-            drawable.Element = svgCircle;
-            drawable.Parent = parent;
-
-            drawable.IgnoreAttributes = ignoreAttributes;
             drawable.IsDrawable = drawable.CanDraw(svgCircle, drawable.IgnoreAttributes) && drawable.HasFeatures(svgCircle, drawable.IgnoreAttributes);
 
             if (!drawable.IsDrawable)
@@ -6685,7 +6635,7 @@ namespace Svg.Skia
             }
 
             drawable.Path = svgCircle.ToSKPath(svgCircle.FillRule, skOwnerBounds, drawable.Disposable);
-            if (drawable.Path == null || drawable.Path.IsEmpty)
+            if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;
                 return drawable;
@@ -6703,7 +6653,7 @@ namespace Svg.Skia
             if (SvgExtensions.IsValidFill(svgCircle))
             {
                 drawable.Fill = SvgExtensions.GetFillSKPaint(svgCircle, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Fill == null)
+                if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
@@ -6712,7 +6662,7 @@ namespace Svg.Skia
             if (SvgExtensions.IsValidStroke(svgCircle, drawable.TransformedBounds))
             {
                 drawable.Stroke = SvgExtensions.GetStrokeSKPaint(svgCircle, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Stroke == null)
+                if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
                 }
@@ -6731,7 +6681,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class EllipseDrawable : DrawablePath
+    internal sealed class EllipseDrawable : DrawablePath
     {
         private EllipseDrawable()
             : base()
@@ -6740,12 +6690,13 @@ namespace Svg.Skia
 
         public static EllipseDrawable Create(SvgEllipse svgEllipse, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new EllipseDrawable();
+            var drawable = new EllipseDrawable
+            {
+                Element = svgEllipse,
+                Parent = parent,
+                IgnoreAttributes = ignoreAttributes
+            };
 
-            drawable.Element = svgEllipse;
-            drawable.Parent = parent;
-
-            drawable.IgnoreAttributes = ignoreAttributes;
             drawable.IsDrawable = drawable.CanDraw(svgEllipse, drawable.IgnoreAttributes) && drawable.HasFeatures(svgEllipse, drawable.IgnoreAttributes);
 
             if (!drawable.IsDrawable)
@@ -6754,16 +6705,14 @@ namespace Svg.Skia
             }
 
             drawable.Path = svgEllipse.ToSKPath(svgEllipse.FillRule, skOwnerBounds, drawable.Disposable);
-            if (drawable.Path == null || drawable.Path.IsEmpty)
+            if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;
                 return drawable;
             }
 
             drawable.IsAntialias = SvgExtensions.IsAntialias(svgEllipse);
-
             drawable.TransformedBounds = drawable.Path.Bounds;
-
             drawable.Transform = SvgExtensions.ToSKMatrix(svgEllipse.Transforms);
 
             bool canDrawFill = true;
@@ -6772,7 +6721,7 @@ namespace Svg.Skia
             if (SvgExtensions.IsValidFill(svgEllipse))
             {
                 drawable.Fill = SvgExtensions.GetFillSKPaint(svgEllipse, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Fill == null)
+                if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
@@ -6781,7 +6730,7 @@ namespace Svg.Skia
             if (SvgExtensions.IsValidStroke(svgEllipse, drawable.TransformedBounds))
             {
                 drawable.Stroke = SvgExtensions.GetStrokeSKPaint(svgEllipse, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Stroke == null)
+                if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
                 }
@@ -6800,7 +6749,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class RectangleDrawable : DrawablePath
+    internal sealed class RectangleDrawable : DrawablePath
     {
         private RectangleDrawable()
             : base()
@@ -6809,12 +6758,13 @@ namespace Svg.Skia
 
         public static RectangleDrawable Create(SvgRectangle svgRectangle, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new RectangleDrawable();
+            var drawable = new RectangleDrawable
+            {
+                Element = svgRectangle,
+                Parent = parent,
+                IgnoreAttributes = ignoreAttributes
+            };
 
-            drawable.Element = svgRectangle;
-            drawable.Parent = parent;
-
-            drawable.IgnoreAttributes = ignoreAttributes;
             drawable.IsDrawable = drawable.CanDraw(svgRectangle, drawable.IgnoreAttributes) && drawable.HasFeatures(svgRectangle, drawable.IgnoreAttributes);
 
             if (!drawable.IsDrawable)
@@ -6823,7 +6773,7 @@ namespace Svg.Skia
             }
 
             drawable.Path = svgRectangle.ToSKPath(svgRectangle.FillRule, skOwnerBounds, drawable.Disposable);
-            if (drawable.Path == null || drawable.Path.IsEmpty)
+            if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;
                 return drawable;
@@ -6841,7 +6791,7 @@ namespace Svg.Skia
             if (SvgExtensions.IsValidFill(svgRectangle))
             {
                 drawable.Fill = SvgExtensions.GetFillSKPaint(svgRectangle, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Fill == null)
+                if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
@@ -6850,7 +6800,7 @@ namespace Svg.Skia
             if (SvgExtensions.IsValidStroke(svgRectangle, drawable.TransformedBounds))
             {
                 drawable.Stroke = SvgExtensions.GetStrokeSKPaint(svgRectangle, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Stroke == null)
+                if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
                 }
@@ -6869,7 +6819,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class MarkerDrawable : DrawableBase
+    internal sealed class MarkerDrawable : DrawableBase
     {
         public DrawableBase? MarkerElementDrawable;
         public SKRect? MarkerClipRect;
@@ -6881,13 +6831,13 @@ namespace Svg.Skia
 
         public static MarkerDrawable Create(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new MarkerDrawable();
-
-            drawable.Element = svgMarker;
-            drawable.Parent = parent;
-
-            drawable.IgnoreAttributes = Attributes.Display | ignoreAttributes;
-            drawable.IsDrawable = true;
+            var drawable = new MarkerDrawable
+            {
+                Element = svgMarker,
+                Parent = parent,
+                IgnoreAttributes = Attributes.Display | ignoreAttributes,
+                IsDrawable = true
+            };
 
             if (!drawable.IsDrawable)
             {
@@ -6895,7 +6845,7 @@ namespace Svg.Skia
             }
 
             var markerElement = drawable.GetMarkerElement(svgMarker);
-            if (markerElement == null)
+            if (markerElement is null)
             {
                 drawable.IsDrawable = false;
                 return drawable;
@@ -7030,7 +6980,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class GroupDrawable : DrawableContainer
+    internal sealed class GroupDrawable : DrawableContainer
     {
         private GroupDrawable()
             : base()
@@ -7039,12 +6989,13 @@ namespace Svg.Skia
 
         public static GroupDrawable Create(SvgGroup svgGroup, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new GroupDrawable();
+            var drawable = new GroupDrawable
+            {
+                Element = svgGroup,
+                Parent = parent,
+                IgnoreAttributes = ignoreAttributes
+            };
 
-            drawable.Element = svgGroup;
-            drawable.Parent = parent;
-
-            drawable.IgnoreAttributes = ignoreAttributes;
             drawable.IsDrawable = drawable.CanDraw(svgGroup, drawable.IgnoreAttributes) && drawable.HasFeatures(svgGroup, drawable.IgnoreAttributes);
 
             // NOTE: Call AddMarkers only once.
@@ -7085,7 +7036,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class LineDrawable : DrawablePath
+    internal sealed class LineDrawable : DrawablePath
     {
         private LineDrawable()
             : base()
@@ -7094,12 +7045,13 @@ namespace Svg.Skia
 
         public static LineDrawable Create(SvgLine svgLine, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new LineDrawable();
+            var drawable = new LineDrawable
+            {
+                Element = svgLine,
+                Parent = parent,
+                IgnoreAttributes = ignoreAttributes
+            };
 
-            drawable.Element = svgLine;
-            drawable.Parent = parent;
-
-            drawable.IgnoreAttributes = ignoreAttributes;
             drawable.IsDrawable = drawable.CanDraw(svgLine, drawable.IgnoreAttributes) && drawable.HasFeatures(svgLine, drawable.IgnoreAttributes);
 
             if (!drawable.IsDrawable)
@@ -7108,7 +7060,7 @@ namespace Svg.Skia
             }
 
             drawable.Path = svgLine.ToSKPath(svgLine.FillRule, skOwnerBounds, drawable.Disposable);
-            if (drawable.Path == null || drawable.Path.IsEmpty)
+            if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;
                 return drawable;
@@ -7126,7 +7078,7 @@ namespace Svg.Skia
             if (SvgExtensions.IsValidFill(svgLine))
             {
                 drawable.Fill = SvgExtensions.GetFillSKPaint(svgLine, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Fill == null)
+                if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
@@ -7135,7 +7087,7 @@ namespace Svg.Skia
             if (SvgExtensions.IsValidStroke(svgLine, drawable.TransformedBounds))
             {
                 drawable.Stroke = SvgExtensions.GetStrokeSKPaint(svgLine, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Stroke == null)
+                if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
                 }
@@ -7156,7 +7108,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class PathDrawable : DrawablePath
+    internal sealed class PathDrawable : DrawablePath
     {
         private PathDrawable()
             : base()
@@ -7165,12 +7117,13 @@ namespace Svg.Skia
 
         public static PathDrawable Create(SvgPath svgPath, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new PathDrawable();
+            var drawable = new PathDrawable
+            {
+                Element = svgPath,
+                Parent = parent,
+                IgnoreAttributes = ignoreAttributes
+            };
 
-            drawable.Element = svgPath;
-            drawable.Parent = parent;
-
-            drawable.IgnoreAttributes = ignoreAttributes;
             drawable.IsDrawable = drawable.CanDraw(svgPath, drawable.IgnoreAttributes) && drawable.HasFeatures(svgPath, drawable.IgnoreAttributes);
 
             if (!drawable.IsDrawable)
@@ -7179,7 +7132,7 @@ namespace Svg.Skia
             }
 
             drawable.Path = svgPath.PathData?.ToSKPath(svgPath.FillRule, drawable.Disposable);
-            if (drawable.Path == null || drawable.Path.IsEmpty)
+            if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;
                 return drawable;
@@ -7197,7 +7150,7 @@ namespace Svg.Skia
             if (SvgExtensions.IsValidFill(svgPath))
             {
                 drawable.Fill = SvgExtensions.GetFillSKPaint(svgPath, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Fill == null)
+                if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
@@ -7206,7 +7159,7 @@ namespace Svg.Skia
             if (SvgExtensions.IsValidStroke(svgPath, drawable.TransformedBounds))
             {
                 drawable.Stroke = SvgExtensions.GetStrokeSKPaint(svgPath, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Stroke == null)
+                if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
                 }
@@ -7227,7 +7180,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class PolylineDrawable : DrawablePath
+    internal sealed class PolylineDrawable : DrawablePath
     {
         private PolylineDrawable()
             : base()
@@ -7236,12 +7189,13 @@ namespace Svg.Skia
 
         public static PolylineDrawable Create(SvgPolyline svgPolyline, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new PolylineDrawable();
+            var drawable = new PolylineDrawable
+            {
+                Element = svgPolyline,
+                Parent = parent,
+                IgnoreAttributes = ignoreAttributes
+            };
 
-            drawable.Element = svgPolyline;
-            drawable.Parent = parent;
-
-            drawable.IgnoreAttributes = ignoreAttributes;
             drawable.IsDrawable = drawable.CanDraw(svgPolyline, drawable.IgnoreAttributes) && drawable.HasFeatures(svgPolyline, drawable.IgnoreAttributes);
 
             if (!drawable.IsDrawable)
@@ -7250,7 +7204,7 @@ namespace Svg.Skia
             }
 
             drawable.Path = svgPolyline.Points?.ToSKPath(svgPolyline.FillRule, false, skOwnerBounds, drawable.Disposable);
-            if (drawable.Path == null || drawable.Path.IsEmpty)
+            if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;
                 return drawable;
@@ -7268,7 +7222,7 @@ namespace Svg.Skia
             if (SvgExtensions.IsValidFill(svgPolyline))
             {
                 drawable.Fill = SvgExtensions.GetFillSKPaint(svgPolyline, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Fill == null)
+                if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
@@ -7277,7 +7231,7 @@ namespace Svg.Skia
             if (SvgExtensions.IsValidStroke(svgPolyline, drawable.TransformedBounds))
             {
                 drawable.Stroke = SvgExtensions.GetStrokeSKPaint(svgPolyline, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Stroke == null)
+                if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
                 }
@@ -7298,7 +7252,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class PolygonDrawable : DrawablePath
+    internal sealed class PolygonDrawable : DrawablePath
     {
         private PolygonDrawable()
             : base()
@@ -7307,12 +7261,13 @@ namespace Svg.Skia
 
         public static PolygonDrawable Create(SvgPolygon svgPolygon, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new PolygonDrawable();
+            var drawable = new PolygonDrawable
+            {
+                Element = svgPolygon,
+                Parent = parent,
+                IgnoreAttributes = ignoreAttributes
+            };
 
-            drawable.Element = svgPolygon;
-            drawable.Parent = parent;
-
-            drawable.IgnoreAttributes = ignoreAttributes;
             drawable.IsDrawable = drawable.CanDraw(svgPolygon, drawable.IgnoreAttributes) && drawable.HasFeatures(svgPolygon, drawable.IgnoreAttributes);
 
             if (!drawable.IsDrawable)
@@ -7321,7 +7276,7 @@ namespace Svg.Skia
             }
 
             drawable.Path = svgPolygon.Points?.ToSKPath(svgPolygon.FillRule, true, skOwnerBounds, drawable.Disposable);
-            if (drawable.Path == null || drawable.Path.IsEmpty)
+            if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;
                 return drawable;
@@ -7339,7 +7294,7 @@ namespace Svg.Skia
             if (SvgExtensions.IsValidFill(svgPolygon))
             {
                 drawable.Fill = SvgExtensions.GetFillSKPaint(svgPolygon, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Fill == null)
+                if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
@@ -7348,7 +7303,7 @@ namespace Svg.Skia
             if (SvgExtensions.IsValidStroke(svgPolygon, drawable.TransformedBounds))
             {
                 drawable.Stroke = SvgExtensions.GetStrokeSKPaint(svgPolygon, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Stroke == null)
+                if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
                 }
@@ -7369,7 +7324,7 @@ namespace Svg.Skia
         }
     }
 
-    internal class TextDrawable : DrawableBase
+    internal sealed class TextDrawable : DrawableBase
     {
         private static readonly Regex s_multipleSpaces = new Regex(@" {2,}", RegexOptions.Compiled);
 
@@ -7384,16 +7339,14 @@ namespace Svg.Skia
 
         public static TextDrawable Create(SvgText svgText, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new TextDrawable();
-
-            drawable.Element = svgText;
-            drawable.Parent = parent;
-
-            drawable.Text = svgText;
-            drawable.OwnerBounds = skOwnerBounds;
-            drawable.IgnoreAttributes = ignoreAttributes;
-
-            return drawable;
+            return new TextDrawable
+            {
+                Element = svgText,
+                Parent = parent,
+                Text = svgText,
+                OwnerBounds = skOwnerBounds,
+                IgnoreAttributes = ignoreAttributes
+            };
         }
 
         internal void GetPositionsX(SvgTextBase svgTextBase, SKRect skBounds, List<float> xs)
@@ -7436,9 +7389,9 @@ namespace Svg.Skia
             }
         }
 
-        internal virtual IEnumerable<ISvgNode> GetContentNodes(SvgTextBase svgTextBase)
+        internal IEnumerable<ISvgNode> GetContentNodes(SvgTextBase svgTextBase)
         {
-            if (svgTextBase.Nodes == null || svgTextBase.Nodes.Count < 1)
+            if (svgTextBase.Nodes is null || svgTextBase.Nodes.Count < 1)
             {
                 foreach (var child in svgTextBase.Children)
                 {
@@ -7490,7 +7443,7 @@ namespace Svg.Skia
             skMatrixTotal = skMatrixTotal.PreConcat(skMatrix);
             skCanvas.SetMatrix(skMatrixTotal);
 
-            if (enableClip == true)
+            if (enableClip)
             {
 #if USE_PICTURE
                 var clipPath = new Svg.Picture.ClipPath()
@@ -7513,7 +7466,7 @@ namespace Svg.Skia
 #endif
             }
 
-            if (enableMask == true)
+            if (enableMask)
             {
                 var mask = default(SKPaint);
                 maskDstIn = default(SKPaint);
@@ -7548,7 +7501,7 @@ namespace Svg.Skia
                 maskDrawable = null;
             }
 
-            if (enableOpacity == true)
+            if (enableOpacity)
             {
                 skPaintOpacity = SvgExtensions.GetOpacitySKPaint(svgTextBase, disposable);
                 if (skPaintOpacity != null && !IgnoreAttributes.HasFlag(Attributes.Opacity))
@@ -7561,7 +7514,7 @@ namespace Svg.Skia
                 skPaintOpacity = null;
             }
 
-            if (enableFilter == true)
+            if (enableFilter)
             {
                 skPaintFilter = SvgExtensions.GetFilterSKPaint(svgTextBase, skBounds, this, disposable, out var isValid);
                 if (skPaintFilter != null && !IgnoreAttributes.HasFlag(Attributes.Filter))
@@ -7581,17 +7534,17 @@ namespace Svg.Skia
             var enableOpacity = !ignoreAttributes.HasFlag(Attributes.Opacity);
             var enableFilter = !ignoreAttributes.HasFlag(Attributes.Filter);
 
-            if (skPaintFilter != null && enableFilter == true)
+            if (skPaintFilter != null && enableFilter)
             {
                 skCanvas.Restore();
             }
 
-            if (skPaintOpacity != null && enableOpacity == true)
+            if (skPaintOpacity != null && enableOpacity)
             {
                 skCanvas.Restore();
             }
 
-            if (maskDrawable != null && enableMask == true && maskDstIn != null)
+            if (maskDrawable != null && enableMask && maskDstIn != null)
             {
                 skCanvas.SaveLayer(maskDstIn);
                 maskDrawable.Draw(skCanvas, ignoreAttributes, until);
@@ -7652,7 +7605,7 @@ namespace Svg.Skia
             bool isValidFill = SvgExtensions.IsValidFill(svgTextBase);
             bool isValidStroke = SvgExtensions.IsValidStroke(svgTextBase, skOwnerBounds);
 
-            if ((!isValidFill && !isValidStroke) || text == null || string.IsNullOrEmpty(text))
+            if ((!isValidFill && !isValidStroke) || text is null || string.IsNullOrEmpty(text))
             {
                 return;
             }
@@ -7726,13 +7679,13 @@ namespace Svg.Skia
             }
 
             var svgPath = SvgExtensions.GetReference<SvgPath>(svgTextPath, svgTextPath.ReferencedPath);
-            if (svgPath == null)
+            if (svgPath is null)
             {
                 return;
             }
 
             var skPath = svgPath.PathData?.ToSKPath(svgPath.FillRule, Disposable);
-            if (skPath == null || skPath.IsEmpty)
+            if (skPath is null || skPath.IsEmpty)
             {
                 return;
             }
@@ -7803,7 +7756,7 @@ namespace Svg.Skia
             }
 
             var svgReferencedText = SvgExtensions.GetReference<SvgText>(svgTextRef, svgTextRef.ReferencedElement);
-            if (svgReferencedText == null)
+            if (svgReferencedText is null)
             {
                 return;
             }
