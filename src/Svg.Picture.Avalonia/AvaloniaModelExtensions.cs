@@ -57,7 +57,7 @@ namespace Svg.Picture.Avalonia
                 return null;
             }
             using var memoryStream = new System.IO.MemoryStream(image.Data);
-            return new AMI.Bitmap(memoryStream); 
+            return new AMI.Bitmap(memoryStream);
         }
 
         public static AM.PenLineCap ToPenLineCap(this StrokeCap strokeCap)
