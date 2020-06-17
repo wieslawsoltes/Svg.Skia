@@ -17,7 +17,6 @@ using Svg.Document_Structure;
 using Svg.FilterEffects;
 using Svg.Pathing;
 using Svg.Transforms;
-
 #if USE_PICTURE
 using SKBlendMode = Svg.Picture.BlendMode;
 using SKCanvas = Svg.Picture.Canvas;
