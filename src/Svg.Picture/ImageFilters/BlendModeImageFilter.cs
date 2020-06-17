@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class BlendModeImageFilter : ImageFilter
+    public sealed class BlendModeImageFilter : ImageFilter
     {
         public BlendMode Mode { get; set; }
         public ImageFilter? Background { get; set; }

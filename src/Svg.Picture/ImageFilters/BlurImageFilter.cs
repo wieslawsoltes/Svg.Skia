@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class BlurImageFilter : ImageFilter
+    public sealed class BlurImageFilter : ImageFilter
     {
         public float SigmaX { get; set; }
         public float SigmaY { get; set; }

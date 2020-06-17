@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class ImageImageFilter : ImageFilter
+    public sealed class ImageImageFilter : ImageFilter
     {
         public Image? Image { get; set; }
         public Rect Src { get; set; }
