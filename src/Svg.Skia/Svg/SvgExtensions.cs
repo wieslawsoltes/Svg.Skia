@@ -7722,9 +7722,7 @@ namespace Svg.Skia
             // TODO: Calculate correct bounds.
             var skBounds = skOwnerBounds;
 
-            SKPaint? maskDstIn, skPaintOpacity, skPaintFilter;
-            MaskDrawable? maskDrawable;
-            BeginDraw(svgTextRef, skCanvas, skBounds, ignoreAttributes, Disposable, out maskDrawable, out maskDstIn, out skPaintOpacity, out skPaintFilter);
+            BeginDraw(svgTextRef, skCanvas, skBounds, ignoreAttributes, Disposable, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter);
 
             // TODO: Draw svgReferencedText
             if (!string.IsNullOrEmpty(svgReferencedText.Text))
