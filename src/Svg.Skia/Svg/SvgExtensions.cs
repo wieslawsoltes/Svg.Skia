@@ -6272,12 +6272,13 @@ namespace Svg.Skia
 
         public static SwitchDrawable Create(SvgSwitch svgSwitch, SKRect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new SwitchDrawable();
+            var drawable = new SwitchDrawable
+            {
+                Element = svgSwitch,
+                Parent = parent,
 
-            drawable.Element = svgSwitch;
-            drawable.Parent = parent;
-
-            drawable.IgnoreAttributes = ignoreAttributes;
+                IgnoreAttributes = ignoreAttributes
+            };
             drawable.IsDrawable = drawable.CanDraw(svgSwitch, drawable.IgnoreAttributes) && drawable.HasFeatures(svgSwitch, drawable.IgnoreAttributes);
 
             if (!drawable.IsDrawable)
