@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using Avalonia;
-using Avalonia.Data;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Metadata;
@@ -15,6 +14,7 @@ using Avalonia.Visuals.Media.Imaging;
 using SP = Svg.Picture;
 using SPA = Svg.Picture.Avalonia;
 #else
+using Avalonia.Data;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using SkiaSharp;
