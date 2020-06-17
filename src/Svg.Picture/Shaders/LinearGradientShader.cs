@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class LinearGradientShader : Shader
+    public sealed class LinearGradientShader : Shader
     {
         public Point Start { get; set; }
         public Point End { get; set; }

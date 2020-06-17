@@ -1,11 +1,11 @@
 ﻿namespace Svg.Picture
 {
-    public struct Point
+    public readonly struct Point
     {
-        public float X { get; set; }
-        public float Y { get; set; }
+        public float X { get; }
+        public float Y { get; }
 
-        public static readonly Point Empty;
+        public static readonly Point Empty = default;
 
         public bool IsEmpty => X == default && Y == default;
 

@@ -1,9 +1,9 @@
 ﻿namespace Svg.Picture
 {
-    public class LineToPathCommand : PathCommand
+    public sealed class LineToPathCommand : PathCommand
     {
-        public float X { get; set; }
-        public float Y { get; set; }
+        public float X { get; }
+        public float Y { get; }
 
         public LineToPathCommand(float x, float y)
         {

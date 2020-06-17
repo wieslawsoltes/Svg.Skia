@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class SpotLitSpecularImageFilter : ImageFilter
+    public sealed class SpotLitSpecularImageFilter : ImageFilter
     {
         public Point3 Location { get; set; }
         public Point3 Target { get; set; }

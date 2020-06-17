@@ -1,13 +1,13 @@
 ﻿namespace Svg.Picture
 {
-    public struct ColorF
+    public readonly struct ColorF
     {
-        public float Red { get; set; }
-        public float Green { get; set; }
-        public float Blue { get; set; }
-        public float Alpha { get; set; }
+        public float Red { get; }
+        public float Green { get; }
+        public float Blue { get; }
+        public float Alpha { get; }
 
-        public static readonly ColorF Empty;
+        public static readonly ColorF Empty = default;
 
         public ColorF(float red, float green, float blue, float alpha)
         {

@@ -1,10 +1,10 @@
 ﻿namespace Svg.Picture
 {
-    public class DrawPositionedTextCanvasCommand : CanvasCommand
+    public sealed class DrawPositionedTextCanvasCommand : CanvasCommand
     {
-        public string Text { get; set; }
-        public Point[]? Points { get; set; }
-        public Paint? Paint { get; set; }
+        public string Text { get; }
+        public Point[]? Points { get; }
+        public Paint? Paint { get; }
 
         public DrawPositionedTextCanvasCommand(string text, Point[] points, Paint paint)
         {

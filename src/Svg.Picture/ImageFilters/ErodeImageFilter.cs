@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class ErodeImageFilter : ImageFilter
+    public sealed class ErodeImageFilter : ImageFilter
     {
         public int RadiusX { get; set; }
         public int RadiusY { get; set; }

@@ -1,8 +1,8 @@
 ﻿namespace Svg.Picture
 {
-    public class AddOvalPathCommand : PathCommand
+    public sealed class AddOvalPathCommand : PathCommand
     {
-        public Rect Rect { get; set; }
+        public Rect Rect { get; }
 
         public AddOvalPathCommand(Rect rect)
         {

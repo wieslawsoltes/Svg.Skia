@@ -57,11 +57,8 @@ namespace Svg.Skia
 
         public void Dispose()
         {
-            if (Typeface != null)
-            {
-                Typeface.Dispose();
-                Typeface = null;
-            }
+            Typeface?.Dispose();
+            Typeface = null;
         }
     }
 }

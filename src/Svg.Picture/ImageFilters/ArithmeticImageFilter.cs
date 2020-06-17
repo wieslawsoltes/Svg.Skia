@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class ArithmeticImageFilter : ImageFilter
+    public sealed class ArithmeticImageFilter : ImageFilter
     {
         public float K1 { get; set; }
         public float K2 { get; set; }

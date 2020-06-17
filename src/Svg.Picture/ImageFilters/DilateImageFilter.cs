@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class DilateImageFilter : ImageFilter
+    public sealed class DilateImageFilter : ImageFilter
     {
         public int RadiusX { get; set; }
         public int RadiusY { get; set; }

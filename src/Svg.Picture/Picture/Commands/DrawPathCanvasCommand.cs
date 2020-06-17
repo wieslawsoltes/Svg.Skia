@@ -1,9 +1,9 @@
 ﻿namespace Svg.Picture
 {
-    public class DrawPathCanvasCommand : CanvasCommand
+    public sealed class DrawPathCanvasCommand : CanvasCommand
     {
-        public Path? Path { get; set; }
-        public Paint? Paint { get; set; }
+        public Path? Path { get; }
+        public Paint? Paint { get; }
 
         public DrawPathCanvasCommand(Path path, Paint paint)
         {

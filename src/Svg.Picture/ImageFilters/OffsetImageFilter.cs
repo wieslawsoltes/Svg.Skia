@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class OffsetImageFilter : ImageFilter
+    public sealed class OffsetImageFilter : ImageFilter
     {
         public float Dx { get; set; }
         public float Dy { get; set; }

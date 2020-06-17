@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class PerlinNoiseTurbulenceShader : Shader
+    public sealed class PerlinNoiseTurbulenceShader : Shader
     {
         public float BaseFrequencyX { get; set; }
         public float BaseFrequencyY { get; set; }

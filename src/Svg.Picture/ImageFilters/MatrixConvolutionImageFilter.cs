@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class MatrixConvolutionImageFilter : ImageFilter
+    public sealed class MatrixConvolutionImageFilter : ImageFilter
     {
         public SizeI KernelSize { get; set; }
         public float[]? Kernel { get; set; }

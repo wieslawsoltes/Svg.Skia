@@ -1,11 +1,11 @@
 ﻿namespace Svg.Picture
 {
-    public class DrawImageCanvasCommand : CanvasCommand
+    public sealed class DrawImageCanvasCommand : CanvasCommand
     {
-        public Image? Image { get; set; }
-        public Rect Source { get; set; }
-        public Rect Dest { get; set; }
-        public Paint? Paint { get; set; }
+        public Image? Image { get; }
+        public Rect Source { get; }
+        public Rect Dest { get; }
+        public Paint? Paint { get; }
 
         public DrawImageCanvasCommand(Image image, Rect source, Rect dest, Paint? paint = null)
         {

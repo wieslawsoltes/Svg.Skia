@@ -1,9 +1,9 @@
 ﻿namespace Svg.Picture
 {
-    public struct Size
+    public readonly struct Size
     {
-        public float Width { get; set; }
-        public float Height { get; set; }
+        public float Width { get; }
+        public float Height { get; }
 
         public static readonly Size Empty;
 

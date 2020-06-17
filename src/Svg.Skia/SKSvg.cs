@@ -18,35 +18,26 @@ namespace Svg.Skia
 
         public static SvgDocument? OpenSvg(string path)
         {
-            var svgDocument = SvgDocument.Open<SvgDocument>(path, null);
-            if (svgDocument != null)
-            {
-                return svgDocument;
-            }
-            return null;
+            return SvgDocument.Open<SvgDocument>(path, null);
         }
 
         public static SvgDocument? OpenSvgz(string path)
         {
-            using (var fileStream = File.OpenRead(path))
-            using (var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress))
-            using (var memoryStream = new MemoryStream())
-            {
-                gzipStream.CopyTo(memoryStream);
-                memoryStream.Position = 0;
+            using var fileStream = File.OpenRead(path);
+            using var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress);
+            using var memoryStream = new MemoryStream();
 
-                var svgDocument = SvgDocument.Open<SvgDocument>(memoryStream, null);
-                if (svgDocument != null)
-                {
-                    return svgDocument;
-                }
-            }
-            return null;
+            gzipStream.CopyTo(memoryStream);
+            memoryStream.Position = 0;
+
+            var svgDocument = SvgDocument.Open<SvgDocument>(memoryStream, null);
+
+            return svgDocument;
         }
 
         public static SvgDocument? Open(string path)
         {
-            var extension = System.IO.Path.GetExtension(path);
+            var extension = Path.GetExtension(path);
             return extension.ToLower() switch
             {
                 ".svg" => OpenSvg(path),
@@ -245,16 +236,12 @@ namespace Svg.Skia
 #endif
             }
             return false;
-
         }
 
         public void Reset()
         {
-            if (Picture != null)
-            {
-                Picture.Dispose();
-                Picture = null;
-            }
+            Picture?.Dispose();
+            Picture = null;
         }
 
         public void Dispose()

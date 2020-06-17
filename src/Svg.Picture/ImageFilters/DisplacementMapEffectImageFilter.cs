@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class DisplacementMapEffectImageFilter : ImageFilter
+    public sealed class DisplacementMapEffectImageFilter : ImageFilter
     {
         public DisplacementMapEffectChannelSelectorType XChannelSelector { get; set; }
         public DisplacementMapEffectChannelSelectorType YChannelSelector { get; set; }

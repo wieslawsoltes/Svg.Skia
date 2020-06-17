@@ -1,9 +1,9 @@
 ﻿namespace Svg.Picture
 {
-    public class MoveToPathCommand : PathCommand
+    public sealed class MoveToPathCommand : PathCommand
     {
-        public float X { get; set; }
-        public float Y { get; set; }
+        public float X { get; }
+        public float Y { get; }
 
         public MoveToPathCommand(float x, float y)
         {

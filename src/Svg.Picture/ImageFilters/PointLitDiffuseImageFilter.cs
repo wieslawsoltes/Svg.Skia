@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class PointLitDiffuseImageFilter : ImageFilter
+    public sealed class PointLitDiffuseImageFilter : ImageFilter
     {
         public Point3 Location { get; set; }
         public Color LightColor { get; set; }

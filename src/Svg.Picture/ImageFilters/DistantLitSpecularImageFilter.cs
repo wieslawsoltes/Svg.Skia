@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class DistantLitSpecularImageFilter : ImageFilter
+    public sealed class DistantLitSpecularImageFilter : ImageFilter
     {
         public Point3 Direction { get; set; }
         public Color LightColor { get; set; }
