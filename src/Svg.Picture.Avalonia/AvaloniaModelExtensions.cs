@@ -251,9 +251,10 @@ namespace Svg.Picture.Avalonia
         {
             if (twoPointConicalGradientShader.Colors != null && twoPointConicalGradientShader.ColorPos != null)
             {
-                var radialGradientBrush = new AM.RadialGradientBrush();
-
-                radialGradientBrush.SpreadMethod = twoPointConicalGradientShader.Mode.ToGradientSpreadMethod();
+                var radialGradientBrush = new AM.RadialGradientBrush
+                {
+                    SpreadMethod = twoPointConicalGradientShader.Mode.ToGradientSpreadMethod()
+                };
 
                 var gradientOrigin = twoPointConicalGradientShader.Start.ToPoint();
                 radialGradientBrush.GradientOrigin = new A.RelativePoint(gradientOrigin, A.RelativeUnit.Relative);
