@@ -16,7 +16,7 @@ namespace Svg.Picture
 
         internal const float DegreesToRadians = (float)Math.PI / 180.0f;
 
-        public readonly static Matrix Empty;
+        public static readonly Matrix Empty;
 
         public readonly static Matrix Identity = new Matrix { ScaleX = 1, ScaleY = 1, Persp2 = 1 };
 
