@@ -2,10 +2,10 @@
 
 namespace Svg.Picture
 {
-    public class AddPolyPathCommand : PathCommand
+    public sealed class AddPolyPathCommand : PathCommand
     {
-        public IList<Point>? Points { get; set; }
-        public bool Close { get; set; }
+        public IList<Point>? Points { get; }
+        public bool Close { get; }
 
         public AddPolyPathCommand(IList<Point> points, bool close)
         {

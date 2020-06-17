@@ -2,7 +2,7 @@
 {
     public sealed class SaveCanvasCommand : CanvasCommand
     {
-        public int Count { get; set; }
+        public int Count { get; }
 
         public SaveCanvasCommand(int count)
         {

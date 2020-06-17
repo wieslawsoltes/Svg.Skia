@@ -1,8 +1,8 @@
 ﻿namespace Svg.Picture
 {
-    public class RestoreCanvasCommand : CanvasCommand
+    public sealed class RestoreCanvasCommand : CanvasCommand
     {
-        public int Count { get; set; }
+        public int Count { get; }
 
         public RestoreCanvasCommand(int count)
         {

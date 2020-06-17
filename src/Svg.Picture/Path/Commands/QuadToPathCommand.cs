@@ -1,11 +1,11 @@
 ﻿namespace Svg.Picture
 {
-    public class QuadToPathCommand : PathCommand
+    public sealed class QuadToPathCommand : PathCommand
     {
-        public float X0 { get; set; }
-        public float Y0 { get; set; }
-        public float X1 { get; set; }
-        public float Y1 { get; set; }
+        public float X0 { get; }
+        public float Y0 { get; }
+        public float X1 { get; }
+        public float Y1 { get; }
 
         public QuadToPathCommand(float x0, float y0, float x1, float y1)
         {

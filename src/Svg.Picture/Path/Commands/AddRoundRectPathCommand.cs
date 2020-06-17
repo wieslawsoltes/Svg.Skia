@@ -1,10 +1,10 @@
 ﻿namespace Svg.Picture
 {
-    public class AddRoundRectPathCommand : PathCommand
+    public sealed class AddRoundRectPathCommand : PathCommand
     {
-        public Rect Rect { get; set; }
-        public float Rx { get; set; }
-        public float Ry { get; set; }
+        public Rect Rect { get; }
+        public float Rx { get; }
+        public float Ry { get; }
 
         public AddRoundRectPathCommand(Rect rect, float rx, float ry)
         {

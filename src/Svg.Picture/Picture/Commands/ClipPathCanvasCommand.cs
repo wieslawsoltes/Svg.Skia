@@ -1,10 +1,10 @@
 ﻿namespace Svg.Picture
 {
-    public class ClipPathCanvasCommand : CanvasCommand
+    public sealed class ClipPathCanvasCommand : CanvasCommand
     {
-        public ClipPath ClipPath { get; set; }
-        public ClipOperation Operation { get; set; }
-        public bool Antialias { get; set; }
+        public ClipPath ClipPath { get; }
+        public ClipOperation Operation { get; }
+        public bool Antialias { get; }
 
         public ClipPathCanvasCommand(ClipPath clipPath, ClipOperation operation, bool antialias)
         {
