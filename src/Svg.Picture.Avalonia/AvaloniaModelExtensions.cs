@@ -218,9 +218,10 @@ namespace Svg.Picture.Avalonia
         {
             if (linearGradientShader.Colors != null && linearGradientShader.ColorPos != null)
             {
-                var linearGradientBrush = new AM.LinearGradientBrush();
-
-                linearGradientBrush.SpreadMethod = linearGradientShader.Mode.ToGradientSpreadMethod();
+                var linearGradientBrush = new AM.LinearGradientBrush
+                {
+                    SpreadMethod = linearGradientShader.Mode.ToGradientSpreadMethod()
+                };
 
                 var startPoint = linearGradientShader.Start.ToPoint();
                 linearGradientBrush.StartPoint = new A.RelativePoint(startPoint, A.RelativeUnit.Relative);
