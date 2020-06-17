@@ -4,7 +4,7 @@ using Svg.Skia;
 
 namespace Svg.Picture.Skia
 {
-    internal static class SkiaModelExtensions
+    public static class SkiaModelExtensions
     {
         public static SKPoint ToSKPoint(this Point point)
         {
