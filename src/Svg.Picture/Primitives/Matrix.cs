@@ -178,7 +178,7 @@ namespace Svg.Picture
 
         private static float MulAddMul(float a, float b, float c, float d)
         {
-            return (float)((double)a * (double)b + (double)c * (double)d);
+            return (float)(a * (double)b + c * (double)d);
         }
 
         private static Matrix Concat(Matrix a, Matrix b)
