@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Svg.Picture;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AMI = Avalonia.Media.Imaging;
