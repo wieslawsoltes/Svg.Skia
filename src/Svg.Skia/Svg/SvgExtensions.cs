@@ -22,7 +22,6 @@ using SKBlendMode = Svg.Picture.BlendMode;
 using SKCanvas = Svg.Picture.Canvas;
 using SKClipOperation = Svg.Picture.ClipOperation;
 using SKColor = Svg.Picture.Color;
-using SKColorF = Svg.Picture.ColorF;
 using SKColorFilter = Svg.Picture.ColorFilter;
 using SKDisplacementMapEffectChannelSelectorType = Svg.Picture.DisplacementMapEffectChannelSelectorType;
 using SKDrawable = Svg.Picture.Drawable;
@@ -56,7 +55,6 @@ using SKStrokeCap = Svg.Picture.StrokeCap;
 using SKStrokeJoin = Svg.Picture.StrokeJoin;
 using SKTextAlign = Svg.Picture.TextAlign;
 using SKTextEncoding = Svg.Picture.TextEncoding;
-using SKTypeface = Svg.Picture.Typeface;
 #endif
 
 namespace Svg.Skia
