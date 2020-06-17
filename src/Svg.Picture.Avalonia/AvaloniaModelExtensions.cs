@@ -8,7 +8,7 @@ using AVMI = Avalonia.Visuals.Media.Imaging;
 
 namespace Svg.Picture.Avalonia
 {
-    internal static class AvaloniaModelExtensions
+    public static class AvaloniaModelExtensions
     {
         public static A.Point ToPoint(this Point point)
         {
