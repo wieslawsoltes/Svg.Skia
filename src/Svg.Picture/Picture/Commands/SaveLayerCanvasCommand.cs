@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class SaveLayerCanvasCommand : CanvasCommand
+    public sealed class SaveLayerCanvasCommand : CanvasCommand
     {
         public int Count { get; set; }
         public Paint? Paint { get; set; }

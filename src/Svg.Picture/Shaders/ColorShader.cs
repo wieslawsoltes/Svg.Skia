@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class ColorShader : Shader
+    public sealed class ColorShader : Shader
     {
         public Color Color { get; set; }
     }

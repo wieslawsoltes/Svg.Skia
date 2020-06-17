@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class DrawTextOnPathCanvasCommand : CanvasCommand
+    public sealed class DrawTextOnPathCanvasCommand : CanvasCommand
     {
         public string Text { get; set; }
         public Path? Path { get; set; }

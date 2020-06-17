@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class PictureShader : Shader
+    public sealed class PictureShader : Shader
     {
         public Picture? Src { get; set; }
         public ShaderTileMode TmX { get; set; }

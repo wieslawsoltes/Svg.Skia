@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class DrawTextCanvasCommand : CanvasCommand
+    public sealed class DrawTextCanvasCommand : CanvasCommand
     {
         public string Text { get; set; }
         public float X { get; set; }

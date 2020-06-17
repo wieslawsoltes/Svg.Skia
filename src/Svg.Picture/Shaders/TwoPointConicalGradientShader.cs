@@ -1,6 +1,6 @@
 ﻿namespace Svg.Picture
 {
-    public class TwoPointConicalGradientShader : Shader
+    public sealed class TwoPointConicalGradientShader : Shader
     {
         public Point Start { get; set; }
         public float StartRadius { get; set; }
