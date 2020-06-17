@@ -11,29 +11,23 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Description>An SVG image control for Avalonia.</Description>
-    <PackageId>Svg.Skia.Avalonia</PackageId>
+    <Description>A recordable DrawingContext picture for Avalonia.</Description>
+    <PackageId>Svg.Picture.Avalonia</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;control;avalonia;avaloniaui</PackageTags>
+    <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;picture;avalonia;avaloniaui</PackageTags>
   </PropertyGroup>
 
   <Import Project="..\..\build\Base.props" />
   <!--<Import Project="..\..\build\SignAssembly.props" />-->
   <Import Project="..\..\build\ReferenceAssemblies.props" />
-  <!--<Import Project="..\..\build\SkiaSharp.props" />-->
   <Import Project="..\..\build\Avalonia.props" />
-  <!--<Import Project="..\..\build\Avalonia.Skia.props" />-->
 
   <ItemGroup>
-    <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" />
+    <ProjectReference Include="..\Svg.Picture\Svg.Picture.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_PICTURE</DefineConstants>
-  </PropertyGroup>
 
 </Project>
