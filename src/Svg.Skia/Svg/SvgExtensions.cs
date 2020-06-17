@@ -7664,9 +7664,7 @@ namespace Svg.Skia
             // TODO: Calculate correct bounds.
             var skBounds = skOwnerBounds;
 
-            SKPaint? maskDstIn, skPaintOpacity, skPaintFilter;
-            MaskDrawable? maskDrawable;
-            BeginDraw(svgTextPath, skCanvas, skBounds, ignoreAttributes, Disposable, out maskDrawable, out maskDstIn, out skPaintOpacity, out skPaintFilter);
+            BeginDraw(svgTextPath, skCanvas, skBounds, ignoreAttributes, Disposable, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter);
 
             // TODO: Fix SvgTextPath rendering.
             bool isValidFill = SvgExtensions.IsValidFill(svgTextPath);
