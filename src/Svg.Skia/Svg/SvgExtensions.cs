@@ -59,7 +59,6 @@ using SKTextEncoding = Svg.Picture.TextEncoding;
 
 namespace Svg.Skia
 {
-
     internal static class SvgExtensions
     {
         private static readonly char[] s_space_tab = new char[2] { ' ', '\t' };
@@ -75,7 +74,7 @@ namespace Svg.Skia
         //     C_lin = C_srgb / 12.92;
         //  else
         //     C_lin = pow((C_srgb + 0.055) / 1.055, 2.4);
-        public static byte[] s_SRGBtoLinearRGB = new byte[256]
+        public static readonly byte[] s_SRGBtoLinearRGB = new byte[256]
         {
             0,   0,   0,   0,   0,   0,  0,    1,   1,   1,   1,   1,   1,   1,   1,   1,
             1,   1,   2,   2,   2,   2,  2,    2,   2,   2,   3,   3,   3,   3,   3,   3,
@@ -100,7 +99,7 @@ namespace Svg.Skia
         //     C_srgb = C_lin * 12.92;
         // else
         //     C_srgb = 1.055 * pow(C_lin, 1.0 / 2.4) - 0.055;
-        public static byte[] s_LinearRGBtoSRGB = new byte[256]
+        public static readonly byte[] s_LinearRGBtoSRGB = new byte[256]
         {
             0,  13,  22,  28,  34,  38,  42,  46,  50,  53,  56,  59,  61,  64,  66,  69,
             71,  73,  75,  77,  79,  81,  83,  85,  86,  88,  90,  92,  93,  95,  96,  98,
@@ -120,7 +119,7 @@ namespace Svg.Skia
             248, 249, 249, 250, 250, 251, 251, 251, 252, 252, 253, 253, 254, 254, 255, 255,
         };
 
-        public static SKColor s_transparentBlack = new SKColor(0, 0, 0, 255);
+        public static readonly SKColor s_transparentBlack = new SKColor(0, 0, 0, 255);
 
         private const string MimeTypeSvg = "image/svg+xml";
 
