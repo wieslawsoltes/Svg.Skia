@@ -439,8 +439,6 @@ namespace Svg.Skia
             return null;
         }
 
-        private static readonly char[] s_tab_space = { ' ', '\t' };
-
         public static bool HasRequiredFeatures(this SvgElement svgElement)
         {
             bool hasRequiredFeatures = true;
@@ -453,7 +451,7 @@ namespace Svg.Skia
                 }
                 else
                 {
-                    var features = requiredFeaturesString.Trim().Split(s_tab_space, StringSplitOptions.RemoveEmptyEntries);
+                    var features = requiredFeaturesString.Trim().Split(s_space_tab, StringSplitOptions.RemoveEmptyEntries);
                     if (features.Length > 0)
                     {
                         foreach (var feature in features)
