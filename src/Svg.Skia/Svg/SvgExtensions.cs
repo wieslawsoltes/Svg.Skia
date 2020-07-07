@@ -59,21 +59,9 @@ using SKTextEncoding = Svg.Picture.TextEncoding;
 
 namespace Svg.Skia
 {
+
     internal static class SvgExtensions
     {
-        [Flags]
-        internal enum PathPointType : byte
-        {
-            Start = 0,
-            Line = 1,
-            Bezier = 3,
-            Bezier3 = 3,
-            PathTypeMask = 0x7,
-            DashMode = 0x10,
-            PathMarker = 0x20,
-            CloseSubpath = 0x80
-        }
-
         private static readonly char[] s_space_tab = new char[2] { ' ', '\t' };
 
         private static readonly char[] s_comma = new char[] { ',' };
