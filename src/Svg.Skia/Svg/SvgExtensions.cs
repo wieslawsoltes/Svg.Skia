@@ -22,8 +22,9 @@ using SKBlendMode = Svg.Picture.BlendMode;
 using SKCanvas = Svg.Picture.Canvas;
 using SKClipOperation = Svg.Picture.ClipOperation;
 using SKColor = Svg.Picture.Color;
+using SKColorChannel = Svg.Picture.ColorChannel;
 using SKColorFilter = Svg.Picture.ColorFilter;
-using SKDisplacementMapEffectChannelSelectorType = Svg.Picture.DisplacementMapEffectChannelSelectorType;
+using SKDisplacementMapEffectChannelSelectorType = Svg.Picture.ColorChannel;
 using SKDrawable = Svg.Picture.Drawable;
 using SKFilterQuality = Svg.Picture.FilterQuality;
 using SKFontStyleSlant = Svg.Picture.FontStyleSlant;
@@ -33,7 +34,6 @@ using SKImage = Svg.Picture.Image;
 using SKImageFilter = Svg.Picture.ImageFilter;
 using CropRect = Svg.Picture.CropRect;
 using SKMatrix = Svg.Picture.Matrix;
-using SKMatrixConvolutionTileMode = Svg.Picture.MatrixConvolutionTileMode;
 using SKPaint = Svg.Picture.Paint;
 using SKPaintStyle = Svg.Picture.PaintStyle;
 using SKPath = Svg.Picture.Path;
@@ -55,6 +55,8 @@ using SKStrokeCap = Svg.Picture.StrokeCap;
 using SKStrokeJoin = Svg.Picture.StrokeJoin;
 using SKTextAlign = Svg.Picture.TextAlign;
 using SKTextEncoding = Svg.Picture.TextEncoding;
+using SKTextBlob = Svg.Picture.TextBlob;
+using Svg.Picture;
 #endif
 
 namespace Svg.Skia
@@ -137,7 +139,7 @@ namespace Svg.Skia
         //     C_lin = C_srgb / 12.92;
         //  else
         //     C_lin = pow((C_srgb + 0.055) / 1.055, 2.4);
-        public static byte[] s_SRGBtoLinearRGB = new byte[256]
+        public static byte[] s_sRGBtoLinearRGB = new byte[256]
         {
             0,   0,   0,   0,   0,   0,  0,    1,   1,   1,   1,   1,   1,   1,   1,   1,
             1,   1,   2,   2,   2,   2,  2,    2,   2,   2,   3,   3,   3,   3,   3,   3,
@@ -162,7 +164,7 @@ namespace Svg.Skia
         //     C_srgb = C_lin * 12.92;
         // else
         //     C_srgb = 1.055 * pow(C_lin, 1.0 / 2.4) - 0.055;
-        public static byte[] s_LinearRGBtoSRGB = new byte[256]
+        public static byte[] s_linearRGBtoSRGB = new byte[256]
         {
             0,  13,  22,  28,  34,  38,  42,  46,  50,  53,  56,  59,  61,  64,  66,  69,
             71,  73,  75,  77,  79,  81,  83,  85,  86,  88,  90,  92,  93,  95,  96,  98,
@@ -3826,10 +3828,10 @@ namespace Svg.Skia
             var kernelOffset = new SKPointI(svgConvolveMatrix.TargetX, svgConvolveMatrix.TargetY);
             var tileMode = svgConvolveMatrix.EdgeMode switch
             {
-                SvgEdgeMode.Duplicate => SKMatrixConvolutionTileMode.Clamp,
-                SvgEdgeMode.Wrap => SKMatrixConvolutionTileMode.Repeat,
-                SvgEdgeMode.None => SKMatrixConvolutionTileMode.ClampToBlack,
-                _ => SKMatrixConvolutionTileMode.Clamp
+                SvgEdgeMode.Duplicate => SKShaderTileMode.Clamp,
+                SvgEdgeMode.Wrap => SKShaderTileMode.Repeat,
+                SvgEdgeMode.None => SKShaderTileMode.Decal,
+                _ => SKShaderTileMode.Clamp
             };
             bool convolveAlpha = !svgConvolveMatrix.PreserveAlpha;
 
@@ -3904,22 +3906,22 @@ namespace Svg.Skia
             return null;
         }
 
-        public static SKDisplacementMapEffectChannelSelectorType GetSKDisplacementMapEffectChannelSelectorType(SvgChannelSelector svgChannelSelector)
+        public static SKColorChannel GetSKColorChannel(SvgChannelSelector svgChannelSelector)
         {
             return svgChannelSelector switch
             {
-                SvgChannelSelector.R => SKDisplacementMapEffectChannelSelectorType.R,
-                SvgChannelSelector.G => SKDisplacementMapEffectChannelSelectorType.G,
-                SvgChannelSelector.B => SKDisplacementMapEffectChannelSelectorType.B,
-                SvgChannelSelector.A => SKDisplacementMapEffectChannelSelectorType.A,
-                _ => SKDisplacementMapEffectChannelSelectorType.A
+                SvgChannelSelector.R => SKColorChannel.R,
+                SvgChannelSelector.G => SKColorChannel.G,
+                SvgChannelSelector.B => SKColorChannel.B,
+                SvgChannelSelector.A => SKColorChannel.A,
+                _ => SKColorChannel.A
             };
         }
 
         public static SKImageFilter? CreateDisplacementMap(SvgDisplacementMap svgDisplacementMap, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter displacement, SKImageFilter? inout = null, CropRect? cropRect = null)
         {
-            var xChannelSelector = GetSKDisplacementMapEffectChannelSelectorType(svgDisplacementMap.XChannelSelector);
-            var yChannelSelector = GetSKDisplacementMapEffectChannelSelectorType(svgDisplacementMap.YChannelSelector);
+            var xChannelSelector = GetSKColorChannel(svgDisplacementMap.XChannelSelector);
+            var yChannelSelector = GetSKColorChannel(svgDisplacementMap.YChannelSelector);
             var scale = svgDisplacementMap.Scale;
 
             if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
@@ -7599,7 +7601,18 @@ namespace Svg.Skia
                     if (skPaint != null)
                     {
                         SvgExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, Disposable);
-                        skCanvas.DrawPositionedText(text, points, skPaint);
+#if USE_PICTURE
+                        var textBlob = new Svg.Picture.TextBlob()
+                        {
+                            Text = text,
+                            Points = points
+                        };
+                        skCanvas.DrawText(textBlob, 0, 0, skPaint);
+#else
+                        var skFont = skPaint.ToFont();
+                        var skTextBlob = SKTextBlob.CreatePositioned(text, skFont, points);
+                        skCanvas.DrawText(skTextBlob, 0, 0, skPaint);
+#endif
                     }
                 }
 
@@ -7609,7 +7622,18 @@ namespace Svg.Skia
                     if (skPaint != null)
                     {
                         SvgExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, Disposable);
-                        skCanvas.DrawPositionedText(text, points, skPaint);
+#if USE_PICTURE
+                        var textBlob = new Svg.Picture.TextBlob()
+                        {
+                            Text = text,
+                            Points = points
+                        };
+                        skCanvas.DrawText(textBlob, 0, 0, skPaint);
+#else
+                        var skFont = skPaint.ToFont();
+                        var skTextBlob = SKTextBlob.CreatePositioned(text, skFont, points);
+                        skCanvas.DrawText(skTextBlob, 0, 0, skPaint);
+#endif
                     }
                 }
             }

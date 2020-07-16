@@ -21,11 +21,11 @@ namespace Svg.Skia
         }
     }
 #else
-    internal sealed class CompositeDisposable1 : IDisposable
+    internal sealed class CompositeDisposable : IDisposable
     {
         private readonly List<IDisposable> _disposables;
 
-        public CompositeDisposable1()
+        public CompositeDisposable()
         {
             _disposables = new List<IDisposable>();
         }

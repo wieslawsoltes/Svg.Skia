@@ -8,7 +8,7 @@ namespace Svg.Picture
         public float Gain { get; set; }
         public float Bias { get; set; }
         public PointI KernelOffset { get; set; }
-        public MatrixConvolutionTileMode TileMode { get; set; }
+        public ShaderTileMode TileMode { get; set; }
         public bool ConvolveAlpha { get; set; }
         public ImageFilter? Input { get; set; }
         public CropRect? CropRect { get; set; }

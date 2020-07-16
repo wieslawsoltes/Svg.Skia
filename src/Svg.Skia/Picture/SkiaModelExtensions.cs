@@ -281,6 +281,8 @@ namespace Svg.Picture.Skia
                     return SKShaderTileMode.Repeat;
                 case ShaderTileMode.Mirror:
                     return SKShaderTileMode.Mirror;
+                case ShaderTileMode.Decal:
+                    return SKShaderTileMode.Decal;
             }
         }
 
@@ -434,35 +436,19 @@ namespace Svg.Picture.Skia
             return new SKImageFilter.CropRect(cropRect.Rect.ToSKRect());
         }
 
-        public static SKDisplacementMapEffectChannelSelectorType ToSKDisplacementMapEffectChannelSelectorType(this DisplacementMapEffectChannelSelectorType displacementMapEffectChannelSelectorType)
+        public static SKColorChannel ToSKColorChannel(this ColorChannel colorChannel)
         {
-            switch (displacementMapEffectChannelSelectorType)
+            switch (colorChannel)
             {
                 default:
-                case DisplacementMapEffectChannelSelectorType.Unknown:
-                    return SKDisplacementMapEffectChannelSelectorType.Unknown;
-                case DisplacementMapEffectChannelSelectorType.R:
-                    return SKDisplacementMapEffectChannelSelectorType.R;
-                case DisplacementMapEffectChannelSelectorType.G:
-                    return SKDisplacementMapEffectChannelSelectorType.G;
-                case DisplacementMapEffectChannelSelectorType.B:
-                    return SKDisplacementMapEffectChannelSelectorType.B;
-                case DisplacementMapEffectChannelSelectorType.A:
-                    return SKDisplacementMapEffectChannelSelectorType.A;
-            }
-        }
-
-        public static SKMatrixConvolutionTileMode ToSKMatrixConvolutionTileMode(this MatrixConvolutionTileMode matrixConvolutionTileMode)
-        {
-            switch (matrixConvolutionTileMode)
-            {
-                default:
-                case MatrixConvolutionTileMode.Clamp:
-                    return SKMatrixConvolutionTileMode.Clamp;
-                case MatrixConvolutionTileMode.Repeat:
-                    return SKMatrixConvolutionTileMode.Repeat;
-                case MatrixConvolutionTileMode.ClampToBlack:
-                    return SKMatrixConvolutionTileMode.ClampToBlack;
+                case ColorChannel.R:
+                    return SKColorChannel.R;
+                case ColorChannel.G:
+                    return SKColorChannel.G;
+                case ColorChannel.B:
+                    return SKColorChannel.B;
+                case ColorChannel.A:
+                    return SKColorChannel.A;
             }
         }
 
@@ -536,8 +522,8 @@ namespace Svg.Picture.Skia
                         }
 
                         return SKImageFilter.CreateDisplacementMapEffect(
-                            displacementMapEffectImageFilter.XChannelSelector.ToSKDisplacementMapEffectChannelSelectorType(),
-                            displacementMapEffectImageFilter.YChannelSelector.ToSKDisplacementMapEffectChannelSelectorType(),
+                            displacementMapEffectImageFilter.XChannelSelector.ToSKColorChannel(),
+                            displacementMapEffectImageFilter.YChannelSelector.ToSKColorChannel(),
                             displacementMapEffectImageFilter.Scale,
                             displacementMapEffectImageFilter.Displacement?.ToSKImageFilter(),
                             displacementMapEffectImageFilter.Input?.ToSKImageFilter(),
@@ -598,7 +584,7 @@ namespace Svg.Picture.Skia
                             matrixConvolutionImageFilter.Gain,
                             matrixConvolutionImageFilter.Bias,
                             matrixConvolutionImageFilter.KernelOffset.ToSKPointI(),
-                            matrixConvolutionImageFilter.TileMode.ToSKMatrixConvolutionTileMode(),
+                            matrixConvolutionImageFilter.TileMode.ToSKShaderTileMode(),
                             matrixConvolutionImageFilter.ConvolveAlpha,
                             matrixConvolutionImageFilter.Input?.ToSKImageFilter(),
                             matrixConvolutionImageFilter.CropRect?.ToCropRect());
@@ -1204,14 +1190,16 @@ namespace Svg.Picture.Skia
                         }
                     }
                     break;
-                case DrawPositionedTextCanvasCommand drawPositionedTextCanvasCommand:
+                case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:
                     {
-                        if (drawPositionedTextCanvasCommand.Points != null && drawPositionedTextCanvasCommand.Paint != null)
+                        if (drawPositionedTextCanvasCommand.TextBlob != null && drawPositionedTextCanvasCommand.TextBlob.Points != null && drawPositionedTextCanvasCommand.Paint != null)
                         {
-                            var text = drawPositionedTextCanvasCommand.Text;
-                            var points = drawPositionedTextCanvasCommand.Points.ToSKPoints();
+                            var text = drawPositionedTextCanvasCommand.TextBlob.Text;
+                            var points = drawPositionedTextCanvasCommand.TextBlob.Points.ToSKPoints();
                             var paint = drawPositionedTextCanvasCommand.Paint.ToSKPaint();
-                            skCanvas.DrawPositionedText(text, points, paint);
+                            var font = paint.ToFont();
+                            var textBlob = SKTextBlob.CreatePositioned(text, font, points);
+                            skCanvas.DrawText(textBlob, 0, 0, paint);
                         }
                     }
                     break;

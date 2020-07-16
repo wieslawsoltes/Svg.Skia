@@ -76,7 +76,7 @@ namespace Svg.Picture
             };
         }
 
-        public static ImageFilter CreateDisplacementMapEffect(DisplacementMapEffectChannelSelectorType xChannelSelector, DisplacementMapEffectChannelSelectorType yChannelSelector, float scale, ImageFilter displacement, ImageFilter? input = null, CropRect? cropRect = null)
+        public static ImageFilter CreateDisplacementMapEffect(ColorChannel xChannelSelector, ColorChannel yChannelSelector, float scale, ImageFilter displacement, ImageFilter? input = null, CropRect? cropRect = null)
         {
             return new DisplacementMapEffectImageFilter()
             {
@@ -138,7 +138,7 @@ namespace Svg.Picture
             };
         }
 
-        public static ImageFilter CreateMatrixConvolution(SizeI kernelSize, float[] kernel, float gain, float bias, PointI kernelOffset, MatrixConvolutionTileMode tileMode, bool convolveAlpha, ImageFilter? input = null, CropRect? cropRect = null)
+        public static ImageFilter CreateMatrixConvolution(SizeI kernelSize, float[] kernel, float gain, float bias, PointI kernelOffset, ShaderTileMode tileMode, bool convolveAlpha, ImageFilter? input = null, CropRect? cropRect = null)
         {
             return new MatrixConvolutionImageFilter()
             {
