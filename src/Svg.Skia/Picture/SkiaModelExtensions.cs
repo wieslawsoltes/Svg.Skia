@@ -1190,14 +1190,16 @@ namespace Svg.Picture.Skia
                         }
                     }
                     break;
-                case DrawPositionedTextCanvasCommand drawPositionedTextCanvasCommand:
+                case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:
                     {
-                        if (drawPositionedTextCanvasCommand.Points != null && drawPositionedTextCanvasCommand.Paint != null)
+                        if (drawPositionedTextCanvasCommand.TextBlob != null && drawPositionedTextCanvasCommand.TextBlob.Points != null && drawPositionedTextCanvasCommand.Paint != null)
                         {
-                            var text = drawPositionedTextCanvasCommand.Text;
-                            var points = drawPositionedTextCanvasCommand.Points.ToSKPoints();
+                            var text = drawPositionedTextCanvasCommand.TextBlob.Text;
+                            var points = drawPositionedTextCanvasCommand.TextBlob.Points.ToSKPoints();
                             var paint = drawPositionedTextCanvasCommand.Paint.ToSKPaint();
-                            skCanvas.DrawPositionedText(text, points, paint);
+                            var font = paint.ToFont();
+                            var textBlob = SKTextBlob.CreatePositioned(text, font, points);
+                            skCanvas.DrawText(textBlob, 0, 0, paint);
                         }
                     }
                     break;

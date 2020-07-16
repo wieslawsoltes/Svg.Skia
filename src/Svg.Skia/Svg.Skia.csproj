@@ -24,7 +24,7 @@
   <Import Project="..\..\build\SkiaSharp.HarfBuzz.props" />
 
   <PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_PICTURE</DefineConstants>
+    <!--<DefineConstants>$(DefineConstants);USE_PICTURE</DefineConstants>-->
     <!--<DefineConstants>$(DefineConstants);USE_COLORSPACE</DefineConstants>-->
     <!--<DefineConstants>$(DefineConstants);USE_EXPERIMENTAL_LINEAR_RGB</DefineConstants>-->
   </PropertyGroup>

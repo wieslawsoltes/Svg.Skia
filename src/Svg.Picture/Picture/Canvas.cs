@@ -38,9 +38,9 @@ namespace Svg.Picture
             Commands?.Add(new DrawPathCanvasCommand(path, paint));
         }
 
-        public void DrawPositionedText(string text, Point[] points, Paint paint)
+        public void DrawText(TextBlob textBlob, float x, float y, Paint paint)
         {
-            Commands?.Add(new DrawPositionedTextCanvasCommand(text, points, paint));
+            Commands?.Add(new DrawTextBlobCanvasCommand(textBlob, x, y, paint));
         }
 
         public void DrawText(string text, float x, float y, Paint paint)

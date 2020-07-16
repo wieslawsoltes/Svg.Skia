@@ -174,7 +174,7 @@ namespace Svg.Picture.Avalonia
                         }
                     }
                     break;
-                case DrawPositionedTextCanvasCommand drawPositionedTextCanvasCommand:
+                case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:
                     {
                         // TODO:
                     }
