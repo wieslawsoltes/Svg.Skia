@@ -23,7 +23,7 @@ using SKCanvas = Svg.Picture.Canvas;
 using SKClipOperation = Svg.Picture.ClipOperation;
 using SKColor = Svg.Picture.Color;
 using SKColorFilter = Svg.Picture.ColorFilter;
-using SKDisplacementMapEffectChannelSelectorType = Svg.Picture.DisplacementMapEffectChannelSelectorType;
+using SKDisplacementMapEffectChannelSelectorType = Svg.Picture.ColorChannel;
 using SKDrawable = Svg.Picture.Drawable;
 using SKFilterQuality = Svg.Picture.FilterQuality;
 using SKFontStyleSlant = Svg.Picture.FontStyleSlant;
@@ -33,7 +33,7 @@ using SKImage = Svg.Picture.Image;
 using SKImageFilter = Svg.Picture.ImageFilter;
 using CropRect = Svg.Picture.CropRect;
 using SKMatrix = Svg.Picture.Matrix;
-using SKMatrixConvolutionTileMode = Svg.Picture.MatrixConvolutionTileMode;
+using SKMatrixConvolutionTileMode = Svg.Picture.ShaderTileMode;
 using SKPaint = Svg.Picture.Paint;
 using SKPaintStyle = Svg.Picture.PaintStyle;
 using SKPath = Svg.Picture.Path;
@@ -3828,7 +3828,7 @@ namespace Svg.Skia
             {
                 SvgEdgeMode.Duplicate => SKMatrixConvolutionTileMode.Clamp,
                 SvgEdgeMode.Wrap => SKMatrixConvolutionTileMode.Repeat,
-                SvgEdgeMode.None => SKMatrixConvolutionTileMode.ClampToBlack,
+                SvgEdgeMode.None => SKMatrixConvolutionTileMode.Decal,
                 _ => SKMatrixConvolutionTileMode.Clamp
             };
             bool convolveAlpha = !svgConvolveMatrix.PreserveAlpha;
