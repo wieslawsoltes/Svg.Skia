@@ -22,6 +22,7 @@ using SKBlendMode = Svg.Picture.BlendMode;
 using SKCanvas = Svg.Picture.Canvas;
 using SKClipOperation = Svg.Picture.ClipOperation;
 using SKColor = Svg.Picture.Color;
+using SKColorChannel = Svg.Picture.ColorChannel;
 using SKColorFilter = Svg.Picture.ColorFilter;
 using SKDisplacementMapEffectChannelSelectorType = Svg.Picture.ColorChannel;
 using SKDrawable = Svg.Picture.Drawable;
@@ -55,6 +56,7 @@ using SKStrokeJoin = Svg.Picture.StrokeJoin;
 using SKTextAlign = Svg.Picture.TextAlign;
 using SKTextEncoding = Svg.Picture.TextEncoding;
 using SKTextBlob = Svg.Picture.TextBlob;
+using Svg.Picture;
 #endif
 
 namespace Svg.Skia
@@ -7599,9 +7601,18 @@ namespace Svg.Skia
                     if (skPaint != null)
                     {
                         SvgExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, Disposable);
+#if USE_PICTURE
+                        var textBlob = new Svg.Picture.TextBlob()
+                        {
+                            Text = text,
+                            Points = points
+                        };
+                        skCanvas.DrawText(textBlob, 0, 0, skPaint);
+#else
                         var skFont = skPaint.ToFont();
                         var skTextBlob = SKTextBlob.CreatePositioned(text, skFont, points);
                         skCanvas.DrawText(skTextBlob, 0, 0, skPaint);
+#endif
                     }
                 }
 
@@ -7611,9 +7622,18 @@ namespace Svg.Skia
                     if (skPaint != null)
                     {
                         SvgExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, Disposable);
+#if USE_PICTURE
+                        var textBlob = new Svg.Picture.TextBlob()
+                        {
+                            Text = text,
+                            Points = points
+                        };
+                        skCanvas.DrawText(textBlob, 0, 0, skPaint);
+#else
                         var skFont = skPaint.ToFont();
                         var skTextBlob = SKTextBlob.CreatePositioned(text, skFont, points);
                         skCanvas.DrawText(skTextBlob, 0, 0, skPaint);
+#endif
                     }
                 }
             }
