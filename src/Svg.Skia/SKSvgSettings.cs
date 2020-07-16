@@ -10,9 +10,9 @@ namespace Svg.Skia
 
         public static SKColorType s_colorType = SKImageInfo.PlatformColorType;
 
-        public static SKColorSpace s_srgbLinear = SKColorSpace.CreateRgb(SKNamedGamma.Linear, SKColorSpaceGamut.Srgb); // SKColorSpace.CreateSrgbLinear();
+        public static SKColorSpace s_srgbLinear = SKColorSpace.CreateRgb(SKColorSpaceTransferFn.Linear, SKColorSpaceXyz.Srgb); // SKColorSpace.CreateSrgbLinear();
 
-        public static SKColorSpace s_srgb = SKColorSpace.CreateRgb(SKNamedGamma.Srgb, SKColorSpaceGamut.Srgb); // SKColorSpace.CreateSrgb();
+        public static SKColorSpace s_srgb = SKColorSpace.CreateRgb(SKColorSpaceTransferFn.Srgb, SKColorSpaceXyz.Srgb); // SKColorSpace.CreateSrgb();
 
         public static CultureInfo? s_systemLanguageOverride = null;
 
