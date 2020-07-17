@@ -63,9 +63,9 @@ namespace Svg.Skia
 {
     internal static class SvgExtensions
     {
-        private static readonly char[] s_space_tab = new char[2] { ' ', '\t' };
+        private static readonly char[] s_space_tab = { ' ', '\t' };
 
-        private static readonly char[] s_comma = new char[] { ',' };
+        private static readonly char[] s_comma = { ',' };
 
         [Flags]
         internal enum PathPointType : byte
@@ -516,7 +516,7 @@ namespace Svg.Skia
                 }
                 else
                 {
-                    var features = requiredFeaturesString.Trim().Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    var features = requiredFeaturesString.Trim().Split(s_space_tab, StringSplitOptions.RemoveEmptyEntries);
                     if (features.Length > 0)
                     {
                         foreach (var feature in features)
@@ -3523,6 +3523,8 @@ namespace Svg.Skia
             };
         }
 
+        private static readonly char[] s_colorMatrixSplitChars = { ' ', '\t', '\n', '\r', ',' };
+
         public static SKImageFilter? CreateColorMatrix(SvgColourMatrix svgColourMatrix, CompositeDisposable disposable, SKImageFilter? input = null, CropRect? cropRect = null)
         {
             SKColorFilter skColorFilter;
@@ -3589,7 +3591,7 @@ namespace Svg.Skia
                         }
                         else
                         {
-                            var parts = svgColourMatrix.Values.Split(new char[] { ' ', '\t', '\n', '\r', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                            var parts = svgColourMatrix.Values.Split(s_colorMatrixSplitChars, StringSplitOptions.RemoveEmptyEntries);
                             if (parts.Length == 20)
                             {
                                 matrix = new float[20];
