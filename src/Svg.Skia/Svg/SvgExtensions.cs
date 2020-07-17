@@ -2470,9 +2470,9 @@ namespace Svg.Skia
                 stream.Position = 0;
             }
 
-            var isSvgMimeType = response.ContentType.StartsWith(MimeTypeSvg, StringComparison.InvariantCultureIgnoreCase);
-            var isSvg = uri.LocalPath.EndsWith(".svg", StringComparison.InvariantCultureIgnoreCase);
-            var isSvgz = uri.LocalPath.EndsWith(".svgz", StringComparison.InvariantCultureIgnoreCase);
+            var isSvgMimeType = response.ContentType.StartsWith(MimeTypeSvg, StringComparison.OrdinalIgnoreCase);
+            var isSvg = uri.LocalPath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase);
+            var isSvgz = uri.LocalPath.EndsWith(".svgz", StringComparison.OrdinalIgnoreCase);
 
             if (isSvgMimeType || isSvg)
             {
@@ -2512,7 +2512,7 @@ namespace Svg.Skia
                 charset = string.Empty;
             }
 
-            if (headers.Count > 0 && headers[headers.Count - 1].Trim().Equals("base64", StringComparison.InvariantCultureIgnoreCase))
+            if (headers.Count > 0 && headers[headers.Count - 1].Trim().Equals("base64", StringComparison.OrdinalIgnoreCase))
             {
                 base64 = true;
                 headers.RemoveAt(headers.Count - 1);
@@ -2527,14 +2527,14 @@ namespace Svg.Skia
                 }
 
                 var attribute = p[0].Trim();
-                if (attribute.Equals("charset", StringComparison.InvariantCultureIgnoreCase))
+                if (attribute.Equals("charset", StringComparison.OrdinalIgnoreCase))
                 {
                     charset = p[1].Trim();
                 }
             }
 
             var data = uriString.Substring(headerEndIndex + 1);
-            if (mimeType.Equals(MimeTypeSvg, StringComparison.InvariantCultureIgnoreCase))
+            if (mimeType.Equals(MimeTypeSvg, StringComparison.OrdinalIgnoreCase))
             {
                 if (base64)
                 {
