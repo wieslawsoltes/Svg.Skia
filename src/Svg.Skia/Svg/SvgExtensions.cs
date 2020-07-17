@@ -2556,7 +2556,7 @@ namespace Svg.Skia
                 using var stream = new MemoryStream(Encoding.Default.GetBytes(data));
                 return LoadSvg(stream, svgOwnerDocument.BaseUri);
             }
-            else if (mimeType.StartsWith("image/") || mimeType.StartsWith("img/"))
+            else if (mimeType.StartsWith("image/", StringComparison.Ordinal) || mimeType.StartsWith("img/", StringComparison.Ordinal))
             {
                 var dataBytes = base64 ? Convert.FromBase64String(data) : Encoding.Default.GetBytes(data);
                 using var stream = new MemoryStream(dataBytes);
@@ -3279,7 +3279,7 @@ namespace Svg.Skia
         public static SKRect? GetClipRect(SvgVisualElement svgVisualElement, SKRect skRectBounds)
         {
             var clip = svgVisualElement.Clip;
-            if (!string.IsNullOrEmpty(clip) && clip.StartsWith("rect("))
+            if (!string.IsNullOrEmpty(clip) && clip.StartsWith("rect(", StringComparison.Ordinal))
             {
                 clip = clip.Trim();
                 var offsets = new List<float>();
@@ -5472,7 +5472,7 @@ namespace Svg.Skia
                     {
                         // TODO:
                     }
-                    else if (enableBackground.StartsWith("new"))
+                    else if (enableBackground.StartsWith("new", StringComparison.Ordinal))
                     {
                         if (enableBackground.Length > 3)
                         {
