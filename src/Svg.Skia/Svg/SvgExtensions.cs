@@ -63,9 +63,9 @@ namespace Svg.Skia
 {
     internal static class SvgExtensions
     {
-        private static readonly char[] s_space_tab = new char[2] { ' ', '\t' };
+        private static readonly char[] s_space_tab = { ' ', '\t' };
 
-        private static readonly char[] s_comma = new char[] { ',' };
+        private static readonly char[] s_comma = { ',' };
 
         [Flags]
         internal enum PathPointType : byte
@@ -139,7 +139,7 @@ namespace Svg.Skia
         //     C_lin = C_srgb / 12.92;
         //  else
         //     C_lin = pow((C_srgb + 0.055) / 1.055, 2.4);
-        public static byte[] s_sRGBtoLinearRGB = new byte[256]
+        public static ReadOnlySpan<byte> s_sRGBtoLinearRGB => new byte[256]
         {
             0,   0,   0,   0,   0,   0,  0,    1,   1,   1,   1,   1,   1,   1,   1,   1,
             1,   1,   2,   2,   2,   2,  2,    2,   2,   2,   3,   3,   3,   3,   3,   3,
@@ -164,7 +164,7 @@ namespace Svg.Skia
         //     C_srgb = C_lin * 12.92;
         // else
         //     C_srgb = 1.055 * pow(C_lin, 1.0 / 2.4) - 0.055;
-        public static byte[] s_linearRGBtoSRGB = new byte[256]
+        public static ReadOnlySpan<byte> s_linearRGBtoSRGB => new byte[256]
         {
             0,  13,  22,  28,  34,  38,  42,  46,  50,  53,  56,  59,  61,  64,  66,  69,
             71,  73,  75,  77,  79,  81,  83,  85,  86,  88,  90,  92,  93,  95,  96,  98,
@@ -188,7 +188,7 @@ namespace Svg.Skia
 
         private const string MimeTypeSvg = "image/svg+xml";
 
-        private static readonly byte[] s_gZipMagicHeaderBytes = { 0x1f, 0x8b };
+        private static ReadOnlySpan<byte> s_gZipMagicHeaderBytes => new byte[2] { 0x1f, 0x8b };
 
         public const string SourceGraphic = "SourceGraphic";
 
@@ -516,7 +516,7 @@ namespace Svg.Skia
                 }
                 else
                 {
-                    var features = requiredFeaturesString.Trim().Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    var features = requiredFeaturesString.Trim().Split(s_space_tab, StringSplitOptions.RemoveEmptyEntries);
                     if (features.Length > 0)
                     {
                         foreach (var feature in features)
@@ -2470,9 +2470,9 @@ namespace Svg.Skia
                 stream.Position = 0;
             }
 
-            var isSvgMimeType = response.ContentType.StartsWith(MimeTypeSvg, StringComparison.InvariantCultureIgnoreCase);
-            var isSvg = uri.LocalPath.EndsWith(".svg", StringComparison.InvariantCultureIgnoreCase);
-            var isSvgz = uri.LocalPath.EndsWith(".svgz", StringComparison.InvariantCultureIgnoreCase);
+            var isSvgMimeType = response.ContentType.StartsWith(MimeTypeSvg, StringComparison.OrdinalIgnoreCase);
+            var isSvg = uri.LocalPath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase);
+            var isSvgz = uri.LocalPath.EndsWith(".svgz", StringComparison.OrdinalIgnoreCase);
 
             if (isSvgMimeType || isSvg)
             {
@@ -2512,7 +2512,7 @@ namespace Svg.Skia
                 charset = string.Empty;
             }
 
-            if (headers.Count > 0 && headers[headers.Count - 1].Trim().Equals("base64", StringComparison.InvariantCultureIgnoreCase))
+            if (headers.Count > 0 && headers[headers.Count - 1].Trim().Equals("base64", StringComparison.OrdinalIgnoreCase))
             {
                 base64 = true;
                 headers.RemoveAt(headers.Count - 1);
@@ -2527,14 +2527,14 @@ namespace Svg.Skia
                 }
 
                 var attribute = p[0].Trim();
-                if (attribute.Equals("charset", StringComparison.InvariantCultureIgnoreCase))
+                if (attribute.Equals("charset", StringComparison.OrdinalIgnoreCase))
                 {
                     charset = p[1].Trim();
                 }
             }
 
             var data = uriString.Substring(headerEndIndex + 1);
-            if (mimeType.Equals(MimeTypeSvg, StringComparison.InvariantCultureIgnoreCase))
+            if (mimeType.Equals(MimeTypeSvg, StringComparison.OrdinalIgnoreCase))
             {
                 if (base64)
                 {
@@ -2556,7 +2556,7 @@ namespace Svg.Skia
                 using var stream = new MemoryStream(Encoding.Default.GetBytes(data));
                 return LoadSvg(stream, svgOwnerDocument.BaseUri);
             }
-            else if (mimeType.StartsWith("image/") || mimeType.StartsWith("img/"))
+            else if (mimeType.StartsWith("image/", StringComparison.Ordinal) || mimeType.StartsWith("img/", StringComparison.Ordinal))
             {
                 var dataBytes = base64 ? Convert.FromBase64String(data) : Encoding.Default.GetBytes(data);
                 using var stream = new MemoryStream(dataBytes);
@@ -3279,7 +3279,7 @@ namespace Svg.Skia
         public static SKRect? GetClipRect(SvgVisualElement svgVisualElement, SKRect skRectBounds)
         {
             var clip = svgVisualElement.Clip;
-            if (!string.IsNullOrEmpty(clip) && clip.StartsWith("rect("))
+            if (!string.IsNullOrEmpty(clip) && clip.StartsWith("rect(", StringComparison.Ordinal))
             {
                 clip = clip.Trim();
                 var offsets = new List<float>();
@@ -3523,6 +3523,8 @@ namespace Svg.Skia
             };
         }
 
+        private static readonly char[] s_colorMatrixSplitChars = { ' ', '\t', '\n', '\r', ',' };
+
         public static SKImageFilter? CreateColorMatrix(SvgColourMatrix svgColourMatrix, CompositeDisposable disposable, SKImageFilter? input = null, CropRect? cropRect = null)
         {
             SKColorFilter skColorFilter;
@@ -3589,7 +3591,7 @@ namespace Svg.Skia
                         }
                         else
                         {
-                            var parts = svgColourMatrix.Values.Split(new char[] { ' ', '\t', '\n', '\r', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                            var parts = svgColourMatrix.Values.Split(s_colorMatrixSplitChars, StringSplitOptions.RemoveEmptyEntries);
                             if (parts.Length == 20)
                             {
                                 matrix = new float[20];
@@ -5470,7 +5472,7 @@ namespace Svg.Skia
                     {
                         // TODO:
                     }
-                    else if (enableBackground.StartsWith("new"))
+                    else if (enableBackground.StartsWith("new", StringComparison.Ordinal))
                     {
                         if (enableBackground.Length > 3)
                         {
