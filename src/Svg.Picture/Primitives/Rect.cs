@@ -12,15 +12,15 @@ namespace Svg.Picture
 
         public static readonly Rect Empty = default;
 
-        public bool IsEmpty => Left == default && Top == default && Right == default && Bottom == default;
+        public readonly bool IsEmpty => Left == default && Top == default && Right == default && Bottom == default;
 
-        public float Width => Right - Left;
+        public readonly float Width => Right - Left;
 
-        public float Height => Bottom - Top;
+        public readonly float Height => Bottom - Top;
 
-        public Size Size => new Size(Width, Height);
+        public readonly Size Size => new Size(Width, Height);
 
-        public Point Location => new Point(Left, Top);
+        public readonly Point Location => new Point(Left, Top);
 
         public Rect(float left, float top, float right, float bottom)
         {

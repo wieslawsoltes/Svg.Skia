@@ -6,7 +6,7 @@ namespace Svg.Skia
 {
     public sealed class DefaultTypefaceProvider : ITypefaceProvider
     {
-        public static char[] s_fontFamilyTrim = new char[] { '\'' };
+        public static readonly char[] s_fontFamilyTrim = { '\'' };
 
         public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
         {
