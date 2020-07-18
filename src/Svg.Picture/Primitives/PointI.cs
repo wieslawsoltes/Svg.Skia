@@ -7,7 +7,7 @@
 
         public static readonly PointI Empty;
 
-        public bool IsEmpty => X == default && Y == default;
+        public readonly bool IsEmpty => X == default && Y == default;
 
         public PointI(int x, int y)
         {
