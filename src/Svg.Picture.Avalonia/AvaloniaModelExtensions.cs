@@ -158,7 +158,7 @@ namespace Svg.Picture.Avalonia
             // TODO: typeface.Weight
             var slant = typeface.Style.ToFontStyle();
 
-            return new AM.Typeface(familyName, weight, slant);
+            return new AM.Typeface(familyName, slant, weight);
         }
 
         public static AM.Color ToColor(this Color color)

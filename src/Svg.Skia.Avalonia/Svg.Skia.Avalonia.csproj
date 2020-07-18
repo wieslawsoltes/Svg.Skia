@@ -6,7 +6,7 @@
     <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     <EnableDefaultItems>False</EnableDefaultItems>
     <NoWarn>CS1591</NoWarn>
-    <IsPackable>False</IsPackable>
+    <IsPackable>True</IsPackable>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -15,6 +15,11 @@
     <PackageId>Svg.Skia.Avalonia</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;control;avalonia;avaloniaui</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VersionPrefix>0.10.0</VersionPrefix>
+    <VersionSuffix>preview1</VersionSuffix>
   </PropertyGroup>
 
   <Import Project="..\..\build\Base.props" />

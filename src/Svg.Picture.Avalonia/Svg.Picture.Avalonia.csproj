@@ -6,7 +6,7 @@
     <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     <EnableDefaultItems>False</EnableDefaultItems>
     <NoWarn>CS1591</NoWarn>
-    <IsPackable>False</IsPackable>
+    <IsPackable>True</IsPackable>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -21,6 +21,11 @@
   <!--<Import Project="..\..\build\SignAssembly.props" />-->
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <Import Project="..\..\build\Avalonia.props" />
+
+  <PropertyGroup>
+    <VersionPrefix>0.10.0</VersionPrefix>
+    <VersionSuffix>preview1</VersionSuffix>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Svg.Picture\Svg.Picture.csproj" />
