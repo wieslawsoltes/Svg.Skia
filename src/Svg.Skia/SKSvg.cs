@@ -14,6 +14,7 @@ namespace Svg.Skia
         static SKSvg()
         {
             SvgDocument.SkipGdiPlusCapabilityCheck = true;
+            SvgDocument.PointsPerInch = 96;
         }
 
         public static SvgDocument? OpenSvg(string path)
