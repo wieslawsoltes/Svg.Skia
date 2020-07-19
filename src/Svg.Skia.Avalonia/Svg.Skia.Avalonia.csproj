@@ -17,17 +17,17 @@
     <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;control;avalonia;avaloniaui</PackageTags>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <VersionPrefix>0.10.0</VersionPrefix>
-    <VersionSuffix>preview1</VersionSuffix>
-  </PropertyGroup>
-
   <Import Project="..\..\build\Base.props" />
   <!--<Import Project="..\..\build\SignAssembly.props" />-->
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <!--<Import Project="..\..\build\SkiaSharp.props" />-->
   <Import Project="..\..\build\Avalonia.props" />
   <!--<Import Project="..\..\build\Avalonia.Skia.props" />-->
+
+  <PropertyGroup>
+    <VersionPrefix>0.10.0</VersionPrefix>
+    <VersionSuffix>preview1</VersionSuffix>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Svg.Picture.Avalonia\Svg.Picture.Avalonia.csproj" />
