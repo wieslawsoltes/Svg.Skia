@@ -172,6 +172,8 @@ using (var svg = new SKSvg())
 
 ### AvaloniaUI
 
+You need to use `0.10.0-preview1` version of AvaloniaUI.
+
 #### Install Package
 
 ```
