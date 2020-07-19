@@ -170,6 +170,47 @@ using (var svg = new SKSvg())
 }
 ```
 
+### AvaloniaUI
+
+#### Install Package
+
+```
+dotnet add package Svg.Skia.Avalonia
+```
+
+```
+Install-Package Svg.Skia.Avalonia
+```
+
+#### Add namespace to XAML
+
+```XAML
+<UseControl xmlns="https://github.com/avaloniaui"
+            xmlns:svg="clr-namespace:Svg.Skia.Avalonia;assembly=Svg.Skia.Avalonia">
+```
+
+#### Set Image.Source
+
+```XAML
+<Image>
+   <Image.Source>
+       <svg:SvgImage Source="/Assets/__AJ_Digital_Camera.svg"/>
+   </Image.Source>
+</Image>
+```
+
+### Use Resources
+
+```XAML
+<UserControl.Resources>
+    <svg:SvgImage x:Key="__tiger" Source="/Assets/__tiger.svg"/>
+</UserControl.Resources>
+```
+
+```XAML
+<Image Name="svgResourceImage" Source="{DynamicResource __tiger}"/>
+```
+
 ### Tool
 
 ```
