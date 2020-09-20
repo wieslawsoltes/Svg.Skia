@@ -30,6 +30,10 @@
   <Import Project="..\..\build\SkiaSharp.props" />
   <Import Project="..\..\build\Newtonsoft.Json.props" />
 
+  <PropertyGroup>
+    <!--<DefineConstants>$(DefineConstants);USE_COLORSPACE</DefineConstants>-->
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Svg.Skia\Svg.Skia.csproj" />
   </ItemGroup>
