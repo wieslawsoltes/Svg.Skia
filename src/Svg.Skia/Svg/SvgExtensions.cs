@@ -140,7 +140,7 @@ namespace Svg.Skia
         //     C_lin = C_srgb / 12.92;
         //  else
         //     C_lin = pow((C_srgb + 0.055) / 1.055, 2.4);
-        public static ReadOnlySpan<byte> s_sRGBtoLinearRGB => new byte[256]
+        public static byte[] s_sRGBtoLinearRGB => new byte[256]
         {
             0,   0,   0,   0,   0,   0,  0,    1,   1,   1,   1,   1,   1,   1,   1,   1,
             1,   1,   2,   2,   2,   2,  2,    2,   2,   2,   3,   3,   3,   3,   3,   3,
