@@ -2,7 +2,9 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <VersionPrefix>0.4.2</VersionPrefix>
-    <VersionSuffix>preview6</VersionSuffix>
+    <VersionSuffix>preview7</VersionSuffix>
+    <AvaloniaVersionPrefix>0.10.0</AvaloniaVersionPrefix>
+    <AvaloniaVersionSuffix>preview7</AvaloniaVersionSuffix>
     <Authors>Wiesław Šoltés</Authors>
     <Company>Wiesław Šoltés</Company>
     <Copyright>Copyright © Wiesław Šoltés 2020</Copyright>
