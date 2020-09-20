@@ -1501,6 +1501,14 @@ namespace Svg.Skia
 #endif
                         if (skColorShader != null)
                         {
+#if USE_COLORSPACE
+                            if (isLinearRGB)
+                            {
+                                var skColorFilter = SKColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
+                                disposable.Add(skColorFilter);
+                                skPaint.ColorFilter = skColorFilter;
+                            }
+#endif
                             disposable.Add(skColorShader);
                             skPaint.Shader = skColorShader;
                             return true;
@@ -1509,9 +1517,23 @@ namespace Svg.Skia
                     break;
                 case SvgPatternServer svgPatternServer:
                     {
+#if USE_COLORSPACE
+                        var colorInterpolation = GetColorInterpolation(svgVisualElement);
+                        var isLinearRGB = colorInterpolation == SvgColourInterpolation.LinearRGB;
+                        var skColorSpace = isLinearRGB ? SKSvgSettings.s_srgbLinear : SKSvgSettings.s_srgb;
+                        // TODO: Use skColorSpace in CreatePicture
+#endif
                         var skPatternShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, ignoreAttributes, disposable);
                         if (skPatternShader != null)
                         {
+#if USE_COLORSPACE
+                            if (isLinearRGB)
+                            {
+                                var skColorFilter = SKColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
+                                disposable.Add(skColorFilter);
+                                skPaint.ColorFilter = skColorFilter;
+                            }
+#endif
                             disposable.Add(skPatternShader);
                             skPaint.Shader = skPatternShader;
                             return true;
@@ -1522,15 +1544,20 @@ namespace Svg.Skia
                             {
                                 var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
 #if USE_COLORSPACE
-                                var colorInterpolation = GetColorInterpolation(svgVisualElement);
-                                var isLinearRGB = colorInterpolation == SvgColourInterpolation.LinearRGB;
-                                var skColorSpace = isLinearRGB ? SKSvgSettings.s_srgbLinear : SKSvgSettings.s_srgb;
                                 var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
 #else
                                 var skColorShader = SKShader.CreateColor(skColor);
 #endif
                                 if (skColorShader != null)
                                 {
+#if USE_COLORSPACE
+                                    if (isLinearRGB)
+                                    {
+                                        var skColorFilter = SKColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
+                                        disposable.Add(skColorFilter);
+                                        skPaint.ColorFilter = skColorFilter;
+                                    }
+#endif
                                     disposable.Add(skColorShader);
                                     skPaint.Shader = skColorShader;
                                     return true;
@@ -1563,6 +1590,14 @@ namespace Svg.Skia
 #endif
                                 if (skColorShader != null)
                                 {
+#if USE_COLORSPACE
+                                    if (isLinearRGB)
+                                    {
+                                        var skColorFilter = SKColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
+                                        disposable.Add(skColorFilter);
+                                        skPaint.ColorFilter = skColorFilter;
+                                    }
+#endif
                                     disposable.Add(skColorShader);
                                     skPaint.Shader = skColorShader;
                                     return true;
@@ -1583,14 +1618,14 @@ namespace Svg.Skia
 #endif
                             if (skLinearGradientShader != null)
                             {
-                                //#if USE_COLORSPACE
-                                //if (!isLinearRGB)
-                                //{
-                                //    var skColorFilter = SKColorFilter.CreateTable(null, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB);
-                                //    disposable.Add(skColorFilter);
-                                //    skPaint.ColorFilter = skColorFilter;
-                                //}
-                                //#endif
+#if USE_COLORSPACE
+                                if (isLinearRGB)
+                                {
+                                    var skColorFilter = SKColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
+                                    disposable.Add(skColorFilter);
+                                    skPaint.ColorFilter = skColorFilter;
+                                }
+#endif
                                 disposable.Add(skLinearGradientShader);
                                 skPaint.Shader = skLinearGradientShader;
                                 return true;
@@ -1642,14 +1677,14 @@ namespace Svg.Skia
 #endif
                             if (skRadialGradientShader != null)
                             {
-                                //#if USE_COLORSPACE
-                                //if (!isLinearRGB)
-                                //{
-                                //    var skColorFilter = SKColorFilter.CreateTable(null, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB, s_SRGBtoLinearRGB);
-                                //    disposable.Add(skColorFilter);
-                                //    skPaint.ColorFilter = skColorFilter;
-                                //}
-                                //#endif
+#if USE_COLORSPACE
+                                if (isLinearRGB)
+                                {
+                                    var skColorFilter = SKColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
+                                    disposable.Add(skColorFilter);
+                                    skPaint.ColorFilter = skColorFilter;
+                                }
+#endif
                                 disposable.Add(skRadialGradientShader);
                                 skPaint.Shader = skRadialGradientShader;
                                 return true;
@@ -5524,7 +5559,7 @@ namespace Svg.Skia
 #if USE_EXPERIMENTAL_LINEAR_RGB
             // TODO:
             using var skPaint = new SKPaint();
-            using var skColorFilter = SKColorFilter.CreateTable(null, SvgExtensions.s_SRGBtoLinearRGB, SvgExtensions.s_SRGBtoLinearRGB, SvgExtensions.s_SRGBtoLinearRGB);
+            using var skColorFilter = SKColorFilter.CreateTable(null, SvgExtensions.s_sRGBtoLinearRGB, SvgExtensions.s_sRGBtoLinearRGB, SvgExtensions.s_sRGBtoLinearRGB);
             using var skImageFilter = SKImageFilter.CreateColorFilter(skColorFilter);
             skPaint.ImageFilter = skImageFilter;
             skCanvas.SaveLayer(skPaint);
@@ -5562,7 +5597,7 @@ namespace Svg.Skia
 #if USE_EXPERIMENTAL_LINEAR_RGB
                 // TODO:
                 using var skPaint = new SKPaint();
-                using var skColorFilter = SKColorFilter.CreateTable(null, SvgExtensions.s_SRGBtoLinearRGB, SvgExtensions.s_SRGBtoLinearRGB, SvgExtensions.s_SRGBtoLinearRGB);
+                using var skColorFilter = SKColorFilter.CreateTable(null, SvgExtensions.s_sRGBtoLinearRGB, SvgExtensions.s_sRGBtoLinearRGB, SvgExtensions.s_sRGBtoLinearRGB);
                 using var skImageFilter = SKImageFilter.CreateColorFilter(skColorFilter);
                 skPaint.ImageFilter = skImageFilter;
                 skCanvas.SaveLayer(skPaint);
