@@ -10,7 +10,7 @@ using Avalonia.Platform;
 using Avalonia.Visuals.Media.Imaging;
 #if USE_PICTURE
 using SP = Svg.Picture;
-using SPA = Svg.Picture.Avalonia;
+using SPA = Svg.Skia.Avalonia;
 #else
 using Avalonia.Data;
 using Avalonia.Rendering.SceneGraph;

@@ -30,8 +30,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Svg.Picture.Avalonia\Svg.Picture.Avalonia.csproj" />
-    <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" />
+    <ProjectReference Include="..\Svg.Skia.Picture\Svg.Skia.Picture.csproj" />
   </ItemGroup>
 
   <ItemGroup>

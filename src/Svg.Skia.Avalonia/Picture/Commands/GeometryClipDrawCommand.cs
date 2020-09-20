@@ -1,6 +1,6 @@
 ﻿using AM = Avalonia.Media;
 
-namespace Svg.Picture.Avalonia
+namespace Svg.Skia.Avalonia
 {
     public sealed class GeometryClipDrawCommand : DrawCommand
     {

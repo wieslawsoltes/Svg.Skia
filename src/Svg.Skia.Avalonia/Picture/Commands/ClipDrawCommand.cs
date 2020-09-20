@@ -1,6 +1,6 @@
 ﻿using A = Avalonia;
 
-namespace Svg.Picture.Avalonia
+namespace Svg.Skia.Avalonia
 {
     public sealed class ClipDrawCommand : DrawCommand
     {

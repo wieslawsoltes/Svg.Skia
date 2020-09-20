@@ -3,7 +3,7 @@ using A = Avalonia;
 using AM = Avalonia.Media;
 using AVMI = Avalonia.Visuals.Media.Imaging;
 
-namespace Svg.Picture.Avalonia
+namespace Svg.Skia.Avalonia
 {
     public sealed class ImageDrawCommand : DrawCommand
     {

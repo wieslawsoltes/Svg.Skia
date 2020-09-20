@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using Svg.Picture;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AMI = Avalonia.Media.Imaging;
 using AVMI = Avalonia.Visuals.Media.Imaging;
 
-namespace Svg.Picture.Avalonia
+namespace Svg.Skia.Avalonia
 {
     public static class AvaloniaModelExtensions
     {

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using Svg.Picture;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AVMI = Avalonia.Visuals.Media.Imaging;
 
-namespace Svg.Picture.Avalonia
+namespace Svg.Skia.Avalonia
 {
     public sealed class AvaloniaPicture : IDisposable
     {
@@ -202,7 +203,7 @@ namespace Svg.Picture.Avalonia
             }
         }
 
-        public static AvaloniaPicture Record(Picture picture)
+        public static AvaloniaPicture Record(Svg.Picture.Picture picture)
         {
             var avaloniaPicture = new AvaloniaPicture();
 
