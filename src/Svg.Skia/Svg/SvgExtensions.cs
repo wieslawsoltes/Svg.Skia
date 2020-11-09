@@ -7627,7 +7627,17 @@ namespace Svg.Skia
                 {
                     float x = xs[i];
                     float y = ys[i];
-                    points[i] = new SKPoint(x, y);
+                    float dx = 0;
+                    float dy = 0;
+                    if (dxs.Count >= 1 && xs.Count >= dxs.Count)
+                    {
+                        dx = dxs[i];
+                    }
+                    if (dys.Count >= 1 && ys.Count >= dys.Count)
+                    {
+                        dy = dys[i];
+                    }
+                    points[i] = new SKPoint(x + dx, y + dy);
                 }
 
                 // TODO: Calculate correct bounds.
