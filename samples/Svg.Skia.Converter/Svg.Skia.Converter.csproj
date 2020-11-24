@@ -6,7 +6,7 @@
     <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     <EnableDefaultItems>False</EnableDefaultItems>
     <NoWarn>CS1591</NoWarn>
-    <IsPackable>True</IsPackable>
+    <IsPackable>False</IsPackable>
     <IsTool>True</IsTool>
     <PackAsTool>True</PackAsTool>
     <ToolCommandName>Svg.Skia.Converter</ToolCommandName>
