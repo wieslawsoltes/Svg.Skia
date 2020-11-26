@@ -67,9 +67,6 @@
       <!--<TargetPathWithTargetPlatformMoniker Include="$(PKGSvg_Custom)\lib\netstandard2.0\Svg.Custom.dll" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(PKGSvg_Picture)\lib\netstandard2.0\Svg.Picture.dll" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(PKGSvg_Skia_Picture)\lib\netstandard2.0\Svg.Skia.Picture.dll" IncludeRuntimeDependency="false" />-->
-      <TargetPathWithTargetPlatformMoniker Include="..\src\Svg.Custom\bin\$(Configuration)\netstandard2.0\Svg.Custom.dll" IncludeRuntimeDependency="false" />
-      <TargetPathWithTargetPlatformMoniker Include="..\src\Svg.Picture\bin\$(Configuration)\netstandard2.0\Svg.Picture.dll" IncludeRuntimeDependency="false" />
-      <TargetPathWithTargetPlatformMoniker Include="..\src\Svg.Skia.Picture\bin\$(Configuration)\netstandard2.0\Svg.Skia.Picture.dll" IncludeRuntimeDependency="false" />
     </ItemGroup>
   </Target>
 
