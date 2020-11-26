@@ -6,7 +6,7 @@
     <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     <EnableDefaultItems>False</EnableDefaultItems>
     <IsPackable>False</IsPackable>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
