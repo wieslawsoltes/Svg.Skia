@@ -11,6 +11,11 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <VersionPrefix>$(AvaloniaVersionPrefix)</VersionPrefix>
+    <VersionSuffix>$(AvaloniaVersionSuffix)</VersionSuffix>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <Description>An SVG image control for Avalonia.</Description>
     <PackageId>Svg.Skia.Avalonia</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -23,11 +28,6 @@
   <!--<Import Project="..\..\build\SkiaSharp.props" />-->
   <Import Project="..\..\build\Avalonia.props" />
   <!--<Import Project="..\..\build\Avalonia.Skia.props" />-->
-
-  <PropertyGroup>
-    <VersionPrefix>$(AvaloniaVersionPrefix)</VersionPrefix>
-    <VersionSuffix>$(AvaloniaVersionSuffix)</VersionSuffix>
-  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Svg.Skia.Picture\Svg.Skia.Picture.csproj" />

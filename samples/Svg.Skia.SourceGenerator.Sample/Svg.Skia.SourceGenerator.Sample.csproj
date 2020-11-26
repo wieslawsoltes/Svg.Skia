@@ -19,10 +19,8 @@
     <AdditionalFiles Include="Svg/pservers-pattern-01-b.svg" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="SkiaSharp" Version="2.80.2" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.80.2" />
-  </ItemGroup>
+  <Import Project="..\..\build\SkiaSharp.props" />
+  <Import Project="..\..\build\SkiaSharp.Linux.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Svg.Skia.Picture\Svg.Skia.Picture.csproj" />

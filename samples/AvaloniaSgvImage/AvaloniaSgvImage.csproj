@@ -9,17 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Update="**\*.xaml.cs">
-      <DependentUpon>%(Filename)</DependentUpon>
-    </Compile>
-    <AvaloniaResource Include="**\*.xaml">
-      <SubType>Designer</SubType>
-    </AvaloniaResource>
     <AvaloniaResource Include="Assets\*" />
   </ItemGroup>
 
   <Import Project="..\..\build\Avalonia.props" />
   <Import Project="..\..\build\Avalonia.Desktop.props" />
+  <Import Project="..\..\build\Avalonia.Diagnostics.props" />
 
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);USE_PICTURE</DefineConstants>

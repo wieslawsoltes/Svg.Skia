@@ -5,25 +5,20 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <IsPackable>True</IsPackable>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <PropertyGroup>
-    <VersionPrefix>0.1.0</VersionPrefix>
-    <VersionSuffix>preview6</VersionSuffix>
-    <Authors>Wiesław Šoltés</Authors>
-    <Company>Wiesław Šoltés</Company>
-    <Copyright>Copyright © Wiesław Šoltés 2020</Copyright>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/wieslawsoltes/Svg.Skia</PackageProjectUrl>
     <Description>An Svg drawing markup to C# code generator using SkiaSharp as rendering engine.</Description>
     <PackageId>Svg.Skia.CodeGen</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>svg;skia;skiasharp;codegen;codegenerator;compiler;csharp;codegen;graphics</PackageTags>
   </PropertyGroup>
+
+  <Import Project="..\..\build\Base.props" />
+  <Import Project="..\..\build\SignAssembly.props" />
+  <Import Project="..\..\build\ReferenceAssemblies.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\Svg.Skia.Picture\Svg.Skia.Picture.csproj" />

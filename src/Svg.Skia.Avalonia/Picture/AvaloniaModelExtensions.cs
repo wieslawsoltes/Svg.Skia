@@ -68,8 +68,10 @@ namespace Svg.Skia.Avalonia
                 default:
                 case StrokeCap.Butt:
                     return AM.PenLineCap.Flat;
+
                 case StrokeCap.Round:
                     return AM.PenLineCap.Round;
+
                 case StrokeCap.Square:
                     return AM.PenLineCap.Square;
             }
@@ -82,8 +84,10 @@ namespace Svg.Skia.Avalonia
                 default:
                 case StrokeJoin.Miter:
                     return AM.PenLineJoin.Miter;
+
                 case StrokeJoin.Round:
                     return AM.PenLineJoin.Round;
+
                 case StrokeJoin.Bevel:
                     return AM.PenLineJoin.Bevel;
             }
@@ -96,8 +100,10 @@ namespace Svg.Skia.Avalonia
                 default:
                 case TextAlign.Left:
                     return AM.TextAlignment.Left;
+
                 case TextAlign.Center:
                     return AM.TextAlignment.Center;
+
                 case TextAlign.Right:
                     return AM.TextAlignment.Right;
             }
@@ -112,22 +118,31 @@ namespace Svg.Skia.Avalonia
                     throw new NotSupportedException(); // TODO:
                 case FontStyleWeight.Thin:
                     return AM.FontWeight.Thin;
+
                 case FontStyleWeight.ExtraLight:
                     return AM.FontWeight.ExtraLight;
+
                 case FontStyleWeight.Light:
                     return AM.FontWeight.Light;
+
                 case FontStyleWeight.Normal:
                     return AM.FontWeight.Normal;
+
                 case FontStyleWeight.Medium:
                     return AM.FontWeight.Medium;
+
                 case FontStyleWeight.SemiBold:
                     return AM.FontWeight.SemiBold;
+
                 case FontStyleWeight.Bold:
                     return AM.FontWeight.Bold;
+
                 case FontStyleWeight.ExtraBold:
                     return AM.FontWeight.ExtraBold;
+
                 case FontStyleWeight.Black:
                     return AM.FontWeight.Black;
+
                 case FontStyleWeight.ExtraBlack:
                     return AM.FontWeight.ExtraBlack;
             }
@@ -142,6 +157,7 @@ namespace Svg.Skia.Avalonia
                     return AM.FontStyle.Normal; // TODO:
                 case FontStyleSlant.Italic:
                     return AM.FontStyle.Italic;
+
                 case FontStyleSlant.Oblique:
                     return AM.FontStyle.Oblique;
             }
@@ -186,10 +202,13 @@ namespace Svg.Skia.Avalonia
                 default:
                 case FilterQuality.None:
                     return AVMI.BitmapInterpolationMode.Default;
+
                 case FilterQuality.Low:
                     return AVMI.BitmapInterpolationMode.LowQuality;
+
                 case FilterQuality.Medium:
                     return AVMI.BitmapInterpolationMode.MediumQuality;
+
                 case FilterQuality.High:
                     return AVMI.BitmapInterpolationMode.HighQuality;
             }
@@ -208,8 +227,10 @@ namespace Svg.Skia.Avalonia
                 default:
                 case ShaderTileMode.Clamp:
                     return AM.GradientSpreadMethod.Pad;
+
                 case ShaderTileMode.Repeat:
                     return AM.GradientSpreadMethod.Repeat;
+
                 case ShaderTileMode.Mirror:
                     return AM.GradientSpreadMethod.Reflect;
             }
@@ -290,13 +311,17 @@ namespace Svg.Skia.Avalonia
             {
                 case ColorShader colorShader:
                     return ToSolidColorBrush(colorShader);
+
                 case LinearGradientShader linearGradientShader:
                     return ToLinearGradientBrush(linearGradientShader);
+
                 case TwoPointConicalGradientShader twoPointConicalGradientShader:
                     return ToRadialGradientBrush(twoPointConicalGradientShader);
+
                 case PictureShader pictureShader:
                     // TODO:
                     return null;
+
                 default:
                     return null;
             }
@@ -369,7 +394,7 @@ namespace Svg.Skia.Avalonia
             var ft = new AM.FormattedText()
             {
                 Text = text,
-                Typeface = typeface,
+                Typeface = typeface ?? AM.Typeface.Default,
                 FontSize = fontSize,
                 TextAlignment = textAlignment,
                 TextWrapping = AM.TextWrapping.NoWrap
@@ -385,6 +410,7 @@ namespace Svg.Skia.Avalonia
                 default:
                 case PathFillType.Winding:
                     return AM.FillRule.NonZero;
+
                 case PathFillType.EvenOdd:
                     return AM.FillRule.EvenOdd;
             }
@@ -397,6 +423,7 @@ namespace Svg.Skia.Avalonia
                 default:
                 case PathDirection.Clockwise:
                     return AM.SweepDirection.Clockwise;
+
                 case PathDirection.CounterClockwise:
                     return AM.SweepDirection.CounterClockwise;
             }
@@ -459,6 +486,7 @@ namespace Svg.Skia.Avalonia
                             streamGeometryContext.BeginFigure(point, isFilled); // TODO: isFilled
                         }
                         break;
+
                     case LineToPathCommand lineToPathCommand:
                         {
                             if (endFigure == false)
@@ -472,6 +500,7 @@ namespace Svg.Skia.Avalonia
                             streamGeometryContext.LineTo(point);
                         }
                         break;
+
                     case ArcToPathCommand arcToPathCommand:
                         {
                             if (endFigure == false)
@@ -491,6 +520,7 @@ namespace Svg.Skia.Avalonia
                             streamGeometryContext.ArcTo(point, size, rotationAngle, isLargeArc, sweep);
                         }
                         break;
+
                     case QuadToPathCommand quadToPathCommand:
                         {
                             if (endFigure == false)
@@ -507,6 +537,7 @@ namespace Svg.Skia.Avalonia
                             streamGeometryContext.QuadraticBezierTo(control, endPoint);
                         }
                         break;
+
                     case CubicToPathCommand cubicToPathCommand:
                         {
                             if (endFigure == false)
@@ -526,6 +557,7 @@ namespace Svg.Skia.Avalonia
                             streamGeometryContext.CubicBezierTo(point1, point2, point3);
                         }
                         break;
+
                     case ClosePathCommand _:
                         {
                             if (endFigure == false)
@@ -541,6 +573,7 @@ namespace Svg.Skia.Avalonia
                             streamGeometryContext.EndFigure(true);
                         }
                         break;
+
                     default:
                         break;
                 }

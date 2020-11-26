@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
@@ -6,19 +7,23 @@
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
+  
   <ItemGroup>
     <PublishReadyToRunExclude Include="Microsoft.CodeAnalysis.dll" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.10.0-preview6" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.10.0-preview6" />
-    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.0-preview6" />
-  </ItemGroup>
+  
+  <Import Project="..\..\build\Avalonia.props" />
+  <Import Project="..\..\build\Avalonia.Desktop.props" />
+  <Import Project="..\..\build\Avalonia.Diagnostics.props" />
+  
   <ItemGroup>
     <AdditionalFiles Include="Assets/__tiger.svg" NamespaceName="AvaloniaSample" ClassName="Tiger" />
   </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\..\src\Svg.Skia.SourceGenerator\Svg.Skia.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="False" />
   </ItemGroup>
+  
   <Import Project="..\..\src\Svg.Skia.SourceGenerator\Svg.Skia.SourceGenerator.props" />
+  
 </Project>
