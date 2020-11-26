@@ -80,14 +80,14 @@ namespace Svg.Skia.Converter
         public bool Quiet { get; set; }
     }
 
-    class Program
+    internal class Program
     {
-        static void Log(string message)
+        private static void Log(string message)
         {
             Console.WriteLine(message);
         }
 
-        static void Error(Exception ex)
+        private static void Error(Exception ex)
         {
             Log($"{ex.Message}");
             Log($"{ex.StackTrace}");
@@ -97,7 +97,7 @@ namespace Svg.Skia.Converter
             }
         }
 
-        static void GetFiles(DirectoryInfo directory, string pattern, List<FileInfo> paths)
+        private static void GetFiles(DirectoryInfo directory, string pattern, List<FileInfo> paths)
         {
             var files = Directory.EnumerateFiles(directory.FullName, pattern);
             if (files != null)
@@ -109,7 +109,7 @@ namespace Svg.Skia.Converter
             }
         }
 
-        static bool Save(FileInfo inputPath, string outputPath, string format, int quality, string background, float scale, float scaleX, float scaleY, bool quiet, int i)
+        private static bool Save(FileInfo inputPath, string outputPath, string format, int quality, string background, float scale, float scaleX, float scaleY, bool quiet, int i)
         {
             if (quiet == false)
             {
@@ -194,7 +194,7 @@ namespace Svg.Skia.Converter
             return true;
         }
 
-        static void Run(Settings settings)
+        private static void Run(Settings settings)
         {
             var paths = new List<FileInfo>();
 
@@ -269,7 +269,11 @@ namespace Svg.Skia.Converter
                         }
                     }
 
-                    Directory.SetCurrentDirectory(Path.GetDirectoryName(inputPath.FullName));
+                    var currentDirectoryName = Path.GetDirectoryName(inputPath.FullName);
+                    if (currentDirectoryName != null)
+                    {
+                        Directory.SetCurrentDirectory(currentDirectoryName);
+                    }
 
                     if (Save(inputPath, outputPath, settings.Format, settings.Quality, settings.Background, settings.Scale, settings.ScaleX, settings.ScaleY, settings.Quiet, i))
                     {
@@ -299,7 +303,7 @@ namespace Svg.Skia.Converter
             }
         }
 
-        static async Task<int> Main(string[] args)
+        private static async Task<int> Main(string[] args)
         {
             var optionInputFiles = new Option(new[] { "--inputFiles", "-f" }, "The relative or absolute path to the input files")
             {
