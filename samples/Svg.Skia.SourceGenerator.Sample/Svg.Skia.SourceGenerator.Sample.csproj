@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <IsPackable>False</IsPackable>
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
@@ -20,13 +20,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="3.8.0-3.final" PrivateAssets="all" />
-    <PackageReference Include="Svg.Skia.Picture" Version="0.4.2-preview7" />
     <PackageReference Include="SkiaSharp" Version="2.80.2" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.80.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Svg.Skia.Picture\Svg.Skia.Picture.csproj" />
     <ProjectReference Include="..\..\src\Svg.Skia.SourceGenerator\Svg.Skia.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="False" />
   </ItemGroup>
 

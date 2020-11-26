@@ -2,9 +2,9 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <VersionPrefix>0.4.2</VersionPrefix>
-    <VersionSuffix>preview7</VersionSuffix>
+    <VersionSuffix>preview8</VersionSuffix>
     <AvaloniaVersionPrefix>0.10.0</AvaloniaVersionPrefix>
-    <AvaloniaVersionSuffix>preview7</AvaloniaVersionSuffix>
+    <AvaloniaVersionSuffix>preview8</AvaloniaVersionSuffix>
     <Authors>Wiesław Šoltés</Authors>
     <Company>Wiesław Šoltés</Company>
     <Copyright>Copyright © Wiesław Šoltés 2020</Copyright>
@@ -12,7 +12,7 @@
     <PackageIconUrl>https://raw.githubusercontent.com/wieslawsoltes/Svg.Skia/master/icon/SvgToPng.png</PackageIconUrl>
   </PropertyGroup>
   <PropertyGroup>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="SourceLink.Create.CommandLine" Version="2.8.3" PrivateAssets="All" />

@@ -2,7 +2,7 @@
 
 namespace AvaloniaSample
 {
-    class Program
+    internal class Program
     {
         public static void Main(string[] args) => BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
@@ -11,10 +11,6 @@ namespace AvaloniaSample
             => AppBuilder.Configure<App>()
                 .UsePlatformDetect()
                 .UseSkia()
-                .With(new Win32PlatformOptions()
-                {
-                    AllowEglInitialization = false
-                })
-                .LogToDebug();
+                .LogToTrace();
     }
 }
