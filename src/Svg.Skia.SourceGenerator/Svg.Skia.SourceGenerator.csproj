@@ -54,9 +54,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
-    <ProjectReference Include="..\Svg.Picture\Svg.Picture.csproj" />
-    <ProjectReference Include="..\Svg.Skia.Picture\Svg.Skia.Picture.csproj" />
+    <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Svg.Picture\Svg.Picture.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Svg.Skia.Picture\Svg.Skia.Picture.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <PropertyGroup>
