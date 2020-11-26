@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <IsPackable>False</IsPackable>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NamespaceName>Svg.Sample</NamespaceName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="Svg/__AJ_Digital_Camera.svg" NamespaceName="Svg.Generated" ClassName="Camera" />
+    <AdditionalFiles Include="Svg/__tiger.svg" NamespaceName="Svg.Generated" ClassName="Tiger" />
+    <AdditionalFiles Include="Svg/e-ellipse-001.svg" ClassName="Ellipse" />
+    <AdditionalFiles Include="Svg/e-rect-001.svg" ClassName="Rect" />
+    <AdditionalFiles Include="Svg/pservers-pattern-01-b.svg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="3.8.0-3.final" PrivateAssets="all" />
+    <PackageReference Include="Svg.Skia.Picture" Version="0.4.2-preview7" />
+    <PackageReference Include="SkiaSharp" Version="2.80.2" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.80.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Svg.Skia.SourceGenerator\Svg.Skia.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="False" />
+  </ItemGroup>
+
+  <Import Project="..\..\src\Svg.Skia.SourceGenerator\Svg.Skia.SourceGenerator.props" />
+
+</Project>
