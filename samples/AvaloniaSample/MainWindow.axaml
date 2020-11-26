@@ -10,7 +10,7 @@
     <Grid>
         <Image Name="svgSourceImage">
             <Image.Source>
-                <local:SKPictureImage Source="{x:Static local:Tiger.Picture}"/>
+                <local:SKPictureImage Source="{x:Static local:Tiger.Picture}" />
             </Image.Source>
         </Image>
     </Grid>
