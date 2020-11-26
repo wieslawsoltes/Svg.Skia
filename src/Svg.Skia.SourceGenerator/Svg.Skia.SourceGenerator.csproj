@@ -57,6 +57,9 @@
       <TargetPathWithTargetPlatformMoniker Include="$(PKGFizzler)\lib\netstandard2.0\Fizzler.dll" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(PKGSystem_Drawing_Common)\lib\netstandard2.0\System.Drawing.Common.dll" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(PKGSkiaSharp)\lib\netstandard2.0\SkiaSharp.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\Svg.Custom\bin\$(Configuration)\netstandard2.0\Svg.Custom.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\Svg.Picture\bin\$(Configuration)\netstandard2.0\Svg.Picture.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\Svg.Skia.Picture\bin\$(Configuration)\netstandard2.0\Svg.Skia.Picture.dll" IncludeRuntimeDependency="false" />
     </ItemGroup>
   </Target>
 
