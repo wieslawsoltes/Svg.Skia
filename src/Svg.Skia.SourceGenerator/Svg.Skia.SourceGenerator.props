@@ -1,0 +1,7 @@
+﻿<Project>
+  <ItemGroup>
+    <CompilerVisibleProperty Include="NamespaceName" />
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="NamespaceName" />
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="ClassName" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <IsPackable>True</IsPackable>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Description>An Svg drawing markup to C# code generator using SkiaSharp as rendering engine.</Description>
+    <PackageId>Svg.Skia.CodeGen</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>svg;skia;skiasharp;codegen;codegenerator;compiler;csharp;codegen;graphics</PackageTags>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\Base.props" />
+  <Import Project="..\..\build\SignAssembly.props" />
+  <Import Project="..\..\build\ReferenceAssemblies.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\Svg.Skia.Picture\Svg.Skia.Picture.csproj" />
+  </ItemGroup>
+
+</Project>

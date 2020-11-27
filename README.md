@@ -172,23 +172,23 @@ using (var svg = new SKSvg())
 
 ### AvaloniaUI
 
-You need to use `0.10.0-preview1` version of AvaloniaUI.
+You need to use `0.10.0-preview6` version of AvaloniaUI.
 
 #### Install Package
 
 ```
-dotnet add package Svg.Skia.Avalonia
+dotnet add package Avalonia.Svg.Skia
 ```
 
 ```
-Install-Package Svg.Skia.Avalonia
+Install-Package Avalonia.Svg.Skia
 ```
 
 #### Add namespace to XAML
 
 ```XAML
 <UseControl xmlns="https://github.com/avaloniaui"
-            xmlns:svg="clr-namespace:Svg.Skia.Avalonia;assembly=Svg.Skia.Avalonia">
+            xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Avalonia.Svg.Skia">
 ```
 
 #### Set Image.Source
@@ -247,6 +247,128 @@ Options:
 ```
 
 Supported formats: png, jpg, jpeg, webp, pdf, xps
+
+## SVG to C# Compiler
+
+### About
+
+SVGC compiles SVG drawing markup to C# using SkiaSharp as rendering engine. SVGC can be also used as codegen for upcomming C# 9 Source Generator feature.
+
+[![Demo](images/Demo.png)](images/Demo.png)
+
+### NuGet
+
+* https://www.nuget.org/packages/Svg.Skia.SourceGenerator
+* https://www.nuget.org/packages/svgc
+* https://www.nuget.org/packages/Svg.Skia.CodeGen
+
+### Source Generator Usage
+
+Add NuGet package reference to your `csproj`.
+
+```xml
+<PropertyGroup>
+  <OutputType>Exe</OutputType>
+  <TargetFramework>netcoreapp3.1</TargetFramework>
+  <LangVersion>preview</LangVersion>
+</PropertyGroup>
+```
+
+```xml
+<ItemGroup>
+  <PackageReference Include="Svg.Skia.SourceGenerator" Version="0.4.2-preview8" />
+</ItemGroup>
+```
+
+Include `svg` assests file in your `csproj`.
+
+```xml
+<ItemGroup>
+  <AdditionalFiles Include="Assets/Sample.svg" NamespaceName="Assets" ClassName="Sample" />
+</ItemGroup>
+```
+
+Use generated `SKPicture` using static `Picture` property from `Sample` class.
+
+```C#
+using SkiaSharp;
+using Assets;
+
+public void Draw(SKCanvas canvas)
+{
+    canvas.DrawPicture(Sample.Picture);
+}
+```
+
+### Avalonia Usage
+
+`csproj`
+```xml
+<ItemGroup>
+  <AdditionalFiles Include="Assets/__tiger.svg" NamespaceName="AvaloniaSample" ClassName="Tiger" />
+</ItemGroup>
+
+<ItemGroup>
+  <PackageReference Include="Svg.Skia.SourceGenerator" Version="0.4.2-preview8" />
+  <PackageReference Include="Avalonia.SKPictureImage" Version="0.4.2-preview8" />
+</ItemGroup>
+```
+```
+
+`xaml`
+```xaml
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AvaloniaSample;assembly=AvaloniaSample"
+        xmlns:skp="clr-namespace:Avalonia.SKPictureImage;assembly=Avalonia.SKPictureImage"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        Width="900" Height="650" WindowStartupLocation="CenterScreen"
+        x:Class="AvaloniaSample.MainWindow"
+        Title="AvaloniaSample">
+    <Window.Resources>
+        <skp:SKPictureImage x:Key="TigeImage" Source="{x:Static local:Tiger.Picture}" />
+    </Window.Resources>
+    <Grid>
+        <Image Source="{StaticResource TigeImage}" />
+    </Grid>
+</Window>
+```
+
+### svgc Usage
+
+```
+svgc:
+  Converts a svg file to a C# code.
+
+Usage:
+  svgc [options]
+
+Options:
+  -i, --inputFile <inputfile>      The relative or absolute path to the input file [default: ]
+  -o, --outputFile <outputfile>    The relative or absolute path to the output file [default: ]
+  -j, --jsonFile <jsonfile>        The relative or absolute path to the json file [default: ]
+  -n, --namespace <namespace>      The generated C# namespace name [default: Svg]
+  -c, --class <class>              The generated C# class name [default: Generated]
+  --version                        Show version information
+  -?, -h, --help                   Show help and usage information
+```
+
+Json File Format
+```json
+[
+    { "InputFile":"file1.svg", "OutputFile":"file1.svg.cs", "Class":"ClassName1", "Namespace":"NamespaceName" },
+    { "InputFile":"file2.svg", "OutputFile":"file2.svg.cs", "Class":"ClassName2", "Namespace":"NamespaceName" }
+]
+```
+
+### Links
+
+* [Source Generators Cookbook](https://github.com/dotnet/roslyn/blob/master/docs/features/source-generators.cookbook.md)
+* [Source Generators](https://github.com/dotnet/roslyn/blob/master/docs/features/source-generators.md)
+* [Source Generators Samples](https://github.com/dotnet/roslyn-sdk/tree/master/samples/CSharp/SourceGenerators)
+* [Introducing C# Source Generators](https://devblogs.microsoft.com/dotnet/introducing-c-source-generators/)
 
 ## Build
 

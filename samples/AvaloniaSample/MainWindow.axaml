@@ -1,0 +1,17 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AvaloniaSample;assembly=AvaloniaSample"
+        xmlns:skp="clr-namespace:Avalonia.SKPictureImage;assembly=Avalonia.SKPictureImage"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        Width="900" Height="650" WindowStartupLocation="CenterScreen"
+        x:Class="AvaloniaSample.MainWindow"
+        Title="AvaloniaSample">
+    <Window.Resources>
+        <skp:SKPictureImage x:Key="TigerImage" Source="{x:Static local:Tiger.Picture}" />
+    </Window.Resources>
+    <Grid>
+        <Image Source="{StaticResource TigerImage}" />
+    </Grid>
+</Window>

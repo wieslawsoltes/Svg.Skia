@@ -2,31 +2,26 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <LangVersion>8.0</LangVersion>
+    <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
     <IsPackable>False</IsPackable>
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Update="**\*.xaml.cs">
-      <DependentUpon>%(Filename)</DependentUpon>
-    </Compile>
-    <AvaloniaResource Include="**\*.xaml">
-      <SubType>Designer</SubType>
-    </AvaloniaResource>
     <AvaloniaResource Include="Assets\*" />
   </ItemGroup>
 
   <Import Project="..\..\build\Avalonia.props" />
   <Import Project="..\..\build\Avalonia.Desktop.props" />
+  <Import Project="..\..\build\Avalonia.Diagnostics.props" />
 
   <PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_PICTURE</DefineConstants>
+    <!--<DefineConstants>$(DefineConstants);USE_PICTURE</DefineConstants>-->
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Svg.Skia.Avalonia\Svg.Skia.Avalonia.csproj" />
+    <ProjectReference Include="..\..\src\Avalonia.Svg.Skia\Avalonia.Svg.Skia.csproj" />
   </ItemGroup>
 
 </Project>
