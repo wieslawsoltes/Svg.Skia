@@ -5,9 +5,6 @@
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <IsPackable>True</IsPackable>
     <IsTool>True</IsTool>
     <PackAsTool>True</PackAsTool>
@@ -15,14 +12,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <VersionPrefix>0.1.0</VersionPrefix>
-    <VersionSuffix>preview6</VersionSuffix>
-    <Authors>Wiesław Šoltés</Authors>
-    <Company>Wiesław Šoltés</Company>
-    <Copyright>Copyright © Wiesław Šoltés 2020</Copyright>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/wieslawsoltes/Svg.Skia</PackageProjectUrl>
     <Description>An Svg drawing markup to C# code generator using SkiaSharp as rendering engine.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageId>svgc</PackageId>
     <PackageTags>svg;skia;skiasharp;codegen;codegenerator;compiler;csharp;codegen;graphics</PackageTags>
   </PropertyGroup>
@@ -34,12 +25,16 @@
   <ItemGroup>
     <Compile Include="..\..\src\Svg.Skia.CodeGen\SkiaCodeGen.cs" Link="SkiaCodeGen.cs" />
   </ItemGroup>
-
+  
+  <Import Project="..\..\build\Base.props" />
+  <Import Project="..\..\build\SignAssembly.props" />
+  <Import Project="..\..\build\ReferenceAssemblies.props" />
+  <Import Project="..\..\build\SkiaSharp.props" />
+  <Import Project="..\..\build\SkiaSharp.Linux.props" />
+  
   <ItemGroup>
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20371.2" />
     <PackageReference Include="System.Text.Json" Version="4.7.2" />
-    <PackageReference Include="SkiaSharp" Version="2.80.2" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.80.2" />
   </ItemGroup>
 
   <ItemGroup>
