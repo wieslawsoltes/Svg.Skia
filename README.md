@@ -177,18 +177,18 @@ You need to use `0.10.0-preview1` version of AvaloniaUI.
 #### Install Package
 
 ```
-dotnet add package Svg.Skia.Avalonia
+dotnet add package Avalonia.Svg.Skia
 ```
 
 ```
-Install-Package Svg.Skia.Avalonia
+Install-Package Avalonia.Svg.Skia
 ```
 
 #### Add namespace to XAML
 
 ```XAML
 <UseControl xmlns="https://github.com/avaloniaui"
-            xmlns:svg="clr-namespace:Svg.Skia.Avalonia;assembly=Svg.Skia.Avalonia">
+            xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Avalonia.Svg.Skia">
 ```
 
 #### Set Image.Source

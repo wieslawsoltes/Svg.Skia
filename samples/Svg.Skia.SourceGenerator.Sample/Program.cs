@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using SkiaSharp;
+
 //using Svg;
 using Svg.Generated;
 using Svg.Sample;
@@ -9,9 +10,9 @@ using Svg.Skia;
 
 namespace Svg.Skia.SourceGenerator.Sample
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Console.WriteLine($"Generated class {typeof(Camera)} from Svg file.");
             Console.WriteLine($"Generated class {typeof(Tiger)} from Svg file.");

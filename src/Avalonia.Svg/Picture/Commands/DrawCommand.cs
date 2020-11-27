@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Svg.Skia.Avalonia
+namespace Avalonia.Svg.Skia
 {
     public abstract class DrawCommand : IDisposable
     {

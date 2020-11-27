@@ -17,9 +17,9 @@
 
   <PropertyGroup>
     <Description>An SVG image control for Avalonia.</Description>
-    <PackageId>Svg.Skia.Avalonia</PackageId>
+    <PackageId>Avalonia.Svg</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;control;avalonia;avaloniaui</PackageTags>
+    <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;control;avalonia;avaloniaui</PackageTags>
   </PropertyGroup>
 
   <Import Project="..\..\build\Base.props" />

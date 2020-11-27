@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using Svg.Picture;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AMI = Avalonia.Media.Imaging;
 using AVMI = Avalonia.Visuals.Media.Imaging;
+using SP = Svg.Picture;
 
-namespace Svg.Skia.Avalonia
+namespace Avalonia.Svg.Skia
 {
     public static class AvaloniaModelExtensions
     {
-        public static A.Point ToPoint(this Point point)
+        public static A.Point ToPoint(this SP.Point point)
         {
             return new A.Point(point.X, point.Y);
         }
 
-        public static A.Point[] ToPoints(this IList<Point> points)
+        public static A.Point[] ToPoints(this IList<SP.Point> points)
         {
             var skPoints = new A.Point[points.Count];
 
@@ -27,17 +27,17 @@ namespace Svg.Skia.Avalonia
             return skPoints;
         }
 
-        public static A.Size ToSKSize(this Size size)
+        public static A.Size ToSKSize(this SP.Size size)
         {
             return new A.Size(size.Width, size.Height);
         }
 
-        public static A.Rect ToSKRect(this Rect rect)
+        public static A.Rect ToSKRect(this SP.Rect rect)
         {
             return new A.Rect(rect.Left, rect.Top, rect.Width, rect.Height);
         }
 
-        public static A.Matrix ToMatrix(this Matrix matrix)
+        public static A.Matrix ToMatrix(this SP.Matrix matrix)
         {
             return new A.Matrix(
                 matrix.ScaleX,
@@ -51,7 +51,7 @@ namespace Svg.Skia.Avalonia
             // TODO: matrix.Persp2
         }
 
-        public static AMI.Bitmap? ToBitmap(this Image image)
+        public static AMI.Bitmap? ToBitmap(this SP.Image image)
         {
             if (image.Data == null)
             {
@@ -61,109 +61,109 @@ namespace Svg.Skia.Avalonia
             return new AMI.Bitmap(memoryStream);
         }
 
-        public static AM.PenLineCap ToPenLineCap(this StrokeCap strokeCap)
+        public static AM.PenLineCap ToPenLineCap(this SP.StrokeCap strokeCap)
         {
             switch (strokeCap)
             {
                 default:
-                case StrokeCap.Butt:
+                case SP.StrokeCap.Butt:
                     return AM.PenLineCap.Flat;
 
-                case StrokeCap.Round:
+                case SP.StrokeCap.Round:
                     return AM.PenLineCap.Round;
 
-                case StrokeCap.Square:
+                case SP.StrokeCap.Square:
                     return AM.PenLineCap.Square;
             }
         }
 
-        public static AM.PenLineJoin ToPenLineJoin(this StrokeJoin strokeJoin)
+        public static AM.PenLineJoin ToPenLineJoin(this SP.StrokeJoin strokeJoin)
         {
             switch (strokeJoin)
             {
                 default:
-                case StrokeJoin.Miter:
+                case SP.StrokeJoin.Miter:
                     return AM.PenLineJoin.Miter;
 
-                case StrokeJoin.Round:
+                case SP.StrokeJoin.Round:
                     return AM.PenLineJoin.Round;
 
-                case StrokeJoin.Bevel:
+                case SP.StrokeJoin.Bevel:
                     return AM.PenLineJoin.Bevel;
             }
         }
 
-        public static AM.TextAlignment ToTextAlignment(this TextAlign textAlign)
+        public static AM.TextAlignment ToTextAlignment(this SP.TextAlign textAlign)
         {
             switch (textAlign)
             {
                 default:
-                case TextAlign.Left:
+                case SP.TextAlign.Left:
                     return AM.TextAlignment.Left;
 
-                case TextAlign.Center:
+                case SP.TextAlign.Center:
                     return AM.TextAlignment.Center;
 
-                case TextAlign.Right:
+                case SP.TextAlign.Right:
                     return AM.TextAlignment.Right;
             }
         }
 
-        public static AM.FontWeight ToFontWeight(this FontStyleWeight fontStyleWeight)
+        public static AM.FontWeight ToFontWeight(this SP.FontStyleWeight fontStyleWeight)
         {
             switch (fontStyleWeight)
             {
                 default:
-                case FontStyleWeight.Invisible:
+                case SP.FontStyleWeight.Invisible:
                     throw new NotSupportedException(); // TODO:
-                case FontStyleWeight.Thin:
+                case SP.FontStyleWeight.Thin:
                     return AM.FontWeight.Thin;
 
-                case FontStyleWeight.ExtraLight:
+                case SP.FontStyleWeight.ExtraLight:
                     return AM.FontWeight.ExtraLight;
 
-                case FontStyleWeight.Light:
+                case SP.FontStyleWeight.Light:
                     return AM.FontWeight.Light;
 
-                case FontStyleWeight.Normal:
+                case SP.FontStyleWeight.Normal:
                     return AM.FontWeight.Normal;
 
-                case FontStyleWeight.Medium:
+                case SP.FontStyleWeight.Medium:
                     return AM.FontWeight.Medium;
 
-                case FontStyleWeight.SemiBold:
+                case SP.FontStyleWeight.SemiBold:
                     return AM.FontWeight.SemiBold;
 
-                case FontStyleWeight.Bold:
+                case SP.FontStyleWeight.Bold:
                     return AM.FontWeight.Bold;
 
-                case FontStyleWeight.ExtraBold:
+                case SP.FontStyleWeight.ExtraBold:
                     return AM.FontWeight.ExtraBold;
 
-                case FontStyleWeight.Black:
+                case SP.FontStyleWeight.Black:
                     return AM.FontWeight.Black;
 
-                case FontStyleWeight.ExtraBlack:
+                case SP.FontStyleWeight.ExtraBlack:
                     return AM.FontWeight.ExtraBlack;
             }
         }
 
-        public static AM.FontStyle ToFontStyle(this FontStyleSlant fontStyleSlant)
+        public static AM.FontStyle ToFontStyle(this SP.FontStyleSlant fontStyleSlant)
         {
             switch (fontStyleSlant)
             {
                 default:
-                case FontStyleSlant.Upright:
+                case SP.FontStyleSlant.Upright:
                     return AM.FontStyle.Normal; // TODO:
-                case FontStyleSlant.Italic:
+                case SP.FontStyleSlant.Italic:
                     return AM.FontStyle.Italic;
 
-                case FontStyleSlant.Oblique:
+                case SP.FontStyleSlant.Oblique:
                     return AM.FontStyle.Oblique;
             }
         }
 
-        public static AM.Typeface? ToTypeface(this Typeface? typeface)
+        public static AM.Typeface? ToTypeface(this SP.Typeface? typeface)
         {
             if (typeface == null)
             {
@@ -178,12 +178,12 @@ namespace Svg.Skia.Avalonia
             return new AM.Typeface(familyName, slant, weight);
         }
 
-        public static AM.Color ToColor(this Color color)
+        public static AM.Color ToColor(this SP.Color color)
         {
             return new AM.Color(color.Alpha, color.Red, color.Green, color.Blue);
         }
 
-        public static AM.Color[] ToSKColors(this Color[] colors)
+        public static AM.Color[] ToSKColors(this SP.Color[] colors)
         {
             var skColors = new AM.Color[colors.Length];
 
@@ -195,48 +195,48 @@ namespace Svg.Skia.Avalonia
             return skColors;
         }
 
-        public static AVMI.BitmapInterpolationMode ToBitmapInterpolationMode(this FilterQuality filterQuality)
+        public static AVMI.BitmapInterpolationMode ToBitmapInterpolationMode(this SP.FilterQuality filterQuality)
         {
             switch (filterQuality)
             {
                 default:
-                case FilterQuality.None:
+                case SP.FilterQuality.None:
                     return AVMI.BitmapInterpolationMode.Default;
 
-                case FilterQuality.Low:
+                case SP.FilterQuality.Low:
                     return AVMI.BitmapInterpolationMode.LowQuality;
 
-                case FilterQuality.Medium:
+                case SP.FilterQuality.Medium:
                     return AVMI.BitmapInterpolationMode.MediumQuality;
 
-                case FilterQuality.High:
+                case SP.FilterQuality.High:
                     return AVMI.BitmapInterpolationMode.HighQuality;
             }
         }
 
-        private static AM.SolidColorBrush ToSolidColorBrush(this ColorShader colorShader)
+        private static AM.SolidColorBrush ToSolidColorBrush(this SP.ColorShader colorShader)
         {
             var color = colorShader.Color.ToColor();
             return new AM.SolidColorBrush(color);
         }
 
-        public static AM.GradientSpreadMethod ToGradientSpreadMethod(this ShaderTileMode shaderTileMode)
+        public static AM.GradientSpreadMethod ToGradientSpreadMethod(this SP.ShaderTileMode shaderTileMode)
         {
             switch (shaderTileMode)
             {
                 default:
-                case ShaderTileMode.Clamp:
+                case SP.ShaderTileMode.Clamp:
                     return AM.GradientSpreadMethod.Pad;
 
-                case ShaderTileMode.Repeat:
+                case SP.ShaderTileMode.Repeat:
                     return AM.GradientSpreadMethod.Repeat;
 
-                case ShaderTileMode.Mirror:
+                case SP.ShaderTileMode.Mirror:
                     return AM.GradientSpreadMethod.Reflect;
             }
         }
 
-        public static AM.IBrush? ToLinearGradientBrush(this LinearGradientShader linearGradientShader)
+        public static AM.IBrush? ToLinearGradientBrush(this SP.LinearGradientShader linearGradientShader)
         {
             if (linearGradientShader.Colors != null && linearGradientShader.ColorPos != null)
             {
@@ -269,7 +269,7 @@ namespace Svg.Skia.Avalonia
             return null;
         }
 
-        public static AM.IBrush? ToRadialGradientBrush(this TwoPointConicalGradientShader twoPointConicalGradientShader)
+        public static AM.IBrush? ToRadialGradientBrush(this SP.TwoPointConicalGradientShader twoPointConicalGradientShader)
         {
             if (twoPointConicalGradientShader.Colors != null && twoPointConicalGradientShader.ColorPos != null)
             {
@@ -305,20 +305,20 @@ namespace Svg.Skia.Avalonia
             return null;
         }
 
-        public static AM.IBrush? ToBrush(this Shader? shader)
+        public static AM.IBrush? ToBrush(this SP.Shader? shader)
         {
             switch (shader)
             {
-                case ColorShader colorShader:
+                case SP.ColorShader colorShader:
                     return ToSolidColorBrush(colorShader);
 
-                case LinearGradientShader linearGradientShader:
+                case SP.LinearGradientShader linearGradientShader:
                     return ToLinearGradientBrush(linearGradientShader);
 
-                case TwoPointConicalGradientShader twoPointConicalGradientShader:
+                case SP.TwoPointConicalGradientShader twoPointConicalGradientShader:
                     return ToRadialGradientBrush(twoPointConicalGradientShader);
 
-                case PictureShader pictureShader:
+                case SP.PictureShader pictureShader:
                     // TODO:
                     return null;
 
@@ -327,14 +327,14 @@ namespace Svg.Skia.Avalonia
             }
         }
 
-        private static AM.IPen ToPen(this Paint paint)
+        private static AM.IPen ToPen(this SP.Paint paint)
         {
             var brush = ToBrush(paint.Shader);
             var lineCap = paint.StrokeCap.ToPenLineCap();
             var lineJoin = paint.StrokeJoin.ToPenLineJoin();
 
             var dashStyle = default(AM.IDashStyle);
-            if (paint.PathEffect is DashPathEffect dashPathEffect && dashPathEffect.Intervals != null)
+            if (paint.PathEffect is SP.DashPathEffect dashPathEffect && dashPathEffect.Intervals != null)
             {
                 var dashes = new List<double>();
                 foreach (var interval in dashPathEffect.Intervals)
@@ -356,17 +356,17 @@ namespace Svg.Skia.Avalonia
             };
         }
 
-        public static (AM.IBrush? brush, AM.IPen? pen) ToBrushAndPen(this Paint paint)
+        public static (AM.IBrush? brush, AM.IPen? pen) ToBrushAndPen(this SP.Paint paint)
         {
             AM.IBrush? brush = null;
             AM.IPen? pen = null;
 
-            if (paint.Style == PaintStyle.Fill || paint.Style == PaintStyle.StrokeAndFill)
+            if (paint.Style == SP.PaintStyle.Fill || paint.Style == SP.PaintStyle.StrokeAndFill)
             {
                 brush = ToBrush(paint.Shader);
             }
 
-            if (paint.Style == PaintStyle.Stroke || paint.Style == PaintStyle.StrokeAndFill)
+            if (paint.Style == SP.PaintStyle.Stroke || paint.Style == SP.PaintStyle.StrokeAndFill)
             {
                 pen = ToPen(paint);
             }
@@ -382,7 +382,7 @@ namespace Svg.Skia.Avalonia
             return (brush, pen);
         }
 
-        public static AM.FormattedText ToFormattedText(this Paint paint, string text)
+        public static AM.FormattedText ToFormattedText(this SP.Paint paint, string text)
         {
             var typeface = paint.Typeface?.ToTypeface();
             var textAlignment = paint.TextAlign.ToTextAlignment();
@@ -403,33 +403,33 @@ namespace Svg.Skia.Avalonia
             return ft;
         }
 
-        public static AM.FillRule ToSKPathFillType(this PathFillType pathFillType)
+        public static AM.FillRule ToSKPathFillType(this SP.PathFillType pathFillType)
         {
             switch (pathFillType)
             {
                 default:
-                case PathFillType.Winding:
+                case SP.PathFillType.Winding:
                     return AM.FillRule.NonZero;
 
-                case PathFillType.EvenOdd:
+                case SP.PathFillType.EvenOdd:
                     return AM.FillRule.EvenOdd;
             }
         }
 
-        public static AM.SweepDirection ToSweepDirection(this PathDirection pathDirection)
+        public static AM.SweepDirection ToSweepDirection(this SP.PathDirection pathDirection)
         {
             switch (pathDirection)
             {
                 default:
-                case PathDirection.Clockwise:
+                case SP.PathDirection.Clockwise:
                     return AM.SweepDirection.Clockwise;
 
-                case PathDirection.CounterClockwise:
+                case SP.PathDirection.CounterClockwise:
                     return AM.SweepDirection.CounterClockwise;
             }
         }
 
-        public static AM.Geometry? ToGeometry(this Path path, bool isFilled)
+        public static AM.Geometry? ToGeometry(this SP.Path path, bool isFilled)
         {
             if (path.Commands == null)
             {
@@ -452,7 +452,7 @@ namespace Svg.Skia.Avalonia
 
                 switch (pathCommand)
                 {
-                    case MoveToPathCommand moveToPathCommand:
+                    case SP.MoveToPathCommand moveToPathCommand:
                         {
                             if (endFigure == true && haveFigure == false)
                             {
@@ -468,12 +468,12 @@ namespace Svg.Skia.Avalonia
                             }
                             else
                             {
-                                if (path.Commands[i + 1] is MoveToPathCommand)
+                                if (path.Commands[i + 1] is SP.MoveToPathCommand)
                                 {
                                     return streamGeometry;
                                 }
 
-                                if (path.Commands[i + 1] is ClosePathCommand)
+                                if (path.Commands[i + 1] is SP.ClosePathCommand)
                                 {
                                     return streamGeometry;
                                 }
@@ -487,7 +487,7 @@ namespace Svg.Skia.Avalonia
                         }
                         break;
 
-                    case LineToPathCommand lineToPathCommand:
+                    case SP.LineToPathCommand lineToPathCommand:
                         {
                             if (endFigure == false)
                             {
@@ -501,7 +501,7 @@ namespace Svg.Skia.Avalonia
                         }
                         break;
 
-                    case ArcToPathCommand arcToPathCommand:
+                    case SP.ArcToPathCommand arcToPathCommand:
                         {
                             if (endFigure == false)
                             {
@@ -515,13 +515,13 @@ namespace Svg.Skia.Avalonia
                             var ry = arcToPathCommand.Ry;
                             var size = new A.Size(rx, ry);
                             var rotationAngle = arcToPathCommand.XAxisRotate;
-                            var isLargeArc = arcToPathCommand.LargeArc == PathArcSize.Large;
+                            var isLargeArc = arcToPathCommand.LargeArc == SP.PathArcSize.Large;
                             var sweep = arcToPathCommand.Sweep.ToSweepDirection();
                             streamGeometryContext.ArcTo(point, size, rotationAngle, isLargeArc, sweep);
                         }
                         break;
 
-                    case QuadToPathCommand quadToPathCommand:
+                    case SP.QuadToPathCommand quadToPathCommand:
                         {
                             if (endFigure == false)
                             {
@@ -538,7 +538,7 @@ namespace Svg.Skia.Avalonia
                         }
                         break;
 
-                    case CubicToPathCommand cubicToPathCommand:
+                    case SP.CubicToPathCommand cubicToPathCommand:
                         {
                             if (endFigure == false)
                             {
@@ -558,7 +558,7 @@ namespace Svg.Skia.Avalonia
                         }
                         break;
 
-                    case ClosePathCommand _:
+                    case SP.ClosePathCommand _:
                         {
                             if (endFigure == false)
                             {
@@ -591,7 +591,7 @@ namespace Svg.Skia.Avalonia
             return streamGeometry;
         }
 
-        public static AM.Geometry? ToGeometry(this ClipPath clipPath, bool isFilled)
+        public static AM.Geometry? ToGeometry(this SP.ClipPath clipPath, bool isFilled)
         {
             return null; // TODO:
         }

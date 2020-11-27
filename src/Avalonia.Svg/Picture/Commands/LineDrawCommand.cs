@@ -1,7 +1,7 @@
 ﻿using A = Avalonia;
 using AM = Avalonia.Media;
 
-namespace Svg.Skia.Avalonia
+namespace Avalonia.Svg.Skia
 {
     public sealed class LineDrawCommand : DrawCommand
     {

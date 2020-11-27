@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:svg="clr-namespace:Svg.Skia.Avalonia;assembly=Svg.Skia.Avalonia"
+        xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Avalonia.Svg.Skia"
         mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
         x:Class="AvaloniaSgvImage.MainWindow"
         Width="900" Height="600" WindowStartupLocation="CenterScreen"
@@ -10,14 +10,14 @@
         Title="Avalonia SgvImage">
     <Window.Styles>
         <Style Selector="TextBlock.h1">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeLarge}"/>
-            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeLarge}" />
+            <Setter Property="FontWeight" Value="Medium" />
         </Style>
         <Style Selector="TextBlock.h2">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
         </Style>
         <Style Selector="TextBlock.h3">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeSmall}"/>
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeSmall}" />
         </Style>
     </Window.Styles>
     <DockPanel Margin="2">
@@ -36,13 +36,13 @@
                 </ComboBox>
                 <Image Name="svgSourceImage">
                     <Image.Source>
-                        <svg:SvgImage Source="/Assets/__AJ_Digital_Camera.svg"/>
+                        <svg:SvgImage Source="/Assets/__AJ_Digital_Camera.svg" />
                     </Image.Source>
                 </Image>
             </DockPanel>
             <DockPanel x:Name="svgResourceDockPanel" Background="Transparent" Grid.Column="1" Grid.Row="1" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" DragDrop.AllowDrop="True">
                 <DockPanel.Resources>
-                    <svg:SvgImage x:Key="__tiger" Source="/Assets/__tiger.svg"/>
+                    <svg:SvgImage x:Key="__tiger" Source="/Assets/__tiger.svg" />
                 </DockPanel.Resources>
                 <TextBlock DockPanel.Dock="Top" Classes="h3" Margin="0 8">Svg (Resources)</TextBlock>
                 <ComboBox Name="svgReourceStretch" DockPanel.Dock="Top" SelectedIndex="2" SelectionChanged="SvgResourceStretchChanged">
@@ -51,7 +51,7 @@
                     <ComboBoxItem>Uniform</ComboBoxItem>
                     <ComboBoxItem>UniformToFill</ComboBoxItem>
                 </ComboBox>
-                <Image Name="svgResourceImage" Source="{DynamicResource __tiger}"/>
+                <Image Name="svgResourceImage" Source="{DynamicResource __tiger}" />
             </DockPanel>
         </Grid>
     </DockPanel>

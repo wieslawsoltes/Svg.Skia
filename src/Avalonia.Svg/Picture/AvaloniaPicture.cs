@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using Svg.Picture;
+using SP = Svg.Picture;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AVMI = Avalonia.Visuals.Media.Imaging;
 
-namespace Svg.Skia.Avalonia
+namespace Avalonia.Svg.Skia
 {
     public sealed class AvaloniaPicture : IDisposable
     {
@@ -18,7 +18,7 @@ namespace Svg.Skia.Avalonia
             _commands = new List<DrawCommand>();
         }
 
-        private static void Record(CanvasCommand canvasCommand, AvaloniaPicture avaloniaPicture)
+        private static void Record(SP.CanvasCommand canvasCommand, AvaloniaPicture avaloniaPicture)
         {
             if (avaloniaPicture == null || avaloniaPicture._commands == null)
             {
@@ -27,7 +27,7 @@ namespace Svg.Skia.Avalonia
 
             switch (canvasCommand)
             {
-                case ClipPathCanvasCommand clipPathCanvasCommand:
+                case SP.ClipPathCanvasCommand clipPathCanvasCommand:
                     {
                         var path = clipPathCanvasCommand.ClipPath.ToGeometry(false);
                         if (path != null)
@@ -38,7 +38,8 @@ namespace Svg.Skia.Avalonia
                         }
                     }
                     break;
-                case ClipRectCanvasCommand clipRectCanvasCommand:
+
+                case SP.ClipRectCanvasCommand clipRectCanvasCommand:
                     {
                         var rect = clipRectCanvasCommand.Rect.ToSKRect();
                         // TODO: clipRectCanvasCommand.Operation;
@@ -46,31 +47,36 @@ namespace Svg.Skia.Avalonia
                         avaloniaPicture._commands.Add(new ClipDrawCommand(rect));
                     }
                     break;
-                case SaveCanvasCommand _:
+
+                case SP.SaveCanvasCommand _:
                     {
                         // TODO:
                         avaloniaPicture._commands.Add(new SaveDrawCommand());
                     }
                     break;
-                case RestoreCanvasCommand _:
+
+                case SP.RestoreCanvasCommand _:
                     {
                         // TODO:
                         avaloniaPicture._commands.Add(new RestoreDrawCommand());
                     }
                     break;
-                case SetMatrixCanvasCommand setMatrixCanvasCommand:
+
+                case SP.SetMatrixCanvasCommand setMatrixCanvasCommand:
                     {
                         var matrix = setMatrixCanvasCommand.Matrix.ToMatrix();
                         avaloniaPicture._commands.Add(new SetTransformDrawCommand(matrix));
                     }
                     break;
-                case SaveLayerCanvasCommand saveLayerCanvasCommand:
+
+                case SP.SaveLayerCanvasCommand saveLayerCanvasCommand:
                     {
                         // TODO:
                         avaloniaPicture._commands.Add(new SaveLayerDrawCommand());
                     }
                     break;
-                case DrawImageCanvasCommand drawImageCanvasCommand:
+
+                case SP.DrawImageCanvasCommand drawImageCanvasCommand:
                     {
                         if (drawImageCanvasCommand.Image != null)
                         {
@@ -85,7 +91,8 @@ namespace Svg.Skia.Avalonia
                         }
                     }
                     break;
-                case DrawPathCanvasCommand drawPathCanvasCommand:
+
+                case SP.DrawPathCanvasCommand drawPathCanvasCommand:
                     {
                         if (drawPathCanvasCommand.Path != null && drawPathCanvasCommand.Paint != null)
                         {
@@ -98,14 +105,15 @@ namespace Svg.Skia.Avalonia
 
                                 switch (pathCommand)
                                 {
-                                    case AddRectPathCommand addRectPathCommand:
+                                    case SP.AddRectPathCommand addRectPathCommand:
                                         {
                                             var rect = addRectPathCommand.Rect.ToSKRect();
                                             avaloniaPicture._commands.Add(new RectangleDrawCommand(brush, pen, rect, 0, 0));
                                             success = true;
                                         }
                                         break;
-                                    case AddRoundRectPathCommand addRoundRectPathCommand:
+
+                                    case SP.AddRoundRectPathCommand addRoundRectPathCommand:
                                         {
                                             var rect = addRoundRectPathCommand.Rect.ToSKRect();
                                             var rx = addRoundRectPathCommand.Rx;
@@ -114,7 +122,8 @@ namespace Svg.Skia.Avalonia
                                             success = true;
                                         }
                                         break;
-                                    case AddOvalPathCommand addOvalPathCommand:
+
+                                    case SP.AddOvalPathCommand addOvalPathCommand:
                                         {
                                             var rect = addOvalPathCommand.Rect.ToSKRect();
                                             var ellipseGeometry = new AM.EllipseGeometry(rect);
@@ -122,7 +131,8 @@ namespace Svg.Skia.Avalonia
                                             success = true;
                                         }
                                         break;
-                                    case AddCirclePathCommand addCirclePathCommand:
+
+                                    case SP.AddCirclePathCommand addCirclePathCommand:
                                         {
                                             var x = addCirclePathCommand.X;
                                             var y = addCirclePathCommand.Y;
@@ -133,7 +143,8 @@ namespace Svg.Skia.Avalonia
                                             success = true;
                                         }
                                         break;
-                                    case AddPolyPathCommand addPolyPathCommand:
+
+                                    case SP.AddPolyPathCommand addPolyPathCommand:
                                         {
                                             if (addPolyPathCommand.Points != null)
                                             {
@@ -158,7 +169,7 @@ namespace Svg.Skia.Avalonia
                                 var pathCommand1 = drawPathCanvasCommand.Path.Commands[0];
                                 var pathCommand2 = drawPathCanvasCommand.Path.Commands[1];
 
-                                if (pathCommand1 is MoveToPathCommand moveTo && pathCommand2 is LineToPathCommand lineTo)
+                                if (pathCommand1 is SP.MoveToPathCommand moveTo && pathCommand2 is SP.LineToPathCommand lineTo)
                                 {
                                     var p1 = new A.Point(moveTo.X, moveTo.Y);
                                     var p2 = new A.Point(lineTo.X, lineTo.Y);
@@ -175,12 +186,14 @@ namespace Svg.Skia.Avalonia
                         }
                     }
                     break;
-                case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:
+
+                case SP.DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:
                     {
                         // TODO:
                     }
                     break;
-                case DrawTextCanvasCommand drawTextCanvasCommand:
+
+                case SP.DrawTextCanvasCommand drawTextCanvasCommand:
                     {
                         if (drawTextCanvasCommand.Paint != null)
                         {
@@ -193,17 +206,19 @@ namespace Svg.Skia.Avalonia
                         }
                     }
                     break;
-                case DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand:
+
+                case SP.DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand:
                     {
                         // TODO:
                     }
                     break;
+
                 default:
                     break;
             }
         }
 
-        public static AvaloniaPicture Record(Svg.Picture.Picture picture)
+        public static AvaloniaPicture Record(SP.Picture picture)
         {
             var avaloniaPicture = new AvaloniaPicture();
 
@@ -231,6 +246,7 @@ namespace Svg.Skia.Avalonia
                         currentPushedStates.Push(geometryPushedState);
                     }
                     break;
+
                 case ClipDrawCommand clipDrawCommand:
                     {
                         var clipPushedState = context.PushClip(clipDrawCommand.Clip);
@@ -238,11 +254,13 @@ namespace Svg.Skia.Avalonia
                         currentPushedStates.Push(clipPushedState);
                     }
                     break;
+
                 case SaveDrawCommand _:
                     {
                         pushedStates.Push(new Stack<IDisposable>());
                     }
                     break;
+
                 case RestoreDrawCommand _:
                     {
                         var currentPushedStates = pushedStates.Pop();
@@ -253,6 +271,7 @@ namespace Svg.Skia.Avalonia
                         }
                     }
                     break;
+
                 case SetTransformDrawCommand setTransformDrawCommand:
                     {
                         var transformPreTransform = context.PushSetTransform(setTransformDrawCommand.Matrix);
@@ -260,11 +279,13 @@ namespace Svg.Skia.Avalonia
                         currentPushedStates.Push(transformPreTransform);
                     }
                     break;
+
                 case SaveLayerDrawCommand saveLayerDrawCommand:
                     {
                         pushedStates.Push(new Stack<IDisposable>());
                     }
                     break;
+
                 case ImageDrawCommand imageDrawCommand:
                     {
                         context.DrawImage(
@@ -274,6 +295,7 @@ namespace Svg.Skia.Avalonia
                             imageDrawCommand.BitmapInterpolationMode);
                     }
                     break;
+
                 case GeometryDrawCommand geometryDrawCommand:
                     {
                         context.DrawGeometry(
@@ -282,6 +304,7 @@ namespace Svg.Skia.Avalonia
                             geometryDrawCommand.Geometry);
                     }
                     break;
+
                 case LineDrawCommand lineDrawCommand:
                     {
                         context.DrawLine(
@@ -290,6 +313,7 @@ namespace Svg.Skia.Avalonia
                             lineDrawCommand.P2);
                     }
                     break;
+
                 case RectangleDrawCommand rectangleDrawCommand:
                     {
                         context.DrawRectangle(
@@ -300,6 +324,7 @@ namespace Svg.Skia.Avalonia
                             rectangleDrawCommand.RadiusY);
                     }
                     break;
+
                 case TextDrawCommand textDrawCommand:
                     {
                         context.DrawText(

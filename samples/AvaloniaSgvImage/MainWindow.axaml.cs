@@ -4,8 +4,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using Svg.Skia;
-using Svg.Skia.Avalonia;
+using SS = Svg.Skia;
+using Avalonia.Svg.Skia;
 
 namespace AvaloniaSgvImage
 {
@@ -79,10 +79,10 @@ namespace AvaloniaSgvImage
                     {
                         var svg = new SvgSource();
 #if USE_PICTURE
-                        var document = SKSvg.Open(fileName);
+                        var document = SS.SKSvg.Open(fileName);
                         if (document != null)
                         {
-                            var picture = SKSvg.ToModel(document);
+                            var picture = SS.SKSvg.ToModel(document);
                             if (picture != null)
                             {
                                 svg.Picture = picture;
@@ -108,10 +108,10 @@ namespace AvaloniaSgvImage
                     {
 #if USE_PICTURE
                         var svg = new SvgSource();
-                        var document = SKSvg.Open(fileName);
+                        var document = SS.SKSvg.Open(fileName);
                         if (document != null)
                         {
-                            var picture = SKSvg.ToModel(document);
+                            var picture = SS.SKSvg.ToModel(document);
                             if (picture != null)
                             {
                                 svg.Picture = picture;
@@ -132,10 +132,9 @@ namespace AvaloniaSgvImage
                             };
                         }
 #endif
-                        }
+                    }
                 }
             }
         }
-
     }
 }

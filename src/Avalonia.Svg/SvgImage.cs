@@ -2,23 +2,23 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
-using Avalonia;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Platform;
 using Avalonia.Visuals.Media.Imaging;
 #if USE_PICTURE
+using SS = Svg.Skia;
 using SP = Svg.Picture;
-using SPA = Svg.Skia.Avalonia;
+using SPA = Avalonia.Svg.Skia;
 #else
-using Avalonia.Data;
-using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
+using Avalonia.Rendering.SceneGraph;
 using SkiaSharp;
+using SS = Svg.Skia;
 #endif
 
-namespace Svg.Skia.Avalonia
+namespace Avalonia.Svg.Skia
 {
     internal static class Extensions
     {
@@ -51,10 +51,10 @@ namespace Svg.Skia.Avalonia
             if (uri.IsAbsoluteUri && uri.IsFile)
             {
 #if USE_PICTURE
-                var document = SKSvg.Open(uri.LocalPath);
+                var document = SS.SKSvg.Open(uri.LocalPath);
                 if (document != null)
                 {
-                    svg.Picture = SKSvg.ToModel(document);
+                    svg.Picture = SS.SKSvg.ToModel(document);
                 }
 #else
                 svg.Load(uri.LocalPath);
@@ -65,10 +65,10 @@ namespace Svg.Skia.Avalonia
             {
                 var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
 #if USE_PICTURE
-                var document = SKSvg.Open(assets.Open(uri, context.GetContextBaseUri()));
+                var document = SS.SKSvg.Open(assets.Open(uri, context.GetContextBaseUri()));
                 if (document != null)
                 {
-                    svg.Picture = SKSvg.ToModel(document);
+                    svg.Picture = SS.SKSvg.ToModel(document);
                 }
 #else
                 svg.Load(assets.Open(uri, context.GetContextBaseUri()));
@@ -79,6 +79,7 @@ namespace Svg.Skia.Avalonia
     }
 
 #if USE_PICTURE
+
     /// <summary>
     /// Represents a Svg based image.
     /// </summary>
@@ -87,14 +88,15 @@ namespace Svg.Skia.Avalonia
     {
         public SP.Picture? Picture { get; set; }
     }
+
 #else
     /// <summary>
     /// Represents a <see cref="SKPicture"/> based image.
     /// </summary>
     [TypeConverter(typeof(SvgSourceTypeConverter))]
-    public class SvgSource : SKSvg
+    public class SvgSource : SS.SKSvg
     {
-    } 
+    }
 #endif
 
 #if !USE_PICTURE
@@ -164,8 +166,10 @@ namespace Svg.Skia.Avalonia
         public Size Size =>
             Source?.Picture != null ? new Size(Source.Picture.CullRect.Width, Source.Picture.CullRect.Height) : default;
 
+#if USE_PICTURE
         private SP.Picture? _previousPicture = null;
         private SPA.AvaloniaPicture? _avaloniaPicture = null;
+#endif
 
         /// <inheritdoc/>
         void IImage.Draw(
@@ -177,9 +181,11 @@ namespace Svg.Skia.Avalonia
             var source = Source;
             if (source == null || source.Picture == null)
             {
+#if USE_PICTURE
                 _previousPicture = null;
                 _avaloniaPicture?.Dispose();
                 _avaloniaPicture = null;
+#endif
                 return;
             }
             var bounds = source.Picture.CullRect;

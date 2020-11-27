@@ -1,5 +1,4 @@
-﻿
-namespace Svg.Skia.Avalonia
+﻿namespace Avalonia.Svg.Skia
 {
     public sealed class RestoreDrawCommand : DrawCommand
     {

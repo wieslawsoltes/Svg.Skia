@@ -12,7 +12,7 @@ namespace Svg.Skia
     [Generator]
     public class SvgSourceGenerator : ISourceGenerator
     {
-        private static DiagnosticDescriptor ErrorDescriptor = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor s_errorDescriptor = new DiagnosticDescriptor(
 #pragma warning disable RS2008 // Enable analyzer release tracking
             "SI0000",
 #pragma warning restore RS2008 // Enable analyzer release tracking
@@ -36,7 +36,7 @@ namespace Svg.Skia
             catch (Exception e)
             {
                 // This is temporary till https://github.com/dotnet/roslyn/issues/46084 is fixed
-                context.ReportDiagnostic(Diagnostic.Create(ErrorDescriptor, Location.None, e.ToString()));
+                context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, e.ToString()));
             }
         }
 
@@ -85,13 +85,13 @@ namespace Svg.Skia
 
                 if (string.IsNullOrWhiteSpace(namespaceName))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(ErrorDescriptor, Location.None, "The specified namespace name is invalid."));
+                    context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "The specified namespace name is invalid."));
                     return;
                 }
 
                 if (string.IsNullOrWhiteSpace(className))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(ErrorDescriptor, Location.None, "The specified class name is invalid."));
+                    context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "The specified class name is invalid."));
                     return;
                 }
 
@@ -112,12 +112,12 @@ namespace Svg.Skia
                     }
                     else
                     {
-                        context.ReportDiagnostic(Diagnostic.Create(ErrorDescriptor, Location.None, "Invalid svg picture model."));
+                        context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "Invalid svg picture model."));
                     }
                 }
                 else
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(ErrorDescriptor, Location.None, "Could not load svg document."));
+                    context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "Could not load svg document."));
                 }
             }
         }
