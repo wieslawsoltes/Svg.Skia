@@ -8,11 +8,10 @@
         Width="900" Height="650" WindowStartupLocation="CenterScreen"
         x:Class="AvaloniaSample.MainWindow"
         Title="AvaloniaSample">
+    <Window.Resources>
+        <skp:SKPictureImage x:Key="TigeImage" Source="{x:Static local:Tiger.Picture}" />
+    </Window.Resources>
     <Grid>
-        <Image Name="svgSourceImage">
-            <Image.Source>
-                <skp:SKPictureImage Source="{x:Static local:Tiger.Picture}" />
-            </Image.Source>
-        </Image>
+        <Image Source="{StaticResource TigeImage}" />
     </Grid>
 </Window>
