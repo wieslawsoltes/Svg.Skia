@@ -6,14 +6,10 @@ using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
-
 #if !USE_PICTURE
-
 using SkiaSharp;
 using CropRect = SkiaSharp.SKImageFilter.CropRect;
-
 #endif
-
 using System.Text;
 using System.Text.RegularExpressions;
 using Svg.DataTypes;
@@ -21,7 +17,6 @@ using Svg.Document_Structure;
 using Svg.FilterEffects;
 using Svg.Pathing;
 using Svg.Transforms;
-
 #if USE_PICTURE
 using SKBlendMode = Svg.Picture.BlendMode;
 using SKCanvas = Svg.Picture.Canvas;

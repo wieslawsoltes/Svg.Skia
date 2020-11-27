@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AvaloniaSample;assembly=AvaloniaSample"
+        xmlns:skp="clr-namespace:Avalonia.SKPictureImage;assembly=Avalonia.SKPictureImage"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         Width="900" Height="650" WindowStartupLocation="CenterScreen"
         x:Class="AvaloniaSample.MainWindow"
@@ -10,7 +11,7 @@
     <Grid>
         <Image Name="svgSourceImage">
             <Image.Source>
-                <local:SKPictureImage Source="{x:Static local:Tiger.Picture}" />
+                <skp:SKPictureImage Source="{x:Static local:Tiger.Picture}" />
             </Image.Source>
         </Image>
     </Grid>
