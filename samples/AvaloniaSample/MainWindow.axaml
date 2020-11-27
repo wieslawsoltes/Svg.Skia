@@ -9,9 +9,9 @@
         x:Class="AvaloniaSample.MainWindow"
         Title="AvaloniaSample">
     <Window.Resources>
-        <skp:SKPictureImage x:Key="TigeImage" Source="{x:Static local:Tiger.Picture}" />
+        <skp:SKPictureImage x:Key="TigerImage" Source="{x:Static local:Tiger.Picture}" />
     </Window.Resources>
     <Grid>
-        <Image Source="{StaticResource TigeImage}" />
+        <Image Source="{StaticResource TigerImage}" />
     </Grid>
 </Window>
