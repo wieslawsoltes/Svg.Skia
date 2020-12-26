@@ -3,24 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <TabControl Margin="2">
-        <TabItem Header="Unknown">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <Grid Margin="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <!-- Tag -->
-                    <TextBlock Text="Tag" Grid.Row="0" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding Tag}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                </Grid>
-            </ScrollViewer>
-        </TabItem>
-    </TabControl>
+    <StackPanel Margin="2">
+        <Expander IsExpanded="True" Header="Unknown">
+            <Grid Margin="2" RowDefinitions="Auto" ColumnDefinitions="Auto,*">
+                <!-- Tag -->
+                <TextBlock Text="Tag" Grid.Row="0" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding Tag}" Grid.Row="0" Grid.Column="1" Margin="2" />
+            </Grid>
+        </Expander>
+    </StackPanel>
 </UserControl>

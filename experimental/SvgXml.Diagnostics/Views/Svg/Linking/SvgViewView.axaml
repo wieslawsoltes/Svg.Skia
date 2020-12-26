@@ -4,46 +4,30 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:attributesviews="using:SvgXml.Diagnostics.Views.Svg.Attributes"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <TabControl Margin="2">
-        <TabItem Header="View">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <Grid Margin="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <!-- ViewBox -->
-                    <TextBlock Text="ViewBox" Grid.Row="0" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding ViewBox}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                    <!-- AspectRatio -->
-                    <TextBlock Text="AspectRatio" Grid.Row="1" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding AspectRatio}" Grid.Row="1" Grid.Column="1" Margin="2" />
-                    <!-- ZoomAndPan -->
-                    <TextBlock Text="ZoomAndPan" Grid.Row="2" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding ZoomAndPan}" Grid.Row="2" Grid.Column="1" Margin="2" />
-                    <!-- ViewTarget -->
-                    <TextBlock Text="ViewTarget" Grid.Row="3" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding ViewTarget}" Grid.Row="3" Grid.Column="1" Margin="2" />
-                </Grid>
-            </ScrollViewer>
-        </TabItem>
-        <TabItem Header="Common">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <attributesviews:CommonProperties/>
-            </ScrollViewer>
-        </TabItem>
-        <TabItem Header="Resources">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <attributesviews:ResourcesProperties/>
-            </ScrollViewer>
-        </TabItem>
-    </TabControl>
+    <StackPanel Margin="2">
+        <Expander IsExpanded="True" Header="View">
+            <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                <!-- ViewBox -->
+                <TextBlock Text="ViewBox" Grid.Row="0" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding ViewBox}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                <!-- AspectRatio -->
+                <TextBlock Text="AspectRatio" Grid.Row="1" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding AspectRatio}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                <!-- ZoomAndPan -->
+                <TextBlock Text="ZoomAndPan" Grid.Row="2" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding ZoomAndPan}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                <!-- ViewTarget -->
+                <TextBlock Text="ViewTarget" Grid.Row="3" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding ViewTarget}" Grid.Row="3" Grid.Column="1" Margin="2" />
+            </Grid>
+        </Expander>
+        <Expander IsExpanded="True" Header="Common">
+            <attributesviews:CommonProperties />
+        </Expander>
+        <Expander IsExpanded="True" Header="Resources">
+            <attributesviews:ResourcesProperties />
+        </Expander>
+    </StackPanel>
 </UserControl>

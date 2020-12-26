@@ -29,269 +29,269 @@
         <ContentControl.DataTemplates>
             <!-- Item -->
             <DataTemplate DataType="{x:Type m:Item}">
-                <ContentControl Content="{Binding Document}"/>
+                <ContentControl Content="{Binding Document}" />
             </DataTemplate>
             <!-- Xml -->
             <DataTemplate DataType="{x:Type Elements:ContentElement}">
-                <xmlviews:ContentElementView/>
+                <xmlviews:ContentElementView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Elements:UnknownElement}">
-                <xmlviews:UnknownElementView/>
+                <xmlviews:UnknownElementView />
             </DataTemplate>
             <!-- Animation -->
             <DataTemplate DataType="{x:Type Animation:SvgAnimate}">
-                <svgviews:SvgAnimateView/>
+                <svgviews:SvgAnimateView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Animation:SvgAnimateColor}">
-                <svgviews:SvgAnimateColorView/>
+                <svgviews:SvgAnimateColorView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Animation:SvgAnimateMotion}">
-                <svgviews:SvgAnimateMotionView/>
+                <svgviews:SvgAnimateMotionView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Animation:SvgAnimateTransform}">
-                <svgviews:SvgAnimateTransformView/>
+                <svgviews:SvgAnimateTransformView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Animation:SvgMotionPath}">
-                <svgviews:SvgMotionPathView/>
+                <svgviews:SvgMotionPathView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Animation:SvgSet}">
-                <svgviews:SvgSetView/>
+                <svgviews:SvgSetView />
             </DataTemplate>
             <!-- Basic Shapes -->
             <DataTemplate DataType="{x:Type BasicShapes:SvgCircle}">
-                <svgviews:SvgCircleView/>
+                <svgviews:SvgCircleView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type BasicShapes:SvgEllipse}">
-                <svgviews:SvgEllipseView/>
+                <svgviews:SvgEllipseView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type BasicShapes:SvgLine}">
-                <svgviews:SvgLineView/>
+                <svgviews:SvgLineView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type BasicShapes:SvgPolygon}">
-                <svgviews:SvgPolygonView/>
+                <svgviews:SvgPolygonView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type BasicShapes:SvgPolyline}">
-                <svgviews:SvgPolylineView/>
+                <svgviews:SvgPolylineView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type BasicShapes:SvgRectangle}">
-                <svgviews:SvgRectangleView/>
+                <svgviews:SvgRectangleView />
             </DataTemplate>
             <!-- Clipping and Masking -->
             <DataTemplate DataType="{x:Type ClippingAndMasking:SvgClipPath}">
-                <svgviews:SvgClipPathView/>
+                <svgviews:SvgClipPathView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type ClippingAndMasking:SvgMask}">
-                <svgviews:SvgMaskView/>
+                <svgviews:SvgMaskView />
             </DataTemplate>
             <!-- Color -->
             <DataTemplate DataType="{x:Type Color:SvgColorProfile}">
-                <svgviews:SvgColorProfileView/>
+                <svgviews:SvgColorProfileView />
             </DataTemplate>
             <!-- Document Structure -->
             <DataTemplate DataType="{x:Type DocumentStructure:SvgDefinitionList}">
-                <svgviews:SvgDefinitionListView/>
+                <svgviews:SvgDefinitionListView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type DocumentStructure:SvgDescription}">
-                <svgviews:SvgDescriptionView/>
+                <svgviews:SvgDescriptionView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type DocumentStructure:SvgDocumentMetadata}">
-                <svgviews:SvgDocumentMetadataView/>
+                <svgviews:SvgDocumentMetadataView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type DocumentStructure:SvgFragment}">
-                <svgviews:SvgFragmentView/>
+                <svgviews:SvgFragmentView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type DocumentStructure:SvgGroup}">
-                <svgviews:SvgGroupView/>
+                <svgviews:SvgGroupView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type DocumentStructure:SvgImage}">
-                <svgviews:SvgImageView/>
+                <svgviews:SvgImageView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type DocumentStructure:SvgSwitch}">
-                <svgviews:SvgSwitchView/>
+                <svgviews:SvgSwitchView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type DocumentStructure:SvgSymbol}">
-                <svgviews:SvgSymbolView/>
+                <svgviews:SvgSymbolView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type DocumentStructure:SvgTitle}">
-                <svgviews:SvgTitleView/>
+                <svgviews:SvgTitleView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type DocumentStructure:SvgUse}">
-                <svgviews:SvgUseView/>
+                <svgviews:SvgUseView />
             </DataTemplate>
             <!-- Extensibility -->
             <DataTemplate DataType="{x:Type Extensibility:SvgForeignObject}">
-                <svgviews:SvgForeignObjectView/>
+                <svgviews:SvgForeignObjectView />
             </DataTemplate>
             <!-- Filter Effects -->
             <DataTemplate DataType="{x:Type FilterEffects:SvgFilter}">
-                <svgfiltereffectsviews:SvgFilterView/>
+                <svgfiltereffectsviews:SvgFilterView />
             </DataTemplate>
             <!-- Filter Effects Primitives -->
             <DataTemplate DataType="{x:Type Primitives:SvgBlend}">
-                <svgfiltereffectsviews:SvgBlendView/>
+                <svgfiltereffectsviews:SvgBlendView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgColourMatrix}">
-                <svgfiltereffectsviews:SvgColourMatrixView/>
+                <svgfiltereffectsviews:SvgColourMatrixView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgComponentTransfer}">
-                <svgfiltereffectsviews:SvgComponentTransferView/>
+                <svgfiltereffectsviews:SvgComponentTransferView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgComposite}">
-                <svgfiltereffectsviews:SvgCompositeView/>
+                <svgfiltereffectsviews:SvgCompositeView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgConvolveMatrix}">
-                <svgfiltereffectsviews:SvgConvolveMatrixView/>
+                <svgfiltereffectsviews:SvgConvolveMatrixView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgDiffuseLighting}">
-                <svgfiltereffectsviews:SvgDiffuseLightingView/>
+                <svgfiltereffectsviews:SvgDiffuseLightingView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgDisplacementMap}">
-                <svgfiltereffectsviews:SvgDisplacementMapView/>
+                <svgfiltereffectsviews:SvgDisplacementMapView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgDistantLight}">
-                <svgfiltereffectsviews:SvgDistantLightView/>
+                <svgfiltereffectsviews:SvgDistantLightView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgFlood}">
-                <svgfiltereffectsviews:SvgFloodView/>
+                <svgfiltereffectsviews:SvgFloodView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgFuncA}">
-                <svgfiltereffectsviews:SvgFuncAView/>
+                <svgfiltereffectsviews:SvgFuncAView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgFuncB}">
-                <svgfiltereffectsviews:SvgFuncBView/>
+                <svgfiltereffectsviews:SvgFuncBView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgFuncG}">
-                <svgfiltereffectsviews:SvgFuncGView/>
+                <svgfiltereffectsviews:SvgFuncGView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgFuncR}">
-                <svgfiltereffectsviews:SvgFuncRView/>
+                <svgfiltereffectsviews:SvgFuncRView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgGaussianBlur}">
-                <svgfiltereffectsviews:SvgGaussianBlurView/>
+                <svgfiltereffectsviews:SvgGaussianBlurView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgImage}">
-                <svgfiltereffectsviews:SvgImageView/>
+                <svgfiltereffectsviews:SvgImageView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgMerge}">
-                <svgfiltereffectsviews:SvgMergeView/>
+                <svgfiltereffectsviews:SvgMergeView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgMergeNode}">
-                <svgfiltereffectsviews:SvgMergeNodeView/>
+                <svgfiltereffectsviews:SvgMergeNodeView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgMorphology}">
-                <svgfiltereffectsviews:SvgMorphologyView/>
+                <svgfiltereffectsviews:SvgMorphologyView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgOffset}">
-                <svgfiltereffectsviews:SvgOffsetView/>
+                <svgfiltereffectsviews:SvgOffsetView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgPointLight}">
-                <svgfiltereffectsviews:SvgPointLightView/>
+                <svgfiltereffectsviews:SvgPointLightView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgSpecularLighting}">
-                <svgfiltereffectsviews:SvgSpecularLightingView/>
+                <svgfiltereffectsviews:SvgSpecularLightingView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgSpotLight}">
-                <svgfiltereffectsviews:SvgSpotLightView/>
+                <svgfiltereffectsviews:SvgSpotLightView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgTile}">
-                <svgfiltereffectsviews:SvgTileView/>
+                <svgfiltereffectsviews:SvgTileView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Primitives:SvgTurbulence}">
-                <svgfiltereffectsviews:SvgTurbulenceView/>
+                <svgfiltereffectsviews:SvgTurbulenceView />
             </DataTemplate>
             <!-- Interactivity -->
             <DataTemplate DataType="{x:Type Interactivity:SvgCursor}">
-                <svgviews:SvgCursorView/>
+                <svgviews:SvgCursorView />
             </DataTemplate>
             <!-- Linking -->
             <DataTemplate DataType="{x:Type Linking:SvgAnchor}">
-                <svgviews:SvgAnchorView/>
+                <svgviews:SvgAnchorView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Linking:SvgView}">
-                <svgviews:SvgViewView/>
+                <svgviews:SvgViewView />
             </DataTemplate>
             <!-- Painting -->
             <DataTemplate DataType="{x:Type Painting:SvgGradientStop}">
-                <svgviews:SvgViewView/>
+                <svgviews:SvgViewView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Painting:SvgLinearGradientServer}">
-                <svgviews:SvgLinearGradientServerView/>
+                <svgviews:SvgLinearGradientServerView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Painting:SvgMarker}">
-                <svgviews:SvgMarkerView/>
+                <svgviews:SvgMarkerView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Painting:SvgPatternServer}">
-                <svgviews:SvgPatternServerView/>
+                <svgviews:SvgPatternServerView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Painting:SvgRadialGradientServer}">
-                <svgviews:SvgRadialGradientServerView/>
+                <svgviews:SvgRadialGradientServerView />
             </DataTemplate>
             <!-- Paths -->
             <DataTemplate DataType="{x:Type Paths:SvgPath}">
-                <svgviews:SvgPathView/>
+                <svgviews:SvgPathView />
             </DataTemplate>
             <!-- Scripting -->
             <DataTemplate DataType="{x:Type Scripting:SvgScript}">
-                <svgviews:SvgScriptView/>
+                <svgviews:SvgScriptView />
             </DataTemplate>
             <!-- Styling -->
             <DataTemplate DataType="{x:Type Styling:SvgStyle}">
-                <svgviews:SvgStyleView/>
+                <svgviews:SvgStyleView />
             </DataTemplate>
             <!-- Text -->
             <DataTemplate DataType="{x:Type Text:SvgAltGlyph}">
-                <svgviews:SvgAltGlyphView/>
+                <svgviews:SvgAltGlyphView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgAltGlyphDef}">
-                <svgviews:SvgAltGlyphDefView/>
+                <svgviews:SvgAltGlyphDefView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgAltGlyphItem}">
-                <svgviews:SvgAltGlyphItemView/>
+                <svgviews:SvgAltGlyphItemView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgFont}">
-                <svgviews:SvgFontView/>
+                <svgviews:SvgFontView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgFontFace}">
-                <svgviews:SvgFontFaceView/>
+                <svgviews:SvgFontFaceView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgFontFaceFormat}">
-                <svgviews:SvgFontFaceFormatView/>
+                <svgviews:SvgFontFaceFormatView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgFontFaceName}">
-                <svgviews:SvgFontFaceNameView/>
+                <svgviews:SvgFontFaceNameView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgFontFaceSrc}">
-                <svgviews:SvgFontFaceSrcView/>
+                <svgviews:SvgFontFaceSrcView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgFontFaceUri}">
-                <svgviews:SvgFontFaceUriView/>
+                <svgviews:SvgFontFaceUriView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgGlyph}">
-                <svgviews:SvgGlyphView/>
+                <svgviews:SvgGlyphView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgGlyphRef}">
-                <svgviews:SvgGlyphRefView/>
+                <svgviews:SvgGlyphRefView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgHorizontalKern}">
-                <svgviews:SvgHorizontalKernView/>
+                <svgviews:SvgHorizontalKernView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgMissingGlyph}">
-                <svgviews:SvgMissingGlyphView/>
+                <svgviews:SvgMissingGlyphView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgText}">
-                <svgviews:SvgTextView/>
+                <svgviews:SvgTextView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgTextPath}">
-                <svgviews:SvgTextPathView/>
+                <svgviews:SvgTextPathView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgTextRef}">
-                <svgviews:SvgTextRefView/>
+                <svgviews:SvgTextRefView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgTextSpan}">
-                <svgviews:SvgTextSpanView/>
+                <svgviews:SvgTextSpanView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type Text:SvgVerticalKern}">
-                <svgviews:SvgVerticalKernView/>
+                <svgviews:SvgVerticalKernView />
             </DataTemplate>
         </ContentControl.DataTemplates>
     </ContentControl>

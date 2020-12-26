@@ -16,29 +16,20 @@
         Title="SvgXml Diagnostics"
         DragDrop.AllowDrop="True">
     <Design.DataContext>
-        <vm:MainWindowViewModel/>
+        <vm:MainWindowViewModel />
     </Design.DataContext>
     <Window.Resources>
-        <views:TypeNameConverter x:Key="TypeNameConverter"/>
+        <views:TypeNameConverter x:Key="TypeNameConverter" />
     </Window.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Grid RowDefinitions="Auto,*">
         <Menu Grid.Row="0" Background="Transparent">
             <MenuItem Header="_File">
-                <MenuItem Name="FileOpen" Header="_Open" Click="FileOpen_Click"/>
-                <Separator/>
-                <MenuItem Name="FileExit" Header="E_xit" Click="FileExit_Click"/>
+                <MenuItem Name="FileOpen" Header="_Open" Click="FileOpen_Click" />
+                <Separator />
+                <MenuItem Name="FileExit" Header="E_xit" Click="FileExit_Click" />
             </MenuItem>
         </Menu>
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <Grid Grid.Row="1" ColumnDefinitions="300,Auto,*">
             <TreeView x:Name="DocumentTree" Items="{Binding Items}" Grid.Column="0">
                 <TreeView.DataTemplates>
                     <TreeDataTemplate DataType="{x:Type m:Item}" ItemsSource="{Binding Document.Children}">
@@ -52,73 +43,75 @@
                     </TreeDataTemplate>
                 </TreeView.DataTemplates>
             </TreeView>
-            <GridSplitter Grid.Column="1" Width="4" Background="Transparent" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
-            <Grid Grid.Column="2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="50*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="50*"/>
-                </Grid.ColumnDefinitions>
-                <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}" BorderThickness="{DynamicResource ThemeBorderThickness}" Grid.Column="0">
-                    <views:ElemetProperties DataContext="{Binding ElementName=DocumentTree, Path=SelectedItem}"/>
+            <GridSplitter Grid.Column="1" Width="4" Background="Transparent" ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext" />
+            <Grid Grid.Column="2" ColumnDefinitions="50*,Auto,50*">
+                <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}"
+                        BorderThickness="{DynamicResource ThemeBorderThickness}" Grid.Column="0">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <views:ElemetProperties DataContext="{Binding ElementName=DocumentTree, Path=SelectedItem}" />
+                    </ScrollViewer>
                 </Border>
-                <GridSplitter Grid.Column="1" Width="4" Background="Transparent" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
-                <Grid Grid.Column="2">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="50*"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="50*"/>
-                    </Grid.RowDefinitions>
-                    <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}" BorderThickness="{DynamicResource ThemeBorderThickness}" Grid.Row="0">
-                        <TabControl Margin="2">
-                            <TabItem Header="Attributes">
-                                <ContentControl Content="{Binding ElementName=DocumentTree, Path=SelectedItem}">
-                                    <ContentControl.DataTemplates>
-                                        <!-- Item -->
-                                        <DataTemplate DataType="{x:Type m:Item}">
-                                            <views:ElementAttributes DataContext="{Binding Document.Attributes}"/>
-                                        </DataTemplate>
-                                        <!-- Element -->
-                                        <DataTemplate DataType="{x:Type Xml:Element}">
-                                            <views:ElementAttributes DataContext="{Binding Attributes}"/>
-                                        </DataTemplate>
-                                    </ContentControl.DataTemplates>
-                                </ContentControl>
-                            </TabItem>
-                        </TabControl>
+                <GridSplitter Grid.Column="1" Width="4" Background="Transparent" ResizeDirection="Columns"
+                              ResizeBehavior="PreviousAndNext" />
+                <Grid Grid.Column="2" RowDefinitions="50*,Auto,50*">
+                    <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}"
+                            BorderThickness="{DynamicResource ThemeBorderThickness}" Grid.Row="0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <StackPanel Margin="2">
+                                <Expander IsExpanded="True" Header="Attributes">
+                                    <ContentControl Content="{Binding ElementName=DocumentTree, Path=SelectedItem}">
+                                        <ContentControl.DataTemplates>
+                                            <!-- Item -->
+                                            <DataTemplate DataType="{x:Type m:Item}">
+                                                <views:ElementAttributes DataContext="{Binding Document.Attributes}" />
+                                            </DataTemplate>
+                                            <!-- Element -->
+                                            <DataTemplate DataType="{x:Type Xml:Element}">
+                                                <views:ElementAttributes DataContext="{Binding Attributes}" />
+                                            </DataTemplate>
+                                        </ContentControl.DataTemplates>
+                                    </ContentControl>
+                                </Expander>
+                            </StackPanel>
+                        </ScrollViewer>
                     </Border>
-                    <GridSplitter Grid.Row="1" Height="4" Background="Transparent" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"/>
-                    <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}" BorderThickness="{DynamicResource ThemeBorderThickness}" Grid.Row="2">
-                        <TabControl Margin="2">
-                            <TabItem Header="Styles">
-                                <ContentControl Content="{Binding ElementName=DocumentTree, Path=SelectedItem}">
-                                    <ContentControl.DataTemplates>
-                                        <!-- Item -->
-                                        <DataTemplate DataType="{x:Type m:Item}">
-                                            <views:ElementStyles DataContext="{Binding Document.Styles}"/>
-                                        </DataTemplate>
-                                        <!-- Element -->
-                                        <DataTemplate DataType="{x:Type Xml:Element}">
-                                            <views:ElementStyles DataContext="{Binding Styles}"/>
-                                        </DataTemplate>
-                                    </ContentControl.DataTemplates>
-                                </ContentControl>
-                            </TabItem>
-                            <TabItem Header="Ids">
-                                <ContentControl Content="{Binding ElementName=DocumentTree, Path=SelectedItem}">
-                                    <ContentControl.DataTemplates>
-                                        <!-- Item -->
-                                        <DataTemplate DataType="{x:Type m:Item}">
-                                            <views:DocumentIds DataContext="{Binding Document.Ids}"/>
-                                        </DataTemplate>
-                                        <!-- Element -->
-                                        <DataTemplate DataType="{x:Type Xml:Element}">
-                                            <TextBlock Text="{Binding Id}"/>
-                                        </DataTemplate>
-                                    </ContentControl.DataTemplates>
-                                </ContentControl>
-                            </TabItem>
-                        </TabControl>
+                    <GridSplitter Grid.Row="1" Height="4" Background="Transparent" ResizeDirection="Rows"
+                                  ResizeBehavior="PreviousAndNext" />
+                    <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}"
+                            BorderThickness="{DynamicResource ThemeBorderThickness}" Grid.Row="2">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <StackPanel Margin="2">
+                                <Expander IsExpanded="True" Header="Styles">
+                                    <ContentControl Content="{Binding ElementName=DocumentTree, Path=SelectedItem}">
+                                        <ContentControl.DataTemplates>
+                                            <!-- Item -->
+                                            <DataTemplate DataType="{x:Type m:Item}">
+                                                <views:ElementStyles DataContext="{Binding Document.Styles}" />
+                                            </DataTemplate>
+                                            <!-- Element -->
+                                            <DataTemplate DataType="{x:Type Xml:Element}">
+                                                <views:ElementStyles DataContext="{Binding Styles}" />
+                                            </DataTemplate>
+                                        </ContentControl.DataTemplates>
+                                    </ContentControl>
+                                </Expander>
+                                <Expander IsExpanded="True" Header="Ids">
+                                    <ContentControl Content="{Binding ElementName=DocumentTree, Path=SelectedItem}">
+                                        <ContentControl.DataTemplates>
+                                            <!-- Item -->
+                                            <DataTemplate DataType="{x:Type m:Item}">
+                                                <views:DocumentIds DataContext="{Binding Document.Ids}" />
+                                            </DataTemplate>
+                                            <!-- Element -->
+                                            <DataTemplate DataType="{x:Type Xml:Element}">
+                                                <TextBlock Text="{Binding Id}" />
+                                            </DataTemplate>
+                                        </ContentControl.DataTemplates>
+                                    </ContentControl>
+                                </Expander>
+                            </StackPanel>
+                        </ScrollViewer>
                     </Border>
                 </Grid>
             </Grid>

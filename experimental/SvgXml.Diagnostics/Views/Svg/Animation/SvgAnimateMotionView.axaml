@@ -4,85 +4,55 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:attributesviews="using:SvgXml.Diagnostics.Views.Svg.Attributes"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <TabControl Margin="2">
-        <TabItem Header="AnimateMotion">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <Grid Margin="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <!-- Path -->
-                    <TextBlock Text="Path" Grid.Row="0" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding Path}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                    <!-- KeyPoints -->
-                    <TextBlock Text="KeyPoints" Grid.Row="1" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding KeyPoints}" Grid.Row="1" Grid.Column="1" Margin="2" />
-                    <!-- Rotate -->
-                    <TextBlock Text="Rotate" Grid.Row="2" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding Rotate}" Grid.Row="2" Grid.Column="1" Margin="2" />
-                    <!-- Origin -->
-                    <TextBlock Text="Origin" Grid.Row="3" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding Origin}" Grid.Row="3" Grid.Column="1" Margin="2" />
-                </Grid>
-            </ScrollViewer>
-        </TabItem>
-        <TabItem Header="Common">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <attributesviews:CommonProperties/>
-            </ScrollViewer>
-        </TabItem>
-        <TabItem Header="Presentation">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <attributesviews:PresentationProperties/>
-            </ScrollViewer>
-        </TabItem>
-        <TabItem Header="Tests">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <attributesviews:TestsProperties/>
-            </ScrollViewer>
-        </TabItem>
-        <TabItem Header="Resources">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <attributesviews:ResourcesProperties/>
-            </ScrollViewer>
-        </TabItem>
-        <TabItem Header="XLink">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <attributesviews:XLinkProperties/>
-            </ScrollViewer>
-        </TabItem>
-        <TabItem Header="Animation">
-            <TabControl Margin="2">
-                <TabItem Header="Event">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                        <attributesviews:AnimationEventProperties/>
-                    </ScrollViewer>
-                </TabItem>
-                <TabItem Header="Timing">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                        <attributesviews:AnimationTimingProperties/>
-                    </ScrollViewer>
-                </TabItem>
-                <TabItem Header="Value">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                        <attributesviews:AnimationValueProperties/>
-                    </ScrollViewer>
-                </TabItem>
-                <TabItem Header="Addition">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                        <attributesviews:AnimationAdditionProperties/>
-                    </ScrollViewer>
-                </TabItem>
-            </TabControl>
-        </TabItem>
-    </TabControl>
+    <StackPanel Margin="2">
+        <Expander IsExpanded="True" Header="AnimateMotion">
+            <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                <!-- Path -->
+                <TextBlock Text="Path" Grid.Row="0" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding Path}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                <!-- KeyPoints -->
+                <TextBlock Text="KeyPoints" Grid.Row="1" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding KeyPoints}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                <!-- Rotate -->
+                <TextBlock Text="Rotate" Grid.Row="2" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding Rotate}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                <!-- Origin -->
+                <TextBlock Text="Origin" Grid.Row="3" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding Origin}" Grid.Row="3" Grid.Column="1" Margin="2" />
+            </Grid>
+        </Expander>
+        <Expander IsExpanded="True" Header="Common">
+            <attributesviews:CommonProperties />
+        </Expander>
+        <Expander IsExpanded="True" Header="Presentation">
+            <attributesviews:PresentationProperties />
+        </Expander>
+        <Expander IsExpanded="True" Header="Tests">
+            <attributesviews:TestsProperties />
+        </Expander>
+        <Expander IsExpanded="True" Header="Resources">
+            <attributesviews:ResourcesProperties />
+        </Expander>
+        <Expander IsExpanded="True" Header="XLink">
+            <attributesviews:XLinkProperties />
+        </Expander>
+        <Expander IsExpanded="True" Header="Animation">
+            <StackPanel Margin="2">
+                <Expander IsExpanded="True" Header="Event">
+                    <attributesviews:AnimationEventProperties />
+                </Expander>
+                <Expander IsExpanded="True" Header="Timing">
+                    <attributesviews:AnimationTimingProperties />
+                </Expander>
+                <Expander IsExpanded="True" Header="Value">
+                    <attributesviews:AnimationValueProperties />
+                </Expander>
+                <Expander IsExpanded="True" Header="Addition">
+                    <attributesviews:AnimationAdditionProperties />
+                </Expander>
+            </StackPanel>
+        </Expander>
+    </StackPanel>
 </UserControl>

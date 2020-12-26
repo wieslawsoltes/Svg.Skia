@@ -61,9 +61,7 @@ namespace SvgXml.Diagnostics.Views
                     svgDocument.FlushStyles(true);
                     var item = new Item()
                     {
-                        Name = Path.GetFileNameWithoutExtension(path),
-                        Path = path,
-                        Document = svgDocument
+                        Name = Path.GetFileNameWithoutExtension(path), Path = path, Document = svgDocument
                     };
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
@@ -119,10 +117,13 @@ namespace SvgXml.Diagnostics.Views
 
             var dlg = new OpenFileDialog();
             dlg.AllowMultiple = true;
-            dlg.Filters.Add(new FileDialogFilter() { Name = "Supported Files", Extensions = new List<string> { "svg", "svgz" } });
-            dlg.Filters.Add(new FileDialogFilter() { Name = "Svg Files", Extensions = new List<string> { "svg" } });
-            dlg.Filters.Add(new FileDialogFilter() { Name = "Svgz Files", Extensions = new List<string> { "svgz" } });
-            dlg.Filters.Add(new FileDialogFilter() { Name = "All Files", Extensions = new List<string> { "*" } });
+            dlg.Filters.Add(new FileDialogFilter()
+            {
+                Name = "Supported Files", Extensions = new List<string> {"svg", "svgz"}
+            });
+            dlg.Filters.Add(new FileDialogFilter() {Name = "Svg Files", Extensions = new List<string> {"svg"}});
+            dlg.Filters.Add(new FileDialogFilter() {Name = "Svgz Files", Extensions = new List<string> {"svgz"}});
+            dlg.Filters.Add(new FileDialogFilter() {Name = "All Files", Extensions = new List<string> {"*"}});
 
             var paths = await dlg.ShowAsync(this);
 

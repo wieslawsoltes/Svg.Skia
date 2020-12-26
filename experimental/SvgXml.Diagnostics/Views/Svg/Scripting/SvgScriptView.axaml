@@ -4,38 +4,24 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:attributesviews="using:SvgXml.Diagnostics.Views.Svg.Attributes"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-                <TabControl Margin="2">
-                    <TabItem Header="Script">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <Grid Margin="2">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <!-- Type -->
-                                <TextBlock Text="Type" Grid.Row="0" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding Type}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                                <!-- Href -->
-                                <TextBlock Text="Href" Grid.Row="1" Grid.Column="0" Margin="2" />
-                                <TextBox Text="{Binding Href}" Grid.Row="1" Grid.Column="1" Margin="2" />
-                            </Grid>
-                        </ScrollViewer>
-                    </TabItem>
-                    <TabItem Header="Common">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <attributesviews:CommonProperties/>
-                        </ScrollViewer>
-                    </TabItem>
-                    <TabItem Header="Resources">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <attributesviews:ResourcesProperties/>
-                        </ScrollViewer>
-                    </TabItem>
-                </TabControl>
+    <StackPanel Margin="2">
+        <Expander IsExpanded="True" Header="Script">
+            <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
+                <!-- Type -->
+                <TextBlock Text="Type" Grid.Row="0" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding Type}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                <!-- Href -->
+                <TextBlock Text="Href" Grid.Row="1" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding Href}" Grid.Row="1" Grid.Column="1" Margin="2" />
+            </Grid>
+        </Expander>
+        <Expander IsExpanded="True" Header="Common">
+            <attributesviews:CommonProperties />
+        </Expander>
+        <Expander IsExpanded="True" Header="Resources">
+            <attributesviews:ResourcesProperties />
+        </Expander>
+    </StackPanel>
 </UserControl>

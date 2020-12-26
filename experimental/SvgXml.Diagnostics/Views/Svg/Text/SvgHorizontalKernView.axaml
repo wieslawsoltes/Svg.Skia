@@ -4,45 +4,30 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:attributesviews="using:SvgXml.Diagnostics.Views.Svg.Attributes"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <TabControl Margin="2">
-        <TabItem Header="HorizontalKern">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <Grid Margin="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <!-- Unicode1 -->
-                    <TextBlock Text="Unicode1" Grid.Row="0" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding Unicode1}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                    <!-- Glyph1 -->
-                    <TextBlock Text="Glyph1" Grid.Row="1" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding Glyph1}" Grid.Row="1" Grid.Column="1" Margin="2" />
-                    <!-- Unicode2 -->
-                    <TextBlock Text="Unicode2" Grid.Row="2" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding Unicode2}" Grid.Row="2" Grid.Column="1" Margin="2" />
-                    <!-- Glyph2 -->
-                    <TextBlock Text="Glyph2" Grid.Row="3" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding Glyph2}" Grid.Row="3" Grid.Column="1" Margin="2" />
-                    <!-- Kerning -->
-                    <TextBlock Text="Kerning" Grid.Row="4" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding Kerning}" Grid.Row="4" Grid.Column="1" Margin="2" />
-                </Grid>
-            </ScrollViewer>
-        </TabItem>
-        <TabItem Header="Common">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <attributesviews:CommonProperties/>
-            </ScrollViewer>
-        </TabItem>
-    </TabControl>
+    <StackPanel Margin="2">
+        <Expander IsExpanded="True" Header="HorizontalKern">
+            <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                <!-- Unicode1 -->
+                <TextBlock Text="Unicode1" Grid.Row="0" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding Unicode1}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                <!-- Glyph1 -->
+                <TextBlock Text="Glyph1" Grid.Row="1" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding Glyph1}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                <!-- Unicode2 -->
+                <TextBlock Text="Unicode2" Grid.Row="2" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding Unicode2}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                <!-- Glyph2 -->
+                <TextBlock Text="Glyph2" Grid.Row="3" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding Glyph2}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                <!-- Kerning -->
+                <TextBlock Text="Kerning" Grid.Row="4" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding Kerning}" Grid.Row="4" Grid.Column="1" Margin="2" />
+            </Grid>
+        </Expander>
+        <Expander IsExpanded="True" Header="Common">
+            <attributesviews:CommonProperties />
+        </Expander>
+    </StackPanel>
 </UserControl>

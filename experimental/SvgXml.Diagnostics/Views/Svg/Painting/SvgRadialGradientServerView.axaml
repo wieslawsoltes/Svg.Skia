@@ -4,76 +4,53 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:attributesviews="using:SvgXml.Diagnostics.Views.Svg.Attributes"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <TabControl Margin="2">
-        <TabItem Header="RadialGradientServer">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <Grid Margin="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <!-- CenterX -->
-                    <TextBlock Text="CenterX" Grid.Row="0" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding CenterX}" Grid.Row="0" Grid.Column="1" Margin="2" />
-                    <!-- CenterY -->
-                    <TextBlock Text="CenterY" Grid.Row="1" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding CenterY}" Grid.Row="1" Grid.Column="1" Margin="2" />
-                    <!-- Radius -->
-                    <TextBlock Text="Radius" Grid.Row="2" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding Radius}" Grid.Row="2" Grid.Column="1" Margin="2" />
-                    <!-- FocalX -->
-                    <TextBlock Text="FocalX" Grid.Row="3" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding FocalX}" Grid.Row="3" Grid.Column="1" Margin="2" />
-                    <!-- FocalY -->
-                    <TextBlock Text="FocalY" Grid.Row="4" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding FocalY}" Grid.Row="4" Grid.Column="1" Margin="2" />
-                    <!-- GradientUnits -->
-                    <TextBlock Text="GradientUnits" Grid.Row="5" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding GradientUnits}" Grid.Row="5" Grid.Column="1" Margin="2" />
-                    <!-- GradientTransform -->
-                    <TextBlock Text="GradientTransform" Grid.Row="6" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding GradientTransform}" Grid.Row="6" Grid.Column="1" Margin="2" />
-                    <!-- SpreadMethod -->
-                    <TextBlock Text="SpreadMethod" Grid.Row="7" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding SpreadMethod}" Grid.Row="7" Grid.Column="1" Margin="2" />
-                    <!-- Href -->
-                    <TextBlock Text="Href" Grid.Row="8" Grid.Column="0" Margin="2" />
-                    <TextBox Text="{Binding Href}" Grid.Row="8" Grid.Column="1" Margin="2" />
-                </Grid>
-            </ScrollViewer>
-        </TabItem>
-        <TabItem Header="Common">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <attributesviews:CommonProperties/>
-            </ScrollViewer>
-        </TabItem>
-        <TabItem Header="Presentation">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <attributesviews:PresentationProperties/>
-            </ScrollViewer>
-        </TabItem>
-        <TabItem Header="Stylable">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <attributesviews:StylableProperties/>
-            </ScrollViewer>
-        </TabItem>
-        <TabItem Header="Resources">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <attributesviews:ResourcesProperties/>
-            </ScrollViewer>
-        </TabItem>
-    </TabControl>
+    <StackPanel Margin="2">
+        <Expander IsExpanded="True" Header="RadialGradientServer">
+            <Grid Margin="2"
+                  ColumnDefinitions="Auto,*"
+                  RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                <!-- CenterX -->
+                <TextBlock Text="CenterX" Grid.Row="0" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding CenterX}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                <!-- CenterY -->
+                <TextBlock Text="CenterY" Grid.Row="1" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding CenterY}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                <!-- Radius -->
+                <TextBlock Text="Radius" Grid.Row="2" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding Radius}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                <!-- FocalX -->
+                <TextBlock Text="FocalX" Grid.Row="3" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding FocalX}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                <!-- FocalY -->
+                <TextBlock Text="FocalY" Grid.Row="4" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding FocalY}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                <!-- GradientUnits -->
+                <TextBlock Text="GradientUnits" Grid.Row="5" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding GradientUnits}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                <!-- GradientTransform -->
+                <TextBlock Text="GradientTransform" Grid.Row="6" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding GradientTransform}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                <!-- SpreadMethod -->
+                <TextBlock Text="SpreadMethod" Grid.Row="7" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding SpreadMethod}" Grid.Row="7" Grid.Column="1" Margin="2" />
+                <!-- Href -->
+                <TextBlock Text="Href" Grid.Row="8" Grid.Column="0" Margin="2" />
+                <TextBox Text="{Binding Href}" Grid.Row="8" Grid.Column="1" Margin="2" />
+            </Grid>
+        </Expander>
+        <Expander IsExpanded="True" Header="Common">
+            <attributesviews:CommonProperties />
+        </Expander>
+        <Expander IsExpanded="True" Header="Presentation">
+            <attributesviews:PresentationProperties />
+        </Expander>
+        <Expander IsExpanded="True" Header="Stylable">
+            <attributesviews:StylableProperties />
+        </Expander>
+        <Expander IsExpanded="True" Header="Resources">
+            <attributesviews:ResourcesProperties />
+        </Expander>
+    </StackPanel>
 </UserControl>
