@@ -7,8 +7,8 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" SharedSizeGroup="FirstColumn"/>
-            <ColumnDefinition Width="Auto" SharedSizeGroup="SecondColumn"/>
+            <ColumnDefinition Width="Auto" SharedSizeGroup="KeyColumn"/>
+            <ColumnDefinition Width="Auto" SharedSizeGroup="ValueColumn"/>
         </Grid.ColumnDefinitions>
         <!-- AlignmentBaseline -->
         <TextBlock Text="AlignmentBaseline" Grid.Row="0" Grid.Column="0" />

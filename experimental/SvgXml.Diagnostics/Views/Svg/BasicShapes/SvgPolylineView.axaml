@@ -8,7 +8,11 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel>
         <Expander IsExpanded="True" Header="Polyline">
-            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto">
+            <Grid RowDefinitions="Auto">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="KeyColumn"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="ValueColumn"/>
+                </Grid.ColumnDefinitions>
                 <!-- Points -->
                 <TextBlock Text="Points" Grid.Row="0" Grid.Column="0" />
                 <TextBox Text="{Binding Points}" Grid.Row="0" Grid.Column="1" />

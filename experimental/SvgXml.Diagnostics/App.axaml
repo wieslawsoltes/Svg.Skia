@@ -8,6 +8,17 @@
     <Application.Styles>
         <StyleInclude Source="avares://Avalonia.Themes.Default/DefaultTheme.xaml"/>
         <StyleInclude Source="avares://Avalonia.Themes.Default/Accents/BaseLight.xaml"/>
+        <!-- <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentLight.xaml" /> -->
+        <!-- <StyleInclude Source="avares://Avalonia.Themes.Fluent/DensityStyles/Compact.xaml" /> -->
+        <Style Selector="Window">
+            <Setter Property="Foreground" Value="{DynamicResource SystemBaseHighColor}"/>
+        </Style>
+        <Style Selector="Expander /template/ ToggleButton#PART_toggle">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="Expander /template/ ToggleButton#PART_toggle:pointerover /template/ Border">
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightBaseMediumBrush}" />
+        </Style>
         <Style Selector="TextBlock">
             <Setter Property="Margin" Value="2"/>
             <Setter Property="VerticalAlignment" Value="Center"/>

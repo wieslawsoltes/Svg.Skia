@@ -8,7 +8,11 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel>
         <Expander IsExpanded="True" Header="View">
-            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="KeyColumn"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="ValueColumn"/>
+                </Grid.ColumnDefinitions>
                 <!-- ViewBox -->
                 <TextBlock Text="ViewBox" Grid.Row="0" Grid.Column="0" />
                 <TextBox Text="{Binding ViewBox}" Grid.Row="0" Grid.Column="1" />

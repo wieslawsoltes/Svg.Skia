@@ -10,8 +10,8 @@
         <Expander IsExpanded="True" Header="Fragment">
             <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="FirstColumn"/>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="SecondColumn"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="KeyColumn"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="ValueColumn"/>
                 </Grid.ColumnDefinitions>
                 <!-- X -->
                 <TextBlock Text="X" Grid.Row="0" Grid.Column="0" />

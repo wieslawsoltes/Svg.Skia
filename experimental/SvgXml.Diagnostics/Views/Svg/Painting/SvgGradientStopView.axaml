@@ -8,7 +8,11 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel>
         <Expander IsExpanded="True" Header="GradientStop">
-            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto">
+            <Grid RowDefinitions="Auto,Auto,Auto">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="KeyColumn"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="ValueColumn"/>
+                </Grid.ColumnDefinitions>
                 <!-- Offset -->
                 <TextBlock Text="Offset" Grid.Row="0" Grid.Column="0" />
                 <TextBox Text="{Binding Offset}" Grid.Row="0" Grid.Column="1" />

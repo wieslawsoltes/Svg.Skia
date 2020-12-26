@@ -8,9 +8,11 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel>
         <Expander IsExpanded="True" Header="RadialGradientServer">
-            <Grid
-                  ColumnDefinitions="Auto,*"
-                  RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="KeyColumn"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="ValueColumn"/>
+                </Grid.ColumnDefinitions>
                 <!-- CenterX -->
                 <TextBlock Text="CenterX" Grid.Row="0" Grid.Column="0" />
                 <TextBox Text="{Binding CenterX}" Grid.Row="0" Grid.Column="1" />

@@ -7,7 +7,11 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel>
         <Expander IsExpanded="True" Header="Unknown">
-            <Grid RowDefinitions="Auto" ColumnDefinitions="Auto,*">
+            <Grid RowDefinitions="Auto">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="KeyColumn"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="ValueColumn"/>
+                </Grid.ColumnDefinitions>
                 <!-- Tag -->
                 <TextBlock Text="Tag" Grid.Row="0" Grid.Column="0" />
                 <TextBox Text="{Binding Tag}" Grid.Row="0" Grid.Column="1" />
