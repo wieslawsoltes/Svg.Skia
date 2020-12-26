@@ -216,11 +216,7 @@ namespace Svg.Skia
         {
             if (Picture != null)
             {
-#if USE_COLORSPACE
                 return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SKSvgSettings.s_srgb);
-#else
-                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul);
-#endif
             }
             return false;
         }
@@ -230,11 +226,7 @@ namespace Svg.Skia
             if (Picture != null)
             {
                 using var stream = File.OpenWrite(path);
-#if USE_COLORSPACE
                 return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SKSvgSettings.s_srgb);
-#else
-                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul);
-#endif
             }
             return false;
         }

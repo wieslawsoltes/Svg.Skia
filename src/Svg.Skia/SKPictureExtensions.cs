@@ -13,59 +13,44 @@ namespace Svg.Skia
             skCanvas.DrawPicture(skPicture);
             skCanvas.Restore();
         }
-#if USE_COLORSPACE
-        public static SKBitmap? ToBitmap(this SKPicture skPicture, SKColor background, float scaleX, float scaleY, SKColorType skColorType, SKAlphaType skAlphaType, SKColorSpace skColorSpace)
-#else
-        public static SKBitmap? ToBitmap(this SKPicture skPicture, SKColor background, float scaleX, float scaleY, SKColorType skColorType, SKAlphaType skAlphaType)
-#endif
-        {
-            float width = skPicture.CullRect.Width * scaleX;
-            float height = skPicture.CullRect.Height * scaleY;
-            if (width > 0 && height > 0)
-            {
-#if USE_COLORSPACE
-                var skImageInfo = new SKImageInfo((int)width, (int)height, skColorType, skAlphaType, skColorSpace);
-#else
-                var skImageInfo = new SKImageInfo((int)width, (int)height, skColorType, skAlphaType);
-#endif
-                var skBitmap = new SKBitmap(skImageInfo);
-                using var skCanvas = new SKCanvas(skBitmap);
-                Draw(skPicture, background, scaleX, scaleY, skCanvas);
-                return skBitmap;
-            }
-            return null;
-        }
 
-#if USE_COLORSPACE
+        public static SKBitmap? ToBitmap(this SKPicture skPicture, SKColor background, float scaleX, float scaleY, SKColorType skColorType, SKAlphaType skAlphaType, SKColorSpace skColorSpace)
+        {
+            var width = skPicture.CullRect.Width * scaleX;
+            var height = skPicture.CullRect.Height * scaleY;
+            if (!(width > 0) || !(height > 0))
+            {
+                return null;
+            }
+            var skImageInfo = new SKImageInfo((int)width, (int)height, skColorType, skAlphaType, skColorSpace);
+            var skBitmap = new SKBitmap(skImageInfo);
+            using var skCanvas = new SKCanvas(skBitmap);
+            Draw(skPicture, background, scaleX, scaleY, skCanvas);
+            return skBitmap;
+        }
+        
         public static bool ToImage(this SKPicture skPicture, Stream stream, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY, SKColorType skColorType, SKAlphaType skAlphaType, SKColorSpace skColorSpace)
         {
-            using (var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY, skColorType, skAlphaType, skColorSpace))
+            using var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY, skColorType, skAlphaType, skColorSpace);
+            if (skBitmap == null)
             {
-#else
-        public static bool ToImage(this SKPicture skPicture, Stream stream, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY, SKColorType skColorType, SKAlphaType skAlphaType)
-        {
-            using (var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY, skColorType, skAlphaType))
-            {
-#endif
-                if (skBitmap == null)
-                {
-                    return false;
-                }
-                using var skImage = SKImage.FromBitmap(skBitmap);
-                using var skData = skImage.Encode(format, quality);
-                if (skData != null)
-                {
-                    skData.SaveTo(stream);
-                    return true;
-                }
+                return false;
             }
+            using var skImage = SKImage.FromBitmap(skBitmap);
+            using var skData = skImage.Encode(format, quality);
+            if (skData != null)
+            {
+                skData.SaveTo(stream);
+                return true;
+            }
+
             return false;
         }
 
         public static bool ToSvg(this SKPicture skPicture, string path, SKColor background, float scaleX, float scaleY)
         {
-            float width = skPicture.CullRect.Width * scaleX;
-            float height = skPicture.CullRect.Height * scaleY;
+            var width = skPicture.CullRect.Width * scaleX;
+            var height = skPicture.CullRect.Height * scaleY;
             if (width <= 0 || height <= 0)
             {
                 return false;
@@ -78,8 +63,8 @@ namespace Svg.Skia
 
         public static bool ToPdf(this SKPicture skPicture, string path, SKColor background, float scaleX, float scaleY)
         {
-            float width = skPicture.CullRect.Width * scaleX;
-            float height = skPicture.CullRect.Height * scaleY;
+            var width = skPicture.CullRect.Width * scaleX;
+            var height = skPicture.CullRect.Height * scaleY;
             if (width <= 0 || height <= 0)
             {
                 return false;
@@ -94,8 +79,8 @@ namespace Svg.Skia
 
         public static bool ToXps(this SKPicture skPicture, string path, SKColor background, float scaleX, float scaleY)
         {
-            float width = skPicture.CullRect.Width * scaleX;
-            float height = skPicture.CullRect.Height * scaleY;
+            var width = skPicture.CullRect.Width * scaleX;
+            var height = skPicture.CullRect.Height * scaleY;
             if (width <= 0 || height <= 0)
             {
                 return false;

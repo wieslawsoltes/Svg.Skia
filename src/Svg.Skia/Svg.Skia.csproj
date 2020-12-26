@@ -23,10 +23,6 @@
   <Import Project="..\..\build\SkiaSharp.props" />
   <Import Project="..\..\build\SkiaSharp.HarfBuzz.props" />
 
-  <PropertyGroup>
-    <!--<DefineConstants>$(DefineConstants);USE_COLORSPACE</DefineConstants>-->
-  </PropertyGroup>
-
   <!--<Import Project="..\..\build\Svg.props" />-->
   <ItemGroup>
     <!--<ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />-->

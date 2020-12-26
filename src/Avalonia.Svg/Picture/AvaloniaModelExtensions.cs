@@ -183,7 +183,28 @@ namespace Avalonia.Svg.Skia
             return new AM.Color(color.Alpha, color.Red, color.Green, color.Blue);
         }
 
+        public static AM.Color ToColor(this SP.ColorF color)
+        {
+            return new AM.Color(
+                (byte)(color.Alpha * 255f),
+                (byte)(color.Red * 255f),
+                (byte)(color.Green * 255f),
+                (byte)(color.Blue * 255f));
+        }
+
         public static AM.Color[] ToSKColors(this SP.Color[] colors)
+        {
+            var skColors = new AM.Color[colors.Length];
+
+            for (int i = 0; i < colors.Length; i++)
+            {
+                skColors[i] = colors[i].ToColor();
+            }
+
+            return skColors;
+        }
+
+        public static AM.Color[] ToSKColors(this SP.ColorF[] colors)
         {
             var skColors = new AM.Color[colors.Length];
 

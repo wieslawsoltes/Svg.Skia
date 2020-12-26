@@ -4,33 +4,36 @@ namespace Svg.Picture
 {
     public abstract class Shader : IDisposable
     {
-        public static Shader CreateColor(Color color)
+        public static Shader CreateColor(Color color, ColorSpace colorSpace)
         {
             return new ColorShader()
             {
-                Color = color
+                Color = color,
+                ColorSpace = colorSpace
             };
         }
 
-        public static Shader CreateLinearGradient(Point start, Point end, Color[] colors, float[] colorPos, ShaderTileMode mode)
+        public static Shader CreateLinearGradient(Point start, Point end, ColorF[] colors, ColorSpace colorSpace, float[] colorPos, ShaderTileMode mode)
         {
             return new LinearGradientShader()
             {
                 Start = start,
                 End = end,
                 Colors = colors,
+                ColorSpace = colorSpace,
                 ColorPos = colorPos,
                 Mode = mode
             };
         }
 
-        public static Shader CreateLinearGradient(Point start, Point end, Color[] colors, float[] colorPos, ShaderTileMode mode, Matrix localMatrix)
+        public static Shader CreateLinearGradient(Point start, Point end, ColorF[] colors, ColorSpace colorSpace, float[] colorPos, ShaderTileMode mode, Matrix localMatrix)
         {
             return new LinearGradientShader()
             {
                 Start = start,
                 End = end,
                 Colors = colors,
+                ColorSpace = colorSpace,
                 ColorPos = colorPos,
                 Mode = mode,
                 LocalMatrix = localMatrix
@@ -73,7 +76,7 @@ namespace Svg.Picture
             };
         }
 
-        public static Shader CreateTwoPointConicalGradient(Point start, float startRadius, Point end, float endRadius, Color[] colors, float[] colorPos, ShaderTileMode mode)
+        public static Shader CreateTwoPointConicalGradient(Point start, float startRadius, Point end, float endRadius, ColorF[] colors, ColorSpace colorSpace, float[] colorPos, ShaderTileMode mode)
         {
             return new TwoPointConicalGradientShader()
             {
@@ -82,12 +85,13 @@ namespace Svg.Picture
                 End = end,
                 EndRadius = endRadius,
                 Colors = colors,
+                ColorSpace = colorSpace,
                 ColorPos = colorPos,
                 Mode = mode
             };
         }
 
-        public static Shader CreateTwoPointConicalGradient(Point start, float startRadius, Point end, float endRadius, Color[] colors, float[] colorPos, ShaderTileMode mode, Matrix localMatrix)
+        public static Shader CreateTwoPointConicalGradient(Point start, float startRadius, Point end, float endRadius, ColorF[] colors, ColorSpace colorSpace, float[] colorPos, ShaderTileMode mode, Matrix localMatrix)
         {
             return new TwoPointConicalGradientShader()
             {
@@ -96,6 +100,7 @@ namespace Svg.Picture
                 End = end,
                 EndRadius = endRadius,
                 Colors = colors,
+                ColorSpace = colorSpace,
                 ColorPos = colorPos,
                 Mode = mode,
                 LocalMatrix = localMatrix

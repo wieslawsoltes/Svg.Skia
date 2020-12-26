@@ -17,5 +17,14 @@ namespace Svg.Picture
             Blue = blue;
             Alpha = alpha;
         }
+
+        public static implicit operator Color(ColorF color)
+        {
+            return new Color(
+                (byte)(color.Red * 255.0f),
+                (byte)(color.Green * 255.0f),
+                (byte)(color.Blue * 255.0f),
+                (byte)(color.Alpha * 255.0f));
+        }
     }
 }

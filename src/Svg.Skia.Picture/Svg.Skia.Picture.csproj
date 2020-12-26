@@ -25,7 +25,6 @@
 
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);USE_PICTURE</DefineConstants>
-    <!--<DefineConstants>$(DefineConstants);USE_COLORSPACE</DefineConstants>-->
   </PropertyGroup>
 
   <!--<Import Project="..\..\build\Svg.props" />-->
