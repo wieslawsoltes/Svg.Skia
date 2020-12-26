@@ -5,12 +5,12 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Margin="2">
+    <StackPanel>
         <Expander IsExpanded="True" Header="Unknown">
-            <Grid Margin="2" RowDefinitions="Auto" ColumnDefinitions="Auto,*">
+            <Grid RowDefinitions="Auto" ColumnDefinitions="Auto,*">
                 <!-- Tag -->
-                <TextBlock Text="Tag" Grid.Row="0" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Tag}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Tag" Grid.Row="0" Grid.Column="0" />
+                <TextBox Text="{Binding Tag}" Grid.Row="0" Grid.Column="1" />
             </Grid>
         </Expander>
     </StackPanel>

@@ -6,30 +6,30 @@
              xmlns:attributesviews="using:SvgXml.Diagnostics.Views.Svg.Attributes"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Margin="2">
+    <StackPanel>
         <Expander IsExpanded="True" Header="FuncA">
-            <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
                 <!-- Type -->
-                <TextBlock Text="Type" Grid.Row="0" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Type}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Type" Grid.Row="0" Grid.Column="0" />
+                <TextBox Text="{Binding Type}" Grid.Row="0" Grid.Column="1" />
                 <!-- TableValues -->
-                <TextBlock Text="TableValues" Grid.Row="1" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding TableValues}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                <TextBlock Text="TableValues" Grid.Row="1" Grid.Column="0" />
+                <TextBox Text="{Binding TableValues}" Grid.Row="1" Grid.Column="1" />
                 <!-- Slope -->
-                <TextBlock Text="Slope" Grid.Row="2" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Slope}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Slope" Grid.Row="2" Grid.Column="0" />
+                <TextBox Text="{Binding Slope}" Grid.Row="2" Grid.Column="1" />
                 <!-- Intercept -->
-                <TextBlock Text="Intercept" Grid.Row="3" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Intercept}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Intercept" Grid.Row="3" Grid.Column="0" />
+                <TextBox Text="{Binding Intercept}" Grid.Row="3" Grid.Column="1" />
                 <!-- Amplitude -->
-                <TextBlock Text="Amplitude" Grid.Row="4" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Amplitude}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Amplitude" Grid.Row="4" Grid.Column="0" />
+                <TextBox Text="{Binding Amplitude}" Grid.Row="4" Grid.Column="1" />
                 <!-- Exponent -->
-                <TextBlock Text="Exponent" Grid.Row="5" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Exponent}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Exponent" Grid.Row="5" Grid.Column="0" />
+                <TextBox Text="{Binding Exponent}" Grid.Row="5" Grid.Column="1" />
                 <!-- Offset -->
-                <TextBlock Text="Offset" Grid.Row="6" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Offset}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Offset" Grid.Row="6" Grid.Column="0" />
+                <TextBox Text="{Binding Offset}" Grid.Row="6" Grid.Column="1" />
             </Grid>
         </Expander>
         <Expander IsExpanded="True" Header="Common">

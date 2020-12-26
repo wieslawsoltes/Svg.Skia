@@ -6,24 +6,24 @@
              xmlns:attributesviews="using:SvgXml.Diagnostics.Views.Svg.Attributes"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Margin="2">
+    <StackPanel>
         <Expander IsExpanded="True" Header="HorizontalKern">
-            <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
                 <!-- Unicode1 -->
-                <TextBlock Text="Unicode1" Grid.Row="0" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Unicode1}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Unicode1" Grid.Row="0" Grid.Column="0" />
+                <TextBox Text="{Binding Unicode1}" Grid.Row="0" Grid.Column="1" />
                 <!-- Glyph1 -->
-                <TextBlock Text="Glyph1" Grid.Row="1" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Glyph1}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Glyph1" Grid.Row="1" Grid.Column="0" />
+                <TextBox Text="{Binding Glyph1}" Grid.Row="1" Grid.Column="1" />
                 <!-- Unicode2 -->
-                <TextBlock Text="Unicode2" Grid.Row="2" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Unicode2}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Unicode2" Grid.Row="2" Grid.Column="0" />
+                <TextBox Text="{Binding Unicode2}" Grid.Row="2" Grid.Column="1" />
                 <!-- Glyph2 -->
-                <TextBlock Text="Glyph2" Grid.Row="3" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Glyph2}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Glyph2" Grid.Row="3" Grid.Column="0" />
+                <TextBox Text="{Binding Glyph2}" Grid.Row="3" Grid.Column="1" />
                 <!-- Kerning -->
-                <TextBlock Text="Kerning" Grid.Row="4" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Kerning}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Kerning" Grid.Row="4" Grid.Column="0" />
+                <TextBox Text="{Binding Kerning}" Grid.Row="4" Grid.Column="1" />
             </Grid>
         </Expander>
         <Expander IsExpanded="True" Header="Common">

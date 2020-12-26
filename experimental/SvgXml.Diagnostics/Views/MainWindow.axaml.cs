@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Data.Converters;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -20,19 +18,6 @@ using SvgXml.Svg;
 
 namespace SvgXml.Diagnostics.Views
 {
-    public class TypeNameConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return value.GetType().Name;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class MainWindow : Window
     {
         private volatile bool _isProcessing = false;
@@ -40,6 +25,7 @@ namespace SvgXml.Diagnostics.Views
         public MainWindow()
         {
             InitializeComponent();
+            this.AttachDevTools();
             AddHandler(DragDrop.DropEvent, Drop);
             AddHandler(DragDrop.DragOverEvent, DragOver);
         }

@@ -6,18 +6,18 @@
              xmlns:attributesviews="using:SvgXml.Diagnostics.Views.Svg.Attributes"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Margin="2">
+    <StackPanel>
         <Expander IsExpanded="True" Header="Cursor">
-            <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto">
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto">
                 <!-- X -->
-                <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                <TextBlock Text="X" Grid.Row="0" Grid.Column="0" />
+                <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" />
                 <!-- Y -->
-                <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" />
+                <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" />
                 <!-- Href -->
-                <TextBlock Text="Href" Grid.Row="2" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Href}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Href" Grid.Row="2" Grid.Column="0" />
+                <TextBox Text="{Binding Href}" Grid.Row="2" Grid.Column="1" />
             </Grid>
         </Expander>
         <Expander IsExpanded="True" Header="Common">

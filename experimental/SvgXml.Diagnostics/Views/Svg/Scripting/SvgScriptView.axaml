@@ -6,15 +6,15 @@
              xmlns:attributesviews="using:SvgXml.Diagnostics.Views.Svg.Attributes"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Margin="2">
+    <StackPanel>
         <Expander IsExpanded="True" Header="Script">
-            <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
                 <!-- Type -->
-                <TextBlock Text="Type" Grid.Row="0" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Type}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Type" Grid.Row="0" Grid.Column="0" />
+                <TextBox Text="{Binding Type}" Grid.Row="0" Grid.Column="1" />
                 <!-- Href -->
-                <TextBlock Text="Href" Grid.Row="1" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Href}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Href" Grid.Row="1" Grid.Column="0" />
+                <TextBox Text="{Binding Href}" Grid.Row="1" Grid.Column="1" />
             </Grid>
         </Expander>
         <Expander IsExpanded="True" Header="Common">

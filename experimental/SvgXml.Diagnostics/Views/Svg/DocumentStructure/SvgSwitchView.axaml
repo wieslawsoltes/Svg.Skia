@@ -6,9 +6,9 @@
              xmlns:attributesviews="using:SvgXml.Diagnostics.Views.Svg.Attributes"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Margin="2">
+    <StackPanel>
         <Expander IsExpanded="True" Header="Switch">
-            <Grid Margin="2" />
+            <Grid />
         </Expander>
         <Expander IsExpanded="True" Header="Common">
             <attributesviews:CommonProperties />

@@ -5,18 +5,22 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" SharedSizeGroup="FirstColumn"/>
+            <ColumnDefinition Width="Auto" SharedSizeGroup="SecondColumn"/>
+        </Grid.ColumnDefinitions>
         <!-- Id -->
-        <TextBlock Text="Id" Grid.Row="0" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding Id}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <TextBlock Text="Id" Grid.Row="0" Grid.Column="0" />
+        <TextBox Text="{Binding Id}" Grid.Row="0" Grid.Column="1" />
         <!-- Base -->
-        <TextBlock Text="Base" Grid.Row="1" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding Base}" Grid.Row="1" Grid.Column="1" Margin="2" />
+        <TextBlock Text="Base" Grid.Row="1" Grid.Column="0" />
+        <TextBox Text="{Binding Base}" Grid.Row="1" Grid.Column="1" />
         <!-- Lang -->
-        <TextBlock Text="Lang" Grid.Row="2" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding Lang}" Grid.Row="2" Grid.Column="1" Margin="2" />
+        <TextBlock Text="Lang" Grid.Row="2" Grid.Column="0" />
+        <TextBox Text="{Binding Lang}" Grid.Row="2" Grid.Column="1" />
         <!-- Space -->
-        <TextBlock Text="Space" Grid.Row="3" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding Space}" Grid.Row="3" Grid.Column="1" Margin="2" />
+        <TextBlock Text="Space" Grid.Row="3" Grid.Column="0" />
+        <TextBox Text="{Binding Space}" Grid.Row="3" Grid.Column="1" />
     </Grid>
 </UserControl>

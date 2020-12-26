@@ -6,56 +6,56 @@
              xmlns:attributesviews="using:SvgXml.Diagnostics.Views.Svg.Attributes"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Margin="2">
+    <StackPanel>
         <Expander IsExpanded="True" Header="ConvolveMatrix">
-            <Grid Margin="2"
+            <Grid
                   ColumnDefinitions="Auto,*"
                   RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
                 <!-- X -->
-                <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                <TextBlock Text="X" Grid.Row="0" Grid.Column="0" />
+                <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" />
                 <!-- Y -->
-                <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" />
+                <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" />
                 <!-- Width -->
-                <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" />
+                <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" />
                 <!-- Height -->
-                <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" />
+                <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" />
                 <!-- Result -->
-                <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Result" Grid.Row="4" Grid.Column="0" />
+                <TextBox Text="{Binding Result}" Grid.Row="4" Grid.Column="1" />
                 <!-- Input -->
-                <TextBlock Text="Input" Grid.Row="5" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Input}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Input" Grid.Row="5" Grid.Column="0" />
+                <TextBox Text="{Binding Input}" Grid.Row="5" Grid.Column="1" />
                 <!-- Order -->
-                <TextBlock Text="Order" Grid.Row="6" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Order}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Order" Grid.Row="6" Grid.Column="0" />
+                <TextBox Text="{Binding Order}" Grid.Row="6" Grid.Column="1" />
                 <!-- KernelMatrix -->
-                <TextBlock Text="KernelMatrix" Grid.Row="7" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding KernelMatrix}" Grid.Row="7" Grid.Column="1" Margin="2" />
+                <TextBlock Text="KernelMatrix" Grid.Row="7" Grid.Column="0" />
+                <TextBox Text="{Binding KernelMatrix}" Grid.Row="7" Grid.Column="1" />
                 <!-- Divisor -->
-                <TextBlock Text="Divisor" Grid.Row="8" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Divisor}" Grid.Row="8" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Divisor" Grid.Row="8" Grid.Column="0" />
+                <TextBox Text="{Binding Divisor}" Grid.Row="8" Grid.Column="1" />
                 <!-- Bias -->
-                <TextBlock Text="Bias" Grid.Row="9" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Bias}" Grid.Row="9" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Bias" Grid.Row="9" Grid.Column="0" />
+                <TextBox Text="{Binding Bias}" Grid.Row="9" Grid.Column="1" />
                 <!-- TargetX -->
-                <TextBlock Text="TargetX" Grid.Row="10" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding TargetX}" Grid.Row="10" Grid.Column="1" Margin="2" />
+                <TextBlock Text="TargetX" Grid.Row="10" Grid.Column="0" />
+                <TextBox Text="{Binding TargetX}" Grid.Row="10" Grid.Column="1" />
                 <!-- TargetY -->
-                <TextBlock Text="TargetY" Grid.Row="11" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding TargetY}" Grid.Row="11" Grid.Column="1" Margin="2" />
+                <TextBlock Text="TargetY" Grid.Row="11" Grid.Column="0" />
+                <TextBox Text="{Binding TargetY}" Grid.Row="11" Grid.Column="1" />
                 <!-- EdgeMode -->
-                <TextBlock Text="EdgeMode" Grid.Row="12" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding EdgeMode}" Grid.Row="12" Grid.Column="1" Margin="2" />
+                <TextBlock Text="EdgeMode" Grid.Row="12" Grid.Column="0" />
+                <TextBox Text="{Binding EdgeMode}" Grid.Row="12" Grid.Column="1" />
                 <!-- KernelUnitLength -->
-                <TextBlock Text="KernelUnitLength" Grid.Row="13" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding KernelUnitLength}" Grid.Row="13" Grid.Column="1" Margin="2" />
+                <TextBlock Text="KernelUnitLength" Grid.Row="13" Grid.Column="0" />
+                <TextBox Text="{Binding KernelUnitLength}" Grid.Row="13" Grid.Column="1" />
                 <!-- PreserveAlpha -->
-                <TextBlock Text="PreserveAlpha" Grid.Row="14" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding PreserveAlpha}" Grid.Row="14" Grid.Column="1" Margin="2" />
+                <TextBlock Text="PreserveAlpha" Grid.Row="14" Grid.Column="0" />
+                <TextBox Text="{Binding PreserveAlpha}" Grid.Row="14" Grid.Column="1" />
             </Grid>
         </Expander>
         <Expander IsExpanded="True" Header="Common">

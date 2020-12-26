@@ -5,15 +5,19 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto">
+    <Grid RowDefinitions="Auto,Auto,Auto">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" SharedSizeGroup="FirstColumn"/>
+            <ColumnDefinition Width="Auto" SharedSizeGroup="SecondColumn"/>
+        </Grid.ColumnDefinitions>
         <!-- RequiredFeatures -->
-        <TextBlock Text="RequiredFeatures" Grid.Row="0" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding RequiredFeatures}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <TextBlock Text="RequiredFeatures" Grid.Row="0" Grid.Column="0" />
+        <TextBox Text="{Binding RequiredFeatures}" Grid.Row="0" Grid.Column="1" />
         <!-- RequiredExtensions -->
-        <TextBlock Text="RequiredExtensions" Grid.Row="1" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding RequiredExtensions}" Grid.Row="1" Grid.Column="1" Margin="2" />
+        <TextBlock Text="RequiredExtensions" Grid.Row="1" Grid.Column="0" />
+        <TextBox Text="{Binding RequiredExtensions}" Grid.Row="1" Grid.Column="1" />
         <!-- SystemLanguage -->
-        <TextBlock Text="SystemLanguage" Grid.Row="2" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding SystemLanguage}" Grid.Row="2" Grid.Column="1" Margin="2" />
+        <TextBlock Text="SystemLanguage" Grid.Row="2" Grid.Column="0" />
+        <TextBox Text="{Binding SystemLanguage}" Grid.Row="2" Grid.Column="1" />
     </Grid>
 </UserControl>

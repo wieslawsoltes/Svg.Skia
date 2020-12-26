@@ -5,27 +5,31 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" SharedSizeGroup="FirstColumn"/>
+            <ColumnDefinition Width="Auto" SharedSizeGroup="SecondColumn"/>
+        </Grid.ColumnDefinitions>
         <!-- Href -->
-        <TextBlock Text="Href" Grid.Row="0" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding Href}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <TextBlock Text="Href" Grid.Row="0" Grid.Column="0" />
+        <TextBox Text="{Binding Href}" Grid.Row="0" Grid.Column="1" />
         <!-- Show -->
-        <TextBlock Text="Show" Grid.Row="1" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding Show}" Grid.Row="1" Grid.Column="1" Margin="2" />
+        <TextBlock Text="Show" Grid.Row="1" Grid.Column="0" />
+        <TextBox Text="{Binding Show}" Grid.Row="1" Grid.Column="1" />
         <!-- Actuate -->
-        <TextBlock Text="Actuate" Grid.Row="2" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding Actuate}" Grid.Row="2" Grid.Column="1" Margin="2" />
+        <TextBlock Text="Actuate" Grid.Row="2" Grid.Column="0" />
+        <TextBox Text="{Binding Actuate}" Grid.Row="2" Grid.Column="1" />
         <!-- Type -->
-        <TextBlock Text="Type" Grid.Row="3" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding Type}" Grid.Row="3" Grid.Column="1" Margin="2" />
+        <TextBlock Text="Type" Grid.Row="3" Grid.Column="0" />
+        <TextBox Text="{Binding Type}" Grid.Row="3" Grid.Column="1" />
         <!-- Role -->
-        <TextBlock Text="Role" Grid.Row="4" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding Role}" Grid.Row="4" Grid.Column="1" Margin="2" />
+        <TextBlock Text="Role" Grid.Row="4" Grid.Column="0" />
+        <TextBox Text="{Binding Role}" Grid.Row="4" Grid.Column="1" />
         <!-- Arcrole -->
-        <TextBlock Text="Arcrole" Grid.Row="5" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding Arcrole}" Grid.Row="5" Grid.Column="1" Margin="2" />
+        <TextBlock Text="Arcrole" Grid.Row="5" Grid.Column="0" />
+        <TextBox Text="{Binding Arcrole}" Grid.Row="5" Grid.Column="1" />
         <!-- Title -->
-        <TextBlock Text="Title" Grid.Row="6" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding Title}" Grid.Row="6" Grid.Column="1" Margin="2" />
+        <TextBlock Text="Title" Grid.Row="6" Grid.Column="0" />
+        <TextBox Text="{Binding Title}" Grid.Row="6" Grid.Column="1" />
     </Grid>
 </UserControl>

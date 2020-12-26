@@ -6,33 +6,33 @@
              xmlns:attributesviews="using:SvgXml.Diagnostics.Views.Svg.Attributes"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Margin="2">
+    <StackPanel>
         <Expander IsExpanded="True" Header="Marker">
-            <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
                 <!-- ViewBox -->
-                <TextBlock Text="ViewBox" Grid.Row="0" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding ViewBox}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                <TextBlock Text="ViewBox" Grid.Row="0" Grid.Column="0" />
+                <TextBox Text="{Binding ViewBox}" Grid.Row="0" Grid.Column="1" />
                 <!-- AspectRatio -->
-                <TextBlock Text="AspectRatio" Grid.Row="1" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding AspectRatio}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                <TextBlock Text="AspectRatio" Grid.Row="1" Grid.Column="0" />
+                <TextBox Text="{Binding AspectRatio}" Grid.Row="1" Grid.Column="1" />
                 <!-- RefX -->
-                <TextBlock Text="RefX" Grid.Row="2" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding RefX}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                <TextBlock Text="RefX" Grid.Row="2" Grid.Column="0" />
+                <TextBox Text="{Binding RefX}" Grid.Row="2" Grid.Column="1" />
                 <!-- RefY -->
-                <TextBlock Text="RefY" Grid.Row="3" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding RefY}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                <TextBlock Text="RefY" Grid.Row="3" Grid.Column="0" />
+                <TextBox Text="{Binding RefY}" Grid.Row="3" Grid.Column="1" />
                 <!-- MarkerUnits -->
-                <TextBlock Text="MarkerUnits" Grid.Row="4" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding MarkerUnits}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                <TextBlock Text="MarkerUnits" Grid.Row="4" Grid.Column="0" />
+                <TextBox Text="{Binding MarkerUnits}" Grid.Row="4" Grid.Column="1" />
                 <!-- MarkerWidth -->
-                <TextBlock Text="MarkerWidth" Grid.Row="5" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding MarkerWidth}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                <TextBlock Text="MarkerWidth" Grid.Row="5" Grid.Column="0" />
+                <TextBox Text="{Binding MarkerWidth}" Grid.Row="5" Grid.Column="1" />
                 <!-- MarkerHeight -->
-                <TextBlock Text="MarkerHeight" Grid.Row="6" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding MarkerHeight}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                <TextBlock Text="MarkerHeight" Grid.Row="6" Grid.Column="0" />
+                <TextBox Text="{Binding MarkerHeight}" Grid.Row="6" Grid.Column="1" />
                 <!-- Orient -->
-                <TextBlock Text="Orient" Grid.Row="7" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Orient}" Grid.Row="7" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Orient" Grid.Row="7" Grid.Column="0" />
+                <TextBox Text="{Binding Orient}" Grid.Row="7" Grid.Column="1" />
             </Grid>
         </Expander>
         <Expander IsExpanded="True" Header="Common">

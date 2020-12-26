@@ -6,21 +6,21 @@
              xmlns:attributesviews="using:SvgXml.Diagnostics.Views.Svg.Attributes"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Margin="2">
+    <StackPanel>
         <Expander IsExpanded="True" Header="Ellipse">
-            <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
                 <!-- CenterX -->
-                <TextBlock Text="CenterX" Grid.Row="0" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding CenterX}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                <TextBlock Text="CenterX" Grid.Row="0" Grid.Column="0" />
+                <TextBox Text="{Binding CenterX}" Grid.Row="0" Grid.Column="1" />
                 <!-- CenterY -->
-                <TextBlock Text="CenterY" Grid.Row="1" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding CenterY}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                <TextBlock Text="CenterY" Grid.Row="1" Grid.Column="0" />
+                <TextBox Text="{Binding CenterY}" Grid.Row="1" Grid.Column="1" />
                 <!-- RadiusX -->
-                <TextBlock Text="RadiusX" Grid.Row="2" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding RadiusX}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                <TextBlock Text="RadiusX" Grid.Row="2" Grid.Column="0" />
+                <TextBox Text="{Binding RadiusX}" Grid.Row="2" Grid.Column="1" />
                 <!-- RadiusY -->
-                <TextBlock Text="RadiusY" Grid.Row="3" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding RadiusY}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                <TextBlock Text="RadiusY" Grid.Row="3" Grid.Column="0" />
+                <TextBox Text="{Binding RadiusY}" Grid.Row="3" Grid.Column="1" />
             </Grid>
         </Expander>
         <Expander IsExpanded="True" Header="Common">

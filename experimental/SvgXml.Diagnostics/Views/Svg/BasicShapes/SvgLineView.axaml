@@ -6,21 +6,21 @@
              xmlns:attributesviews="using:SvgXml.Diagnostics.Views.Svg.Attributes"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Margin="2">
+    <StackPanel>
         <Expander IsExpanded="True" Header="Line">
-            <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
                 <!-- StartX -->
-                <TextBlock Text="StartX" Grid.Row="0" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding StartX}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                <TextBlock Text="StartX" Grid.Row="0" Grid.Column="0" />
+                <TextBox Text="{Binding StartX}" Grid.Row="0" Grid.Column="1" />
                 <!-- StartY -->
-                <TextBlock Text="StartY" Grid.Row="1" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding StartY}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                <TextBlock Text="StartY" Grid.Row="1" Grid.Column="0" />
+                <TextBox Text="{Binding StartY}" Grid.Row="1" Grid.Column="1" />
                 <!-- EndX -->
-                <TextBlock Text="EndX" Grid.Row="2" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding EndX}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                <TextBlock Text="EndX" Grid.Row="2" Grid.Column="0" />
+                <TextBox Text="{Binding EndX}" Grid.Row="2" Grid.Column="1" />
                 <!-- EndY -->
-                <TextBlock Text="EndY" Grid.Row="3" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding EndY}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                <TextBlock Text="EndY" Grid.Row="3" Grid.Column="0" />
+                <TextBox Text="{Binding EndY}" Grid.Row="3" Grid.Column="1" />
             </Grid>
         </Expander>
         <Expander IsExpanded="True" Header="Common">

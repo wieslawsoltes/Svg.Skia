@@ -6,12 +6,12 @@
              xmlns:attributesviews="using:SvgXml.Diagnostics.Views.Svg.Attributes"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Margin="2">
+    <StackPanel>
         <Expander IsExpanded="True" Header="FontFaceFormat">
-            <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto">
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto">
                 <!-- String -->
-                <TextBlock Text="String" Grid.Row="0" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding String}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                <TextBlock Text="String" Grid.Row="0" Grid.Column="0" />
+                <TextBox Text="{Binding String}" Grid.Row="0" Grid.Column="1" />
             </Grid>
         </Expander>
         <Expander IsExpanded="True" Header="Common">

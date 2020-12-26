@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:m="using:SvgXml.Diagnostics.Models"
         xmlns:vm="using:SvgXml.Diagnostics.ViewModels"
+        xmlns:converters="using:SvgXml.Diagnostics.Converters"
         xmlns:views="using:SvgXml.Diagnostics.Views"
         xmlns:Xml="using:SvgXml.Xml"
         xmlns:Svg="using:SvgXml.Svg"
@@ -19,7 +20,7 @@
         <vm:MainWindowViewModel />
     </Design.DataContext>
     <Window.Resources>
-        <views:TypeNameConverter x:Key="TypeNameConverter" />
+        <converters:TypeNameConverter x:Key="TypeNameConverter" />
     </Window.Resources>
     <Grid RowDefinitions="Auto,*">
         <Menu Grid.Row="0" Background="Transparent">
@@ -48,8 +49,8 @@
             <Grid Grid.Column="2" ColumnDefinitions="50*,Auto,50*">
                 <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}"
                         BorderThickness="{DynamicResource ThemeBorderThickness}" Grid.Column="0">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                        <views:ElemetProperties DataContext="{Binding ElementName=DocumentTree, Path=SelectedItem}" />
+                    <ScrollViewer Grid.IsSharedSizeScope="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <views:ElemetProperties DataContext="{Binding #DocumentTree.SelectedItem}" />
                     </ScrollViewer>
                 </Border>
                 <GridSplitter Grid.Column="1" Width="4" Background="Transparent" ResizeDirection="Columns"
@@ -58,9 +59,9 @@
                     <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}"
                             BorderThickness="{DynamicResource ThemeBorderThickness}" Grid.Row="0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <StackPanel Margin="2">
+                            <StackPanel>
                                 <Expander IsExpanded="True" Header="Attributes">
-                                    <ContentControl Content="{Binding ElementName=DocumentTree, Path=SelectedItem}">
+                                    <ContentControl Content="{Binding #DocumentTree.SelectedItem}">
                                         <ContentControl.DataTemplates>
                                             <!-- Item -->
                                             <DataTemplate DataType="{x:Type m:Item}">
@@ -81,9 +82,9 @@
                     <Border BorderBrush="{DynamicResource ThemeBorderMidBrush}"
                             BorderThickness="{DynamicResource ThemeBorderThickness}" Grid.Row="2">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <StackPanel Margin="2">
+                            <StackPanel>
                                 <Expander IsExpanded="True" Header="Styles">
-                                    <ContentControl Content="{Binding ElementName=DocumentTree, Path=SelectedItem}">
+                                    <ContentControl Content="{Binding #DocumentTree.SelectedItem}">
                                         <ContentControl.DataTemplates>
                                             <!-- Item -->
                                             <DataTemplate DataType="{x:Type m:Item}">
@@ -97,7 +98,7 @@
                                     </ContentControl>
                                 </Expander>
                                 <Expander IsExpanded="True" Header="Ids">
-                                    <ContentControl Content="{Binding ElementName=DocumentTree, Path=SelectedItem}">
+                                    <ContentControl Content="{Binding #DocumentTree.SelectedItem}">
                                         <ContentControl.DataTemplates>
                                             <!-- Item -->
                                             <DataTemplate DataType="{x:Type m:Item}">

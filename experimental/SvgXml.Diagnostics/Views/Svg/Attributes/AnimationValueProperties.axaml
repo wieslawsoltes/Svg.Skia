@@ -5,27 +5,31 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" SharedSizeGroup="FirstColumn"/>
+            <ColumnDefinition Width="Auto" SharedSizeGroup="SecondColumn"/>
+        </Grid.ColumnDefinitions>
         <!-- CalcMode -->
-        <TextBlock Text="CalcMode" Grid.Row="0" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding CalcMode}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <TextBlock Text="CalcMode" Grid.Row="0" Grid.Column="0" />
+        <TextBox Text="{Binding CalcMode}" Grid.Row="0" Grid.Column="1" />
         <!-- Values -->
-        <TextBlock Text="Values" Grid.Row="1" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding Values}" Grid.Row="1" Grid.Column="1" Margin="2" />
+        <TextBlock Text="Values" Grid.Row="1" Grid.Column="0" />
+        <TextBox Text="{Binding Values}" Grid.Row="1" Grid.Column="1" />
         <!-- KeyTimes -->
-        <TextBlock Text="KeyTimes" Grid.Row="2" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding KeyTimes}" Grid.Row="2" Grid.Column="1" Margin="2" />
+        <TextBlock Text="KeyTimes" Grid.Row="2" Grid.Column="0" />
+        <TextBox Text="{Binding KeyTimes}" Grid.Row="2" Grid.Column="1" />
         <!-- KeySplines -->
-        <TextBlock Text="KeySplines" Grid.Row="3" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding KeySplines}" Grid.Row="3" Grid.Column="1" Margin="2" />
+        <TextBlock Text="KeySplines" Grid.Row="3" Grid.Column="0" />
+        <TextBox Text="{Binding KeySplines}" Grid.Row="3" Grid.Column="1" />
         <!-- From -->
-        <TextBlock Text="From" Grid.Row="4" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding From}" Grid.Row="4" Grid.Column="1" Margin="2" />
+        <TextBlock Text="From" Grid.Row="4" Grid.Column="0" />
+        <TextBox Text="{Binding From}" Grid.Row="4" Grid.Column="1" />
         <!-- To -->
-        <TextBlock Text="To" Grid.Row="5" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding To}" Grid.Row="5" Grid.Column="1" Margin="2" />
+        <TextBlock Text="To" Grid.Row="5" Grid.Column="0" />
+        <TextBox Text="{Binding To}" Grid.Row="5" Grid.Column="1" />
         <!-- By -->
-        <TextBlock Text="By" Grid.Row="6" Grid.Column="0" Margin="2" />
-        <TextBox Text="{Binding By}" Grid.Row="6" Grid.Column="1" Margin="2" />
+        <TextBlock Text="By" Grid.Row="6" Grid.Column="0" />
+        <TextBox Text="{Binding By}" Grid.Row="6" Grid.Column="1" />
     </Grid>
 </UserControl>

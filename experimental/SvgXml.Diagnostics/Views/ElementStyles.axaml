@@ -6,17 +6,18 @@
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid ColumnDefinitions="30*,Auto,70*">
-        <ListBox x:Name="StylesList" Items="{Binding}" Grid.IsSharedSizeScope="True" Margin="2,2,0,2" Grid.Column="0">
+        <ListBox x:Name="StylesList" Items="{Binding}" Grid.IsSharedSizeScope="True" Grid.Column="0">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding Key}" Grid.Column="0" Margin="2" />
+                    <TextBlock Text="{Binding Key}" Grid.Column="0" />
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
         <GridSplitter Grid.Column="1" Width="4" Background="Transparent" ResizeDirection="Columns"
                       ResizeBehavior="PreviousAndNext" />
-        <ListBox x:Name="RulesList" Items="{Binding ElementName=StylesList, Path=SelectedItem.Value}"
-                 Grid.IsSharedSizeScope="True" Margin="0,2,2,2" Grid.Column="2">
+        <ListBox x:Name="RulesList"
+                 Items="{Binding #StylesList.SelectedItem.Value}"
+                 Grid.IsSharedSizeScope="True" Grid.Column="2">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid>
@@ -24,8 +25,8 @@
                             <ColumnDefinition SharedSizeGroup="Key" />
                             <ColumnDefinition SharedSizeGroup="Value" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="{Binding Key}" Grid.Column="0" Margin="2" />
-                        <TextBlock Text="{Binding Value}" Grid.Column="1" Margin="2" />
+                        <TextBlock Text="{Binding Key}" Grid.Column="0" />
+                        <TextBlock Text="{Binding Value}" Grid.Column="1" />
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>

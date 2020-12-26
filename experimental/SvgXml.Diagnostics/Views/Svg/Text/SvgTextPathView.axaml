@@ -6,27 +6,27 @@
              xmlns:attributesviews="using:SvgXml.Diagnostics.Views.Svg.Attributes"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Margin="2">
+    <StackPanel>
         <Expander IsExpanded="True" Header="TextPath">
-            <Grid Margin="2" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
                 <!-- LengthAdjust -->
-                <TextBlock Text="LengthAdjust" Grid.Row="0" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding LengthAdjust}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                <TextBlock Text="LengthAdjust" Grid.Row="0" Grid.Column="0" />
+                <TextBox Text="{Binding LengthAdjust}" Grid.Row="0" Grid.Column="1" />
                 <!-- TextLength -->
-                <TextBlock Text="TextLength" Grid.Row="1" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding TextLength}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                <TextBlock Text="TextLength" Grid.Row="1" Grid.Column="0" />
+                <TextBox Text="{Binding TextLength}" Grid.Row="1" Grid.Column="1" />
                 <!-- Href -->
-                <TextBlock Text="Href" Grid.Row="2" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Href}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Href" Grid.Row="2" Grid.Column="0" />
+                <TextBox Text="{Binding Href}" Grid.Row="2" Grid.Column="1" />
                 <!-- StartOffset -->
-                <TextBlock Text="StartOffset" Grid.Row="3" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding StartOffset}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                <TextBlock Text="StartOffset" Grid.Row="3" Grid.Column="0" />
+                <TextBox Text="{Binding StartOffset}" Grid.Row="3" Grid.Column="1" />
                 <!-- Method -->
-                <TextBlock Text="Method" Grid.Row="4" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Method}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Method" Grid.Row="4" Grid.Column="0" />
+                <TextBox Text="{Binding Method}" Grid.Row="4" Grid.Column="1" />
                 <!-- Spacing -->
-                <TextBlock Text="Spacing" Grid.Row="5" Grid.Column="0" Margin="2" />
-                <TextBox Text="{Binding Spacing}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                <TextBlock Text="Spacing" Grid.Row="5" Grid.Column="0" />
+                <TextBox Text="{Binding Spacing}" Grid.Row="5" Grid.Column="1" />
             </Grid>
         </Expander>
         <Expander IsExpanded="True" Header="Common">
