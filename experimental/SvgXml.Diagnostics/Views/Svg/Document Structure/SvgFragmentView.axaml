@@ -1,0 +1,94 @@
+﻿<UserControl x:Class="SvgXml.Diagnostics.Views.Svg.SvgFragmentView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:SvgXml.Diagnostics.Views.Svg;assembly=SvgXml.Diagnostics"
+             xmlns:attributesviews="clr-namespace:SvgXml.Diagnostics.Views.Svg.Attributes;assembly=SvgXml.Diagnostics"
+             xmlns:Svg="clr-namespace:Svg;assembly=SvgXml.Svg"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <TabControl Margin="2">
+        <TabItem Header="Fragment">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <Grid Margin="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <!-- X -->
+                    <TextBlock Text="X" Grid.Row="0" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding X}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                    <!-- Y -->
+                    <TextBlock Text="Y" Grid.Row="1" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding Y}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                    <!-- Width -->
+                    <TextBlock Text="Width" Grid.Row="2" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding Width}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                    <!-- Height -->
+                    <TextBlock Text="Height" Grid.Row="3" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding Height}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                    <!-- ViewBox -->
+                    <TextBlock Text="ViewBox" Grid.Row="4" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding ViewBox}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                    <!-- AspectRatio -->
+                    <TextBlock Text="AspectRatio" Grid.Row="5" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding AspectRatio}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                    <!-- ZoomAndPan -->
+                    <TextBlock Text="ZoomAndPan" Grid.Row="6" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding ZoomAndPan}" Grid.Row="6" Grid.Column="1" Margin="2" />
+                    <!-- Version -->
+                    <TextBlock Text="Version" Grid.Row="7" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding Version}" Grid.Row="7" Grid.Column="1" Margin="2" />
+                    <!-- BaseProfile -->
+                    <TextBlock Text="BaseProfile" Grid.Row="8" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding BaseProfile}" Grid.Row="8" Grid.Column="1" Margin="2" />
+                    <!-- ContentScriptType -->
+                    <TextBlock Text="ContentScriptType" Grid.Row="9" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding ContentScriptType}" Grid.Row="9" Grid.Column="1" Margin="2" />
+                    <!-- ContentStyleType -->
+                    <TextBlock Text="ContentStyleType" Grid.Row="10" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding ContentStyleType}" Grid.Row="10" Grid.Column="1" Margin="2" />
+                </Grid>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Common">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <attributesviews:CommonProperties/>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Presentation">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <attributesviews:PresentationProperties/>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Tests">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <attributesviews:TestsProperties/>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Stylable">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <attributesviews:StylableProperties/>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Resources">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <attributesviews:ResourcesProperties/>
+            </ScrollViewer>
+        </TabItem>
+    </TabControl>
+</UserControl>

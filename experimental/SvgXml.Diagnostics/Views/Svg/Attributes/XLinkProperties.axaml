@@ -1,0 +1,46 @@
+﻿<UserControl x:Class="SvgXml.Diagnostics.Views.Svg.Attributes.XLinkProperties"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:SvgXml.Diagnostics.Views.Svg.Attributes;assembly=SvgXml.Diagnostics"
+             xmlns:Svg="clr-namespace:Svg;assembly=SvgXml.Svg"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Margin="2">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <!-- Href -->
+        <TextBlock Text="Href" Grid.Row="0" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding Href}" Grid.Row="0" Grid.Column="1" Margin="2" />
+        <!-- Show -->
+        <TextBlock Text="Show" Grid.Row="1" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding Show}" Grid.Row="1" Grid.Column="1" Margin="2" />
+        <!-- Actuate -->
+        <TextBlock Text="Actuate" Grid.Row="2" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding Actuate}" Grid.Row="2" Grid.Column="1" Margin="2" />
+        <!-- Type -->
+        <TextBlock Text="Type" Grid.Row="3" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding Type}" Grid.Row="3" Grid.Column="1" Margin="2" />
+        <!-- Role -->
+        <TextBlock Text="Role" Grid.Row="4" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding Role}" Grid.Row="4" Grid.Column="1" Margin="2" />
+        <!-- Arcrole -->
+        <TextBlock Text="Arcrole" Grid.Row="5" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding Arcrole}" Grid.Row="5" Grid.Column="1" Margin="2" />
+        <!-- Title -->
+        <TextBlock Text="Title" Grid.Row="6" Grid.Column="0" Margin="2" />
+        <TextBox Text="{Binding Title}" Grid.Row="6" Grid.Column="1" Margin="2" />
+    </Grid>
+</UserControl>

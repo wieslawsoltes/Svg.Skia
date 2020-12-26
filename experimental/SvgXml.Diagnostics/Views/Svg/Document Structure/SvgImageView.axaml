@@ -1,0 +1,79 @@
+﻿<UserControl x:Class="SvgXml.Diagnostics.Views.Svg.SvgImageView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:SvgXml.Diagnostics.Views.Svg;assembly=SvgXml.Diagnostics"
+             xmlns:attributesviews="clr-namespace:SvgXml.Diagnostics.Views.Svg.Attributes;assembly=SvgXml.Diagnostics"
+             xmlns:Svg="clr-namespace:Svg;assembly=SvgXml.Svg"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <TabControl Margin="2">
+        <TabItem Header="Image">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <Grid Margin="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <!-- AspectRatio -->
+                    <TextBlock Text="AspectRatio" Grid.Row="0" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding AspectRatio}" Grid.Row="0" Grid.Column="1" Margin="2" />
+                    <!-- X -->
+                    <TextBlock Text="X" Grid.Row="1" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding X}" Grid.Row="1" Grid.Column="1" Margin="2" />
+                    <!-- Y -->
+                    <TextBlock Text="Y" Grid.Row="2" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding Y}" Grid.Row="2" Grid.Column="1" Margin="2" />
+                    <!-- Width -->
+                    <TextBlock Text="Width" Grid.Row="3" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding Width}" Grid.Row="3" Grid.Column="1" Margin="2" />
+                    <!-- Height -->
+                    <TextBlock Text="Height" Grid.Row="4" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding Height}" Grid.Row="4" Grid.Column="1" Margin="2" />
+                    <!-- Href -->
+                    <TextBlock Text="Href" Grid.Row="5" Grid.Column="0" Margin="2" />
+                    <TextBox Text="{Binding Href}" Grid.Row="5" Grid.Column="1" Margin="2" />
+                </Grid>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Common">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <attributesviews:CommonProperties/>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Presentation">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <attributesviews:PresentationProperties/>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Tests">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <attributesviews:TestsProperties/>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Stylable">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <attributesviews:StylableProperties/>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Resources">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <attributesviews:ResourcesProperties/>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Transformable">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <attributesviews:TransformableProperties/>
+            </ScrollViewer>
+        </TabItem>
+    </TabControl>
+</UserControl>
