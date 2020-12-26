@@ -1,6 +1,7 @@
-﻿using SvgXml.Xml.Attributes;
+﻿using SvgXml.Svg.Attributes;
+using SvgXml.Xml.Attributes;
 
-namespace SvgXml.Svg
+namespace SvgXml.Svg.Extensibility
 {
     [Element("foreignObject")]
     public class SvgForeignObject : SvgStylableElement,

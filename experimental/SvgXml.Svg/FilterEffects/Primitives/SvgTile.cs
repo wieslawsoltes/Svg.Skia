@@ -1,10 +1,13 @@
-﻿using SvgXml.Xml.Attributes;
+﻿using SvgXml.Svg.Attributes;
+using SvgXml.Xml.Attributes;
 
-namespace SvgXml.Svg.FilterEffects
+namespace SvgXml.Svg.FilterEffects.Primitives
 {
-    [Element("feMergeNode")]
-    public class SvgMergeNode : SvgElement,
-        ISvgCommonAttributes
+    [Element("feTile")]
+    public class SvgTile : SvgFilterPrimitive,
+        ISvgCommonAttributes,
+        ISvgPresentationAttributes,
+        ISvgStylableAttributes
     {
         [Attribute("in", SvgNamespace)]
         public string? Input
@@ -23,13 +26,5 @@ namespace SvgXml.Svg.FilterEffects
                     break;
             }
         }
-    }
-
-    [Element("feMerge")]
-    public class SvgMerge : SvgFilterPrimitive,
-        ISvgCommonAttributes,
-        ISvgPresentationAttributes,
-        ISvgStylableAttributes
-    {
     }
 }

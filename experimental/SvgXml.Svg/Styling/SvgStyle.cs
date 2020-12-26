@@ -1,6 +1,7 @@
-﻿using SvgXml.Xml.Attributes;
+﻿using SvgXml.Svg.Attributes;
+using SvgXml.Xml.Attributes;
 
-namespace SvgXml.Svg
+namespace SvgXml.Svg.Styling
 {
     [Element("style")]
     public class SvgStyle : SvgElement,

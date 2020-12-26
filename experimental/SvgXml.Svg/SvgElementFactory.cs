@@ -1,5 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using SvgXml.Svg.Animation;
+using SvgXml.Svg.BasicShapes;
+using SvgXml.Svg.ClippingAndMasking;
+using SvgXml.Svg.Color;
+using SvgXml.Svg.DocumentStructure;
+using SvgXml.Svg.Extensibility;
+using SvgXml.Svg.Interactivity;
+using SvgXml.Svg.Linking;
+using SvgXml.Svg.Painting;
+using SvgXml.Svg.Paths;
+using SvgXml.Svg.Scripting;
+using SvgXml.Svg.Styling;
+using SvgXml.Svg.Text;
 using SvgXml.Xml;
 using SvgXml.Xml.Elements;
 
@@ -45,30 +58,30 @@ namespace SvgXml.Svg
             ["foreignObject"] = typeof(SvgForeignObject),
             // Filter Effects
             ["filter"] = typeof(FilterEffects.SvgFilter),
-            ["feBlend"] = typeof(FilterEffects.SvgBlend),
-            ["feColorMatrix"] = typeof(FilterEffects.SvgColourMatrix),
-            ["feComponentTransfer"] = typeof(FilterEffects.SvgComponentTransfer),
-            ["feComposite"] = typeof(FilterEffects.SvgComposite),
-            ["feConvolveMatrix"] = typeof(FilterEffects.SvgConvolveMatrix),
-            ["feDiffuseLighting"] = typeof(FilterEffects.SvgDiffuseLighting),
-            ["feDisplacementMap"] = typeof(FilterEffects.SvgDisplacementMap),
-            ["feDistantLight"] = typeof(FilterEffects.SvgDistantLight),
-            ["feFlood"] = typeof(FilterEffects.SvgFlood),
-            ["feFuncA"] = typeof(FilterEffects.SvgFuncA),
-            ["feFuncB"] = typeof(FilterEffects.SvgFuncB),
-            ["feFuncG"] = typeof(FilterEffects.SvgFuncG),
-            ["feFuncR"] = typeof(FilterEffects.SvgFuncR),
-            ["feGaussianBlur"] = typeof(FilterEffects.SvgGaussianBlur),
-            ["feImage"] = typeof(FilterEffects.SvgImage),
-            ["feMerge"] = typeof(FilterEffects.SvgMerge),
-            ["feMergeNode"] = typeof(FilterEffects.SvgMergeNode),
-            ["feMorphology"] = typeof(FilterEffects.SvgMorphology),
-            ["feOffset"] = typeof(FilterEffects.SvgOffset),
-            ["fePointLight"] = typeof(FilterEffects.SvgPointLight),
-            ["feSpecularLighting"] = typeof(FilterEffects.SvgSpecularLighting),
-            ["feSpotLight"] = typeof(FilterEffects.SvgSpotLight),
-            ["feTile"] = typeof(FilterEffects.SvgTile),
-            ["feTurbulence"] = typeof(FilterEffects.SvgTurbulence),
+            ["feBlend"] = typeof(FilterEffects.Primitives.SvgBlend),
+            ["feColorMatrix"] = typeof(FilterEffects.Primitives.SvgColourMatrix),
+            ["feComponentTransfer"] = typeof(FilterEffects.Primitives.SvgComponentTransfer),
+            ["feComposite"] = typeof(FilterEffects.Primitives.SvgComposite),
+            ["feConvolveMatrix"] = typeof(FilterEffects.Primitives.SvgConvolveMatrix),
+            ["feDiffuseLighting"] = typeof(FilterEffects.Primitives.SvgDiffuseLighting),
+            ["feDisplacementMap"] = typeof(FilterEffects.Primitives.SvgDisplacementMap),
+            ["feDistantLight"] = typeof(FilterEffects.Primitives.SvgDistantLight),
+            ["feFlood"] = typeof(FilterEffects.Primitives.SvgFlood),
+            ["feFuncA"] = typeof(FilterEffects.Primitives.SvgFuncA),
+            ["feFuncB"] = typeof(FilterEffects.Primitives.SvgFuncB),
+            ["feFuncG"] = typeof(FilterEffects.Primitives.SvgFuncG),
+            ["feFuncR"] = typeof(FilterEffects.Primitives.SvgFuncR),
+            ["feGaussianBlur"] = typeof(FilterEffects.Primitives.SvgGaussianBlur),
+            ["feImage"] = typeof(FilterEffects.Primitives.SvgImage),
+            ["feMerge"] = typeof(FilterEffects.Primitives.SvgMerge),
+            ["feMergeNode"] = typeof(FilterEffects.Primitives.SvgMergeNode),
+            ["feMorphology"] = typeof(FilterEffects.Primitives.SvgMorphology),
+            ["feOffset"] = typeof(FilterEffects.Primitives.SvgOffset),
+            ["fePointLight"] = typeof(FilterEffects.Primitives.SvgPointLight),
+            ["feSpecularLighting"] = typeof(FilterEffects.Primitives.SvgSpecularLighting),
+            ["feSpotLight"] = typeof(FilterEffects.Primitives.SvgSpotLight),
+            ["feTile"] = typeof(FilterEffects.Primitives.SvgTile),
+            ["feTurbulence"] = typeof(FilterEffects.Primitives.SvgTurbulence),
             // Interactivity
             ["cursor"] = typeof(SvgCursor),
             // Linking
@@ -152,30 +165,30 @@ namespace SvgXml.Svg
                 "foreignObject" => new SvgForeignObject() { Tag = tag },
                 // Filter Effects
                 "filter" => new FilterEffects.SvgFilter() { Tag = tag },
-                "feBlend" => new FilterEffects.SvgBlend() { Tag = tag },
-                "feColorMatrix" => new FilterEffects.SvgColourMatrix() { Tag = tag },
-                "feComponentTransfer" => new FilterEffects.SvgComponentTransfer() { Tag = tag },
-                "feComposite" => new FilterEffects.SvgComposite() { Tag = tag },
-                "feConvolveMatrix" => new FilterEffects.SvgConvolveMatrix() { Tag = tag },
-                "feDiffuseLighting" => new FilterEffects.SvgDiffuseLighting() { Tag = tag },
-                "feDisplacementMap" => new FilterEffects.SvgDisplacementMap() { Tag = tag },
-                "feDistantLight" => new FilterEffects.SvgDistantLight() { Tag = tag },
-                "feFlood" => new FilterEffects.SvgFlood() { Tag = tag },
-                "feFuncA" => new FilterEffects.SvgFuncA() { Tag = tag },
-                "feFuncB" => new FilterEffects.SvgFuncB() { Tag = tag },
-                "feFuncG" => new FilterEffects.SvgFuncG() { Tag = tag },
-                "feFuncR" => new FilterEffects.SvgFuncR() { Tag = tag },
-                "feGaussianBlur" => new FilterEffects.SvgGaussianBlur() { Tag = tag },
-                "feImage" => new FilterEffects.SvgImage() { Tag = tag },
-                "feMerge" => new FilterEffects.SvgMerge() { Tag = tag },
-                "feMergeNode" => new FilterEffects.SvgMergeNode() { Tag = tag },
-                "feMorphology" => new FilterEffects.SvgMorphology() { Tag = tag },
-                "feOffset" => new FilterEffects.SvgOffset() { Tag = tag },
-                "fePointLight" => new FilterEffects.SvgPointLight() { Tag = tag },
-                "feSpecularLighting" => new FilterEffects.SvgSpecularLighting() { Tag = tag },
-                "feSpotLight" => new FilterEffects.SvgSpotLight() { Tag = tag },
-                "feTile" => new FilterEffects.SvgTile() { Tag = tag },
-                "feTurbulence" => new FilterEffects.SvgTurbulence() { Tag = tag },
+                "feBlend" => new FilterEffects.Primitives.SvgBlend() { Tag = tag },
+                "feColorMatrix" => new FilterEffects.Primitives.SvgColourMatrix() { Tag = tag },
+                "feComponentTransfer" => new FilterEffects.Primitives.SvgComponentTransfer() { Tag = tag },
+                "feComposite" => new FilterEffects.Primitives.SvgComposite() { Tag = tag },
+                "feConvolveMatrix" => new FilterEffects.Primitives.SvgConvolveMatrix() { Tag = tag },
+                "feDiffuseLighting" => new FilterEffects.Primitives.SvgDiffuseLighting() { Tag = tag },
+                "feDisplacementMap" => new FilterEffects.Primitives.SvgDisplacementMap() { Tag = tag },
+                "feDistantLight" => new FilterEffects.Primitives.SvgDistantLight() { Tag = tag },
+                "feFlood" => new FilterEffects.Primitives.SvgFlood() { Tag = tag },
+                "feFuncA" => new FilterEffects.Primitives.SvgFuncA() { Tag = tag },
+                "feFuncB" => new FilterEffects.Primitives.SvgFuncB() { Tag = tag },
+                "feFuncG" => new FilterEffects.Primitives.SvgFuncG() { Tag = tag },
+                "feFuncR" => new FilterEffects.Primitives.SvgFuncR() { Tag = tag },
+                "feGaussianBlur" => new FilterEffects.Primitives.SvgGaussianBlur() { Tag = tag },
+                "feImage" => new FilterEffects.Primitives.SvgImage() { Tag = tag },
+                "feMerge" => new FilterEffects.Primitives.SvgMerge() { Tag = tag },
+                "feMergeNode" => new FilterEffects.Primitives.SvgMergeNode() { Tag = tag },
+                "feMorphology" => new FilterEffects.Primitives.SvgMorphology() { Tag = tag },
+                "feOffset" => new FilterEffects.Primitives.SvgOffset() { Tag = tag },
+                "fePointLight" => new FilterEffects.Primitives.SvgPointLight() { Tag = tag },
+                "feSpecularLighting" => new FilterEffects.Primitives.SvgSpecularLighting() { Tag = tag },
+                "feSpotLight" => new FilterEffects.Primitives.SvgSpotLight() { Tag = tag },
+                "feTile" => new FilterEffects.Primitives.SvgTile() { Tag = tag },
+                "feTurbulence" => new FilterEffects.Primitives.SvgTurbulence() { Tag = tag },
                 // Interactivity
                 "cursor" => new SvgCursor() { Tag = tag },
                 // Linking

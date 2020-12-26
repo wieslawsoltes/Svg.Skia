@@ -1,9 +1,10 @@
-﻿using SvgXml.Xml.Attributes;
+﻿using SvgXml.Svg.Attributes;
+using SvgXml.Xml.Attributes;
 
-namespace SvgXml.Svg.FilterEffects
+namespace SvgXml.Svg.FilterEffects.Primitives
 {
-    [Element("feGaussianBlur")]
-    public class SvgGaussianBlur : SvgFilterPrimitive,
+    [Element("feComponentTransfer")]
+    public class SvgComponentTransfer : SvgFilterPrimitive,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
@@ -15,13 +16,6 @@ namespace SvgXml.Svg.FilterEffects
             set => this.SetAttribute("in", value);
         }
 
-        [Attribute("stdDeviation", SvgNamespace)]
-        public string? StdDeviation
-        {
-            get => this.GetAttribute("stdDeviation", false, "0");
-            set => this.SetAttribute("stdDeviation", value);
-        }
-
         public override void SetPropertyValue(string key, string? value)
         {
             base.SetPropertyValue(key, value);
@@ -29,9 +23,6 @@ namespace SvgXml.Svg.FilterEffects
             {
                 case "in":
                     Input = value;
-                    break;
-                case "stdDeviation":
-                    StdDeviation = value;
                     break;
             }
         }

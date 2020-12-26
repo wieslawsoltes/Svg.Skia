@@ -1,10 +1,10 @@
 ﻿using SvgXml.Svg.Attributes;
 using SvgXml.Xml.Attributes;
 
-namespace SvgXml.Svg.Text
+namespace SvgXml.Svg.FilterEffects.Primitives
 {
-    [Element("missing-glyph")]
-    public class SvgMissingGlyph : SvgGlyph,
+    [Element("feMerge")]
+    public class SvgMerge : SvgFilterPrimitive,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes

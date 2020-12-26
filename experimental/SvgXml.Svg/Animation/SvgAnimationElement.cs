@@ -1,6 +1,6 @@
 ﻿using SvgXml.Xml.Attributes;
 
-namespace SvgXml.Svg
+namespace SvgXml.Svg.Animation
 {
     public abstract class SvgAnimationElement : SvgStylableElement
     {

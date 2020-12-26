@@ -10,6 +10,8 @@ using System.Text;
 using System.Xml;
 using Svg.ExCSS;
 using SvgXml.Css;
+using SvgXml.Svg.DocumentStructure;
+using SvgXml.Svg.Styling;
 using SvgXml.Xml;
 using SvgXml.Xml.Elements;
 

@@ -1,4 +1,5 @@
-﻿using SvgXml.Xml.Attributes;
+﻿using SvgXml.Svg.Attributes;
+using SvgXml.Xml.Attributes;
 
 namespace SvgXml.Svg.FilterEffects
 {

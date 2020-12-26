@@ -1,6 +1,6 @@
 ﻿using SvgXml.Xml.Attributes;
 
-namespace SvgXml.Svg
+namespace SvgXml.Svg.Text
 {
     public abstract class SvgTextPositioning : SvgTextContent
     {

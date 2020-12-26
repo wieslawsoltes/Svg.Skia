@@ -1,9 +1,10 @@
-﻿using SvgXml.Xml.Attributes;
+﻿using SvgXml.Svg.Attributes;
+using SvgXml.Xml.Attributes;
 
-namespace SvgXml.Svg.FilterEffects
+namespace SvgXml.Svg.FilterEffects.Primitives
 {
-    [Element("feMorphology")]
-    public class SvgMorphology : SvgFilterPrimitive,
+    [Element("feOffset")]
+    public class SvgOffset : SvgFilterPrimitive,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
@@ -15,18 +16,18 @@ namespace SvgXml.Svg.FilterEffects
             set => this.SetAttribute("in", value);
         }
 
-        [Attribute("operator", SvgNamespace)]
-        public string? Operator
+        [Attribute("dx", SvgNamespace)]
+        public string? Dx
         {
-            get => this.GetAttribute("operator", false, "erode");
-            set => this.SetAttribute("operator", value);
+            get => this.GetAttribute("dx", false, "0");
+            set => this.SetAttribute("dx", value);
         }
 
-        [Attribute("radius", SvgNamespace)]
-        public string? Radius
+        [Attribute("dy", SvgNamespace)]
+        public string? Dy
         {
-            get => this.GetAttribute("radius", false, "0");
-            set => this.SetAttribute("radius", value);
+            get => this.GetAttribute("dy", false, "0");
+            set => this.SetAttribute("dy", value);
         }
 
         public override void SetPropertyValue(string key, string? value)
@@ -37,11 +38,11 @@ namespace SvgXml.Svg.FilterEffects
                 case "in":
                     Input = value;
                     break;
-                case "operator":
-                    Operator = value;
+                case "dx":
+                    Dx = value;
                     break;
-                case "radius":
-                    Radius = value;
+                case "dy":
+                    Dy = value;
                     break;
             }
         }

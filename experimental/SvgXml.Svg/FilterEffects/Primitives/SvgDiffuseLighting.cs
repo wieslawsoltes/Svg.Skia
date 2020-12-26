@@ -1,9 +1,10 @@
-﻿using SvgXml.Xml.Attributes;
+﻿using SvgXml.Svg.Attributes;
+using SvgXml.Xml.Attributes;
 
-namespace SvgXml.Svg.FilterEffects
+namespace SvgXml.Svg.FilterEffects.Primitives
 {
-    [Element("feSpecularLighting")]
-    public class SvgSpecularLighting : SvgFilterPrimitive,
+    [Element("feDiffuseLighting")]
+    public class SvgDiffuseLighting : SvgFilterPrimitive,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
@@ -22,18 +23,11 @@ namespace SvgXml.Svg.FilterEffects
             set => this.SetAttribute("surfaceScale", value);
         }
 
-        [Attribute("specularConstant", SvgNamespace)]
-        public string? SpecularConstant
+        [Attribute("diffuseConstant", SvgNamespace)]
+        public string? DiffuseConstant
         {
-            get => this.GetAttribute("specularConstant", false, "1");
-            set => this.SetAttribute("specularConstant", value);
-        }
-
-        [Attribute("specularExponent", SvgNamespace)]
-        public string? SpecularExponent
-        {
-            get => this.GetAttribute("specularExponent", false, "1");
-            set => this.SetAttribute("specularExponent", value);
+            get => this.GetAttribute("diffuseConstant", false, "1");
+            set => this.SetAttribute("diffuseConstant", value);
         }
 
         [Attribute("kernelUnitLength", SvgNamespace)]
@@ -54,11 +48,8 @@ namespace SvgXml.Svg.FilterEffects
                 case "surfaceScale":
                     SurfaceScale = value;
                     break;
-                case "specularConstant":
-                    SpecularConstant = value;
-                    break;
-                case "specularExponent":
-                    SpecularExponent = value;
+                case "diffuseConstant":
+                    DiffuseConstant = value;
                     break;
                 case "kernelUnitLength":
                     KernelUnitLength = value;

@@ -1,6 +1,6 @@
 ﻿using SvgXml.Xml.Attributes;
 
-namespace SvgXml.Svg.FilterEffects
+namespace SvgXml.Svg.FilterEffects.Primitives
 {
     public abstract class SvgComponentTransferFunction : SvgElement
     {
@@ -78,31 +78,6 @@ namespace SvgXml.Svg.FilterEffects
                     break;
                 case "offset":
                     Offset = value;
-                    break;
-            }
-        }
-    }
-
-    [Element("feComponentTransfer")]
-    public class SvgComponentTransfer : SvgFilterPrimitive,
-        ISvgCommonAttributes,
-        ISvgPresentationAttributes,
-        ISvgStylableAttributes
-    {
-        [Attribute("in", SvgNamespace)]
-        public string? Input
-        {
-            get => this.GetAttribute("in", false, null);
-            set => this.SetAttribute("in", value);
-        }
-
-        public override void SetPropertyValue(string key, string? value)
-        {
-            base.SetPropertyValue(key, value);
-            switch (key)
-            {
-                case "in":
-                    Input = value;
                     break;
             }
         }

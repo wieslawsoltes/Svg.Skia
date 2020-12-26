@@ -1,9 +1,10 @@
-﻿using SvgXml.Xml.Attributes;
+﻿using SvgXml.Svg.Attributes;
+using SvgXml.Xml.Attributes;
 
-namespace SvgXml.Svg.FilterEffects
+namespace SvgXml.Svg.FilterEffects.Primitives
 {
-    [Element("feOffset")]
-    public class SvgOffset : SvgFilterPrimitive,
+    [Element("feBlend")]
+    public class SvgBlend : SvgFilterPrimitive,
         ISvgCommonAttributes,
         ISvgPresentationAttributes,
         ISvgStylableAttributes
@@ -15,18 +16,18 @@ namespace SvgXml.Svg.FilterEffects
             set => this.SetAttribute("in", value);
         }
 
-        [Attribute("dx", SvgNamespace)]
-        public string? Dx
+        [Attribute("in2", SvgNamespace)]
+        public string? Input2
         {
-            get => this.GetAttribute("dx", false, "0");
-            set => this.SetAttribute("dx", value);
+            get => this.GetAttribute("in2", false, null);
+            set => this.SetAttribute("in2", value);
         }
 
-        [Attribute("dy", SvgNamespace)]
-        public string? Dy
+        [Attribute("mode", SvgNamespace)]
+        public string? Mode
         {
-            get => this.GetAttribute("dy", false, "0");
-            set => this.SetAttribute("dy", value);
+            get => this.GetAttribute("mode", false, "normal");
+            set => this.SetAttribute("mode", value);
         }
 
         public override void SetPropertyValue(string key, string? value)
@@ -37,11 +38,11 @@ namespace SvgXml.Svg.FilterEffects
                 case "in":
                     Input = value;
                     break;
-                case "dx":
-                    Dx = value;
+                case "in2":
+                    Input2 = value;
                     break;
-                case "dy":
-                    Dy = value;
+                case "mode":
+                    Mode = value;
                     break;
             }
         }
