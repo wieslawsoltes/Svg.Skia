@@ -10,9 +10,10 @@ using System.Text;
 using System.Xml;
 using Svg.ExCSS;
 using SvgXml.Css;
-using Xml;
+using SvgXml.Xml;
+using SvgXml.Xml.Elements;
 
-namespace Svg
+namespace SvgXml.Svg
 {
 #nullable disable warnings
     public class DtdXmlUrlResolver : XmlUrlResolver

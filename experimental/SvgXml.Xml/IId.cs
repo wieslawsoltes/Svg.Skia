@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Xml
+﻿namespace SvgXml.Xml
 {
     public interface IId
     {

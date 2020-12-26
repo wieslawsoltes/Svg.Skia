@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Xml;
+using SvgXml.Xml;
+using SvgXml.Xml.Elements;
 
-namespace Svg
+namespace SvgXml.Svg
 {
     public class SvgElementFactory : IElementFactory
     {

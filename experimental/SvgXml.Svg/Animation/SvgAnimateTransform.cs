@@ -1,7 +1,6 @@
-﻿using System;
-using Xml;
+﻿using SvgXml.Xml.Attributes;
 
-namespace Svg
+namespace SvgXml.Svg
 {
     [Element("animateTransform")]
     public class SvgAnimateTransform : SvgAnimationElement,

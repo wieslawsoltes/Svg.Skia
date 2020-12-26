@@ -1,6 +1,7 @@
 ﻿using System;
+using SvgXml.Xml;
 
-namespace Xml
+namespace SvgXml.Svg
 {
     public static class SvgElementExtensions
     {

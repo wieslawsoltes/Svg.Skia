@@ -16,6 +16,7 @@ using Avalonia.Threading;
 using Svg;
 using SvgXml.Diagnostics.Models;
 using SvgXml.Diagnostics.ViewModels;
+using SvgXml.Svg;
 
 namespace SvgXml.Diagnostics.Views
 {

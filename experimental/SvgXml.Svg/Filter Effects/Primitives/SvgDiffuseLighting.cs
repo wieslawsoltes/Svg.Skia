@@ -1,7 +1,6 @@
-﻿using System;
-using Xml;
+﻿using SvgXml.Xml.Attributes;
 
-namespace Svg.FilterEffects
+namespace SvgXml.Svg.FilterEffects
 {
     [Element("feDiffuseLighting")]
     public class SvgDiffuseLighting : SvgFilterPrimitive,

@@ -1,6 +1,6 @@
-﻿using Xml;
+﻿using SvgXml.Xml.Attributes;
 
-namespace Svg.FilterEffects
+namespace SvgXml.Svg.FilterEffects
 {
     [Element("feFuncA")]
     public class SvgFuncA : SvgComponentTransferFunction,

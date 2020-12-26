@@ -1,4 +1,4 @@
-﻿namespace Svg
+﻿namespace SvgXml.Svg
 {
     public class SvgDeferredPaintServer : SvgPaintServer
     {

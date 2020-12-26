@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Xml
+namespace SvgXml.Xml.Attributes
 {
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Event, Inherited = false)]
     public class AttributeAttribute : Attribute

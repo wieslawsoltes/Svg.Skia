@@ -1,6 +1,6 @@
-﻿using Xml;
+﻿using SvgXml.Xml.Attributes;
 
-namespace Svg
+namespace SvgXml.Svg
 {
     [Element("altGlyphDef")]
     public class SvgAltGlyphDef : SvgElement,

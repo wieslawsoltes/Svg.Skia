@@ -1,4 +1,4 @@
-﻿namespace Xml
+﻿namespace SvgXml.Xml.Elements
 {
     public class ContentElement : Element
     {

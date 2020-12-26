@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Xml
+namespace SvgXml.Xml.Attributes
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public sealed class ElementAttribute : Attribute

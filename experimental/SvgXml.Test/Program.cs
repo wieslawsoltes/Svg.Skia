@@ -4,8 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Linq;
-using Svg;
-using Xml;
+using SvgXml.Svg;
+using SvgXml.Xml;
+using SvgXml.Xml.Attributes;
 
 namespace SvgXml.Test
 {

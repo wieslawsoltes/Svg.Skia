@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Fizzler;
-using Svg;
-using Xml;
+using SvgXml.Xml;
 
 namespace SvgXml.Css
 {

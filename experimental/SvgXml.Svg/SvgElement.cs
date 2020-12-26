@@ -1,7 +1,7 @@
-﻿using System;
-using Xml;
+﻿using SvgXml.Xml;
+using SvgXml.Xml.Attributes;
 
-namespace Svg
+namespace SvgXml.Svg
 {
     public abstract class SvgElement : Element, IId
     {

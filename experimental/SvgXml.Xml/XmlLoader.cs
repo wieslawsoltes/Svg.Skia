@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
+﻿using System.Collections.Generic;
 using System.Xml;
+using SvgXml.Xml.Elements;
 
-namespace Xml
+namespace SvgXml.Xml
 {
     public static class XmlLoader
     {

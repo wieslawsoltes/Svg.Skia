@@ -8,9 +8,9 @@
              xmlns:attributesviews="clr-namespace:SvgXml.Diagnostics.Views.Svg.Attributes;assembly=SvgXml.Diagnostics"
              xmlns:svgviews="clr-namespace:SvgXml.Diagnostics.Views.Svg;assembly=SvgXml.Diagnostics"
              xmlns:svgfiltereffectsviews="clr-namespace:SvgXml.Diagnostics.Views.Svg.FilterEffects;assembly=SvgXml.Diagnostics"
-             xmlns:Xml="clr-namespace:Xml;assembly=SvgXml.Xml"
-             xmlns:Svg="clr-namespace:Svg;assembly=SvgXml.Svg"
-             xmlns:SvgFilterEffects="clr-namespace:Svg.FilterEffects;assembly=SvgXml.Svg"
+             xmlns:Elements="clr-namespace:SvgXml.Xml.Elements;assembly=SvgXml.Xml"
+             xmlns:Svg="clr-namespace:SvgXml.Svg;assembly=SvgXml.Svg"
+             xmlns:SvgFilterEffects="clr-namespace:SvgXml.Svg.FilterEffects;assembly=SvgXml.Svg"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <ContentControl Content="{Binding}">
@@ -20,10 +20,10 @@
                 <ContentControl Content="{Binding Document}"/>
             </DataTemplate>
             <!-- Xml -->
-            <DataTemplate DataType="{x:Type Xml:ContentElement}">
+            <DataTemplate DataType="{x:Type Elements:ContentElement}">
                 <xmlviews:ContentElementView/>
             </DataTemplate>
-            <DataTemplate DataType="{x:Type Xml:UnknownElement}">
+            <DataTemplate DataType="{x:Type Elements:UnknownElement}">
                 <xmlviews:UnknownElementView/>
             </DataTemplate>
             <!-- Animation -->

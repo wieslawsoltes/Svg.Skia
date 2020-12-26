@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Xml
+namespace SvgXml.Xml
 {
     public abstract class Element : IElement
     {
