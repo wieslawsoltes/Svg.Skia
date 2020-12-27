@@ -96,15 +96,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.SKPictureImage", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "experimental", "experimental", "{64A83705-2C93-46EB-858D-76C81AAC7151}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvgXml.Xml", "experimental\SvgXml.Xml\SvgXml.Xml.csproj", "{AB62FFBA-04D0-4240-86AA-4D435C62856A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgXml.Xml", "experimental\SvgXml.Xml\SvgXml.Xml.csproj", "{AB62FFBA-04D0-4240-86AA-4D435C62856A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvgXml.Test", "experimental\SvgXml.Test\SvgXml.Test.csproj", "{CE71F08D-3803-4166-B679-EEB36A79F629}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgXml.Test", "experimental\SvgXml.Test\SvgXml.Test.csproj", "{CE71F08D-3803-4166-B679-EEB36A79F629}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvgXml.Svg", "experimental\SvgXml.Svg\SvgXml.Svg.csproj", "{E301F89A-1A6F-4A97-9E84-81D9329637E5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgXml.Svg", "experimental\SvgXml.Svg\SvgXml.Svg.csproj", "{E301F89A-1A6F-4A97-9E84-81D9329637E5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvgXml.Css", "experimental\SvgXml.Css\SvgXml.Css.csproj", "{12D79EDB-5B5A-4A87-904E-E50DFF3C874D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgXml.Css", "experimental\SvgXml.Css\SvgXml.Css.csproj", "{12D79EDB-5B5A-4A87-904E-E50DFF3C874D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvgXml.Diagnostics", "experimental\SvgXml.Diagnostics\SvgXml.Diagnostics.csproj", "{705D1C16-7604-4C49-AF60-55A25D2120A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgXml.Diagnostics", "experimental\SvgXml.Diagnostics\SvgXml.Diagnostics.csproj", "{705D1C16-7604-4C49-AF60-55A25D2120A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
