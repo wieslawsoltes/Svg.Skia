@@ -48,33 +48,9 @@ namespace Svg.Skia
             return SvgDocument.Open<SvgDocument>(stream, null);
         }
 
-        public static Picture? ToModel(SvgFragment svgFragment)
-        {
-            var size = SvgExtensions.GetDimensions(svgFragment);
-            var bounds = Rect.Create(size);
-            using var drawable = DrawableFactory.Create(svgFragment, bounds, null, Attributes.None);
-            if (drawable == null)
-            {
-                return null;
-            }
-            drawable.PostProcess();
-
-            if (bounds.IsEmpty)
-            {
-                var drawableBounds = drawable.Bounds;
-                bounds = Rect.Create(
-                    0f,
-                    0f,
-                    Math.Abs(drawableBounds.Left) + drawableBounds.Width,
-                    Math.Abs(drawableBounds.Top) + drawableBounds.Height);
-            }
-
-            return drawable.Snapshot(bounds);
-        }
-
         public static SKPicture? ToPicture(SvgFragment svgFragment)
         {
-            var picture = ToModel(svgFragment);
+            var picture = SvgExtensions.ToModel(svgFragment);
             if (picture != null)
             {
                 return SkiaPicture.Record(picture);

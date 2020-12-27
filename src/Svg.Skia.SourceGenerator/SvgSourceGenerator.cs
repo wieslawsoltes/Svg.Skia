@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Svg.CodeGen;
 
 namespace Svg.Skia
 {

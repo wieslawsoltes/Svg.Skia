@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using SkiaSharp;
+using Svg.Model;
 using Svg.Skia;
 //using SkiaSharp.Views.Desktop;
 using SvgToPng.ViewModels;
@@ -25,7 +26,7 @@ namespace SvgToPng
         {
             InitializeComponent();
 #if DEBUG
-            SKSvgSettings.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture("en-US");
+            SvgExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture("en-US");
 #endif
             var vm = MainWindowViewModel.Load<MainWindowViewModel>("VM.json");
             if (vm != null)

@@ -12,7 +12,7 @@ namespace Svg.Model
             };
         }
 
-        public static ColorFilter CreateTable(byte[] tableA, byte[] tableR, byte[] tableG, byte[] tableB)
+        public static ColorFilter CreateTable(byte[]? tableA, byte[]? tableR, byte[]? tableG, byte[]? tableB)
         {
             return new TableColorFilter
             {

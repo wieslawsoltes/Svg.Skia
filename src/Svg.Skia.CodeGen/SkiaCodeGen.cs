@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using SP = Svg.Model;
 
-namespace Svg.Skia
+namespace Svg.CodeGen
 {
     internal class SkiaCodeGenObjectCounter
     {
@@ -43,6 +43,10 @@ namespace Svg.Skia
 
     internal static class SkiaCodeGenModelExtensions
     {
+        private static string s_srgbLinear = "SKColorSpace.CreateRgb(SKColorSpaceTransferFn.Linear, SKColorSpaceXyz.Srgb)";
+
+        private static string s_srgb = "SKColorSpace.CreateRgb(SKColorSpaceTransferFn.Srgb, SKColorSpaceXyz.Srgb)";
+
         private static readonly CultureInfo _ci = CultureInfo.InvariantCulture;
 
         private static readonly char[] s_fontFamilyTrim = { '\'' };
@@ -473,7 +477,7 @@ namespace Svg.Skia
                         sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
                         sb.AppendLine($"SKShader.CreateColor(");
                         sb.AppendLine($"{indent}    {colorShader.Color.ToSKColor()},");
-                        sb.AppendLine($"{indent}    {(colorShader.ColorSpace == SP.ColorSpace.Srgb ? "SKColorSpace.CreateSrgb()" : "SKColorSpace.CreateSrgbLinear()")});");
+                        sb.AppendLine($"{indent}    {(colorShader.ColorSpace == SP.ColorSpace.Srgb ? s_srgb : s_srgbLinear)});");
                         return;
                     }
                 case SP.LinearGradientShader linearGradientShader:
@@ -491,7 +495,7 @@ namespace Svg.Skia
                             sb.AppendLine($"{indent}    {linearGradientShader.Start.ToSKPoint()},");
                             sb.AppendLine($"{indent}    {linearGradientShader.End.ToSKPoint()},");
                             sb.AppendLine($"{indent}    {linearGradientShader.Colors.ToSKColors()},");
-                            sb.AppendLine($"{indent}    {(linearGradientShader.ColorSpace == SP.ColorSpace.Srgb ? "SKColorSpace.CreateSrgb()" : "SKColorSpace.CreateSrgbLinear()")},");
+                            sb.AppendLine($"{indent}    {(linearGradientShader.ColorSpace == SP.ColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
                             sb.AppendLine($"{indent}    {linearGradientShader.ColorPos.ToFloatArray()},");
                             sb.AppendLine($"{indent}    {linearGradientShader.Mode.ToSKShaderTileMode()},");
                             sb.AppendLine($"{indent}    {linearGradientShader.LocalMatrix.Value.ToSKMatrix()});");
@@ -504,7 +508,7 @@ namespace Svg.Skia
                             sb.AppendLine($"{indent}    {linearGradientShader.Start.ToSKPoint()},");
                             sb.AppendLine($"{indent}    {linearGradientShader.End.ToSKPoint()},");
                             sb.AppendLine($"{indent}    {linearGradientShader.Colors.ToSKColors()},");
-                            sb.AppendLine($"{indent}    {(linearGradientShader.ColorSpace == SP.ColorSpace.Srgb ? "SKColorSpace.CreateSrgb()" : "SKColorSpace.CreateSrgbLinear()")},");
+                            sb.AppendLine($"{indent}    {(linearGradientShader.ColorSpace == SP.ColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
                             sb.AppendLine($"{indent}    {linearGradientShader.ColorPos.ToFloatArray()},");
                             sb.AppendLine($"{indent}    {linearGradientShader.Mode.ToSKShaderTileMode()});");
                             return;
@@ -527,7 +531,7 @@ namespace Svg.Skia
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.End.ToSKPoint()},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.EndRadius.ToFloatString()},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Colors.ToSKColors()},");
-                            sb.AppendLine($"{indent}    {(twoPointConicalGradientShader.ColorSpace == SP.ColorSpace.Srgb ? "SKColorSpace.CreateSrgb()" : "SKColorSpace.CreateSrgbLinear()")},");
+                            sb.AppendLine($"{indent}    {(twoPointConicalGradientShader.ColorSpace == SP.ColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.ColorPos.ToFloatArray()},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Mode.ToSKShaderTileMode()},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.LocalMatrix.Value.ToSKMatrix()});");
@@ -542,7 +546,7 @@ namespace Svg.Skia
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.End.ToSKPoint()},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.EndRadius.ToFloatString()},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Colors.ToSKColors()},");
-                            sb.AppendLine($"{indent}    {(twoPointConicalGradientShader.ColorSpace == SP.ColorSpace.Srgb ? "SKColorSpace.CreateSrgb()" : "SKColorSpace.CreateSrgbLinear()")},");
+                            sb.AppendLine($"{indent}    {(twoPointConicalGradientShader.ColorSpace == SP.ColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.ColorPos.ToFloatArray()},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Mode.ToSKShaderTileMode()});");
                             return;

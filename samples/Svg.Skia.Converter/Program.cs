@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SkiaSharp;
+using Svg.Model;
 
 namespace Svg.Skia.Converter
 {
@@ -240,7 +241,7 @@ namespace Svg.Skia.Converter
 
             if (settings.SystemLanguage != null)
             {
-                SKSvgSettings.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture(settings.SystemLanguage);
+                SvgExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture(settings.SystemLanguage);
             }
 
             var sw = Stopwatch.StartNew();
@@ -294,7 +295,7 @@ namespace Svg.Skia.Converter
 
             if (settings.SystemLanguage != null)
             {
-                SKSvgSettings.s_systemLanguageOverride = null;
+                SvgExtensions.s_systemLanguageOverride = null;
             }
 
             if (paths.Count > 0)

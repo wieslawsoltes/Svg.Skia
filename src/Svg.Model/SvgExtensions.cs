@@ -4,20 +4,20 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO.Compression;
 using System.Net;
-using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using Svg.DataTypes;
 using Svg.Document_Structure;
 using Svg.FilterEffects;
+using Svg.Model.Drawables;
 using Svg.Pathing;
 using Svg.Transforms;
-using Svg.Model;
 
-namespace Svg.Skia
+namespace Svg.Model
 {
-    internal static class SvgExtensions
+    public static class SvgExtensions
     {
+        public static CultureInfo? s_systemLanguageOverride = null;
+
         private static readonly char[] s_space_tab = { ' ', '\t' };
 
         private static readonly char[] s_comma = { ',' };
@@ -35,7 +35,7 @@ namespace Svg.Skia
             CloseSubpath = 0x80
         }
 
-        public static HashSet<string> s_supportedFeatures = new HashSet<string>()
+        internal static HashSet<string> s_supportedFeatures = new HashSet<string>()
         {
             "http://www.w3.org/TR/SVG11/feature#SVG",
             "http://www.w3.org/TR/SVG11/feature#SVGDOM",
@@ -85,7 +85,7 @@ namespace Svg.Skia
             "http://www.w3.org/TR/SVG11/feature#Extensibility"
         };
 
-        public static HashSet<string> s_supportedExtensions = new HashSet<string>()
+        internal static HashSet<string> s_supportedExtensions = new HashSet<string>()
         {
         };
 
@@ -94,7 +94,7 @@ namespace Svg.Skia
         //     C_lin = C_srgb / 12.92;
         //  else
         //     C_lin = pow((C_srgb + 0.055) / 1.055, 2.4);
-        public static byte[] s_sRGBtoLinearRGB => new byte[256]
+        internal static byte[] s_sRGBtoLinearRGB => new byte[256]
         {
             0,   0,   0,   0,   0,   0,  0,    1,   1,   1,   1,   1,   1,   1,   1,   1,
             1,   1,   2,   2,   2,   2,  2,    2,   2,   2,   3,   3,   3,   3,   3,   3,
@@ -119,7 +119,7 @@ namespace Svg.Skia
         //     C_srgb = C_lin * 12.92;
         // else
         //     C_srgb = 1.055 * pow(C_lin, 1.0 / 2.4) - 0.055;
-        public static byte[] s_linearRGBtoSRGB => new byte[256]
+        internal static byte[] s_linearRGBtoSRGB => new byte[256]
         {
             0,  13,  22,  28,  34,  38,  42,  46,  50,  53,  56,  59,  61,  64,  66,  69,
             71,  73,  75,  77,  79,  81,  83,  85,  86,  88,  90,  92,  93,  95,  96,  98,
@@ -139,11 +139,11 @@ namespace Svg.Skia
             248, 249, 249, 250, 250, 251, 251, 251, 252, 252, 253, 253, 254, 254, 255, 255,
         };
 
-        public static Color s_transparentBlack = new Color(0, 0, 0, 255);
+        internal static Color s_transparentBlack = new Color(0, 0, 0, 255);
 
         private const string MimeTypeSvg = "image/svg+xml";
 
-        private static ReadOnlySpan<byte> s_gZipMagicHeaderBytes => new byte[2] { 0x1f, 0x8b };
+        private static byte[] s_gZipMagicHeaderBytes => new byte[2] { 0x1f, 0x8b };
 
         public const string SourceGraphic = "SourceGraphic";
 
@@ -157,46 +157,46 @@ namespace Svg.Skia
 
         public const string StrokePaint = "StrokePaint";
 
-        public static SvgFuncA s_identitySvgFuncA = new SvgFuncA()
+        internal static SvgFuncA s_identitySvgFuncA = new SvgFuncA()
         {
             Type = SvgComponentTransferType.Identity,
             TableValues = new SvgNumberCollection()
         };
 
-        public static SvgFuncR s_identitySvgFuncR = new SvgFuncR()
+        internal static SvgFuncR s_identitySvgFuncR = new SvgFuncR()
         {
             Type = SvgComponentTransferType.Identity,
             TableValues = new SvgNumberCollection()
         };
 
-        public static SvgFuncG s_identitySvgFuncG = new SvgFuncG()
+        internal static SvgFuncG s_identitySvgFuncG = new SvgFuncG()
         {
             Type = SvgComponentTransferType.Identity,
             TableValues = new SvgNumberCollection()
         };
 
-        public static SvgFuncB s_identitySvgFuncB = new SvgFuncB()
+        internal static SvgFuncB s_identitySvgFuncB = new SvgFuncB()
         {
             Type = SvgComponentTransferType.Identity,
             TableValues = new SvgNumberCollection()
         };
 
-        public static double DegreeToRadian(this double degrees)
+        internal static double DegreeToRadian(this double degrees)
         {
             return Math.PI * degrees / 180.0;
         }
 
-        public static double RadianToDegree(this double radians)
+        internal static double RadianToDegree(this double radians)
         {
             return radians * (180.0 / Math.PI);
         }
 
-        public static bool IsNone(this Uri uri)
+        internal static bool IsNone(this Uri uri)
         {
             return string.Equals(uri.ToString(), "none", StringComparison.OrdinalIgnoreCase);
         }
 
-        public static void GetOptionalNumbers(this SvgNumberCollection svgNumberCollection, float defaultValue1, float defaultValue2, out float value1, out float value2)
+        internal static void GetOptionalNumbers(this SvgNumberCollection svgNumberCollection, float defaultValue1, float defaultValue2, out float value1, out float value2)
         {
             value1 = defaultValue1;
             value2 = defaultValue2;
@@ -216,12 +216,12 @@ namespace Svg.Skia
             }
         }
 
-        public static float CalculateOtherPercentageValue(this Rect skBounds)
+        internal static float CalculateOtherPercentageValue(this Rect skBounds)
         {
             return (float)(Math.Sqrt((skBounds.Width * skBounds.Width) + (skBounds.Width * skBounds.Height)) / Math.Sqrt(2.0));
         }
 
-        public static float ToDeviceValue(this SvgUnit svgUnit, UnitRenderingType renderType, SvgElement? owner, Rect skBounds)
+        internal static float ToDeviceValue(this SvgUnit svgUnit, UnitRenderingType renderType, SvgElement? owner, Rect skBounds)
         {
             const float cmInInch = 2.54f;
             int ppi = SvgDocument.PointsPerInch;
@@ -313,7 +313,7 @@ namespace Svg.Skia
             return _deviceValue.Value;
         }
 
-        public static SvgUnit Normalize(this SvgUnit svgUnit, SvgCoordinateUnits svgCoordinateUnits)
+        internal static SvgUnit Normalize(this SvgUnit svgUnit, SvgCoordinateUnits svgCoordinateUnits)
         {
             return svgUnit.Type == SvgUnitType.Percentage
                 && svgCoordinateUnits == SvgCoordinateUnits.ObjectBoundingBox ?
@@ -363,7 +363,7 @@ namespace Svg.Skia
             return new Size(w, h);
         }
 
-        public static T? GetReference<T>(this SvgElement svgElement, Uri uri) where T : SvgElement
+        internal static T? GetReference<T>(this SvgElement svgElement, Uri uri) where T : SvgElement
         {
             if (uri is null)
             {
@@ -379,7 +379,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static bool ElementReferencesUri<T>(this T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris, SvgElement? svgReferencedElement) where T : SvgElement
+        internal static bool ElementReferencesUri<T>(this T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris, SvgElement? svgReferencedElement) where T : SvgElement
         {
             if (svgReferencedElement is null)
             {
@@ -423,7 +423,7 @@ namespace Svg.Skia
             return false;
         }
 
-        public static bool HasRecursiveReference<T>(this T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris) where T : SvgElement
+        internal static bool HasRecursiveReference<T>(this T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris) where T : SvgElement
         {
             var referencedElementUri = getUri(svgElement);
             if (referencedElementUri is null)
@@ -439,7 +439,7 @@ namespace Svg.Skia
             return ElementReferencesUri<T>(svgElement, getUri, uris, svgReferencedElement);
         }
 
-        public static Uri? GetUri(this SvgElement svgElement, string name)
+        internal static Uri? GetUri(this SvgElement svgElement, string name)
         {
             if (svgElement.TryGetAttribute(name, out string uriString))
             {
@@ -448,12 +448,12 @@ namespace Svg.Skia
             return null;
         }
 
-        public static bool TryGetAttribute(this SvgElement svgElement, string name, out string value)
+        internal static bool TryGetAttribute(this SvgElement svgElement, string name, out string value)
         {
             return svgElement.TryGetAttribute(name, out value);
         }
 
-        public static T? GetUriElementReference<T>(this SvgElement svgOwnerElement, string name, HashSet<Uri> uris) where T : SvgElement
+        internal static T? GetUriElementReference<T>(this SvgElement svgOwnerElement, string name, HashSet<Uri> uris) where T : SvgElement
         {
             var uri = svgOwnerElement.GetUri(name);
             if (uri != null)
@@ -473,7 +473,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static bool HasRequiredFeatures(this SvgElement svgElement)
+        internal static bool HasRequiredFeatures(this SvgElement svgElement)
         {
             bool hasRequiredFeatures = true;
 
@@ -507,7 +507,7 @@ namespace Svg.Skia
             return hasRequiredFeatures;
         }
 
-        public static bool HasRequiredExtensions(this SvgElement svgElement)
+        internal static bool HasRequiredExtensions(this SvgElement svgElement)
         {
             bool hasRequiredExtensions = true;
 
@@ -541,7 +541,7 @@ namespace Svg.Skia
             return hasRequiredExtensions;
         }
 
-        public static bool HasSystemLanguage(this SvgElement svgElement)
+        internal static bool HasSystemLanguage(this SvgElement svgElement)
         {
             bool hasSystemLanguage = true;
 
@@ -557,7 +557,7 @@ namespace Svg.Skia
                     if (languages.Length > 0)
                     {
                         hasSystemLanguage = false;
-                        var systemLanguage = SKSvgSettings.s_systemLanguageOverride ?? CultureInfo.InstalledUICulture;
+                        var systemLanguage = s_systemLanguageOverride ?? CultureInfo.InstalledUICulture;
 
                         foreach (var language in languages)
                         {
@@ -582,7 +582,7 @@ namespace Svg.Skia
             return hasSystemLanguage;
         }
 
-        public static bool IsContainerElement(this SvgElement svgElement)
+        internal static bool IsContainerElement(this SvgElement svgElement)
         {
             switch (svgElement)
             {
@@ -604,7 +604,7 @@ namespace Svg.Skia
             }
         }
 
-        public static bool IsKnownElement(this SvgElement svgElement)
+        internal static bool IsKnownElement(this SvgElement svgElement)
         {
             switch (svgElement)
             {
@@ -629,17 +629,17 @@ namespace Svg.Skia
             }
         }
 
-        public static float AdjustSvgOpacity(float opacity)
+        internal static float AdjustSvgOpacity(float opacity)
         {
             return Math.Min(Math.Max(opacity, 0), 1);
         }
 
-        public static byte CombineWithOpacity(byte alpha, float opacity)
+        internal static byte CombineWithOpacity(byte alpha, float opacity)
         {
             return (byte)Math.Round((opacity * (alpha / 255.0)) * 255);
         }
 
-        public static Color GetColor(SvgColourServer svgColourServer, float opacity, Attributes ignoreAttributes)
+        internal static Color GetColor(SvgColourServer svgColourServer, float opacity, Attributes ignoreAttributes)
         {
             var colour = svgColourServer.Colour;
             byte alpha = ignoreAttributes.HasFlag(Attributes.Opacity) ?
@@ -649,7 +649,7 @@ namespace Svg.Skia
             return new Color(colour.R, colour.G, colour.B, alpha);
         }
 
-        public static Color? GetColor(SvgVisualElement svgVisualElement, SvgPaintServer server)
+        internal static Color? GetColor(SvgVisualElement svgVisualElement, SvgPaintServer server)
         {
             if (server is SvgDeferredPaintServer svgDeferredPaintServer)
             {
@@ -664,7 +664,7 @@ namespace Svg.Skia
             return new Color(0x00, 0x00, 0x00, 0xFF);
         }
 
-        public static PathEffect? CreateDash(SvgElement svgElement, Rect skBounds)
+        internal static PathEffect? CreateDash(SvgElement svgElement, Rect skBounds)
         {
             var strokeDashArray = svgElement.StrokeDashArray;
             var strokeDashOffset = svgElement.StrokeDashOffset;
@@ -759,7 +759,7 @@ namespace Svg.Skia
             }
         }
 
-        public static void GetStops(List<SvgGradientServer> svgReferencedGradientServers, Rect skBounds, List<Color> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
+        internal static void GetStops(List<SvgGradientServer> svgReferencedGradientServers, Rect skBounds, List<Color> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
         {
             foreach (var svgReferencedGradientServer in svgReferencedGradientServers)
             {
@@ -790,8 +790,8 @@ namespace Svg.Skia
                 }
             }
         }
-        
-        public static ColorF[] ToSkColorF(this Color[] skColors)
+
+        internal static ColorF[] ToSkColorF(this Color[] skColors)
         {
             var skColorsF = new ColorF[skColors.Length];
 
@@ -803,7 +803,7 @@ namespace Svg.Skia
             return skColorsF;
         }
 
-        public static SvgColourInterpolation GetColorInterpolation(SvgElement svgElement)
+        internal static SvgColourInterpolation GetColorInterpolation(SvgElement svgElement)
         {
             return svgElement.ColorInterpolation switch
             {
@@ -814,7 +814,7 @@ namespace Svg.Skia
             };
         }
 
-        public static SvgColourInterpolation GetColorInterpolationFilters(SvgElement svgElement)
+        internal static SvgColourInterpolation GetColorInterpolationFilters(SvgElement svgElement)
         {
             return svgElement.ColorInterpolationFilters switch
             {
@@ -825,7 +825,7 @@ namespace Svg.Skia
             };
         }
 
-        public static Shader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, Rect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes, ColorSpace skColorSpace)
+        internal static Shader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, Rect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes, ColorSpace skColorSpace)
         {
             var svgReferencedGradientServers = GetLinkedGradientServer(svgLinearGradientServer, svgVisualElement);
 
@@ -962,10 +962,10 @@ namespace Svg.Skia
 
                 if (svgGradientTransform != null && svgGradientTransform.Count > 0)
                 {
-                    var gradientTransform = ToSKMatrix(svgGradientTransform);
+                    var gradientTransform = ToMatrix(svgGradientTransform);
                     skBoundingBoxTransform = skBoundingBoxTransform.PreConcat(gradientTransform);
                 }
-                
+
                 var skColorsF = ToSkColorF(skColors);
                 return Shader.CreateLinearGradient(skStart, skEnd, skColorsF, skColorSpace, skColorPos, shaderTileMode, skBoundingBoxTransform);
             }
@@ -973,7 +973,7 @@ namespace Svg.Skia
             {
                 if (svgGradientTransform != null && svgGradientTransform.Count > 0)
                 {
-                    var gradientTransform = ToSKMatrix(svgGradientTransform);
+                    var gradientTransform = ToMatrix(svgGradientTransform);
                     var skColorsF = ToSkColorF(skColors);
                     return Shader.CreateLinearGradient(skStart, skEnd, skColorsF, skColorSpace, skColorPos, shaderTileMode, gradientTransform);
                 }
@@ -984,8 +984,8 @@ namespace Svg.Skia
                 }
             }
         }
-        
-        public static Shader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, Rect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes, ColorSpace skColorSpace)
+
+        internal static Shader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, Rect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes, ColorSpace skColorSpace)
         {
             var svgReferencedGradientServers = GetLinkedGradientServer(svgRadialGradientServer, svgVisualElement);
 
@@ -1138,10 +1138,10 @@ namespace Svg.Skia
 
                 if (svgGradientTransform != null && svgGradientTransform.Count > 0)
                 {
-                    var gradientTransform = ToSKMatrix(svgGradientTransform);
+                    var gradientTransform = ToMatrix(svgGradientTransform);
                     skBoundingBoxTransform = skBoundingBoxTransform.PreConcat(gradientTransform);
                 }
-                
+
                 var skColorsF = ToSkColorF(skColors);
                 return Shader.CreateTwoPointConicalGradient(
                     skStart, startRadius,
@@ -1154,7 +1154,7 @@ namespace Svg.Skia
             {
                 if (svgGradientTransform != null && svgGradientTransform.Count > 0)
                 {
-                    var gradientTransform = ToSKMatrix(svgGradientTransform);
+                    var gradientTransform = ToMatrix(svgGradientTransform);
                     var skColorsF = ToSkColorF(skColors);
                     return Shader.CreateTwoPointConicalGradient(
                         skStart, startRadius,
@@ -1174,7 +1174,7 @@ namespace Svg.Skia
             }
         }
 
-        public static Picture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, Matrix skMatrix, float opacity, Attributes ignoreAttributes)
+        internal static Picture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, Matrix skMatrix, float opacity, Attributes ignoreAttributes)
         {
             var skSize = new Size(width, height);
             var skBounds = Rect.Create(skSize);
@@ -1183,7 +1183,7 @@ namespace Svg.Skia
 
             skCanvas.SetMatrix(skMatrix);
 
-            using var skPaintOpacity = ignoreAttributes.HasFlag(Attributes.Opacity) ? null : GetOpacitySKPaint(opacity);
+            using var skPaintOpacity = ignoreAttributes.HasFlag(Attributes.Opacity) ? null : GetOpacityPaint(opacity);
             if (skPaintOpacity != null)
             {
                 skCanvas.SaveLayer(skPaintOpacity);
@@ -1209,7 +1209,7 @@ namespace Svg.Skia
             return skPictureRecorder.EndRecording();
         }
 
-        public static Shader? CreatePicture(SvgPatternServer svgPatternServer, Rect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes, CompositeDisposable disposable)
+        internal static Shader? CreatePicture(SvgPatternServer svgPatternServer, Rect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes, CompositeDisposable disposable)
         {
             var svgReferencedPatternServers = GetLinkedPatternServer(svgPatternServer, svgVisualElement);
 
@@ -1348,7 +1348,7 @@ namespace Svg.Skia
 
             var skMatrix = Matrix.CreateIdentity();
 
-            var skPatternTransformMatrix = ToSKMatrix(svgPatternServer.PatternTransform);
+            var skPatternTransformMatrix = ToMatrix(svgPatternServer.PatternTransform);
             skMatrix = skMatrix.PreConcat(skPatternTransformMatrix);
 
             var translateTransform = Matrix.CreateTranslation(skRectTransformed.Left, skRectTransformed.Top);
@@ -1357,7 +1357,7 @@ namespace Svg.Skia
             Matrix skPictureTransform = Matrix.CreateIdentity();
             if (!viewBox.Equals(SvgViewBox.Empty))
             {
-                var viewBoxTransform = ToSKMatrix(
+                var viewBoxTransform = ToMatrix(
                     viewBox,
                     aspectRatio,
                     0f,
@@ -1381,7 +1381,7 @@ namespace Svg.Skia
             return Shader.CreatePicture(skPicture, ShaderTileMode.Repeat, ShaderTileMode.Repeat, skMatrix, skPicture.CullRect);
         }
 
-        public static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, Rect skBounds, Paint skPaint, bool forStroke, Attributes ignoreAttributes, CompositeDisposable disposable)
+        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, Rect skBounds, Paint skPaint, bool forStroke, Attributes ignoreAttributes, CompositeDisposable disposable)
         {
             var fallbackServer = SvgPaintServer.None;
             if (server is SvgDeferredPaintServer deferredServer)
@@ -1584,7 +1584,7 @@ namespace Svg.Skia
             return true;
         }
 
-        public static void SetDash(SvgVisualElement svgVisualElement, Paint skPaint, Rect skBounds, CompositeDisposable disposable)
+        internal static void SetDash(SvgVisualElement svgVisualElement, Paint skPaint, Rect skBounds, CompositeDisposable disposable)
         {
             var skPathEffect = CreateDash(svgVisualElement, skBounds);
             if (skPathEffect != null)
@@ -1594,7 +1594,7 @@ namespace Svg.Skia
             }
         }
 
-        public static bool IsAntialias(SvgElement svgElement)
+        internal static bool IsAntialias(SvgElement svgElement)
         {
             switch (svgElement.ShapeRendering)
             {
@@ -1610,14 +1610,14 @@ namespace Svg.Skia
             }
         }
 
-        public static bool IsValidFill(SvgElement svgElement)
+        internal static bool IsValidFill(SvgElement svgElement)
         {
             var fill = svgElement.Fill;
             return fill != null
                 && fill != SvgPaintServer.None;
         }
 
-        public static bool IsValidStroke(SvgElement svgElement, Rect skBounds)
+        internal static bool IsValidStroke(SvgElement svgElement, Rect skBounds)
         {
             var stroke = svgElement.Stroke;
             var strokeWidth = svgElement.StrokeWidth;
@@ -1626,7 +1626,7 @@ namespace Svg.Skia
                 && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
         }
 
-        public static Paint? GetFillSKPaint(SvgVisualElement svgVisualElement, Rect skBounds, Attributes ignoreAttributes, CompositeDisposable disposable)
+        internal static Paint? GetFillPaint(SvgVisualElement svgVisualElement, Rect skBounds, Attributes ignoreAttributes, CompositeDisposable disposable)
         {
             var skPaint = new Paint()
             {
@@ -1645,7 +1645,7 @@ namespace Svg.Skia
             return skPaint;
         }
 
-        public static Paint? GetStrokeSKPaint(SvgVisualElement svgVisualElement, Rect skBounds, Attributes ignoreAttributes, CompositeDisposable disposable)
+        internal static Paint? GetStrokePaint(SvgVisualElement svgVisualElement, Rect skBounds, Attributes ignoreAttributes, CompositeDisposable disposable)
         {
             var skPaint = new Paint()
             {
@@ -1704,7 +1704,7 @@ namespace Svg.Skia
             return skPaint;
         }
 
-        public static Paint? GetOpacitySKPaint(float opacity)
+        internal static Paint? GetOpacityPaint(float opacity)
         {
             if (opacity < 1f)
             {
@@ -1718,10 +1718,10 @@ namespace Svg.Skia
             return null;
         }
 
-        public static Paint? GetOpacitySKPaint(SvgElement svgElement, CompositeDisposable disposable)
+        internal static Paint? GetOpacityPaint(SvgElement svgElement, CompositeDisposable disposable)
         {
             float opacity = AdjustSvgOpacity(svgElement.Opacity);
-            var skPaint = GetOpacitySKPaint(opacity);
+            var skPaint = GetOpacityPaint(opacity);
             if (skPaint != null)
             {
                 disposable.Add(skPaint);
@@ -1730,7 +1730,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static Matrix ToSKMatrix(this SvgMatrix svgMatrix)
+        internal static Matrix ToMatrix(this SvgMatrix svgMatrix)
         {
             return new Matrix()
             {
@@ -1746,7 +1746,7 @@ namespace Svg.Skia
             };
         }
 
-        public static Matrix ToSKMatrix(this SvgTransformCollection svgTransformCollection)
+        internal static Matrix ToMatrix(this SvgTransformCollection svgTransformCollection)
         {
             var skMatrixTotal = Matrix.CreateIdentity();
 
@@ -1761,7 +1761,7 @@ namespace Svg.Skia
                 {
                     case SvgMatrix svgMatrix:
                         {
-                            var skMatrix = svgMatrix.ToSKMatrix();
+                            var skMatrix = svgMatrix.ToMatrix();
                             skMatrixTotal = skMatrixTotal.PreConcat(skMatrix);
                         }
                         break;
@@ -1804,7 +1804,7 @@ namespace Svg.Skia
             return skMatrixTotal;
         }
 
-        public static Matrix ToSKMatrix(this SvgViewBox svgViewBox, SvgAspectRatio svgAspectRatio, float x, float y, float width, float height)
+        internal static Matrix ToMatrix(this SvgViewBox svgViewBox, SvgAspectRatio svgAspectRatio, float x, float y, float width, float height)
         {
             if (svgViewBox.Equals(SvgViewBox.Empty))
             {
@@ -1897,7 +1897,7 @@ namespace Svg.Skia
             return skMatrixTotal;
         }
 
-        public static List<(Svg.Model.Point Point, byte Type)> GetPathTypes(this Svg.Model.Path path)
+        internal static List<(Svg.Model.Point Point, byte Type)> GetPathTypes(this Svg.Model.Path path)
         {
             // System.Drawing.Drawing2D.GraphicsPath.PathTypes
             // System.Drawing.Drawing2D.PathPointType
@@ -1992,7 +1992,7 @@ namespace Svg.Skia
             return pathTypes;
         }
 
-        public static Path? ToSKPath(this SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        internal static Path? ToPath(this SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule, CompositeDisposable disposable)
         {
             if (svgPathSegmentList == null || svgPathSegmentList.Count <= 0)
             {
@@ -2139,7 +2139,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        public static Path? ToSKPath(this SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, Rect skOwnerBounds, CompositeDisposable disposable)
+        internal static Path? ToPath(this SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, Rect skOwnerBounds, CompositeDisposable disposable)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
             var skPath = new Path()
@@ -2162,7 +2162,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        public static Path? ToSKPath(this SvgRectangle svgRectangle, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
+        internal static Path? ToPath(this SvgRectangle svgRectangle, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
             var skPath = new Path()
@@ -2239,7 +2239,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        public static Path? ToSKPath(this SvgCircle svgCircle, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
+        internal static Path? ToPath(this SvgCircle svgCircle, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
             var skPath = new Path()
@@ -2263,7 +2263,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        public static Path? ToSKPath(this SvgEllipse svgEllipse, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
+        internal static Path? ToPath(this SvgEllipse svgEllipse, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
             var skPath = new Path()
@@ -2290,7 +2290,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        public static Path? ToSKPath(this SvgLine svgLine, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
+        internal static Path? ToPath(this SvgLine svgLine, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
             var skPath = new Path()
@@ -2310,7 +2310,7 @@ namespace Svg.Skia
             return skPath;
         }
 
-        public static object? GetImage(string uriString, SvgDocument svgOwnerDocument)
+        internal static object? GetImage(string uriString, SvgDocument svgOwnerDocument)
         {
             try
             {
@@ -2340,7 +2340,7 @@ namespace Svg.Skia
             }
         }
 
-        public static object GetImageFromWeb(Uri uri)
+        internal static object GetImageFromWeb(Uri uri)
         {
             var request = WebRequest.Create(uri);
             using var response = request.GetResponse();
@@ -2372,7 +2372,7 @@ namespace Svg.Skia
             }
         }
 
-        public static object? GetImageFromDataUri(string uriString, SvgDocument svgOwnerDocument)
+        internal static object? GetImageFromDataUri(string uriString, SvgDocument svgOwnerDocument)
         {
             var headerStartIndex = 5;
             var headerEndIndex = uriString.IndexOf(",", headerStartIndex);
@@ -2449,14 +2449,14 @@ namespace Svg.Skia
             }
         }
 
-        public static SvgDocument LoadSvg(System.IO.Stream stream, Uri baseUri)
+        internal static SvgDocument LoadSvg(System.IO.Stream stream, Uri baseUri)
         {
             var svgDocument = SvgDocument.Open<SvgDocument>(stream);
             svgDocument.BaseUri = baseUri;
             return svgDocument;
         }
 
-        public static SvgDocument LoadSvgz(System.IO.Stream stream, Uri baseUri)
+        internal static SvgDocument LoadSvgz(System.IO.Stream stream, Uri baseUri)
         {
             using var gzipStream = new GZipStream(stream, CompressionMode.Decompress);
             using var memoryStream = new System.IO.MemoryStream();
@@ -2468,7 +2468,7 @@ namespace Svg.Skia
             return svgDocument;
         }
 
-        public static bool CanDraw(SvgVisualElement svgVisualElement, Attributes ignoreAttributes)
+        internal static bool CanDraw(SvgVisualElement svgVisualElement, Attributes ignoreAttributes)
         {
             bool visible = svgVisualElement.Visible;
             bool ignoreDisplay = ignoreAttributes.HasFlag(Attributes.Display);
@@ -2495,7 +2495,7 @@ namespace Svg.Skia
             };
         }
 
-        public static void GetClipPath(SvgVisualElement svgVisualElement, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Model.ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
+        internal static void GetClipPath(SvgVisualElement svgVisualElement, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Model.ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
         {
             if (clipPath is null)
             {
@@ -2512,7 +2512,7 @@ namespace Svg.Skia
                 case SvgPath svgPath:
                     {
                         var fillRule = ToFillRule(svgPath, svgClipPathClipRule);
-                        var skPath = svgPath.PathData?.ToSKPath(fillRule, disposable);
+                        var skPath = svgPath.PathData?.ToPath(fillRule, disposable);
                         if (skPath == null)
                         {
                             break;
@@ -2521,7 +2521,7 @@ namespace Svg.Skia
                         var pathClip = new Svg.Model.PathClip
                         {
                             Path = skPath,
-                            Transform = ToSKMatrix(svgPath.Transforms),
+                            Transform = ToMatrix(svgPath.Transforms),
                             Clip = new Svg.Model.ClipPath()
                             {
                                 Clip = new Svg.Model.ClipPath()
@@ -2536,7 +2536,7 @@ namespace Svg.Skia
                 case SvgRectangle svgRectangle:
                     {
                         var fillRule = ToFillRule(svgRectangle, svgClipPathClipRule);
-                        var skPath = svgRectangle.ToSKPath(fillRule, skBounds, disposable);
+                        var skPath = svgRectangle.ToPath(fillRule, skBounds, disposable);
                         if (skPath == null)
                         {
                             break;
@@ -2545,7 +2545,7 @@ namespace Svg.Skia
                         var pathClip = new Svg.Model.PathClip
                         {
                             Path = skPath,
-                            Transform = ToSKMatrix(svgRectangle.Transforms),
+                            Transform = ToMatrix(svgRectangle.Transforms),
                             Clip = new Svg.Model.ClipPath()
                             {
                                 Clip = new Svg.Model.ClipPath()
@@ -2560,7 +2560,7 @@ namespace Svg.Skia
                 case SvgCircle svgCircle:
                     {
                         var fillRule = ToFillRule(svgCircle, svgClipPathClipRule);
-                        var skPath = svgCircle.ToSKPath(fillRule, skBounds, disposable);
+                        var skPath = svgCircle.ToPath(fillRule, skBounds, disposable);
                         if (skPath == null)
                         {
                             break;
@@ -2569,7 +2569,7 @@ namespace Svg.Skia
                         var pathClip = new Svg.Model.PathClip
                         {
                             Path = skPath,
-                            Transform = ToSKMatrix(svgCircle.Transforms),
+                            Transform = ToMatrix(svgCircle.Transforms),
                             Clip = new Svg.Model.ClipPath()
                             {
                                 Clip = new Svg.Model.ClipPath()
@@ -2584,7 +2584,7 @@ namespace Svg.Skia
                 case SvgEllipse svgEllipse:
                     {
                         var fillRule = ToFillRule(svgEllipse, svgClipPathClipRule);
-                        var skPath = svgEllipse.ToSKPath(fillRule, skBounds, disposable);
+                        var skPath = svgEllipse.ToPath(fillRule, skBounds, disposable);
                         if (skPath == null)
                         {
                             break;
@@ -2593,7 +2593,7 @@ namespace Svg.Skia
                         var pathClip = new Svg.Model.PathClip
                         {
                             Path = skPath,
-                            Transform = ToSKMatrix(svgEllipse.Transforms),
+                            Transform = ToMatrix(svgEllipse.Transforms),
                             Clip = new Svg.Model.ClipPath()
                             {
                                 Clip = new Svg.Model.ClipPath()
@@ -2608,7 +2608,7 @@ namespace Svg.Skia
                 case SvgLine svgLine:
                     {
                         var fillRule = ToFillRule(svgLine, svgClipPathClipRule);
-                        var skPath = svgLine.ToSKPath(fillRule, skBounds, disposable);
+                        var skPath = svgLine.ToPath(fillRule, skBounds, disposable);
                         if (skPath == null)
                         {
                             break;
@@ -2617,7 +2617,7 @@ namespace Svg.Skia
                         var pathClip = new Svg.Model.PathClip
                         {
                             Path = skPath,
-                            Transform = ToSKMatrix(svgLine.Transforms),
+                            Transform = ToMatrix(svgLine.Transforms),
                             Clip = new Svg.Model.ClipPath()
                             {
                                 Clip = new Svg.Model.ClipPath()
@@ -2632,7 +2632,7 @@ namespace Svg.Skia
                 case SvgPolyline svgPolyline:
                     {
                         var fillRule = ToFillRule(svgPolyline, svgClipPathClipRule);
-                        var skPath = svgPolyline.Points?.ToSKPath(fillRule, false, skBounds, disposable);
+                        var skPath = svgPolyline.Points?.ToPath(fillRule, false, skBounds, disposable);
                         if (skPath == null)
                         {
                             break;
@@ -2641,7 +2641,7 @@ namespace Svg.Skia
                         var pathClip = new Svg.Model.PathClip
                         {
                             Path = skPath,
-                            Transform = ToSKMatrix(svgPolyline.Transforms),
+                            Transform = ToMatrix(svgPolyline.Transforms),
                             Clip = new Svg.Model.ClipPath()
                             {
                                 Clip = new Svg.Model.ClipPath()
@@ -2656,7 +2656,7 @@ namespace Svg.Skia
                 case SvgPolygon svgPolygon:
                     {
                         var fillRule = ToFillRule(svgPolygon, svgClipPathClipRule);
-                        var skPath = svgPolygon.Points?.ToSKPath(fillRule, true, skBounds, disposable);
+                        var skPath = svgPolygon.Points?.ToPath(fillRule, true, skBounds, disposable);
                         if (skPath == null)
                         {
                             break;
@@ -2665,7 +2665,7 @@ namespace Svg.Skia
                         var pathClip = new Svg.Model.PathClip
                         {
                             Path = skPath,
-                            Transform = ToSKMatrix(svgPolygon.Transforms),
+                            Transform = ToMatrix(svgPolygon.Transforms),
                             Clip = new Svg.Model.ClipPath()
                             {
                                 Clip = new Svg.Model.ClipPath()
@@ -2736,7 +2736,7 @@ namespace Svg.Skia
             }
         }
 
-        public static void GetClipPathClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Model.ClipPath? clipPath)
+        internal static void GetClipPathClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Model.ClipPath? clipPath)
         {
             if (clipPath == null)
             {
@@ -2762,13 +2762,13 @@ namespace Svg.Skia
                 skMatrix = skMatrix.PostConcat(skTranslateMatrix);
             }
 
-            var skTransformsMatrix = ToSKMatrix(svgClipPathRef.Transforms);
+            var skTransformsMatrix = ToMatrix(svgClipPathRef.Transforms);
             skMatrix = skMatrix.PostConcat(skTransformsMatrix);
 
             clipPath.Transform = skMatrix; // TODO:
         }
 
-        public static void GetClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Model.ClipPath? clipPath)
+        internal static void GetClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Model.ClipPath? clipPath)
         {
             if (clipPath == null)
             {
@@ -2792,7 +2792,7 @@ namespace Svg.Skia
                 skMatrix = skMatrix.PostConcat(skTranslateMatrix);
             }
 
-            var skTransformsMatrix = ToSKMatrix(svgClipPath.Transforms);
+            var skTransformsMatrix = ToMatrix(svgClipPath.Transforms);
             skMatrix = skMatrix.PostConcat(skTransformsMatrix);
 
             clipPath.Transform = skMatrix; // TODO:
@@ -2809,7 +2809,7 @@ namespace Svg.Skia
             }
         }
 
-        public static void GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Model.ClipPath clipPath)
+        internal static void GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Model.ClipPath clipPath)
         {
             if (svgVisualElement == null || svgVisualElement.ClipPath == null)
             {
@@ -2830,7 +2830,7 @@ namespace Svg.Skia
             GetClipPath(svgClipPath, skBounds, uris, disposable, clipPath);
         }
 
-        public static Rect? GetClipRect(SvgVisualElement svgVisualElement, Rect skRectBounds)
+        internal static Rect? GetClipRect(SvgVisualElement svgVisualElement, Rect skRectBounds)
         {
             var clip = svgVisualElement.Clip;
             if (!string.IsNullOrEmpty(clip) && clip.StartsWith("rect(", StringComparison.Ordinal))
@@ -2852,7 +2852,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static MaskDrawable? GetSvgElementMask(SvgElement svgElement, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
+        internal static MaskDrawable? GetSvgElementMask(SvgElement svgElement, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
         {
             var svgMaskRef = svgElement.GetUriElementReference<SvgMask>("mask", uris);
             if (svgMaskRef == null || svgMaskRef.Children == null)
@@ -2864,7 +2864,7 @@ namespace Svg.Skia
             return maskDrawable;
         }
 
-        public static void AddMarkers(this SvgGroup svgGroup)
+        internal static void AddMarkers(this SvgGroup svgGroup)
         {
             Uri? marker = null;
 
@@ -2924,7 +2924,7 @@ namespace Svg.Skia
             }
         }
 
-        public static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, bool isStartMarker, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable, Attributes ignoreAttributes = Attributes.None)
+        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, bool isStartMarker, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable, Attributes ignoreAttributes = Attributes.None)
         {
             float fAngle1 = 0f;
             if (svgMarker.Orient.IsAuto)
@@ -2947,7 +2947,7 @@ namespace Svg.Skia
             disposable.Add(markerDrawable);
         }
 
-        public static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, Point pMarkerPoint3, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable)
+        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, Point pMarkerPoint3, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable)
         {
             float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
             float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
@@ -2965,7 +2965,7 @@ namespace Svg.Skia
             disposable.Add(markerDrawable);
         }
 
-        public static void CreateMarkers(this SvgMarkerElement svgMarkerElement, Path skPath, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable)
+        internal static void CreateMarkers(this SvgMarkerElement svgMarkerElement, Path skPath, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable)
         {
             var pathTypes = skPath.GetPathTypes();
             var pathLength = pathTypes.Count;
@@ -3036,7 +3036,7 @@ namespace Svg.Skia
             }
         }
 
-        public static BlendMode GetSKBlendMode(SvgBlendMode svgBlendMode)
+        internal static BlendMode GetBlendMode(SvgBlendMode svgBlendMode)
         {
             return svgBlendMode switch
             {
@@ -3060,13 +3060,13 @@ namespace Svg.Skia
             };
         }
 
-        public static ImageFilter? CreateBlend(SvgBlend svgBlend, ImageFilter background, ImageFilter? foreground = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateBlend(SvgBlend svgBlend, ImageFilter background, ImageFilter? foreground = null, CropRect? cropRect = null)
         {
-            var mode = GetSKBlendMode(svgBlend.Mode);
+            var mode = GetBlendMode(svgBlend.Mode);
             return ImageFilter.CreateBlendMode(mode, background, foreground, cropRect);
         }
 
-        public static float[] CreateIdentityColorMatrixArray()
+        internal static float[] CreateIdentityColorMatrixArray()
         {
             return new float[]
             {
@@ -3079,7 +3079,7 @@ namespace Svg.Skia
 
         private static readonly char[] s_colorMatrixSplitChars = { ' ', '\t', '\n', '\r', ',' };
 
-        public static ImageFilter? CreateColorMatrix(SvgColourMatrix svgColourMatrix, CompositeDisposable disposable, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateColorMatrix(SvgColourMatrix svgColourMatrix, CompositeDisposable disposable, ImageFilter? input = null, CropRect? cropRect = null)
         {
             ColorFilter skColorFilter;
 
@@ -3175,11 +3175,11 @@ namespace Svg.Skia
             return ImageFilter.CreateColorFilter(skColorFilter, input, cropRect);
         }
 
-        public static void Identity(byte[] values, SvgComponentTransferFunction transferFunction)
+        internal static void Identity(byte[] values, SvgComponentTransferFunction transferFunction)
         {
         }
 
-        public static void Table(byte[] values, SvgComponentTransferFunction transferFunction)
+        internal static void Table(byte[] values, SvgComponentTransferFunction transferFunction)
         {
             var tableValues = transferFunction.TableValues;
             int n = tableValues.Count;
@@ -3199,7 +3199,7 @@ namespace Svg.Skia
             }
         }
 
-        public static void Discrete(byte[] values, SvgComponentTransferFunction transferFunction)
+        internal static void Discrete(byte[] values, SvgComponentTransferFunction transferFunction)
         {
             var tableValues = transferFunction.TableValues;
             int n = tableValues.Count;
@@ -3217,7 +3217,7 @@ namespace Svg.Skia
             }
         }
 
-        public static void Linear(byte[] values, SvgComponentTransferFunction transferFunction)
+        internal static void Linear(byte[] values, SvgComponentTransferFunction transferFunction)
         {
             for (int i = 0; i < 256; i++)
             {
@@ -3227,7 +3227,7 @@ namespace Svg.Skia
             }
         }
 
-        public static void Gamma(byte[] values, SvgComponentTransferFunction transferFunction)
+        internal static void Gamma(byte[] values, SvgComponentTransferFunction transferFunction)
         {
             for (int i = 0; i < 256; i++)
             {
@@ -3238,7 +3238,7 @@ namespace Svg.Skia
             }
         }
 
-        public static void Apply(byte[] values, SvgComponentTransferFunction transferFunction)
+        internal static void Apply(byte[] values, SvgComponentTransferFunction transferFunction)
         {
             switch (transferFunction.Type)
             {
@@ -3264,7 +3264,7 @@ namespace Svg.Skia
             }
         }
 
-        public static ImageFilter? CreateComponentTransfer(SvgComponentTransfer svgComponentTransfer, CompositeDisposable disposable, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateComponentTransfer(SvgComponentTransfer svgComponentTransfer, CompositeDisposable disposable, ImageFilter? input = null, CropRect? cropRect = null)
         {
             var svgFuncA = s_identitySvgFuncA;
             var svgFuncR = s_identitySvgFuncR;
@@ -3314,7 +3314,7 @@ namespace Svg.Skia
             return ImageFilter.CreateColorFilter(cf, input, cropRect);
         }
 
-        public static ImageFilter? CreateComposite(SvgComposite svgComposite, ImageFilter background, ImageFilter? foreground = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateComposite(SvgComposite svgComposite, ImageFilter background, ImageFilter? foreground = null, CropRect? cropRect = null)
         {
             var oper = svgComposite.Operator;
             if (oper == SvgCompositeOperator.Arithmetic)
@@ -3340,7 +3340,7 @@ namespace Svg.Skia
             }
         }
 
-        public static ImageFilter? CreateConvolveMatrix(SvgConvolveMatrix svgConvolveMatrix, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateConvolveMatrix(SvgConvolveMatrix svgConvolveMatrix, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter? input = null, CropRect? cropRect = null)
         {
             GetOptionalNumbers(svgConvolveMatrix.Order, 3f, 3f, out var orderX, out var orderY);
 
@@ -3404,7 +3404,7 @@ namespace Svg.Skia
             return ImageFilter.CreateMatrixConvolution(kernelSize, kernel, gain, bias, kernelOffset, tileMode, convolveAlpha, input, cropRect);
         }
 
-        public static Point3 GetDirection(SvgDistantLight svgDistantLight)
+        internal static Point3 GetDirection(SvgDistantLight svgDistantLight)
         {
             float azimuth = svgDistantLight.Azimuth;
             float elevation = svgDistantLight.Elevation;
@@ -3416,7 +3416,7 @@ namespace Svg.Skia
             return new Point3(x, y, z);
         }
 
-        public static Point3 GetPoint3(float x, float y, float z, Rect skBounds, SvgCoordinateUnits primitiveUnits)
+        internal static Point3 GetPoint3(float x, float y, float z, Rect skBounds, SvgCoordinateUnits primitiveUnits)
         {
             if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
@@ -3427,7 +3427,7 @@ namespace Svg.Skia
             return new Point3(x, y, z);
         }
 
-        public static ImageFilter? CreateDiffuseLighting(SvgDiffuseLighting svgDiffuseLighting, Rect skBounds, SvgCoordinateUnits primitiveUnits, SvgVisualElement svgVisualElement, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateDiffuseLighting(SvgDiffuseLighting svgDiffuseLighting, Rect skBounds, SvgCoordinateUnits primitiveUnits, SvgVisualElement svgVisualElement, ImageFilter? input = null, CropRect? cropRect = null)
         {
             var lightColor = GetColor(svgVisualElement, svgDiffuseLighting.LightingColor);
             if (lightColor == null)
@@ -3472,7 +3472,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static ColorChannel GetSKColorChannel(SvgChannelSelector svgChannelSelector)
+        internal static ColorChannel GetColorChannel(SvgChannelSelector svgChannelSelector)
         {
             return svgChannelSelector switch
             {
@@ -3484,10 +3484,10 @@ namespace Svg.Skia
             };
         }
 
-        public static ImageFilter? CreateDisplacementMap(SvgDisplacementMap svgDisplacementMap, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter displacement, ImageFilter? inout = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateDisplacementMap(SvgDisplacementMap svgDisplacementMap, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter displacement, ImageFilter? inout = null, CropRect? cropRect = null)
         {
-            var xChannelSelector = GetSKColorChannel(svgDisplacementMap.XChannelSelector);
-            var yChannelSelector = GetSKColorChannel(svgDisplacementMap.YChannelSelector);
+            var xChannelSelector = GetColorChannel(svgDisplacementMap.XChannelSelector);
+            var yChannelSelector = GetColorChannel(svgDisplacementMap.YChannelSelector);
             var scale = svgDisplacementMap.Scale;
 
             if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
@@ -3498,7 +3498,7 @@ namespace Svg.Skia
             return ImageFilter.CreateDisplacementMapEffect(xChannelSelector, yChannelSelector, scale, displacement, inout, cropRect);
         }
 
-        public static ImageFilter? CreateFlood(SvgFlood svgFlood, SvgVisualElement svgVisualElement, Rect skBounds, CompositeDisposable disposable, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateFlood(SvgFlood svgFlood, SvgVisualElement svgVisualElement, Rect skBounds, CompositeDisposable disposable, ImageFilter? input = null, CropRect? cropRect = null)
         {
             var floodColor = GetColor(svgVisualElement, svgFlood.FloodColor);
             if (floodColor == null)
@@ -3521,7 +3521,7 @@ namespace Svg.Skia
             return ImageFilter.CreateColorFilter(cf, input, cropRect);
         }
 
-        public static ImageFilter? CreateBlur(SvgGaussianBlur svgGaussianBlur, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateBlur(SvgGaussianBlur svgGaussianBlur, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter? input = null, CropRect? cropRect = null)
         {
             GetOptionalNumbers(svgGaussianBlur.StdDeviation, 0f, 0f, out var sigmaX, out var sigmaY);
 
@@ -3540,7 +3540,7 @@ namespace Svg.Skia
             return ImageFilter.CreateBlur(sigmaX, sigmaY, input, cropRect);
         }
 
-        public static ImageFilter? CreateImage(FilterEffects.SvgImage svgImage, Rect skBounds, CompositeDisposable disposable, CropRect? cropRect = null)
+        internal static ImageFilter? CreateImage(FilterEffects.SvgImage svgImage, Rect skBounds, CompositeDisposable disposable, CropRect? cropRect = null)
         {
             var image = GetImage(svgImage.Href, svgImage.OwnerDocument);
             var skImage = image as Image;
@@ -3666,7 +3666,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static ImageFilter? CreateMerge(SvgMerge svgMerge, Dictionary<string, ImageFilter> results, ImageFilter? lastResult, IFilterSource filterSource, CompositeDisposable disposable, CropRect? cropRect = null)
+        internal static ImageFilter? CreateMerge(SvgMerge svgMerge, Dictionary<string, ImageFilter> results, ImageFilter? lastResult, IFilterSource filterSource, CompositeDisposable disposable, CropRect? cropRect = null)
         {
             var children = new List<SvgMergeNode>();
 
@@ -3698,7 +3698,7 @@ namespace Svg.Skia
             return ImageFilter.CreateMerge(filters, cropRect);
         }
 
-        public static ImageFilter? CreateMorphology(SvgMorphology svgMorphology, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateMorphology(SvgMorphology svgMorphology, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter? input = null, CropRect? cropRect = null)
         {
             GetOptionalNumbers(svgMorphology.Radius, 0f, 0f, out var radiusX, out var radiusY);
 
@@ -3722,7 +3722,7 @@ namespace Svg.Skia
             };
         }
 
-        public static ImageFilter? CreateOffset(SvgOffset svgOffset, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateOffset(SvgOffset svgOffset, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter? input = null, CropRect? cropRect = null)
         {
             var dxUnit = svgOffset.Dx;
             var dyUnit = svgOffset.Dy;
@@ -3746,7 +3746,7 @@ namespace Svg.Skia
             return ImageFilter.CreateOffset(dx, dy, input, cropRect);
         }
 
-        public static ImageFilter? CreateSpecularLighting(SvgSpecularLighting svgSpecularLighting, Rect skBounds, SvgCoordinateUnits primitiveUnits, SvgVisualElement svgVisualElement, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateSpecularLighting(SvgSpecularLighting svgSpecularLighting, Rect skBounds, SvgCoordinateUnits primitiveUnits, SvgVisualElement svgVisualElement, ImageFilter? input = null, CropRect? cropRect = null)
         {
             var lightColor = GetColor(svgVisualElement, svgSpecularLighting.LightingColor);
             if (lightColor == null)
@@ -3787,14 +3787,14 @@ namespace Svg.Skia
             return null;
         }
 
-        public static ImageFilter? CreateTile(SvgTile svgTile, Rect skBounds, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateTile(SvgTile svgTile, Rect skBounds, ImageFilter? input = null, CropRect? cropRect = null)
         {
             var src = skBounds;
             var dst = cropRect != null ? cropRect.Rect : skBounds;
             return ImageFilter.CreateTile(src, dst, input);
         }
 
-        public static ImageFilter? CreateTurbulence(SvgTurbulence svgTurbulence, Rect skBounds, SvgCoordinateUnits primitiveUnits, CompositeDisposable disposable, CropRect? cropRect = null)
+        internal static ImageFilter? CreateTurbulence(SvgTurbulence svgTurbulence, Rect skBounds, SvgCoordinateUnits primitiveUnits, CompositeDisposable disposable, CropRect? cropRect = null)
         {
             GetOptionalNumbers(svgTurbulence.BaseFrequency, 0f, 0f, out var baseFrequencyX, out var baseFrequencyY);
 
@@ -3856,14 +3856,14 @@ namespace Svg.Skia
             return ImageFilter.CreatePaint(skPaint, cropRect);
         }
 
-        public static ImageFilter? GetGraphic(Picture skPicture, CompositeDisposable disposable)
+        internal static ImageFilter? GetGraphic(Picture skPicture, CompositeDisposable disposable)
         {
             var skImageFilter = ImageFilter.CreatePicture(skPicture, skPicture.CullRect);
             disposable.Add(skImageFilter);
             return skImageFilter;
         }
 
-        public static ImageFilter? GetAlpha(Picture skPicture, CompositeDisposable disposable)
+        internal static ImageFilter? GetAlpha(Picture skPicture, CompositeDisposable disposable)
         {
             var skImageFilterGraphic = GetGraphic(skPicture, disposable);
 
@@ -3883,14 +3883,14 @@ namespace Svg.Skia
             return skImageFilter;
         }
 
-        public static ImageFilter? GetPaint(Paint skPaint, CompositeDisposable disposable)
+        internal static ImageFilter? GetPaint(Paint skPaint, CompositeDisposable disposable)
         {
             var skImageFilter = ImageFilter.CreatePaint(skPaint);
             disposable.Add(skImageFilter);
             return skImageFilter;
         }
 
-        public static ImageFilter GetTransparentBlackImage(CompositeDisposable disposable)
+        internal static ImageFilter GetTransparentBlackImage(CompositeDisposable disposable)
         {
             var skPaint = new Paint()
             {
@@ -3904,7 +3904,7 @@ namespace Svg.Skia
             return skImageFilter;
         }
 
-        public static ImageFilter GetTransparentBlackAlpha(CompositeDisposable disposable)
+        internal static ImageFilter GetTransparentBlackAlpha(CompositeDisposable disposable)
         {
             var skPaint = new Paint()
             {
@@ -3932,7 +3932,7 @@ namespace Svg.Skia
             return skImageFilter;
         }
 
-        public static ImageFilter? GetInputFilter(string inputKey, Dictionary<string, ImageFilter> results, ImageFilter? lastResult, IFilterSource filterSource, CompositeDisposable disposable, bool isFirst)
+        internal static ImageFilter? GetInputFilter(string inputKey, Dictionary<string, ImageFilter> results, ImageFilter? lastResult, IFilterSource filterSource, CompositeDisposable disposable, bool isFirst)
         {
             if (string.IsNullOrWhiteSpace(inputKey))
             {
@@ -4073,7 +4073,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static ImageFilter? GetFilterResult(SvgFilterPrimitive svgFilterPrimitive, ImageFilter? skImageFilter, Dictionary<string, ImageFilter> results, CompositeDisposable disposable)
+        internal static ImageFilter? GetFilterResult(SvgFilterPrimitive svgFilterPrimitive, ImageFilter? skImageFilter, Dictionary<string, ImageFilter> results, CompositeDisposable disposable)
         {
             if (skImageFilter != null)
             {
@@ -4113,7 +4113,7 @@ namespace Svg.Skia
             return svgFilters;
         }
 
-        public static Paint? GetFilterSKPaint(SvgVisualElement svgVisualElement, Rect skBounds, IFilterSource filterSource, CompositeDisposable disposable, out bool isValid)
+        internal static Paint? GetFilterPaint(SvgVisualElement svgVisualElement, Rect skBounds, IFilterSource filterSource, CompositeDisposable disposable, out bool isValid)
         {
             var filter = svgVisualElement.Filter;
             if (filter == null || IsNone(filter))
@@ -4578,7 +4578,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public static FontStyleWeight ToSKFontStyleWeight(SvgFontWeight svgFontWeight)
+        internal static FontStyleWeight ToFontStyleWeight(SvgFontWeight svgFontWeight)
         {
             var fontWeight = FontStyleWeight.Normal;
 
@@ -4636,7 +4636,7 @@ namespace Svg.Skia
             return fontWeight;
         }
 
-        public static FontStyleWidth ToSKFontStyleWidth(SvgFontStretch svgFontStretch)
+        internal static FontStyleWidth ToFontStyleWidth(SvgFontStretch svgFontStretch)
         {
             var fontWidth = FontStyleWidth.Normal;
 
@@ -4694,7 +4694,7 @@ namespace Svg.Skia
             return fontWidth;
         }
 
-        public static TextAlign ToSKTextAlign(SvgTextAnchor textAnchor)
+        internal static TextAlign ToTextAlign(SvgTextAnchor textAnchor)
         {
             return textAnchor switch
             {
@@ -4704,7 +4704,7 @@ namespace Svg.Skia
             };
         }
 
-        public static FontStyleSlant ToSKFontStyleSlant(SvgFontStyle fontStyle)
+        internal static FontStyleSlant ToFontStyleSlant(SvgFontStyle fontStyle)
         {
             return fontStyle switch
             {
@@ -4717,9 +4717,9 @@ namespace Svg.Skia
         private static void SetTypeface(SvgTextBase svgText, Paint skPaint, CompositeDisposable disposable)
         {
             var fontFamily = svgText.FontFamily;
-            var fontWeight = ToSKFontStyleWeight(svgText.FontWeight);
-            var fontWidth = ToSKFontStyleWidth(svgText.FontStretch);
-            var fontStyle = ToSKFontStyleSlant(svgText.FontStyle);
+            var fontWeight = ToFontStyleWeight(svgText.FontWeight);
+            var fontWidth = ToFontStyleWidth(svgText.FontStretch);
+            var fontStyle = ToFontStyleSlant(svgText.FontStyle);
 
             skPaint.Typeface = new Svg.Model.Typeface()
             {
@@ -4730,13 +4730,13 @@ namespace Svg.Skia
             };
         }
 
-        public static void SetSKPaintText(SvgTextBase svgText, Rect skBounds, Paint skPaint, CompositeDisposable disposable)
+        internal static void SetPaintText(SvgTextBase svgText, Rect skBounds, Paint skPaint, CompositeDisposable disposable)
         {
             skPaint.LcdRenderText = true;
             skPaint.SubpixelText = true;
             skPaint.TextEncoding = TextEncoding.Utf16;
 
-            skPaint.TextAlign = ToSKTextAlign(svgText.TextAnchor);
+            skPaint.TextAlign = ToTextAlign(svgText.TextAnchor);
 
             if (svgText.TextDecoration.HasFlag(SvgTextDecoration.Underline))
             {
@@ -4771,2687 +4771,29 @@ namespace Svg.Skia
 
             SetTypeface(svgText, skPaint, disposable);
         }
-    }
 
-    [Flags]
-    internal enum Attributes
-    {
-        None = 0,
-        Display = 1,
-        Visibility = 2,
-        Opacity = 4,
-        Filter = 8,
-        ClipPath = 16,
-        Mask = 32,
-        RequiredFeatures = 64,
-        RequiredExtensions = 128,
-        SystemLanguage = 256
-    }
-
-    internal interface IFilterSource
-    {
-        Picture? SourceGraphic();
-
-        Picture? BackgroundImage();
-
-        Paint? FillPaint();
-
-        Paint? StrokePaint();
-    }
-
-    internal interface IPictureSource
-    {
-        void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until);
-
-        void Draw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until);
-    }
-
-    internal abstract class DrawableBase : Drawable, IFilterSource, IPictureSource
-    {
-        public readonly CompositeDisposable Disposable;
-        public SvgElement? Element;
-        public DrawableBase? Parent;
-        public bool IsDrawable;
-        public Attributes IgnoreAttributes;
-        public bool IsAntialias;
-        public Rect TransformedBounds;
-        public Matrix Transform;
-        public Rect? Overflow;
-        public Rect? Clip;
-        public Svg.Model.ClipPath? ClipPath;
-        public MaskDrawable? MaskDrawable;
-        public Paint? Mask;
-        public Paint? MaskDstIn;
-        public Paint? Opacity;
-        public Paint? Filter;
-        public Paint? Fill;
-        public Paint? Stroke;
-
-        protected DrawableBase()
+        public static Picture? ToModel(SvgFragment svgFragment)
         {
-            Disposable = new CompositeDisposable();
-        }
-
-        protected override void OnDraw(Canvas canvas)
-        {
-            Draw(canvas, IgnoreAttributes, null);
-        }
-
-        protected override Rect OnGetBounds()
-        {
-            return IsDrawable ? TransformedBounds : Rect.Empty;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            Disposable?.Dispose();
-        }
-
-        protected virtual void CreateMaskPaints()
-        {
-            Mask = new Paint()
-            {
-                IsAntialias = true,
-                Style = PaintStyle.StrokeAndFill
-            };
-            Disposable.Add(Mask);
-
-            var lumaColor = ColorFilter.CreateLumaColor();
-            Disposable.Add(lumaColor);
-
-            MaskDstIn = new Paint
-            {
-                IsAntialias = true,
-                Style = PaintStyle.StrokeAndFill,
-                BlendMode = BlendMode.DstIn,
-                Color = SvgExtensions.s_transparentBlack,
-                ColorFilter = lumaColor
-            };
-            Disposable.Add(MaskDstIn);
-        }
-
-        protected virtual bool HasFeatures(SvgElement svgElement, Attributes ignoreAttributes)
-        {
-            bool hasRequiredFeatures = ignoreAttributes.HasFlag(Attributes.RequiredFeatures) || svgElement.HasRequiredFeatures();
-            bool hasRequiredExtensions = ignoreAttributes.HasFlag(Attributes.RequiredExtensions) || svgElement.HasRequiredExtensions();
-            bool hasSystemLanguage = ignoreAttributes.HasFlag(Attributes.SystemLanguage) || svgElement.HasSystemLanguage();
-            return hasRequiredFeatures && hasRequiredExtensions && hasSystemLanguage;
-        }
-
-        protected virtual bool CanDraw(SvgVisualElement svgVisualElement, Attributes ignoreAttributes)
-        {
-            bool isVisible = ignoreAttributes.HasFlag(Attributes.Visibility) || string.Equals(svgVisualElement.Visibility, "visible", StringComparison.OrdinalIgnoreCase);
-            bool isDisplay = ignoreAttributes.HasFlag(Attributes.Display) || !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
-            return isVisible && isDisplay;
-        }
-
-        public abstract void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until);
-
-        public virtual void Draw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
-        {
-            if (!IsDrawable)
-            {
-                return;
-            }
-
-            if (until != null && this == until)
-            {
-                return;
-            }
-
-            var enableClip = !ignoreAttributes.HasFlag(Attributes.ClipPath);
-            var enableMask = !ignoreAttributes.HasFlag(Attributes.Mask);
-            var enableOpacity = !ignoreAttributes.HasFlag(Attributes.Opacity);
-            var enableFilter = !ignoreAttributes.HasFlag(Attributes.Filter);
-
-            canvas.Save();
-
-            if (Overflow != null)
-            {
-                canvas.ClipRect(Overflow.Value, ClipOperation.Intersect);
-            }
-
-            var skMatrixTotal = canvas.TotalMatrix;
-            skMatrixTotal = skMatrixTotal.PreConcat(Transform);
-            canvas.SetMatrix(skMatrixTotal);
-
-            if (Clip != null)
-            {
-                canvas.ClipRect(Clip.Value, ClipOperation.Intersect);
-            }
-
-            if (ClipPath != null && enableClip)
-            {
-                canvas.ClipPath(ClipPath, ClipOperation.Intersect, IsAntialias);
-            }
-
-            if (MaskDrawable != null && Mask != null && enableMask)
-            {
-                canvas.SaveLayer(Mask);
-            }
-
-            if (Opacity != null && enableOpacity)
-            {
-                canvas.SaveLayer(Opacity);
-            }
-
-            if (Filter != null && enableFilter)
-            {
-                canvas.SaveLayer(Filter);
-            }
-
-            OnDraw(canvas, ignoreAttributes, until);
-
-            if (Filter != null && enableFilter)
-            {
-                canvas.Restore();
-            }
-
-            if (Opacity != null && enableOpacity)
-            {
-                canvas.Restore();
-            }
-
-            if (MaskDrawable != null && MaskDstIn != null && enableMask)
-            {
-                canvas.SaveLayer(MaskDstIn);
-                MaskDrawable.Draw(canvas, ignoreAttributes, until);
-                canvas.Restore();
-                canvas.Restore();
-            }
-
-            canvas.Restore();
-        }
-
-        public virtual void PostProcess()
-        {
-            var element = Element;
-            if (element == null)
-            {
-                return;
-            }
-
-            var visualElement = element as SvgVisualElement;
-
-            var enableClip = !IgnoreAttributes.HasFlag(Attributes.ClipPath);
-            var enableMask = !IgnoreAttributes.HasFlag(Attributes.Mask);
-            var enableOpacity = !IgnoreAttributes.HasFlag(Attributes.Opacity);
-            var enableFilter = !IgnoreAttributes.HasFlag(Attributes.Filter);
-
-            if (visualElement != null && enableClip)
-            {
-                var clipPath = new Svg.Model.ClipPath()
-                {
-                    Clip = new Svg.Model.ClipPath()
-                };
-                SvgExtensions.GetSvgVisualElementClipPath(visualElement, TransformedBounds, new HashSet<Uri>(), Disposable, clipPath);
-                if (clipPath.Clips != null && clipPath.Clips.Count > 0)
-                {
-                    ClipPath = clipPath;
-                }
-                else
-                {
-                    ClipPath = null;
-                }
-            }
-            else
-            {
-                ClipPath = null;
-            }
-
-            if (enableMask)
-            {
-                MaskDrawable = SvgExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), Disposable);
-                if (MaskDrawable != null)
-                {
-                    CreateMaskPaints();
-                }
-            }
-            else
-            {
-                MaskDrawable = null;
-            }
-
-            Opacity = enableOpacity ? SvgExtensions.GetOpacitySKPaint(element, Disposable) : null;
-
-            if (visualElement != null && enableFilter)
-            {
-                Filter = SvgExtensions.GetFilterSKPaint(visualElement, TransformedBounds, this, Disposable, out var isValid);
-                if (isValid == false)
-                {
-                    IsDrawable = false;
-                    return;
-                }
-            }
-            else
-            {
-                Filter = null;
-            }
-        }
-
-        public DrawableBase? FindContainerParentBackground(DrawableBase? drawable, out Rect skClipRect)
-        {
-            skClipRect = Rect.Empty;
-
+            var size = SvgExtensions.GetDimensions(svgFragment);
+            var bounds = Rect.Create(size);
+            using var drawable = DrawableFactory.Create(svgFragment, bounds, null, Attributes.None);
             if (drawable == null)
             {
                 return null;
             }
+            drawable.PostProcess();
 
-            var element = drawable.Element;
-            if (element == null)
+            if (bounds.IsEmpty)
             {
-                return null;
+                var drawableBounds = drawable.Bounds;
+                bounds = Rect.Create(
+                    0f,
+                    0f,
+                    Math.Abs(drawableBounds.Left) + drawableBounds.Width,
+                    Math.Abs(drawableBounds.Top) + drawableBounds.Height);
             }
 
-            if (element.IsContainerElement())
-            {
-                if (element.TryGetAttribute("enable-background", out string enableBackground))
-                {
-                    enableBackground = enableBackground.Trim();
-
-                    if (enableBackground.Equals("accumulate", StringComparison.Ordinal))
-                    {
-                        // TODO:
-                    }
-                    else if (enableBackground.StartsWith("new", StringComparison.Ordinal))
-                    {
-                        if (enableBackground.Length > 3)
-                        {
-                            var values = new List<float>();
-                            var parts = enableBackground.Substring(4, enableBackground.Length - 4).Split(' ');
-                            foreach (var o in parts)
-                            {
-                                values.Add(float.Parse(o.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture));
-                            }
-
-                            if (values.Count != 4)
-                            {
-                                return null;
-                            }
-
-                            skClipRect = Rect.Create(values[0], values[1], values[2], values[3]);
-                        }
-                        return drawable;
-                    }
-                }
-            }
-
-            var parent = drawable.Parent;
-            if (parent != null)
-            {
-                return FindContainerParentBackground(parent, out skClipRect);
-            }
-
-            return null;
-        }
-
-        public Picture? RecordGraphic(DrawableBase? drawable, Attributes ignoreAttributes)
-        {
-            // TODO: Record using ColorSpace.CreateSrgbLinear because .color-interpolation-filters. is by default linearRGB.
-            if (drawable == null)
-            {
-                return null;
-            }
-
-            if (drawable.TransformedBounds.Width <= 0f && drawable.TransformedBounds.Height <= 0f)
-            {
-                return null;
-            }
-
-            using var skPictureRecorder = new PictureRecorder();
-            using var skCanvas = skPictureRecorder.BeginRecording(drawable.TransformedBounds);
-
-            drawable.Draw(skCanvas, ignoreAttributes, null);
-
-            return skPictureRecorder.EndRecording();
-        }
-
-        public Picture? RecordBackground(DrawableBase? drawable, Attributes ignoreAttributes)
-        {
-            // TODO: Record using ColorSpace.CreateSrgbLinear because 'color-interpolation-filters' is by default linearRGB.
-            if (drawable == null)
-            {
-                return null;
-            }
-
-            var container = FindContainerParentBackground(drawable, out var skClipRect);
-            if (container != null)
-            {
-                using var skPictureRecorder = new PictureRecorder();
-                using var skCanvas = skPictureRecorder.BeginRecording(container.TransformedBounds);
-
-                if (!skClipRect.IsEmpty)
-                {
-                    skCanvas.ClipRect(skClipRect, ClipOperation.Intersect);
-                }
-
-                container.Draw(skCanvas, ignoreAttributes, drawable);
-
-                return skPictureRecorder.EndRecording();
-            }
-            return null;
-        }
-
-        public const Attributes FilterInput = Attributes.ClipPath | Attributes.Mask | Attributes.Opacity | Attributes.Filter;
-
-        Picture? IFilterSource.SourceGraphic() => RecordGraphic(this, FilterInput);
-
-        Picture? IFilterSource.BackgroundImage() => RecordBackground(this, FilterInput);
-
-        Paint? IFilterSource.FillPaint() => Fill;
-
-        Paint? IFilterSource.StrokePaint() => Stroke;
-    }
-
-    internal abstract class DrawablePath : DrawableBase
-    {
-        public Path? Path;
-
-        public List<DrawableBase>? MarkerDrawables;
-
-        protected DrawablePath()
-            : base()
-        {
-        }
-
-        public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
-        {
-            if (until != null && this == until)
-            {
-                return;
-            }
-
-            if (Fill != null && Path != null)
-            {
-                canvas.DrawPath(Path, Fill);
-            }
-
-            if (Stroke != null && Path != null)
-            {
-                canvas.DrawPath(Path, Stroke);
-            }
-
-            if (MarkerDrawables != null)
-            {
-                foreach (var drawable in MarkerDrawables)
-                {
-                    drawable.Draw(canvas, ignoreAttributes, until);
-                }
-            }
-        }
-
-        public override void PostProcess()
-        {
-            base.PostProcess();
-
-            if (MarkerDrawables != null)
-            {
-                foreach (var drawable in MarkerDrawables)
-                {
-                    drawable.PostProcess();
-                }
-            }
-        }
-    }
-
-    internal abstract class DrawableContainer : DrawableBase
-    {
-        public readonly List<DrawableBase> ChildrenDrawables;
-
-        protected DrawableContainer()
-            : base()
-        {
-            ChildrenDrawables = new List<DrawableBase>();
-        }
-
-        protected virtual void CreateChildren(SvgElement svgElement, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes)
-        {
-            foreach (var child in svgElement.Children)
-            {
-                var drawable = DrawableFactory.Create(child, skOwnerBounds, parent, ignoreAttributes);
-                if (drawable != null)
-                {
-                    ChildrenDrawables.Add(drawable);
-                    Disposable.Add(drawable);
-                }
-            }
-        }
-
-        protected virtual void CreateTransformedBounds()
-        {
-            foreach (var drawable in ChildrenDrawables)
-            {
-                if (TransformedBounds.IsEmpty)
-                {
-                    TransformedBounds = drawable.TransformedBounds;
-                }
-                else
-                {
-                    if (!drawable.TransformedBounds.IsEmpty)
-                    {
-                        TransformedBounds = Rect.Union(TransformedBounds, drawable.TransformedBounds);
-                    }
-                }
-            }
-        }
-
-        public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
-        {
-            if (until != null && this == until)
-            {
-                return;
-            }
-
-            foreach (var drawable in ChildrenDrawables)
-            {
-                if (until != null && drawable == until)
-                {
-                    break;
-                }
-                drawable.Draw(canvas, ignoreAttributes, until);
-            }
-        }
-
-        public override void PostProcess()
-        {
-            base.PostProcess();
-
-            foreach (var child in ChildrenDrawables)
-            {
-                child.PostProcess();
-            }
-        }
-    }
-
-    internal sealed class MaskDrawable : DrawableContainer
-    {
-        private MaskDrawable()
-            : base()
-        {
-        }
-
-        public static MaskDrawable Create(SvgMask svgMask, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = new MaskDrawable
-            {
-                Element = svgMask,
-                Parent = parent,
-                IgnoreAttributes = ignoreAttributes,
-                IsDrawable = true
-            };
-
-            if (!drawable.IsDrawable)
-            {
-                return drawable;
-            }
-
-            var maskUnits = svgMask.MaskUnits;
-            var maskContentUnits = svgMask.MaskContentUnits;
-            var xUnit = svgMask.X;
-            var yUnit = svgMask.Y;
-            var widthUnit = svgMask.Width;
-            var heightUnit = svgMask.Height;
-            float x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skOwnerBounds);
-            float y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgMask, skOwnerBounds);
-            float width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skOwnerBounds);
-            float height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgMask, skOwnerBounds);
-
-            if (width <= 0 || height <= 0)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            if (maskUnits == SvgCoordinateUnits.ObjectBoundingBox)
-            {
-                if (xUnit.Type != SvgUnitType.Percentage)
-                {
-                    x *= skOwnerBounds.Width;
-                }
-
-                if (yUnit.Type != SvgUnitType.Percentage)
-                {
-                    y *= skOwnerBounds.Height;
-                }
-
-                if (widthUnit.Type != SvgUnitType.Percentage)
-                {
-                    width *= skOwnerBounds.Width;
-                }
-
-                if (heightUnit.Type != SvgUnitType.Percentage)
-                {
-                    height *= skOwnerBounds.Height;
-                }
-
-                x += skOwnerBounds.Left;
-                y += skOwnerBounds.Top;
-            }
-
-            Rect skRectTransformed = Rect.Create(x, y, width, height);
-
-            var skMatrix = Matrix.CreateIdentity();
-
-            if (maskContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
-            {
-                var skBoundsTranslateTransform = Matrix.CreateTranslation(skOwnerBounds.Left, skOwnerBounds.Top);
-                skMatrix = skMatrix.PreConcat(skBoundsTranslateTransform);
-
-                var skBoundsScaleTransform = Matrix.CreateScale(skOwnerBounds.Width, skOwnerBounds.Height);
-                skMatrix = skMatrix.PreConcat(skBoundsScaleTransform);
-            }
-
-            drawable.CreateChildren(svgMask, skOwnerBounds, drawable, ignoreAttributes);
-
-            drawable.Overflow = skRectTransformed;
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgMask);
-
-            drawable.TransformedBounds = skRectTransformed;
-
-            drawable.Transform = skMatrix;
-
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
-
-            return drawable;
-        }
-
-        public override void PostProcess()
-        {
-            var element = Element;
-            if (element is null)
-            {
-                return;
-            }
-
-            var enableMask = !IgnoreAttributes.HasFlag(Attributes.Mask);
-
-            ClipPath = null;
-
-            if (enableMask)
-            {
-                MaskDrawable = SvgExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), Disposable);
-                if (MaskDrawable != null)
-                {
-                    CreateMaskPaints();
-                }
-            }
-            else
-            {
-                MaskDrawable = null;
-            }
-
-            Opacity = null;
-            Filter = null;
-        }
-    }
-
-    internal sealed class AnchorDrawable : DrawableContainer
-    {
-        private AnchorDrawable()
-            : base()
-        {
-        }
-
-        public static AnchorDrawable Create(SvgAnchor svgAnchor, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = new AnchorDrawable
-            {
-                Element = svgAnchor,
-                Parent = parent,
-                IgnoreAttributes = ignoreAttributes,
-                IsDrawable = true
-            };
-
-            drawable.CreateChildren(svgAnchor, skOwnerBounds, drawable, ignoreAttributes);
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgAnchor);
-
-            drawable.TransformedBounds = Rect.Empty;
-
-            drawable.CreateTransformedBounds();
-
-            drawable.Transform = SvgExtensions.ToSKMatrix(svgAnchor.Transforms);
-
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
-
-            drawable.ClipPath = null;
-            drawable.MaskDrawable = null;
-            drawable.Opacity = drawable.IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgExtensions.GetOpacitySKPaint(svgAnchor, drawable.Disposable);
-            drawable.Filter = null;
-
-            return drawable;
-        }
-
-        public override void PostProcess()
-        {
-            var element = Element;
-            if (element is null)
-            {
-                return;
-            }
-
-            var enableOpacity = !IgnoreAttributes.HasFlag(Attributes.Opacity);
-
-            ClipPath = null;
-            MaskDrawable = null;
-            Opacity = enableOpacity ? SvgExtensions.GetOpacitySKPaint(element, Disposable) : null;
-            Filter = null;
-
-            foreach (var child in ChildrenDrawables)
-            {
-                child.PostProcess();
-            }
-        }
-    }
-
-    internal sealed class FragmentDrawable : DrawableContainer
-    {
-        private FragmentDrawable()
-            : base()
-        {
-        }
-
-        public static FragmentDrawable Create(SvgFragment svgFragment, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = new FragmentDrawable
-            {
-                Element = svgFragment,
-                Parent = parent,
-                IgnoreAttributes = ignoreAttributes
-            };
-
-            drawable.IsDrawable = drawable.HasFeatures(svgFragment, drawable.IgnoreAttributes);
-
-            if (!drawable.IsDrawable)
-            {
-                return drawable;
-            }
-
-            var svgFragmentParent = svgFragment.Parent;
-
-            float x = svgFragmentParent is null ? 0f : svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skOwnerBounds);
-            float y = svgFragmentParent is null ? 0f : svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skOwnerBounds);
-
-            var skSize = SvgExtensions.GetDimensions(svgFragment);
-
-            if (skOwnerBounds.IsEmpty)
-            {
-                skOwnerBounds = Rect.Create(x, y, skSize.Width, skSize.Height);
-            }
-
-            drawable.CreateChildren(svgFragment, skOwnerBounds, drawable, ignoreAttributes);
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgFragment);
-
-            drawable.TransformedBounds = skOwnerBounds;
-
-            drawable.CreateTransformedBounds();
-
-            drawable.Transform = SvgExtensions.ToSKMatrix(svgFragment.Transforms);
-            var skMatrixViewBox = SvgExtensions.ToSKMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
-            drawable.Transform = drawable.Transform.PreConcat(skMatrixViewBox);
-
-            switch (svgFragment.Overflow)
-            {
-                case SvgOverflow.Auto:
-                case SvgOverflow.Visible:
-                case SvgOverflow.Inherit:
-                    break;
-
-                default:
-                    if (skSize.IsEmpty)
-                    {
-                        drawable.Overflow = Rect.Create(
-                            x,
-                            y,
-                            Math.Abs(drawable.TransformedBounds.Left) + drawable.TransformedBounds.Width,
-                            Math.Abs(drawable.TransformedBounds.Top) + drawable.TransformedBounds.Height);
-                    }
-                    else
-                    {
-                        drawable.Overflow = Rect.Create(x, y, skSize.Width, skSize.Height);
-                    }
-                    break;
-            }
-
-            var clipPathUris = new HashSet<Uri>();
-            var svgClipPath = svgFragment.GetUriElementReference<SvgClipPath>("clip-path", clipPathUris);
-            if (svgClipPath != null && svgClipPath.Children != null)
-            {
-                var clipPath = new Svg.Model.ClipPath()
-                {
-                    Clip = new Svg.Model.ClipPath()
-                };
-                SvgExtensions.GetClipPath(svgClipPath, drawable.TransformedBounds, clipPathUris, drawable.Disposable, clipPath);
-                if (clipPath.Clips != null && clipPath.Clips.Count > 0 && !drawable.IgnoreAttributes.HasFlag(Attributes.ClipPath))
-                {
-                    drawable.ClipPath = clipPath;
-                }
-                else
-                {
-                    drawable.ClipPath = null;
-                }
-            }
-            else
-            {
-                drawable.ClipPath = null;
-            }
-
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
-
-            return drawable;
-        }
-
-        public override void PostProcess()
-        {
-            var element = Element;
-            if (element is null)
-            {
-                return;
-            }
-
-            var enableOpacity = !IgnoreAttributes.HasFlag(Attributes.Opacity);
-
-            ClipPath = null;
-            MaskDrawable = null;
-            Opacity = enableOpacity ? SvgExtensions.GetOpacitySKPaint(element, Disposable) : null;
-            Filter = null;
-
-            foreach (var child in ChildrenDrawables)
-            {
-                child.PostProcess();
-            }
-        }
-    }
-
-    internal sealed class ImageDrawable : DrawableBase
-    {
-        public Image? Image;
-        public FragmentDrawable? FragmentDrawable;
-        public Rect SrcRect = default;
-        public Rect DestRect = default;
-        public Matrix FragmentTransform;
-
-        private ImageDrawable()
-            : base()
-        {
-        }
-
-        public static ImageDrawable Create(SvgImage svgImage, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = new ImageDrawable
-            {
-                Element = svgImage,
-                Parent = parent,
-                IgnoreAttributes = ignoreAttributes
-            };
-
-            drawable.IsDrawable = drawable.CanDraw(svgImage, drawable.IgnoreAttributes) && drawable.HasFeatures(svgImage, drawable.IgnoreAttributes);
-
-            if (!drawable.IsDrawable)
-            {
-                return drawable;
-            }
-
-            float width = svgImage.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, skOwnerBounds);
-            float height = svgImage.Height.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skOwnerBounds);
-            float x = svgImage.Location.X.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, skOwnerBounds);
-            float y = svgImage.Location.Y.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skOwnerBounds);
-            var location = new Point(x, y);
-
-            if (width <= 0f || height <= 0f || svgImage.Href is null)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            // TODO: Check for image recursive references.
-            //if (HasRecursiveReference(svgImage, (e) => e.Href))
-            //{
-            //    _canDraw = false;
-            //    return;
-            //}
-
-            var image = SvgExtensions.GetImage(svgImage.Href, svgImage.OwnerDocument);
-            var skImage = image as Image;
-            var svgFragment = image as SvgFragment;
-            if (skImage is null && svgFragment is null)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            if (skImage != null)
-            {
-                drawable.Disposable.Add(skImage);
-            }
-
-            drawable.SrcRect = default;
-
-            if (skImage != null)
-            {
-                drawable.SrcRect = Rect.Create(0f, 0f, skImage.Width, skImage.Height);
-            }
-
-            if (svgFragment != null)
-            {
-                var skSize = SvgExtensions.GetDimensions(svgFragment);
-                drawable.SrcRect = Rect.Create(0f, 0f, skSize.Width, skSize.Height);
-            }
-
-            var destClip = Rect.Create(location.X, location.Y, width, height);
-
-            var aspectRatio = svgImage.AspectRatio;
-            if (aspectRatio.Align != SvgPreserveAspectRatio.none)
-            {
-                var fScaleX = destClip.Width / drawable.SrcRect.Width;
-                var fScaleY = destClip.Height / drawable.SrcRect.Height;
-                var xOffset = 0f;
-                var yOffset = 0f;
-
-                if (aspectRatio.Slice)
-                {
-                    fScaleX = Math.Max(fScaleX, fScaleY);
-                    fScaleY = Math.Max(fScaleX, fScaleY);
-                }
-                else
-                {
-                    fScaleX = Math.Min(fScaleX, fScaleY);
-                    fScaleY = Math.Min(fScaleX, fScaleY);
-                }
-
-                switch (aspectRatio.Align)
-                {
-                    case SvgPreserveAspectRatio.xMinYMin:
-                        break;
-
-                    case SvgPreserveAspectRatio.xMidYMin:
-                        xOffset = (destClip.Width - drawable.SrcRect.Width * fScaleX) / 2;
-                        break;
-
-                    case SvgPreserveAspectRatio.xMaxYMin:
-                        xOffset = (destClip.Width - drawable.SrcRect.Width * fScaleX);
-                        break;
-
-                    case SvgPreserveAspectRatio.xMinYMid:
-                        yOffset = (destClip.Height - drawable.SrcRect.Height * fScaleY) / 2;
-                        break;
-
-                    case SvgPreserveAspectRatio.xMidYMid:
-                        xOffset = (destClip.Width - drawable.SrcRect.Width * fScaleX) / 2;
-                        yOffset = (destClip.Height - drawable.SrcRect.Height * fScaleY) / 2;
-                        break;
-
-                    case SvgPreserveAspectRatio.xMaxYMid:
-                        xOffset = (destClip.Width - drawable.SrcRect.Width * fScaleX);
-                        yOffset = (destClip.Height - drawable.SrcRect.Height * fScaleY) / 2;
-                        break;
-
-                    case SvgPreserveAspectRatio.xMinYMax:
-                        yOffset = (destClip.Height - drawable.SrcRect.Height * fScaleY);
-                        break;
-
-                    case SvgPreserveAspectRatio.xMidYMax:
-                        xOffset = (destClip.Width - drawable.SrcRect.Width * fScaleX) / 2;
-                        yOffset = (destClip.Height - drawable.SrcRect.Height * fScaleY);
-                        break;
-
-                    case SvgPreserveAspectRatio.xMaxYMax:
-                        xOffset = (destClip.Width - drawable.SrcRect.Width * fScaleX);
-                        yOffset = (destClip.Height - drawable.SrcRect.Height * fScaleY);
-                        break;
-                }
-
-                drawable.DestRect = Rect.Create(
-                    destClip.Left + xOffset,
-                    destClip.Top + yOffset,
-                    drawable.SrcRect.Width * fScaleX,
-                    drawable.SrcRect.Height * fScaleY);
-            }
-            else
-            {
-                drawable.DestRect = destClip;
-            }
-
-            drawable.Clip = destClip;
-
-            var skClipRect = SvgExtensions.GetClipRect(svgImage, destClip);
-            if (skClipRect != null)
-            {
-                drawable.Clip = skClipRect;
-            }
-
-            if (skImage != null)
-            {
-                drawable.Image = skImage;
-            }
-
-            if (svgFragment != null)
-            {
-                drawable.FragmentDrawable = FragmentDrawable.Create(svgFragment, skOwnerBounds, drawable, ignoreAttributes);
-                drawable.Disposable.Add(drawable.FragmentDrawable);
-            }
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgImage);
-
-            if (drawable.Image != null)
-            {
-                drawable.TransformedBounds = drawable.DestRect;
-            }
-
-            if (drawable.FragmentDrawable != null)
-            {
-                drawable.TransformedBounds = drawable.DestRect;
-            }
-
-            drawable.Transform = SvgExtensions.ToSKMatrix(svgImage.Transforms);
-            drawable.FragmentTransform = Matrix.CreateIdentity();
-            if (drawable.FragmentDrawable != null)
-            {
-                float dx = drawable.DestRect.Left;
-                float dy = drawable.DestRect.Top;
-                float sx = drawable.DestRect.Width / drawable.SrcRect.Width;
-                float sy = drawable.DestRect.Height / drawable.SrcRect.Height;
-                var skTranslationMatrix = Matrix.CreateTranslation(dx, dy);
-                var skScaleMatrix = Matrix.CreateScale(sx, sy);
-                drawable.FragmentTransform = drawable.FragmentTransform.PreConcat(skTranslationMatrix);
-                drawable.FragmentTransform = drawable.FragmentTransform.PreConcat(skScaleMatrix);
-                // TODO: FragmentTransform
-            }
-
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
-
-            return drawable;
-        }
-
-        public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
-        {
-            if (until != null && this == until)
-            {
-                return;
-            }
-
-            if (Image != null)
-            {
-                using var skImagePaint = new Paint()
-                {
-                    IsAntialias = true,
-                    FilterQuality = FilterQuality.High
-                };
-                canvas.DrawImage(Image, SrcRect, DestRect, skImagePaint);
-            }
-
-            if (FragmentDrawable != null)
-            {
-                canvas.Save();
-
-                var skMatrixTotal = canvas.TotalMatrix;
-                skMatrixTotal = skMatrixTotal.PreConcat(FragmentTransform);
-                canvas.SetMatrix(skMatrixTotal);
-
-                FragmentDrawable.Draw(canvas, ignoreAttributes, until);
-
-                canvas.Restore();
-            }
-        }
-
-        public override void PostProcess()
-        {
-            base.PostProcess();
-            FragmentDrawable?.PostProcess();
-        }
-    }
-
-    internal sealed class SwitchDrawable : DrawableBase
-    {
-        public DrawableBase? FirstChild;
-
-        private SwitchDrawable()
-            : base()
-        {
-        }
-
-        public static SwitchDrawable Create(SvgSwitch svgSwitch, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = new SwitchDrawable
-            {
-                Element = svgSwitch,
-                Parent = parent,
-
-                IgnoreAttributes = ignoreAttributes
-            };
-            drawable.IsDrawable = drawable.CanDraw(svgSwitch, drawable.IgnoreAttributes) && drawable.HasFeatures(svgSwitch, drawable.IgnoreAttributes);
-
-            if (!drawable.IsDrawable)
-            {
-                return drawable;
-            }
-
-            foreach (var child in svgSwitch.Children)
-            {
-                if (!child.IsKnownElement())
-                {
-                    continue;
-                }
-
-                bool hasRequiredFeatures = child.HasRequiredFeatures();
-                bool hasRequiredExtensions = child.HasRequiredExtensions();
-                bool hasSystemLanguage = child.HasSystemLanguage();
-
-                if (hasRequiredFeatures && hasRequiredExtensions && hasSystemLanguage)
-                {
-                    var childDrawable = DrawableFactory.Create(child, skOwnerBounds, parent, ignoreAttributes);
-                    if (childDrawable != null)
-                    {
-                        drawable.FirstChild = childDrawable;
-                        drawable.Disposable.Add(drawable.FirstChild);
-                    }
-                    break;
-                }
-            }
-
-            if (drawable.FirstChild == null)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgSwitch);
-
-            drawable.TransformedBounds = drawable.FirstChild.TransformedBounds;
-
-            drawable.Transform = SvgExtensions.ToSKMatrix(svgSwitch.Transforms);
-
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
-
-            return drawable;
-        }
-
-        public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
-        {
-            if (until != null && this == until)
-            {
-                return;
-            }
-
-            FirstChild?.Draw(canvas, ignoreAttributes, until);
-        }
-
-        public override void PostProcess()
-        {
-            base.PostProcess();
-            FirstChild?.PostProcess();
-        }
-    }
-
-    internal sealed class SymbolDrawable : DrawableContainer
-    {
-        private SymbolDrawable()
-            : base()
-        {
-        }
-
-        public static SymbolDrawable Create(SvgSymbol svgSymbol, float x, float y, float width, float height, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes)
-        {
-            var drawable = new SymbolDrawable
-            {
-                Element = svgSymbol,
-                Parent = parent,
-                IgnoreAttributes = ignoreAttributes
-            };
-
-            drawable.IsDrawable = drawable.CanDraw(svgSymbol, drawable.IgnoreAttributes) && drawable.HasFeatures(svgSymbol, drawable.IgnoreAttributes);
-
-            if (!drawable.IsDrawable)
-            {
-                return drawable;
-            }
-
-            if (svgSymbol.CustomAttributes.TryGetValue("width", out string? _widthString))
-            {
-                if (new SvgUnitConverter().ConvertFromString(_widthString) is SvgUnit _width)
-                {
-                    width = _width.ToDeviceValue(UnitRenderingType.Horizontal, svgSymbol, skOwnerBounds);
-                }
-            }
-
-            if (svgSymbol.CustomAttributes.TryGetValue("height", out string? heightString))
-            {
-                if (new SvgUnitConverter().ConvertFromString(heightString) is SvgUnit _height)
-                {
-                    height = _height.ToDeviceValue(UnitRenderingType.Vertical, svgSymbol, skOwnerBounds);
-                }
-            }
-
-            var svgOverflow = SvgOverflow.Hidden;
-            if (svgSymbol.TryGetAttribute("overflow", out string overflowString))
-            {
-                if (new SvgOverflowConverter().ConvertFromString(overflowString) is SvgOverflow _svgOverflow)
-                {
-                    svgOverflow = _svgOverflow;
-                }
-            }
-
-            switch (svgOverflow)
-            {
-                case SvgOverflow.Auto:
-                case SvgOverflow.Visible:
-                case SvgOverflow.Inherit:
-                    break;
-
-                default:
-                    drawable.Overflow = Rect.Create(x, y, width, height);
-                    break;
-            }
-
-            drawable.CreateChildren(svgSymbol, skOwnerBounds, drawable, ignoreAttributes);
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgSymbol);
-
-            drawable.TransformedBounds = Rect.Empty;
-
-            drawable.CreateTransformedBounds();
-
-            drawable.Transform = SvgExtensions.ToSKMatrix(svgSymbol.Transforms);
-            var skMatrixViewBox = SvgExtensions.ToSKMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
-            drawable.Transform = drawable.Transform.PreConcat(skMatrixViewBox);
-
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
-
-            return drawable;
-        }
-    }
-
-    internal sealed class UseDrawable : DrawableBase
-    {
-        internal static FieldInfo? s_referencedElementParent = typeof(SvgElement).GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
-
-        public DrawableBase? ReferencedDrawable;
-
-        private UseDrawable()
-            : base()
-        {
-        }
-
-        public static UseDrawable Create(SvgUse svgUse, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = new UseDrawable
-            {
-                Element = svgUse,
-                Parent = parent,
-                IgnoreAttributes = ignoreAttributes
-            };
-
-            drawable.IsDrawable = drawable.CanDraw(svgUse, drawable.IgnoreAttributes) && drawable.HasFeatures(svgUse, drawable.IgnoreAttributes);
-
-            if (!drawable.IsDrawable)
-            {
-                return drawable;
-            }
-
-            if (SvgExtensions.HasRecursiveReference(svgUse, (e) => e.ReferencedElement, new HashSet<Uri>()))
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            var svgReferencedElement = SvgExtensions.GetReference<SvgElement>(svgUse, svgUse.ReferencedElement);
-            if (svgReferencedElement is null)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            float x = svgUse.X.ToDeviceValue(UnitRenderingType.Horizontal, svgUse, skOwnerBounds);
-            float y = svgUse.Y.ToDeviceValue(UnitRenderingType.Vertical, svgUse, skOwnerBounds);
-            float width = svgUse.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgUse, skOwnerBounds);
-            float height = svgUse.Height.ToDeviceValue(UnitRenderingType.Vertical, svgUse, skOwnerBounds);
-
-            if (width <= 0f)
-            {
-                width = new SvgUnit(SvgUnitType.Percentage, 100f).ToDeviceValue(UnitRenderingType.Horizontal, svgUse, skOwnerBounds);
-            }
-
-            if (height <= 0f)
-            {
-                height = new SvgUnit(SvgUnitType.Percentage, 100f).ToDeviceValue(UnitRenderingType.Vertical, svgUse, skOwnerBounds);
-            }
-
-            var originalReferencedElementParent = svgReferencedElement.Parent;
-
-            try
-            {
-                if (s_referencedElementParent != null)
-                {
-                    s_referencedElementParent.SetValue(svgReferencedElement, svgUse);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-                Debug.WriteLine(ex.StackTrace);
-            }
-
-            svgReferencedElement.InvalidateChildPaths();
-
-            if (svgReferencedElement is SvgSymbol svgSymbol)
-            {
-                drawable.ReferencedDrawable = SymbolDrawable.Create(svgSymbol, x, y, width, height, skOwnerBounds, drawable, ignoreAttributes);
-                drawable.Disposable.Add(drawable.ReferencedDrawable);
-            }
-            else
-            {
-                var referencedDrawable = DrawableFactory.Create(svgReferencedElement, skOwnerBounds, drawable, ignoreAttributes);
-                if (referencedDrawable != null)
-                {
-                    drawable.ReferencedDrawable = referencedDrawable;
-                    drawable.Disposable.Add(drawable.ReferencedDrawable);
-                }
-                else
-                {
-                    drawable.IsDrawable = false;
-                    return drawable;
-                }
-            }
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgUse);
-
-            drawable.TransformedBounds = drawable.ReferencedDrawable.TransformedBounds;
-
-            drawable.Transform = SvgExtensions.ToSKMatrix(svgUse.Transforms);
-            if (!(svgReferencedElement is SvgSymbol))
-            {
-                var skMatrixTranslateXY = Matrix.CreateTranslation(x, y);
-                drawable.Transform = drawable.Transform.PreConcat(skMatrixTranslateXY);
-            }
-
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
-
-            try
-            {
-                if (s_referencedElementParent != null)
-                {
-                    s_referencedElementParent.SetValue(svgReferencedElement, originalReferencedElementParent);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-                Debug.WriteLine(ex.StackTrace);
-            }
-
-            return drawable;
-        }
-
-        public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
-        {
-            if (until != null && this == until)
-            {
-                return;
-            }
-
-            ReferencedDrawable?.Draw(canvas, ignoreAttributes, until);
-        }
-
-        public override void PostProcess()
-        {
-            base.PostProcess();
-            // TODO: Fix PostProcess() using correct ReferencedElement Parent.
-            ReferencedDrawable?.PostProcess();
-        }
-    }
-
-    internal sealed class CircleDrawable : DrawablePath
-    {
-        private CircleDrawable()
-            : base()
-        {
-        }
-
-        public static CircleDrawable Create(SvgCircle svgCircle, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = new CircleDrawable
-            {
-                Element = svgCircle,
-                Parent = parent,
-                IgnoreAttributes = ignoreAttributes
-            };
-
-            drawable.IsDrawable = drawable.CanDraw(svgCircle, drawable.IgnoreAttributes) && drawable.HasFeatures(svgCircle, drawable.IgnoreAttributes);
-
-            if (!drawable.IsDrawable)
-            {
-                return drawable;
-            }
-
-            drawable.Path = svgCircle.ToSKPath(svgCircle.FillRule, skOwnerBounds, drawable.Disposable);
-            if (drawable.Path is null || drawable.Path.IsEmpty)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgCircle);
-
-            drawable.TransformedBounds = drawable.Path.Bounds;
-
-            drawable.Transform = SvgExtensions.ToSKMatrix(svgCircle.Transforms);
-
-            bool canDrawFill = true;
-            bool canDrawStroke = true;
-
-            if (SvgExtensions.IsValidFill(svgCircle))
-            {
-                drawable.Fill = SvgExtensions.GetFillSKPaint(svgCircle, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Fill is null)
-                {
-                    canDrawFill = false;
-                }
-            }
-
-            if (SvgExtensions.IsValidStroke(svgCircle, drawable.TransformedBounds))
-            {
-                drawable.Stroke = SvgExtensions.GetStrokeSKPaint(svgCircle, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Stroke is null)
-                {
-                    canDrawStroke = false;
-                }
-            }
-
-            if (canDrawFill && !canDrawStroke)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
-
-            return drawable;
-        }
-    }
-
-    internal sealed class EllipseDrawable : DrawablePath
-    {
-        private EllipseDrawable()
-            : base()
-        {
-        }
-
-        public static EllipseDrawable Create(SvgEllipse svgEllipse, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = new EllipseDrawable
-            {
-                Element = svgEllipse,
-                Parent = parent,
-                IgnoreAttributes = ignoreAttributes
-            };
-
-            drawable.IsDrawable = drawable.CanDraw(svgEllipse, drawable.IgnoreAttributes) && drawable.HasFeatures(svgEllipse, drawable.IgnoreAttributes);
-
-            if (!drawable.IsDrawable)
-            {
-                return drawable;
-            }
-
-            drawable.Path = svgEllipse.ToSKPath(svgEllipse.FillRule, skOwnerBounds, drawable.Disposable);
-            if (drawable.Path is null || drawable.Path.IsEmpty)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgEllipse);
-            drawable.TransformedBounds = drawable.Path.Bounds;
-            drawable.Transform = SvgExtensions.ToSKMatrix(svgEllipse.Transforms);
-
-            bool canDrawFill = true;
-            bool canDrawStroke = true;
-
-            if (SvgExtensions.IsValidFill(svgEllipse))
-            {
-                drawable.Fill = SvgExtensions.GetFillSKPaint(svgEllipse, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Fill is null)
-                {
-                    canDrawFill = false;
-                }
-            }
-
-            if (SvgExtensions.IsValidStroke(svgEllipse, drawable.TransformedBounds))
-            {
-                drawable.Stroke = SvgExtensions.GetStrokeSKPaint(svgEllipse, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Stroke is null)
-                {
-                    canDrawStroke = false;
-                }
-            }
-
-            if (canDrawFill && !canDrawStroke)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
-
-            return drawable;
-        }
-    }
-
-    internal sealed class RectangleDrawable : DrawablePath
-    {
-        private RectangleDrawable()
-            : base()
-        {
-        }
-
-        public static RectangleDrawable Create(SvgRectangle svgRectangle, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = new RectangleDrawable
-            {
-                Element = svgRectangle,
-                Parent = parent,
-                IgnoreAttributes = ignoreAttributes
-            };
-
-            drawable.IsDrawable = drawable.CanDraw(svgRectangle, drawable.IgnoreAttributes) && drawable.HasFeatures(svgRectangle, drawable.IgnoreAttributes);
-
-            if (!drawable.IsDrawable)
-            {
-                return drawable;
-            }
-
-            drawable.Path = svgRectangle.ToSKPath(svgRectangle.FillRule, skOwnerBounds, drawable.Disposable);
-            if (drawable.Path is null || drawable.Path.IsEmpty)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgRectangle);
-
-            drawable.TransformedBounds = drawable.Path.Bounds;
-
-            drawable.Transform = SvgExtensions.ToSKMatrix(svgRectangle.Transforms);
-
-            bool canDrawFill = true;
-            bool canDrawStroke = true;
-
-            if (SvgExtensions.IsValidFill(svgRectangle))
-            {
-                drawable.Fill = SvgExtensions.GetFillSKPaint(svgRectangle, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Fill is null)
-                {
-                    canDrawFill = false;
-                }
-            }
-
-            if (SvgExtensions.IsValidStroke(svgRectangle, drawable.TransformedBounds))
-            {
-                drawable.Stroke = SvgExtensions.GetStrokeSKPaint(svgRectangle, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Stroke is null)
-                {
-                    canDrawStroke = false;
-                }
-            }
-
-            if (canDrawFill && !canDrawStroke)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
-
-            return drawable;
-        }
-    }
-
-    internal sealed class MarkerDrawable : DrawableBase
-    {
-        public DrawableBase? MarkerElementDrawable;
-        public Rect? MarkerClipRect;
-
-        private MarkerDrawable()
-            : base()
-        {
-        }
-
-        public static MarkerDrawable Create(SvgMarker svgMarker, SvgVisualElement pOwner, Point pMarkerPoint, float fAngle, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = new MarkerDrawable
-            {
-                Element = svgMarker,
-                Parent = parent,
-                IgnoreAttributes = Attributes.Display | ignoreAttributes,
-                IsDrawable = true
-            };
-
-            if (!drawable.IsDrawable)
-            {
-                return drawable;
-            }
-
-            var markerElement = drawable.GetMarkerElement(svgMarker);
-            if (markerElement is null)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            var skMarkerMatrix = Matrix.CreateIdentity();
-
-            var skMatrixMarkerPoint = Matrix.CreateTranslation(pMarkerPoint.X, pMarkerPoint.Y);
-            skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixMarkerPoint);
-
-            var skMatrixAngle = Matrix.CreateRotationDegrees(svgMarker.Orient.IsAuto ? fAngle : svgMarker.Orient.Angle);
-            skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixAngle);
-
-            var strokeWidth = pOwner.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
-
-            var refX = svgMarker.RefX.ToDeviceValue(UnitRenderingType.Horizontal, svgMarker, skOwnerBounds);
-            var refY = svgMarker.RefY.ToDeviceValue(UnitRenderingType.Vertical, svgMarker, skOwnerBounds);
-            float markerWidth = svgMarker.MarkerWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
-            float markerHeight = svgMarker.MarkerHeight.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
-            float viewBoxToMarkerUnitsScaleX = 1f;
-            float viewBoxToMarkerUnitsScaleY = 1f;
-
-            switch (svgMarker.MarkerUnits)
-            {
-                case SvgMarkerUnits.StrokeWidth:
-                    {
-                        var skMatrixStrokeWidth = Matrix.CreateScale(strokeWidth, strokeWidth);
-                        skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixStrokeWidth);
-
-                        var viewBoxWidth = svgMarker.ViewBox.Width;
-                        var viewBoxHeight = svgMarker.ViewBox.Height;
-
-                        var scaleFactorWidth = (viewBoxWidth <= 0) ? 1 : (markerWidth / viewBoxWidth);
-                        var scaleFactorHeight = (viewBoxHeight <= 0) ? 1 : (markerHeight / viewBoxHeight);
-
-                        viewBoxToMarkerUnitsScaleX = Math.Min(scaleFactorWidth, scaleFactorHeight);
-                        viewBoxToMarkerUnitsScaleY = Math.Min(scaleFactorWidth, scaleFactorHeight);
-
-                        var skMatrixTranslateRefXY = Matrix.CreateTranslation(-refX * viewBoxToMarkerUnitsScaleX, -refY * viewBoxToMarkerUnitsScaleY);
-                        skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixTranslateRefXY);
-
-                        var skMatrixScaleXY = Matrix.CreateScale(viewBoxToMarkerUnitsScaleX, viewBoxToMarkerUnitsScaleY);
-                        skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixScaleXY);
-                    }
-                    break;
-
-                case SvgMarkerUnits.UserSpaceOnUse:
-                    {
-                        var skMatrixTranslateRefXY = Matrix.CreateTranslation(-refX, -refY);
-                        skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixTranslateRefXY);
-                    }
-                    break;
-            }
-
-            switch (svgMarker.Overflow)
-            {
-                case SvgOverflow.Auto:
-                case SvgOverflow.Visible:
-                case SvgOverflow.Inherit:
-                    break;
-
-                default:
-                    drawable.MarkerClipRect = Rect.Create(
-                        svgMarker.ViewBox.MinX,
-                        svgMarker.ViewBox.MinY,
-                        markerWidth / viewBoxToMarkerUnitsScaleX,
-                        markerHeight / viewBoxToMarkerUnitsScaleY);
-                    break;
-            }
-
-            var markerElementDrawable = DrawableFactory.Create(markerElement, skOwnerBounds, drawable, Attributes.Display);
-            if (markerElementDrawable != null)
-            {
-                drawable.MarkerElementDrawable = markerElementDrawable;
-                drawable.Disposable.Add(drawable.MarkerElementDrawable);
-            }
-            else
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgMarker);
-
-            drawable.TransformedBounds = drawable.MarkerElementDrawable.TransformedBounds;
-
-            drawable.Transform = SvgExtensions.ToSKMatrix(svgMarker.Transforms);
-            drawable.Transform = drawable.Transform.PreConcat(skMarkerMatrix);
-
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
-
-            return drawable;
-        }
-
-        internal SvgVisualElement? GetMarkerElement(SvgMarker svgMarker)
-        {
-            SvgVisualElement? markerElement = null;
-
-            foreach (var child in svgMarker.Children)
-            {
-                if (child is SvgVisualElement svgVisualElement)
-                {
-                    markerElement = svgVisualElement;
-                    break;
-                }
-            }
-
-            return markerElement;
-        }
-
-        public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
-        {
-            if (until != null && this == until)
-            {
-                return;
-            }
-
-            if (MarkerClipRect != null)
-            {
-                canvas.ClipRect(MarkerClipRect.Value, ClipOperation.Intersect);
-            }
-
-            MarkerElementDrawable?.Draw(canvas, ignoreAttributes, until);
-        }
-
-        public override void PostProcess()
-        {
-            base.PostProcess();
-            MarkerElementDrawable?.PostProcess();
-        }
-    }
-
-    internal sealed class GroupDrawable : DrawableContainer
-    {
-        private GroupDrawable()
-            : base()
-        {
-        }
-
-        public static GroupDrawable Create(SvgGroup svgGroup, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = new GroupDrawable
-            {
-                Element = svgGroup,
-                Parent = parent,
-                IgnoreAttributes = ignoreAttributes
-            };
-
-            drawable.IsDrawable = drawable.CanDraw(svgGroup, drawable.IgnoreAttributes) && drawable.HasFeatures(svgGroup, drawable.IgnoreAttributes);
-
-            // NOTE: Call AddMarkers only once.
-            SvgExtensions.AddMarkers(svgGroup);
-
-            drawable.CreateChildren(svgGroup, skOwnerBounds, drawable, ignoreAttributes);
-
-            // TODO: Check if children are explicitly set to be visible.
-            //foreach (var child in drawable.ChildrenDrawables)
-            //{
-            //    if (child.IsDrawable)
-            //    {
-            //        IsDrawable = true;
-            //        break;
-            //    }
-            //}
-
-            if (!drawable.IsDrawable)
-            {
-                return drawable;
-            }
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgGroup);
-
-            drawable.TransformedBounds = Rect.Empty;
-
-            drawable.CreateTransformedBounds();
-
-            drawable.Transform = SvgExtensions.ToSKMatrix(svgGroup.Transforms);
-
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
-
-            return drawable;
-        }
-    }
-
-    internal sealed class LineDrawable : DrawablePath
-    {
-        private LineDrawable()
-            : base()
-        {
-        }
-
-        public static LineDrawable Create(SvgLine svgLine, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = new LineDrawable
-            {
-                Element = svgLine,
-                Parent = parent,
-                IgnoreAttributes = ignoreAttributes
-            };
-
-            drawable.IsDrawable = drawable.CanDraw(svgLine, drawable.IgnoreAttributes) && drawable.HasFeatures(svgLine, drawable.IgnoreAttributes);
-
-            if (!drawable.IsDrawable)
-            {
-                return drawable;
-            }
-
-            drawable.Path = svgLine.ToSKPath(svgLine.FillRule, skOwnerBounds, drawable.Disposable);
-            if (drawable.Path is null || drawable.Path.IsEmpty)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgLine);
-
-            drawable.TransformedBounds = drawable.Path.Bounds;
-
-            drawable.Transform = SvgExtensions.ToSKMatrix(svgLine.Transforms);
-
-            bool canDrawFill = true;
-            bool canDrawStroke = true;
-
-            if (SvgExtensions.IsValidFill(svgLine))
-            {
-                drawable.Fill = SvgExtensions.GetFillSKPaint(svgLine, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Fill is null)
-                {
-                    canDrawFill = false;
-                }
-            }
-
-            if (SvgExtensions.IsValidStroke(svgLine, drawable.TransformedBounds))
-            {
-                drawable.Stroke = SvgExtensions.GetStrokeSKPaint(svgLine, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Stroke is null)
-                {
-                    canDrawStroke = false;
-                }
-            }
-
-            if (canDrawFill && !canDrawStroke)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            SvgExtensions.CreateMarkers(svgLine, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
-
-            return drawable;
-        }
-    }
-
-    internal sealed class PathDrawable : DrawablePath
-    {
-        private PathDrawable()
-            : base()
-        {
-        }
-
-        public static PathDrawable Create(SvgPath svgPath, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = new PathDrawable
-            {
-                Element = svgPath,
-                Parent = parent,
-                IgnoreAttributes = ignoreAttributes
-            };
-
-            drawable.IsDrawable = drawable.CanDraw(svgPath, drawable.IgnoreAttributes) && drawable.HasFeatures(svgPath, drawable.IgnoreAttributes);
-
-            if (!drawable.IsDrawable)
-            {
-                return drawable;
-            }
-
-            drawable.Path = svgPath.PathData?.ToSKPath(svgPath.FillRule, drawable.Disposable);
-            if (drawable.Path is null || drawable.Path.IsEmpty)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgPath);
-
-            drawable.TransformedBounds = drawable.Path.Bounds;
-
-            drawable.Transform = SvgExtensions.ToSKMatrix(svgPath.Transforms);
-
-            bool canDrawFill = true;
-            bool canDrawStroke = true;
-
-            if (SvgExtensions.IsValidFill(svgPath))
-            {
-                drawable.Fill = SvgExtensions.GetFillSKPaint(svgPath, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Fill is null)
-                {
-                    canDrawFill = false;
-                }
-            }
-
-            if (SvgExtensions.IsValidStroke(svgPath, drawable.TransformedBounds))
-            {
-                drawable.Stroke = SvgExtensions.GetStrokeSKPaint(svgPath, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Stroke is null)
-                {
-                    canDrawStroke = false;
-                }
-            }
-
-            if (canDrawFill && !canDrawStroke)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            SvgExtensions.CreateMarkers(svgPath, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
-
-            return drawable;
-        }
-    }
-
-    internal sealed class PolylineDrawable : DrawablePath
-    {
-        private PolylineDrawable()
-            : base()
-        {
-        }
-
-        public static PolylineDrawable Create(SvgPolyline svgPolyline, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = new PolylineDrawable
-            {
-                Element = svgPolyline,
-                Parent = parent,
-                IgnoreAttributes = ignoreAttributes
-            };
-
-            drawable.IsDrawable = drawable.CanDraw(svgPolyline, drawable.IgnoreAttributes) && drawable.HasFeatures(svgPolyline, drawable.IgnoreAttributes);
-
-            if (!drawable.IsDrawable)
-            {
-                return drawable;
-            }
-
-            drawable.Path = svgPolyline.Points?.ToSKPath(svgPolyline.FillRule, false, skOwnerBounds, drawable.Disposable);
-            if (drawable.Path is null || drawable.Path.IsEmpty)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgPolyline);
-
-            drawable.TransformedBounds = drawable.Path.Bounds;
-
-            drawable.Transform = SvgExtensions.ToSKMatrix(svgPolyline.Transforms);
-
-            bool canDrawFill = true;
-            bool canDrawStroke = true;
-
-            if (SvgExtensions.IsValidFill(svgPolyline))
-            {
-                drawable.Fill = SvgExtensions.GetFillSKPaint(svgPolyline, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Fill is null)
-                {
-                    canDrawFill = false;
-                }
-            }
-
-            if (SvgExtensions.IsValidStroke(svgPolyline, drawable.TransformedBounds))
-            {
-                drawable.Stroke = SvgExtensions.GetStrokeSKPaint(svgPolyline, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Stroke is null)
-                {
-                    canDrawStroke = false;
-                }
-            }
-
-            if (canDrawFill && !canDrawStroke)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            SvgExtensions.CreateMarkers(svgPolyline, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
-
-            return drawable;
-        }
-    }
-
-    internal sealed class PolygonDrawable : DrawablePath
-    {
-        private PolygonDrawable()
-            : base()
-        {
-        }
-
-        public static PolygonDrawable Create(SvgPolygon svgPolygon, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            var drawable = new PolygonDrawable
-            {
-                Element = svgPolygon,
-                Parent = parent,
-                IgnoreAttributes = ignoreAttributes
-            };
-
-            drawable.IsDrawable = drawable.CanDraw(svgPolygon, drawable.IgnoreAttributes) && drawable.HasFeatures(svgPolygon, drawable.IgnoreAttributes);
-
-            if (!drawable.IsDrawable)
-            {
-                return drawable;
-            }
-
-            drawable.Path = svgPolygon.Points?.ToSKPath(svgPolygon.FillRule, true, skOwnerBounds, drawable.Disposable);
-            if (drawable.Path is null || drawable.Path.IsEmpty)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgPolygon);
-
-            drawable.TransformedBounds = drawable.Path.Bounds;
-
-            drawable.Transform = SvgExtensions.ToSKMatrix(svgPolygon.Transforms);
-
-            bool canDrawFill = true;
-            bool canDrawStroke = true;
-
-            if (SvgExtensions.IsValidFill(svgPolygon))
-            {
-                drawable.Fill = SvgExtensions.GetFillSKPaint(svgPolygon, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Fill is null)
-                {
-                    canDrawFill = false;
-                }
-            }
-
-            if (SvgExtensions.IsValidStroke(svgPolygon, drawable.TransformedBounds))
-            {
-                drawable.Stroke = SvgExtensions.GetStrokeSKPaint(svgPolygon, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
-                if (drawable.Stroke is null)
-                {
-                    canDrawStroke = false;
-                }
-            }
-
-            if (canDrawFill && !canDrawStroke)
-            {
-                drawable.IsDrawable = false;
-                return drawable;
-            }
-
-            SvgExtensions.CreateMarkers(svgPolygon, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
-
-            return drawable;
-        }
-    }
-
-    internal sealed class TextDrawable : DrawableBase
-    {
-        private static readonly Regex s_multipleSpaces = new Regex(@" {2,}", RegexOptions.Compiled);
-
-        public SvgText? Text;
-
-        public Rect OwnerBounds;
-
-        private TextDrawable()
-            : base()
-        {
-        }
-
-        public static TextDrawable Create(SvgText svgText, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            return new TextDrawable
-            {
-                Element = svgText,
-                Parent = parent,
-                Text = svgText,
-                OwnerBounds = skOwnerBounds,
-                IgnoreAttributes = ignoreAttributes
-            };
-        }
-
-        internal void GetPositionsX(SvgTextBase svgTextBase, Rect skBounds, List<float> xs)
-        {
-            var _x = svgTextBase.X;
-
-            for (int i = 0; i < _x.Count; i++)
-            {
-                xs.Add(_x[i].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, skBounds));
-            }
-        }
-
-        internal void GetPositionsY(SvgTextBase svgTextBase, Rect skBounds, List<float> ys)
-        {
-            var _y = svgTextBase.Y;
-
-            for (int i = 0; i < _y.Count; i++)
-            {
-                ys.Add(_y[i].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, skBounds));
-            }
-        }
-
-        internal void GetPositionsDX(SvgTextBase svgTextBase, Rect skBounds, List<float> dxs)
-        {
-            var _dx = svgTextBase.Dx;
-
-            for (int i = 0; i < _dx.Count; i++)
-            {
-                dxs.Add(_dx[i].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, skBounds));
-            }
-        }
-
-        internal void GetPositionsDY(SvgTextBase svgTextBase, Rect skBounds, List<float> dys)
-        {
-            var _dy = svgTextBase.Dy;
-
-            for (int i = 0; i < _dy.Count; i++)
-            {
-                dys.Add(_dy[i].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, skBounds));
-            }
-        }
-
-        internal IEnumerable<ISvgNode> GetContentNodes(SvgTextBase svgTextBase)
-        {
-            if (svgTextBase.Nodes is null || svgTextBase.Nodes.Count < 1)
-            {
-                foreach (var child in svgTextBase.Children)
-                {
-                    if (child is ISvgNode svgNode && !(svgNode is ISvgDescriptiveElement))
-                    {
-                        yield return svgNode;
-                    }
-                }
-            }
-            else
-            {
-                foreach (var node in svgTextBase.Nodes)
-                {
-                    yield return node;
-                }
-            }
-        }
-
-        internal string PrepareText(SvgTextBase svgTextBase, string value)
-        {
-            value = ApplyTransformation(svgTextBase, value);
-            value = new StringBuilder(value).Replace("\r\n", " ").Replace('\r', ' ').Replace('\n', ' ').Replace('\t', ' ').ToString();
-            return svgTextBase.SpaceHandling == XmlSpaceHandling.preserve ? value : s_multipleSpaces.Replace(value.Trim(), " ");
-        }
-
-        internal string ApplyTransformation(SvgTextBase svgTextBase, string value)
-        {
-            return svgTextBase.TextTransformation switch
-            {
-                SvgTextTransformation.Capitalize => value.ToUpper(),
-                SvgTextTransformation.Uppercase => value.ToUpper(),
-                SvgTextTransformation.Lowercase => CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value),
-                _ => value,
-            };
-        }
-
-        internal void BeginDraw(SvgTextBase svgTextBase, Canvas skCanvas, Rect skBounds, Attributes ignoreAttributes, CompositeDisposable disposable, out MaskDrawable? maskDrawable, out Paint? maskDstIn, out Paint? skPaintOpacity, out Paint? skPaintFilter)
-        {
-            var enableClip = !ignoreAttributes.HasFlag(Attributes.ClipPath);
-            var enableMask = !ignoreAttributes.HasFlag(Attributes.Mask);
-            var enableOpacity = !ignoreAttributes.HasFlag(Attributes.Opacity);
-            var enableFilter = !ignoreAttributes.HasFlag(Attributes.Filter);
-
-            skCanvas.Save();
-
-            var skMatrix = SvgExtensions.ToSKMatrix(svgTextBase.Transforms);
-
-            var skMatrixTotal = skCanvas.TotalMatrix;
-            skMatrixTotal = skMatrixTotal.PreConcat(skMatrix);
-            skCanvas.SetMatrix(skMatrixTotal);
-
-            if (enableClip)
-            {
-                var clipPath = new Svg.Model.ClipPath()
-                {
-                    Clip = new Svg.Model.ClipPath()
-                };
-                SvgExtensions.GetSvgVisualElementClipPath(svgTextBase, TransformedBounds, new HashSet<Uri>(), disposable, clipPath);
-                if (clipPath.Clips != null && clipPath.Clips.Count > 0 && !IgnoreAttributes.HasFlag(Attributes.ClipPath))
-                {
-                    bool antialias = SvgExtensions.IsAntialias(svgTextBase);
-                    skCanvas.ClipPath(clipPath, ClipOperation.Intersect, antialias);
-                }
-            }
-
-            if (enableMask)
-            {
-                var mask = default(Paint);
-                maskDstIn = default(Paint);
-                maskDrawable = SvgExtensions.GetSvgElementMask(svgTextBase, skBounds, new HashSet<Uri>(), disposable);
-                if (maskDrawable != null)
-                {
-                    mask = new Paint()
-                    {
-                        IsAntialias = true,
-                        Style = PaintStyle.StrokeAndFill
-                    };
-                    disposable.Add(mask);
-
-                    var lumaColor = ColorFilter.CreateLumaColor();
-                    Disposable.Add(lumaColor);
-
-                    maskDstIn = new Paint
-                    {
-                        IsAntialias = true,
-                        Style = PaintStyle.StrokeAndFill,
-                        BlendMode = BlendMode.DstIn,
-                        Color = SvgExtensions.s_transparentBlack,
-                        ColorFilter = lumaColor
-                    };
-                    disposable.Add(maskDstIn);
-                    skCanvas.SaveLayer(mask);
-                }
-            }
-            else
-            {
-                maskDstIn = null;
-                maskDrawable = null;
-            }
-
-            if (enableOpacity)
-            {
-                skPaintOpacity = SvgExtensions.GetOpacitySKPaint(svgTextBase, disposable);
-                if (skPaintOpacity != null && !IgnoreAttributes.HasFlag(Attributes.Opacity))
-                {
-                    skCanvas.SaveLayer(skPaintOpacity);
-                }
-            }
-            else
-            {
-                skPaintOpacity = null;
-            }
-
-            if (enableFilter)
-            {
-                skPaintFilter = SvgExtensions.GetFilterSKPaint(svgTextBase, skBounds, this, disposable, out var isValid);
-                if (skPaintFilter != null && !IgnoreAttributes.HasFlag(Attributes.Filter))
-                {
-                    skCanvas.SaveLayer(skPaintFilter);
-                }
-            }
-            else
-            {
-                skPaintFilter = null;
-            }
-        }
-
-        internal void EndDraw(Canvas skCanvas, Attributes ignoreAttributes, MaskDrawable? maskDrawable, Paint? maskDstIn, Paint? skPaintOpacity, Paint? skPaintFilter, DrawableBase? until)
-        {
-            var enableMask = !ignoreAttributes.HasFlag(Attributes.Mask);
-            var enableOpacity = !ignoreAttributes.HasFlag(Attributes.Opacity);
-            var enableFilter = !ignoreAttributes.HasFlag(Attributes.Filter);
-
-            if (skPaintFilter != null && enableFilter)
-            {
-                skCanvas.Restore();
-            }
-
-            if (skPaintOpacity != null && enableOpacity)
-            {
-                skCanvas.Restore();
-            }
-
-            if (maskDrawable != null && enableMask && maskDstIn != null)
-            {
-                skCanvas.SaveLayer(maskDstIn);
-                maskDrawable.Draw(skCanvas, ignoreAttributes, until);
-                skCanvas.Restore();
-                skCanvas.Restore();
-            }
-
-            skCanvas.Restore();
-        }
-
-        internal void DrawTextString(SvgTextBase svgTextBase, string text, float x, float y, Rect skOwnerBounds, Attributes ignoreAttributes, Canvas skCanvas, DrawableBase? until)
-        {
-            // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
-
-            if (SvgExtensions.IsValidFill(svgTextBase))
-            {
-                var skPaint = SvgExtensions.GetFillSKPaint(svgTextBase, skBounds, ignoreAttributes, Disposable);
-                if (skPaint != null)
-                {
-                    SvgExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, Disposable);
-#if USE_TEXT_SHAPER
-                    var typeface = skPaint.Typeface;
-                    if (typeface != null)
-                    {
-                        using var skShaper = new SKShaper(skPaint.Typeface);
-                        skCanvas.DrawShapedText(skShaper, text, x, y, skPaint);
-                    }
-#else
-                    skCanvas.DrawText(text, x, y, skPaint);
-#endif
-                }
-            }
-
-            if (SvgExtensions.IsValidStroke(svgTextBase, skBounds))
-            {
-                var skPaint = SvgExtensions.GetStrokeSKPaint(svgTextBase, skBounds, ignoreAttributes, Disposable);
-                if (skPaint != null)
-                {
-                    SvgExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, Disposable);
-#if USE_TEXT_SHAPER
-                    var typeface = skPaint.Typeface;
-                    if (typeface != null)
-                    {
-                        using var skShaper = new SKShaper(skPaint.Typeface);
-                        skCanvas.DrawShapedText(skShaper, text, x, y, skPaint);
-                    }
-#else
-                    skCanvas.DrawText(text, x, y, skPaint);
-#endif
-                }
-            }
-        }
-
-        internal void DrawTextBase(SvgTextBase svgTextBase, string? text, float currentX, float currentY, Rect skOwnerBounds, Attributes ignoreAttributes, Canvas skCanvas, DrawableBase? until)
-        {
-            // TODO: Fix SvgTextBase rendering.
-            bool isValidFill = SvgExtensions.IsValidFill(svgTextBase);
-            bool isValidStroke = SvgExtensions.IsValidStroke(svgTextBase, skOwnerBounds);
-
-            if ((!isValidFill && !isValidStroke) || text is null || string.IsNullOrEmpty(text))
-            {
-                return;
-            }
-
-            var xs = new List<float>();
-            var ys = new List<float>();
-            var dxs = new List<float>();
-            var dys = new List<float>();
-
-            GetPositionsX(svgTextBase, skOwnerBounds, xs);
-            GetPositionsY(svgTextBase, skOwnerBounds, ys);
-            GetPositionsDX(svgTextBase, skOwnerBounds, dxs);
-            GetPositionsDY(svgTextBase, skOwnerBounds, dys);
-
-            if (xs.Count >= 1 && ys.Count >= 1 && xs.Count == ys.Count && xs.Count == text.Length)
-            {
-                // TODO: Fix text position rendering.
-                var points = new Point[xs.Count];
-
-                for (int i = 0; i < xs.Count; i++)
-                {
-                    float x = xs[i];
-                    float y = ys[i];
-                    float dx = 0;
-                    float dy = 0;
-                    if (dxs.Count >= 1 && xs.Count >= dxs.Count)
-                    {
-                        dx = dxs[i];
-                    }
-                    if (dys.Count >= 1 && ys.Count >= dys.Count)
-                    {
-                        dy = dys[i];
-                    }
-                    points[i] = new Point(x + dx, y + dy);
-                }
-
-                // TODO: Calculate correct bounds.
-                var skBounds = skOwnerBounds;
-
-                if (SvgExtensions.IsValidFill(svgTextBase))
-                {
-                    var skPaint = SvgExtensions.GetFillSKPaint(svgTextBase, skBounds, ignoreAttributes, Disposable);
-                    if (skPaint != null)
-                    {
-                        SvgExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, Disposable);
-
-                        var textBlob = new Svg.Model.TextBlob()
-                        {
-                            Text = text,
-                            Points = points
-                        };
-                        skCanvas.DrawText(textBlob, 0, 0, skPaint);
-                    }
-                }
-
-                if (SvgExtensions.IsValidStroke(svgTextBase, skBounds))
-                {
-                    var skPaint = SvgExtensions.GetStrokeSKPaint(svgTextBase, skBounds, ignoreAttributes, Disposable);
-                    if (skPaint != null)
-                    {
-                        SvgExtensions.SetSKPaintText(svgTextBase, skBounds, skPaint, Disposable);
-                        var textBlob = new Svg.Model.TextBlob()
-                        {
-                            Text = text,
-                            Points = points
-                        };
-                        skCanvas.DrawText(textBlob, 0, 0, skPaint);
-                    }
-                }
-            }
-            else
-            {
-                float x = (xs.Count >= 1) ? xs[0] : currentX;
-                float y = (ys.Count >= 1) ? ys[0] : currentY;
-                float dx = (dxs.Count >= 1) ? dxs[0] : 0f;
-                float dy = (dys.Count >= 1) ? dys[0] : 0f;
-
-                DrawTextString(svgTextBase, text, x + dx, y + dy, skOwnerBounds, ignoreAttributes, skCanvas, until);
-            }
-        }
-
-        internal void DrawTextPath(SvgTextPath svgTextPath, float currentX, float currentY, Rect skOwnerBounds, Attributes ignoreAttributes, Canvas skCanvas, DrawableBase? until)
-        {
-            if (!CanDraw(svgTextPath, ignoreAttributes) || !HasFeatures(svgTextPath, ignoreAttributes))
-            {
-                return;
-            }
-
-            if (SvgExtensions.HasRecursiveReference(svgTextPath, (e) => e.ReferencedPath, new HashSet<Uri>()))
-            {
-                return;
-            }
-
-            var svgPath = SvgExtensions.GetReference<SvgPath>(svgTextPath, svgTextPath.ReferencedPath);
-            if (svgPath is null)
-            {
-                return;
-            }
-
-            var skPath = svgPath.PathData?.ToSKPath(svgPath.FillRule, Disposable);
-            if (skPath is null || skPath.IsEmpty)
-            {
-                return;
-            }
-
-#if !USE_PICTURE // TODO:
-            var skMatrixPath = SvgExtensions.ToSKMatrix(svgPath.Transforms);
-            skPath.Transform(skMatrixPath);
-#endif
-
-            // TODO: Implement StartOffset
-            var startOffset = svgTextPath.StartOffset.ToDeviceValue(UnitRenderingType.Other, svgTextPath, skOwnerBounds);
-
-            float hOffset = currentX + startOffset;
-            float vOffset = currentY;
-
-            // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
-
-            BeginDraw(svgTextPath, skCanvas, skBounds, ignoreAttributes, Disposable, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter);
-
-            // TODO: Fix SvgTextPath rendering.
-            bool isValidFill = SvgExtensions.IsValidFill(svgTextPath);
-            bool isValidStroke = SvgExtensions.IsValidStroke(svgTextPath, skBounds);
-
-            if (isValidFill || isValidStroke)
-            {
-                if (!string.IsNullOrEmpty(svgTextPath.Text))
-                {
-                    var text = PrepareText(svgTextPath, svgTextPath.Text);
-
-                    if (SvgExtensions.IsValidFill(svgTextPath))
-                    {
-                        var skPaint = SvgExtensions.GetFillSKPaint(svgTextPath, skBounds, ignoreAttributes, Disposable);
-                        if (skPaint != null)
-                        {
-                            SvgExtensions.SetSKPaintText(svgTextPath, skBounds, skPaint, Disposable);
-                            skCanvas.DrawTextOnPath(text, skPath, hOffset, vOffset, skPaint);
-                        }
-                    }
-
-                    if (SvgExtensions.IsValidStroke(svgTextPath, skBounds))
-                    {
-                        var skPaint = SvgExtensions.GetStrokeSKPaint(svgTextPath, skBounds, ignoreAttributes, Disposable);
-                        if (skPaint != null)
-                        {
-                            SvgExtensions.SetSKPaintText(svgTextPath, skBounds, skPaint, Disposable);
-                            skCanvas.DrawTextOnPath(text, skPath, hOffset, vOffset, skPaint);
-                        }
-                    }
-                }
-            }
-
-            EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, until);
-        }
-
-        internal void DrawTextRef(SvgTextRef svgTextRef, float currentX, float currentY, Rect skOwnerBounds, Attributes ignoreAttributes, Canvas skCanvas, DrawableBase? until)
-        {
-            if (!CanDraw(svgTextRef, ignoreAttributes) || !HasFeatures(svgTextRef, ignoreAttributes))
-            {
-                return;
-            }
-
-            if (SvgExtensions.HasRecursiveReference(svgTextRef, (e) => e.ReferencedElement, new HashSet<Uri>()))
-            {
-                return;
-            }
-
-            var svgReferencedText = SvgExtensions.GetReference<SvgText>(svgTextRef, svgTextRef.ReferencedElement);
-            if (svgReferencedText is null)
-            {
-                return;
-            }
-
-            // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
-
-            BeginDraw(svgTextRef, skCanvas, skBounds, ignoreAttributes, Disposable, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter);
-
-            // TODO: Draw svgReferencedText
-            if (!string.IsNullOrEmpty(svgReferencedText.Text))
-            {
-                var text = PrepareText(svgReferencedText, svgReferencedText.Text);
-                DrawTextBase(svgReferencedText, svgReferencedText.Text, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas, until);
-            }
-
-            EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, until);
-        }
-
-        internal void DrawTextSpan(SvgTextSpan svgTextSpan, float currentX, float currentY, Rect skOwnerBounds, Attributes ignoreAttributes, Canvas skCanvas, DrawableBase? until)
-        {
-            if (!CanDraw(svgTextSpan, ignoreAttributes) || !HasFeatures(svgTextSpan, ignoreAttributes))
-            {
-                return;
-            }
-
-            // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
-
-            BeginDraw(svgTextSpan, skCanvas, skBounds, ignoreAttributes, Disposable, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter);
-
-            // TODO: Implement SvgTextSpan drawing.
-            if (!string.IsNullOrEmpty(svgTextSpan.Text))
-            {
-                var text = PrepareText(svgTextSpan, svgTextSpan.Text);
-                DrawTextBase(svgTextSpan, text, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas, until);
-            }
-
-            EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, until);
-        }
-
-        internal void DrawText(SvgText svgText, Rect skOwnerBounds, Attributes ignoreAttributes, Canvas skCanvas, DrawableBase? until)
-        {
-            if (!CanDraw(svgText, ignoreAttributes) || !HasFeatures(svgText, ignoreAttributes))
-            {
-                return;
-            }
-
-            // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
-
-            BeginDraw(svgText, skCanvas, skBounds, ignoreAttributes, Disposable, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter);
-
-            var xs = new List<float>();
-            var ys = new List<float>();
-            var dxs = new List<float>();
-            var dys = new List<float>();
-            GetPositionsX(svgText, skOwnerBounds, xs);
-            GetPositionsY(svgText, skOwnerBounds, ys);
-            GetPositionsDX(svgText, skOwnerBounds, dxs);
-            GetPositionsDY(svgText, skOwnerBounds, dys);
-
-            float x = (xs.Count >= 1) ? xs[0] : 0f;
-            float y = (ys.Count >= 1) ? ys[0] : 0f;
-            float dx = (dxs.Count >= 1) ? dxs[0] : 0f;
-            float dy = (dys.Count >= 1) ? dys[0] : 0f;
-
-            float currentX = x + dx;
-            float currentY = y + dy;
-
-            foreach (var node in GetContentNodes(svgText))
-            {
-                if (!(node is SvgTextBase textNode))
-                {
-                    if (!string.IsNullOrEmpty(node.Content))
-                    {
-                        var text = PrepareText(svgText, node.Content);
-                        DrawTextBase(svgText, text, 0f, 0f, skOwnerBounds, ignoreAttributes, skCanvas, until);
-                    }
-                }
-                else
-                {
-                    switch (textNode)
-                    {
-                        case SvgTextPath svgTextPath:
-                            DrawTextPath(svgTextPath, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas, until);
-                            break;
-
-                        case SvgTextRef svgTextRef:
-                            DrawTextRef(svgTextRef, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas, until);
-                            break;
-
-                        case SvgTextSpan svgTextSpan:
-                            DrawTextSpan(svgTextSpan, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas, until);
-                            break;
-
-                        default:
-                            break;
-                    }
-                }
-            }
-
-            EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, until);
-        }
-
-        public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
-        {
-            if (until != null && this == until)
-            {
-                return;
-            }
-
-            // TODO: Currently using custom OnDraw override.
-        }
-
-        public override void Draw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
-        {
-            if (until != null && this == until)
-            {
-                return;
-            }
-
-            if (Text != null)
-            {
-                DrawText(Text, OwnerBounds, ignoreAttributes, canvas, until);
-            }
-        }
-
-        protected override void OnDraw(Canvas canvas)
-        {
-            // TODO:
-            Draw(canvas, IgnoreAttributes, null);
-        }
-
-        public override void PostProcess()
-        {
-            // TODO:
-        }
-    }
-
-    internal static class DrawableFactory
-    {
-        public static DrawableBase? Create(SvgElement svgElement, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
-        {
-            return svgElement switch
-            {
-                SvgAnchor svgAnchor => AnchorDrawable.Create(svgAnchor, skOwnerBounds, parent, ignoreAttributes),
-                SvgFragment svgFragment => FragmentDrawable.Create(svgFragment, skOwnerBounds, parent, ignoreAttributes),
-                SvgImage svgImage => ImageDrawable.Create(svgImage, skOwnerBounds, parent, ignoreAttributes),
-                SvgSwitch svgSwitch => SwitchDrawable.Create(svgSwitch, skOwnerBounds, parent, ignoreAttributes),
-                SvgUse svgUse => UseDrawable.Create(svgUse, skOwnerBounds, parent, ignoreAttributes),
-                SvgCircle svgCircle => CircleDrawable.Create(svgCircle, skOwnerBounds, parent, ignoreAttributes),
-                SvgEllipse svgEllipse => EllipseDrawable.Create(svgEllipse, skOwnerBounds, parent, ignoreAttributes),
-                SvgRectangle svgRectangle => RectangleDrawable.Create(svgRectangle, skOwnerBounds, parent, ignoreAttributes),
-                SvgGroup svgGroup => GroupDrawable.Create(svgGroup, skOwnerBounds, parent, ignoreAttributes),
-                SvgLine svgLine => LineDrawable.Create(svgLine, skOwnerBounds, parent, ignoreAttributes),
-                SvgPath svgPath => PathDrawable.Create(svgPath, skOwnerBounds, parent, ignoreAttributes),
-                SvgPolyline svgPolyline => PolylineDrawable.Create(svgPolyline, skOwnerBounds, parent, ignoreAttributes),
-                SvgPolygon svgPolygon => PolygonDrawable.Create(svgPolygon, skOwnerBounds, parent, ignoreAttributes),
-                SvgText svgText => TextDrawable.Create(svgText, skOwnerBounds, parent, ignoreAttributes),
-                _ => null,
-            };
+            return drawable.Snapshot(bounds);
         }
     }
 }

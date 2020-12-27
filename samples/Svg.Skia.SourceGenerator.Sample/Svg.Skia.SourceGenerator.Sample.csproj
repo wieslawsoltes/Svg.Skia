@@ -25,7 +25,7 @@
   <Import Project="..\..\build\SkiaSharp.Linux.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\Svg.Model\Svg.Model.csproj" />
+    <ProjectReference Include="..\..\src\Svg.Model\Svg.Model.csproj" />
     <ProjectReference Include="..\..\src\Svg.Skia.SourceGenerator\Svg.Skia.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="False" />
   </ItemGroup>
 

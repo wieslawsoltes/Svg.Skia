@@ -37,8 +37,4 @@
     <Compile Include="**\*.cs" Exclude="obj\**" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_PICTURE</DefineConstants>
-  </PropertyGroup>
-
 </Project>

@@ -5,7 +5,7 @@ using System.CommandLine.Invocation;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Svg;
-using Svg.Skia;
+using Svg.CodeGen;
 
 namespace svgc
 {
