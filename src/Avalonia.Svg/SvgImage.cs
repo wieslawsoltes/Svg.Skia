@@ -3,7 +3,7 @@ using System.Diagnostics;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Visuals.Media.Imaging;
-using SP = Svg.Picture;
+using SP = Svg.Model;
 using ASP = Avalonia.Svg.Picture;
 
 namespace Avalonia.Svg

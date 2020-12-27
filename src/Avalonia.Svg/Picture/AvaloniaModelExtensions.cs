@@ -4,7 +4,7 @@ using A = Avalonia;
 using AM = Avalonia.Media;
 using AMI = Avalonia.Media.Imaging;
 using AVMI = Avalonia.Visuals.Media.Imaging;
-using SP = Svg.Picture;
+using SP = Svg.Model;
 
 namespace Avalonia.Svg.Picture
 {

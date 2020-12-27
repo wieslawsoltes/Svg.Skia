@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Avalonia.Svg.Picture.Commands;
-using SP = Svg.Picture;
+using SP = Svg.Model;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AVMI = Avalonia.Visuals.Media.Imaging;

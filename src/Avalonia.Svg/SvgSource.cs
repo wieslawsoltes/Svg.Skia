@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using SP = Svg.Picture;
+using SP = Svg.Model;
 
 namespace Avalonia.Svg
 {

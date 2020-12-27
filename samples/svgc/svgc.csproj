@@ -38,7 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Svg.Skia.Picture\Svg.Skia.Picture.csproj" />
+    <ProjectReference Include="..\Svg.Model\Svg.Model.csproj" />
   </ItemGroup>
 
 </Project>

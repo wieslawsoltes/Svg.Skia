@@ -34,8 +34,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\Svg.Picture\Svg.Picture.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\Svg.Skia.Picture\Svg.Skia.Picture.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Svg.Model\Svg.Model.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,8 +44,8 @@
     <None Include="$(PKGFizzler)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(PKGSystem_Drawing_Common)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\Svg.Custom\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-    <None Include="..\Svg.Picture\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-    <None Include="..\Svg.Skia.Picture\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="..\Svg.Model\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="..\Svg.Skia\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -58,8 +58,8 @@
       <TargetPathWithTargetPlatformMoniker Include="$(PKGSystem_Drawing_Common)\lib\netstandard2.0\System.Drawing.Common.dll" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(PKGSkiaSharp)\lib\netstandard2.0\SkiaSharp.dll" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\Svg.Custom\bin\$(Configuration)\netstandard2.0\Svg.Custom.dll" IncludeRuntimeDependency="false" />
-      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\Svg.Picture\bin\$(Configuration)\netstandard2.0\Svg.Picture.dll" IncludeRuntimeDependency="false" />
-      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\Svg.Skia.Picture\bin\$(Configuration)\netstandard2.0\Svg.Skia.Picture.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\Svg.Model\bin\$(Configuration)\netstandard2.0\Svg.Model.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\Svg.Skia\bin\$(Configuration)\netstandard2.0\Svg.Skia.dll" IncludeRuntimeDependency="false" />
     </ItemGroup>
   </Target>
 
