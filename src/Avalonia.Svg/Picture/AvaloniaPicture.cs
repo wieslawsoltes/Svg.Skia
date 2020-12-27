@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using Avalonia.Svg.Picture.Commands;
 using SP = Svg.Picture;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AVMI = Avalonia.Visuals.Media.Imaging;
 
-namespace Avalonia.Svg.Skia
+namespace Avalonia.Svg.Picture
 {
     public sealed class AvaloniaPicture : IDisposable
     {

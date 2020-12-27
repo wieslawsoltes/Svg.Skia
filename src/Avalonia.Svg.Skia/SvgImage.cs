@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Visuals.Media.Imaging;
-using SP = Svg.Picture;
-using ASP = Avalonia.Svg.Picture;
 
-namespace Avalonia.Svg
+namespace Avalonia.Svg.Skia
 {
     /// <summary>
     /// An <see cref="IImage"/> that uses a <see cref="SvgSource"/> for content.
@@ -36,9 +33,6 @@ namespace Avalonia.Svg
         public Size Size =>
             Source?.Picture != null ? new Size(Source.Picture.CullRect.Width, Source.Picture.CullRect.Height) : default;
 
-        private SP.Picture? _previousPicture = null;
-        private ASP.AvaloniaPicture? _avaloniaPicture = null;
-
         /// <inheritdoc/>
         void IImage.Draw(
             DrawingContext context,
@@ -49,9 +43,6 @@ namespace Avalonia.Svg
             var source = Source;
             if (source == null || source.Picture == null)
             {
-                _previousPicture = null;
-                _avaloniaPicture?.Dispose();
-                _avaloniaPicture = null;
                 return;
             }
 
@@ -65,25 +56,10 @@ namespace Avalonia.Svg
             using (context.PushClip(destRect))
             using (context.PushPreTransform(translate * scale))
             {
-                try
-                {
-                    if (_avaloniaPicture == null || source.Picture != _previousPicture)
-                    {
-                        _previousPicture = source.Picture;
-                        _avaloniaPicture?.Dispose();
-                        _avaloniaPicture = ASP.AvaloniaPicture.Record(source.Picture);
-                    }
-
-                    if (_avaloniaPicture != null)
-                    {
-                        _avaloniaPicture.Draw(context);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"{ex.Message}");
-                    Debug.WriteLine($"{ex.StackTrace}");
-                }
+                context.Custom(
+                    new SvgCustomDrawOperation(
+                        new Rect(0, 0, bounds.Width, bounds.Height),
+                        source));
             }
         }
 

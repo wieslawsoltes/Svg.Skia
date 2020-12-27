@@ -2,8 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using SkiaSharp;
-
-//using Svg;
 using Svg.Generated;
 using Svg.Sample;
 using Svg.Skia;

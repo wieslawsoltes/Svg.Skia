@@ -6,7 +6,7 @@ using AMI = Avalonia.Media.Imaging;
 using AVMI = Avalonia.Visuals.Media.Imaging;
 using SP = Svg.Picture;
 
-namespace Avalonia.Svg.Skia
+namespace Avalonia.Svg.Picture
 {
     public static class AvaloniaModelExtensions
     {

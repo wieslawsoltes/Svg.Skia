@@ -37,8 +37,4 @@
     <Compile Include="**\*.cs" Exclude="obj\**" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="..\Avalonia.Svg\SvgImage.cs" Link="SvgImage.cs" />
-  </ItemGroup>
-
 </Project>
