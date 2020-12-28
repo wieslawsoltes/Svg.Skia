@@ -20,7 +20,7 @@ namespace Svg.Skia
             var size = SvgModelExtensions.GetDimensions(svgFragment);
             var bounds = Rect.Create(size);
             using var drawable = DrawableFactory.Create(svgFragment, bounds, null, AssetLoader);
-            if (drawable != null)
+            if (drawable is { })
             {
                 drawable.PostProcess();
                 var picture = drawable.Snapshot(bounds);
@@ -31,7 +31,7 @@ namespace Svg.Skia
         public static void Draw(SKCanvas skCanvas, string path)
         {
             var svgDocument = SvgModelExtensions.Open(path);
-            if (svgDocument != null)
+            if (svgDocument is { })
             {
                 Draw(skCanvas, svgDocument);
             }
@@ -43,7 +43,7 @@ namespace Svg.Skia
         {
             Reset();
             var svgDocument = SvgModelExtensions.Open(stream);
-            if (svgDocument != null)
+            if (svgDocument is { })
             {
                 Picture = ToPicture(svgDocument);
                 return Picture;
@@ -55,7 +55,7 @@ namespace Svg.Skia
         {
             Reset();
             var svgDocument = SvgModelExtensions.Open(path);
-            if (svgDocument != null)
+            if (svgDocument is { })
             {
                 Picture = ToPicture(svgDocument);
                 return Picture;
@@ -67,7 +67,7 @@ namespace Svg.Skia
         {
             Reset();
             var svgDocument = SvgModelExtensions.FromSvg(svg);
-            if (svgDocument != null)
+            if (svgDocument is { })
             {
                 Picture = ToPicture(svgDocument);
                 return Picture;
@@ -78,7 +78,7 @@ namespace Svg.Skia
         public SKPicture? FromSvgDocument(SvgDocument? svgDocument)
         {
             Reset();
-            if (svgDocument != null)
+            if (svgDocument is { })
             {
                 Picture = ToPicture(svgDocument);
                 return Picture;
@@ -88,7 +88,7 @@ namespace Svg.Skia
 
         public bool Save(System.IO.Stream stream, SKColor background, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
         {
-            if (Picture != null)
+            if (Picture is { })
             {
                 return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SKSvgSettings.s_srgb);
             }
@@ -97,7 +97,7 @@ namespace Svg.Skia
 
         public bool Save(string path, SKColor background, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
         {
-            if (Picture != null)
+            if (Picture is { })
             {
                 using var stream = System.IO.File.OpenWrite(path);
                 return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SKSvgSettings.s_srgb);

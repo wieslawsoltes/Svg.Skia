@@ -57,7 +57,7 @@ namespace SvgToPng.ViewModels
         public void LoadItems(string path)
         {
             var items = Load<ObservableCollection<Item>>(path);
-            if (items != null)
+            if (items is { })
             {
                 Items = items;
             }
@@ -110,7 +110,7 @@ namespace SvgToPng.ViewModels
                 statusOpen?.Invoke($"{Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
                 Debug.WriteLine($"Open: {Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
 
-                if (item.Svg != null)
+                if (item.Svg is { })
                 {
                     var stopwatchToPicture = Stopwatch.StartNew();
                     item.Picture = SKSvg.ToPicture(item.Svg);
@@ -177,7 +177,7 @@ namespace SvgToPng.ViewModels
                 LoadSvg(item, statusOpen, statusToPicture);
             }
 
-            if (item.ReferencePng == null && item.Picture != null)
+            if (item.ReferencePng == null && item.Picture is { })
             {
                 LoadPng(item);
             }
@@ -224,7 +224,7 @@ namespace SvgToPng.ViewModels
             {
                 var svg = SvgModelExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
-                if (picture != null)
+                if (picture is { })
                 {
                     picture.ToPdf(outputPath, background, scaleX, scaleY);
                 }
@@ -234,7 +234,7 @@ namespace SvgToPng.ViewModels
             {
                 var svg = SvgModelExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
-                if (picture != null)
+                if (picture is { })
                 {
                     picture.ToXps(outputPath, background, scaleX, scaleY);
                 }
@@ -243,7 +243,7 @@ namespace SvgToPng.ViewModels
             {
                 var svg = SvgModelExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
-                if (picture != null)
+                if (picture is { })
                 {
                     picture.ToSvg(outputPath, background, scaleX, scaleY);
                 }
@@ -252,7 +252,7 @@ namespace SvgToPng.ViewModels
             {
                 var svg = SvgModelExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
-                if (picture != null)
+                if (picture is { })
                 {
                     using var stream = File.OpenWrite(outputPath);
                     picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
@@ -262,7 +262,7 @@ namespace SvgToPng.ViewModels
             {
                 var svg = SvgModelExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
-                if (picture != null)
+                if (picture is { })
                 {
                     using var stream = File.OpenWrite(outputPath);
                     picture.ToImage(stream, background, SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
@@ -272,7 +272,7 @@ namespace SvgToPng.ViewModels
             {
                 var svg = SvgModelExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
-                if (picture != null)
+                if (picture is { })
                 {
                     using var stream = File.OpenWrite(outputPath);
                     picture.ToImage(stream, background, SKEncodedImageFormat.Png, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
@@ -282,7 +282,7 @@ namespace SvgToPng.ViewModels
             {
                 var svg = SvgModelExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
-                if (picture != null)
+                if (picture is { })
                 {
                     using var stream = File.OpenWrite(outputPath);
                     picture.ToImage(stream, background, SKEncodedImageFormat.Webp, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
@@ -349,7 +349,7 @@ namespace SvgToPng.ViewModels
 
         public static IEnumerable<string> GetFilesDrop(string[] paths)
         {
-            if (paths != null && paths.Length > 0)
+            if (paths is { } && paths.Length > 0)
             {
                 foreach (var path in paths)
                 {

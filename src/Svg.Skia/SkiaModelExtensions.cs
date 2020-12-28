@@ -191,12 +191,12 @@ namespace Svg.Skia
             var fontWidth = typeface.Width.ToSKFontStyleWidth();
             var fontStyle = typeface.Style.ToSKFontStyleSlant();
 
-            if (SKSvgSettings.s_typefaceProviders != null && SKSvgSettings.s_typefaceProviders.Count > 0)
+            if (SKSvgSettings.s_typefaceProviders is { } && SKSvgSettings.s_typefaceProviders.Count > 0)
             {
                 foreach (var typefaceProviders in SKSvgSettings.s_typefaceProviders)
                 {
                     var skTypeface = typefaceProviders.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
-                    if (skTypeface != null)
+                    if (skTypeface is { })
                     {
                         return skTypeface;
                     }
@@ -269,7 +269,7 @@ namespace Svg.Skia
                             return null;
                         }
 
-                        if (linearGradientShader.LocalMatrix != null)
+                        if (linearGradientShader.LocalMatrix is { })
                         {
                             return SKShader.CreateLinearGradient(
                                 linearGradientShader.Start.ToSKPoint(),
@@ -296,7 +296,7 @@ namespace Svg.Skia
                             return null;
                         }
 
-                        if (twoPointConicalGradientShader.LocalMatrix != null)
+                        if (twoPointConicalGradientShader.LocalMatrix is { })
                         {
                             return SKShader.CreateTwoPointConicalGradient(
                                 twoPointConicalGradientShader.Start.ToSKPoint(),
@@ -667,7 +667,7 @@ namespace Svg.Skia
             {
                 var imageFilter = imageFilters[i];
                 var skImageFilter = imageFilter.ToSKImageFilter();
-                if (skImageFilter != null)
+                if (skImageFilter is { })
                 {
                     skImageFilters[i] = skImageFilter;
                 }
@@ -904,7 +904,7 @@ namespace Svg.Skia
                     break;
                 case AddPolyPathCommand addPolyPathCommand:
                     {
-                        if (addPolyPathCommand.Points != null)
+                        if (addPolyPathCommand.Points is { })
                         {
                             var points = addPolyPathCommand.Points.ToSKPoints();
                             var close = addPolyPathCommand.Close;
@@ -953,12 +953,12 @@ namespace Svg.Skia
 
                 var skPath = clip.Path.ToSKPath();
                 var skPathClip = clip.Clip?.ToSKPath();
-                if (skPathClip != null)
+                if (skPathClip is { })
                 {
                     skPath = skPath.Op(skPathClip, SKPathOp.Intersect);
                 }
 
-                if (clip.Transform != null)
+                if (clip.Transform is { })
                 {
                     var skMatrix = clip.Transform.Value.ToSKMatrix();
                     skPath.Transform(skMatrix);
@@ -975,18 +975,18 @@ namespace Svg.Skia
                 }
             }
 
-            if (skPathResult != null)
+            if (skPathResult is { })
             {
-                if (clipPath.Clip?.Clips != null)
+                if (clipPath.Clip?.Clips is { })
                 {
                     var skPathClip = clipPath.Clip.ToSKPath();
-                    if (skPathClip != null)
+                    if (skPathClip is { })
                     {
                         skPathResult = skPathResult.Op(skPathClip, SKPathOp.Intersect);
                     }
                 }
 
-                if (clipPath.Transform != null)
+                if (clipPath.Transform is { })
                 {
                     var skMatrix = clipPath.Transform.Value.ToSKMatrix();
                     skPathResult.Transform(skMatrix);
@@ -1050,7 +1050,7 @@ namespace Svg.Skia
                     break;
                 case SaveLayerCanvasCommand saveLayerCanvasCommand:
                     {
-                        if (saveLayerCanvasCommand.Paint != null)
+                        if (saveLayerCanvasCommand.Paint is { })
                         {
                             var paint = saveLayerCanvasCommand.Paint.ToSKPaint();
                             skCanvas.SaveLayer(paint);
@@ -1063,7 +1063,7 @@ namespace Svg.Skia
                     break;
                 case DrawImageCanvasCommand drawImageCanvasCommand:
                     {
-                        if (drawImageCanvasCommand.Image != null)
+                        if (drawImageCanvasCommand.Image is { })
                         {
                             var image = drawImageCanvasCommand.Image.ToSKImage();
                             var source = drawImageCanvasCommand.Source.ToSKRect();
@@ -1075,7 +1075,7 @@ namespace Svg.Skia
                     break;
                 case DrawPathCanvasCommand drawPathCanvasCommand:
                     {
-                        if (drawPathCanvasCommand.Path != null && drawPathCanvasCommand.Paint != null)
+                        if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })
                         {
                             var path = drawPathCanvasCommand.Path.ToSKPath();
                             var paint = drawPathCanvasCommand.Paint.ToSKPaint();
@@ -1085,7 +1085,7 @@ namespace Svg.Skia
                     break;
                 case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:
                     {
-                        if (drawPositionedTextCanvasCommand.TextBlob?.Points != null && drawPositionedTextCanvasCommand.Paint != null)
+                        if (drawPositionedTextCanvasCommand.TextBlob?.Points is { } && drawPositionedTextCanvasCommand.Paint is { })
                         {
                             var text = drawPositionedTextCanvasCommand.TextBlob.Text;
                             var points = drawPositionedTextCanvasCommand.TextBlob.Points.ToSKPoints();
@@ -1098,7 +1098,7 @@ namespace Svg.Skia
                     break;
                 case DrawTextCanvasCommand drawTextCanvasCommand:
                     {
-                        if (drawTextCanvasCommand.Paint != null)
+                        if (drawTextCanvasCommand.Paint is { })
                         {
                             var text = drawTextCanvasCommand.Text;
                             var x = drawTextCanvasCommand.X;
@@ -1110,7 +1110,7 @@ namespace Svg.Skia
                     break;
                 case DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand:
                     {
-                        if (drawTextOnPathCanvasCommand.Path != null && drawTextOnPathCanvasCommand.Paint != null)
+                        if (drawTextOnPathCanvasCommand.Path is { } && drawTextOnPathCanvasCommand.Paint is { })
                         {
                             var text = drawTextOnPathCanvasCommand.Text;
                             var path = drawTextOnPathCanvasCommand.Path.ToSKPath();

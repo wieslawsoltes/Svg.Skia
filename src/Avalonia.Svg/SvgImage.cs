@@ -34,7 +34,7 @@ namespace Avalonia.Svg
 
         /// <inheritdoc/>
         public Size Size =>
-            Source?.Picture != null ? new Size(Source.Picture.CullRect.Width, Source.Picture.CullRect.Height) : default;
+            Source?.Picture is { } ? new Size(Source.Picture.CullRect.Width, Source.Picture.CullRect.Height) : default;
 
         private Picture? _previousPicture = null;
         private AvaloniaPicture? _avaloniaPicture = null;
@@ -74,7 +74,7 @@ namespace Avalonia.Svg
                         _avaloniaPicture = AvaloniaPicture.Record(source.Picture);
                     }
 
-                    if (_avaloniaPicture != null)
+                    if (_avaloniaPicture is { })
                     {
                         _avaloniaPicture.Draw(context);
                     }

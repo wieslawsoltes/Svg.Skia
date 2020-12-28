@@ -57,7 +57,7 @@ namespace svgc
         {
             Log($"{ex.Message}");
             Log($"{ex.StackTrace}");
-            if (ex.InnerException != null)
+            if (ex.InnerException is { })
             {
                 Error(ex.InnerException);
             }
@@ -67,10 +67,10 @@ namespace svgc
         {
             var svg = System.IO.File.ReadAllText(inputPath);
             var svgDocument = SM.SvgModelExtensions.FromSvg(svg);
-            if (svgDocument != null)
+            if (svgDocument is { })
             {
                 var picture = SM.SvgModelExtensions.ToModel(svgDocument, AssetLoader);
-                if (picture != null && picture.Commands != null)
+                if (picture is { } && picture.Commands is { })
                 {
                     var text = SkiaCodeGen.Generate(picture, namespaceName, className);
                     System.IO.File.WriteAllText(outputPath, text);
@@ -124,7 +124,7 @@ namespace svgc
             {
                 try
                 {
-                    if (settings.JsonFile != null)
+                    if (settings.JsonFile is { })
                     {
                         var json = System.IO.File.ReadAllText(settings.JsonFile.FullName);
                         var options = new JsonSerializerOptions
@@ -132,11 +132,11 @@ namespace svgc
                             ReadCommentHandling = JsonCommentHandling.Skip
                         };
                         var items = JsonSerializer.Deserialize<Item[]>(json, options);
-                        if (items != null)
+                        if (items is { })
                         {
                             foreach (var item in items)
                             {
-                                if (item.InputFile != null && item.OutputFile != null)
+                                if (item.InputFile is { } && item.OutputFile is { })
                                 {
                                     Log($"Generating: {item.OutputFile}");
                                     Generate(item.InputFile, item.OutputFile, item.Namespace ?? settings.Namespace, item.Class ?? settings.Class);
@@ -145,7 +145,7 @@ namespace svgc
                         }
                     }
 
-                    if (settings.InputFile != null && settings.OutputFile != null)
+                    if (settings.InputFile is { } && settings.OutputFile is { })
                     {
                         Log($"Generating: {settings.OutputFile.FullName}");
                         Generate(settings.InputFile.FullName, settings.OutputFile.FullName, settings.Namespace, settings.Class);

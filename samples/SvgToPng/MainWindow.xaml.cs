@@ -28,7 +28,7 @@ namespace SvgToPng
             SvgModelExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture("en-US");
 #endif
             var vm = MainWindowViewModel.Load<MainWindowViewModel>("VM.json");
-            if (vm != null)
+            if (vm is { })
             {
                 VM = vm;
                 VM.ItemsViewFilter = ItemsViewFilter;
@@ -188,7 +188,7 @@ namespace SvgToPng
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] paths = (string[])e.Data.GetData(DataFormats.FileDrop);
-                if (paths != null && paths.Length > 0)
+                if (paths is { } && paths.Length > 0)
                 {
                     HandleDrop(paths, TextReferencePath.Text, TextOutputPath.Text);
                 }
@@ -205,7 +205,7 @@ namespace SvgToPng
             if (result == System.Windows.Forms.DialogResult.OK)
             {
                 var path = dlg.SelectedPath;
-                if (path != null)
+                if (path is { })
                 {
                     VM.OutputPath = path;
                     TextOutputPath.GetBindingExpression(TextBox.TextProperty).UpdateTarget();
@@ -223,7 +223,7 @@ namespace SvgToPng
             if (result == System.Windows.Forms.DialogResult.OK)
             {
                 var path = dlg.SelectedPath;
-                if (path != null)
+                if (path is { })
                 {
                     VM.ReferencePaths.Add(path);
                     VM.ReferencePath = path;
@@ -258,7 +258,7 @@ namespace SvgToPng
             if (dlg.ShowDialog() == true)
             {
                 var paths = dlg.FileNames;
-                if (paths != null && paths.Length > 0)
+                if (paths is { } && paths.Length > 0)
                 {
                     HandleDrop(paths, TextReferencePath.Text, TextOutputPath.Text);
                 }
@@ -352,7 +352,7 @@ namespace SvgToPng
             if (dlg.ShowDialog() == true)
             {
                 var path = dlg.FileName;
-                if (path != null)
+                if (path is { })
                 {
                     VM.ClearItems();
                     VM.LoadItems(path);
@@ -376,7 +376,7 @@ namespace SvgToPng
             if (dlg.ShowDialog() == true)
             {
                 var path = dlg.FileName;
-                if (path != null)
+                if (path is { })
                 {
                     VM.SaveItems(path);
                 }
@@ -401,7 +401,7 @@ namespace SvgToPng
                     DefaultExt = "png",
                     FilterIndex = 0
                 };
-                if (dlg.ShowDialog() == true && dlg.FileName != null)
+                if (dlg.ShowDialog() == true && dlg.FileName is { })
                 {
                     var textBackground = TextOutputBackground.Text;
                     var textScaleX = TextOutputScaleX.Text;
@@ -500,7 +500,7 @@ namespace SvgToPng
 
                 canvas.Clear(SKColors.White);
 
-                if (item.Picture != null)
+                if (item.Picture is { })
                 {
                     float pwidth = item.Picture.CullRect.Width;
                     float pheight = item.Picture.CullRect.Height;
@@ -526,7 +526,7 @@ namespace SvgToPng
         {
             canvas.Clear(SKColors.White);
 
-            if (items.SelectedItem is Item item && item.ReferencePng != null && CheckDrawReference.IsChecked == true)
+            if (items.SelectedItem is Item item && item.ReferencePng is { } && CheckDrawReference.IsChecked == true)
             {
                 float pwidth = item.ReferencePng.Width;
                 float pheight = item.ReferencePng.Height;
@@ -543,7 +543,7 @@ namespace SvgToPng
         {
             canvas.Clear(SKColors.White);
 
-            if (items.SelectedItem is Item item && item.PixelDiff != null && CheckDrawDiff.IsChecked == true)
+            if (items.SelectedItem is Item item && item.PixelDiff is { } && CheckDrawDiff.IsChecked == true)
             {
                 float pwidth = item.PixelDiff.Width;
                 float pheight = item.PixelDiff.Height;

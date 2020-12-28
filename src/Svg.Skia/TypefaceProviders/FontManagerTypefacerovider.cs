@@ -40,7 +40,7 @@ namespace Svg.Skia.TypefaceProviders
         {
             var skTypeface = default(SKTypeface);
             var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
-            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
+            if (fontFamilyNames is { } && fontFamilyNames.Length > 0)
             {
                 var defaultName = SKTypeface.Default.FamilyName;
                 var skFontManager = FontManager;
@@ -52,7 +52,7 @@ namespace Svg.Skia.TypefaceProviders
                     if (skFontStyleSet.Count > 0)
                     {
                         skTypeface = skFontManager.MatchFamily(fontFamilyName, skFontStyle);
-                        if (skTypeface != null)
+                        if (skTypeface is { })
                         {
                             if (!defaultName.Equals(fontFamilyName, StringComparison.Ordinal)
                                 && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))

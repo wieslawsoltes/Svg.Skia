@@ -41,7 +41,7 @@ namespace Svg.Skia.TypefaceProviders
         {
             var skTypeface = default(SKTypeface);
             var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
-            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
+            if (fontFamilyNames is { } && fontFamilyNames.Length > 0)
             {
                 foreach (var fontFamilyName in fontFamilyNames)
                 {

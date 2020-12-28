@@ -34,7 +34,7 @@ namespace Avalonia.Svg
                 case ClipPathCanvasCommand clipPathCanvasCommand:
                     {
                         var path = clipPathCanvasCommand.ClipPath.ToGeometry(false);
-                        if (path != null)
+                        if (path is { })
                         {
                             // TODO: clipPathCanvasCommand.Operation;
                             // TODO: clipPathCanvasCommand.Antialias;
@@ -82,10 +82,10 @@ namespace Avalonia.Svg
 
                 case DrawImageCanvasCommand drawImageCanvasCommand:
                     {
-                        if (drawImageCanvasCommand.Image != null)
+                        if (drawImageCanvasCommand.Image is { })
                         {
                             var image = drawImageCanvasCommand.Image.ToBitmap();
-                            if (image != null)
+                            if (image is { })
                             {
                                 var source = drawImageCanvasCommand.Source.ToSKRect();
                                 var dest = drawImageCanvasCommand.Dest.ToSKRect();
@@ -98,7 +98,7 @@ namespace Avalonia.Svg
 
                 case DrawPathCanvasCommand drawPathCanvasCommand:
                     {
-                        if (drawPathCanvasCommand.Path != null && drawPathCanvasCommand.Paint != null)
+                        if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })
                         {
                             (var brush, var pen) = drawPathCanvasCommand.Paint.ToBrushAndPen();
 
@@ -150,7 +150,7 @@ namespace Avalonia.Svg
 
                                     case AddPolyPathCommand addPolyPathCommand:
                                         {
-                                            if (addPolyPathCommand.Points != null)
+                                            if (addPolyPathCommand.Points is { })
                                             {
                                                 var points = addPolyPathCommand.Points.ToPoints();
                                                 var close = addPolyPathCommand.Close;
@@ -182,8 +182,8 @@ namespace Avalonia.Svg
                                 }
                             }
 
-                            var geometry = drawPathCanvasCommand.Path.ToGeometry(brush != null);
-                            if (geometry != null)
+                            var geometry = drawPathCanvasCommand.Path.ToGeometry(brush is { });
+                            if (geometry is { })
                             {
                                 avaloniaPicture._commands.Add(new GeometryDrawCommand(brush, pen, geometry));
                             }
@@ -199,7 +199,7 @@ namespace Avalonia.Svg
 
                 case DrawTextCanvasCommand drawTextCanvasCommand:
                     {
-                        if (drawTextCanvasCommand.Paint != null)
+                        if (drawTextCanvasCommand.Paint is { })
                         {
                             (var brush, _) = drawTextCanvasCommand.Paint.ToBrushAndPen();
                             var text = drawTextCanvasCommand.Paint.ToFormattedText(drawTextCanvasCommand.Text);

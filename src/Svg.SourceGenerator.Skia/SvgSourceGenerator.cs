@@ -87,10 +87,10 @@ namespace Svg.SourceGenerator.Skia
                     }
 
                     var svgDocument = SvgModelExtensions.FromSvg(svg!);
-                    if (svgDocument != null)
+                    if (svgDocument is { })
                     {
                         var picture = SvgModelExtensions.ToModel(svgDocument, AssetLoader);
-                        if (picture != null && picture.Commands != null)
+                        if (picture is { } && picture.Commands is { })
                         {
                             var code = SkiaCodeGen.Generate(picture, namespaceName!, className!);
                             var sourceText = SourceText.From(code, Encoding.UTF8);

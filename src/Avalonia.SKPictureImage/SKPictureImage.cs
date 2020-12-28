@@ -33,7 +33,7 @@ namespace Avalonia.SKPictureImage
         public void Render(IDrawingContextImpl context)
         {
             var canvas = (context as ISkiaDrawingContextImpl)?.SkCanvas;
-            if (canvas != null && _picture != null)
+            if (canvas is { } && _picture is { })
             {
                 canvas.DrawPicture(_picture);
             }
@@ -64,7 +64,7 @@ namespace Avalonia.SKPictureImage
         }
 
         /// <inheritdoc/>
-        public Size Size => Source != null ? new Size(Source.CullRect.Width, Source.CullRect.Height) : default;
+        public Size Size => Source is { } ? new Size(Source.CullRect.Width, Source.CullRect.Height) : default;
 
         /// <inheritdoc/>
         void IImage.Draw(DrawingContext context, Rect sourceRect, Rect destRect, BitmapInterpolationMode bitmapInterpolationMode)

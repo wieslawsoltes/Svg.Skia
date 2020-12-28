@@ -38,7 +38,7 @@ namespace Svg.Skia
             }
             using var skImage = SKImage.FromBitmap(skBitmap);
             using var skData = skImage.Encode(format, quality);
-            if (skData != null)
+            if (skData is { })
             {
                 skData.SaveTo(stream);
                 return true;

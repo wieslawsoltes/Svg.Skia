@@ -31,7 +31,7 @@ namespace Avalonia.Svg.Skia
 
         /// <inheritdoc/>
         public Size Size =>
-            Source?.Picture != null ? new Size(Source.Picture.CullRect.Width, Source.Picture.CullRect.Height) : default;
+            Source?.Picture is { } ? new Size(Source.Picture.CullRect.Width, Source.Picture.CullRect.Height) : default;
 
         /// <inheritdoc/>
         void IImage.Draw(

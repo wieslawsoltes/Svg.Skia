@@ -41,7 +41,7 @@ namespace AvaloniaSgvImage
 
         public void SvgSourceStretchChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_svgSourceImage != null)
+            if (_svgSourceImage is { })
             {
                 var comboxBox = (ComboBox)sender;
                 _svgSourceImage.Stretch = (Stretch)comboxBox.SelectedIndex;
@@ -50,7 +50,7 @@ namespace AvaloniaSgvImage
 
         public void SvgResourceStretchChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_svgResourceImage != null)
+            if (_svgResourceImage is { })
             {
                 var comboxBox = (ComboBox)sender;
                 _svgResourceImage.Stretch = (Stretch)comboxBox.SelectedIndex;
@@ -79,10 +79,10 @@ namespace AvaloniaSgvImage
                         var svg = new SvgSource();
 #if USE_PICTURE
                         var document = SS.SKSvg.Open(fileName);
-                        if (document != null)
+                        if (document is { })
                         {
                             var picture = SS.SKSvg.ToModel(document);
-                            if (picture != null)
+                            if (picture is { })
                             {
                                 svg.Picture = picture;
                                 _svgSourceImage.Source = new SvgImage()
@@ -93,7 +93,7 @@ namespace AvaloniaSgvImage
                         }
 #else
                         var picture = svg.Load(fileName);
-                        if (picture != null)
+                        if (picture is { })
                         {
                             _svgSourceImage.Source = new SvgImage
                             {
@@ -108,10 +108,10 @@ namespace AvaloniaSgvImage
 #if USE_PICTURE
                         var svg = new SvgSource();
                         var document = SS.SKSvg.Open(fileName);
-                        if (document != null)
+                        if (document is { })
                         {
                             var picture = SS.SKSvg.ToModel(document);
-                            if (picture != null)
+                            if (picture is { })
                             {
                                 svg.Picture = picture;
                                 _svgResourceImage.Source = new SvgImage()
@@ -123,7 +123,7 @@ namespace AvaloniaSgvImage
 #else
                         var svg = new SvgSource();
                         var picture = svg.Load(fileName);
-                        if (picture != null)
+                        if (picture is { })
                         {
                             _svgResourceImage.Source = new SvgImage
                             {

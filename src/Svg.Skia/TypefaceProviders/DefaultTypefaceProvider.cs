@@ -12,14 +12,14 @@ namespace Svg.Skia.TypefaceProviders
         {
             var skTypeface = default(SKTypeface);
             var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
-            if (fontFamilyNames != null && fontFamilyNames.Length > 0)
+            if (fontFamilyNames is { } && fontFamilyNames.Length > 0)
             {
                 var defaultName = SKTypeface.Default.FamilyName;
 
                 foreach (var fontFamilyName in fontFamilyNames)
                 {
                     skTypeface = SKTypeface.FromFamilyName(fontFamilyName, fontWeight, fontWidth, fontStyle);
-                    if (skTypeface != null)
+                    if (skTypeface is { })
                     {
                         if (!skTypeface.FamilyName.Equals(fontFamilyName, StringComparison.Ordinal)
                             && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))

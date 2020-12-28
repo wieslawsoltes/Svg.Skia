@@ -389,7 +389,7 @@ namespace Svg.CodeGen.Skia
             sb.AppendLine($"{indent}    if ({counter.FontStyleSetVarName}{counterTypeface}.Count > 0)");
             sb.AppendLine($"{indent}    {{");
             sb.AppendLine($"{indent}        {counter.TypefaceVarName}{counterTypeface} = {counter.FontManagerVarName}{counterTypeface}.MatchFamily(fontFamilyName{counterTypeface}, {counter.FontStyleVarName}{counterTypeface});");
-            sb.AppendLine($"{indent}        if ({counter.TypefaceVarName}{counterTypeface} != null)");
+            sb.AppendLine($"{indent}        if ({counter.TypefaceVarName}{counterTypeface} is {{ }})");
             sb.AppendLine($"{indent}        {{");
             sb.AppendLine($"{indent}            if (!defaultName{counterTypeface}.Equals(fontFamilyName{counterTypeface}, StringComparison.Ordinal)");
             sb.AppendLine($"{indent}                && defaultName{counterTypeface}.Equals({counter.TypefaceVarName}{counterTypeface}.FamilyName, StringComparison.Ordinal))");
@@ -497,7 +497,7 @@ namespace Svg.CodeGen.Skia
                             return;
                         }
 
-                        if (linearGradientShader.LocalMatrix != null)
+                        if (linearGradientShader.LocalMatrix is { })
                         {
                             sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
                             sb.AppendLine($"SKShader.CreateLinearGradient(");
@@ -531,7 +531,7 @@ namespace Svg.CodeGen.Skia
                             return;
                         }
 
-                        if (twoPointConicalGradientShader.LocalMatrix != null)
+                        if (twoPointConicalGradientShader.LocalMatrix is { })
                         {
                             sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
                             sb.AppendLine($"SKShader.CreateTwoPointConicalGradient(");
@@ -1060,7 +1060,7 @@ namespace Svg.CodeGen.Skia
 
                         // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
-                        if (paintImageFilter.Paint.Typeface != null)
+                        if (paintImageFilter.Paint.Typeface is { })
                         {
                             sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
                             sb.AppendLine($"{indent}{{");
@@ -1068,19 +1068,19 @@ namespace Svg.CodeGen.Skia
                             sb.AppendLine($"{indent}}}");
                         } 
 #endif
-                        if (paintImageFilter.Paint.Shader != null)
+                        if (paintImageFilter.Paint.Shader is { })
                         {
                             sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
                         }
-                        if (paintImageFilter.Paint.ColorFilter != null)
+                        if (paintImageFilter.Paint.ColorFilter is { })
                         {
                             sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter.Dispose()");
                         }
-                        if (paintImageFilter.Paint.ImageFilter != null)
+                        if (paintImageFilter.Paint.ImageFilter is { })
                         {
                             sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
                         }
-                        if (paintImageFilter.Paint.PathEffect != null)
+                        if (paintImageFilter.Paint.PathEffect is { })
                         {
                             sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
                         }
@@ -1400,7 +1400,7 @@ namespace Svg.CodeGen.Skia
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.TextAlign = {paint.TextAlign.ToSKTextAlign()};");
             }
 
-            if (paint.Typeface != null)
+            if (paint.Typeface is { })
             {
                 var counterTypeface = ++counter.Typeface;
                 paint.Typeface?.ToSKTypeface(counter, sb, indent);
@@ -1426,33 +1426,33 @@ namespace Svg.CodeGen.Skia
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.TextEncoding = {paint.TextEncoding.ToSKTextEncoding()};");
             }
 
-            if (paint.Color != null && paint.Color.Value.Alpha != 255 && paint.Color.Value.Red != 0 && paint.Color.Value.Green != 0 && paint.Color.Value.Blue != 0)
+            if (paint.Color is { } && paint.Color.Value.Alpha != 255 && paint.Color.Value.Red != 0 && paint.Color.Value.Green != 0 && paint.Color.Value.Blue != 0)
             {
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.Color = {(paint.Color == null ? "SKColor.Empty" : ToSKColor(paint.Color.Value))};");
             }
 
-            if (paint.Shader != null)
+            if (paint.Shader is { })
             {
                 var counterShader = ++counter.Shader;
                 paint.Shader.ToSKShader(counter, sb, indent);
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.Shader = {counter.ShaderVarName}{counterShader};");
             }
 
-            if (paint.ColorFilter != null)
+            if (paint.ColorFilter is { })
             {
                 var counterColorFilter = ++counter.ColorFilter;
                 paint.ColorFilter.ToSKColorFilter(counter, sb, indent);
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.ColorFilter = {counter.ColorFilterVarName}{counterColorFilter};");
             }
 
-            if (paint.ImageFilter != null)
+            if (paint.ImageFilter is { })
             {
                 var counterImageFilter = ++counter.ImageFilter;
                 paint.ImageFilter.ToSKImageFilter(counter, sb, indent);
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.ImageFilter = {counter.ImageFilterVarName}{counterImageFilter};");
             }
 
-            if (paint.PathEffect != null)
+            if (paint.PathEffect is { })
             {
                 var counterPathEffect = ++counter.PathEffect;
                 paint.PathEffect.ToSKPathEffect(counter, sb, indent);
@@ -1636,7 +1636,7 @@ namespace Svg.CodeGen.Skia
                         break;
                     case AddPolyPathCommand addPolyPathCommand:
                         {
-                            if (addPolyPathCommand.Points != null)
+                            if (addPolyPathCommand.Points is { })
                             {
                                 var points = addPolyPathCommand.Points.ToSKPoints();
                                 var close = addPolyPathCommand.Close.ToBoolString();
@@ -1673,7 +1673,7 @@ namespace Svg.CodeGen.Skia
 
                 clip.Path.ToSKPath(counter, sb, indent);
 
-                if (clip.Clip != null)
+                if (clip.Clip is { })
                 {
                     var counterPathClip = ++counter.Path;
 
@@ -1685,7 +1685,7 @@ namespace Svg.CodeGen.Skia
                     }
                 }
 
-                if (clip.Transform != null)
+                if (clip.Transform is { })
                 {
                     sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.Transform({clip.Transform.Value.ToSKMatrix()});");
                 }
@@ -1701,7 +1701,7 @@ namespace Svg.CodeGen.Skia
                 }
             }
 
-            if (clipPath.Clip != null && clipPath.Clip.Clips != null)
+            if (clipPath.Clip is { } && clipPath.Clip.Clips is { })
             {
                 var counterPathClip = ++counter.Path;
 
@@ -1713,7 +1713,7 @@ namespace Svg.CodeGen.Skia
                 }
             }
 
-            if (!isDefaultPathResult && clipPath.Transform != null)
+            if (!isDefaultPathResult && clipPath.Transform is { })
             {
                 sb.AppendLine($"{indent}{counter.PathVarName}{counterPathResult}.Transform({clipPath.Transform.Value.ToSKMatrix()});");
             }
@@ -1786,7 +1786,7 @@ namespace Svg.CodeGen.Skia
                         break;
                     case SaveLayerCanvasCommand saveLayerCanvasCommand:
                         {
-                            if (saveLayerCanvasCommand.Paint != null)
+                            if (saveLayerCanvasCommand.Paint is { })
                             {
                                 var counterPaint = ++counter.Paint;
                                 saveLayerCanvasCommand.Paint.ToSKPaint(counter, sb, indent);
@@ -1794,7 +1794,7 @@ namespace Svg.CodeGen.Skia
 
                                 // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
-                                if (saveLayerCanvasCommand.Paint.Typeface != null)
+                                if (saveLayerCanvasCommand.Paint.Typeface is { })
                                 {
                                     sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
                                     sb.AppendLine($"{indent}{{");
@@ -1802,19 +1802,19 @@ namespace Svg.CodeGen.Skia
                                     sb.AppendLine($"{indent}}}");
                                 } 
 #endif
-                                if (saveLayerCanvasCommand.Paint.Shader != null)
+                                if (saveLayerCanvasCommand.Paint.Shader is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
                                 }
-                                if (saveLayerCanvasCommand.Paint.ColorFilter != null)
+                                if (saveLayerCanvasCommand.Paint.ColorFilter is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
                                 }
-                                if (saveLayerCanvasCommand.Paint.ImageFilter != null)
+                                if (saveLayerCanvasCommand.Paint.ImageFilter is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
                                 }
-                                if (saveLayerCanvasCommand.Paint.PathEffect != null)
+                                if (saveLayerCanvasCommand.Paint.PathEffect is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
                                 }
@@ -1829,7 +1829,7 @@ namespace Svg.CodeGen.Skia
                         break;
                     case DrawImageCanvasCommand drawImageCanvasCommand:
                         {
-                            if (drawImageCanvasCommand.Image != null)
+                            if (drawImageCanvasCommand.Image is { })
                             {
                                 var counterImage = ++counter.Image;
                                 drawImageCanvasCommand.Image.ToSKImage(counter, sb, indent);
@@ -1842,7 +1842,7 @@ namespace Svg.CodeGen.Skia
 
                                 // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
-                                if (drawImageCanvasCommand.Paint?.Typeface != null)
+                                if (drawImageCanvasCommand.Paint?.Typeface is { })
                                 {
                                     sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
                                     sb.AppendLine($"{indent}{{");
@@ -1850,19 +1850,19 @@ namespace Svg.CodeGen.Skia
                                     sb.AppendLine($"{indent}}}");
                                 } 
 #endif
-                                if (drawImageCanvasCommand.Paint?.Shader != null)
+                                if (drawImageCanvasCommand.Paint?.Shader is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
                                 }
-                                if (drawImageCanvasCommand.Paint?.ColorFilter != null)
+                                if (drawImageCanvasCommand.Paint?.ColorFilter is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
                                 }
-                                if (drawImageCanvasCommand.Paint?.ImageFilter != null)
+                                if (drawImageCanvasCommand.Paint?.ImageFilter is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
                                 }
-                                if (drawImageCanvasCommand.Paint?.PathEffect != null)
+                                if (drawImageCanvasCommand.Paint?.PathEffect is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
                                 }
@@ -1873,7 +1873,7 @@ namespace Svg.CodeGen.Skia
                         break;
                     case DrawPathCanvasCommand drawPathCanvasCommand:
                         {
-                            if (drawPathCanvasCommand.Path != null && drawPathCanvasCommand.Paint != null)
+                            if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })
                             {
                                 var counterPath = ++counter.Path;
                                 drawPathCanvasCommand.Path.ToSKPath(counter, sb, indent);
@@ -1883,7 +1883,7 @@ namespace Svg.CodeGen.Skia
 
                                 // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
-                                if (drawPathCanvasCommand.Paint.Typeface != null)
+                                if (drawPathCanvasCommand.Paint.Typeface is { })
                                 {
                                     sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
                                     sb.AppendLine($"{indent}{{");
@@ -1891,19 +1891,19 @@ namespace Svg.CodeGen.Skia
                                     sb.AppendLine($"{indent}}}");
                                 } 
 #endif
-                                if (drawPathCanvasCommand.Paint.Shader != null)
+                                if (drawPathCanvasCommand.Paint.Shader is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
                                 }
-                                if (drawPathCanvasCommand.Paint.ColorFilter != null)
+                                if (drawPathCanvasCommand.Paint.ColorFilter is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
                                 }
-                                if (drawPathCanvasCommand.Paint.ImageFilter != null)
+                                if (drawPathCanvasCommand.Paint.ImageFilter is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
                                 }
-                                if (drawPathCanvasCommand.Paint.PathEffect != null)
+                                if (drawPathCanvasCommand.Paint.PathEffect is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
                                 }
@@ -1915,7 +1915,7 @@ namespace Svg.CodeGen.Skia
                         break;
                     case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:
                         {
-                            if (drawPositionedTextCanvasCommand.TextBlob != null && drawPositionedTextCanvasCommand.TextBlob.Points != null && drawPositionedTextCanvasCommand.Paint != null)
+                            if (drawPositionedTextCanvasCommand.TextBlob is { } && drawPositionedTextCanvasCommand.TextBlob.Points is { } && drawPositionedTextCanvasCommand.Paint is { })
                             {
                                 var text = EspaceString(drawPositionedTextCanvasCommand.TextBlob.Text);
                                 var points = drawPositionedTextCanvasCommand.TextBlob.Points.ToSKPoints();
@@ -1931,7 +1931,7 @@ namespace Svg.CodeGen.Skia
 
                                 // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
-                                if (drawPositionedTextCanvasCommand.Paint.Typeface != null)
+                                if (drawPositionedTextCanvasCommand.Paint.Typeface is { })
                                 {
                                     sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
                                     sb.AppendLine($"{indent}{{");
@@ -1939,19 +1939,19 @@ namespace Svg.CodeGen.Skia
                                     sb.AppendLine($"{indent}}}");
                                 } 
 #endif
-                                if (drawPositionedTextCanvasCommand.Paint.Shader != null)
+                                if (drawPositionedTextCanvasCommand.Paint.Shader is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
                                 }
-                                if (drawPositionedTextCanvasCommand.Paint.ColorFilter != null)
+                                if (drawPositionedTextCanvasCommand.Paint.ColorFilter is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
                                 }
-                                if (drawPositionedTextCanvasCommand.Paint.ImageFilter != null)
+                                if (drawPositionedTextCanvasCommand.Paint.ImageFilter is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
                                 }
-                                if (drawPositionedTextCanvasCommand.Paint.PathEffect != null)
+                                if (drawPositionedTextCanvasCommand.Paint.PathEffect is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
                                 }
@@ -1962,7 +1962,7 @@ namespace Svg.CodeGen.Skia
                         break;
                     case DrawTextCanvasCommand drawTextCanvasCommand:
                         {
-                            if (drawTextCanvasCommand.Paint != null)
+                            if (drawTextCanvasCommand.Paint is { })
                             {
                                 var text = EspaceString(drawTextCanvasCommand.Text);
                                 var x = drawTextCanvasCommand.X;
@@ -1973,7 +1973,7 @@ namespace Svg.CodeGen.Skia
 
                                 // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
-                                if (drawTextCanvasCommand.Paint.Typeface != null)
+                                if (drawTextCanvasCommand.Paint.Typeface is { })
                                 {
                                     sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
                                     sb.AppendLine($"{indent}{{");
@@ -1981,19 +1981,19 @@ namespace Svg.CodeGen.Skia
                                     sb.AppendLine($"{indent}}}");
                                 } 
 #endif
-                                if (drawTextCanvasCommand.Paint.Shader != null)
+                                if (drawTextCanvasCommand.Paint.Shader is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
                                 }
-                                if (drawTextCanvasCommand.Paint.ColorFilter != null)
+                                if (drawTextCanvasCommand.Paint.ColorFilter is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
                                 }
-                                if (drawTextCanvasCommand.Paint.ImageFilter != null)
+                                if (drawTextCanvasCommand.Paint.ImageFilter is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
                                 }
-                                if (drawTextCanvasCommand.Paint.PathEffect != null)
+                                if (drawTextCanvasCommand.Paint.PathEffect is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
                                 }
@@ -2004,7 +2004,7 @@ namespace Svg.CodeGen.Skia
                         break;
                     case DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand:
                         {
-                            if (drawTextOnPathCanvasCommand.Path != null && drawTextOnPathCanvasCommand.Paint != null)
+                            if (drawTextOnPathCanvasCommand.Path is { } && drawTextOnPathCanvasCommand.Paint is { })
                             {
                                 var text = EspaceString(drawTextOnPathCanvasCommand.Text);
                                 var counterPath = ++counter.Path;
@@ -2017,7 +2017,7 @@ namespace Svg.CodeGen.Skia
 
                                 // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
-                                if (drawTextOnPathCanvasCommand.Paint.Typeface != null)
+                                if (drawTextOnPathCanvasCommand.Paint.Typeface is { })
                                 {
                                     sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
                                     sb.AppendLine($"{indent}{{");
@@ -2025,19 +2025,19 @@ namespace Svg.CodeGen.Skia
                                     sb.AppendLine($"{indent}}}");
                                 }
 #endif
-                                if (drawTextOnPathCanvasCommand.Paint.Shader != null)
+                                if (drawTextOnPathCanvasCommand.Paint.Shader is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
                                 }
-                                if (drawTextOnPathCanvasCommand.Paint.ColorFilter != null)
+                                if (drawTextOnPathCanvasCommand.Paint.ColorFilter is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
                                 }
-                                if (drawTextOnPathCanvasCommand.Paint.ImageFilter != null)
+                                if (drawTextOnPathCanvasCommand.Paint.ImageFilter is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
                                 }
-                                if (drawTextOnPathCanvasCommand.Paint.PathEffect != null)
+                                if (drawTextOnPathCanvasCommand.Paint.PathEffect is { })
                                 {
                                     sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
                                 }

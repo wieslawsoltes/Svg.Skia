@@ -30,7 +30,7 @@ namespace Avalonia.Svg
             if (uri.IsAbsoluteUri && uri.IsFile)
             {
                 var document = SM.SvgModelExtensions.Open(uri.LocalPath);
-                if (document != null)
+                if (document is { })
                 {
                     svg.Picture = SM.SvgModelExtensions.ToModel(document, AssetLoader);
                 }
@@ -41,7 +41,7 @@ namespace Avalonia.Svg
             {
                 var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
                 var document = SM.SvgModelExtensions.Open(assets.Open(uri, context.GetContextBaseUri()));
-                if (document != null)
+                if (document is { })
                 {
                     svg.Picture = SM.SvgModelExtensions.ToModel(document, AssetLoader);
                 }

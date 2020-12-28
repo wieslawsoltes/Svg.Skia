@@ -92,7 +92,7 @@ namespace Svg.Skia.Converter
         {
             Log($"{ex.Message}");
             Log($"{ex.StackTrace}");
-            if (ex.InnerException != null)
+            if (ex.InnerException is { })
             {
                 Error(ex.InnerException);
             }
@@ -101,7 +101,7 @@ namespace Svg.Skia.Converter
         private static void GetFiles(DirectoryInfo directory, string pattern, List<FileInfo> paths)
         {
             var files = Directory.EnumerateFiles(directory.FullName, pattern);
-            if (files != null)
+            if (files is { })
             {
                 foreach (var path in files)
                 {
@@ -199,7 +199,7 @@ namespace Svg.Skia.Converter
         {
             var paths = new List<FileInfo>();
 
-            if (settings.InputFiles != null)
+            if (settings.InputFiles is { })
             {
                 foreach (var file in settings.InputFiles)
                 {
@@ -207,7 +207,7 @@ namespace Svg.Skia.Converter
                 }
             }
 
-            if (settings.InputDirectory != null)
+            if (settings.InputDirectory is { })
             {
                 var directory = settings.InputDirectory;
                 var pattern = settings.Pattern;
@@ -222,7 +222,7 @@ namespace Svg.Skia.Converter
                 }
             }
 
-            if (settings.OutputFiles != null)
+            if (settings.OutputFiles is { })
             {
                 if (paths.Count > 0 && paths.Count != settings.OutputFiles.Length)
                 {
@@ -231,7 +231,7 @@ namespace Svg.Skia.Converter
                 }
             }
 
-            if (settings.OutputDirectory != null && !string.IsNullOrEmpty(settings.OutputDirectory.FullName))
+            if (settings.OutputDirectory is { } && !string.IsNullOrEmpty(settings.OutputDirectory.FullName))
             {
                 if (!Directory.Exists(settings.OutputDirectory.FullName))
                 {
@@ -239,7 +239,7 @@ namespace Svg.Skia.Converter
                 }
             }
 
-            if (settings.SystemLanguage != null)
+            if (settings.SystemLanguage is { })
             {
                 SvgModelExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture(settings.SystemLanguage);
             }
@@ -251,12 +251,12 @@ namespace Svg.Skia.Converter
             for (int i = 0; i < paths.Count; i++)
             {
                 var inputPath = paths[i];
-                var outputFile = settings.OutputFiles != null ? settings.OutputFiles[i] : null;
+                var outputFile = settings.OutputFiles is { } ? settings.OutputFiles[i] : null;
                 try
                 {
                     var outputPath = string.Empty;
 
-                    if (outputFile != null)
+                    if (outputFile is { })
                     {
                         outputPath = outputFile.FullName;
                     }
@@ -264,14 +264,14 @@ namespace Svg.Skia.Converter
                     {
                         var inputExtension = inputPath.Extension;
                         outputPath = System.IO.Path.ChangeExtension(inputPath.FullName, "." + settings.Format.ToLower());
-                        if (settings.OutputDirectory != null && !string.IsNullOrEmpty(settings.OutputDirectory.FullName))
+                        if (settings.OutputDirectory is { } && !string.IsNullOrEmpty(settings.OutputDirectory.FullName))
                         {
                             outputPath = System.IO.Path.Combine(settings.OutputDirectory.FullName, System.IO.Path.GetFileName(outputPath));
                         }
                     }
 
                     var currentDirectoryName = System.IO.Path.GetDirectoryName(inputPath.FullName);
-                    if (currentDirectoryName != null)
+                    if (currentDirectoryName is { })
                     {
                         Directory.SetCurrentDirectory(currentDirectoryName);
                     }
@@ -293,7 +293,7 @@ namespace Svg.Skia.Converter
 
             sw.Stop();
 
-            if (settings.SystemLanguage != null)
+            if (settings.SystemLanguage is { })
             {
                 SvgModelExtensions.s_systemLanguageOverride = null;
             }
@@ -404,7 +404,7 @@ namespace Svg.Skia.Converter
 
             rootCommand.Handler = CommandHandler.Create((Settings settings, FileInfo loadConfig, FileInfo saveConfig) =>
             {
-                if (loadConfig != null)
+                if (loadConfig is { })
                 {
                     var jsonSerializerSettings = new JsonSerializerSettings
                     {
@@ -418,7 +418,7 @@ namespace Svg.Skia.Converter
                     };
                     var json = File.ReadAllText(loadConfig.FullName);
                     var loadedSettings = JsonConvert.DeserializeObject<Settings>(json, jsonSerializerSettings);
-                    if (loadedSettings != null)
+                    if (loadedSettings is { })
                     {
                         try
                         {
@@ -435,7 +435,7 @@ namespace Svg.Skia.Converter
                 }
                 else
                 {
-                    if (saveConfig != null)
+                    if (saveConfig is { })
                     {
                         var jsonSerializerSettings = new JsonSerializerSettings
                         {

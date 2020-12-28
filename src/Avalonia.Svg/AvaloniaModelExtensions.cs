@@ -263,7 +263,7 @@ namespace Avalonia.Svg
 
         public static AM.IBrush? ToLinearGradientBrush(this LinearGradientShader linearGradientShader)
         {
-            if (linearGradientShader.Colors != null && linearGradientShader.ColorPos != null)
+            if (linearGradientShader.Colors is { } && linearGradientShader.ColorPos is { })
             {
                 var linearGradientBrush = new AM.LinearGradientBrush
                 {
@@ -296,7 +296,7 @@ namespace Avalonia.Svg
 
         public static AM.IBrush? ToRadialGradientBrush(this TwoPointConicalGradientShader twoPointConicalGradientShader)
         {
-            if (twoPointConicalGradientShader.Colors != null && twoPointConicalGradientShader.ColorPos != null)
+            if (twoPointConicalGradientShader.Colors is { } && twoPointConicalGradientShader.ColorPos is { })
             {
                 var radialGradientBrush = new AM.RadialGradientBrush
                 {
@@ -359,7 +359,7 @@ namespace Avalonia.Svg
             var lineJoin = paint.StrokeJoin.ToPenLineJoin();
 
             var dashStyle = default(AM.IDashStyle);
-            if (paint.PathEffect is DashPathEffect dashPathEffect && dashPathEffect.Intervals != null)
+            if (paint.PathEffect is DashPathEffect dashPathEffect && dashPathEffect.Intervals is { })
             {
                 var dashes = new List<double>();
                 foreach (var interval in dashPathEffect.Intervals)
