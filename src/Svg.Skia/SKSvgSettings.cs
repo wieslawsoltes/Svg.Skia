@@ -14,7 +14,7 @@ namespace Svg.Skia
 
         public static readonly SKColorSpace s_srgb = SKColorSpace.CreateRgb(SKColorSpaceTransferFn.Srgb, SKColorSpaceXyz.Srgb); // SKColorSpace.CreateSrgb();
 
-        public static readonly IList<ITypefaceProvider> s_typefaceProviders = new List<ITypefaceProvider>()
+        public static readonly IList<ITypefaceProvider>? s_typefaceProviders = new List<ITypefaceProvider>()
         {
             new FontManagerTypefacerovider(),
             new DefaultTypefaceProvider()
