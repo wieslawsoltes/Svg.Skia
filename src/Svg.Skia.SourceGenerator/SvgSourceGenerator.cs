@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Svg.Model;
 using Svg.CodeGen;
 
 namespace Svg.Skia
@@ -103,7 +104,7 @@ namespace Svg.Skia
                 var svgDocument = SvgDocument.FromSvg<SvgDocument>(svg);
                 if (svgDocument != null)
                 {
-                    var picture = SKSvg.ToModel(svgDocument);
+                    var picture = SvgModelExtensions.ToModel(svgDocument);
                     if (picture != null && picture.Commands != null)
                     {
                         var code = SkiaCodeGen.Generate(picture, namespaceName!, className!);
