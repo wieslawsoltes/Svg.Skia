@@ -78,144 +78,105 @@ namespace Svg.Skia
 
         public static SKPaintStyle ToSKPaintStyle(this PaintStyle paintStyle)
         {
-            switch (paintStyle)
+            return paintStyle switch
             {
-                default:
-                case PaintStyle.Fill:
-                    return SKPaintStyle.Fill;
-                case PaintStyle.Stroke:
-                    return SKPaintStyle.Stroke;
-                case PaintStyle.StrokeAndFill:
-                    return SKPaintStyle.StrokeAndFill;
-            }
+                PaintStyle.Fill => SKPaintStyle.Fill,
+                PaintStyle.Stroke => SKPaintStyle.Stroke,
+                PaintStyle.StrokeAndFill => SKPaintStyle.StrokeAndFill,
+                _ => SKPaintStyle.Fill
+            };
         }
 
         public static SKStrokeCap ToSKStrokeCap(this StrokeCap strokeCap)
         {
-            switch (strokeCap)
+            return strokeCap switch
             {
-                default:
-                case StrokeCap.Butt:
-                    return SKStrokeCap.Butt;
-                case StrokeCap.Round:
-                    return SKStrokeCap.Round;
-                case StrokeCap.Square:
-                    return SKStrokeCap.Square;
-            }
+                StrokeCap.Butt => SKStrokeCap.Butt,
+                StrokeCap.Round => SKStrokeCap.Round,
+                StrokeCap.Square => SKStrokeCap.Square,
+                _ => SKStrokeCap.Butt
+            };
         }
 
         public static SKStrokeJoin ToSKStrokeJoin(this StrokeJoin strokeJoin)
         {
-            switch (strokeJoin)
+            return strokeJoin switch
             {
-                default:
-                case StrokeJoin.Miter:
-                    return SKStrokeJoin.Miter;
-                case StrokeJoin.Round:
-                    return SKStrokeJoin.Round;
-                case StrokeJoin.Bevel:
-                    return SKStrokeJoin.Bevel;
-            }
+                StrokeJoin.Miter => SKStrokeJoin.Miter,
+                StrokeJoin.Round => SKStrokeJoin.Round,
+                StrokeJoin.Bevel => SKStrokeJoin.Bevel,
+                _ => SKStrokeJoin.Miter
+            };
         }
 
         public static SKTextAlign ToSKTextAlign(this TextAlign textAlign)
         {
-            switch (textAlign)
+            return textAlign switch
             {
-                default:
-                case TextAlign.Left:
-                    return SKTextAlign.Left;
-                case TextAlign.Center:
-                    return SKTextAlign.Center;
-                case TextAlign.Right:
-                    return SKTextAlign.Right;
-            }
+                TextAlign.Left => SKTextAlign.Left,
+                TextAlign.Center => SKTextAlign.Center,
+                TextAlign.Right => SKTextAlign.Right,
+                _ => SKTextAlign.Left
+            };
         }
 
         public static SKTextEncoding ToSKTextEncoding(this TextEncoding textEncoding)
         {
-            switch (textEncoding)
+            return textEncoding switch
             {
-                default:
-                case TextEncoding.Utf8:
-                    return SKTextEncoding.Utf8;
-                case TextEncoding.Utf16:
-                    return SKTextEncoding.Utf16;
-                case TextEncoding.Utf32:
-                    return SKTextEncoding.Utf32;
-                case TextEncoding.GlyphId:
-                    return SKTextEncoding.GlyphId;
-            }
+                TextEncoding.Utf8 => SKTextEncoding.Utf8,
+                TextEncoding.Utf16 => SKTextEncoding.Utf16,
+                TextEncoding.Utf32 => SKTextEncoding.Utf32,
+                TextEncoding.GlyphId => SKTextEncoding.GlyphId,
+                _ => SKTextEncoding.Utf8
+            };
         }
 
         public static SKFontStyleWeight ToSKFontStyleWeight(this FontStyleWeight fontStyleWeight)
         {
-            switch (fontStyleWeight)
+            return fontStyleWeight switch
             {
-                default:
-                case FontStyleWeight.Invisible:
-                    return SKFontStyleWeight.Invisible;
-                case FontStyleWeight.Thin:
-                    return SKFontStyleWeight.Thin;
-                case FontStyleWeight.ExtraLight:
-                    return SKFontStyleWeight.ExtraLight;
-                case FontStyleWeight.Light:
-                    return SKFontStyleWeight.Light;
-                case FontStyleWeight.Normal:
-                    return SKFontStyleWeight.Normal;
-                case FontStyleWeight.Medium:
-                    return SKFontStyleWeight.Medium;
-                case FontStyleWeight.SemiBold:
-                    return SKFontStyleWeight.SemiBold;
-                case FontStyleWeight.Bold:
-                    return SKFontStyleWeight.Bold;
-                case FontStyleWeight.ExtraBold:
-                    return SKFontStyleWeight.ExtraBold;
-                case FontStyleWeight.Black:
-                    return SKFontStyleWeight.Black;
-                case FontStyleWeight.ExtraBlack:
-                    return SKFontStyleWeight.ExtraBlack;
-            }
+                FontStyleWeight.Invisible => SKFontStyleWeight.Invisible,
+                FontStyleWeight.Thin => SKFontStyleWeight.Thin,
+                FontStyleWeight.ExtraLight => SKFontStyleWeight.ExtraLight,
+                FontStyleWeight.Light => SKFontStyleWeight.Light,
+                FontStyleWeight.Normal => SKFontStyleWeight.Normal,
+                FontStyleWeight.Medium => SKFontStyleWeight.Medium,
+                FontStyleWeight.SemiBold => SKFontStyleWeight.SemiBold,
+                FontStyleWeight.Bold => SKFontStyleWeight.Bold,
+                FontStyleWeight.ExtraBold => SKFontStyleWeight.ExtraBold,
+                FontStyleWeight.Black => SKFontStyleWeight.Black,
+                FontStyleWeight.ExtraBlack => SKFontStyleWeight.ExtraBlack,
+                _ => SKFontStyleWeight.Invisible
+            };
         }
 
         public static SKFontStyleWidth ToSKFontStyleWidth(this FontStyleWidth fontStyleWidth)
         {
-            switch (fontStyleWidth)
+            return fontStyleWidth switch
             {
-                default:
-                case FontStyleWidth.UltraCondensed:
-                    return SKFontStyleWidth.UltraCondensed;
-                case FontStyleWidth.ExtraCondensed:
-                    return SKFontStyleWidth.ExtraCondensed;
-                case FontStyleWidth.Condensed:
-                    return SKFontStyleWidth.Condensed;
-                case FontStyleWidth.SemiCondensed:
-                    return SKFontStyleWidth.SemiCondensed;
-                case FontStyleWidth.Normal:
-                    return SKFontStyleWidth.Normal;
-                case FontStyleWidth.SemiExpanded:
-                    return SKFontStyleWidth.SemiExpanded;
-                case FontStyleWidth.Expanded:
-                    return SKFontStyleWidth.Expanded;
-                case FontStyleWidth.ExtraExpanded:
-                    return SKFontStyleWidth.ExtraExpanded;
-                case FontStyleWidth.UltraExpanded:
-                    return SKFontStyleWidth.UltraExpanded;
-            }
+                FontStyleWidth.UltraCondensed => SKFontStyleWidth.UltraCondensed,
+                FontStyleWidth.ExtraCondensed => SKFontStyleWidth.ExtraCondensed,
+                FontStyleWidth.Condensed => SKFontStyleWidth.Condensed,
+                FontStyleWidth.SemiCondensed => SKFontStyleWidth.SemiCondensed,
+                FontStyleWidth.Normal => SKFontStyleWidth.Normal,
+                FontStyleWidth.SemiExpanded => SKFontStyleWidth.SemiExpanded,
+                FontStyleWidth.Expanded => SKFontStyleWidth.Expanded,
+                FontStyleWidth.ExtraExpanded => SKFontStyleWidth.ExtraExpanded,
+                FontStyleWidth.UltraExpanded => SKFontStyleWidth.UltraExpanded,
+                _ => SKFontStyleWidth.UltraCondensed
+            };
         }
 
         public static SKFontStyleSlant ToSKFontStyleSlant(this FontStyleSlant fontStyleSlant)
         {
-            switch (fontStyleSlant)
+            return fontStyleSlant switch
             {
-                default:
-                case FontStyleSlant.Upright:
-                    return SKFontStyleSlant.Upright;
-                case FontStyleSlant.Italic:
-                    return SKFontStyleSlant.Italic;
-                case FontStyleSlant.Oblique:
-                    return SKFontStyleSlant.Oblique;
-            }
+                FontStyleSlant.Upright => SKFontStyleSlant.Upright,
+                FontStyleSlant.Italic => SKFontStyleSlant.Italic,
+                FontStyleSlant.Oblique => SKFontStyleSlant.Oblique,
+                _ => SKFontStyleSlant.Upright
+            };
         }
 
         public static SKTypeface? ToSKTypeface(this Typeface? typeface)
@@ -281,18 +242,14 @@ namespace Svg.Skia
 
         public static SKShaderTileMode ToSKShaderTileMode(this ShaderTileMode shaderTileMode)
         {
-            switch (shaderTileMode)
+            return shaderTileMode switch
             {
-                default:
-                case ShaderTileMode.Clamp:
-                    return SKShaderTileMode.Clamp;
-                case ShaderTileMode.Repeat:
-                    return SKShaderTileMode.Repeat;
-                case ShaderTileMode.Mirror:
-                    return SKShaderTileMode.Mirror;
-                case ShaderTileMode.Decal:
-                    return SKShaderTileMode.Decal;
-            }
+                ShaderTileMode.Clamp => SKShaderTileMode.Clamp,
+                ShaderTileMode.Repeat => SKShaderTileMode.Repeat,
+                ShaderTileMode.Mirror => SKShaderTileMode.Mirror,
+                ShaderTileMode.Decal => SKShaderTileMode.Decal,
+                _ => SKShaderTileMode.Clamp
+            };
         }
 
         public static SKShader? ToSKShader(this Shader? shader)
@@ -323,16 +280,14 @@ namespace Svg.Skia
                                 linearGradientShader.Mode.ToSKShaderTileMode(),
                                 linearGradientShader.LocalMatrix.Value.ToSKMatrix());
                         }
-                        else
-                        {
-                            return SKShader.CreateLinearGradient(
-                                linearGradientShader.Start.ToSKPoint(),
-                                linearGradientShader.End.ToSKPoint(),
-                                linearGradientShader.Colors.ToSKColors(),
-                                linearGradientShader.ColorSpace == ColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear,
-                                linearGradientShader.ColorPos,
-                                linearGradientShader.Mode.ToSKShaderTileMode());
-                        }
+
+                        return SKShader.CreateLinearGradient(
+                            linearGradientShader.Start.ToSKPoint(),
+                            linearGradientShader.End.ToSKPoint(),
+                            linearGradientShader.Colors.ToSKColors(),
+                            linearGradientShader.ColorSpace == ColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear,
+                            linearGradientShader.ColorPos,
+                            linearGradientShader.Mode.ToSKShaderTileMode());
                     }
                 case TwoPointConicalGradientShader twoPointConicalGradientShader:
                     {
@@ -354,18 +309,16 @@ namespace Svg.Skia
                                 twoPointConicalGradientShader.Mode.ToSKShaderTileMode(),
                                 twoPointConicalGradientShader.LocalMatrix.Value.ToSKMatrix());
                         }
-                        else
-                        {
-                            return SKShader.CreateTwoPointConicalGradient(
-                                twoPointConicalGradientShader.Start.ToSKPoint(),
-                                twoPointConicalGradientShader.StartRadius,
-                                twoPointConicalGradientShader.End.ToSKPoint(),
-                                twoPointConicalGradientShader.EndRadius,
-                                twoPointConicalGradientShader.Colors.ToSKColors(),
-                                twoPointConicalGradientShader.ColorSpace == ColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear,
-                                twoPointConicalGradientShader.ColorPos,
-                                twoPointConicalGradientShader.Mode.ToSKShaderTileMode());
-                        }
+
+                        return SKShader.CreateTwoPointConicalGradient(
+                            twoPointConicalGradientShader.Start.ToSKPoint(),
+                            twoPointConicalGradientShader.StartRadius,
+                            twoPointConicalGradientShader.End.ToSKPoint(),
+                            twoPointConicalGradientShader.EndRadius,
+                            twoPointConicalGradientShader.Colors.ToSKColors(),
+                            twoPointConicalGradientShader.ColorSpace == ColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear,
+                            twoPointConicalGradientShader.ColorPos,
+                            twoPointConicalGradientShader.Mode.ToSKShaderTileMode());
                     }
                 case PictureShader pictureShader:
                     {
@@ -453,18 +406,14 @@ namespace Svg.Skia
 
         public static SKColorChannel ToSKColorChannel(this ColorChannel colorChannel)
         {
-            switch (colorChannel)
+            return colorChannel switch
             {
-                default:
-                case ColorChannel.R:
-                    return SKColorChannel.R;
-                case ColorChannel.G:
-                    return SKColorChannel.G;
-                case ColorChannel.B:
-                    return SKColorChannel.B;
-                case ColorChannel.A:
-                    return SKColorChannel.A;
-            }
+                ColorChannel.R => SKColorChannel.R,
+                ColorChannel.G => SKColorChannel.G,
+                ColorChannel.B => SKColorChannel.B,
+                ColorChannel.A => SKColorChannel.A,
+                _ => SKColorChannel.R
+            };
         }
 
         public static SKImageFilter? ToSKImageFilter(this ImageFilter? imageFilter)
@@ -717,13 +666,10 @@ namespace Svg.Skia
             for (int i = 0; i < imageFilters.Length; i++)
             {
                 var imageFilter = imageFilters[i];
-                if (imageFilter != null)
+                var skImageFilter = imageFilter.ToSKImageFilter();
+                if (skImageFilter != null)
                 {
-                    var skImageFilter = imageFilter.ToSKImageFilter();
-                    if (skImageFilter != null)
-                    {
-                        skImageFilters[i] = skImageFilter;
-                    }
+                    skImageFilters[i] = skImageFilter;
                 }
             }
 
@@ -747,84 +693,51 @@ namespace Svg.Skia
 
         public static SKBlendMode ToSKBlendMode(this BlendMode blendMode)
         {
-            switch (blendMode)
+            return blendMode switch
             {
-                default:
-                case BlendMode.Clear:
-                    return SKBlendMode.Clear;
-                case BlendMode.Src:
-                    return SKBlendMode.Src;
-                case BlendMode.Dst:
-                    return SKBlendMode.Dst;
-                case BlendMode.SrcOver:
-                    return SKBlendMode.SrcOver;
-                case BlendMode.DstOver:
-                    return SKBlendMode.DstOver;
-                case BlendMode.SrcIn:
-                    return SKBlendMode.SrcIn;
-                case BlendMode.DstIn:
-                    return SKBlendMode.DstIn;
-                case BlendMode.SrcOut:
-                    return SKBlendMode.SrcOut;
-                case BlendMode.DstOut:
-                    return SKBlendMode.DstOut;
-                case BlendMode.SrcATop:
-                    return SKBlendMode.SrcATop;
-                case BlendMode.DstATop:
-                    return SKBlendMode.DstATop;
-                case BlendMode.Xor:
-                    return SKBlendMode.Xor;
-                case BlendMode.Plus:
-                    return SKBlendMode.Plus;
-                case BlendMode.Modulate:
-                    return SKBlendMode.Modulate;
-                case BlendMode.Screen:
-                    return SKBlendMode.Screen;
-                case BlendMode.Overlay:
-                    return SKBlendMode.Overlay;
-                case BlendMode.Darken:
-                    return SKBlendMode.Darken;
-                case BlendMode.Lighten:
-                    return SKBlendMode.Lighten;
-                case BlendMode.ColorDodge:
-                    return SKBlendMode.ColorDodge;
-                case BlendMode.ColorBurn:
-                    return SKBlendMode.ColorBurn;
-                case BlendMode.HardLight:
-                    return SKBlendMode.HardLight;
-                case BlendMode.SoftLight:
-                    return SKBlendMode.SoftLight;
-                case BlendMode.Difference:
-                    return SKBlendMode.Difference;
-                case BlendMode.Exclusion:
-                    return SKBlendMode.Exclusion;
-                case BlendMode.Multiply:
-                    return SKBlendMode.Multiply;
-                case BlendMode.Hue:
-                    return SKBlendMode.Hue;
-                case BlendMode.Saturation:
-                    return SKBlendMode.Saturation;
-                case BlendMode.Color:
-                    return SKBlendMode.Color;
-                case BlendMode.Luminosity:
-                    return SKBlendMode.Luminosity;
-            }
+                BlendMode.Clear => SKBlendMode.Clear,
+                BlendMode.Src => SKBlendMode.Src,
+                BlendMode.Dst => SKBlendMode.Dst,
+                BlendMode.SrcOver => SKBlendMode.SrcOver,
+                BlendMode.DstOver => SKBlendMode.DstOver,
+                BlendMode.SrcIn => SKBlendMode.SrcIn,
+                BlendMode.DstIn => SKBlendMode.DstIn,
+                BlendMode.SrcOut => SKBlendMode.SrcOut,
+                BlendMode.DstOut => SKBlendMode.DstOut,
+                BlendMode.SrcATop => SKBlendMode.SrcATop,
+                BlendMode.DstATop => SKBlendMode.DstATop,
+                BlendMode.Xor => SKBlendMode.Xor,
+                BlendMode.Plus => SKBlendMode.Plus,
+                BlendMode.Modulate => SKBlendMode.Modulate,
+                BlendMode.Screen => SKBlendMode.Screen,
+                BlendMode.Overlay => SKBlendMode.Overlay,
+                BlendMode.Darken => SKBlendMode.Darken,
+                BlendMode.Lighten => SKBlendMode.Lighten,
+                BlendMode.ColorDodge => SKBlendMode.ColorDodge,
+                BlendMode.ColorBurn => SKBlendMode.ColorBurn,
+                BlendMode.HardLight => SKBlendMode.HardLight,
+                BlendMode.SoftLight => SKBlendMode.SoftLight,
+                BlendMode.Difference => SKBlendMode.Difference,
+                BlendMode.Exclusion => SKBlendMode.Exclusion,
+                BlendMode.Multiply => SKBlendMode.Multiply,
+                BlendMode.Hue => SKBlendMode.Hue,
+                BlendMode.Saturation => SKBlendMode.Saturation,
+                BlendMode.Color => SKBlendMode.Color,
+                BlendMode.Luminosity => SKBlendMode.Luminosity,
+                _ => SKBlendMode.Clear
+            };
         }
 
         public static SKFilterQuality ToSKFilterQuality(this FilterQuality filterQuality)
         {
-            switch (filterQuality)
+            return filterQuality switch
             {
-                default:
-                case FilterQuality.None:
-                    return SKFilterQuality.None;
-                case FilterQuality.Low:
-                    return SKFilterQuality.Low;
-                case FilterQuality.Medium:
-                    return SKFilterQuality.Medium;
-                case FilterQuality.High:
-                    return SKFilterQuality.High;
-            }
+                FilterQuality.None => SKFilterQuality.None,
+                FilterQuality.Low => SKFilterQuality.Low,
+                FilterQuality.Medium => SKFilterQuality.Medium,
+                FilterQuality.High => SKFilterQuality.High,
+                _ => SKFilterQuality.None
+            };
         }
 
         public static SKPaint ToSKPaint(this Paint paint)
@@ -842,7 +755,6 @@ namespace Svg.Skia
             var pathEffect = paint.PathEffect?.ToSKPathEffect();
             var blendMode = paint.BlendMode.ToSKBlendMode();
             var filterQuality = paint.FilterQuality.ToSKFilterQuality();
-
             return new SKPaint()
             {
                 Style = style,
@@ -869,50 +781,42 @@ namespace Svg.Skia
 
         public static SKClipOperation ToSKClipOperation(this ClipOperation clipOperation)
         {
-            switch (clipOperation)
+            return clipOperation switch
             {
-                default:
-                case ClipOperation.Difference:
-                    return SKClipOperation.Difference;
-                case ClipOperation.Intersect:
-                    return SKClipOperation.Intersect;
-            }
+                ClipOperation.Difference => SKClipOperation.Difference,
+                ClipOperation.Intersect => SKClipOperation.Intersect,
+                _ => SKClipOperation.Difference
+            };
         }
 
         public static SKPathFillType ToSKPathFillType(this PathFillType pathFillType)
         {
-            switch (pathFillType)
+            return pathFillType switch
             {
-                default:
-                case PathFillType.Winding:
-                    return SKPathFillType.Winding;
-                case PathFillType.EvenOdd:
-                    return SKPathFillType.EvenOdd;
-            }
+                PathFillType.Winding => SKPathFillType.Winding,
+                PathFillType.EvenOdd => SKPathFillType.EvenOdd,
+                _ => SKPathFillType.Winding
+            };
         }
 
         public static SKPathArcSize ToSKPathArcSize(this PathArcSize pathArcSize)
         {
-            switch (pathArcSize)
+            return pathArcSize switch
             {
-                default:
-                case PathArcSize.Small:
-                    return SKPathArcSize.Small;
-                case PathArcSize.Large:
-                    return SKPathArcSize.Large;
-            }
+                PathArcSize.Small => SKPathArcSize.Small,
+                PathArcSize.Large => SKPathArcSize.Large,
+                _ => SKPathArcSize.Small
+            };
         }
 
         public static SKPathDirection ToSKPathDirection(this PathDirection pathDirection)
         {
-            switch (pathDirection)
+            return pathDirection switch
             {
-                default:
-                case PathDirection.Clockwise:
-                    return SKPathDirection.Clockwise;
-                case PathDirection.CounterClockwise:
-                    return SKPathDirection.CounterClockwise;
-            }
+                PathDirection.Clockwise => SKPathDirection.Clockwise,
+                PathDirection.CounterClockwise => SKPathDirection.CounterClockwise,
+                _ => SKPathDirection.Clockwise
+            };
         }
 
         public static void ToSKPath(this PathCommand pathCommand, SKPath skPath)
@@ -1008,8 +912,6 @@ namespace Svg.Skia
                         }
                     }
                     break;
-                default:
-                    break;
             }
         }
 
@@ -1050,38 +952,32 @@ namespace Svg.Skia
                 }
 
                 var skPath = clip.Path.ToSKPath();
-                if (skPath != null)
+                var skPathClip = clip.Clip?.ToSKPath();
+                if (skPathClip != null)
                 {
-                    if (clip.Clip != null)
-                    {
-                        var skPathClip = clip.Clip.ToSKPath();
-                        if (skPathClip != null)
-                        {
-                            skPath = skPath.Op(skPathClip, SKPathOp.Intersect);
-                        }
-                    }
+                    skPath = skPath.Op(skPathClip, SKPathOp.Intersect);
+                }
 
-                    if (clip.Transform != null)
-                    {
-                        var skMatrix = clip.Transform.Value.ToSKMatrix();
-                        skPath.Transform(skMatrix);
-                    }
+                if (clip.Transform != null)
+                {
+                    var skMatrix = clip.Transform.Value.ToSKMatrix();
+                    skPath.Transform(skMatrix);
+                }
 
-                    if (skPathResult == null)
-                    {
-                        skPathResult = skPath;
-                    }
-                    else
-                    {
-                        var result = skPathResult.Op(skPath, SKPathOp.Union);
-                        skPathResult = result;
-                    }
+                if (skPathResult == null)
+                {
+                    skPathResult = skPath;
+                }
+                else
+                {
+                    var result = skPathResult.Op(skPath, SKPathOp.Union);
+                    skPathResult = result;
                 }
             }
 
             if (skPathResult != null)
             {
-                if (clipPath.Clip != null && clipPath.Clip.Clips != null)
+                if (clipPath.Clip?.Clips != null)
                 {
                     var skPathClip = clipPath.Clip.ToSKPath();
                     if (skPathClip != null)
@@ -1189,7 +1085,7 @@ namespace Svg.Skia
                     break;
                 case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:
                     {
-                        if (drawPositionedTextCanvasCommand.TextBlob != null && drawPositionedTextCanvasCommand.TextBlob.Points != null && drawPositionedTextCanvasCommand.Paint != null)
+                        if (drawPositionedTextCanvasCommand.TextBlob?.Points != null && drawPositionedTextCanvasCommand.Paint != null)
                         {
                             var text = drawPositionedTextCanvasCommand.TextBlob.Text;
                             var points = drawPositionedTextCanvasCommand.TextBlob.Points.ToSKPoints();
@@ -1224,8 +1120,6 @@ namespace Svg.Skia
                             skCanvas.DrawTextOnPath(text, path, hOffset, vOffset, paint);
                         }
                     }
-                    break;
-                default:
                     break;
             }
         }
