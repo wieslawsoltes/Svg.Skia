@@ -1,7 +1,7 @@
 ﻿using A = Avalonia;
 using AM = Avalonia.Media;
 
-namespace Avalonia.Svg.Picture.Commands
+namespace Avalonia.Svg.Commands
 {
     public sealed class RectangleDrawCommand : DrawCommand
     {

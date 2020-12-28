@@ -1,4 +1,4 @@
-﻿namespace Avalonia.Svg.Picture.Commands
+﻿namespace Avalonia.Svg.Commands
 {
     public sealed class SaveLayerDrawCommand : DrawCommand
     {

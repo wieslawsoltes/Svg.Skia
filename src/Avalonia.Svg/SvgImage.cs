@@ -4,8 +4,6 @@ using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Visuals.Media.Imaging;
 using SP = Svg.Model;
-using ASP = Avalonia.Svg.Picture;
-using Svg.Model;
 
 namespace Avalonia.Svg
 {
@@ -38,7 +36,7 @@ namespace Avalonia.Svg
             Source?.Picture != null ? new Size(Source.Picture.CullRect.Width, Source.Picture.CullRect.Height) : default;
 
         private SP.Picture? _previousPicture = null;
-        private ASP.AvaloniaPicture? _avaloniaPicture = null;
+        private AvaloniaPicture? _avaloniaPicture = null;
 
         /// <inheritdoc/>
         void IImage.Draw(
@@ -72,7 +70,7 @@ namespace Avalonia.Svg
                     {
                         _previousPicture = source.Picture;
                         _avaloniaPicture?.Dispose();
-                        _avaloniaPicture = ASP.AvaloniaPicture.Record(source.Picture);
+                        _avaloniaPicture = AvaloniaPicture.Record(source.Picture);
                     }
 
                     if (_avaloniaPicture != null)

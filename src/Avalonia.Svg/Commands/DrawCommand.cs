@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Avalonia.Svg.Picture.Commands
+namespace Avalonia.Svg.Commands
 {
     public abstract class DrawCommand : IDisposable
     {

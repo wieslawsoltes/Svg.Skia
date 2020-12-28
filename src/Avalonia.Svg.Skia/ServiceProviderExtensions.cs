@@ -1,9 +1,9 @@
 ﻿using System;
 using Avalonia.Markup.Xaml;
 
-namespace Avalonia.Svg
+namespace Avalonia.Svg.Skia
 {
-    internal static class Extensions
+    internal static class ServiceProviderExtensions
     {
         public static T GetService<T>(this IServiceProvider sp)
             => (T)sp?.GetService(typeof(T))!;
