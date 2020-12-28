@@ -275,7 +275,7 @@ namespace Svg.Model
                     new SvgUnit(SvgUnitType.User, svgUnit.Value / 100) : svgUnit;
         }
 
-        internal static T? GetReference<T>(this SvgElement svgElement, Uri uri) where T : SvgElement
+        internal static T? GetReference<T>(this SvgElement svgElement, Uri? uri) where T : SvgElement
         {
             if (uri is null)
             {
@@ -288,7 +288,7 @@ namespace Svg.Model
                 return svgElementById as T;
             }
 
-            return null;
+            return default;
         }
 
         internal static bool ElementReferencesUri<T>(this T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris, SvgElement? svgReferencedElement) where T : SvgElement
@@ -382,7 +382,7 @@ namespace Svg.Model
                 }
                 return svgElement;
             }
-            return null;
+            return default;
         }
 
         internal static bool HasRequiredFeatures(this SvgElement svgElement)
@@ -481,7 +481,10 @@ namespace Svg.Model
                                     hasSystemLanguage = true;
                                 }
                             }
-                            catch { }
+                            catch
+                            {
+                                // ignored
+                            }
                         }
                     }
                     else
@@ -615,7 +618,7 @@ namespace Svg.Model
                 return PathEffect.CreateDash(intervals, phase);
             }
 
-            return null;
+            return default;
         }
 
         private static List<SvgPatternServer> GetLinkedPatternServer(SvgPatternServer svgPatternServer, SvgVisualElement svgVisualElement)
@@ -1256,7 +1259,7 @@ namespace Svg.Model
                 y += skBounds.Top;
             }
 
-            Rect skRectTransformed = Rect.Create(x, y, width, height);
+            var skRectTransformed = Rect.Create(x, y, width, height);
 
             var skMatrix = Matrix.CreateIdentity();
 
@@ -1266,7 +1269,7 @@ namespace Svg.Model
             var translateTransform = Matrix.CreateTranslation(skRectTransformed.Left, skRectTransformed.Top);
             skMatrix = skMatrix.PreConcat(translateTransform);
 
-            Matrix skPictureTransform = Matrix.CreateIdentity();
+            var skPictureTransform = Matrix.CreateIdentity();
             if (!viewBox.Equals(SvgViewBox.Empty))
             {
                 var viewBoxTransform = ToMatrix(
@@ -1573,7 +1576,7 @@ namespace Svg.Model
                     Style = PaintStyle.StrokeAndFill
                 };
             }
-            return null;
+            return default;
         }
 
         internal static Paint.Paint? GetOpacityPaint(SvgElement svgElement)
@@ -1584,7 +1587,7 @@ namespace Svg.Model
             {
                 return skPaint;
             }
-            return null;
+            return default;
         }
 
         internal static Matrix ToMatrix(this SvgMatrix svgMatrix)
@@ -1758,7 +1761,7 @@ namespace Svg.Model
             // byte -> PathPointType
             var pathTypes = new List<(Point Point, byte Type)>();
 
-            if (path.Commands == null)
+            if (path.Commands is null)
             {
                 return pathTypes;
             }
@@ -1850,7 +1853,7 @@ namespace Svg.Model
         {
             if (svgPathSegmentList == null || svgPathSegmentList.Count <= 0)
             {
-                return null;
+                return default;
             }
 
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
@@ -1873,7 +1876,7 @@ namespace Svg.Model
                         {
                             if (isEndFigure && haveFigure == false)
                             {
-                                return null;
+                                return default;
                             }
 
                             if (isLast)
@@ -1904,7 +1907,7 @@ namespace Svg.Model
                         {
                             if (isEndFigure == false)
                             {
-                                return null;
+                                return default;
                             }
                             haveFigure = true;
                             float x = svgLineSegment.End.X;
@@ -1917,7 +1920,7 @@ namespace Svg.Model
                         {
                             if (isEndFigure == false)
                             {
-                                return null;
+                                return default;
                             }
                             haveFigure = true;
                             float x0 = svgCubicCurveSegment.FirstControlPoint.X;
@@ -1934,7 +1937,7 @@ namespace Svg.Model
                         {
                             if (isEndFigure == false)
                             {
-                                return null;
+                                return default;
                             }
                             haveFigure = true;
                             float x0 = svgQuadraticCurveSegment.ControlPoint.X;
@@ -1949,7 +1952,7 @@ namespace Svg.Model
                         {
                             if (isEndFigure == false)
                             {
-                                return null;
+                                return default;
                             }
                             haveFigure = true;
                             float rx = svgArcSegment.RadiusX;
@@ -1967,11 +1970,11 @@ namespace Svg.Model
                         {
                             if (isEndFigure == false)
                             {
-                                return null;
+                                return default;
                             }
                             if (haveFigure == false)
                             {
-                                return null;
+                                return default;
                             }
                             isEndFigure = false;
                             haveFigure = false;
@@ -1981,12 +1984,9 @@ namespace Svg.Model
                 }
             }
 
-            if (isEndFigure)
+            if (isEndFigure && haveFigure == false)
             {
-                if (haveFigure == false)
-                {
-                    return null;
-                }
+                return default;
             }
 
             return skPath;
@@ -2032,7 +2032,7 @@ namespace Svg.Model
             if (width <= 0f || height <= 0f)
             {
                 skPath.Dispose();
-                return null;
+                return default;
             }
 
             if (rx < 0f && ry < 0f)
@@ -2105,7 +2105,7 @@ namespace Svg.Model
             if (radius <= 0f)
             {
                 skPath.Dispose();
-                return null;
+                return default;
             }
 
             skPath.AddCircle(cx, cy, radius);
@@ -2129,7 +2129,7 @@ namespace Svg.Model
             if (rx <= 0f || ry <= 0f)
             {
                 skPath.Dispose();
-                return null;
+                return default;
             }
 
             var skRectBounds = Rect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
@@ -2184,16 +2184,21 @@ namespace Svg.Model
             {
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine(ex.StackTrace);
-                return null;
+                return default;
             }
         }
 
-        internal static object GetImageFromWeb(Uri uri, IAssetLoader assetLoader)
+        internal static object? GetImageFromWeb(Uri uri, IAssetLoader assetLoader)
         {
             var request = WebRequest.Create(uri);
             using var response = request.GetResponse();
             using var stream = response.GetResponseStream();
 
+            if (stream is null)
+            {
+                return default;
+            }
+            
             if (stream.CanSeek)
             {
                 stream.Position = 0;
@@ -2220,8 +2225,13 @@ namespace Svg.Model
             }
         }
 
-        internal static object? GetImageFromDataUri(string uriString, SvgDocument svgOwnerDocument, IAssetLoader assetLoader)
+        internal static object? GetImageFromDataUri(string? uriString, SvgDocument svgOwnerDocument, IAssetLoader assetLoader)
         {
+            if (uriString is null)
+            {
+                return default;
+            }
+            
             var headerStartIndex = 5;
             var headerEndIndex = uriString.IndexOf(",", headerStartIndex);
             if (headerEndIndex < 0 || headerEndIndex + 1 >= uriString.Length)
@@ -2268,7 +2278,6 @@ namespace Svg.Model
                 if (base64)
                 {
                     var bytes = Convert.FromBase64String(data);
-
                     if (bytes.Length > 2)
                     {
                         bool isCompressed = bytes[0] == s_gZipMagicHeaderBytes[0] && bytes[1] == s_gZipMagicHeaderBytes[1];
@@ -2278,7 +2287,6 @@ namespace Svg.Model
                             return LoadSvgz(bytesStream, svgOwnerDocument.BaseUri);
                         }
                     }
-
                     var encoding = string.IsNullOrEmpty(charset) ? Encoding.UTF8 : Encoding.GetEncoding(charset);
                     data = encoding.GetString(bytes);
                 }
