@@ -248,7 +248,7 @@ namespace Svg.Model
 
                         default:
                         case UnitRenderingType.Other:
-                            if (owner?.OwnerDocument?.ViewBox != null && owner.OwnerDocument.ViewBox.Width != 0 && owner.OwnerDocument.ViewBox.Height != 0)
+                            if (owner?.OwnerDocument?.ViewBox is { } && owner.OwnerDocument.ViewBox.Width != 0 && owner.OwnerDocument.ViewBox.Height != 0)
                             {
                                 _deviceValue = (float)(Math.Sqrt(Math.Pow(owner.OwnerDocument.ViewBox.Width, 2) + Math.Pow(owner.OwnerDocument.ViewBox.Height, 2)) / Math.Sqrt(2) * value / 100.0);
                             }
