@@ -1,4 +1,5 @@
 ﻿using Svg.Document_Structure;
+using Svg.Model.Primitives;
 
 namespace Svg.Model.Drawables
 {

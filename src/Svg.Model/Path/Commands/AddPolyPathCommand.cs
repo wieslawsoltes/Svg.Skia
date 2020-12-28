@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using Svg.Model.Primitives;
 
-namespace Svg.Model
+namespace Svg.Model.Path.Commands
 {
     public sealed class AddPolyPathCommand : PathCommand
     {

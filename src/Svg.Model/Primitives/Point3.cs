@@ -1,4 +1,4 @@
-﻿namespace Svg.Model
+﻿namespace Svg.Model.Primitives
 {
     public readonly struct Point3
     {

@@ -1,5 +1,7 @@
 ﻿
-namespace Svg.Model
+using Svg.Model.Primitives;
+
+namespace Svg.Model.Path.Commands
 {
     public sealed class AddRoundRectPathCommand : PathCommand
     {

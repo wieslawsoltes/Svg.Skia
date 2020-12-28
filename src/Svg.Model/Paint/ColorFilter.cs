@@ -1,6 +1,7 @@
 ﻿using System;
+using Svg.Model.ColorFilters;
 
-namespace Svg.Model
+namespace Svg.Model.Paint
 {
     public abstract class ColorFilter : IDisposable
     {

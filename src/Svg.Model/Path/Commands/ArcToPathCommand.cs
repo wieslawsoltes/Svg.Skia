@@ -1,5 +1,5 @@
 ﻿
-namespace Svg.Model
+namespace Svg.Model.Path.Commands
 {
     public sealed class ArcToPathCommand : PathCommand
     {

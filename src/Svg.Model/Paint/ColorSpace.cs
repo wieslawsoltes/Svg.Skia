@@ -1,4 +1,4 @@
-﻿namespace Svg.Model
+﻿namespace Svg.Model.Paint
 {
     public enum ColorSpace
     {

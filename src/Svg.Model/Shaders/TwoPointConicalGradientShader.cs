@@ -1,4 +1,7 @@
-﻿namespace Svg.Model
+﻿using Svg.Model.Paint;
+using Svg.Model.Primitives;
+
+namespace Svg.Model.Shaders
 {
     public sealed class TwoPointConicalGradientShader : Shader
     {

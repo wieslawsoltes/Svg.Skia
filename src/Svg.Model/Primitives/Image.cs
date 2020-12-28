@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Svg.Model
+namespace Svg.Model.Primitives
 {
     public class Image : IDisposable
     {

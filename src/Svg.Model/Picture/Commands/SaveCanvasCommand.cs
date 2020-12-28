@@ -1,5 +1,5 @@
 ﻿
-namespace Svg.Model
+namespace Svg.Model.Picture.Commands
 {
     public sealed class SaveCanvasCommand : CanvasCommand
     {

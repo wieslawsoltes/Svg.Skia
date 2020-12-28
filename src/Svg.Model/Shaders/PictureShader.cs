@@ -1,8 +1,11 @@
-﻿namespace Svg.Model
+﻿using Svg.Model.Paint;
+using Svg.Model.Primitives;
+
+namespace Svg.Model.Shaders
 {
     public sealed class PictureShader : Shader
     {
-        public Picture? Src { get; set; }
+        public Picture.Picture? Src { get; set; }
         public ShaderTileMode TmX { get; set; }
         public ShaderTileMode TmY { get; set; }
         public Matrix LocalMatrix { get; set; }

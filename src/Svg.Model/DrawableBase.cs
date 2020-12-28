@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using System.Globalization;
 using Svg.Model.Drawables;
+using Svg.Model.Paint;
+using Svg.Model.Path;
+using Svg.Model.Picture;
+using Svg.Model.Primitives;
 
 namespace Svg.Model
 {
@@ -20,12 +24,12 @@ namespace Svg.Model
         public Rect? Clip;
         public ClipPath? ClipPath;
         public MaskDrawable? MaskDrawable;
-        public Paint? Mask;
-        public Paint? MaskDstIn;
-        public Paint? Opacity;
-        public Paint? Filter;
-        public Paint? Fill;
-        public Paint? Stroke;
+        public Paint.Paint? Mask;
+        public Paint.Paint? MaskDstIn;
+        public Paint.Paint? Opacity;
+        public Paint.Paint? Filter;
+        public Paint.Paint? Fill;
+        public Paint.Paint? Stroke;
 
         protected DrawableBase(IAssetLoader assetLoader)
         {
@@ -51,7 +55,7 @@ namespace Svg.Model
 
         protected virtual void CreateMaskPaints()
         {
-            Mask = new Paint()
+            Mask = new Paint.Paint()
             {
                 IsAntialias = true,
                 Style = PaintStyle.StrokeAndFill
@@ -61,7 +65,7 @@ namespace Svg.Model
             var lumaColor = ColorFilter.CreateLumaColor();
             Disposable.Add(lumaColor);
 
-            MaskDstIn = new Paint
+            MaskDstIn = new Paint.Paint
             {
                 IsAntialias = true,
                 Style = PaintStyle.StrokeAndFill,
@@ -182,9 +186,9 @@ namespace Svg.Model
 
             if (visualElement != null && enableClip)
             {
-                var clipPath = new Svg.Model.ClipPath()
+                var clipPath = new ClipPath()
                 {
-                    Clip = new Svg.Model.ClipPath()
+                    Clip = new ClipPath()
                 };
                 SvgModelExtensions.GetSvgVisualElementClipPath(visualElement, TransformedBounds, new HashSet<Uri>(), Disposable, clipPath);
                 if (clipPath.Clips != null && clipPath.Clips.Count > 0)
@@ -288,7 +292,7 @@ namespace Svg.Model
             return null;
         }
 
-        public Picture? RecordGraphic(DrawableBase? drawable, Attributes ignoreAttributes)
+        public Picture.Picture? RecordGraphic(DrawableBase? drawable, Attributes ignoreAttributes)
         {
             // TODO: Record using ColorSpace.CreateSrgbLinear because .color-interpolation-filters. is by default linearRGB.
             if (drawable == null)
@@ -309,7 +313,7 @@ namespace Svg.Model
             return skPictureRecorder.EndRecording();
         }
 
-        public Picture? RecordBackground(DrawableBase? drawable, Attributes ignoreAttributes)
+        public Picture.Picture? RecordBackground(DrawableBase? drawable, Attributes ignoreAttributes)
         {
             // TODO: Record using ColorSpace.CreateSrgbLinear because 'color-interpolation-filters' is by default linearRGB.
             if (drawable == null)
@@ -337,12 +341,12 @@ namespace Svg.Model
 
         public const Attributes FilterInput = Attributes.ClipPath | Attributes.Mask | Attributes.Opacity | Attributes.Filter;
 
-        Picture? IFilterSource.SourceGraphic() => RecordGraphic(this, FilterInput);
+        Picture.Picture? IFilterSource.SourceGraphic() => RecordGraphic(this, FilterInput);
 
-        Picture? IFilterSource.BackgroundImage() => RecordBackground(this, FilterInput);
+        Picture.Picture? IFilterSource.BackgroundImage() => RecordBackground(this, FilterInput);
 
-        Paint? IFilterSource.FillPaint() => Fill;
+        Paint.Paint? IFilterSource.FillPaint() => Fill;
 
-        Paint? IFilterSource.StrokePaint() => Stroke;
+        Paint.Paint? IFilterSource.StrokePaint() => Stroke;
     }
 }

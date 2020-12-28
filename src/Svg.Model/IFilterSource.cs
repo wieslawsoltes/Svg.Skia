@@ -2,12 +2,12 @@
 {
     internal interface IFilterSource
     {
-        Picture? SourceGraphic();
+        Picture.Picture? SourceGraphic();
 
-        Picture? BackgroundImage();
+        Picture.Picture? BackgroundImage();
 
-        Paint? FillPaint();
+        Paint.Paint? FillPaint();
 
-        Paint? StrokePaint();
+        Paint.Paint? StrokePaint();
     }
 }

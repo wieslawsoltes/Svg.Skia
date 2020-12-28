@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using Svg.Document_Structure;
+using Svg.Model.Picture;
+using Svg.Model.Primitives;
 
 namespace Svg.Model.Drawables
 {

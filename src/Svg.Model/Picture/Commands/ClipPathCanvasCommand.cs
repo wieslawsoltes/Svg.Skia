@@ -1,5 +1,8 @@
 ﻿
-namespace Svg.Model
+using Svg.Model.Paint;
+using Svg.Model.Path;
+
+namespace Svg.Model.Picture.Commands
 {
     public sealed class ClipPathCanvasCommand : CanvasCommand
     {

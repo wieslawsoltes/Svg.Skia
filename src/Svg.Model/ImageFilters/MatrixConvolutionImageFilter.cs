@@ -1,5 +1,9 @@
 ﻿
-namespace Svg.Model
+using Svg.Model.Paint;
+using Svg.Model.Primitives;
+using Svg.Model.Shaders;
+
+namespace Svg.Model.ImageFilters
 {
     public sealed class MatrixConvolutionImageFilter : ImageFilter
     {

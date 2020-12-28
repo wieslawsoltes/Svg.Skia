@@ -5,9 +5,10 @@ using System.CommandLine.Invocation;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Svg.CodeGen;
+using Svg.CodeGen.Skia;
 using SLIS = SixLabors.ImageSharp;
 using SM = Svg.Model;
+using SMP = Svg.Model.Primitives;
 
 namespace svgc
 {
@@ -30,11 +31,11 @@ namespace svgc
 
     class ImageSharpAssetLoader : SM.IAssetLoader
     {
-        public SM.Image LoadImage(Stream stream)
+        public SMP.Image LoadImage(Stream stream)
         {
-            var data = SM.Image.FromStream(stream);
+            var data = SMP.Image.FromStream(stream);
             using var image = SLIS.Image.Load(data);
-            return new SM.Image()
+            return new SMP.Image()
             {
                 Data = data,
                 Width = image.Width,

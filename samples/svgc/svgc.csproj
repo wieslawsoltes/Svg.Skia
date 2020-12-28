@@ -21,10 +21,6 @@
   <ItemGroup>
     <PublishReadyToRunExclude Include="Microsoft.CodeAnalysis.dll" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\..\src\Svg.Skia.CodeGen\SkiaCodeGen.cs" Link="SkiaCodeGen.cs" />
-  </ItemGroup>
   
   <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\SignAssembly.props" />
@@ -39,6 +35,12 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Svg.Custom\Svg.Custom.csproj" />
     <ProjectReference Include="..\..\src\Svg.Model\Svg.Model.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\Svg.CodeGen.Skia\SkiaCodeGen.cs">
+      <Link>SkiaCodeGen.cs</Link>
+    </Compile>
   </ItemGroup>
 
 </Project>

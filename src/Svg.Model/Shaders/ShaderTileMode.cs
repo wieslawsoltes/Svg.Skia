@@ -1,4 +1,4 @@
-﻿namespace Svg.Model
+﻿namespace Svg.Model.Shaders
 {
     public enum ShaderTileMode
     {

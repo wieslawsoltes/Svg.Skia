@@ -1,5 +1,7 @@
 ﻿
-namespace Svg.Model
+using Svg.Model.Paint;
+
+namespace Svg.Model.PathEffects
 {
     public class DashPathEffect : PathEffect
     {

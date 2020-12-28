@@ -1,5 +1,8 @@
 ﻿
-namespace Svg.Model
+using Svg.Model.Paint;
+using Svg.Model.Primitives;
+
+namespace Svg.Model.ImageFilters
 {
     public sealed class DistantLitDiffuseImageFilter : ImageFilter
     {

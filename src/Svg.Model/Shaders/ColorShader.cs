@@ -1,4 +1,6 @@
-﻿namespace Svg.Model
+﻿using Svg.Model.Paint;
+
+namespace Svg.Model.Shaders
 {
     public sealed class ColorShader : Shader
     {

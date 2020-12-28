@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Svg.Model.Path;
+using Svg.Model.Primitives;
 
 namespace Svg.Model.Drawables
 {
@@ -77,9 +79,9 @@ namespace Svg.Model.Drawables
             var svgClipPath = svgFragment.GetUriElementReference<SvgClipPath>("clip-path", clipPathUris);
             if (svgClipPath != null && svgClipPath.Children != null)
             {
-                var clipPath = new Svg.Model.ClipPath()
+                var clipPath = new ClipPath()
                 {
-                    Clip = new Svg.Model.ClipPath()
+                    Clip = new ClipPath()
                 };
                 SvgModelExtensions.GetClipPath(svgClipPath, drawable.TransformedBounds, clipPathUris, drawable.Disposable, clipPath);
                 if (clipPath.Clips != null && clipPath.Clips.Count > 0 && !drawable.IgnoreAttributes.HasFlag(Attributes.ClipPath))

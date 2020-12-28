@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Svg.Model.Primitives;
 
 namespace Svg.Model
 {

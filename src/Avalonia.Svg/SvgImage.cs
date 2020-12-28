@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Visuals.Media.Imaging;
+using Svg.Model.Picture;
 using SP = Svg.Model;
 
 namespace Avalonia.Svg
@@ -35,7 +36,7 @@ namespace Avalonia.Svg
         public Size Size =>
             Source?.Picture != null ? new Size(Source.Picture.CullRect.Width, Source.Picture.CullRect.Height) : default;
 
-        private SP.Picture? _previousPicture = null;
+        private Picture? _previousPicture = null;
         private AvaloniaPicture? _avaloniaPicture = null;
 
         /// <inheritdoc/>

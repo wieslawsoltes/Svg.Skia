@@ -1,4 +1,6 @@
-﻿namespace Svg.Model
+﻿using Svg.Model.Picture;
+
+namespace Svg.Model
 {
     internal interface IPictureSource
     {

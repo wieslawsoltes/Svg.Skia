@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Svg.Model.Primitives;
 
-namespace Svg.Model
+namespace Svg.Model.Path
 {
     public class ClipPath : IDisposable
     {

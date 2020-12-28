@@ -1,4 +1,6 @@
-﻿namespace Svg.Model.Drawables
+﻿using Svg.Model.Primitives;
+
+namespace Svg.Model.Drawables
 {
     public sealed class GroupDrawable : DrawableContainer
     {

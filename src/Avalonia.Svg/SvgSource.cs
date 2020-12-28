@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using Svg.Model.Picture;
 using SP = Svg.Model;
 
 namespace Avalonia.Svg
@@ -9,6 +10,6 @@ namespace Avalonia.Svg
     [TypeConverter(typeof(SvgSourceTypeConverter))]
     public class SvgSource
     {
-        public SP.Picture? Picture { get; set; }
+        public Picture? Picture { get; set; }
     }
 }

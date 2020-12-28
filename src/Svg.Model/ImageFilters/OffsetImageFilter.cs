@@ -1,5 +1,7 @@
 ﻿
-namespace Svg.Model
+using Svg.Model.Paint;
+
+namespace Svg.Model.ImageFilters
 {
     public sealed class OffsetImageFilter : ImageFilter
     {

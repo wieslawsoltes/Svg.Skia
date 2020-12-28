@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using Svg.Model.Paint;
+using Svg.Model.Path;
+using Svg.Model.Picture;
+using Svg.Model.Primitives;
 
 namespace Svg.Model.Drawables
 {
@@ -110,7 +114,7 @@ namespace Svg.Model.Drawables
             };
         }
 
-        internal void BeginDraw(SvgTextBase svgTextBase, Canvas skCanvas, Rect skBounds, Attributes ignoreAttributes, CompositeDisposable disposable, out MaskDrawable? maskDrawable, out Paint? maskDstIn, out Paint? skPaintOpacity, out Paint? skPaintFilter)
+        internal void BeginDraw(SvgTextBase svgTextBase, Canvas skCanvas, Rect skBounds, Attributes ignoreAttributes, CompositeDisposable disposable, out MaskDrawable? maskDrawable, out Paint.Paint? maskDstIn, out Paint.Paint? skPaintOpacity, out Paint.Paint? skPaintFilter)
         {
             var enableClip = !ignoreAttributes.HasFlag(Attributes.ClipPath);
             var enableMask = !ignoreAttributes.HasFlag(Attributes.Mask);
@@ -127,9 +131,9 @@ namespace Svg.Model.Drawables
 
             if (enableClip)
             {
-                var clipPath = new Svg.Model.ClipPath()
+                var clipPath = new ClipPath()
                 {
-                    Clip = new Svg.Model.ClipPath()
+                    Clip = new ClipPath()
                 };
                 SvgModelExtensions.GetSvgVisualElementClipPath(svgTextBase, TransformedBounds, new HashSet<Uri>(), disposable, clipPath);
                 if (clipPath.Clips != null && clipPath.Clips.Count > 0 && !IgnoreAttributes.HasFlag(Attributes.ClipPath))
@@ -141,12 +145,12 @@ namespace Svg.Model.Drawables
 
             if (enableMask)
             {
-                var mask = default(Paint);
-                maskDstIn = default(Paint);
+                var mask = default(Paint.Paint);
+                maskDstIn = default(Paint.Paint);
                 maskDrawable = SvgModelExtensions.GetSvgElementMask(svgTextBase, skBounds, new HashSet<Uri>(), disposable, AssetLoader);
                 if (maskDrawable != null)
                 {
-                    mask = new Paint()
+                    mask = new Paint.Paint()
                     {
                         IsAntialias = true,
                         Style = PaintStyle.StrokeAndFill
@@ -156,7 +160,7 @@ namespace Svg.Model.Drawables
                     var lumaColor = ColorFilter.CreateLumaColor();
                     Disposable.Add(lumaColor);
 
-                    maskDstIn = new Paint
+                    maskDstIn = new Paint.Paint
                     {
                         IsAntialias = true,
                         Style = PaintStyle.StrokeAndFill,
@@ -201,7 +205,7 @@ namespace Svg.Model.Drawables
             }
         }
 
-        internal void EndDraw(Canvas skCanvas, Attributes ignoreAttributes, MaskDrawable? maskDrawable, Paint? maskDstIn, Paint? skPaintOpacity, Paint? skPaintFilter, DrawableBase? until)
+        internal void EndDraw(Canvas skCanvas, Attributes ignoreAttributes, MaskDrawable? maskDrawable, Paint.Paint? maskDstIn, Paint.Paint? skPaintOpacity, Paint.Paint? skPaintFilter, DrawableBase? until)
         {
             var enableMask = !ignoreAttributes.HasFlag(Attributes.Mask);
             var enableOpacity = !ignoreAttributes.HasFlag(Attributes.Opacity);
@@ -325,7 +329,7 @@ namespace Svg.Model.Drawables
                     {
                         SvgModelExtensions.SetPaintText(svgTextBase, skBounds, skPaint, Disposable);
 
-                        var textBlob = new Svg.Model.TextBlob()
+                        var textBlob = new TextBlob()
                         {
                             Text = text,
                             Points = points
@@ -340,7 +344,7 @@ namespace Svg.Model.Drawables
                     if (skPaint != null)
                     {
                         SvgModelExtensions.SetPaintText(svgTextBase, skBounds, skPaint, Disposable);
-                        var textBlob = new Svg.Model.TextBlob()
+                        var textBlob = new TextBlob()
                         {
                             Text = text,
                             Points = points

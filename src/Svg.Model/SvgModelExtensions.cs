@@ -9,6 +9,13 @@ using Svg.DataTypes;
 using Svg.Document_Structure;
 using Svg.FilterEffects;
 using Svg.Model.Drawables;
+using Svg.Model.ImageFilters;
+using Svg.Model.Paint;
+using Svg.Model.Path;
+using Svg.Model.Path.Commands;
+using Svg.Model.Picture;
+using Svg.Model.Primitives;
+using Svg.Model.Shaders;
 using Svg.Pathing;
 using Svg.Transforms;
 
@@ -1079,7 +1086,7 @@ namespace Svg.Model
             }
         }
 
-        internal static Picture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, Matrix skMatrix, float opacity, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static Picture.Picture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, Matrix skMatrix, float opacity, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
             var skSize = new Size(width, height);
             var skBounds = Rect.Create(skSize);
@@ -1286,7 +1293,7 @@ namespace Svg.Model
             return Shader.CreatePicture(skPicture, ShaderTileMode.Repeat, ShaderTileMode.Repeat, skMatrix, skPicture.CullRect);
         }
 
-        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, Rect skBounds, Paint skPaint, bool forStroke, IAssetLoader assetLoader, Attributes ignoreAttributes, CompositeDisposable disposable)
+        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, Rect skBounds, Paint.Paint skPaint, bool forStroke, IAssetLoader assetLoader, Attributes ignoreAttributes, CompositeDisposable disposable)
         {
             var fallbackServer = SvgPaintServer.None;
             if (server is SvgDeferredPaintServer deferredServer)
@@ -1497,7 +1504,7 @@ namespace Svg.Model
             return true;
         }
 
-        internal static void SetDash(SvgVisualElement svgVisualElement, Paint skPaint, Rect skBounds, CompositeDisposable disposable)
+        internal static void SetDash(SvgVisualElement svgVisualElement, Paint.Paint skPaint, Rect skBounds, CompositeDisposable disposable)
         {
             var skPathEffect = CreateDash(svgVisualElement, skBounds);
             if (skPathEffect != null)
@@ -1539,9 +1546,9 @@ namespace Svg.Model
                 && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
         }
 
-        internal static Paint? GetFillPaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes, CompositeDisposable disposable)
+        internal static Paint.Paint? GetFillPaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes, CompositeDisposable disposable)
         {
-            var skPaint = new Paint()
+            var skPaint = new Paint.Paint()
             {
                 IsAntialias = IsAntialias(svgVisualElement),
                 Style = PaintStyle.Fill
@@ -1558,9 +1565,9 @@ namespace Svg.Model
             return skPaint;
         }
 
-        internal static Paint? GetStrokePaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes, CompositeDisposable disposable)
+        internal static Paint.Paint? GetStrokePaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes, CompositeDisposable disposable)
         {
-            var skPaint = new Paint()
+            var skPaint = new Paint.Paint()
             {
                 IsAntialias = IsAntialias(svgVisualElement),
                 Style = PaintStyle.Stroke
@@ -1617,11 +1624,11 @@ namespace Svg.Model
             return skPaint;
         }
 
-        internal static Paint? GetOpacityPaint(float opacity)
+        internal static Paint.Paint? GetOpacityPaint(float opacity)
         {
             if (opacity < 1f)
             {
-                return new Paint
+                return new Paint.Paint
                 {
                     IsAntialias = true,
                     Color = new Color(255, 255, 255, (byte)Math.Round(opacity * 255)),
@@ -1631,7 +1638,7 @@ namespace Svg.Model
             return null;
         }
 
-        internal static Paint? GetOpacityPaint(SvgElement svgElement, CompositeDisposable disposable)
+        internal static Paint.Paint? GetOpacityPaint(SvgElement svgElement, CompositeDisposable disposable)
         {
             float opacity = AdjustSvgOpacity(svgElement.Opacity);
             var skPaint = GetOpacityPaint(opacity);
@@ -1810,7 +1817,7 @@ namespace Svg.Model
             return skMatrixTotal;
         }
 
-        internal static List<(Point Point, byte Type)> GetPathTypes(this Path path)
+        internal static List<(Point Point, byte Type)> GetPathTypes(this Path.Path path)
         {
             // System.Drawing.Drawing2D.GraphicsPath.PathTypes
             // System.Drawing.Drawing2D.PathPointType
@@ -1905,7 +1912,7 @@ namespace Svg.Model
             return pathTypes;
         }
 
-        internal static Path? ToPath(this SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        internal static Path.Path? ToPath(this SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule, CompositeDisposable disposable)
         {
             if (svgPathSegmentList == null || svgPathSegmentList.Count <= 0)
             {
@@ -1913,7 +1920,7 @@ namespace Svg.Model
             }
 
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path()
+            var skPath = new Path.Path()
             {
                 FillType = fillType
             };
@@ -2052,10 +2059,10 @@ namespace Svg.Model
             return skPath;
         }
 
-        internal static Path? ToPath(this SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, Rect skOwnerBounds, CompositeDisposable disposable)
+        internal static Path.Path? ToPath(this SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, Rect skOwnerBounds, CompositeDisposable disposable)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path()
+            var skPath = new Path.Path()
             {
                 FillType = fillType
             };
@@ -2075,10 +2082,10 @@ namespace Svg.Model
             return skPath;
         }
 
-        internal static Path? ToPath(this SvgRectangle svgRectangle, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
+        internal static Path.Path? ToPath(this SvgRectangle svgRectangle, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path()
+            var skPath = new Path.Path()
             {
                 FillType = fillType
             };
@@ -2152,10 +2159,10 @@ namespace Svg.Model
             return skPath;
         }
 
-        internal static Path? ToPath(this SvgCircle svgCircle, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
+        internal static Path.Path? ToPath(this SvgCircle svgCircle, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path()
+            var skPath = new Path.Path()
             {
                 FillType = fillType
             };
@@ -2176,10 +2183,10 @@ namespace Svg.Model
             return skPath;
         }
 
-        internal static Path? ToPath(this SvgEllipse svgEllipse, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
+        internal static Path.Path? ToPath(this SvgEllipse svgEllipse, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path()
+            var skPath = new Path.Path()
             {
                 FillType = fillType
             };
@@ -2203,10 +2210,10 @@ namespace Svg.Model
             return skPath;
         }
 
-        internal static Path? ToPath(this SvgLine svgLine, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
+        internal static Path.Path? ToPath(this SvgLine svgLine, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path()
+            var skPath = new Path.Path()
             {
                 FillType = fillType
             };
@@ -2714,7 +2721,7 @@ namespace Svg.Model
             {
                 var pathClip = new PathClip
                 {
-                    Path = new Path(),
+                    Path = new Path.Path(),
                     Transform = Matrix.CreateIdentity(),
                     Clip = null
                 };
@@ -2878,7 +2885,7 @@ namespace Svg.Model
             disposable.Add(markerDrawable);
         }
 
-        internal static void CreateMarkers(this SvgMarkerElement svgMarkerElement, Path skPath, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable, IAssetLoader assetLoader)
+        internal static void CreateMarkers(this SvgMarkerElement svgMarkerElement, Path.Path skPath, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable, IAssetLoader assetLoader)
         {
             var pathTypes = skPath.GetPathTypes();
             var pathLength = pathTypes.Count;
@@ -3725,7 +3732,7 @@ namespace Svg.Model
 
             var seed = svgTurbulence.Seed;
 
-            var skPaint = new Paint()
+            var skPaint = new Paint.Paint()
             {
                 Style = PaintStyle.StrokeAndFill
             };
@@ -3769,14 +3776,14 @@ namespace Svg.Model
             return ImageFilter.CreatePaint(skPaint, cropRect);
         }
 
-        internal static ImageFilter? GetGraphic(Picture skPicture, CompositeDisposable disposable)
+        internal static ImageFilter? GetGraphic(Picture.Picture skPicture, CompositeDisposable disposable)
         {
             var skImageFilter = ImageFilter.CreatePicture(skPicture, skPicture.CullRect);
             disposable.Add(skImageFilter);
             return skImageFilter;
         }
 
-        internal static ImageFilter? GetAlpha(Picture skPicture, CompositeDisposable disposable)
+        internal static ImageFilter? GetAlpha(Picture.Picture skPicture, CompositeDisposable disposable)
         {
             var skImageFilterGraphic = GetGraphic(skPicture, disposable);
 
@@ -3796,7 +3803,7 @@ namespace Svg.Model
             return skImageFilter;
         }
 
-        internal static ImageFilter? GetPaint(Paint skPaint, CompositeDisposable disposable)
+        internal static ImageFilter? GetPaint(Paint.Paint skPaint, CompositeDisposable disposable)
         {
             var skImageFilter = ImageFilter.CreatePaint(skPaint);
             disposable.Add(skImageFilter);
@@ -3805,7 +3812,7 @@ namespace Svg.Model
 
         internal static ImageFilter GetTransparentBlackImage(CompositeDisposable disposable)
         {
-            var skPaint = new Paint()
+            var skPaint = new Paint.Paint()
             {
                 Style = PaintStyle.StrokeAndFill,
                 Color = s_transparentBlack
@@ -3819,7 +3826,7 @@ namespace Svg.Model
 
         internal static ImageFilter GetTransparentBlackAlpha(CompositeDisposable disposable)
         {
-            var skPaint = new Paint()
+            var skPaint = new Paint.Paint()
             {
                 Style = PaintStyle.StrokeAndFill,
                 Color = s_transparentBlack
@@ -4026,7 +4033,7 @@ namespace Svg.Model
             return svgFilters;
         }
 
-        internal static Paint? GetFilterPaint(SvgVisualElement svgVisualElement, Rect skBounds, IFilterSource filterSource, CompositeDisposable disposable, IAssetLoader assetLoader, out bool isValid)
+        internal static Paint.Paint? GetFilterPaint(SvgVisualElement svgVisualElement, Rect skBounds, IFilterSource filterSource, CompositeDisposable disposable, IAssetLoader assetLoader, out bool isValid)
         {
             var filter = svgVisualElement.Filter;
             if (filter == null || IsNone(filter))
@@ -4476,7 +4483,7 @@ namespace Svg.Model
 
             if (lastResult != null)
             {
-                var skPaint = new Paint
+                var skPaint = new Paint.Paint
                 {
                     Style = PaintStyle.StrokeAndFill
                 };
@@ -4627,7 +4634,7 @@ namespace Svg.Model
             };
         }
 
-        private static void SetTypeface(SvgTextBase svgText, Paint skPaint, CompositeDisposable disposable)
+        private static void SetTypeface(SvgTextBase svgText, Paint.Paint skPaint, CompositeDisposable disposable)
         {
             var fontFamily = svgText.FontFamily;
             var fontWeight = ToFontStyleWeight(svgText.FontWeight);
@@ -4643,7 +4650,7 @@ namespace Svg.Model
             };
         }
 
-        internal static void SetPaintText(SvgTextBase svgText, Rect skBounds, Paint skPaint, CompositeDisposable disposable)
+        internal static void SetPaintText(SvgTextBase svgText, Rect skBounds, Paint.Paint skPaint, CompositeDisposable disposable)
         {
             skPaint.LcdRenderText = true;
             skPaint.SubpixelText = true;
@@ -4736,7 +4743,7 @@ namespace Svg.Model
             return new Size(w, h);
         }
 
-        public static Picture? ToModel(SvgFragment svgFragment, IAssetLoader assetLoader)
+        public static Picture.Picture? ToModel(SvgFragment svgFragment, IAssetLoader assetLoader)
         {
             var size = GetDimensions(svgFragment);
             var bounds = Rect.Create(size);

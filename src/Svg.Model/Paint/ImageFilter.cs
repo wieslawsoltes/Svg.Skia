@@ -1,6 +1,9 @@
 ﻿using System;
+using Svg.Model.ImageFilters;
+using Svg.Model.Primitives;
+using Svg.Model.Shaders;
 
-namespace Svg.Model
+namespace Svg.Model.Paint
 {
     public sealed class CropRect
     {
@@ -183,7 +186,7 @@ namespace Svg.Model
             };
         }
 
-        public static ImageFilter CreatePicture(Picture picture, Rect cropRect)
+        public static ImageFilter CreatePicture(Picture.Picture picture, Rect cropRect)
         {
             return new PictureImageFilter()
             {

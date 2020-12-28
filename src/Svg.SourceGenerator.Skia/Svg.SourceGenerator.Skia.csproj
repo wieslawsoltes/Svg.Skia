@@ -8,6 +8,7 @@
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <IncludeBuildOutput>False</IncludeBuildOutput>
     <NoPackageAnalysis>True</NoPackageAnalysis>
+    <RootNamespace>Svg.Skia.SourceGenerator</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -19,10 +20,6 @@
   
   <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\SignAssembly.props" />
-  
-  <ItemGroup>
-    <Compile Include="..\Svg.Skia.CodeGen\SkiaCodeGen.cs" Link="SkiaCodeGen.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.1" PrivateAssets="all" />
@@ -39,13 +36,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Svg.Skia.SourceGenerator.props" Pack="true" PackagePath="build" Visible="false" />
+    <None Include="Svg.SourceGenerator.Skia.props" Pack="true" PackagePath="build" Visible="false" />
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(PKGFizzler)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(PKGSystem_Drawing_Common)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\Svg.Custom\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\Svg.Model\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\Svg.Skia\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Svg.CodeGen.Skia\SkiaCodeGen.cs">
+      <Link>SkiaCodeGen.cs</Link>
+    </Compile>
   </ItemGroup>
 
   <PropertyGroup>

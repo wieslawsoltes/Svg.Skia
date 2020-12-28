@@ -1,6 +1,7 @@
 ﻿using System;
+using Svg.Model.PathEffects;
 
-namespace Svg.Model
+namespace Svg.Model.Paint
 {
     public abstract class PathEffect : IDisposable
     {

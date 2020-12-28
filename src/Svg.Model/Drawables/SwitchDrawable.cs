@@ -1,4 +1,7 @@
-﻿namespace Svg.Model.Drawables
+﻿using Svg.Model.Picture;
+using Svg.Model.Primitives;
+
+namespace Svg.Model.Drawables
 {
     public sealed class SwitchDrawable : DrawableBase
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Svg.Model
+namespace Svg.Model.Paint
 {
     public sealed class Paint : IDisposable
     {

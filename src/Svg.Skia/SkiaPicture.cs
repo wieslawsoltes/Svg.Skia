@@ -1,5 +1,6 @@
 ﻿using SkiaSharp;
 using Svg.Model;
+using Svg.Model.Picture;
 
 namespace Svg.Skia
 {

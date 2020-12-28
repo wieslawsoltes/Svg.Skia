@@ -1,5 +1,7 @@
 ﻿
-namespace Svg.Model
+using Svg.Model.Primitives;
+
+namespace Svg.Model.Picture.Commands
 {
     public sealed class SetMatrixCanvasCommand : CanvasCommand
     {

@@ -1,6 +1,7 @@
 ﻿using System;
+using Svg.Model.Primitives;
 
-namespace Svg.Model
+namespace Svg.Model.Picture
 {
     public abstract class Drawable : IDisposable
     {

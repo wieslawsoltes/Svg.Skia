@@ -1,6 +1,8 @@
 ﻿using System;
+using Svg.Model.Primitives;
+using Svg.Model.Shaders;
 
-namespace Svg.Model
+namespace Svg.Model.Paint
 {
     public abstract class Shader : IDisposable
     {
@@ -64,7 +66,7 @@ namespace Svg.Model
             };
         }
 
-        public static Shader CreatePicture(Picture src, ShaderTileMode tmx, ShaderTileMode tmy, Matrix localMatrix, Rect tile)
+        public static Shader CreatePicture(Picture.Picture src, ShaderTileMode tmx, ShaderTileMode tmy, Matrix localMatrix, Rect tile)
         {
             return new PictureShader()
             {
