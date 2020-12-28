@@ -6,9 +6,9 @@ namespace Svg.Model.Picture.Commands
         public string Text { get; }
         public float X { get; }
         public float Y { get; }
-        public Paint.Paint? Paint { get; }
+        public Painting.Paint? Paint { get; }
 
-        public DrawTextCanvasCommand(string text, float x, float y, Paint.Paint paint)
+        public DrawTextCanvasCommand(string text, float x, float y, Painting.Paint paint)
         {
             Text = text;
             X = x;

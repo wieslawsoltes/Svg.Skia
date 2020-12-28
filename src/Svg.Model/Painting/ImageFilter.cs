@@ -3,7 +3,7 @@ using Svg.Model.ImageFilters;
 using Svg.Model.Primitives;
 using Svg.Model.Shaders;
 
-namespace Svg.Model.Paint
+namespace Svg.Model.Painting
 {
     public sealed class CropRect
     {

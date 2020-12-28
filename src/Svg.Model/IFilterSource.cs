@@ -4,7 +4,7 @@
     {
         Picture.Picture? SourceGraphic();
         Picture.Picture? BackgroundImage();
-        Paint.Paint? FillPaint();
-        Paint.Paint? StrokePaint();
+        Painting.Paint? FillPaint();
+        Painting.Paint? StrokePaint();
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Svg.Model.Paint;
+using Svg.Model.Painting;
 using Svg.Model.Path;
 using Svg.Model.Picture.Commands;
 using Svg.Model.Primitives;
@@ -32,27 +32,27 @@ namespace Svg.Model.Picture
             Commands?.Add(new ClipRectCanvasCommand(rect, operation, antialias));
         }
 
-        public void DrawImage(Image image, Rect source, Rect dest, Paint.Paint? paint = null)
+        public void DrawImage(Image image, Rect source, Rect dest, Painting.Paint? paint = null)
         {
             Commands?.Add(new DrawImageCanvasCommand(image, source, dest, paint));
         }
 
-        public void DrawPath(Path.Path path, Paint.Paint paint)
+        public void DrawPath(Path.Path path, Painting.Paint paint)
         {
             Commands?.Add(new DrawPathCanvasCommand(path, paint));
         }
 
-        public void DrawText(TextBlob textBlob, float x, float y, Paint.Paint paint)
+        public void DrawText(TextBlob textBlob, float x, float y, Painting.Paint paint)
         {
             Commands?.Add(new DrawTextBlobCanvasCommand(textBlob, x, y, paint));
         }
 
-        public void DrawText(string text, float x, float y, Paint.Paint paint)
+        public void DrawText(string text, float x, float y, Painting.Paint paint)
         {
             Commands?.Add(new DrawTextCanvasCommand(text, x, y, paint));
         }
 
-        public void DrawTextOnPath(string text, Path.Path path, float hOffset, float vOffset, Paint.Paint paint)
+        public void DrawTextOnPath(string text, Path.Path path, float hOffset, float vOffset, Painting.Paint paint)
         {
             Commands?.Add(new DrawTextOnPathCanvasCommand(text, path, hOffset, vOffset, paint));
         }
@@ -71,7 +71,7 @@ namespace Svg.Model.Picture
             return _saveCount;
         }
 
-        public int SaveLayer(Paint.Paint paint)
+        public int SaveLayer(Painting.Paint paint)
         {
             _totalMatrices.Push(TotalMatrix);
             Commands?.Add(new SaveLayerCanvasCommand(_saveCount, paint));

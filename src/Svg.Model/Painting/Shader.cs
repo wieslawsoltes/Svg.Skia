@@ -2,7 +2,7 @@
 using Svg.Model.Primitives;
 using Svg.Model.Shaders;
 
-namespace Svg.Model.Paint
+namespace Svg.Model.Painting
 {
     public abstract class Shader : IDisposable
     {

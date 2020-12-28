@@ -8,9 +8,9 @@ namespace Svg.Model.Picture.Commands
         public Image? Image { get; }
         public Rect Source { get; }
         public Rect Dest { get; }
-        public Paint.Paint? Paint { get; }
+        public Painting.Paint? Paint { get; }
 
-        public DrawImageCanvasCommand(Image image, Rect source, Rect dest, Paint.Paint? paint = null)
+        public DrawImageCanvasCommand(Image image, Rect source, Rect dest, Painting.Paint? paint = null)
         {
             Image = image;
             Source = source;

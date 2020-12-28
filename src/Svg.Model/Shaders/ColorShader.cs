@@ -1,4 +1,4 @@
-﻿using Svg.Model.Paint;
+﻿using Svg.Model.Painting;
 
 namespace Svg.Model.Shaders
 {

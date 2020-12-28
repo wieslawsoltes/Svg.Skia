@@ -10,7 +10,7 @@ using Svg.Document_Structure;
 using Svg.FilterEffects;
 using Svg.Model.Drawables;
 using Svg.Model.ImageFilters;
-using Svg.Model.Paint;
+using Svg.Model.Painting;
 using Svg.Model.Path;
 using Svg.Model.Path.Commands;
 using Svg.Model.Picture;
@@ -1295,7 +1295,7 @@ namespace Svg.Model
             return Shader.CreatePicture(skPicture, ShaderTileMode.Repeat, ShaderTileMode.Repeat, skMatrix, skPicture.CullRect);
         }
 
-        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, Rect skBounds, Paint.Paint skPaint, bool forStroke, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, Rect skBounds, Painting.Paint skPaint, bool forStroke, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
             var fallbackServer = SvgPaintServer.None;
             if (server is SvgDeferredPaintServer deferredServer)
@@ -1451,7 +1451,7 @@ namespace Svg.Model
             return true;
         }
 
-        internal static void SetDash(SvgVisualElement svgVisualElement, Paint.Paint skPaint, Rect skBounds)
+        internal static void SetDash(SvgVisualElement svgVisualElement, Painting.Paint skPaint, Rect skBounds)
         {
             var skPathEffect = CreateDash(svgVisualElement, skBounds);
             if (skPathEffect is { })
@@ -1489,9 +1489,9 @@ namespace Svg.Model
                 && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
         }
 
-        internal static Paint.Paint? GetFillPaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static Painting.Paint? GetFillPaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
-            var skPaint = new Paint.Paint
+            var skPaint = new Painting.Paint
             {
                 IsAntialias = IsAntialias(svgVisualElement),
                 Style = PaintStyle.Fill
@@ -1507,9 +1507,9 @@ namespace Svg.Model
             return skPaint;
         }
 
-        internal static Paint.Paint? GetStrokePaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static Painting.Paint? GetStrokePaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
-            var skPaint = new Paint.Paint
+            var skPaint = new Painting.Paint
             {
                 IsAntialias = IsAntialias(svgVisualElement),
                 Style = PaintStyle.Stroke
@@ -1565,11 +1565,11 @@ namespace Svg.Model
             return skPaint;
         }
 
-        internal static Paint.Paint? GetOpacityPaint(float opacity)
+        internal static Painting.Paint? GetOpacityPaint(float opacity)
         {
             if (opacity < 1f)
             {
-                return new Paint.Paint
+                return new Painting.Paint
                 {
                     IsAntialias = true,
                     Color = new Color(255, 255, 255, (byte)Math.Round(opacity * 255)),
@@ -1579,7 +1579,7 @@ namespace Svg.Model
             return default;
         }
 
-        internal static Paint.Paint? GetOpacityPaint(SvgElement svgElement)
+        internal static Painting.Paint? GetOpacityPaint(SvgElement svgElement)
         {
             var opacity = AdjustSvgOpacity(svgElement.Opacity);
             var skPaint = GetOpacityPaint(opacity);
@@ -3662,7 +3662,7 @@ namespace Svg.Model
 
             var seed = svgTurbulence.Seed;
 
-            var skPaint = new Paint.Paint
+            var skPaint = new Painting.Paint
             {
                 Style = PaintStyle.StrokeAndFill
             };
@@ -3728,7 +3728,7 @@ namespace Svg.Model
             return skImageFilter;
         }
 
-        internal static ImageFilter? GetPaint(Paint.Paint skPaint)
+        internal static ImageFilter? GetPaint(Painting.Paint skPaint)
         {
             var skImageFilter = ImageFilter.CreatePaint(skPaint);
             return skImageFilter;
@@ -3736,7 +3736,7 @@ namespace Svg.Model
 
         internal static ImageFilter GetTransparentBlackImage()
         {
-            var skPaint = new Paint.Paint
+            var skPaint = new Painting.Paint
             {
                 Style = PaintStyle.StrokeAndFill,
                 Color = s_transparentBlack
@@ -3747,7 +3747,7 @@ namespace Svg.Model
 
         internal static ImageFilter GetTransparentBlackAlpha()
         {
-            var skPaint = new Paint.Paint
+            var skPaint = new Painting.Paint
             {
                 Style = PaintStyle.StrokeAndFill,
                 Color = s_transparentBlack
@@ -3948,7 +3948,7 @@ namespace Svg.Model
             return svgFilters;
         }
 
-        internal static Paint.Paint? GetFilterPaint(SvgVisualElement svgVisualElement, Rect skBounds, IFilterSource filterSource, IAssetLoader assetLoader, out bool isValid)
+        internal static Painting.Paint? GetFilterPaint(SvgVisualElement svgVisualElement, Rect skBounds, IFilterSource filterSource, IAssetLoader assetLoader, out bool isValid)
         {
             var filter = svgVisualElement.Filter;
             if (filter is null || IsNone(filter))
@@ -4398,7 +4398,7 @@ namespace Svg.Model
 
             if (lastResult is { })
             {
-                var skPaint = new Paint.Paint
+                var skPaint = new Painting.Paint
                 {
                     Style = PaintStyle.StrokeAndFill
                 };
@@ -4550,7 +4550,7 @@ namespace Svg.Model
             };
         }
 
-        private static void SetTypeface(SvgTextBase svgText, Paint.Paint skPaint)
+        private static void SetTypeface(SvgTextBase svgText, Painting.Paint skPaint)
         {
             var fontFamily = svgText.FontFamily;
             var fontWeight = ToFontStyleWeight(svgText.FontWeight);
@@ -4566,7 +4566,7 @@ namespace Svg.Model
             };
         }
 
-        internal static void SetPaintText(SvgTextBase svgText, Rect skBounds, Paint.Paint skPaint)
+        internal static void SetPaintText(SvgTextBase svgText, Rect skBounds, Painting.Paint skPaint)
         {
             skPaint.LcdRenderText = true;
             skPaint.SubpixelText = true;

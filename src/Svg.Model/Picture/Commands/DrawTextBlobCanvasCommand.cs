@@ -1,5 +1,5 @@
 ﻿
-using Svg.Model.Paint;
+using Svg.Model.Painting;
 
 namespace Svg.Model.Picture.Commands
 {
@@ -8,9 +8,9 @@ namespace Svg.Model.Picture.Commands
         public TextBlob? TextBlob { get; }
         public float X { get; }
         public float Y { get; }
-        public Paint.Paint? Paint { get; }
+        public Painting.Paint? Paint { get; }
 
-        public DrawTextBlobCanvasCommand(TextBlob textBlob, float x, float y, Paint.Paint paint)
+        public DrawTextBlobCanvasCommand(TextBlob textBlob, float x, float y, Painting.Paint paint)
         {
             TextBlob = textBlob;
             X = x;

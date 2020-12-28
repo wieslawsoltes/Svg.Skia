@@ -7,9 +7,9 @@ namespace Svg.Model.Picture.Commands
         public Path.Path? Path { get; }
         public float HOffset { get; }
         public float VOffset { get; }
-        public Paint.Paint? Paint { get; }
+        public Painting.Paint? Paint { get; }
 
-        public DrawTextOnPathCanvasCommand(string text, Path.Path path, float hOffset, float vOffset, Paint.Paint paint)
+        public DrawTextOnPathCanvasCommand(string text, Path.Path path, float hOffset, float vOffset, Painting.Paint paint)
         {
             Text = text;
             Path = path;

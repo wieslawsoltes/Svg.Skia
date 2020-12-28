@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
-using Svg.Model.Paint;
+using Svg.Model.Painting;
 using Svg.Model.Path;
 using Svg.Model.Picture;
 using Svg.Model.Primitives;
@@ -114,7 +114,7 @@ namespace Svg.Model.Drawables
             };
         }
 
-        internal void BeginDraw(SvgTextBase svgTextBase, Canvas skCanvas, Rect skBounds, Attributes ignoreAttributes, out MaskDrawable? maskDrawable, out Paint.Paint? maskDstIn, out Paint.Paint? skPaintOpacity, out Paint.Paint? skPaintFilter)
+        internal void BeginDraw(SvgTextBase svgTextBase, Canvas skCanvas, Rect skBounds, Attributes ignoreAttributes, out MaskDrawable? maskDrawable, out Painting.Paint? maskDstIn, out Painting.Paint? skPaintOpacity, out Painting.Paint? skPaintFilter)
         {
             var enableClip = !ignoreAttributes.HasFlag(Attributes.ClipPath);
             var enableMask = !ignoreAttributes.HasFlag(Attributes.Mask);
@@ -145,12 +145,12 @@ namespace Svg.Model.Drawables
 
             if (enableMask)
             {
-                var mask = default(Paint.Paint);
-                maskDstIn = default(Paint.Paint);
+                var mask = default(Painting.Paint);
+                maskDstIn = default(Painting.Paint);
                 maskDrawable = SvgModelExtensions.GetSvgElementMask(svgTextBase, skBounds, new HashSet<Uri>(), AssetLoader);
                 if (maskDrawable is { })
                 {
-                    mask = new Paint.Paint
+                    mask = new Painting.Paint
                     {
                         IsAntialias = true,
                         Style = PaintStyle.StrokeAndFill
@@ -158,7 +158,7 @@ namespace Svg.Model.Drawables
 
                     var lumaColor = ColorFilter.CreateLumaColor();
 
-                    maskDstIn = new Paint.Paint
+                    maskDstIn = new Painting.Paint
                     {
                         IsAntialias = true,
                         Style = PaintStyle.StrokeAndFill,
@@ -202,7 +202,7 @@ namespace Svg.Model.Drawables
             }
         }
 
-        internal void EndDraw(Canvas skCanvas, Attributes ignoreAttributes, MaskDrawable? maskDrawable, Paint.Paint? maskDstIn, Paint.Paint? skPaintOpacity, Paint.Paint? skPaintFilter, DrawableBase? until)
+        internal void EndDraw(Canvas skCanvas, Attributes ignoreAttributes, MaskDrawable? maskDrawable, Painting.Paint? maskDstIn, Painting.Paint? skPaintOpacity, Painting.Paint? skPaintFilter, DrawableBase? until)
         {
             var enableMask = !ignoreAttributes.HasFlag(Attributes.Mask);
             var enableOpacity = !ignoreAttributes.HasFlag(Attributes.Opacity);

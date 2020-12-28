@@ -1,6 +1,6 @@
 ﻿using System;
 using Svg.DataTypes;
-using Svg.Model.Paint;
+using Svg.Model.Painting;
 using Svg.Model.Picture;
 using Svg.Model.Primitives;
 

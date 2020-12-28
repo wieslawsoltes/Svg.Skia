@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using Svg.Model.Drawables;
-using Svg.Model.Paint;
+using Svg.Model.Painting;
 using Svg.Model.Path;
 using Svg.Model.Picture;
 using Svg.Model.Primitives;
@@ -23,12 +23,12 @@ namespace Svg.Model
         public Rect? Clip { get; set; }
         public ClipPath? ClipPath { get; set; }
         public MaskDrawable? MaskDrawable { get; set; }
-        public Paint.Paint? Mask { get; set; }
-        public Paint.Paint? MaskDstIn { get; set; }
-        public Paint.Paint? Opacity { get; set; }
-        public Paint.Paint? Filter { get; set; }
-        public Paint.Paint? Fill { get; set; }
-        public Paint.Paint? Stroke { get; set; }
+        public Painting.Paint? Mask { get; set; }
+        public Painting.Paint? MaskDstIn { get; set; }
+        public Painting.Paint? Opacity { get; set; }
+        public Painting.Paint? Filter { get; set; }
+        public Painting.Paint? Fill { get; set; }
+        public Painting.Paint? Stroke { get; set; }
 
         protected DrawableBase(IAssetLoader assetLoader)
         {
@@ -52,7 +52,7 @@ namespace Svg.Model
 
         protected virtual void CreateMaskPaints()
         {
-            Mask = new Paint.Paint
+            Mask = new Painting.Paint
             {
                 IsAntialias = true,
                 Style = PaintStyle.StrokeAndFill
@@ -60,7 +60,7 @@ namespace Svg.Model
 
             var lumaColor = ColorFilter.CreateLumaColor();
 
-            MaskDstIn = new Paint.Paint
+            MaskDstIn = new Painting.Paint
             {
                 IsAntialias = true,
                 Style = PaintStyle.StrokeAndFill,
@@ -339,8 +339,8 @@ namespace Svg.Model
 
         Picture.Picture? IFilterSource.BackgroundImage() => RecordBackground(this, FilterInput);
 
-        Paint.Paint? IFilterSource.FillPaint() => Fill;
+        Painting.Paint? IFilterSource.FillPaint() => Fill;
 
-        Paint.Paint? IFilterSource.StrokePaint() => Stroke;
+        Painting.Paint? IFilterSource.StrokePaint() => Stroke;
     }
 }

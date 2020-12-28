@@ -1,7 +1,7 @@
 ﻿using System;
 using Svg.Model.Primitives;
 
-namespace Svg.Model.Paint
+namespace Svg.Model.Painting
 {
     public sealed class TextBlob : IDisposable
     {

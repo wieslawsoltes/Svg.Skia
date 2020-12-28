@@ -1,5 +1,5 @@
 ﻿using System;
-using Svg.Model.Paint;
+using Svg.Model.Painting;
 using Svg.Model.Picture;
 using Svg.Model.Primitives;
 
@@ -212,7 +212,7 @@ namespace Svg.Model.Drawables
 
             if (Image is { })
             {
-                using var skImagePaint = new Paint.Paint
+                using var skImagePaint = new Painting.Paint
                 {
                     IsAntialias = true,
                     FilterQuality = FilterQuality.High

@@ -1,5 +1,5 @@
 ﻿
-using Svg.Model.Paint;
+using Svg.Model.Painting;
 using Svg.Model.Primitives;
 using Svg.Model.Shaders;
 

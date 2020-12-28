@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using Svg.Model.ColorFilters;
 using Svg.Model.ImageFilters;
-using Svg.Model.Paint;
+using Svg.Model.Painting;
 using Svg.Model.Path;
 using Svg.Model.Path.Commands;
 using Svg.Model.PathEffects;
