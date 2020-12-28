@@ -103,10 +103,7 @@ namespace Svg.Skia
                     return;
                 }
 
-                SvgDocument.SkipGdiPlusCapabilityCheck = true;
-                SvgDocument.PointsPerInch = 96;
-
-                var svgDocument = SvgDocument.FromSvg<SvgDocument>(svg);
+                var svgDocument = SvgModelExtensions.FromSvg(svg);
                 if (svgDocument != null)
                 {
                     var picture = SvgModelExtensions.ToModel(svgDocument);
