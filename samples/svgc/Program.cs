@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Svg;
 using Svg.CodeGen;
+using Svg.Model;
 
 namespace svgc
 {
@@ -46,12 +47,10 @@ namespace svgc
         static void Generate(string inputPath, string outputPath, string namespaceName = "Svg", string className = "Generated")
         {
             var svg = System.IO.File.ReadAllText(inputPath);
-            SvgDocument.SkipGdiPlusCapabilityCheck = true;
-            SvgDocument.PointsPerInch = 96;
-            var svgDocument = SvgDocument.FromSvg<SvgDocument>(svg);
+            var svgDocument = SvgModelExtensions.FromSvg(svg);
             if (svgDocument != null)
             {
-                var picture = SKSvg.ToModel(svgDocument);
+                var picture = SvgModelExtensions.ToModel(svgDocument);
                 if (picture != null && picture.Commands != null)
                 {
                     var text = SkiaCodeGen.Generate(picture, namespaceName, className);
