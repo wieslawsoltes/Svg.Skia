@@ -23,9 +23,9 @@ namespace Svg.Model
 {
     public static class SvgModelExtensions
     {
-        private static readonly char[] s_space_tab = { ' ', '\t' };
+        private static readonly char[] _spaceTab = { ' ', '\t' };
 
-        private static readonly char[] s_comma = { ',' };
+        private static readonly char[] _comma = { ',' };
 
         [Flags]
         internal enum PathPointType : byte
@@ -279,7 +279,7 @@ namespace Svg.Model
         {
             if (uri is null)
             {
-                return null;
+                return default;
             }
 
             var svgElementById = svgElement.OwnerDocument?.GetElementById(uri.ToString());
@@ -357,7 +357,7 @@ namespace Svg.Model
             {
                 return new Uri(uriString, UriKind.RelativeOrAbsolute);
             }
-            return null;
+            return default;
         }
 
         internal static bool TryGetAttribute(this SvgElement svgElement, string name, out string value)
@@ -372,13 +372,13 @@ namespace Svg.Model
             {
                 if (HasRecursiveReference(svgOwnerElement, (e) => e.GetUri(name), uris))
                 {
-                    return null;
+                    return default;
                 }
 
                 var svgElement = GetReference<T>(svgOwnerElement, uri);
                 if (svgElement is null)
                 {
-                    return null;
+                    return default;
                 }
                 return svgElement;
             }
@@ -397,7 +397,7 @@ namespace Svg.Model
                 }
                 else
                 {
-                    var features = requiredFeaturesString.Trim().Split(s_space_tab, StringSplitOptions.RemoveEmptyEntries);
+                    var features = requiredFeaturesString.Trim().Split(_spaceTab, StringSplitOptions.RemoveEmptyEntries);
                     if (features.Length > 0)
                     {
                         foreach (var feature in features)
@@ -431,7 +431,7 @@ namespace Svg.Model
                 }
                 else
                 {
-                    var extensions = requiredExtensionsString.Trim().Split(s_space_tab, StringSplitOptions.RemoveEmptyEntries);
+                    var extensions = requiredExtensionsString.Trim().Split(_spaceTab, StringSplitOptions.RemoveEmptyEntries);
                     if (extensions.Length > 0)
                     {
                         foreach (var extension in extensions)
@@ -465,7 +465,7 @@ namespace Svg.Model
                 }
                 else
                 {
-                    var languages = systemLanguageString.Trim().Split(s_comma, StringSplitOptions.RemoveEmptyEntries);
+                    var languages = systemLanguageString.Trim().Split(_comma, StringSplitOptions.RemoveEmptyEntries);
                     if (languages.Length > 0)
                     {
                         hasSystemLanguage = false;
@@ -595,7 +595,7 @@ namespace Svg.Model
                     var dash = strokeDashArray[i].ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds);
                     if (dash < 0f)
                     {
-                        return null;
+                        return default;
                     }
 
                     intervals[i] = dash;
@@ -610,7 +610,7 @@ namespace Svg.Model
 
                 if (sum <= 0f)
                 {
-                    return null;
+                    return default;
                 }
 
                 float phase = strokeDashOffset is { } ? strokeDashOffset.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) : 0f;
@@ -744,13 +744,13 @@ namespace Svg.Model
         {
             var svgReferencedGradientServers = GetLinkedGradientServer(svgLinearGradientServer, svgVisualElement);
 
-            SvgGradientServer? firstSpreadMethod = null;
-            SvgGradientServer? firstGradientTransform = null;
-            SvgGradientServer? firstGradientUnits = null;
-            SvgLinearGradientServer? firstX1 = null;
-            SvgLinearGradientServer? firstY1 = null;
-            SvgLinearGradientServer? firstX2 = null;
-            SvgLinearGradientServer? firstY2 = null;
+            SvgGradientServer? firstSpreadMethod = default;
+            SvgGradientServer? firstGradientTransform = default;
+            SvgGradientServer? firstGradientUnits = default;
+            SvgLinearGradientServer? firstX1 = default;
+            SvgLinearGradientServer? firstY1 = default;
+            SvgLinearGradientServer? firstX2 = default;
+            SvgLinearGradientServer? firstY2 = default;
 
             foreach (var p in svgReferencedGradientServers)
             {
@@ -904,14 +904,14 @@ namespace Svg.Model
         {
             var svgReferencedGradientServers = GetLinkedGradientServer(svgRadialGradientServer, svgVisualElement);
 
-            SvgGradientServer? firstSpreadMethod = null;
-            SvgGradientServer? firstGradientTransform = null;
-            SvgGradientServer? firstGradientUnits = null;
-            SvgRadialGradientServer? firstCenterX = null;
-            SvgRadialGradientServer? firstCenterY = null;
-            SvgRadialGradientServer? firstRadius = null;
-            SvgRadialGradientServer? firstFocalX = null;
-            SvgRadialGradientServer? firstFocalY = null;
+            SvgGradientServer? firstSpreadMethod = default;
+            SvgGradientServer? firstGradientTransform = default;
+            SvgGradientServer? firstGradientUnits = default;
+            SvgRadialGradientServer? firstCenterX = default;
+            SvgRadialGradientServer? firstCenterY = default;
+            SvgRadialGradientServer? firstRadius = default;
+            SvgRadialGradientServer? firstFocalX = default;
+            SvgRadialGradientServer? firstFocalY = default;
 
             foreach (var p in svgReferencedGradientServers)
             {
@@ -1128,15 +1128,15 @@ namespace Svg.Model
         {
             var svgReferencedPatternServers = GetLinkedPatternServer(svgPatternServer, svgVisualElement);
 
-            SvgPatternServer? firstChildren = null;
-            SvgPatternServer? firstX = null;
-            SvgPatternServer? firstY = null;
-            SvgPatternServer? firstWidth = null;
-            SvgPatternServer? firstHeight = null;
-            SvgPatternServer? firstPatternUnit = null;
-            SvgPatternServer? firstPatternContentUnit = null;
-            SvgPatternServer? firstViewBox = null;
-            SvgPatternServer? firstAspectRatio = null;
+            SvgPatternServer? firstChildren = default;
+            SvgPatternServer? firstX = default;
+            SvgPatternServer? firstY = default;
+            SvgPatternServer? firstWidth = default;
+            SvgPatternServer? firstHeight = default;
+            SvgPatternServer? firstPatternUnit = default;
+            SvgPatternServer? firstPatternContentUnit = default;
+            SvgPatternServer? firstViewBox = default;
+            SvgPatternServer? firstAspectRatio = default;
 
             foreach (var p in svgReferencedPatternServers)
             {
@@ -1211,7 +1211,7 @@ namespace Svg.Model
 
             if (firstChildren is null || firstWidth is null || firstHeight is null)
             {
-                return null;
+                return default;
             }
 
             var xUnit = firstX is null ? new SvgUnit(0f) : firstX.X;
@@ -1230,7 +1230,7 @@ namespace Svg.Model
 
             if (width <= 0 || height <= 0)
             {
-                return null;
+                return default;
             }
 
             if (patternUnits == SvgCoordinateUnits.ObjectBoundingBox)
@@ -1501,7 +1501,7 @@ namespace Svg.Model
             var opacity = AdjustSvgOpacity(svgVisualElement.FillOpacity);
             if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: false, assetLoader: assetLoader, ignoreAttributes: ignoreAttributes) == false)
             {
-                return null;
+                return default;
             }
 
             return skPaint;
@@ -1519,7 +1519,7 @@ namespace Svg.Model
             var opacity = AdjustSvgOpacity(svgVisualElement.StrokeOpacity);
             if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: true, assetLoader: assetLoader, ignoreAttributes: ignoreAttributes) == false)
             {
-                return null;
+                return default;
             }
 
             switch (svgVisualElement.StrokeLineCap)
@@ -2671,7 +2671,7 @@ namespace Svg.Model
                 {
                     Path = new Path.Path(),
                     Transform = Matrix.CreateIdentity(),
-                    Clip = null
+                    Clip = default
                 };
                 clipPath.Clips.Add(pathClip);
             }
@@ -2717,7 +2717,7 @@ namespace Svg.Model
                     skRectBounds.Height - (offsets[2] + offsets[0]));
                 return skClipRect;
             }
-            return null;
+            return default;
         }
 
         internal static MaskDrawable? GetSvgElementMask(SvgElement svgElement, Rect skBounds, HashSet<Uri> uris, IAssetLoader assetLoader)
@@ -2725,7 +2725,7 @@ namespace Svg.Model
             var svgMaskRef = svgElement.GetUriElementReference<SvgMask>("mask", uris);
             if (svgMaskRef?.Children is null)
             {
-                return null;
+                return default;
             }
             var maskDrawable = MaskDrawable.Create(svgMaskRef, skBounds, null, assetLoader, Attributes.None);
             return maskDrawable;
@@ -2733,7 +2733,7 @@ namespace Svg.Model
 
         internal static void AddMarkers(this SvgGroup svgGroup)
         {
-            Uri? marker = null;
+            Uri? marker = default;
 
             // TODO: The marker can not be set as presentation attribute.
             //if (svgGroup.TryGetAttribute("marker", out string markerUrl))
@@ -2917,7 +2917,7 @@ namespace Svg.Model
             };
         }
 
-        internal static ImageFilter? CreateBlend(SvgBlend svgBlend, ImageFilter background, ImageFilter? foreground = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateBlend(SvgBlend svgBlend, ImageFilter background, ImageFilter? foreground = default, CropRect? cropRect = default)
         {
             var mode = GetBlendMode(svgBlend.Mode);
             return ImageFilter.CreateBlendMode(mode, background, foreground, cropRect);
@@ -2936,7 +2936,7 @@ namespace Svg.Model
 
         private static readonly char[] s_colorMatrixSplitChars = { ' ', '\t', '\n', '\r', ',' };
 
-        internal static ImageFilter? CreateColorMatrix(SvgColourMatrix svgColourMatrix, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateColorMatrix(SvgColourMatrix svgColourMatrix, ImageFilter? input = default, CropRect? cropRect = default)
         {
             ColorFilter skColorFilter;
 
@@ -3117,7 +3117,7 @@ namespace Svg.Model
             }
         }
 
-        internal static ImageFilter? CreateComponentTransfer(SvgComponentTransfer svgComponentTransfer, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateComponentTransfer(SvgComponentTransfer svgComponentTransfer, ImageFilter? input = default, CropRect? cropRect = default)
         {
             var svgFuncA = s_identitySvgFuncA;
             var svgFuncR = s_identitySvgFuncR;
@@ -3166,7 +3166,7 @@ namespace Svg.Model
             return ImageFilter.CreateColorFilter(cf, input, cropRect);
         }
 
-        internal static ImageFilter? CreateComposite(SvgComposite svgComposite, ImageFilter background, ImageFilter? foreground = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateComposite(SvgComposite svgComposite, ImageFilter background, ImageFilter? foreground = default, CropRect? cropRect = default)
         {
             var oper = svgComposite.Operator;
             if (oper == SvgCompositeOperator.Arithmetic)
@@ -3192,7 +3192,7 @@ namespace Svg.Model
             }
         }
 
-        internal static ImageFilter? CreateConvolveMatrix(SvgConvolveMatrix svgConvolveMatrix, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateConvolveMatrix(SvgConvolveMatrix svgConvolveMatrix, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter? input = default, CropRect? cropRect = default)
         {
             GetOptionalNumbers(svgConvolveMatrix.Order, 3f, 3f, out var orderX, out var orderY);
 
@@ -3204,7 +3204,7 @@ namespace Svg.Model
 
             if (orderX <= 0f || orderY <= 0f)
             {
-                return null;
+                return default;
             }
 
             var kernelSize = new SizeI((int)orderX, (int)orderY);
@@ -3212,12 +3212,12 @@ namespace Svg.Model
 
             if (kernelMatrix is null)
             {
-                return null;
+                return default;
             }
 
             if ((kernelSize.Width * kernelSize.Height) != kernelMatrix.Count)
             {
-                return null;
+                return default;
             }
 
             float[] kernel = new float[kernelMatrix.Count];
@@ -3279,12 +3279,12 @@ namespace Svg.Model
             return new Point3(x, y, z);
         }
 
-        internal static ImageFilter? CreateDiffuseLighting(SvgDiffuseLighting svgDiffuseLighting, Rect skBounds, SvgCoordinateUnits primitiveUnits, SvgVisualElement svgVisualElement, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateDiffuseLighting(SvgDiffuseLighting svgDiffuseLighting, Rect skBounds, SvgCoordinateUnits primitiveUnits, SvgVisualElement svgVisualElement, ImageFilter? input = default, CropRect? cropRect = default)
         {
             var lightColor = GetColor(svgVisualElement, svgDiffuseLighting.LightingColor);
             if (lightColor is null)
             {
-                return null;
+                return default;
             }
 
             var surfaceScale = svgDiffuseLighting.SurfaceScale;
@@ -3321,7 +3321,7 @@ namespace Svg.Model
                         return ImageFilter.CreateSpotLitDiffuse(location, target, specularExponentSpotLight, limitingConeAngle, lightColor.Value, surfaceScale, diffuseConstant, input, cropRect);
                     }
             }
-            return null;
+            return default;
         }
 
         internal static ColorChannel GetColorChannel(SvgChannelSelector svgChannelSelector)
@@ -3336,7 +3336,7 @@ namespace Svg.Model
             };
         }
 
-        internal static ImageFilter? CreateDisplacementMap(SvgDisplacementMap svgDisplacementMap, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter displacement, ImageFilter? inout = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateDisplacementMap(SvgDisplacementMap svgDisplacementMap, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter displacement, ImageFilter? inout = default, CropRect? cropRect = default)
         {
             var xChannelSelector = GetColorChannel(svgDisplacementMap.XChannelSelector);
             var yChannelSelector = GetColorChannel(svgDisplacementMap.YChannelSelector);
@@ -3350,12 +3350,12 @@ namespace Svg.Model
             return ImageFilter.CreateDisplacementMapEffect(xChannelSelector, yChannelSelector, scale, displacement, inout, cropRect);
         }
 
-        internal static ImageFilter? CreateFlood(SvgFlood svgFlood, SvgVisualElement svgVisualElement, Rect skBounds, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateFlood(SvgFlood svgFlood, SvgVisualElement svgVisualElement, Rect skBounds, ImageFilter? input = default, CropRect? cropRect = default)
         {
             var floodColor = GetColor(svgVisualElement, svgFlood.FloodColor);
             if (floodColor is null)
             {
-                return null;
+                return default;
             }
 
             var floodOpacity = svgFlood.FloodOpacity;
@@ -3372,7 +3372,7 @@ namespace Svg.Model
             return ImageFilter.CreateColorFilter(cf, input, cropRect);
         }
 
-        internal static ImageFilter? CreateBlur(SvgGaussianBlur svgGaussianBlur, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateBlur(SvgGaussianBlur svgGaussianBlur, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter? input = default, CropRect? cropRect = default)
         {
             GetOptionalNumbers(svgGaussianBlur.StdDeviation, 0f, 0f, out var sigmaX, out var sigmaY);
 
@@ -3385,20 +3385,20 @@ namespace Svg.Model
 
             if (sigmaX < 0f && sigmaY < 0f)
             {
-                return null;
+                return default;
             }
 
             return ImageFilter.CreateBlur(sigmaX, sigmaY, input, cropRect);
         }
 
-        internal static ImageFilter? CreateImage(FilterEffects.SvgImage svgImage, Rect skBounds, IAssetLoader assetLoader, CropRect? cropRect = null)
+        internal static ImageFilter? CreateImage(FilterEffects.SvgImage svgImage, Rect skBounds, IAssetLoader assetLoader, CropRect? cropRect = default)
         {
             var image = GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
             var skImage = image as Image;
             var svgFragment = image as SvgFragment;
             if (skImage is null && svgFragment is null)
             {
-                return null;
+                return default;
             }
 
             var destClip = skBounds;
@@ -3513,10 +3513,10 @@ namespace Svg.Model
                 return ImageFilter.CreatePicture(skPicture, destRect);
             }
 
-            return null;
+            return default;
         }
 
-        internal static ImageFilter? CreateMerge(SvgMerge svgMerge, Dictionary<string, ImageFilter> results, ImageFilter? lastResult, IFilterSource filterSource, CropRect? cropRect = null)
+        internal static ImageFilter? CreateMerge(SvgMerge svgMerge, Dictionary<string, ImageFilter> results, ImageFilter? lastResult, IFilterSource filterSource, CropRect? cropRect = default)
         {
             var children = new List<SvgMergeNode>();
 
@@ -3541,14 +3541,14 @@ namespace Svg.Model
                 }
                 else
                 {
-                    return null;
+                    return default;
                 }
             }
 
             return ImageFilter.CreateMerge(filters, cropRect);
         }
 
-        internal static ImageFilter? CreateMorphology(SvgMorphology svgMorphology, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateMorphology(SvgMorphology svgMorphology, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter? input = default, CropRect? cropRect = default)
         {
             GetOptionalNumbers(svgMorphology.Radius, 0f, 0f, out var radiusX, out var radiusY);
 
@@ -3561,7 +3561,7 @@ namespace Svg.Model
 
             if (radiusX <= 0f && radiusY <= 0f)
             {
-                return null;
+                return default;
             }
 
             return svgMorphology.Operator switch
@@ -3572,7 +3572,7 @@ namespace Svg.Model
             };
         }
 
-        internal static ImageFilter? CreateOffset(SvgOffset svgOffset, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateOffset(SvgOffset svgOffset, Rect skBounds, SvgCoordinateUnits primitiveUnits, ImageFilter? input = default, CropRect? cropRect = default)
         {
             var dxUnit = svgOffset.Dx;
             var dyUnit = svgOffset.Dy;
@@ -3596,12 +3596,12 @@ namespace Svg.Model
             return ImageFilter.CreateOffset(dx, dy, input, cropRect);
         }
 
-        internal static ImageFilter? CreateSpecularLighting(SvgSpecularLighting svgSpecularLighting, Rect skBounds, SvgCoordinateUnits primitiveUnits, SvgVisualElement svgVisualElement, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateSpecularLighting(SvgSpecularLighting svgSpecularLighting, Rect skBounds, SvgCoordinateUnits primitiveUnits, SvgVisualElement svgVisualElement, ImageFilter? input = default, CropRect? cropRect = default)
         {
             var lightColor = GetColor(svgVisualElement, svgSpecularLighting.LightingColor);
             if (lightColor is null)
             {
-                return null;
+                return default;
             }
 
             var surfaceScale = svgSpecularLighting.SurfaceScale;
@@ -3634,30 +3634,30 @@ namespace Svg.Model
                         return ImageFilter.CreateSpotLitSpecular(location, target, specularExponentSpotLight, limitingConeAngle, lightColor.Value, surfaceScale, specularConstant, specularExponent, input, cropRect);
                     }
             }
-            return null;
+            return default;
         }
 
-        internal static ImageFilter? CreateTile(SvgTile svgTile, Rect skBounds, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateTile(SvgTile svgTile, Rect skBounds, ImageFilter? input = default, CropRect? cropRect = default)
         {
             var src = skBounds;
             var dst = cropRect is { } ? cropRect.Rect : skBounds;
             return ImageFilter.CreateTile(src, dst, input);
         }
 
-        internal static ImageFilter? CreateTurbulence(SvgTurbulence svgTurbulence, Rect skBounds, SvgCoordinateUnits primitiveUnits, CropRect? cropRect = null)
+        internal static ImageFilter? CreateTurbulence(SvgTurbulence svgTurbulence, Rect skBounds, SvgCoordinateUnits primitiveUnits, CropRect? cropRect = default)
         {
             GetOptionalNumbers(svgTurbulence.BaseFrequency, 0f, 0f, out var baseFrequencyX, out var baseFrequencyY);
 
             if (baseFrequencyX < 0f || baseFrequencyY < 0f)
             {
-                return null;
+                return default;
             }
 
             var numOctaves = svgTurbulence.NumOctaves;
 
             if (numOctaves < 0)
             {
-                return null;
+                return default;
             }
 
             var seed = svgTurbulence.Seed;
@@ -3788,7 +3788,7 @@ namespace Svg.Model
                             return skImageFilter;
                         }
                     }
-                    return null;
+                    return default;
                 }
                 else
                 {
@@ -3906,7 +3906,7 @@ namespace Svg.Model
                     break;
             }
 
-            return null;
+            return default;
         }
 
         internal static ImageFilter? GetFilterResult(SvgFilterPrimitive svgFilterPrimitive, ImageFilter? skImageFilter, Dictionary<string, ImageFilter> results)
@@ -3920,7 +3920,7 @@ namespace Svg.Model
                 }
                 return skImageFilter;
             }
-            return null;
+            return default;
         }
 
         private static List<SvgFilter>? GetLinkedFilter(SvgVisualElement svgVisualElement, HashSet<Uri> uris)
@@ -3928,7 +3928,7 @@ namespace Svg.Model
             var currentFilter = GetReference<SvgFilter>(svgVisualElement, svgVisualElement.Filter);
             if (currentFilter is null)
             {
-                return null;
+                return default;
             }
 
             var svgFilters = new List<SvgFilter>();
@@ -3954,25 +3954,25 @@ namespace Svg.Model
             if (filter is null || IsNone(filter))
             {
                 isValid = true;
-                return null;
+                return default;
             }
 
             var svgReferencedFilters = GetLinkedFilter(svgVisualElement, new HashSet<Uri>());
             if (svgReferencedFilters is null || svgReferencedFilters.Count < 0)
             {
                 isValid = false;
-                return null;
+                return default;
             }
 
             var svgFirstFilter = svgReferencedFilters[0];
 
-            SvgFilter? firstChildren = null;
-            SvgFilter? firstX = null;
-            SvgFilter? firstY = null;
-            SvgFilter? firstWidth = null;
-            SvgFilter? firstHeight = null;
-            SvgFilter? firstFilterUnits = null;
-            SvgFilter? firstPrimitiveUnits = null;
+            SvgFilter? firstChildren = default;
+            SvgFilter? firstX = default;
+            SvgFilter? firstY = default;
+            SvgFilter? firstWidth = default;
+            SvgFilter? firstHeight = default;
+            SvgFilter? firstFilterUnits = default;
+            SvgFilter? firstPrimitiveUnits = default;
 
             foreach (var p in svgReferencedFilters)
             {
@@ -4015,7 +4015,7 @@ namespace Svg.Model
             if (firstChildren is null)
             {
                 isValid = false;
-                return null;
+                return default;
             }
 
             var xUnit = firstX is null ? new SvgUnit(SvgUnitType.Percentage, -10f) : firstX.X;
@@ -4037,7 +4037,7 @@ namespace Svg.Model
             if (width <= 0f || height <= 0f)
             {
                 isValid = false;
-                return null;
+                return default;
             }
 
             if (filterUnits == SvgCoordinateUnits.ObjectBoundingBox)
@@ -4409,7 +4409,7 @@ namespace Svg.Model
             }
 
             isValid = false;
-            return null;
+            return default;
         }
 
         internal static FontStyleWeight ToFontStyleWeight(SvgFontWeight svgFontWeight)
@@ -4614,7 +4614,7 @@ namespace Svg.Model
             SvgDocument.PointsPerInch = 96;
         }
 
-        public static CultureInfo? s_systemLanguageOverride = null;
+        public static CultureInfo? s_systemLanguageOverride = default;
 
         public static Size GetDimensions(SvgFragment svgFragment)
         {
@@ -4666,7 +4666,7 @@ namespace Svg.Model
             using var drawable = DrawableFactory.Create(svgFragment, bounds, null, assetLoader, Attributes.None);
             if (drawable is null)
             {
-                return null;
+                return default;
             }
             drawable.PostProcess();
 
