@@ -14,9 +14,9 @@ namespace Svg.Model.Drawables
     {
         private static readonly Regex s_multipleSpaces = new Regex(@" {2,}", RegexOptions.Compiled);
 
-        private SvgText? Text { get; set; }
+        public SvgText? Text { get; set; }
 
-        private Rect OwnerBounds { get; set; }
+        public Rect OwnerBounds { get; set; }
 
         private TextDrawable(IAssetLoader assetLoader)
             : base(assetLoader)

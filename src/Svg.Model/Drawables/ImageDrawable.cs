@@ -7,11 +7,11 @@ namespace Svg.Model.Drawables
 {
     public sealed class ImageDrawable : DrawableBase
     {
-        private Image? Image { get; set; }
-        private FragmentDrawable? FragmentDrawable { get; set; }
-        private Rect SrcRect { get; set; }
-        private Rect DestRect { get; set; }
-        private Matrix FragmentTransform { get; set; }
+        public Image? Image { get; set; }
+        public FragmentDrawable? FragmentDrawable { get; set; }
+        public Rect SrcRect { get; set; }
+        public Rect DestRect { get; set; }
+        public Matrix FragmentTransform { get; set; }
 
         private ImageDrawable(IAssetLoader assetLoader)
             : base(assetLoader)

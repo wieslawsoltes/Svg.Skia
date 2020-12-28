@@ -8,8 +8,8 @@ namespace Svg.Model.Drawables
 {
     public sealed class MarkerDrawable : DrawableBase
     {
-        private DrawableBase? MarkerElementDrawable { get; set; }
-        private Rect? MarkerClipRect { get; set; }
+        public DrawableBase? MarkerElementDrawable { get; set; }
+        public Rect? MarkerClipRect { get; set; }
 
         private MarkerDrawable(IAssetLoader assetLoader)
             : base(assetLoader)

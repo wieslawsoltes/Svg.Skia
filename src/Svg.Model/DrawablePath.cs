@@ -5,8 +5,8 @@ namespace Svg.Model
 {
     public abstract class DrawablePath : DrawableBase, IMarkerHost
     {
-        protected Path.Path? Path { get; set; }
-        private List<DrawableBase>? MarkerDrawables { get; set; }
+        public Path.Path? Path { get; set; }
+        public List<DrawableBase>? MarkerDrawables { get; set; }
 
         protected DrawablePath(IAssetLoader assetLoader)
             : base(assetLoader)

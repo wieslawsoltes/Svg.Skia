@@ -5,7 +5,7 @@ namespace Svg.Model.Drawables
 {
     public sealed class SwitchDrawable : DrawableBase
     {
-        private DrawableBase? FirstChild { get; set; }
+        public DrawableBase? FirstChild { get; set; }
 
         private SwitchDrawable(IAssetLoader assetLoader)
             : base(assetLoader)

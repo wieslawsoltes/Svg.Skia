@@ -11,24 +11,24 @@ namespace Svg.Model
 {
     public abstract class DrawableBase : Drawable, IFilterSource, IPictureSource
     {
-        protected IAssetLoader AssetLoader { get; }
-        protected SvgElement? Element { get; set; }
-        protected DrawableBase? Parent { get; set; }
-        protected bool IsDrawable { get; set; }
-        protected Attributes IgnoreAttributes { get; set; }
-        protected bool IsAntialias { get; set; }
+        public IAssetLoader AssetLoader { get; }
+        public SvgElement? Element { get; set; }
+        public DrawableBase? Parent { get; set; }
+        public bool IsDrawable { get; set; }
+        public Attributes IgnoreAttributes { get; set; }
+        public bool IsAntialias { get; set; }
         public Rect TransformedBounds { get; set; }
-        protected Matrix Transform { get; set; }
-        protected Rect? Overflow { get; set; }
-        protected Rect? Clip { get; set; }
-        protected ClipPath? ClipPath { get; set; }
-        protected MaskDrawable? MaskDrawable { get; set; }
-        private Paint.Paint? Mask { get; set; }
-        private Paint.Paint? MaskDstIn { get; set; }
-        protected Paint.Paint? Opacity { get; set; }
-        protected Paint.Paint? Filter { get; set; }
-        protected Paint.Paint? Fill { get; set; }
-        protected Paint.Paint? Stroke { get; set; }
+        public Matrix Transform { get; set; }
+        public Rect? Overflow { get; set; }
+        public Rect? Clip { get; set; }
+        public ClipPath? ClipPath { get; set; }
+        public MaskDrawable? MaskDrawable { get; set; }
+        public Paint.Paint? Mask { get; set; }
+        public Paint.Paint? MaskDstIn { get; set; }
+        public Paint.Paint? Opacity { get; set; }
+        public Paint.Paint? Filter { get; set; }
+        public Paint.Paint? Fill { get; set; }
+        public Paint.Paint? Stroke { get; set; }
 
         protected DrawableBase(IAssetLoader assetLoader)
         {

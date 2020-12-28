@@ -12,7 +12,7 @@ namespace Svg.Model.Drawables
     {
         private static readonly FieldInfo? s_referencedElementParent = typeof(SvgElement).GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
 
-        private DrawableBase? ReferencedDrawable { get; set; }
+        public DrawableBase? ReferencedDrawable { get; set; }
 
         private UseDrawable(IAssetLoader assetLoader)
             : base(assetLoader)
