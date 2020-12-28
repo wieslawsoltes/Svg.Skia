@@ -4729,6 +4729,12 @@ namespace Svg.Model
             SetTypeface(svgText, skPaint, disposable);
         }
 
+        static SvgModelExtensions()
+        {
+            SvgDocument.SkipGdiPlusCapabilityCheck = true;
+            SvgDocument.PointsPerInch = 96;
+        }
+
         public static Size GetDimensions(SvgFragment svgFragment)
         {
             float w, h;
@@ -4794,6 +4800,44 @@ namespace Svg.Model
             }
 
             return drawable.Snapshot(bounds);
+        }
+
+        public static SvgDocument? OpenSvg(string path)
+        {
+            return SvgDocument.Open<SvgDocument>(path, null);
+        }
+
+        public static SvgDocument? OpenSvgz(string path)
+        {
+            using var fileStream = System.IO.File.OpenRead(path);
+            using var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress);
+            using var memoryStream = new System.IO.MemoryStream();
+
+            gzipStream.CopyTo(memoryStream);
+            memoryStream.Position = 0;
+
+            return Open(memoryStream);
+        }
+
+        public static SvgDocument? Open(string path)
+        {
+            var extension = System.IO.Path.GetExtension(path);
+            return extension.ToLower() switch
+            {
+                ".svg" => OpenSvg(path),
+                ".svgz" => OpenSvgz(path),
+                _ => OpenSvg(path),
+            };
+        }
+
+        public static SvgDocument? Open(System.IO.Stream stream)
+        {
+            return SvgDocument.Open<SvgDocument>(stream, null);
+        }
+
+        public static SvgDocument? FromSvg(string svg)
+        {
+            return SvgDocument.FromSvg<SvgDocument>(svg);
         }
     }
 }
