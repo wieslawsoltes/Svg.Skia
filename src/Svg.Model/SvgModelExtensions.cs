@@ -4659,28 +4659,41 @@ namespace Svg.Model
             return new Size(w, h);
         }
 
-        public static Picture.Picture? ToModel(SvgFragment svgFragment, IAssetLoader assetLoader)
+        public static Drawable? ToDrawable(SvgFragment svgFragment, IAssetLoader assetLoader, out Rect? bounds)
         {
             var size = GetDimensions(svgFragment);
-            var bounds = Rect.Create(size);
-            using var drawable = DrawableFactory.Create(svgFragment, bounds, null, assetLoader, Attributes.None);
+            var fragmentBounds = Rect.Create(size);
+            using var drawable = DrawableFactory.Create(svgFragment, fragmentBounds, null, assetLoader);
             if (drawable is null)
             {
+                bounds = default;
                 return default;
             }
             drawable.PostProcess();
 
-            if (bounds.IsEmpty)
+            if (fragmentBounds.IsEmpty)
             {
                 var drawableBounds = drawable.Bounds;
-                bounds = Rect.Create(
+                fragmentBounds = Rect.Create(
                     0f,
                     0f,
                     Math.Abs(drawableBounds.Left) + drawableBounds.Width,
                     Math.Abs(drawableBounds.Top) + drawableBounds.Height);
             }
 
-            return drawable.Snapshot(bounds);
+            bounds = fragmentBounds;
+            return drawable;
+        }
+
+        public static Picture.Picture? ToModel(SvgFragment svgFragment, IAssetLoader assetLoader)
+        {
+            var drawable = ToDrawable(svgFragment, assetLoader, out var bounds);
+            if (drawable is null || bounds is null)
+            {
+                return default;
+            }
+            var picture = drawable.Snapshot(bounds.Value);
+            return picture;
         }
 
         public static SvgDocument? OpenSvg(string path)
