@@ -97,6 +97,11 @@ namespace Svg.Skia
                 }
 
                 var svg = file.GetText(context.CancellationToken)?.ToString();
+                if (string.IsNullOrWhiteSpace(svg))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "Svg file is null or empty."));
+                    return;
+                }
 
                 SvgDocument.SkipGdiPlusCapabilityCheck = true;
                 SvgDocument.PointsPerInch = 96;
