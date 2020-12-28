@@ -1,5 +1,5 @@
 ﻿using System;
-using Svg.Model.PathEffects;
+using Svg.Model.Painting.PathEffects;
 
 namespace Svg.Model.Painting
 {

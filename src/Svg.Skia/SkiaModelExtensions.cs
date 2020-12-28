@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
 using SkiaSharp;
-using Svg.Model.ColorFilters;
-using Svg.Model.ImageFilters;
+using Svg.Model.Painting.ColorFilters;
+using Svg.Model.Painting.ImageFilters;
 using Svg.Model.Painting;
 using Svg.Model.Primitives.PathCommands;
-using Svg.Model.PathEffects;
+using Svg.Model.Painting.PathEffects;
 using Svg.Model.Primitives;
 using Svg.Model.Primitives.CanvasCommands;
-using Svg.Model.Shaders;
+using Svg.Model.Painting.Shaders;
 
 namespace Svg.Skia
 {

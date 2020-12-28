@@ -9,11 +9,12 @@ using Svg.DataTypes;
 using Svg.Document_Structure;
 using Svg.FilterEffects;
 using Svg.Model.Drawables;
-using Svg.Model.ImageFilters;
+using Svg.Model.Drawables.Elements;
+using Svg.Model.Painting.ImageFilters;
 using Svg.Model.Painting;
 using Svg.Model.Primitives.PathCommands;
 using Svg.Model.Primitives;
-using Svg.Model.Shaders;
+using Svg.Model.Painting.Shaders;
 using Svg.Pathing;
 using Svg.Transforms;
 

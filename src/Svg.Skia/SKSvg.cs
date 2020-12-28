@@ -1,6 +1,7 @@
 ﻿using System;
 using SkiaSharp;
 using Svg.Model;
+using Svg.Model.Drawables;
 using Svg.Model.Primitives;
 
 namespace Svg.Skia

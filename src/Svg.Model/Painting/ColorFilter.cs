@@ -1,5 +1,5 @@
 ﻿using System;
-using Svg.Model.ColorFilters;
+using Svg.Model.Painting.ColorFilters;
 
 namespace Svg.Model.Painting
 {

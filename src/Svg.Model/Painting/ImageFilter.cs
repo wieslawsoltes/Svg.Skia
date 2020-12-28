@@ -1,7 +1,7 @@
 ﻿using System;
-using Svg.Model.ImageFilters;
+using Svg.Model.Painting.ImageFilters;
 using Svg.Model.Primitives;
-using Svg.Model.Shaders;
+using Svg.Model.Painting.Shaders;
 
 namespace Svg.Model.Painting
 {
