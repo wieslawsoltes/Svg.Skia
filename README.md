@@ -19,7 +19,7 @@
 
 *Svg.Skia* can be used as a .NET library or as a CLI application
 to render SVG files based on a [static](http://www.w3.org/TR/SVG11/feature#SVG-static)
-[SVG Full 1.1](https://www.w3.org/TR/SVG/Overview.html) subset to raster images or
+[SVG Full 1.1](https://www.w3.org/TR/SVG11/) subset to raster images or
 to a backend's canvas.
 
 The `Svg.Skia` is using [SVG](https://github.com/vvvv/SVG) library to load `Svg` object model. 
