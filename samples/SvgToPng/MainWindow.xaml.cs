@@ -12,7 +12,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using SkiaSharp;
 using Svg.Model;
-using Svg.Skia;
 //using SkiaSharp.Views.Desktop;
 using SvgToPng.ViewModels;
 

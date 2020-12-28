@@ -1,6 +1,5 @@
 ﻿#nullable disable
 using System;
-using Avalonia;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Platform;

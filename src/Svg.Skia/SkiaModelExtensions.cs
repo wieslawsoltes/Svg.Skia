@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using SkiaSharp;
-using Svg.Model;
 using Svg.Model.ColorFilters;
 using Svg.Model.ImageFilters;
 using Svg.Model.Paint;

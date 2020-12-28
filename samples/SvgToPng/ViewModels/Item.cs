@@ -2,7 +2,6 @@
 using System.Runtime.Serialization;
 using SkiaSharp;
 using Svg;
-using Svg.Skia;
 
 namespace SvgToPng.ViewModels
 {

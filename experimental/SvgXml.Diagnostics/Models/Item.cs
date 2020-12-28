@@ -1,5 +1,4 @@
-﻿using Svg;
-using SvgXml.Svg;
+﻿using SvgXml.Svg;
 
 namespace SvgXml.Diagnostics.Models
 {
