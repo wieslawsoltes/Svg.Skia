@@ -83,7 +83,6 @@ namespace Svg.Model.Drawables
             if (svgReferencedElement is SvgSymbol svgSymbol)
             {
                 drawable.ReferencedDrawable = SymbolDrawable.Create(svgSymbol, x, y, width, height, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
-                drawable.Disposable.Add(drawable.ReferencedDrawable);
             }
             else
             {
@@ -91,7 +90,6 @@ namespace Svg.Model.Drawables
                 if (referencedDrawable != null)
                 {
                     drawable.ReferencedDrawable = referencedDrawable;
-                    drawable.Disposable.Add(drawable.ReferencedDrawable);
                 }
                 else
                 {

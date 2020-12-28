@@ -107,7 +107,6 @@ namespace Svg.Model.Drawables
             if (markerElementDrawable != null)
             {
                 drawable.MarkerElementDrawable = markerElementDrawable;
-                drawable.Disposable.Add(drawable.MarkerElementDrawable);
             }
             else
             {

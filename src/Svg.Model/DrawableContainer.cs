@@ -22,7 +22,6 @@ namespace Svg.Model
                 if (drawable != null)
                 {
                     ChildrenDrawables.Add(drawable);
-                    Disposable.Add(drawable);
                 }
             }
         }

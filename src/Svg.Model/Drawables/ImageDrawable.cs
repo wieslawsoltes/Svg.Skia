@@ -62,11 +62,6 @@ namespace Svg.Model.Drawables
                 return drawable;
             }
 
-            if (skImage != null)
-            {
-                drawable.Disposable.Add(skImage);
-            }
-
             drawable.SrcRect = default;
 
             if (skImage != null)
@@ -170,7 +165,6 @@ namespace Svg.Model.Drawables
             if (svgFragment != null)
             {
                 drawable.FragmentDrawable = FragmentDrawable.Create(svgFragment, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
-                drawable.Disposable.Add(drawable.FragmentDrawable);
             }
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgImage);

@@ -45,7 +45,6 @@ namespace Svg.Model.Drawables
                     if (childDrawable != null)
                     {
                         drawable.FirstChild = childDrawable;
-                        drawable.Disposable.Add(drawable.FirstChild);
                     }
                     break;
                 }
