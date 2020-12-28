@@ -32,10 +32,10 @@ namespace Svg.Model.Drawables
             var yUnit = svgMask.Y;
             var widthUnit = svgMask.Width;
             var heightUnit = svgMask.Height;
-            float x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skOwnerBounds);
-            float y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgMask, skOwnerBounds);
-            float width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skOwnerBounds);
-            float height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgMask, skOwnerBounds);
+            var x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skOwnerBounds);
+            var y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgMask, skOwnerBounds);
+            var width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skOwnerBounds);
+            var height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgMask, skOwnerBounds);
 
             if (width <= 0 || height <= 0)
             {
@@ -69,7 +69,7 @@ namespace Svg.Model.Drawables
                 y += skOwnerBounds.Top;
             }
 
-            Rect skRectTransformed = Rect.Create(x, y, width, height);
+            var skRectTransformed = Rect.Create(x, y, width, height);
 
             var skMatrix = Matrix.CreateIdentity();
 

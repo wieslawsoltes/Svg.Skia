@@ -34,10 +34,10 @@ namespace Svg.Model.Drawables
                 return drawable;
             }
 
-            float width = svgImage.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, skOwnerBounds);
-            float height = svgImage.Height.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skOwnerBounds);
-            float x = svgImage.Location.X.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, skOwnerBounds);
-            float y = svgImage.Location.Y.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skOwnerBounds);
+            var width = svgImage.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, skOwnerBounds);
+            var height = svgImage.Height.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skOwnerBounds);
+            var x = svgImage.Location.X.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, skOwnerBounds);
+            var y = svgImage.Location.Y.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skOwnerBounds);
             var location = new Point(x, y);
 
             if (width <= 0f || height <= 0f || svgImage.Href is null)
@@ -183,10 +183,10 @@ namespace Svg.Model.Drawables
             drawable.FragmentTransform = Matrix.CreateIdentity();
             if (drawable.FragmentDrawable is { })
             {
-                float dx = drawable.DestRect.Left;
-                float dy = drawable.DestRect.Top;
-                float sx = drawable.DestRect.Width / drawable.SrcRect.Width;
-                float sy = drawable.DestRect.Height / drawable.SrcRect.Height;
+                var dx = drawable.DestRect.Left;
+                var dy = drawable.DestRect.Top;
+                var sx = drawable.DestRect.Width / drawable.SrcRect.Width;
+                var sy = drawable.DestRect.Height / drawable.SrcRect.Height;
                 var skTranslationMatrix = Matrix.CreateTranslation(dx, dy);
                 var skScaleMatrix = Matrix.CreateScale(sx, sy);
                 drawable.FragmentTransform = drawable.FragmentTransform.PreConcat(skTranslationMatrix);

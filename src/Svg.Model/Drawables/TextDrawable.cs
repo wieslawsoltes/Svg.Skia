@@ -39,7 +39,7 @@ namespace Svg.Model.Drawables
         {
             var _x = svgTextBase.X;
 
-            for (int i = 0; i < _x.Count; i++)
+            for (var i = 0; i < _x.Count; i++)
             {
                 xs.Add(_x[i].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, skBounds));
             }
@@ -49,7 +49,7 @@ namespace Svg.Model.Drawables
         {
             var _y = svgTextBase.Y;
 
-            for (int i = 0; i < _y.Count; i++)
+            for (var i = 0; i < _y.Count; i++)
             {
                 ys.Add(_y[i].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, skBounds));
             }
@@ -59,7 +59,7 @@ namespace Svg.Model.Drawables
         {
             var _dx = svgTextBase.Dx;
 
-            for (int i = 0; i < _dx.Count; i++)
+            for (var i = 0; i < _dx.Count; i++)
             {
                 dxs.Add(_dx[i].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, skBounds));
             }
@@ -69,7 +69,7 @@ namespace Svg.Model.Drawables
         {
             var _dy = svgTextBase.Dy;
 
-            for (int i = 0; i < _dy.Count; i++)
+            for (var i = 0; i < _dy.Count; i++)
             {
                 dys.Add(_dy[i].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, skBounds));
             }
@@ -138,7 +138,7 @@ namespace Svg.Model.Drawables
                 SvgModelExtensions.GetSvgVisualElementClipPath(svgTextBase, TransformedBounds, new HashSet<Uri>(), clipPath);
                 if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !IgnoreAttributes.HasFlag(Attributes.ClipPath))
                 {
-                    bool antialias = SvgModelExtensions.IsAntialias(svgTextBase);
+                    var antialias = SvgModelExtensions.IsAntialias(svgTextBase);
                     skCanvas.ClipPath(clipPath, ClipOperation.Intersect, antialias);
                 }
             }
@@ -276,8 +276,8 @@ namespace Svg.Model.Drawables
         internal void DrawTextBase(SvgTextBase svgTextBase, string? text, float currentX, float currentY, Rect skOwnerBounds, Attributes ignoreAttributes, Canvas skCanvas, DrawableBase? until)
         {
             // TODO: Fix SvgTextBase rendering.
-            bool isValidFill = SvgModelExtensions.IsValidFill(svgTextBase);
-            bool isValidStroke = SvgModelExtensions.IsValidStroke(svgTextBase, skOwnerBounds);
+            var isValidFill = SvgModelExtensions.IsValidFill(svgTextBase);
+            var isValidStroke = SvgModelExtensions.IsValidStroke(svgTextBase, skOwnerBounds);
 
             if ((!isValidFill && !isValidStroke) || text is null || string.IsNullOrEmpty(text))
             {
@@ -299,10 +299,10 @@ namespace Svg.Model.Drawables
                 // TODO: Fix text position rendering.
                 var points = new Point[xs.Count];
 
-                for (int i = 0; i < xs.Count; i++)
+                for (var i = 0; i < xs.Count; i++)
                 {
-                    float x = xs[i];
-                    float y = ys[i];
+                    var x = xs[i];
+                    var y = ys[i];
                     float dx = 0;
                     float dy = 0;
                     if (dxs.Count >= 1 && xs.Count >= dxs.Count)
@@ -352,10 +352,10 @@ namespace Svg.Model.Drawables
             }
             else
             {
-                float x = (xs.Count >= 1) ? xs[0] : currentX;
-                float y = (ys.Count >= 1) ? ys[0] : currentY;
-                float dx = (dxs.Count >= 1) ? dxs[0] : 0f;
-                float dy = (dys.Count >= 1) ? dys[0] : 0f;
+                var x = (xs.Count >= 1) ? xs[0] : currentX;
+                var y = (ys.Count >= 1) ? ys[0] : currentY;
+                var dx = (dxs.Count >= 1) ? dxs[0] : 0f;
+                var dy = (dys.Count >= 1) ? dys[0] : 0f;
 
                 DrawTextString(svgTextBase, text, x + dx, y + dy, skOwnerBounds, ignoreAttributes, skCanvas, until);
             }
@@ -392,8 +392,8 @@ namespace Svg.Model.Drawables
             // TODO: Implement StartOffset
             var startOffset = svgTextPath.StartOffset.ToDeviceValue(UnitRenderingType.Other, svgTextPath, skOwnerBounds);
 
-            float hOffset = currentX + startOffset;
-            float vOffset = currentY;
+            var hOffset = currentX + startOffset;
+            var vOffset = currentY;
 
             // TODO: Calculate correct bounds.
             var skBounds = skOwnerBounds;
@@ -401,8 +401,8 @@ namespace Svg.Model.Drawables
             BeginDraw(svgTextPath, skCanvas, skBounds, ignoreAttributes, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter);
 
             // TODO: Fix SvgTextPath rendering.
-            bool isValidFill = SvgModelExtensions.IsValidFill(svgTextPath);
-            bool isValidStroke = SvgModelExtensions.IsValidStroke(svgTextPath, skBounds);
+            var isValidFill = SvgModelExtensions.IsValidFill(svgTextPath);
+            var isValidStroke = SvgModelExtensions.IsValidStroke(svgTextPath, skBounds);
 
             if (isValidFill || isValidStroke)
             {
@@ -511,13 +511,13 @@ namespace Svg.Model.Drawables
             GetPositionsDX(svgText, skOwnerBounds, dxs);
             GetPositionsDY(svgText, skOwnerBounds, dys);
 
-            float x = (xs.Count >= 1) ? xs[0] : 0f;
-            float y = (ys.Count >= 1) ? ys[0] : 0f;
-            float dx = (dxs.Count >= 1) ? dxs[0] : 0f;
-            float dy = (dys.Count >= 1) ? dys[0] : 0f;
+            var x = (xs.Count >= 1) ? xs[0] : 0f;
+            var y = (ys.Count >= 1) ? ys[0] : 0f;
+            var dx = (dxs.Count >= 1) ? dxs[0] : 0f;
+            var dy = (dys.Count >= 1) ? dys[0] : 0f;
 
-            float currentX = x + dx;
-            float currentY = y + dy;
+            var currentX = x + dx;
+            var currentY = y + dy;
 
             foreach (var node in GetContentNodes(svgText))
             {

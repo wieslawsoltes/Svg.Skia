@@ -179,7 +179,7 @@ namespace Svg.Model
         internal static float ToDeviceValue(this SvgUnit svgUnit, UnitRenderingType renderType, SvgElement? owner, Rect skBounds)
         {
             const float cmInInch = 2.54f;
-            int ppi = SvgDocument.PointsPerInch;
+            var ppi = SvgDocument.PointsPerInch;
             var type = svgUnit.Type;
             var value = svgUnit.Value;
             float? _deviceValue;
@@ -387,7 +387,7 @@ namespace Svg.Model
 
         internal static bool HasRequiredFeatures(this SvgElement svgElement)
         {
-            bool hasRequiredFeatures = true;
+            var hasRequiredFeatures = true;
 
             if (TryGetAttribute(svgElement, "requiredFeatures", out var requiredFeaturesString))
             {
@@ -421,7 +421,7 @@ namespace Svg.Model
 
         internal static bool HasRequiredExtensions(this SvgElement svgElement)
         {
-            bool hasRequiredExtensions = true;
+            var hasRequiredExtensions = true;
 
             if (TryGetAttribute(svgElement, "requiredExtensions", out var requiredExtensionsString))
             {
@@ -455,7 +455,7 @@ namespace Svg.Model
 
         internal static bool HasSystemLanguage(this SvgElement svgElement)
         {
-            bool hasSystemLanguage = true;
+            var hasSystemLanguage = true;
 
             if (TryGetAttribute(svgElement, "systemLanguage", out var systemLanguageString))
             {
@@ -557,7 +557,7 @@ namespace Svg.Model
         internal static Color GetColor(SvgColourServer svgColourServer, float opacity, Attributes ignoreAttributes)
         {
             var colour = svgColourServer.Colour;
-            byte alpha = ignoreAttributes.HasFlag(Attributes.Opacity) ?
+            var alpha = ignoreAttributes.HasFlag(Attributes.Opacity) ?
                 svgColourServer.Colour.A :
                 CombineWithOpacity(svgColourServer.Colour.A, opacity);
 
@@ -587,10 +587,10 @@ namespace Svg.Model
 
             if (strokeDashArray is { } && count > 0)
             {
-                bool isOdd = count % 2 != 0;
-                float sum = 0f;
+                var isOdd = count % 2 != 0;
+                var sum = 0f;
                 float[] intervals = new float[isOdd ? count * 2 : count];
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     var dash = strokeDashArray[i].ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds);
                     if (dash < 0f)
@@ -613,7 +613,7 @@ namespace Svg.Model
                     return default;
                 }
 
-                float phase = strokeDashOffset is { } ? strokeDashOffset.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) : 0f;
+                var phase = strokeDashOffset is { } ? strokeDashOffset.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) : 0f;
 
                 return PathEffect.CreateDash(intervals, phase);
             }
@@ -665,7 +665,7 @@ namespace Svg.Model
                     {
                         var stopOpacity = AdjustSvgOpacity(svgGradientStop.StopOpacity);
                         var stopColor = GetColor(stopColorSvgColourServer, opacity * stopOpacity, ignoreAttributes);
-                        float offset = svgGradientStop.Offset.ToDeviceValue(UnitRenderingType.Horizontal, svgGradientServer, skBounds);
+                        var offset = svgGradientStop.Offset.ToDeviceValue(UnitRenderingType.Horizontal, svgGradientServer, skBounds);
                         offset /= skBounds.Width;
                         colors.Add(stopColor);
                         colorPos.Add(offset);
@@ -691,10 +691,10 @@ namespace Svg.Model
 
         private static void AdjustStopColorPos(List<float> colorPos)
         {
-            float maxPos = float.MinValue;
-            for (int i = 0; i < colorPos.Count; i++)
+            var maxPos = float.MinValue;
+            for (var i = 0; i < colorPos.Count; i++)
             {
-                float pos = colorPos[i];
+                var pos = colorPos[i];
                 if (pos > maxPos)
                 {
                     maxPos = pos;
@@ -710,7 +710,7 @@ namespace Svg.Model
         {
             var skColorsF = new ColorF[skColors.Length];
 
-            for (int i = 0; i < skColors.Length; i++)
+            for (var i = 0; i < skColors.Length; i++)
             {
                 skColorsF[i] = skColors[i];
             }
@@ -829,10 +829,10 @@ namespace Svg.Model
             var normalizedX2 = x2Unit.Normalize(svgGradientUnits);
             var normalizedY2 = y2Unit.Normalize(svgGradientUnits);
 
-            float x1 = normalizedX1.ToDeviceValue(UnitRenderingType.Horizontal, svgLinearGradientServer, skBounds);
-            float y1 = normalizedY1.ToDeviceValue(UnitRenderingType.Vertical, svgLinearGradientServer, skBounds);
-            float x2 = normalizedX2.ToDeviceValue(UnitRenderingType.Horizontal, svgLinearGradientServer, skBounds);
-            float y2 = normalizedY2.ToDeviceValue(UnitRenderingType.Vertical, svgLinearGradientServer, skBounds);
+            var x1 = normalizedX1.ToDeviceValue(UnitRenderingType.Horizontal, svgLinearGradientServer, skBounds);
+            var y1 = normalizedY1.ToDeviceValue(UnitRenderingType.Vertical, svgLinearGradientServer, skBounds);
+            var x2 = normalizedX2.ToDeviceValue(UnitRenderingType.Horizontal, svgLinearGradientServer, skBounds);
+            var y2 = normalizedY2.ToDeviceValue(UnitRenderingType.Vertical, svgLinearGradientServer, skBounds);
 
             var skStart = new Point(x1, y1);
             var skEnd = new Point(x2, y2);
@@ -1000,14 +1000,14 @@ namespace Svg.Model
             var normalizedFocalX = focalXUnit.Normalize(svgGradientUnits);
             var normalizedFocalY = focalYUnit.Normalize(svgGradientUnits);
 
-            float centerX = normalizedCenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
-            float centerY = normalizedCenterY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
+            var centerX = normalizedCenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
+            var centerY = normalizedCenterY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
 
-            float startRadius = 0f;
-            float endRadius = normalizedRadius.ToDeviceValue(UnitRenderingType.Other, svgRadialGradientServer, skBounds);
+            var startRadius = 0f;
+            var endRadius = normalizedRadius.ToDeviceValue(UnitRenderingType.Other, svgRadialGradientServer, skBounds);
 
-            float focalX = normalizedFocalX.ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
-            float focalY = normalizedFocalY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
+            var focalX = normalizedFocalX.ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
+            var focalY = normalizedFocalY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
 
             var skStart = new Point(centerX, centerY);
             var skEnd = new Point(focalX, focalY);
@@ -1223,10 +1223,10 @@ namespace Svg.Model
             var viewBox = firstViewBox is null ? SvgViewBox.Empty : firstViewBox.ViewBox;
             var aspectRatio = firstAspectRatio is null ? new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid, false) : firstAspectRatio.AspectRatio;
 
-            float x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgPatternServer, skBounds);
-            float y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgPatternServer, skBounds);
-            float width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgPatternServer, skBounds);
-            float height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgPatternServer, skBounds);
+            var x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgPatternServer, skBounds);
+            var y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgPatternServer, skBounds);
+            var width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgPatternServer, skBounds);
+            var height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgPatternServer, skBounds);
 
             if (width <= 0 || height <= 0)
             {
@@ -1581,7 +1581,7 @@ namespace Svg.Model
 
         internal static Paint.Paint? GetOpacityPaint(SvgElement svgElement)
         {
-            float opacity = AdjustSvgOpacity(svgElement.Opacity);
+            var opacity = AdjustSvgOpacity(svgElement.Opacity);
             var skPaint = GetOpacityPaint(opacity);
             if (skPaint is { })
             {
@@ -1642,8 +1642,8 @@ namespace Svg.Model
 
                     case SvgSkew svgSkew:
                         {
-                            float sx = (float)Math.Tan(Math.PI * svgSkew.AngleX / 180);
-                            float sy = (float)Math.Tan(Math.PI * svgSkew.AngleY / 180);
+                            var sx = (float)Math.Tan(Math.PI * svgSkew.AngleX / 180);
+                            var sy = (float)Math.Tan(Math.PI * svgSkew.AngleY / 180);
                             var skMatrixSkew = Matrix.CreateSkew(sx, sy);
                             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixSkew);
                         }
@@ -1668,10 +1668,10 @@ namespace Svg.Model
                 return Matrix.CreateTranslation(x, y);
             }
 
-            float fScaleX = width / svgViewBox.Width;
-            float fScaleY = height / svgViewBox.Height;
-            float fMinX = -svgViewBox.MinX * fScaleX;
-            float fMinY = -svgViewBox.MinY * fScaleY;
+            var fScaleX = width / svgViewBox.Width;
+            var fScaleY = height / svgViewBox.Height;
+            var fMinX = -svgViewBox.MinX * fScaleX;
+            var fMinY = -svgViewBox.MinY * fScaleY;
 
             svgAspectRatio ??= new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid);
 
@@ -1687,10 +1687,10 @@ namespace Svg.Model
                     fScaleX = Math.Min(fScaleX, fScaleY);
                     fScaleY = Math.Min(fScaleX, fScaleY);
                 }
-                float fViewMidX = (svgViewBox.Width / 2) * fScaleX;
-                float fViewMidY = (svgViewBox.Height / 2) * fScaleY;
-                float fMidX = width / 2;
-                float fMidY = height / 2;
+                var fViewMidX = (svgViewBox.Width / 2) * fScaleX;
+                var fViewMidY = (svgViewBox.Height / 2) * fScaleY;
+                var fMidX = width / 2;
+                var fMidY = height / 2;
                 fMinX = -svgViewBox.MinX * fScaleX;
                 fMinY = -svgViewBox.MinY * fScaleY;
 
@@ -1862,10 +1862,10 @@ namespace Svg.Model
                 FillType = fillType
             };
 
-            bool isEndFigure = false;
-            bool haveFigure = false;
+            var isEndFigure = false;
+            var haveFigure = false;
 
-            for (int i = 0; i < svgPathSegmentList.Count; i++)
+            for (var i = 0; i < svgPathSegmentList.Count; i++)
             {
                 var svgSegment = svgPathSegmentList[i];
                 var isLast = i == svgPathSegmentList.Count - 1;
@@ -1897,8 +1897,8 @@ namespace Svg.Model
                             }
                             isEndFigure = true;
                             haveFigure = false;
-                            float x = svgMoveToSegment.Start.X;
-                            float y = svgMoveToSegment.Start.Y;
+                            var x = svgMoveToSegment.Start.X;
+                            var y = svgMoveToSegment.Start.Y;
                             skPath.MoveTo(x, y);
                         }
                         break;
@@ -1910,8 +1910,8 @@ namespace Svg.Model
                                 return default;
                             }
                             haveFigure = true;
-                            float x = svgLineSegment.End.X;
-                            float y = svgLineSegment.End.Y;
+                            var x = svgLineSegment.End.X;
+                            var y = svgLineSegment.End.Y;
                             skPath.LineTo(x, y);
                         }
                         break;
@@ -1923,12 +1923,12 @@ namespace Svg.Model
                                 return default;
                             }
                             haveFigure = true;
-                            float x0 = svgCubicCurveSegment.FirstControlPoint.X;
-                            float y0 = svgCubicCurveSegment.FirstControlPoint.Y;
-                            float x1 = svgCubicCurveSegment.SecondControlPoint.X;
-                            float y1 = svgCubicCurveSegment.SecondControlPoint.Y;
-                            float x2 = svgCubicCurveSegment.End.X;
-                            float y2 = svgCubicCurveSegment.End.Y;
+                            var x0 = svgCubicCurveSegment.FirstControlPoint.X;
+                            var y0 = svgCubicCurveSegment.FirstControlPoint.Y;
+                            var x1 = svgCubicCurveSegment.SecondControlPoint.X;
+                            var y1 = svgCubicCurveSegment.SecondControlPoint.Y;
+                            var x2 = svgCubicCurveSegment.End.X;
+                            var y2 = svgCubicCurveSegment.End.Y;
                             skPath.CubicTo(x0, y0, x1, y1, x2, y2);
                         }
                         break;
@@ -1940,10 +1940,10 @@ namespace Svg.Model
                                 return default;
                             }
                             haveFigure = true;
-                            float x0 = svgQuadraticCurveSegment.ControlPoint.X;
-                            float y0 = svgQuadraticCurveSegment.ControlPoint.Y;
-                            float x1 = svgQuadraticCurveSegment.End.X;
-                            float y1 = svgQuadraticCurveSegment.End.Y;
+                            var x0 = svgQuadraticCurveSegment.ControlPoint.X;
+                            var y0 = svgQuadraticCurveSegment.ControlPoint.Y;
+                            var x1 = svgQuadraticCurveSegment.End.X;
+                            var y1 = svgQuadraticCurveSegment.End.Y;
                             skPath.QuadTo(x0, y0, x1, y1);
                         }
                         break;
@@ -1955,13 +1955,13 @@ namespace Svg.Model
                                 return default;
                             }
                             haveFigure = true;
-                            float rx = svgArcSegment.RadiusX;
-                            float ry = svgArcSegment.RadiusY;
-                            float xAxisRotate = svgArcSegment.Angle;
+                            var rx = svgArcSegment.RadiusX;
+                            var ry = svgArcSegment.RadiusY;
+                            var xAxisRotate = svgArcSegment.Angle;
                             var largeArc = svgArcSegment.Size == SvgArcSize.Small ? PathArcSize.Small : PathArcSize.Large;
                             var sweep = svgArcSegment.Sweep == SvgArcSweep.Negative ? PathDirection.CounterClockwise : PathDirection.Clockwise;
-                            float x = svgArcSegment.End.X;
-                            float y = svgArcSegment.End.Y;
+                            var x = svgArcSegment.End.X;
+                            var y = svgArcSegment.End.Y;
                             skPath.ArcTo(rx, ry, xAxisRotate, largeArc, sweep, x, y);
                         }
                         break;
@@ -2002,10 +2002,10 @@ namespace Svg.Model
 
             var skPoints = new Point[svgPointCollection.Count / 2];
 
-            for (int i = 0; (i + 1) < svgPointCollection.Count; i += 2)
+            for (var i = 0; (i + 1) < svgPointCollection.Count; i += 2)
             {
-                float x = svgPointCollection[i].ToDeviceValue(UnitRenderingType.Other, null, skOwnerBounds);
-                float y = svgPointCollection[i + 1].ToDeviceValue(UnitRenderingType.Other, null, skOwnerBounds);
+                var x = svgPointCollection[i].ToDeviceValue(UnitRenderingType.Other, null, skOwnerBounds);
+                var y = svgPointCollection[i + 1].ToDeviceValue(UnitRenderingType.Other, null, skOwnerBounds);
                 skPoints[i / 2] = new Point(x, y);
             }
 
@@ -2022,12 +2022,12 @@ namespace Svg.Model
                 FillType = fillType
             };
 
-            float x = svgRectangle.X.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skOwnerBounds);
-            float y = svgRectangle.Y.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skOwnerBounds);
-            float width = svgRectangle.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skOwnerBounds);
-            float height = svgRectangle.Height.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skOwnerBounds);
-            float rx = svgRectangle.CornerRadiusX.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skOwnerBounds);
-            float ry = svgRectangle.CornerRadiusY.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skOwnerBounds);
+            var x = svgRectangle.X.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skOwnerBounds);
+            var y = svgRectangle.Y.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skOwnerBounds);
+            var width = svgRectangle.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skOwnerBounds);
+            var height = svgRectangle.Height.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skOwnerBounds);
+            var rx = svgRectangle.CornerRadiusX.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skOwnerBounds);
+            var ry = svgRectangle.CornerRadiusY.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skOwnerBounds);
 
             if (width <= 0f || height <= 0f)
             {
@@ -2059,7 +2059,7 @@ namespace Svg.Model
 
             if (rx > 0f)
             {
-                float halfWidth = width / 2f;
+                var halfWidth = width / 2f;
                 if (rx > halfWidth)
                 {
                     rx = halfWidth;
@@ -2068,14 +2068,14 @@ namespace Svg.Model
 
             if (ry > 0f)
             {
-                float halfHeight = height / 2f;
+                var halfHeight = height / 2f;
                 if (ry > halfHeight)
                 {
                     ry = halfHeight;
                 }
             }
 
-            bool isRound = rx > 0f && ry > 0f;
+            var isRound = rx > 0f && ry > 0f;
             var skRectBounds = Rect.Create(x, y, width, height);
 
             if (isRound)
@@ -2098,9 +2098,9 @@ namespace Svg.Model
                 FillType = fillType
             };
 
-            float cx = svgCircle.CenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgCircle, skOwnerBounds);
-            float cy = svgCircle.CenterY.ToDeviceValue(UnitRenderingType.Vertical, svgCircle, skOwnerBounds);
-            float radius = svgCircle.Radius.ToDeviceValue(UnitRenderingType.Other, svgCircle, skOwnerBounds);
+            var cx = svgCircle.CenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgCircle, skOwnerBounds);
+            var cy = svgCircle.CenterY.ToDeviceValue(UnitRenderingType.Vertical, svgCircle, skOwnerBounds);
+            var radius = svgCircle.Radius.ToDeviceValue(UnitRenderingType.Other, svgCircle, skOwnerBounds);
 
             if (radius <= 0f)
             {
@@ -2121,10 +2121,10 @@ namespace Svg.Model
                 FillType = fillType
             };
 
-            float cx = svgEllipse.CenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgEllipse, skOwnerBounds);
-            float cy = svgEllipse.CenterY.ToDeviceValue(UnitRenderingType.Vertical, svgEllipse, skOwnerBounds);
-            float rx = svgEllipse.RadiusX.ToDeviceValue(UnitRenderingType.Other, svgEllipse, skOwnerBounds);
-            float ry = svgEllipse.RadiusY.ToDeviceValue(UnitRenderingType.Other, svgEllipse, skOwnerBounds);
+            var cx = svgEllipse.CenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgEllipse, skOwnerBounds);
+            var cy = svgEllipse.CenterY.ToDeviceValue(UnitRenderingType.Vertical, svgEllipse, skOwnerBounds);
+            var rx = svgEllipse.RadiusX.ToDeviceValue(UnitRenderingType.Other, svgEllipse, skOwnerBounds);
+            var ry = svgEllipse.RadiusY.ToDeviceValue(UnitRenderingType.Other, svgEllipse, skOwnerBounds);
 
             if (rx <= 0f || ry <= 0f)
             {
@@ -2147,10 +2147,10 @@ namespace Svg.Model
                 FillType = fillType
             };
 
-            float x0 = svgLine.StartX.ToDeviceValue(UnitRenderingType.Horizontal, svgLine, skOwnerBounds);
-            float y0 = svgLine.StartY.ToDeviceValue(UnitRenderingType.Vertical, svgLine, skOwnerBounds);
-            float x1 = svgLine.EndX.ToDeviceValue(UnitRenderingType.Horizontal, svgLine, skOwnerBounds);
-            float y1 = svgLine.EndY.ToDeviceValue(UnitRenderingType.Vertical, svgLine, skOwnerBounds);
+            var x0 = svgLine.StartX.ToDeviceValue(UnitRenderingType.Horizontal, svgLine, skOwnerBounds);
+            var y0 = svgLine.StartY.ToDeviceValue(UnitRenderingType.Vertical, svgLine, skOwnerBounds);
+            var x1 = svgLine.EndX.ToDeviceValue(UnitRenderingType.Horizontal, svgLine, skOwnerBounds);
+            var y1 = svgLine.EndY.ToDeviceValue(UnitRenderingType.Vertical, svgLine, skOwnerBounds);
 
             skPath.MoveTo(x0, y0);
             skPath.LineTo(x1, y1);
@@ -2280,7 +2280,7 @@ namespace Svg.Model
                     var bytes = Convert.FromBase64String(data);
                     if (bytes.Length > 2)
                     {
-                        bool isCompressed = bytes[0] == s_gZipMagicHeaderBytes[0] && bytes[1] == s_gZipMagicHeaderBytes[1];
+                        var isCompressed = bytes[0] == s_gZipMagicHeaderBytes[0] && bytes[1] == s_gZipMagicHeaderBytes[1];
                         if (isCompressed)
                         {
                             using var bytesStream = new System.IO.MemoryStream(bytes);
@@ -2302,7 +2302,7 @@ namespace Svg.Model
                     var bytes = Convert.FromBase64String(data);
                     if (bytes.Length > 2)
                     {
-                        bool isCompressed = bytes[0] == s_gZipMagicHeaderBytes[0] && bytes[1] == s_gZipMagicHeaderBytes[1];
+                        var isCompressed = bytes[0] == s_gZipMagicHeaderBytes[0] && bytes[1] == s_gZipMagicHeaderBytes[1];
                         if (isCompressed)
                         {
                             using var bytesStream = new System.IO.MemoryStream(bytes);
@@ -2341,9 +2341,9 @@ namespace Svg.Model
 
         internal static bool CanDraw(SvgVisualElement svgVisualElement, Attributes ignoreAttributes)
         {
-            bool visible = svgVisualElement.Visible;
-            bool ignoreDisplay = ignoreAttributes.HasFlag(Attributes.Display);
-            bool display = ignoreDisplay || !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
+            var visible = svgVisualElement.Visible;
+            var ignoreDisplay = ignoreAttributes.HasFlag(Attributes.Display);
+            var display = ignoreDisplay || !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
             return visible && display;
         }
 
@@ -2793,11 +2793,11 @@ namespace Svg.Model
 
         internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, bool isStartMarker, Rect skOwnerBounds, IMarkerHost markerHost, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
-            float fAngle1 = 0f;
+            var fAngle1 = 0f;
             if (svgMarker.Orient.IsAuto)
             {
-                float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
-                float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
+                var xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
+                var yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
                 fAngle1 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
                 if (isStartMarker && svgMarker.Orient.IsAutoStartReverse)
                 {
@@ -2811,12 +2811,12 @@ namespace Svg.Model
 
         internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, Point pMarkerPoint3, Rect skOwnerBounds, IMarkerHost markerHost, IAssetLoader assetLoader)
         {
-            float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
-            float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
-            float fAngle1 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
+            var xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
+            var yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
+            var fAngle1 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
             xDiff = pMarkerPoint3.X - pMarkerPoint2.X;
             yDiff = pMarkerPoint3.Y - pMarkerPoint2.Y;
-            float fAngle2 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
+            var fAngle2 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
 
             var markerDrawable = MarkerDrawable.Create(svgMarker, pOwner, pRefPoint, (fAngle1 + fAngle2) / 2, skOwnerBounds, null, assetLoader);
             markerHost.AddMarker(markerDrawable);
@@ -2850,8 +2850,8 @@ namespace Svg.Model
                 var marker = GetReference<SvgMarker>(svgMarkerElement, markerMid);
                 if (marker is { })
                 {
-                    int bezierIndex = -1;
-                    for (int i = 1; i <= pathLength - 2; i++)
+                    var bezierIndex = -1;
+                    for (var i = 1; i <= pathLength - 2; i++)
                     {
                         // for Bezier curves, the marker shall only been shown at the last point
                         if ((pathTypes[i].Type & (byte)PathPointType.PathTypeMask) == (byte)PathPointType.Bezier)
@@ -2944,7 +2944,7 @@ namespace Svg.Model
             {
                 case SvgColourMatrixType.HueRotate:
                     {
-                        float value = (string.IsNullOrEmpty(svgColourMatrix.Values) ? 0 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture));
+                        var value = (string.IsNullOrEmpty(svgColourMatrix.Values) ? 0 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture));
                         var hue = (float)DegreeToRadian(value);
                         var cosHue = Math.Cos(hue);
                         var sinHue = Math.Sin(hue);
@@ -2980,7 +2980,7 @@ namespace Svg.Model
 
                 case SvgColourMatrixType.Saturate:
                     {
-                        float value = (string.IsNullOrEmpty(svgColourMatrix.Values) ? 1 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture));
+                        var value = (string.IsNullOrEmpty(svgColourMatrix.Values) ? 1 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture));
                         float[] matrix = new float[]
                         {
                             (float)(0.213+0.787*value), (float)(0.715-0.715*value), (float)(0.072-0.072*value), 0, 0,
@@ -3006,7 +3006,7 @@ namespace Svg.Model
                             if (parts.Length == 20)
                             {
                                 matrix = new float[20];
-                                for (int i = 0; i < 20; i++)
+                                for (var i = 0; i < 20; i++)
                                 {
                                     matrix[i] = float.Parse(parts[i], NumberStyles.Any, CultureInfo.InvariantCulture);
                                 }
@@ -3035,18 +3035,18 @@ namespace Svg.Model
         internal static void Table(byte[] values, SvgComponentTransferFunction transferFunction)
         {
             var tableValues = transferFunction.TableValues;
-            int n = tableValues.Count;
+            var n = tableValues.Count;
             if (n < 1)
             {
                 return;
             }
-            for (int i = 0; i < 256; i++)
+            for (var i = 0; i < 256; i++)
             {
-                double c = i / 255.0;
-                byte k = (byte)(c * (n - 1));
+                var c = i / 255.0;
+                var k = (byte)(c * (n - 1));
                 double v1 = tableValues[k];
                 double v2 = tableValues[Math.Min((k + 1), (n - 1))];
-                double val = 255.0 * (v1 + (c * (n - 1) - k) * (v2 - v1));
+                var val = 255.0 * (v1 + (c * (n - 1) - k) * (v2 - v1));
                 val = Math.Max(0.0, Math.Min(255.0, val));
                 values[i] = (byte)val;
             }
@@ -3055,14 +3055,14 @@ namespace Svg.Model
         internal static void Discrete(byte[] values, SvgComponentTransferFunction transferFunction)
         {
             var tableValues = transferFunction.TableValues;
-            int n = tableValues.Count;
+            var n = tableValues.Count;
             if (n < 1)
             {
                 return;
             }
-            for (int i = 0; i < 256; i++)
+            for (var i = 0; i < 256; i++)
             {
-                byte k = (byte)((i * n) / 255.0);
+                var k = (byte)((i * n) / 255.0);
                 k = (byte)Math.Min(k, n - 1);
                 double val = 255 * tableValues[k];
                 val = Math.Max(0.0, Math.Min(255.0, val));
@@ -3072,7 +3072,7 @@ namespace Svg.Model
 
         internal static void Linear(byte[] values, SvgComponentTransferFunction transferFunction)
         {
-            for (int i = 0; i < 256; i++)
+            for (var i = 0; i < 256; i++)
             {
                 double val = transferFunction.Slope * i + 255 * transferFunction.Intercept;
                 val = Math.Max(0.0, Math.Min(255.0, val));
@@ -3082,10 +3082,10 @@ namespace Svg.Model
 
         internal static void Gamma(byte[] values, SvgComponentTransferFunction transferFunction)
         {
-            for (int i = 0; i < 256; i++)
+            for (var i = 0; i < 256; i++)
             {
                 double exponent = transferFunction.Exponent;
-                double val = 255.0 * (transferFunction.Amplitude * Math.Pow((i / 255.0), exponent) + transferFunction.Offset);
+                var val = 255.0 * (transferFunction.Amplitude * Math.Pow((i / 255.0), exponent) + transferFunction.Offset);
                 val = Math.Max(0.0, Math.Min(255.0, val));
                 values[i] = (byte)val;
             }
@@ -3151,7 +3151,7 @@ namespace Svg.Model
             byte[] tableG = new byte[256];
             byte[] tableB = new byte[256];
 
-            for (int i = 0; i < 256; i++)
+            for (var i = 0; i < 256; i++)
             {
                 tableA[i] = tableR[i] = tableG[i] = tableB[i] = (byte)i;
             }
@@ -3222,13 +3222,13 @@ namespace Svg.Model
 
             float[] kernel = new float[kernelMatrix.Count];
 
-            int count = kernelMatrix.Count;
-            for (int i = 0; i < count; i++)
+            var count = kernelMatrix.Count;
+            for (var i = 0; i < count; i++)
             {
                 kernel[i] = kernelMatrix[count - 1 - i];
             }
 
-            float divisor = svgConvolveMatrix.Divisor;
+            var divisor = svgConvolveMatrix.Divisor;
             if (divisor == 0f)
             {
                 foreach (var value in kernel)
@@ -3241,8 +3241,8 @@ namespace Svg.Model
                 }
             }
 
-            float gain = 1f / divisor;
-            float bias = svgConvolveMatrix.Bias * 255f;
+            var gain = 1f / divisor;
+            var bias = svgConvolveMatrix.Bias * 255f;
             var kernelOffset = new PointI(svgConvolveMatrix.TargetX, svgConvolveMatrix.TargetY);
             var tileMode = svgConvolveMatrix.EdgeMode switch
             {
@@ -3251,20 +3251,20 @@ namespace Svg.Model
                 SvgEdgeMode.None => ShaderTileMode.Decal,
                 _ => ShaderTileMode.Clamp
             };
-            bool convolveAlpha = !svgConvolveMatrix.PreserveAlpha;
+            var convolveAlpha = !svgConvolveMatrix.PreserveAlpha;
 
             return ImageFilter.CreateMatrixConvolution(kernelSize, kernel, gain, bias, kernelOffset, tileMode, convolveAlpha, input, cropRect);
         }
 
         internal static Point3 GetDirection(SvgDistantLight svgDistantLight)
         {
-            float azimuth = svgDistantLight.Azimuth;
-            float elevation = svgDistantLight.Elevation;
-            double azimuthRad = DegreeToRadian(azimuth);
-            double elevationRad = DegreeToRadian(elevation);
-            float x = (float)(Math.Cos(azimuthRad) * Math.Cos(elevationRad));
-            float y = (float)(Math.Sin(azimuthRad) * Math.Cos(elevationRad));
-            float z = (float)Math.Sin(elevationRad);
+            var azimuth = svgDistantLight.Azimuth;
+            var elevation = svgDistantLight.Elevation;
+            var azimuthRad = DegreeToRadian(azimuth);
+            var elevationRad = DegreeToRadian(elevation);
+            var x = (float)(Math.Cos(azimuthRad) * Math.Cos(elevationRad));
+            var y = (float)(Math.Sin(azimuthRad) * Math.Cos(elevationRad));
+            var z = (float)Math.Sin(elevationRad);
             return new Point3(x, y, z);
         }
 
@@ -3312,8 +3312,8 @@ namespace Svg.Model
                     {
                         var location = GetPoint3(svgSpotLight.X, svgSpotLight.Y, svgSpotLight.Z, skBounds, primitiveUnits);
                         var target = GetPoint3(svgSpotLight.PointsAtX, svgSpotLight.PointsAtY, svgSpotLight.PointsAtZ, skBounds, primitiveUnits);
-                        float specularExponentSpotLight = svgSpotLight.SpecularExponent;
-                        float limitingConeAngle = svgSpotLight.LimitingConeAngle;
+                        var specularExponentSpotLight = svgSpotLight.SpecularExponent;
+                        var limitingConeAngle = svgSpotLight.LimitingConeAngle;
                         if (float.IsNaN(limitingConeAngle) || limitingConeAngle > 90f || limitingConeAngle < -90f)
                         {
                             limitingConeAngle = 90f;
@@ -3497,10 +3497,10 @@ namespace Svg.Model
             if (svgFragment is { })
             {
                 var fragmentTransform = Matrix.CreateIdentity();
-                float dx = destRect.Left;
-                float dy = destRect.Top;
-                float sx = destRect.Width / srcRect.Width;
-                float sy = destRect.Height / srcRect.Height;
+                var dx = destRect.Left;
+                var dy = destRect.Top;
+                var sx = destRect.Width / srcRect.Width;
+                var sy = destRect.Height / srcRect.Height;
                 var skTranslationMatrix = Matrix.CreateTranslation(dx, dy);
                 var skScaleMatrix = Matrix.CreateScale(sx, sy);
                 fragmentTransform = fragmentTransform.PreConcat(skTranslationMatrix);
@@ -3530,7 +3530,7 @@ namespace Svg.Model
 
             var filters = new ImageFilter[children.Count];
 
-            for (int i = 0; i < children.Count; i++)
+            for (var i = 0; i < children.Count; i++)
             {
                 var child = children[i];
                 var inputKey = child.Input;
@@ -3577,8 +3577,8 @@ namespace Svg.Model
             var dxUnit = svgOffset.Dx;
             var dyUnit = svgOffset.Dy;
 
-            float dx = dxUnit.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgOffset, skBounds);
-            float dy = dyUnit.ToDeviceValue(UnitRenderingType.VerticalOffset, svgOffset, skBounds);
+            var dx = dxUnit.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgOffset, skBounds);
+            var dy = dyUnit.ToDeviceValue(UnitRenderingType.VerticalOffset, svgOffset, skBounds);
 
             if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
@@ -3625,8 +3625,8 @@ namespace Svg.Model
                     {
                         var location = GetPoint3(svgSpotLight.X, svgSpotLight.Y, svgSpotLight.Z, skBounds, primitiveUnits);
                         var target = GetPoint3(svgSpotLight.PointsAtX, svgSpotLight.PointsAtY, svgSpotLight.PointsAtZ, skBounds, primitiveUnits);
-                        float specularExponentSpotLight = svgSpotLight.SpecularExponent;
-                        float limitingConeAngle = svgSpotLight.LimitingConeAngle;
+                        var specularExponentSpotLight = svgSpotLight.SpecularExponent;
+                        var limitingConeAngle = svgSpotLight.LimitingConeAngle;
                         if (float.IsNaN(limitingConeAngle) || limitingConeAngle > 90f || limitingConeAngle < -90f)
                         {
                             limitingConeAngle = 90f;
@@ -4025,10 +4025,10 @@ namespace Svg.Model
             var filterUnits = firstFilterUnits is null ? SvgCoordinateUnits.ObjectBoundingBox : firstFilterUnits.FilterUnits;
             var primitiveUnits = firstPrimitiveUnits is null ? SvgCoordinateUnits.UserSpaceOnUse : firstPrimitiveUnits.FilterUnits;
 
-            float x = xUnit.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFirstFilter, skBounds);
-            float y = yUnit.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFirstFilter, skBounds);
-            float width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgFirstFilter, skBounds);
-            float height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgFirstFilter, skBounds);
+            var x = xUnit.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFirstFilter, skBounds);
+            var y = yUnit.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFirstFilter, skBounds);
+            var width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgFirstFilter, skBounds);
+            var height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgFirstFilter, skBounds);
 
             var results = new Dictionary<string, ImageFilter>();
             var lastResult = default(ImageFilter);
@@ -4082,11 +4082,11 @@ namespace Svg.Model
             var skImageFilterRegions = new List<(ImageFilter filter, SvgFilterPrimitive primitive, Rect region)>();
 #endif
 
-            int count = 0;
+            var count = 0;
             foreach (var svgFilterPrimitive in svgFilterPrimitives)
             {
                 count++;
-                bool isFirst = count == 1;
+                var isFirst = count == 1;
                 var skPrimitiveBounds = skFilterRegion;
 
                 // TOOD: PrimitiveUnits
@@ -4100,10 +4100,10 @@ namespace Svg.Model
                 var widthUnitChild = svgFilterPrimitive.Width;
                 var heightUnitChild = svgFilterPrimitive.Height;
 
-                float xChild = xUnitChild.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilterPrimitive, skPrimitiveBounds);
-                float yChild = yUnitChild.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilterPrimitive, skPrimitiveBounds);
-                float widthChild = widthUnitChild.ToDeviceValue(UnitRenderingType.Horizontal, svgFilterPrimitive, skPrimitiveBounds);
-                float heightChild = heightUnitChild.ToDeviceValue(UnitRenderingType.Vertical, svgFilterPrimitive, skPrimitiveBounds);
+                var xChild = xUnitChild.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilterPrimitive, skPrimitiveBounds);
+                var yChild = yUnitChild.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilterPrimitive, skPrimitiveBounds);
+                var widthChild = widthUnitChild.ToDeviceValue(UnitRenderingType.Horizontal, svgFilterPrimitive, skPrimitiveBounds);
+                var heightChild = heightUnitChild.ToDeviceValue(UnitRenderingType.Vertical, svgFilterPrimitive, skPrimitiveBounds);
 
                 if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
                 {

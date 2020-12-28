@@ -26,7 +26,7 @@ namespace Svg.Model.Drawables
                 return drawable;
             }
 
-            if (svgSymbol.CustomAttributes.TryGetValue("width", out string? _widthString))
+            if (svgSymbol.CustomAttributes.TryGetValue("width", out var _widthString))
             {
                 if (new SvgUnitConverter().ConvertFromString(_widthString) is SvgUnit _width)
                 {
@@ -34,7 +34,7 @@ namespace Svg.Model.Drawables
                 }
             }
 
-            if (svgSymbol.CustomAttributes.TryGetValue("height", out string? heightString))
+            if (svgSymbol.CustomAttributes.TryGetValue("height", out var heightString))
             {
                 if (new SvgUnitConverter().ConvertFromString(heightString) is SvgUnit _height)
                 {

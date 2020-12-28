@@ -159,7 +159,7 @@ namespace Svg.Model.Primitives
 
         private static void SetSinCos(ref Matrix matrix, float sin, float cos, float pivotx, float pivoty)
         {
-            float oneMinusCos = 1 - cos;
+            var oneMinusCos = 1 - cos;
             matrix.ScaleX = cos;
             matrix.SkewX = -sin;
             matrix.TransX = Dot(sin, pivoty, oneMinusCos, pivotx);

@@ -38,8 +38,8 @@ namespace Svg.Model.Drawables
 
             drawable.Transform = SvgModelExtensions.ToMatrix(svgPolyline.Transforms);
 
-            bool canDrawFill = true;
-            bool canDrawStroke = true;
+            var canDrawFill = true;
+            var canDrawStroke = true;
 
             if (SvgModelExtensions.IsValidFill(svgPolyline))
             {

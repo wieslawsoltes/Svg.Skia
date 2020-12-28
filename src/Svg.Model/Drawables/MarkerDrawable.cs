@@ -50,10 +50,10 @@ namespace Svg.Model.Drawables
 
             var refX = svgMarker.RefX.ToDeviceValue(UnitRenderingType.Horizontal, svgMarker, skOwnerBounds);
             var refY = svgMarker.RefY.ToDeviceValue(UnitRenderingType.Vertical, svgMarker, skOwnerBounds);
-            float markerWidth = svgMarker.MarkerWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
-            float markerHeight = svgMarker.MarkerHeight.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
-            float viewBoxToMarkerUnitsScaleX = 1f;
-            float viewBoxToMarkerUnitsScaleY = 1f;
+            var markerWidth = svgMarker.MarkerWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
+            var markerHeight = svgMarker.MarkerHeight.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
+            var viewBoxToMarkerUnitsScaleX = 1f;
+            var viewBoxToMarkerUnitsScaleY = 1f;
 
             switch (svgMarker.MarkerUnits)
             {

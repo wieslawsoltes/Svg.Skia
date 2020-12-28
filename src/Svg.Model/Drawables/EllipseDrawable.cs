@@ -36,8 +36,8 @@ namespace Svg.Model.Drawables
             drawable.TransformedBounds = drawable.Path.Bounds;
             drawable.Transform = SvgModelExtensions.ToMatrix(svgEllipse.Transforms);
 
-            bool canDrawFill = true;
-            bool canDrawStroke = true;
+            var canDrawFill = true;
+            var canDrawStroke = true;
 
             if (SvgModelExtensions.IsValidFill(svgEllipse))
             {

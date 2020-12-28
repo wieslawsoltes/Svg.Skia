@@ -35,9 +35,9 @@ namespace Svg.Model.Drawables
                     continue;
                 }
 
-                bool hasRequiredFeatures = child.HasRequiredFeatures();
-                bool hasRequiredExtensions = child.HasRequiredExtensions();
-                bool hasSystemLanguage = child.HasSystemLanguage();
+                var hasRequiredFeatures = child.HasRequiredFeatures();
+                var hasRequiredExtensions = child.HasRequiredExtensions();
+                var hasSystemLanguage = child.HasSystemLanguage();
 
                 if (hasRequiredFeatures && hasRequiredExtensions && hasSystemLanguage)
                 {
