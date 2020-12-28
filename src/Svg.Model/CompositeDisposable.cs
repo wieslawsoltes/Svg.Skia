@@ -8,7 +8,7 @@ namespace Svg.Model
         {
         }
 
-        public void Add(object disposable)
+        public void Add(IDisposable disposable)
         {
         }
 
