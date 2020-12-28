@@ -326,7 +326,7 @@ namespace Svg.Model.Drawables
             return null;
         }
 
-        public const Attributes FilterInput = Attributes.ClipPath | Attributes.Mask | Attributes.Opacity | Attributes.Filter;
+        private const Attributes FilterInput = Attributes.ClipPath | Attributes.Mask | Attributes.Opacity | Attributes.Filter;
 
         Picture? IFilterSource.SourceGraphic() => RecordGraphic(this, FilterInput);
 
