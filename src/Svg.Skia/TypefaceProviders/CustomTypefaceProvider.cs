@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using SkiaSharp;
 
-namespace Svg.Skia
+namespace Svg.Skia.TypefaceProviders
 {
     public sealed class CustomTypefaceProvider : ITypefaceProvider, IDisposable
     {

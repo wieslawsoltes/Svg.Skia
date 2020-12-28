@@ -1,6 +1,6 @@
 ﻿using SkiaSharp;
 
-namespace Svg.Skia
+namespace Svg.Skia.TypefaceProviders
 {
     public interface ITypefaceProvider
     {
