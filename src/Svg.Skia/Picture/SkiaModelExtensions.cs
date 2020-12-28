@@ -294,7 +294,7 @@ namespace Svg.Skia
                     {
                         return SKShader.CreateColor(
                             colorShader.Color.ToSKColor(),
-                            colorShader.ColorSpace == ColorSpace.Srgb ? SKColorSpace.CreateSrgb() : SKColorSpace.CreateSrgbLinear());
+                            colorShader.ColorSpace == ColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear);
                     }
                 case LinearGradientShader linearGradientShader:
                     {
@@ -309,7 +309,7 @@ namespace Svg.Skia
                                 linearGradientShader.Start.ToSKPoint(),
                                 linearGradientShader.End.ToSKPoint(),
                                 linearGradientShader.Colors.ToSKColors(),
-                                linearGradientShader.ColorSpace == ColorSpace.Srgb ? SKColorSpace.CreateSrgb() : SKColorSpace.CreateSrgbLinear(),
+                                linearGradientShader.ColorSpace == ColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear,
                                 linearGradientShader.ColorPos,
                                 linearGradientShader.Mode.ToSKShaderTileMode(),
                                 linearGradientShader.LocalMatrix.Value.ToSKMatrix());
@@ -320,7 +320,7 @@ namespace Svg.Skia
                                 linearGradientShader.Start.ToSKPoint(),
                                 linearGradientShader.End.ToSKPoint(),
                                 linearGradientShader.Colors.ToSKColors(),
-                                linearGradientShader.ColorSpace == ColorSpace.Srgb ? SKColorSpace.CreateSrgb() : SKColorSpace.CreateSrgbLinear(),
+                                linearGradientShader.ColorSpace == ColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear,
                                 linearGradientShader.ColorPos,
                                 linearGradientShader.Mode.ToSKShaderTileMode());
                         }
@@ -340,7 +340,7 @@ namespace Svg.Skia
                                 twoPointConicalGradientShader.End.ToSKPoint(),
                                 twoPointConicalGradientShader.EndRadius,
                                 twoPointConicalGradientShader.Colors.ToSKColors(),
-                                twoPointConicalGradientShader.ColorSpace == ColorSpace.Srgb ? SKColorSpace.CreateSrgb() : SKColorSpace.CreateSrgbLinear(),
+                                twoPointConicalGradientShader.ColorSpace == ColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear,
                                 twoPointConicalGradientShader.ColorPos,
                                 twoPointConicalGradientShader.Mode.ToSKShaderTileMode(),
                                 twoPointConicalGradientShader.LocalMatrix.Value.ToSKMatrix());
@@ -353,7 +353,7 @@ namespace Svg.Skia
                                 twoPointConicalGradientShader.End.ToSKPoint(),
                                 twoPointConicalGradientShader.EndRadius,
                                 twoPointConicalGradientShader.Colors.ToSKColors(),
-                                twoPointConicalGradientShader.ColorSpace == ColorSpace.Srgb ? SKColorSpace.CreateSrgb() : SKColorSpace.CreateSrgbLinear(),
+                                twoPointConicalGradientShader.ColorSpace == ColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear,
                                 twoPointConicalGradientShader.ColorPos,
                                 twoPointConicalGradientShader.Mode.ToSKShaderTileMode());
                         }
