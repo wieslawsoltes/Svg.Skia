@@ -258,9 +258,9 @@ SVGC compiles SVG drawing markup to C# using SkiaSharp as rendering engine. SVGC
 
 ### NuGet
 
-* https://www.nuget.org/packages/Svg.Skia.SourceGenerator
+* https://www.nuget.org/packages/Svg.SourceGenerator.Skia
 * https://www.nuget.org/packages/svgc
-* https://www.nuget.org/packages/Svg.Skia.CodeGen
+* https://www.nuget.org/packages/Svg.CodeGen.Skia
 
 ### Source Generator Usage
 

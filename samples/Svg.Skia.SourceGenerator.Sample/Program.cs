@@ -6,7 +6,7 @@ using Svg.Generated;
 using Svg.Sample;
 using Svg.Skia;
 
-namespace Svg.Skia.SourceGenerator.Sample
+namespace Svg.Sample
 {
     internal class Program
     {

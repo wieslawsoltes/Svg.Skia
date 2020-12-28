@@ -7,12 +7,12 @@
     <Nullable>enable</Nullable>
     <IsPackable>True</IsPackable>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-    <RootNamespace>Svg.Skia.CodeGen</RootNamespace>
+    <RootNamespace>Svg.CodeGen.Skia</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
     <Description>An Svg drawing markup to C# code generator using SkiaSharp as rendering engine.</Description>
-    <PackageId>Svg.Skia.CodeGen</PackageId>
+    <PackageId>Svg.CodeGen.Skia</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>svg;skia;skiasharp;codegen;codegenerator;compiler;csharp;codegen;graphics</PackageTags>
   </PropertyGroup>

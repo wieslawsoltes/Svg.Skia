@@ -8,12 +8,12 @@
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <IncludeBuildOutput>False</IncludeBuildOutput>
     <NoPackageAnalysis>True</NoPackageAnalysis>
-    <RootNamespace>Svg.Skia.SourceGenerator</RootNamespace>
+    <RootNamespace>Svg.SourceGenerator.Skia</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
     <Description>An Svg drawing markup to C# source generator using SkiaSharp as rendering engine.</Description>
-    <PackageId>Svg.Skia.SourceGenerator</PackageId>
+    <PackageId>Svg.SourceGenerator.Skia</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>svg;skia;skiasharp;sourcegenerator;compiler;csharp;codegen;graphics</PackageTags>
   </PropertyGroup>
