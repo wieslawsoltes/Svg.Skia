@@ -2290,19 +2290,34 @@ namespace Svg.Model
                     var encoding = string.IsNullOrEmpty(charset) ? Encoding.UTF8 : Encoding.GetEncoding(charset);
                     data = encoding.GetString(bytes);
                 }
-                using var stream = new System.IO.MemoryStream(Encoding.Default.GetBytes(data));
+                var buffer = Encoding.Default.GetBytes(data);
+                using var stream = new System.IO.MemoryStream(buffer);
                 return LoadSvg(stream, svgOwnerDocument.BaseUri);
             }
-            else if (mimeType.StartsWith("image/", StringComparison.Ordinal) || mimeType.StartsWith("img/", StringComparison.Ordinal))
+
+            if (mimeType.StartsWith("image/", StringComparison.Ordinal) || mimeType.StartsWith("img/", StringComparison.Ordinal))
             {
-                var dataBytes = base64 ? Convert.FromBase64String(data) : Encoding.Default.GetBytes(data);
-                using var stream = new System.IO.MemoryStream(dataBytes);
+                if (base64)
+                {
+                    var bytes = Convert.FromBase64String(data);
+                    if (bytes.Length > 2)
+                    {
+                        bool isCompressed = bytes[0] == s_gZipMagicHeaderBytes[0] && bytes[1] == s_gZipMagicHeaderBytes[1];
+                        if (isCompressed)
+                        {
+                            using var bytesStream = new System.IO.MemoryStream(bytes);
+                            return LoadSvgz(bytesStream, svgOwnerDocument.BaseUri);
+                        }
+                    }
+                    var encoding = string.IsNullOrEmpty(charset) ? Encoding.UTF8 : Encoding.GetEncoding(charset);
+                    data = encoding.GetString(bytes);
+                }
+                var buffer = Encoding.Default.GetBytes(data);
+                using var stream = new System.IO.MemoryStream(buffer);
                 return assetLoader.LoadImage(stream);
             }
-            else
-            {
-                return null;
-            }
+
+            return default;
         }
 
         internal static SvgDocument LoadSvg(System.IO.Stream stream, Uri baseUri)
