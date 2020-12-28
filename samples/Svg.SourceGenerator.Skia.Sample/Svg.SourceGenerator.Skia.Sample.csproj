@@ -7,6 +7,7 @@
     <LangVersion>preview</LangVersion>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
+    <RootNamespace>Svg.SourceGenerator.Skia.Sample</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -87,7 +87,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "svgc", "samples\svgc\svgc.c
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaSample", "samples\AvaloniaSample\AvaloniaSample.csproj", "{6CF9532C-72AF-4509-BE5A-D6B4821BC6DC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Skia.SourceGenerator.Sample", "samples\Svg.Skia.SourceGenerator.Sample\Svg.Skia.SourceGenerator.Sample.csproj", "{DE4FB2BF-C204-4964-930E-BD22E1168040}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.SourceGenerator.Skia.Sample", "samples\Svg.SourceGenerator.Skia.Sample\Svg.SourceGenerator.Skia.Sample.csproj", "{DE4FB2BF-C204-4964-930E-BD22E1168040}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Svg", "src\Avalonia.Svg\Avalonia.Svg.csproj", "{8B0407E4-0A8A-4F46-A218-B9FE500091A4}"
 EndProject
