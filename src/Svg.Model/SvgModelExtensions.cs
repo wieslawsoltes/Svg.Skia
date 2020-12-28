@@ -1361,13 +1361,14 @@ namespace Svg.Model
                         var skColorShader = Shader.CreateColor(skColor, skColorSpace);
                         if (skColorShader != null)
                         {
+#if USE_LINEAR_TO_SRGB_CORRECTION
                             if (isLinearRGB)
                             {
                                 var skColorFilter = ColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
                                 disposable.Add(skColorFilter);
                                 skPaint.ColorFilter = skColorFilter;
                             }
-
+#endif
                             disposable.Add(skColorShader);
                             skPaint.Shader = skColorShader;
                             return true;
@@ -1384,13 +1385,14 @@ namespace Svg.Model
                         var skPatternShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, assetLoader, ignoreAttributes, disposable);
                         if (skPatternShader != null)
                         {
+#if USE_LINEAR_TO_SRGB_CORRECTION
                             if (isLinearRGB)
                             {
                                 var skColorFilter = ColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
                                 disposable.Add(skColorFilter);
                                 skPaint.ColorFilter = skColorFilter;
                             }
-
+#endif
                             disposable.Add(skPatternShader);
                             skPaint.Shader = skPatternShader;
                             return true;
@@ -1403,13 +1405,14 @@ namespace Svg.Model
                                 var skColorShader = Shader.CreateColor(skColor, skColorSpace);
                                 if (skColorShader != null)
                                 {
+#if USE_LINEAR_TO_SRGB_CORRECTION
                                     if (isLinearRGB)
                                     {
                                         var skColorFilter = ColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
                                         disposable.Add(skColorFilter);
                                         skPaint.ColorFilter = skColorFilter;
                                     }
-
+#endif
                                     disposable.Add(skColorShader);
                                     skPaint.Shader = skColorShader;
                                     return true;
@@ -1438,12 +1441,14 @@ namespace Svg.Model
                                 var skColorShader = Shader.CreateColor(skColor, skColorSpace);
                                 if (skColorShader != null)
                                 {
+#if USE_LINEAR_TO_SRGB_CORRECTION
                                     if (isLinearRGB)
                                     {
                                         var skColorFilter = ColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
                                         disposable.Add(skColorFilter);
                                         skPaint.ColorFilter = skColorFilter;
                                     }
+#endif
                                     disposable.Add(skColorShader);
                                     skPaint.Shader = skColorShader;
                                     return true;
@@ -1460,12 +1465,14 @@ namespace Svg.Model
                             var skLinearGradientShader = CreateLinearGradient(svgLinearGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes, skColorSpace);
                             if (skLinearGradientShader != null)
                             {
+#if USE_LINEAR_TO_SRGB_CORRECTION
                                 if (isLinearRGB)
                                 {
                                     var skColorFilter = ColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
                                     disposable.Add(skColorFilter);
                                     skPaint.ColorFilter = skColorFilter;
                                 }
+#endif
                                 disposable.Add(skLinearGradientShader);
                                 skPaint.Shader = skLinearGradientShader;
                                 return true;
@@ -1509,12 +1516,14 @@ namespace Svg.Model
                             var skRadialGradientShader = CreateTwoPointConicalGradient(svgRadialGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes, skColorSpace);
                             if (skRadialGradientShader != null)
                             {
+#if USE_LINEAR_TO_SRGB_CORRECTION
                                 if (isLinearRGB)
                                 {
                                     var skColorFilter = ColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
                                     disposable.Add(skColorFilter);
                                     skPaint.ColorFilter = skColorFilter;
                                 }
+#endif
                                 disposable.Add(skRadialGradientShader);
                                 skPaint.Shader = skRadialGradientShader;
                                 return true;
