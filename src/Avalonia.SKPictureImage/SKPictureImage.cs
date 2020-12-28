@@ -70,7 +70,7 @@ namespace Avalonia.SKPictureImage
         void IImage.Draw(DrawingContext context, Rect sourceRect, Rect destRect, BitmapInterpolationMode bitmapInterpolationMode)
         {
             var source = Source;
-            if (source == null)
+            if (source is null)
             {
                 return;
             }

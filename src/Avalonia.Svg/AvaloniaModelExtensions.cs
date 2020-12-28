@@ -57,7 +57,7 @@ namespace Avalonia.Svg
 
         public static AMI.Bitmap? ToBitmap(this Image image)
         {
-            if (image.Data == null)
+            if (image.Data is null)
             {
                 return null;
             }
@@ -169,7 +169,7 @@ namespace Avalonia.Svg
 
         public static AM.Typeface? ToTypeface(this Typeface? typeface)
         {
-            if (typeface == null)
+            if (typeface is null)
             {
                 return null;
             }
@@ -456,7 +456,7 @@ namespace Avalonia.Svg
 
         public static AM.Geometry? ToGeometry(this Path path, bool isFilled)
         {
-            if (path.Commands == null)
+            if (path.Commands is null)
             {
                 return null;
             }

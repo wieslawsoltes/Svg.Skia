@@ -24,7 +24,7 @@ namespace Avalonia.Svg
 
         private static void Record(CanvasCommand canvasCommand, AvaloniaPicture avaloniaPicture)
         {
-            if (avaloniaPicture == null || avaloniaPicture._commands == null)
+            if (avaloniaPicture is null || avaloniaPicture._commands is null)
             {
                 return;
             }
@@ -226,7 +226,7 @@ namespace Avalonia.Svg
         {
             var avaloniaPicture = new AvaloniaPicture();
 
-            if (picture.Commands == null)
+            if (picture.Commands is null)
             {
                 return avaloniaPicture;
             }
@@ -342,7 +342,7 @@ namespace Avalonia.Svg
 
         public void Draw(AM.DrawingContext context)
         {
-            if (_commands == null)
+            if (_commands is null)
             {
                 return;
             }
@@ -359,7 +359,7 @@ namespace Avalonia.Svg
 
         public void Dispose()
         {
-            if (_commands == null)
+            if (_commands is null)
             {
                 return;
             }

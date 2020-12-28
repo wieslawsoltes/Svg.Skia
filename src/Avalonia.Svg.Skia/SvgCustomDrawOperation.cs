@@ -26,13 +26,13 @@ namespace Avalonia.Svg.Skia
 
         public void Render(IDrawingContextImpl context)
         {
-            if (_svg == null || _svg.Picture == null)
+            if (_svg is null || _svg.Picture is null)
             {
                 return;
             }
 
             var canvas = (context as ISkiaDrawingContextImpl)?.SkCanvas;
-            if (canvas == null)
+            if (canvas is null)
             {
                 return;
             }

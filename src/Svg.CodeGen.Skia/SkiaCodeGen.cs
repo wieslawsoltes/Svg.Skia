@@ -204,7 +204,7 @@ namespace Svg.CodeGen.Skia
         {
             var counterImage = counter.Image;
 
-            if (image.Data == null)
+            if (image.Data is null)
             {
                 sb.AppendLine($"{indent}var {counter.ImageVarName}{counterImage} = default(SKImage);");
                 return;
@@ -360,7 +360,7 @@ namespace Svg.CodeGen.Skia
         {
             var counterTypeface = counter.Typeface;
 
-            if (typeface == null || typeface.FamilyName == null)
+            if (typeface is null || typeface.FamilyName is null)
             {
                 sb.AppendLine($"{indent}var {counter.TypefaceVarName}{counterTypeface} = SKTypeface.Default;");
                 return;
@@ -372,7 +372,7 @@ namespace Svg.CodeGen.Skia
             var fontStyle = typeface.Style.ToSKFontStyleSlant();
 
             var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
-            if (fontFamilyNames == null || fontFamilyNames.Length == 0)
+            if (fontFamilyNames is null || fontFamilyNames.Length == 0)
             {
                 sb.AppendLine($"{indent}var {counter.TypefaceVarName}{counterTypeface} = SKTypeface.Default;");
                 return;
@@ -491,7 +491,7 @@ namespace Svg.CodeGen.Skia
                     }
                 case LinearGradientShader linearGradientShader:
                     {
-                        if (linearGradientShader.Colors == null || linearGradientShader.ColorPos == null)
+                        if (linearGradientShader.Colors is null || linearGradientShader.ColorPos is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ShaderVarName}{counterShader} = default(SKShader);");
                             return;
@@ -525,7 +525,7 @@ namespace Svg.CodeGen.Skia
                     }
                 case TwoPointConicalGradientShader twoPointConicalGradientShader:
                     {
-                        if (twoPointConicalGradientShader.Colors == null || twoPointConicalGradientShader.ColorPos == null)
+                        if (twoPointConicalGradientShader.Colors is null || twoPointConicalGradientShader.ColorPos is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ShaderVarName}{counterShader} = default(SKShader);");
                             return;
@@ -563,7 +563,7 @@ namespace Svg.CodeGen.Skia
                     }
                 case PictureShader pictureShader:
                     {
-                        if (pictureShader.Src == null)
+                        if (pictureShader.Src is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ShaderVarName}{counterShader} = default(SKShader);");
                             return;
@@ -628,7 +628,7 @@ namespace Svg.CodeGen.Skia
                     }
                 case ColorMatrixColorFilter colorMatrixColorFilter:
                     {
-                        if (colorMatrixColorFilter.Matrix == null)
+                        if (colorMatrixColorFilter.Matrix is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ColorFilterVarName}{counterColorFilter} = default(SKColorFilter);");
                             return;
@@ -647,10 +647,10 @@ namespace Svg.CodeGen.Skia
                     }
                 case TableColorFilter tableColorFilter:
                     {
-                        if (tableColorFilter.TableA == null
-                            || tableColorFilter.TableR == null
-                            || tableColorFilter.TableG == null
-                            || tableColorFilter.TableB == null)
+                        if (tableColorFilter.TableA is null
+                            || tableColorFilter.TableR is null
+                            || tableColorFilter.TableG is null
+                            || tableColorFilter.TableB is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ColorFilterVarName}{counterColorFilter} = default(SKColorFilter);");
                             return;
@@ -701,14 +701,14 @@ namespace Svg.CodeGen.Skia
             {
                 case ArithmeticImageFilter arithmeticImageFilter:
                     {
-                        if (arithmeticImageFilter.Background == null)
+                        if (arithmeticImageFilter.Background is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
                             return;
                         }
 
                         var counterImageFilterBackground = ++counter.ImageFilter;
-                        if (arithmeticImageFilter.Background == null)
+                        if (arithmeticImageFilter.Background is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterBackground} = default(SKImageFilter);");
                         }
@@ -718,7 +718,7 @@ namespace Svg.CodeGen.Skia
                         }
 
                         var counterImageFilterForeground = ++counter.ImageFilter;
-                        if (arithmeticImageFilter.Foreground == null)
+                        if (arithmeticImageFilter.Foreground is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterBackground} = default(SKImageFilter);");
                         }
@@ -741,14 +741,14 @@ namespace Svg.CodeGen.Skia
                     }
                 case BlendModeImageFilter blendModeImageFilter:
                     {
-                        if (blendModeImageFilter.Background == null)
+                        if (blendModeImageFilter.Background is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
                             return;
                         }
 
                         var counterImageFilterBackground = ++counter.ImageFilter;
-                        if (blendModeImageFilter.Background == null)
+                        if (blendModeImageFilter.Background is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterBackground} = default(SKImageFilter);");
                         }
@@ -758,7 +758,7 @@ namespace Svg.CodeGen.Skia
                         }
 
                         var counterImageFilterForeground = ++counter.ImageFilter;
-                        if (blendModeImageFilter.Foreground == null)
+                        if (blendModeImageFilter.Foreground is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterBackground} = default(SKImageFilter);");
                         }
@@ -778,7 +778,7 @@ namespace Svg.CodeGen.Skia
                 case BlurImageFilter blurImageFilter:
                     {
                         var counterImageFilterInput = ++counter.ImageFilter;
-                        if (blurImageFilter.Input == null)
+                        if (blurImageFilter.Input is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
                         }
@@ -797,7 +797,7 @@ namespace Svg.CodeGen.Skia
                     }
                 case ColorFilterImageFilter colorFilterImageFilter:
                     {
-                        if (colorFilterImageFilter.ColorFilter == null)
+                        if (colorFilterImageFilter.ColorFilter is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
                             return;
@@ -807,7 +807,7 @@ namespace Svg.CodeGen.Skia
                         colorFilterImageFilter.ColorFilter.ToSKColorFilter(counter, sb, indent);
 
                         var counterImageFilterInput = ++counter.ImageFilter;
-                        if (colorFilterImageFilter.Input == null)
+                        if (colorFilterImageFilter.Input is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
                         }
@@ -826,7 +826,7 @@ namespace Svg.CodeGen.Skia
                 case DilateImageFilter dilateImageFilter:
                     {
                         var counterImageFilterInput = ++counter.ImageFilter;
-                        if (dilateImageFilter.Input == null)
+                        if (dilateImageFilter.Input is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
                         }
@@ -845,7 +845,7 @@ namespace Svg.CodeGen.Skia
                     }
                 case DisplacementMapEffectImageFilter displacementMapEffectImageFilter:
                     {
-                        if (displacementMapEffectImageFilter.Displacement == null)
+                        if (displacementMapEffectImageFilter.Displacement is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
                             return;
@@ -855,7 +855,7 @@ namespace Svg.CodeGen.Skia
                         displacementMapEffectImageFilter.Displacement.ToSKImageFilter(counter, sb, indent);
 
                         var counterImageFilterInput = ++counter.ImageFilter;
-                        if (displacementMapEffectImageFilter.Input == null)
+                        if (displacementMapEffectImageFilter.Input is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
                         }
@@ -877,7 +877,7 @@ namespace Svg.CodeGen.Skia
                 case DistantLitDiffuseImageFilter distantLitDiffuseImageFilter:
                     {
                         var counterImageFilterInput = ++counter.ImageFilter;
-                        if (distantLitDiffuseImageFilter.Input == null)
+                        if (distantLitDiffuseImageFilter.Input is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
                         }
@@ -899,7 +899,7 @@ namespace Svg.CodeGen.Skia
                 case DistantLitSpecularImageFilter distantLitSpecularImageFilter:
                     {
                         var counterImageFilterInput = ++counter.ImageFilter;
-                        if (distantLitSpecularImageFilter.Input == null)
+                        if (distantLitSpecularImageFilter.Input is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
                         }
@@ -922,7 +922,7 @@ namespace Svg.CodeGen.Skia
                 case ErodeImageFilter erodeImageFilter:
                     {
                         var counterImageFilterInput = ++counter.ImageFilter;
-                        if (erodeImageFilter.Input == null)
+                        if (erodeImageFilter.Input is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
                         }
@@ -941,7 +941,7 @@ namespace Svg.CodeGen.Skia
                     }
                 case ImageImageFilter imageImageFilter:
                     {
-                        if (imageImageFilter.Image == null)
+                        if (imageImageFilter.Image is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
                             return;
@@ -960,14 +960,14 @@ namespace Svg.CodeGen.Skia
                     }
                 case MatrixConvolutionImageFilter matrixConvolutionImageFilter:
                     {
-                        if (matrixConvolutionImageFilter.Kernel == null)
+                        if (matrixConvolutionImageFilter.Kernel is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
                             return;
                         }
 
                         var counterImageFilterInput = ++counter.ImageFilter;
-                        if (matrixConvolutionImageFilter.Input == null)
+                        if (matrixConvolutionImageFilter.Input is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
                         }
@@ -991,7 +991,7 @@ namespace Svg.CodeGen.Skia
                     }
                 case MergeImageFilter mergeImageFilter:
                     {
-                        if (mergeImageFilter.Filters == null)
+                        if (mergeImageFilter.Filters is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
                             return;
@@ -1005,7 +1005,7 @@ namespace Svg.CodeGen.Skia
                         {
                             var imageFilterItem = imageFilters[i];
                             var counterImageFilterItem = ++counter.ImageFilter;
-                            if (imageFilterItem == null)
+                            if (imageFilterItem is null)
                             {
                                 sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterItem} = default(SKImageFilter);");
                             }
@@ -1025,7 +1025,7 @@ namespace Svg.CodeGen.Skia
                 case OffsetImageFilter offsetImageFilter:
                     {
                         var counterImageFilterInput = ++counter.ImageFilter;
-                        if (offsetImageFilter.Input == null)
+                        if (offsetImageFilter.Input is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
                         }
@@ -1044,7 +1044,7 @@ namespace Svg.CodeGen.Skia
                     }
                 case PaintImageFilter paintImageFilter:
                     {
-                        if (paintImageFilter.Paint == null)
+                        if (paintImageFilter.Paint is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
                             return;
@@ -1090,7 +1090,7 @@ namespace Svg.CodeGen.Skia
                     }
                 case PictureImageFilter pictureImageFilter:
                     {
-                        if (pictureImageFilter.Picture == null)
+                        if (pictureImageFilter.Picture is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
                             return;
@@ -1108,7 +1108,7 @@ namespace Svg.CodeGen.Skia
                 case PointLitDiffuseImageFilter pointLitDiffuseImageFilter:
                     {
                         var counterImageFilterInput = ++counter.ImageFilter;
-                        if (pointLitDiffuseImageFilter.Input == null)
+                        if (pointLitDiffuseImageFilter.Input is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
                         }
@@ -1130,7 +1130,7 @@ namespace Svg.CodeGen.Skia
                 case PointLitSpecularImageFilter pointLitSpecularImageFilter:
                     {
                         var counterImageFilterInput = ++counter.ImageFilter;
-                        if (pointLitSpecularImageFilter.Input == null)
+                        if (pointLitSpecularImageFilter.Input is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
                         }
@@ -1153,7 +1153,7 @@ namespace Svg.CodeGen.Skia
                 case SpotLitDiffuseImageFilter spotLitDiffuseImageFilter:
                     {
                         var counterImageFilterInput = ++counter.ImageFilter;
-                        if (spotLitDiffuseImageFilter.Input == null)
+                        if (spotLitDiffuseImageFilter.Input is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
                         }
@@ -1178,7 +1178,7 @@ namespace Svg.CodeGen.Skia
                 case SpotLitSpecularImageFilter spotLitSpecularImageFilter:
                     {
                         var counterImageFilterInput = ++counter.ImageFilter;
-                        if (spotLitSpecularImageFilter.Input == null)
+                        if (spotLitSpecularImageFilter.Input is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
                         }
@@ -1204,7 +1204,7 @@ namespace Svg.CodeGen.Skia
                 case TileImageFilter tileImageFilter:
                     {
                         var counterImageFilterInput = ++counter.ImageFilter;
-                        if (tileImageFilter.Input == null)
+                        if (tileImageFilter.Input is null)
                         {
                             sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
                         }
@@ -1236,7 +1236,7 @@ namespace Svg.CodeGen.Skia
             {
                 case DashPathEffect dashPathEffect:
                     {
-                        if (dashPathEffect.Intervals == null)
+                        if (dashPathEffect.Intervals is null)
                         {
                             sb.AppendLine($"{indent}var {counter.PathEffectVarName}{counterPathEffect} = default(SKPathEffect);");
                             return;
@@ -1404,7 +1404,7 @@ namespace Svg.CodeGen.Skia
             {
                 var counterTypeface = ++counter.Typeface;
                 paint.Typeface?.ToSKTypeface(counter, sb, indent);
-                sb.AppendLine($"{indent}if ({counter.TypefaceVarName}{counterTypeface} == null)");
+                sb.AppendLine($"{indent}if ({counter.TypefaceVarName}{counterTypeface} is null)");
                 sb.AppendLine($"{indent}{{");
                 sb.AppendLine($"{indent}    {counter.TypefaceVarName}{counterTypeface} = SKTypeface.Default;");
                 sb.AppendLine($"{indent}}}");
@@ -1428,7 +1428,7 @@ namespace Svg.CodeGen.Skia
 
             if (paint.Color is { } && paint.Color.Value.Alpha != 255 && paint.Color.Value.Red != 0 && paint.Color.Value.Green != 0 && paint.Color.Value.Blue != 0)
             {
-                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.Color = {(paint.Color == null ? "SKColor.Empty" : ToSKColor(paint.Color.Value))};");
+                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.Color = {(paint.Color is null ? "SKColor.Empty" : ToSKColor(paint.Color.Value))};");
             }
 
             if (paint.Shader is { })
@@ -1546,7 +1546,7 @@ namespace Svg.CodeGen.Skia
                 sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.FillType = {path.FillType.ToSKPathFillType()};");
             }
 
-            if (path.Commands == null)
+            if (path.Commands is null)
             {
                 return;
             }
@@ -1655,7 +1655,7 @@ namespace Svg.CodeGen.Skia
             var counterPathResult = counter.Path;
             var isDefaultPathResult = true;
 
-            if (clipPath.Clips == null)
+            if (clipPath.Clips is null)
             {
                 isDefault = isDefaultPathResult;
                 return;
@@ -1665,7 +1665,7 @@ namespace Svg.CodeGen.Skia
             {
                 var counterPath = ++counter.Path;
 
-                if (clip.Path == null)
+                if (clip.Path is null)
                 {
                     isDefault = true;
                     return;
@@ -1725,7 +1725,7 @@ namespace Svg.CodeGen.Skia
         {
             var counterPicture = counter.Picture;
 
-            if (picture == null)
+            if (picture is null)
             {
                 sb.AppendLine($"{indent}var {counter.PictureVarName}{counterPicture} = default(SKPicture);");
                 return;
@@ -1737,7 +1737,7 @@ namespace Svg.CodeGen.Skia
             sb.AppendLine($"{indent}var {counter.PictureRecorderVarName}{counterPictureRecorder} = new SKPictureRecorder();");
             sb.AppendLine($"{indent}var {counter.CanvasVarName}{counterCanvas} = {counter.PictureRecorderVarName}{counterPictureRecorder}.BeginRecording({picture.CullRect.ToSKRect()});");
 
-            if (picture.Commands == null)
+            if (picture.Commands is null)
             {
                 sb.AppendLine($"{indent}var {counter.PictureVarName}{counterPicture} = {counter.PictureRecorderVarName}{counterPictureRecorder}.EndRecording();");
                 sb.AppendLine($"{indent}{counter.PictureRecorderVarName}{counterPictureRecorder}?.Dispose();");

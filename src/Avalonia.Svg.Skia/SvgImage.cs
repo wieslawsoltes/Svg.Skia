@@ -41,7 +41,7 @@ namespace Avalonia.Svg.Skia
             BitmapInterpolationMode bitmapInterpolationMode)
         {
             var source = Source;
-            if (source == null || source.Picture == null)
+            if (source is null || source.Picture is null)
             {
                 return;
             }

@@ -47,7 +47,7 @@ namespace Avalonia.Svg
             BitmapInterpolationMode bitmapInterpolationMode)
         {
             var source = Source;
-            if (source == null || source.Picture == null)
+            if (source is null || source.Picture is null)
             {
                 _previousPicture = null;
                 _avaloniaPicture?.Dispose();
@@ -67,7 +67,7 @@ namespace Avalonia.Svg
             {
                 try
                 {
-                    if (_avaloniaPicture == null || source.Picture != _previousPicture)
+                    if (_avaloniaPicture is null || source.Picture != _previousPicture)
                     {
                         _previousPicture = source.Picture;
                         _avaloniaPicture?.Dispose();

@@ -181,7 +181,7 @@ namespace Svg.Skia
 
         public static SKTypeface? ToSKTypeface(this Typeface? typeface)
         {
-            if (typeface == null || typeface.FamilyName == null)
+            if (typeface is null || typeface.FamilyName is null)
             {
                 return SKTypeface.Default;
             }
@@ -264,7 +264,7 @@ namespace Svg.Skia
                     }
                 case LinearGradientShader linearGradientShader:
                     {
-                        if (linearGradientShader.Colors == null || linearGradientShader.ColorPos == null)
+                        if (linearGradientShader.Colors is null || linearGradientShader.ColorPos is null)
                         {
                             return null;
                         }
@@ -291,7 +291,7 @@ namespace Svg.Skia
                     }
                 case TwoPointConicalGradientShader twoPointConicalGradientShader:
                     {
-                        if (twoPointConicalGradientShader.Colors == null || twoPointConicalGradientShader.ColorPos == null)
+                        if (twoPointConicalGradientShader.Colors is null || twoPointConicalGradientShader.ColorPos is null)
                         {
                             return null;
                         }
@@ -322,7 +322,7 @@ namespace Svg.Skia
                     }
                 case PictureShader pictureShader:
                     {
-                        if (pictureShader.Src == null)
+                        if (pictureShader.Src is null)
                         {
                             return null;
                         }
@@ -369,7 +369,7 @@ namespace Svg.Skia
                     }
                 case ColorMatrixColorFilter colorMatrixColorFilter:
                     {
-                        if (colorMatrixColorFilter.Matrix == null)
+                        if (colorMatrixColorFilter.Matrix is null)
                         {
                             return null;
                         }
@@ -381,10 +381,10 @@ namespace Svg.Skia
                     }
                 case TableColorFilter tableColorFilter:
                     {
-                        if (tableColorFilter.TableA == null
-                            || tableColorFilter.TableR == null
-                            || tableColorFilter.TableG == null
-                            || tableColorFilter.TableB == null)
+                        if (tableColorFilter.TableA is null
+                            || tableColorFilter.TableR is null
+                            || tableColorFilter.TableG is null
+                            || tableColorFilter.TableB is null)
                         {
                             return null;
                         }
@@ -422,7 +422,7 @@ namespace Svg.Skia
             {
                 case ArithmeticImageFilter arithmeticImageFilter:
                     {
-                        if (arithmeticImageFilter.Background == null)
+                        if (arithmeticImageFilter.Background is null)
                         {
                             return null;
                         }
@@ -439,7 +439,7 @@ namespace Svg.Skia
                     }
                 case BlendModeImageFilter blendModeImageFilter:
                     {
-                        if (blendModeImageFilter.Background == null)
+                        if (blendModeImageFilter.Background is null)
                         {
                             return null;
                         }
@@ -460,7 +460,7 @@ namespace Svg.Skia
                     }
                 case ColorFilterImageFilter colorFilterImageFilter:
                     {
-                        if (colorFilterImageFilter.ColorFilter == null)
+                        if (colorFilterImageFilter.ColorFilter is null)
                         {
                             return null;
                         }
@@ -480,7 +480,7 @@ namespace Svg.Skia
                     }
                 case DisplacementMapEffectImageFilter displacementMapEffectImageFilter:
                     {
-                        if (displacementMapEffectImageFilter.Displacement == null)
+                        if (displacementMapEffectImageFilter.Displacement is null)
                         {
                             return null;
                         }
@@ -524,7 +524,7 @@ namespace Svg.Skia
                     }
                 case ImageImageFilter imageImageFilter:
                     {
-                        if (imageImageFilter.Image == null)
+                        if (imageImageFilter.Image is null)
                         {
                             return null;
                         }
@@ -537,7 +537,7 @@ namespace Svg.Skia
                     }
                 case MatrixConvolutionImageFilter matrixConvolutionImageFilter:
                     {
-                        if (matrixConvolutionImageFilter.Kernel == null)
+                        if (matrixConvolutionImageFilter.Kernel is null)
                         {
                             return null;
                         }
@@ -555,7 +555,7 @@ namespace Svg.Skia
                     }
                 case MergeImageFilter mergeImageFilter:
                     {
-                        if (mergeImageFilter.Filters == null)
+                        if (mergeImageFilter.Filters is null)
                         {
                             return null;
                         }
@@ -574,7 +574,7 @@ namespace Svg.Skia
                     }
                 case PaintImageFilter paintImageFilter:
                     {
-                        if (paintImageFilter.Paint == null)
+                        if (paintImageFilter.Paint is null)
                         {
                             return null;
                         }
@@ -585,7 +585,7 @@ namespace Svg.Skia
                     }
                 case PictureImageFilter pictureImageFilter:
                     {
-                        if (pictureImageFilter.Picture == null)
+                        if (pictureImageFilter.Picture is null)
                         {
                             return null;
                         }
@@ -656,7 +656,7 @@ namespace Svg.Skia
 
         public static SKImageFilter[]? ToSKImageFilters(this ImageFilter[]? imageFilters)
         {
-            if (imageFilters == null)
+            if (imageFilters is null)
             {
                 return null;
             }
@@ -748,7 +748,7 @@ namespace Svg.Skia
             var textAlign = paint.TextAlign.ToSKTextAlign();
             var typeface = paint.Typeface?.ToSKTypeface();
             var textEncoding = paint.TextEncoding.ToSKTextEncoding();
-            var color = paint.Color == null ? SKColor.Empty : ToSKColor(paint.Color.Value);
+            var color = paint.Color is null ? SKColor.Empty : ToSKColor(paint.Color.Value);
             var shader = paint.Shader?.ToSKShader();
             var colorFilter = paint.ColorFilter?.ToSKColorFilter();
             var imageFilter = paint.ImageFilter?.ToSKImageFilter();
@@ -922,7 +922,7 @@ namespace Svg.Skia
                 FillType = path.FillType.ToSKPathFillType()
             };
 
-            if (path.Commands == null)
+            if (path.Commands is null)
             {
                 return skPath;
             }
@@ -937,7 +937,7 @@ namespace Svg.Skia
 
         public static SKPath? ToSKPath(this ClipPath clipPath)
         {
-            if (clipPath.Clips == null)
+            if (clipPath.Clips is null)
             {
                 return null;
             }
@@ -946,7 +946,7 @@ namespace Svg.Skia
 
             foreach (var clip in clipPath.Clips)
             {
-                if (clip.Path == null)
+                if (clip.Path is null)
                 {
                     return null;
                 }
@@ -964,7 +964,7 @@ namespace Svg.Skia
                     skPath.Transform(skMatrix);
                 }
 
-                if (skPathResult == null)
+                if (skPathResult is null)
                 {
                     skPathResult = skPath;
                 }
@@ -998,7 +998,7 @@ namespace Svg.Skia
 
         public static SKPicture? ToSKPicture(this Picture? picture)
         {
-            if (picture == null)
+            if (picture is null)
             {
                 return null;
             }
@@ -1126,7 +1126,7 @@ namespace Svg.Skia
 
         public static void Draw(this Picture picture, SKCanvas skCanvas)
         {
-            if (picture.Commands == null)
+            if (picture.Commands is null)
             {
                 return;
             }
