@@ -86,7 +86,7 @@ using Svg.Skia;
 
 using (var svg = new SKSvg())
 {
-    if (svg.Load("image.svg") != null)
+    if (svg.Load("image.svg") is { })
     {
         svg.Save("image.png", SKEncodedImageFormat.Png, 100, 1f, 1f);
     }
@@ -100,7 +100,7 @@ using Svg.Skia;
 
 using (var svg = new SKSvg())
 {
-    if (svg.Load("image.svg") != null)
+    if (svg.Load("image.svg") is { })
     {
         using (var stream = File.OpenWrite("image.png"))
         {
@@ -116,7 +116,7 @@ using Svg.Skia;
 
 using (var svg = new SKSvg())
 {
-    if (svg.Load("image.svgz") != null)
+    if (svg.Load("image.svgz") is { })
     {
         svg.Save("image.png", SKEncodedImageFormat.Png, 100, 1f, 1f);
     }
@@ -130,7 +130,7 @@ using Svg.Skia;
 
 using (var svg = new SKSvg())
 {
-    if (svg.Load("image.svgz") != null)
+    if (svg.Load("image.svgz") is { })
     {
         using (var stream = File.OpenWrite("image.png"))
         {
@@ -148,7 +148,7 @@ using Svg.Skia;
 
 using (var svg = new SKSvg())
 {
-    if (svg.Load("image.svg") != null)
+    if (svg.Load("image.svg") is { })
     {
         svg.Picture.ToPdf("image.pdf", SKColors.Empty, 1f, 1f);
     }
@@ -163,7 +163,7 @@ using Svg.Skia;
 
 using (var svg = new SKSvg())
 {
-    if (svg.Load("image.svg") != null)
+    if (svg.Load("image.svg") is { })
     {
         svg.Picture.ToXps("image.xps", SKColors.Empty, 1f, 1f);
     }
