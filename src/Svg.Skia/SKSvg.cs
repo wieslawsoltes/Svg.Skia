@@ -12,11 +12,7 @@ namespace Svg.Skia
         public static SKPicture? ToPicture(SvgFragment svgFragment)
         {
             var picture = SvgModelExtensions.ToModel(svgFragment, AssetLoader);
-            if (picture != null)
-            {
-                return SkiaPicture.Record(picture);
-            }
-            return null;
+            return picture?.ToSKPicture();
         }
 
         public static void Draw(SKCanvas skCanvas, SvgFragment svgFragment)
@@ -28,10 +24,7 @@ namespace Svg.Skia
             {
                 drawable.PostProcess();
                 var picture = drawable.Snapshot(bounds);
-                if (picture != null)
-                {
-                    SkiaPicture.Draw(picture, skCanvas);
-                }
+                picture.Draw(skCanvas);
             }
         }
 
@@ -82,7 +75,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public SKPicture? FromSvgDocument(SvgDocument svgDocument)
+        public SKPicture? FromSvgDocument(SvgDocument? svgDocument)
         {
             Reset();
             if (svgDocument != null)
@@ -112,7 +105,7 @@ namespace Svg.Skia
             return false;
         }
 
-        public void Reset()
+        private void Reset()
         {
             Picture?.Dispose();
             Picture = null;
