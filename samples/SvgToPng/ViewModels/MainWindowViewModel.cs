@@ -197,7 +197,7 @@ namespace SvgToPng.ViewModels
                     referencePng = System.IO.Path.Combine(fullReferencePath, inputName + ".png");
                 }
 
-                var item = new Item()
+                var item = new Item
                 {
                     Name = inputName,
                     SvgPath = path,
@@ -304,7 +304,7 @@ namespace SvgToPng.ViewModels
             }
         }
 
-        private static JsonSerializerSettings s_jsonSettings = new JsonSerializerSettings()
+        private static JsonSerializerSettings s_jsonSettings = new JsonSerializerSettings
         {
             Formatting = Formatting.Indented,
             NullValueHandling = NullValueHandling.Ignore

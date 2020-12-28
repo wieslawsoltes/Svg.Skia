@@ -23,7 +23,7 @@ namespace Svg.Model.Paint
     {
         public static ImageFilter CreateArithmetic(float k1, float k2, float k3, float k4, bool enforcePMColor, ImageFilter background, ImageFilter? foreground = null, CropRect? cropRect = null)
         {
-            return new ArithmeticImageFilter()
+            return new ArithmeticImageFilter
             {
                 K1 = k1,
                 K2 = k2,
@@ -38,7 +38,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreateBlendMode(BlendMode mode, ImageFilter background, ImageFilter? foreground = null, CropRect? cropRect = null)
         {
-            return new BlendModeImageFilter()
+            return new BlendModeImageFilter
             {
                 Mode = mode,
                 Background = background,
@@ -49,7 +49,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreateBlur(float sigmaX, float sigmaY, ImageFilter? input = null, CropRect? cropRect = null)
         {
-            return new BlurImageFilter()
+            return new BlurImageFilter
             {
                 SigmaX = sigmaX,
                 SigmaY = sigmaY,
@@ -70,7 +70,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreateDilate(int radiusX, int radiusY, ImageFilter? input = null, CropRect? cropRect = null)
         {
-            return new DilateImageFilter()
+            return new DilateImageFilter
             {
                 RadiusX = radiusX,
                 RadiusY = radiusY,
@@ -81,7 +81,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreateDisplacementMapEffect(ColorChannel xChannelSelector, ColorChannel yChannelSelector, float scale, ImageFilter displacement, ImageFilter? input = null, CropRect? cropRect = null)
         {
-            return new DisplacementMapEffectImageFilter()
+            return new DisplacementMapEffectImageFilter
             {
                 XChannelSelector = xChannelSelector,
                 YChannelSelector = yChannelSelector,
@@ -94,7 +94,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreateDistantLitDiffuse(Point3 direction, Color lightColor, float surfaceScale, float kd, ImageFilter? input = null, CropRect? cropRect = null)
         {
-            return new DistantLitDiffuseImageFilter()
+            return new DistantLitDiffuseImageFilter
             {
                 Direction = direction,
                 LightColor = lightColor,
@@ -107,7 +107,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreateDistantLitSpecular(Point3 direction, Color lightColor, float surfaceScale, float ks, float shininess, ImageFilter? input = null, CropRect? cropRect = null)
         {
-            return new DistantLitSpecularImageFilter()
+            return new DistantLitSpecularImageFilter
             {
                 Direction = direction,
                 LightColor = lightColor,
@@ -121,7 +121,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreateErode(int radiusX, int radiusY, ImageFilter? input = null, CropRect? cropRect = null)
         {
-            return new ErodeImageFilter()
+            return new ErodeImageFilter
             {
                 RadiusX = radiusX,
                 RadiusY = radiusY,
@@ -132,7 +132,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreateImage(Image image, Rect src, Rect dst, FilterQuality filterQuality)
         {
-            return new ImageImageFilter()
+            return new ImageImageFilter
             {
                 Image = image,
                 Src = src,
@@ -143,7 +143,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreateMatrixConvolution(SizeI kernelSize, float[] kernel, float gain, float bias, PointI kernelOffset, ShaderTileMode tileMode, bool convolveAlpha, ImageFilter? input = null, CropRect? cropRect = null)
         {
-            return new MatrixConvolutionImageFilter()
+            return new MatrixConvolutionImageFilter
             {
                 KernelSize = kernelSize,
                 Kernel = kernel,
@@ -159,7 +159,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreateMerge(ImageFilter[] filters, CropRect? cropRect = null)
         {
-            return new MergeImageFilter()
+            return new MergeImageFilter
             {
                 Filters = filters,
                 CropRect = cropRect
@@ -168,7 +168,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreateOffset(float dx, float dy, ImageFilter? input = null, CropRect? cropRect = null)
         {
-            return new OffsetImageFilter()
+            return new OffsetImageFilter
             {
                 Dx = dx,
                 Dy = dy,
@@ -179,7 +179,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreatePaint(Paint paint, CropRect? cropRect = null)
         {
-            return new PaintImageFilter()
+            return new PaintImageFilter
             {
                 Paint = paint,
                 CropRect = cropRect
@@ -188,7 +188,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreatePicture(Picture.Picture picture, Rect cropRect)
         {
-            return new PictureImageFilter()
+            return new PictureImageFilter
             {
                 Picture = picture,
                 CropRect = cropRect
@@ -197,7 +197,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreatePointLitDiffuse(Point3 location, Color lightColor, float surfaceScale, float kd, ImageFilter? input = null, CropRect? cropRect = null)
         {
-            return new PointLitDiffuseImageFilter()
+            return new PointLitDiffuseImageFilter
             {
                 Location = location,
                 LightColor = lightColor,
@@ -210,7 +210,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreatePointLitSpecular(Point3 location, Color lightColor, float surfaceScale, float ks, float shininess, ImageFilter? input = null, CropRect? cropRect = null)
         {
-            return new PointLitSpecularImageFilter()
+            return new PointLitSpecularImageFilter
             {
                 Location = location,
                 LightColor = lightColor,
@@ -224,7 +224,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreateSpotLitDiffuse(Point3 location, Point3 target, float specularExponent, float cutoffAngle, Color lightColor, float surfaceScale, float kd, ImageFilter? input = null, CropRect? cropRect = null)
         {
-            return new SpotLitDiffuseImageFilter()
+            return new SpotLitDiffuseImageFilter
             {
                 Location = location,
                 Target = target,
@@ -240,7 +240,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreateSpotLitSpecular(Point3 location, Point3 target, float specularExponent, float cutoffAngle, Color lightColor, float surfaceScale, float ks, float shininess, ImageFilter? input = null, CropRect? cropRect = null)
         {
-            return new SpotLitSpecularImageFilter()
+            return new SpotLitSpecularImageFilter
             {
                 Location = location,
                 Target = target,
@@ -257,7 +257,7 @@ namespace Svg.Model.Paint
 
         public static ImageFilter CreateTile(Rect src, Rect dst, ImageFilter? input)
         {
-            return new TileImageFilter()
+            return new TileImageFilter
             {
                 Src = src,
                 Dst = dst,

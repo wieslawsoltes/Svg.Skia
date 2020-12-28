@@ -381,7 +381,7 @@ namespace Svg.Skia.Converter
                 Argument = new Argument<FileInfo?>(getDefaultValue: () => null)
             };
 
-            var rootCommand = new RootCommand()
+            var rootCommand = new RootCommand
             {
                 Description = "Converts a svg file to an encoded bitmap image."
             };
@@ -406,7 +406,7 @@ namespace Svg.Skia.Converter
             {
                 if (loadConfig != null)
                 {
-                    var jsonSerializerSettings = new JsonSerializerSettings()
+                    var jsonSerializerSettings = new JsonSerializerSettings
                     {
                         Formatting = Formatting.Indented,
                         NullValueHandling = NullValueHandling.Ignore,
@@ -437,7 +437,7 @@ namespace Svg.Skia.Converter
                 {
                     if (saveConfig != null)
                     {
-                        var jsonSerializerSettings = new JsonSerializerSettings()
+                        var jsonSerializerSettings = new JsonSerializerSettings
                         {
                             Formatting = Formatting.Indented,
                             NullValueHandling = NullValueHandling.Ignore,

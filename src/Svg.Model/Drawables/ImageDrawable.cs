@@ -212,7 +212,7 @@ namespace Svg.Model.Drawables
 
             if (Image != null)
             {
-                using var skImagePaint = new Paint.Paint()
+                using var skImagePaint = new Paint.Paint
                 {
                     IsAntialias = true,
                     FilterQuality = FilterQuality.High

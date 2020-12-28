@@ -95,7 +95,7 @@ namespace AvaloniaSgvImage
                         var picture = svg.Load(fileName);
                         if (picture != null)
                         {
-                            _svgSourceImage.Source = new SvgImage()
+                            _svgSourceImage.Source = new SvgImage
                             {
                                 Source = svg
                             };
@@ -125,7 +125,7 @@ namespace AvaloniaSgvImage
                         var picture = svg.Load(fileName);
                         if (picture != null)
                         {
-                            _svgResourceImage.Source = new SvgImage()
+                            _svgResourceImage.Source = new SvgImage
                             {
                                 Source = svg
                             };

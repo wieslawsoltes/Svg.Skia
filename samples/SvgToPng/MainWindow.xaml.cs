@@ -36,7 +36,7 @@ namespace SvgToPng
             }
             else
             {
-                VM = new MainWindowViewModel()
+                VM = new MainWindowViewModel
                 {
                     Items = new ObservableCollection<Item>(),
                     ReferencePaths = new ObservableCollection<string>(),
@@ -197,7 +197,7 @@ namespace SvgToPng
 
         private void ButtonOutputPath_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new System.Windows.Forms.FolderBrowserDialog()
+            var dlg = new System.Windows.Forms.FolderBrowserDialog
             {
                 SelectedPath = TextOutputPath.Text
             };
@@ -215,7 +215,7 @@ namespace SvgToPng
 
         private void ButtonReferencePath_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new System.Windows.Forms.FolderBrowserDialog()
+            var dlg = new System.Windows.Forms.FolderBrowserDialog
             {
                 SelectedPath = TextReferencePath.Text
             };
@@ -246,7 +246,7 @@ namespace SvgToPng
 
         private void ButtonAdd_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new Microsoft.Win32.OpenFileDialog()
+            var dlg = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "Supported Files (*.svg;*.svgz)" +
                          "|*.svg;*.svgz|Svg Files (*.svg)|*.svg;" +
@@ -342,7 +342,7 @@ namespace SvgToPng
 
         private void ButtonLoad_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new Microsoft.Win32.OpenFileDialog()
+            var dlg = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "Items Files (*.json)|*.json;|" +
                          "All Files (*.*)|*.*",
@@ -365,7 +365,7 @@ namespace SvgToPng
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new Microsoft.Win32.SaveFileDialog()
+            var dlg = new Microsoft.Win32.SaveFileDialog
             {
                 Filter = "Items Files (*.json)|*.json;" +
                          "|All Files (*.*)|*.*",
@@ -387,7 +387,7 @@ namespace SvgToPng
         {
             if (items.SelectedIndex >= 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
             {
-                var dlg = new Microsoft.Win32.SaveFileDialog()
+                var dlg = new Microsoft.Win32.SaveFileDialog
                 {
                     Filter = "Png Files (*.png)|*.png;" +
                              "|Jpg Files (*.jpg)|*.jpg;" +

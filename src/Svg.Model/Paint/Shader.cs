@@ -8,7 +8,7 @@ namespace Svg.Model.Paint
     {
         public static Shader CreateColor(Color color, ColorSpace colorSpace)
         {
-            return new ColorShader()
+            return new ColorShader
             {
                 Color = color,
                 ColorSpace = colorSpace
@@ -17,7 +17,7 @@ namespace Svg.Model.Paint
 
         public static Shader CreateLinearGradient(Point start, Point end, ColorF[] colors, ColorSpace colorSpace, float[] colorPos, ShaderTileMode mode)
         {
-            return new LinearGradientShader()
+            return new LinearGradientShader
             {
                 Start = start,
                 End = end,
@@ -30,7 +30,7 @@ namespace Svg.Model.Paint
 
         public static Shader CreateLinearGradient(Point start, Point end, ColorF[] colors, ColorSpace colorSpace, float[] colorPos, ShaderTileMode mode, Matrix localMatrix)
         {
-            return new LinearGradientShader()
+            return new LinearGradientShader
             {
                 Start = start,
                 End = end,
@@ -44,7 +44,7 @@ namespace Svg.Model.Paint
 
         public static Shader CreatePerlinNoiseFractalNoise(float baseFrequencyX, float baseFrequencyY, int numOctaves, float seed, PointI tileSize)
         {
-            return new PerlinNoiseFractalNoiseShader()
+            return new PerlinNoiseFractalNoiseShader
             {
                 BaseFrequencyX = baseFrequencyX,
                 BaseFrequencyY = baseFrequencyY,
@@ -56,7 +56,7 @@ namespace Svg.Model.Paint
 
         public static Shader CreatePerlinNoiseTurbulence(float baseFrequencyX, float baseFrequencyY, int numOctaves, float seed, PointI tileSize)
         {
-            return new PerlinNoiseTurbulenceShader()
+            return new PerlinNoiseTurbulenceShader
             {
                 BaseFrequencyX = baseFrequencyX,
                 BaseFrequencyY = baseFrequencyY,
@@ -68,7 +68,7 @@ namespace Svg.Model.Paint
 
         public static Shader CreatePicture(Picture.Picture src, ShaderTileMode tmx, ShaderTileMode tmy, Matrix localMatrix, Rect tile)
         {
-            return new PictureShader()
+            return new PictureShader
             {
                 Src = src,
                 TmX = tmx,
@@ -80,7 +80,7 @@ namespace Svg.Model.Paint
 
         public static Shader CreateTwoPointConicalGradient(Point start, float startRadius, Point end, float endRadius, ColorF[] colors, ColorSpace colorSpace, float[] colorPos, ShaderTileMode mode)
         {
-            return new TwoPointConicalGradientShader()
+            return new TwoPointConicalGradientShader
             {
                 Start = start,
                 StartRadius = startRadius,
@@ -95,7 +95,7 @@ namespace Svg.Model.Paint
 
         public static Shader CreateTwoPointConicalGradient(Point start, float startRadius, Point end, float endRadius, ColorF[] colors, ColorSpace colorSpace, float[] colorPos, ShaderTileMode mode, Matrix localMatrix)
         {
-            return new TwoPointConicalGradientShader()
+            return new TwoPointConicalGradientShader
             {
                 Start = start,
                 StartRadius = startRadius,

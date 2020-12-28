@@ -755,7 +755,7 @@ namespace Svg.Skia
             var pathEffect = paint.PathEffect?.ToSKPathEffect();
             var blendMode = paint.BlendMode.ToSKBlendMode();
             var filterQuality = paint.FilterQuality.ToSKFilterQuality();
-            return new SKPaint()
+            return new SKPaint
             {
                 Style = style,
                 IsAntialias = paint.IsAntialias,
@@ -917,7 +917,7 @@ namespace Svg.Skia
 
         public static SKPath ToSKPath(this Path path)
         {
-            var skPath = new SKPath()
+            var skPath = new SKPath
             {
                 FillType = path.FillType.ToSKPathFillType()
             };

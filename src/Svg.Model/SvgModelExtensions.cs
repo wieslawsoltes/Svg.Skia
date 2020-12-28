@@ -40,7 +40,7 @@ namespace Svg.Model
             CloseSubpath = 0x80
         }
 
-        internal static HashSet<string> s_supportedFeatures = new HashSet<string>()
+        internal static HashSet<string> s_supportedFeatures = new HashSet<string>
         {
             "http://www.w3.org/TR/SVG11/feature#SVG",
             "http://www.w3.org/TR/SVG11/feature#SVGDOM",
@@ -90,7 +90,7 @@ namespace Svg.Model
             "http://www.w3.org/TR/SVG11/feature#Extensibility"
         };
 
-        internal static HashSet<string> s_supportedExtensions = new HashSet<string>()
+        internal static HashSet<string> s_supportedExtensions = new HashSet<string>
         {
         };
 
@@ -112,25 +112,25 @@ namespace Svg.Model
 
         internal const string StrokePaint = "StrokePaint";
 
-        internal static SvgFuncA s_identitySvgFuncA = new SvgFuncA()
+        internal static SvgFuncA s_identitySvgFuncA = new SvgFuncA
         {
             Type = SvgComponentTransferType.Identity,
             TableValues = new SvgNumberCollection()
         };
 
-        internal static SvgFuncR s_identitySvgFuncR = new SvgFuncR()
+        internal static SvgFuncR s_identitySvgFuncR = new SvgFuncR
         {
             Type = SvgComponentTransferType.Identity,
             TableValues = new SvgNumberCollection()
         };
 
-        internal static SvgFuncG s_identitySvgFuncG = new SvgFuncG()
+        internal static SvgFuncG s_identitySvgFuncG = new SvgFuncG
         {
             Type = SvgComponentTransferType.Identity,
             TableValues = new SvgNumberCollection()
         };
 
-        internal static SvgFuncB s_identitySvgFuncB = new SvgFuncB()
+        internal static SvgFuncB s_identitySvgFuncB = new SvgFuncB
         {
             Type = SvgComponentTransferType.Identity,
             TableValues = new SvgNumberCollection()
@@ -862,7 +862,7 @@ namespace Svg.Model
 
             if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
-                var skBoundingBoxTransform = new Matrix()
+                var skBoundingBoxTransform = new Matrix
                 {
                     ScaleX = skBounds.Width,
                     SkewY = 0f,
@@ -1038,7 +1038,7 @@ namespace Svg.Model
 
             if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
-                var skBoundingBoxTransform = new Matrix()
+                var skBoundingBoxTransform = new Matrix
                 {
                     ScaleX = skBounds.Width,
                     SkewY = 0f,
@@ -1491,7 +1491,7 @@ namespace Svg.Model
 
         internal static Paint.Paint? GetFillPaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
-            var skPaint = new Paint.Paint()
+            var skPaint = new Paint.Paint
             {
                 IsAntialias = IsAntialias(svgVisualElement),
                 Style = PaintStyle.Fill
@@ -1509,7 +1509,7 @@ namespace Svg.Model
 
         internal static Paint.Paint? GetStrokePaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
-            var skPaint = new Paint.Paint()
+            var skPaint = new Paint.Paint
             {
                 IsAntialias = IsAntialias(svgVisualElement),
                 Style = PaintStyle.Stroke
@@ -1592,7 +1592,7 @@ namespace Svg.Model
 
         internal static Matrix ToMatrix(this SvgMatrix svgMatrix)
         {
-            return new Matrix()
+            return new Matrix
             {
                 ScaleX = svgMatrix.Points[0],
                 SkewY = svgMatrix.Points[1],
@@ -1857,7 +1857,7 @@ namespace Svg.Model
             }
 
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path.Path()
+            var skPath = new Path.Path
             {
                 FillType = fillType
             };
@@ -1995,7 +1995,7 @@ namespace Svg.Model
         internal static Path.Path? ToPath(this SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, Rect skOwnerBounds)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path.Path()
+            var skPath = new Path.Path
             {
                 FillType = fillType
             };
@@ -2017,7 +2017,7 @@ namespace Svg.Model
         internal static Path.Path? ToPath(this SvgRectangle svgRectangle, SvgFillRule svgFillRule, Rect skOwnerBounds)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path.Path()
+            var skPath = new Path.Path
             {
                 FillType = fillType
             };
@@ -2093,7 +2093,7 @@ namespace Svg.Model
         internal static Path.Path? ToPath(this SvgCircle svgCircle, SvgFillRule svgFillRule, Rect skOwnerBounds)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path.Path()
+            var skPath = new Path.Path
             {
                 FillType = fillType
             };
@@ -2116,7 +2116,7 @@ namespace Svg.Model
         internal static Path.Path? ToPath(this SvgEllipse svgEllipse, SvgFillRule svgFillRule, Rect skOwnerBounds)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path.Path()
+            var skPath = new Path.Path
             {
                 FillType = fillType
             };
@@ -2142,7 +2142,7 @@ namespace Svg.Model
         internal static Path.Path? ToPath(this SvgLine svgLine, SvgFillRule svgFillRule, Rect skOwnerBounds)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path.Path()
+            var skPath = new Path.Path
             {
                 FillType = fillType
             };
@@ -2393,7 +2393,7 @@ namespace Svg.Model
                         {
                             Path = skPath,
                             Transform = ToMatrix(svgPath.Transforms),
-                            Clip = new ClipPath()
+                            Clip = new ClipPath
                             {
                                 Clip = new ClipPath()
                             }
@@ -2417,7 +2417,7 @@ namespace Svg.Model
                         {
                             Path = skPath,
                             Transform = ToMatrix(svgRectangle.Transforms),
-                            Clip = new ClipPath()
+                            Clip = new ClipPath
                             {
                                 Clip = new ClipPath()
                             }
@@ -2441,7 +2441,7 @@ namespace Svg.Model
                         {
                             Path = skPath,
                             Transform = ToMatrix(svgCircle.Transforms),
-                            Clip = new ClipPath()
+                            Clip = new ClipPath
                             {
                                 Clip = new ClipPath()
                             }
@@ -2465,7 +2465,7 @@ namespace Svg.Model
                         {
                             Path = skPath,
                             Transform = ToMatrix(svgEllipse.Transforms),
-                            Clip = new ClipPath()
+                            Clip = new ClipPath
                             {
                                 Clip = new ClipPath()
                             }
@@ -2489,7 +2489,7 @@ namespace Svg.Model
                         {
                             Path = skPath,
                             Transform = ToMatrix(svgLine.Transforms),
-                            Clip = new ClipPath()
+                            Clip = new ClipPath
                             {
                                 Clip = new ClipPath()
                             }
@@ -2513,7 +2513,7 @@ namespace Svg.Model
                         {
                             Path = skPath,
                             Transform = ToMatrix(svgPolyline.Transforms),
-                            Clip = new ClipPath()
+                            Clip = new ClipPath
                             {
                                 Clip = new ClipPath()
                             }
@@ -2537,7 +2537,7 @@ namespace Svg.Model
                         {
                             Path = skPath,
                             Transform = ToMatrix(svgPolygon.Transforms),
-                            Clip = new ClipPath()
+                            Clip = new ClipPath
                             {
                                 Clip = new ClipPath()
                             }
@@ -3662,7 +3662,7 @@ namespace Svg.Model
 
             var seed = svgTurbulence.Seed;
 
-            var skPaint = new Paint.Paint()
+            var skPaint = new Paint.Paint
             {
                 Style = PaintStyle.StrokeAndFill
             };
@@ -3736,7 +3736,7 @@ namespace Svg.Model
 
         internal static ImageFilter GetTransparentBlackImage()
         {
-            var skPaint = new Paint.Paint()
+            var skPaint = new Paint.Paint
             {
                 Style = PaintStyle.StrokeAndFill,
                 Color = s_transparentBlack
@@ -3747,7 +3747,7 @@ namespace Svg.Model
 
         internal static ImageFilter GetTransparentBlackAlpha()
         {
-            var skPaint = new Paint.Paint()
+            var skPaint = new Paint.Paint
             {
                 Style = PaintStyle.StrokeAndFill,
                 Color = s_transparentBlack
@@ -4557,7 +4557,7 @@ namespace Svg.Model
             var fontWidth = ToFontStyleWidth(svgText.FontStretch);
             var fontStyle = ToFontStyleSlant(svgText.FontStyle);
 
-            skPaint.Typeface = new Typeface()
+            skPaint.Typeface = new Typeface
             {
                 FamilyName = fontFamily,
                 Weight = fontWeight,

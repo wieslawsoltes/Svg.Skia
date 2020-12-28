@@ -35,7 +35,7 @@ namespace svgc
         {
             var data = SMP.Image.FromStream(stream);
             using var image = SLIS.Image.Load(data);
-            return new SMP.Image()
+            return new SMP.Image
             {
                 Data = data,
                 Width = image.Width,
@@ -80,7 +80,7 @@ namespace svgc
 
         static async Task<int> Main(string[] args)
         {
-            var rootCommand = new RootCommand()
+            var rootCommand = new RootCommand
             {
                 Description = "Converts a svg file to a C# code."
             };

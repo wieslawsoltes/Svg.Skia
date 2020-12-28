@@ -11,7 +11,7 @@ namespace Avalonia.Svg
         {
             var data = Image.FromStream(stream);
             using var image = new AMI.Bitmap(stream);
-            return new Image()
+            return new Image
             {
                 Data = data,
                 Width = (float)image.Size.Width,

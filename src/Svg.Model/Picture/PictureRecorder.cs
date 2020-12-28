@@ -19,7 +19,7 @@ namespace Svg.Model.Picture
 
         public Picture EndRecording()
         {
-            var picture = new Picture()
+            var picture = new Picture
             {
                 CullRect = CullRect,
                 Commands = RecordingCanvas?.Commands

@@ -370,7 +370,7 @@ namespace Avalonia.Svg
                 dashStyle = new AM.DashStyle(dashes, offset);
             }
 
-            return new AM.Pen()
+            return new AM.Pen
             {
                 Brush = brush,
                 Thickness = paint.StrokeWidth,
@@ -416,7 +416,7 @@ namespace Avalonia.Svg
             // TODO: paint.LcdRenderText
             // TODO: paint.SubpixelText
 
-            var ft = new AM.FormattedText()
+            var ft = new AM.FormattedText
             {
                 Text = text,
                 Typeface = typeface ?? AM.Typeface.Default,

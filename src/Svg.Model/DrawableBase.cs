@@ -52,7 +52,7 @@ namespace Svg.Model
 
         protected virtual void CreateMaskPaints()
         {
-            Mask = new Paint.Paint()
+            Mask = new Paint.Paint
             {
                 IsAntialias = true,
                 Style = PaintStyle.StrokeAndFill
@@ -180,7 +180,7 @@ namespace Svg.Model
 
             if (visualElement != null && enableClip)
             {
-                var clipPath = new ClipPath()
+                var clipPath = new ClipPath
                 {
                     Clip = new ClipPath()
                 };

@@ -11,7 +11,7 @@ namespace Svg.Skia
         {
             var data = Image.FromStream(stream);
             using var image = SKImage.FromEncodedData(data);
-            return new Image()
+            return new Image
             {
                 Data = data,
                 Width = image.Width,

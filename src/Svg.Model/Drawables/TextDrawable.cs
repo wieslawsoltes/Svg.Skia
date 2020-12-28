@@ -131,7 +131,7 @@ namespace Svg.Model.Drawables
 
             if (enableClip)
             {
-                var clipPath = new ClipPath()
+                var clipPath = new ClipPath
                 {
                     Clip = new ClipPath()
                 };
@@ -150,7 +150,7 @@ namespace Svg.Model.Drawables
                 maskDrawable = SvgModelExtensions.GetSvgElementMask(svgTextBase, skBounds, new HashSet<Uri>(), AssetLoader);
                 if (maskDrawable != null)
                 {
-                    mask = new Paint.Paint()
+                    mask = new Paint.Paint
                     {
                         IsAntialias = true,
                         Style = PaintStyle.StrokeAndFill
@@ -326,7 +326,7 @@ namespace Svg.Model.Drawables
                     {
                         SvgModelExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
 
-                        var textBlob = new TextBlob()
+                        var textBlob = new TextBlob
                         {
                             Text = text,
                             Points = points
@@ -341,7 +341,7 @@ namespace Svg.Model.Drawables
                     if (skPaint != null)
                     {
                         SvgModelExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
-                        var textBlob = new TextBlob()
+                        var textBlob = new TextBlob
                         {
                             Text = text,
                             Points = points
