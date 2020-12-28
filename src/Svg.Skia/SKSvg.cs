@@ -19,7 +19,7 @@ namespace Svg.Skia
         {
             var size = SvgModelExtensions.GetDimensions(svgFragment);
             var bounds = Rect.Create(size);
-            using var drawable = DrawableFactory.Create(svgFragment, bounds, null, AssetLoader, Attributes.None);
+            using var drawable = DrawableFactory.Create(svgFragment, bounds, null, AssetLoader);
             if (drawable != null)
             {
                 drawable.PostProcess();
