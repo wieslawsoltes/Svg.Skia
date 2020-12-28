@@ -26,7 +26,7 @@ namespace SvgToPng
         {
             InitializeComponent();
 #if DEBUG
-            SvgExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture("en-US");
+            SvgModelExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture("en-US");
 #endif
             var vm = MainWindowViewModel.Load<MainWindowViewModel>("VM.json");
             if (vm != null)
@@ -55,7 +55,7 @@ namespace SvgToPng
                 @"e:\Dropbox\Draw2D\SVG\W3CTestSuite-png\"
                 });
                 VM.ReferencePath = VM.ReferencePaths[0];
-                VM.OutputPath = Path.Combine(Directory.GetCurrentDirectory(), "png");
+                VM.OutputPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "png");
 #endif
             }
 
