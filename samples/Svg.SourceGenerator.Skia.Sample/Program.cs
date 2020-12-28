@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.IO;
 using SkiaSharp;
 using Svg.Skia;
+using Svg.Generated;
+using Svg.Sample;
 
 namespace Svg.SourceGenerator.Skia.Sample
 {
