@@ -10,9 +10,9 @@ namespace Svg.Model.Drawables
 {
     public sealed class UseDrawable : DrawableBase
     {
-        internal static FieldInfo? s_referencedElementParent = typeof(SvgElement).GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static readonly FieldInfo? s_referencedElementParent = typeof(SvgElement).GetField("_parent", BindingFlags.NonPublic | BindingFlags.Instance);
 
-        public DrawableBase? ReferencedDrawable;
+        private DrawableBase? ReferencedDrawable { get; set; }
 
         private UseDrawable(IAssetLoader assetLoader)
             : base(assetLoader)

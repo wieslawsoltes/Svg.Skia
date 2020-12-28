@@ -6,7 +6,7 @@ namespace Svg.Model
 {
     public abstract class DrawableContainer : DrawableBase
     {
-        public readonly List<DrawableBase> ChildrenDrawables;
+        protected List<DrawableBase> ChildrenDrawables { get; }
 
         protected DrawableContainer(IAssetLoader assetLoader)
             : base(assetLoader)

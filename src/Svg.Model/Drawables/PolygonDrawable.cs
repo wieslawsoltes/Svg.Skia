@@ -65,7 +65,7 @@ namespace Svg.Model.Drawables
                 return drawable;
             }
 
-            SvgModelExtensions.CreateMarkers(svgPolygon, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, assetLoader);
+            SvgModelExtensions.CreateMarkers(svgPolygon, drawable.Path, skOwnerBounds, drawable, assetLoader);
 
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);

@@ -11,24 +11,24 @@ namespace Svg.Model
 {
     public abstract class DrawableBase : Drawable, IFilterSource, IPictureSource
     {
-        public IAssetLoader AssetLoader { get; }
-        public SvgElement? Element;
-        public DrawableBase? Parent;
-        public bool IsDrawable;
-        public Attributes IgnoreAttributes;
-        public bool IsAntialias;
-        public Rect TransformedBounds;
-        public Matrix Transform;
-        public Rect? Overflow;
-        public Rect? Clip;
-        public ClipPath? ClipPath;
-        public MaskDrawable? MaskDrawable;
-        public Paint.Paint? Mask;
-        public Paint.Paint? MaskDstIn;
-        public Paint.Paint? Opacity;
-        public Paint.Paint? Filter;
-        public Paint.Paint? Fill;
-        public Paint.Paint? Stroke;
+        protected IAssetLoader AssetLoader { get; }
+        protected SvgElement? Element { get; set; }
+        protected DrawableBase? Parent { get; set; }
+        protected bool IsDrawable { get; set; }
+        protected Attributes IgnoreAttributes { get; set; }
+        protected bool IsAntialias { get; set; }
+        public Rect TransformedBounds { get; set; }
+        protected Matrix Transform { get; set; }
+        protected Rect? Overflow { get; set; }
+        protected Rect? Clip { get; set; }
+        protected ClipPath? ClipPath { get; set; }
+        protected MaskDrawable? MaskDrawable { get; set; }
+        private Paint.Paint? Mask { get; set; }
+        private Paint.Paint? MaskDstIn { get; set; }
+        protected Paint.Paint? Opacity { get; set; }
+        protected Paint.Paint? Filter { get; set; }
+        protected Paint.Paint? Fill { get; set; }
+        protected Paint.Paint? Stroke { get; set; }
 
         protected DrawableBase(IAssetLoader assetLoader)
         {

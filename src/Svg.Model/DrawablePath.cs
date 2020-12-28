@@ -3,15 +3,20 @@ using Svg.Model.Picture;
 
 namespace Svg.Model
 {
-    public abstract class DrawablePath : DrawableBase
+    public abstract class DrawablePath : DrawableBase, IMarkerHost
     {
-        public Path.Path? Path;
-
-        public List<DrawableBase>? MarkerDrawables;
+        protected Path.Path? Path { get; set; }
+        private List<DrawableBase>? MarkerDrawables { get; set; }
 
         protected DrawablePath(IAssetLoader assetLoader)
             : base(assetLoader)
         {
+        }
+
+        void IMarkerHost.AddMarker(DrawableBase drawable)
+        {
+            MarkerDrawables ??= new List<DrawableBase>();
+            MarkerDrawables.Add(drawable);
         }
 
         public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)

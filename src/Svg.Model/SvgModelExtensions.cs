@@ -2768,7 +2768,7 @@ namespace Svg.Model
             }
         }
 
-        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, bool isStartMarker, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, bool isStartMarker, Rect skOwnerBounds, IMarkerHost markerHost, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
             float fAngle1 = 0f;
             if (svgMarker.Orient.IsAuto)
@@ -2783,14 +2783,10 @@ namespace Svg.Model
             }
 
             var markerDrawable = MarkerDrawable.Create(svgMarker, pOwner, pRefPoint, fAngle1, skOwnerBounds, null, assetLoader, ignoreAttributes);
-            if (markerDrawables == null)
-            {
-                markerDrawables = new List<DrawableBase>();
-            }
-            markerDrawables.Add(markerDrawable);
+            markerHost.AddMarker(markerDrawable);
         }
 
-        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, Point pMarkerPoint3, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, IAssetLoader assetLoader)
+        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, Point pMarkerPoint3, Rect skOwnerBounds, IMarkerHost markerHost, IAssetLoader assetLoader)
         {
             float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
             float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
@@ -2800,14 +2796,10 @@ namespace Svg.Model
             float fAngle2 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
 
             var markerDrawable = MarkerDrawable.Create(svgMarker, pOwner, pRefPoint, (fAngle1 + fAngle2) / 2, skOwnerBounds, null, assetLoader);
-            if (markerDrawables == null)
-            {
-                markerDrawables = new List<DrawableBase>();
-            }
-            markerDrawables.Add(markerDrawable);
+            markerHost.AddMarker(markerDrawable);
         }
 
-        internal static void CreateMarkers(this SvgMarkerElement svgMarkerElement, Path.Path skPath, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, IAssetLoader assetLoader)
+        internal static void CreateMarkers(this SvgMarkerElement svgMarkerElement, Path.Path skPath, Rect skOwnerBounds, IMarkerHost markerHost, IAssetLoader assetLoader)
         {
             var pathTypes = skPath.GetPathTypes();
             var pathLength = pathTypes.Count;
@@ -2825,7 +2817,7 @@ namespace Svg.Model
                         ++index;
                     }
                     var refPoint2 = pathLength == 1 ? refPoint1 : pathTypes[index].Point;
-                    CreateMarker(marker, svgMarkerElement, refPoint1, refPoint1, refPoint2, true, skOwnerBounds, ref markerDrawables, assetLoader);
+                    CreateMarker(marker, svgMarkerElement, refPoint1, refPoint1, refPoint2, true, skOwnerBounds, markerHost, assetLoader);
                 }
             }
 
@@ -2850,7 +2842,7 @@ namespace Svg.Model
 
                         if (bezierIndex == -1 || bezierIndex == 2)
                         {
-                            CreateMarker(marker, svgMarkerElement, pathTypes[i].Point, pathTypes[i - 1].Point, pathTypes[i].Point, pathTypes[i + 1].Point, skOwnerBounds, ref markerDrawables, assetLoader);
+                            CreateMarker(marker, svgMarkerElement, pathTypes[i].Point, pathTypes[i - 1].Point, pathTypes[i].Point, pathTypes[i + 1].Point, skOwnerBounds, markerHost, assetLoader);
                         }
                     }
                 }
@@ -2873,7 +2865,7 @@ namespace Svg.Model
                         }
                     }
                     var refPoint2 = pathLength == 1 ? refPoint1 : pathTypes[index].Point;
-                    CreateMarker(marker, svgMarkerElement, refPoint1, refPoint2, pathTypes[pathLength - 1].Point, false, skOwnerBounds, ref markerDrawables, assetLoader);
+                    CreateMarker(marker, svgMarkerElement, refPoint1, refPoint2, pathTypes[pathLength - 1].Point, false, skOwnerBounds, markerHost, assetLoader);
                 }
             }
         }
