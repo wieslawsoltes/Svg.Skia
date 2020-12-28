@@ -1515,7 +1515,6 @@ namespace Svg.Model
                                     disposable.Add(skColorFilter);
                                     skPaint.ColorFilter = skColorFilter;
                                 }
-
                                 disposable.Add(skRadialGradientShader);
                                 skPaint.Shader = skRadialGradientShader;
                                 return true;
