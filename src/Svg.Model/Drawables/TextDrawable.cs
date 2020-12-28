@@ -135,7 +135,7 @@ namespace Svg.Model.Drawables
                 {
                     Clip = new ClipPath()
                 };
-                SvgModelExtensions.GetSvgVisualElementClipPath(svgTextBase, TransformedBounds, new HashSet<Uri>(), disposable, clipPath);
+                SvgModelExtensions.GetSvgVisualElementClipPath(svgTextBase, TransformedBounds, new HashSet<Uri>(), clipPath);
                 if (clipPath.Clips != null && clipPath.Clips.Count > 0 && !IgnoreAttributes.HasFlag(Attributes.ClipPath))
                 {
                     bool antialias = SvgModelExtensions.IsAntialias(svgTextBase);
@@ -147,7 +147,7 @@ namespace Svg.Model.Drawables
             {
                 var mask = default(Paint.Paint);
                 maskDstIn = default(Paint.Paint);
-                maskDrawable = SvgModelExtensions.GetSvgElementMask(svgTextBase, skBounds, new HashSet<Uri>(), disposable, AssetLoader);
+                maskDrawable = SvgModelExtensions.GetSvgElementMask(svgTextBase, skBounds, new HashSet<Uri>(), AssetLoader);
                 if (maskDrawable != null)
                 {
                     mask = new Paint.Paint()
@@ -180,7 +180,7 @@ namespace Svg.Model.Drawables
 
             if (enableOpacity)
             {
-                skPaintOpacity = SvgModelExtensions.GetOpacityPaint(svgTextBase, disposable);
+                skPaintOpacity = SvgModelExtensions.GetOpacityPaint(svgTextBase);
                 if (skPaintOpacity != null && !IgnoreAttributes.HasFlag(Attributes.Opacity))
                 {
                     skCanvas.SaveLayer(skPaintOpacity);
@@ -193,7 +193,7 @@ namespace Svg.Model.Drawables
 
             if (enableFilter)
             {
-                skPaintFilter = SvgModelExtensions.GetFilterPaint(svgTextBase, skBounds, this, disposable, AssetLoader, out var isValid);
+                skPaintFilter = SvgModelExtensions.GetFilterPaint(svgTextBase, skBounds, this, AssetLoader, out var isValid);
                 if (skPaintFilter != null && !IgnoreAttributes.HasFlag(Attributes.Filter))
                 {
                     skCanvas.SaveLayer(skPaintFilter);
@@ -239,10 +239,10 @@ namespace Svg.Model.Drawables
 
             if (SvgModelExtensions.IsValidFill(svgTextBase))
             {
-                var skPaint = SvgModelExtensions.GetFillPaint(svgTextBase, skBounds, AssetLoader, ignoreAttributes, Disposable);
+                var skPaint = SvgModelExtensions.GetFillPaint(svgTextBase, skBounds, AssetLoader, ignoreAttributes);
                 if (skPaint != null)
                 {
-                    SvgModelExtensions.SetPaintText(svgTextBase, skBounds, skPaint, Disposable);
+                    SvgModelExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
 #if USE_TEXT_SHAPER
                     var typeface = skPaint.Typeface;
                     if (typeface != null)
@@ -258,10 +258,10 @@ namespace Svg.Model.Drawables
 
             if (SvgModelExtensions.IsValidStroke(svgTextBase, skBounds))
             {
-                var skPaint = SvgModelExtensions.GetStrokePaint(svgTextBase, skBounds, AssetLoader, ignoreAttributes, Disposable);
+                var skPaint = SvgModelExtensions.GetStrokePaint(svgTextBase, skBounds, AssetLoader, ignoreAttributes);
                 if (skPaint != null)
                 {
-                    SvgModelExtensions.SetPaintText(svgTextBase, skBounds, skPaint, Disposable);
+                    SvgModelExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
 #if USE_TEXT_SHAPER
                     var typeface = skPaint.Typeface;
                     if (typeface != null)
@@ -324,10 +324,10 @@ namespace Svg.Model.Drawables
 
                 if (SvgModelExtensions.IsValidFill(svgTextBase))
                 {
-                    var skPaint = SvgModelExtensions.GetFillPaint(svgTextBase, skBounds, AssetLoader, ignoreAttributes, Disposable);
+                    var skPaint = SvgModelExtensions.GetFillPaint(svgTextBase, skBounds, AssetLoader, ignoreAttributes);
                     if (skPaint != null)
                     {
-                        SvgModelExtensions.SetPaintText(svgTextBase, skBounds, skPaint, Disposable);
+                        SvgModelExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
 
                         var textBlob = new TextBlob()
                         {
@@ -340,10 +340,10 @@ namespace Svg.Model.Drawables
 
                 if (SvgModelExtensions.IsValidStroke(svgTextBase, skBounds))
                 {
-                    var skPaint = SvgModelExtensions.GetStrokePaint(svgTextBase, skBounds, AssetLoader, ignoreAttributes, Disposable);
+                    var skPaint = SvgModelExtensions.GetStrokePaint(svgTextBase, skBounds, AssetLoader, ignoreAttributes);
                     if (skPaint != null)
                     {
-                        SvgModelExtensions.SetPaintText(svgTextBase, skBounds, skPaint, Disposable);
+                        SvgModelExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
                         var textBlob = new TextBlob()
                         {
                             Text = text,
@@ -382,7 +382,7 @@ namespace Svg.Model.Drawables
                 return;
             }
 
-            var skPath = svgPath.PathData?.ToPath(svgPath.FillRule, Disposable);
+            var skPath = svgPath.PathData?.ToPath(svgPath.FillRule);
             if (skPath is null || skPath.IsEmpty)
             {
                 return;
@@ -415,20 +415,20 @@ namespace Svg.Model.Drawables
 
                     if (SvgModelExtensions.IsValidFill(svgTextPath))
                     {
-                        var skPaint = SvgModelExtensions.GetFillPaint(svgTextPath, skBounds, AssetLoader, ignoreAttributes, Disposable);
+                        var skPaint = SvgModelExtensions.GetFillPaint(svgTextPath, skBounds, AssetLoader, ignoreAttributes);
                         if (skPaint != null)
                         {
-                            SvgModelExtensions.SetPaintText(svgTextPath, skBounds, skPaint, Disposable);
+                            SvgModelExtensions.SetPaintText(svgTextPath, skBounds, skPaint);
                             skCanvas.DrawTextOnPath(text, skPath, hOffset, vOffset, skPaint);
                         }
                     }
 
                     if (SvgModelExtensions.IsValidStroke(svgTextPath, skBounds))
                     {
-                        var skPaint = SvgModelExtensions.GetStrokePaint(svgTextPath, skBounds, AssetLoader, ignoreAttributes, Disposable);
+                        var skPaint = SvgModelExtensions.GetStrokePaint(svgTextPath, skBounds, AssetLoader, ignoreAttributes);
                         if (skPaint != null)
                         {
-                            SvgModelExtensions.SetPaintText(svgTextPath, skBounds, skPaint, Disposable);
+                            SvgModelExtensions.SetPaintText(svgTextPath, skBounds, skPaint);
                             skCanvas.DrawTextOnPath(text, skPath, hOffset, vOffset, skPaint);
                         }
                     }

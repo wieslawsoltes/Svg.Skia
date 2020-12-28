@@ -25,7 +25,7 @@ namespace Svg.Model.Drawables
                 return drawable;
             }
 
-            drawable.Path = svgEllipse.ToPath(svgEllipse.FillRule, skOwnerBounds, drawable.Disposable);
+            drawable.Path = svgEllipse.ToPath(svgEllipse.FillRule, skOwnerBounds);
             if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;
@@ -41,7 +41,7 @@ namespace Svg.Model.Drawables
 
             if (SvgModelExtensions.IsValidFill(svgEllipse))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgEllipse, drawable.TransformedBounds, assetLoader, ignoreAttributes, drawable.Disposable);
+                drawable.Fill = SvgModelExtensions.GetFillPaint(svgEllipse, drawable.TransformedBounds, assetLoader, ignoreAttributes);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
@@ -50,7 +50,7 @@ namespace Svg.Model.Drawables
 
             if (SvgModelExtensions.IsValidStroke(svgEllipse, drawable.TransformedBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgEllipse, drawable.TransformedBounds, assetLoader, ignoreAttributes, drawable.Disposable);
+                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgEllipse, drawable.TransformedBounds, assetLoader, ignoreAttributes);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;

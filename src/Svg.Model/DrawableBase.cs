@@ -11,8 +11,7 @@ namespace Svg.Model
 {
     public abstract class DrawableBase : Drawable, IFilterSource, IPictureSource
     {
-        internal readonly IAssetLoader AssetLoader;
-        internal readonly CompositeDisposable Disposable;
+        public IAssetLoader AssetLoader { get; }
         public SvgElement? Element;
         public DrawableBase? Parent;
         public bool IsDrawable;
@@ -34,7 +33,6 @@ namespace Svg.Model
         protected DrawableBase(IAssetLoader assetLoader)
         {
             AssetLoader = assetLoader;
-            Disposable = new CompositeDisposable();
         }
 
         protected override void OnDraw(Canvas canvas)
@@ -50,7 +48,6 @@ namespace Svg.Model
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            Disposable?.Dispose();
         }
 
         protected virtual void CreateMaskPaints()
@@ -60,10 +57,8 @@ namespace Svg.Model
                 IsAntialias = true,
                 Style = PaintStyle.StrokeAndFill
             };
-            Disposable.Add(Mask);
 
             var lumaColor = ColorFilter.CreateLumaColor();
-            Disposable.Add(lumaColor);
 
             MaskDstIn = new Paint.Paint
             {
@@ -73,7 +68,6 @@ namespace Svg.Model
                 Color = SvgModelExtensions.s_transparentBlack,
                 ColorFilter = lumaColor
             };
-            Disposable.Add(MaskDstIn);
         }
 
         protected virtual bool HasFeatures(SvgElement svgElement, Attributes ignoreAttributes)
@@ -190,7 +184,7 @@ namespace Svg.Model
                 {
                     Clip = new ClipPath()
                 };
-                SvgModelExtensions.GetSvgVisualElementClipPath(visualElement, TransformedBounds, new HashSet<Uri>(), Disposable, clipPath);
+                SvgModelExtensions.GetSvgVisualElementClipPath(visualElement, TransformedBounds, new HashSet<Uri>(), clipPath);
                 if (clipPath.Clips != null && clipPath.Clips.Count > 0)
                 {
                     ClipPath = clipPath;
@@ -207,7 +201,7 @@ namespace Svg.Model
 
             if (enableMask)
             {
-                MaskDrawable = SvgModelExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), Disposable, AssetLoader);
+                MaskDrawable = SvgModelExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), AssetLoader);
                 if (MaskDrawable != null)
                 {
                     CreateMaskPaints();
@@ -218,11 +212,11 @@ namespace Svg.Model
                 MaskDrawable = null;
             }
 
-            Opacity = enableOpacity ? SvgModelExtensions.GetOpacityPaint(element, Disposable) : null;
+            Opacity = enableOpacity ? SvgModelExtensions.GetOpacityPaint(element) : null;
 
             if (visualElement != null && enableFilter)
             {
-                Filter = SvgModelExtensions.GetFilterPaint(visualElement, TransformedBounds, this, Disposable, AssetLoader, out var isValid);
+                Filter = SvgModelExtensions.GetFilterPaint(visualElement, TransformedBounds, this, AssetLoader, out var isValid);
                 if (isValid == false)
                 {
                     IsDrawable = false;

@@ -1121,7 +1121,7 @@ namespace Svg.Model
             return skPictureRecorder.EndRecording();
         }
 
-        internal static Shader? CreatePicture(SvgPatternServer svgPatternServer, Rect skBounds, SvgVisualElement svgVisualElement, float opacity, IAssetLoader assetLoader, Attributes ignoreAttributes, CompositeDisposable disposable)
+        internal static Shader? CreatePicture(SvgPatternServer svgPatternServer, Rect skBounds, SvgVisualElement svgVisualElement, float opacity, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
             var svgReferencedPatternServers = GetLinkedPatternServer(svgPatternServer, svgVisualElement);
 
@@ -1288,12 +1288,11 @@ namespace Svg.Model
             }
 
             var skPicture = RecordPicture(firstChildren.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform, opacity, assetLoader, ignoreAttributes);
-            disposable.Add(skPicture);
 
             return Shader.CreatePicture(skPicture, ShaderTileMode.Repeat, ShaderTileMode.Repeat, skMatrix, skPicture.CullRect);
         }
 
-        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, Rect skBounds, Paint.Paint skPaint, bool forStroke, IAssetLoader assetLoader, Attributes ignoreAttributes, CompositeDisposable disposable)
+        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, Rect skBounds, Paint.Paint skPaint, bool forStroke, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
             var fallbackServer = SvgPaintServer.None;
             if (server is SvgDeferredPaintServer deferredServer)
@@ -1318,15 +1317,6 @@ namespace Svg.Model
                         var skColorShader = Shader.CreateColor(skColor, skColorSpace);
                         if (skColorShader != null)
                         {
-#if USE_LINEAR_TO_SRGB_CORRECTION
-                            if (isLinearRGB)
-                            {
-                                var skColorFilter = ColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
-                                disposable.Add(skColorFilter);
-                                skPaint.ColorFilter = skColorFilter;
-                            }
-#endif
-                            disposable.Add(skColorShader);
                             skPaint.Shader = skColorShader;
                             return true;
                         }
@@ -1339,18 +1329,9 @@ namespace Svg.Model
                         var isLinearRGB = colorInterpolation == SvgColourInterpolation.LinearRGB;
                         var skColorSpace = isLinearRGB ? ColorSpace.SrgbLinear : ColorSpace.Srgb;
                         // TODO: Use skColorSpace in CreatePicture
-                        var skPatternShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, assetLoader, ignoreAttributes, disposable);
+                        var skPatternShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, assetLoader, ignoreAttributes);
                         if (skPatternShader != null)
                         {
-#if USE_LINEAR_TO_SRGB_CORRECTION
-                            if (isLinearRGB)
-                            {
-                                var skColorFilter = ColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
-                                disposable.Add(skColorFilter);
-                                skPaint.ColorFilter = skColorFilter;
-                            }
-#endif
-                            disposable.Add(skPatternShader);
                             skPaint.Shader = skPatternShader;
                             return true;
                         }
@@ -1362,15 +1343,6 @@ namespace Svg.Model
                                 var skColorShader = Shader.CreateColor(skColor, skColorSpace);
                                 if (skColorShader != null)
                                 {
-#if USE_LINEAR_TO_SRGB_CORRECTION
-                                    if (isLinearRGB)
-                                    {
-                                        var skColorFilter = ColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
-                                        disposable.Add(skColorFilter);
-                                        skPaint.ColorFilter = skColorFilter;
-                                    }
-#endif
-                                    disposable.Add(skColorShader);
                                     skPaint.Shader = skColorShader;
                                     return true;
                                 }
@@ -1398,15 +1370,6 @@ namespace Svg.Model
                                 var skColorShader = Shader.CreateColor(skColor, skColorSpace);
                                 if (skColorShader != null)
                                 {
-#if USE_LINEAR_TO_SRGB_CORRECTION
-                                    if (isLinearRGB)
-                                    {
-                                        var skColorFilter = ColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
-                                        disposable.Add(skColorFilter);
-                                        skPaint.ColorFilter = skColorFilter;
-                                    }
-#endif
-                                    disposable.Add(skColorShader);
                                     skPaint.Shader = skColorShader;
                                     return true;
                                 }
@@ -1422,15 +1385,6 @@ namespace Svg.Model
                             var skLinearGradientShader = CreateLinearGradient(svgLinearGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes, skColorSpace);
                             if (skLinearGradientShader != null)
                             {
-#if USE_LINEAR_TO_SRGB_CORRECTION
-                                if (isLinearRGB)
-                                {
-                                    var skColorFilter = ColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
-                                    disposable.Add(skColorFilter);
-                                    skPaint.ColorFilter = skColorFilter;
-                                }
-#endif
-                                disposable.Add(skLinearGradientShader);
                                 skPaint.Shader = skLinearGradientShader;
                                 return true;
                             }
@@ -1457,7 +1411,6 @@ namespace Svg.Model
                                 var skColorShader = Shader.CreateColor(skColor, skColorSpace);
                                 if (skColorShader != null)
                                 {
-                                    disposable.Add(skColorShader);
                                     skPaint.Shader = skColorShader;
                                     return true;
                                 }
@@ -1473,15 +1426,6 @@ namespace Svg.Model
                             var skRadialGradientShader = CreateTwoPointConicalGradient(svgRadialGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes, skColorSpace);
                             if (skRadialGradientShader != null)
                             {
-#if USE_LINEAR_TO_SRGB_CORRECTION
-                                if (isLinearRGB)
-                                {
-                                    var skColorFilter = ColorFilter.CreateTable(null, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
-                                    disposable.Add(skColorFilter);
-                                    skPaint.ColorFilter = skColorFilter;
-                                }
-#endif
-                                disposable.Add(skRadialGradientShader);
                                 skPaint.Shader = skRadialGradientShader;
                                 return true;
                             }
@@ -1495,7 +1439,7 @@ namespace Svg.Model
                     break;
 
                 case SvgDeferredPaintServer svgDeferredPaintServer:
-                    return SetColorOrShader(svgVisualElement, svgDeferredPaintServer, opacity, skBounds, skPaint, forStroke, assetLoader, ignoreAttributes, disposable);
+                    return SetColorOrShader(svgVisualElement, svgDeferredPaintServer, opacity, skBounds, skPaint, forStroke, assetLoader, ignoreAttributes);
 
                 default:
                     // Do not draw element.
@@ -1504,30 +1448,26 @@ namespace Svg.Model
             return true;
         }
 
-        internal static void SetDash(SvgVisualElement svgVisualElement, Paint.Paint skPaint, Rect skBounds, CompositeDisposable disposable)
+        internal static void SetDash(SvgVisualElement svgVisualElement, Paint.Paint skPaint, Rect skBounds)
         {
             var skPathEffect = CreateDash(svgVisualElement, skBounds);
             if (skPathEffect != null)
             {
-                disposable.Add(skPathEffect);
                 skPaint.PathEffect = skPathEffect;
             }
         }
 
         internal static bool IsAntialias(SvgElement svgElement)
         {
-            switch (svgElement.ShapeRendering)
+            return svgElement.ShapeRendering switch
             {
-                case SvgShapeRendering.Inherit:
-                case SvgShapeRendering.Auto:
-                case SvgShapeRendering.GeometricPrecision:
-                default:
-                    return true;
-
-                case SvgShapeRendering.OptimizeSpeed:
-                case SvgShapeRendering.CrispEdges:
-                    return false;
-            }
+                SvgShapeRendering.Inherit => true,
+                SvgShapeRendering.Auto => true,
+                SvgShapeRendering.GeometricPrecision => true,
+                SvgShapeRendering.OptimizeSpeed => false,
+                SvgShapeRendering.CrispEdges => false,
+                _ => true
+            };
         }
 
         internal static bool IsValidFill(SvgElement svgElement)
@@ -1546,7 +1486,7 @@ namespace Svg.Model
                 && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
         }
 
-        internal static Paint.Paint? GetFillPaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes, CompositeDisposable disposable)
+        internal static Paint.Paint? GetFillPaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
             var skPaint = new Paint.Paint()
             {
@@ -1556,16 +1496,15 @@ namespace Svg.Model
 
             var server = svgVisualElement.Fill;
             var opacity = AdjustSvgOpacity(svgVisualElement.FillOpacity);
-            if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: false, assetLoader, ignoreAttributes, disposable) == false)
+            if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: false, assetLoader: assetLoader, ignoreAttributes: ignoreAttributes) == false)
             {
                 return null;
             }
 
-            disposable.Add(skPaint);
             return skPaint;
         }
 
-        internal static Paint.Paint? GetStrokePaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes, CompositeDisposable disposable)
+        internal static Paint.Paint? GetStrokePaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
             var skPaint = new Paint.Paint()
             {
@@ -1575,7 +1514,7 @@ namespace Svg.Model
 
             var server = svgVisualElement.Stroke;
             var opacity = AdjustSvgOpacity(svgVisualElement.StrokeOpacity);
-            if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: true, assetLoader, ignoreAttributes, disposable) == false)
+            if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: true, assetLoader: assetLoader, ignoreAttributes: ignoreAttributes) == false)
             {
                 return null;
             }
@@ -1617,10 +1556,9 @@ namespace Svg.Model
             var strokeDashArray = svgVisualElement.StrokeDashArray;
             if (strokeDashArray != null)
             {
-                SetDash(svgVisualElement, skPaint, skBounds, disposable);
+                SetDash(svgVisualElement, skPaint, skBounds);
             }
 
-            disposable.Add(skPaint);
             return skPaint;
         }
 
@@ -1638,13 +1576,12 @@ namespace Svg.Model
             return null;
         }
 
-        internal static Paint.Paint? GetOpacityPaint(SvgElement svgElement, CompositeDisposable disposable)
+        internal static Paint.Paint? GetOpacityPaint(SvgElement svgElement)
         {
             float opacity = AdjustSvgOpacity(svgElement.Opacity);
             var skPaint = GetOpacityPaint(opacity);
             if (skPaint != null)
             {
-                disposable.Add(skPaint);
                 return skPaint;
             }
             return null;
@@ -1714,9 +1651,6 @@ namespace Svg.Model
                             var skMatrixTranslate = Matrix.CreateTranslation(svgTranslate.X, svgTranslate.Y);
                             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixTranslate);
                         }
-                        break;
-
-                    default:
                         break;
                 }
             }
@@ -1912,7 +1846,7 @@ namespace Svg.Model
             return pathTypes;
         }
 
-        internal static Path.Path? ToPath(this SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule, CompositeDisposable disposable)
+        internal static Path.Path? ToPath(this SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule)
         {
             if (svgPathSegmentList == null || svgPathSegmentList.Count <= 0)
             {
@@ -2055,11 +1989,10 @@ namespace Svg.Model
                 }
             }
 
-            disposable.Add(skPath);
             return skPath;
         }
 
-        internal static Path.Path? ToPath(this SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, Rect skOwnerBounds, CompositeDisposable disposable)
+        internal static Path.Path? ToPath(this SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, Rect skOwnerBounds)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
             var skPath = new Path.Path()
@@ -2078,11 +2011,10 @@ namespace Svg.Model
 
             skPath.AddPoly(skPoints, isClosed);
 
-            disposable.Add(skPath);
             return skPath;
         }
 
-        internal static Path.Path? ToPath(this SvgRectangle svgRectangle, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
+        internal static Path.Path? ToPath(this SvgRectangle svgRectangle, SvgFillRule svgFillRule, Rect skOwnerBounds)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
             var skPath = new Path.Path()
@@ -2155,11 +2087,10 @@ namespace Svg.Model
                 skPath.AddRect(skRectBounds);
             }
 
-            disposable.Add(skPath);
             return skPath;
         }
 
-        internal static Path.Path? ToPath(this SvgCircle svgCircle, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
+        internal static Path.Path? ToPath(this SvgCircle svgCircle, SvgFillRule svgFillRule, Rect skOwnerBounds)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
             var skPath = new Path.Path()
@@ -2179,11 +2110,10 @@ namespace Svg.Model
 
             skPath.AddCircle(cx, cy, radius);
 
-            disposable.Add(skPath);
             return skPath;
         }
 
-        internal static Path.Path? ToPath(this SvgEllipse svgEllipse, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
+        internal static Path.Path? ToPath(this SvgEllipse svgEllipse, SvgFillRule svgFillRule, Rect skOwnerBounds)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
             var skPath = new Path.Path()
@@ -2206,11 +2136,10 @@ namespace Svg.Model
 
             skPath.AddOval(skRectBounds);
 
-            disposable.Add(skPath);
             return skPath;
         }
 
-        internal static Path.Path? ToPath(this SvgLine svgLine, SvgFillRule svgFillRule, Rect skOwnerBounds, CompositeDisposable disposable)
+        internal static Path.Path? ToPath(this SvgLine svgLine, SvgFillRule svgFillRule, Rect skOwnerBounds)
         {
             var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
             var skPath = new Path.Path()
@@ -2226,7 +2155,6 @@ namespace Svg.Model
             skPath.MoveTo(x0, y0);
             skPath.LineTo(x1, y1);
 
-            disposable.Add(skPath);
             return skPath;
         }
 
@@ -2415,7 +2343,7 @@ namespace Svg.Model
             };
         }
 
-        internal static void GetClipPath(SvgVisualElement svgVisualElement, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
+        internal static void GetClipPath(SvgVisualElement svgVisualElement, Rect skBounds, HashSet<Uri> uris, ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
         {
             if (clipPath is null)
             {
@@ -2432,7 +2360,7 @@ namespace Svg.Model
                 case SvgPath svgPath:
                     {
                         var fillRule = ToFillRule(svgPath, svgClipPathClipRule);
-                        var skPath = svgPath.PathData?.ToPath(fillRule, disposable);
+                        var skPath = svgPath.PathData?.ToPath(fillRule);
                         if (skPath == null)
                         {
                             break;
@@ -2449,14 +2377,14 @@ namespace Svg.Model
                         };
                         clipPath.Clips?.Add(pathClip);
 
-                        GetSvgVisualElementClipPath(svgPath, skPath.Bounds, uris, disposable, pathClip.Clip);
+                        GetSvgVisualElementClipPath(svgPath, skPath.Bounds, uris, pathClip.Clip);
                     }
                     break;
 
                 case SvgRectangle svgRectangle:
                     {
                         var fillRule = ToFillRule(svgRectangle, svgClipPathClipRule);
-                        var skPath = svgRectangle.ToPath(fillRule, skBounds, disposable);
+                        var skPath = svgRectangle.ToPath(fillRule, skBounds);
                         if (skPath == null)
                         {
                             break;
@@ -2473,14 +2401,14 @@ namespace Svg.Model
                         };
                         clipPath.Clips?.Add(pathClip);
 
-                        GetSvgVisualElementClipPath(svgRectangle, skPath.Bounds, uris, disposable, pathClip.Clip);
+                        GetSvgVisualElementClipPath(svgRectangle, skPath.Bounds, uris, pathClip.Clip);
                     }
                     break;
 
                 case SvgCircle svgCircle:
                     {
                         var fillRule = ToFillRule(svgCircle, svgClipPathClipRule);
-                        var skPath = svgCircle.ToPath(fillRule, skBounds, disposable);
+                        var skPath = svgCircle.ToPath(fillRule, skBounds);
                         if (skPath == null)
                         {
                             break;
@@ -2497,14 +2425,14 @@ namespace Svg.Model
                         };
                         clipPath.Clips?.Add(pathClip);
 
-                        GetSvgVisualElementClipPath(svgCircle, skPath.Bounds, uris, disposable, pathClip.Clip);
+                        GetSvgVisualElementClipPath(svgCircle, skPath.Bounds, uris, pathClip.Clip);
                     }
                     break;
 
                 case SvgEllipse svgEllipse:
                     {
                         var fillRule = ToFillRule(svgEllipse, svgClipPathClipRule);
-                        var skPath = svgEllipse.ToPath(fillRule, skBounds, disposable);
+                        var skPath = svgEllipse.ToPath(fillRule, skBounds);
                         if (skPath == null)
                         {
                             break;
@@ -2521,14 +2449,14 @@ namespace Svg.Model
                         };
                         clipPath.Clips?.Add(pathClip);
 
-                        GetSvgVisualElementClipPath(svgEllipse, skPath.Bounds, uris, disposable, pathClip.Clip);
+                        GetSvgVisualElementClipPath(svgEllipse, skPath.Bounds, uris, pathClip.Clip);
                     }
                     break;
 
                 case SvgLine svgLine:
                     {
                         var fillRule = ToFillRule(svgLine, svgClipPathClipRule);
-                        var skPath = svgLine.ToPath(fillRule, skBounds, disposable);
+                        var skPath = svgLine.ToPath(fillRule, skBounds);
                         if (skPath == null)
                         {
                             break;
@@ -2545,14 +2473,14 @@ namespace Svg.Model
                         };
                         clipPath.Clips?.Add(pathClip);
 
-                        GetSvgVisualElementClipPath(svgLine, skPath.Bounds, uris, disposable, pathClip.Clip);
+                        GetSvgVisualElementClipPath(svgLine, skPath.Bounds, uris, pathClip.Clip);
                     }
                     break;
 
                 case SvgPolyline svgPolyline:
                     {
                         var fillRule = ToFillRule(svgPolyline, svgClipPathClipRule);
-                        var skPath = svgPolyline.Points?.ToPath(fillRule, false, skBounds, disposable);
+                        var skPath = svgPolyline.Points?.ToPath(fillRule, false, skBounds);
                         if (skPath == null)
                         {
                             break;
@@ -2569,14 +2497,14 @@ namespace Svg.Model
                         };
                         clipPath.Clips?.Add(pathClip);
 
-                        GetSvgVisualElementClipPath(svgPolyline, skPath.Bounds, uris, disposable, pathClip.Clip);
+                        GetSvgVisualElementClipPath(svgPolyline, skPath.Bounds, uris, pathClip.Clip);
                     }
                     break;
 
                 case SvgPolygon svgPolygon:
                     {
                         var fillRule = ToFillRule(svgPolygon, svgClipPathClipRule);
-                        var skPath = svgPolygon.Points?.ToPath(fillRule, true, skBounds, disposable);
+                        var skPath = svgPolygon.Points?.ToPath(fillRule, true, skBounds);
                         if (skPath == null)
                         {
                             break;
@@ -2593,7 +2521,7 @@ namespace Svg.Model
                         };
                         clipPath.Clips?.Add(pathClip);
 
-                        GetSvgVisualElementClipPath(svgPolygon, skPath.Bounds, uris, disposable, pathClip.Clip);
+                        GetSvgVisualElementClipPath(svgPolygon, skPath.Bounds, uris, pathClip.Clip);
                     }
                     break;
 
@@ -2616,7 +2544,7 @@ namespace Svg.Model
                         }
 
                         // TODO:
-                        GetClipPath(svgReferencedVisualElement, skBounds, uris, disposable, clipPath, svgClipPathClipRule);
+                        GetClipPath(svgReferencedVisualElement, skBounds, uris, clipPath, svgClipPathClipRule);
 
                         if (clipPath.Clips != null && clipPath.Clips.Count > 0)
                         {
@@ -2624,7 +2552,7 @@ namespace Svg.Model
                             var lastClip = clipPath.Clips[clipPath.Clips.Count - 1];
                             if (lastClip.Clip != null)
                             {
-                                GetSvgVisualElementClipPath(svgUse, skBounds, uris, disposable, lastClip.Clip);
+                                GetSvgVisualElementClipPath(svgUse, skBounds, uris, lastClip.Clip);
                             }
                         }
                     }
@@ -2635,13 +2563,10 @@ namespace Svg.Model
                         // TODO: Get path from SvgText.
                     }
                     break;
-
-                default:
-                    break;
             }
         }
 
-        private static void GetClipPath(SvgElementCollection svgElementCollection, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
+        private static void GetClipPath(SvgElementCollection svgElementCollection, Rect skBounds, HashSet<Uri> uris, ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
         {
             foreach (var svgElement in svgElementCollection)
             {
@@ -2651,12 +2576,12 @@ namespace Svg.Model
                     {
                         continue;
                     }
-                    GetClipPath(visualChild, skBounds, uris, disposable, clipPath, svgClipPathClipRule);
+                    GetClipPath(visualChild, skBounds, uris, clipPath, svgClipPathClipRule);
                 }
             }
         }
 
-        internal static void GetClipPathClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, ClipPath? clipPath)
+        internal static void GetClipPathClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, ClipPath? clipPath)
         {
             if (clipPath == null)
             {
@@ -2669,7 +2594,7 @@ namespace Svg.Model
                 return;
             }
 
-            GetClipPath(svgClipPathRef, skBounds, uris, disposable, clipPath);
+            GetClipPath(svgClipPathRef, skBounds, uris, clipPath);
 
             var skMatrix = Matrix.CreateIdentity();
 
@@ -2688,18 +2613,18 @@ namespace Svg.Model
             clipPath.Transform = skMatrix; // TODO:
         }
 
-        internal static void GetClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, ClipPath? clipPath)
+        internal static void GetClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, ClipPath? clipPath)
         {
             if (clipPath == null)
             {
                 return;
             }
 
-            GetClipPathClipPath(svgClipPath, skBounds, uris, disposable, clipPath.Clip);
+            GetClipPathClipPath(svgClipPath, skBounds, uris, clipPath.Clip);
 
             var clipPathClipRule = GetSvgClipRule(svgClipPath);
 
-            GetClipPath(svgClipPath.Children, skBounds, uris, disposable, clipPath, clipPathClipRule);
+            GetClipPath(svgClipPath.Children, skBounds, uris, clipPath, clipPathClipRule);
 
             var skMatrix = Matrix.CreateIdentity();
 
@@ -2729,7 +2654,7 @@ namespace Svg.Model
             }
         }
 
-        internal static void GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, ClipPath clipPath)
+        internal static void GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, Rect skBounds, HashSet<Uri> uris, ClipPath clipPath)
         {
             if (svgVisualElement == null || svgVisualElement.ClipPath == null)
             {
@@ -2747,7 +2672,7 @@ namespace Svg.Model
                 return;
             }
 
-            GetClipPath(svgClipPath, skBounds, uris, disposable, clipPath);
+            GetClipPath(svgClipPath, skBounds, uris, clipPath);
         }
 
         internal static Rect? GetClipRect(SvgVisualElement svgVisualElement, Rect skRectBounds)
@@ -2772,7 +2697,7 @@ namespace Svg.Model
             return null;
         }
 
-        internal static MaskDrawable? GetSvgElementMask(SvgElement svgElement, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, IAssetLoader assetLoader)
+        internal static MaskDrawable? GetSvgElementMask(SvgElement svgElement, Rect skBounds, HashSet<Uri> uris, IAssetLoader assetLoader)
         {
             var svgMaskRef = svgElement.GetUriElementReference<SvgMask>("mask", uris);
             if (svgMaskRef == null || svgMaskRef.Children == null)
@@ -2780,7 +2705,6 @@ namespace Svg.Model
                 return null;
             }
             var maskDrawable = MaskDrawable.Create(svgMaskRef, skBounds, null, assetLoader, Attributes.None);
-            disposable.Add(maskDrawable);
             return maskDrawable;
         }
 
@@ -2844,7 +2768,7 @@ namespace Svg.Model
             }
         }
 
-        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, bool isStartMarker, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, bool isStartMarker, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
             float fAngle1 = 0f;
             if (svgMarker.Orient.IsAuto)
@@ -2864,10 +2788,9 @@ namespace Svg.Model
                 markerDrawables = new List<DrawableBase>();
             }
             markerDrawables.Add(markerDrawable);
-            disposable.Add(markerDrawable);
         }
 
-        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, Point pMarkerPoint3, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable, IAssetLoader assetLoader)
+        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, Point pMarkerPoint3, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, IAssetLoader assetLoader)
         {
             float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
             float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
@@ -2882,10 +2805,9 @@ namespace Svg.Model
                 markerDrawables = new List<DrawableBase>();
             }
             markerDrawables.Add(markerDrawable);
-            disposable.Add(markerDrawable);
         }
 
-        internal static void CreateMarkers(this SvgMarkerElement svgMarkerElement, Path.Path skPath, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable, IAssetLoader assetLoader)
+        internal static void CreateMarkers(this SvgMarkerElement svgMarkerElement, Path.Path skPath, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, IAssetLoader assetLoader)
         {
             var pathTypes = skPath.GetPathTypes();
             var pathLength = pathTypes.Count;
@@ -2903,7 +2825,7 @@ namespace Svg.Model
                         ++index;
                     }
                     var refPoint2 = pathLength == 1 ? refPoint1 : pathTypes[index].Point;
-                    CreateMarker(marker, svgMarkerElement, refPoint1, refPoint1, refPoint2, true, skOwnerBounds, ref markerDrawables, disposable, assetLoader);
+                    CreateMarker(marker, svgMarkerElement, refPoint1, refPoint1, refPoint2, true, skOwnerBounds, ref markerDrawables, assetLoader);
                 }
             }
 
@@ -2928,7 +2850,7 @@ namespace Svg.Model
 
                         if (bezierIndex == -1 || bezierIndex == 2)
                         {
-                            CreateMarker(marker, svgMarkerElement, pathTypes[i].Point, pathTypes[i - 1].Point, pathTypes[i].Point, pathTypes[i + 1].Point, skOwnerBounds, ref markerDrawables, disposable, assetLoader);
+                            CreateMarker(marker, svgMarkerElement, pathTypes[i].Point, pathTypes[i - 1].Point, pathTypes[i].Point, pathTypes[i + 1].Point, skOwnerBounds, ref markerDrawables, assetLoader);
                         }
                     }
                 }
@@ -2951,7 +2873,7 @@ namespace Svg.Model
                         }
                     }
                     var refPoint2 = pathLength == 1 ? refPoint1 : pathTypes[index].Point;
-                    CreateMarker(marker, svgMarkerElement, refPoint1, refPoint2, pathTypes[pathLength - 1].Point, false, skOwnerBounds, ref markerDrawables, disposable, assetLoader);
+                    CreateMarker(marker, svgMarkerElement, refPoint1, refPoint2, pathTypes[pathLength - 1].Point, false, skOwnerBounds, ref markerDrawables, assetLoader);
                 }
             }
         }
@@ -2999,7 +2921,7 @@ namespace Svg.Model
 
         private static readonly char[] s_colorMatrixSplitChars = { ' ', '\t', '\n', '\r', ',' };
 
-        internal static ImageFilter? CreateColorMatrix(SvgColourMatrix svgColourMatrix, CompositeDisposable disposable, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateColorMatrix(SvgColourMatrix svgColourMatrix, ImageFilter? input = null, CropRect? cropRect = null)
         {
             ColorFilter skColorFilter;
 
@@ -3025,7 +2947,6 @@ namespace Svg.Model
                             0, 0, 0, 1, 0
                         };
                         skColorFilter = ColorFilter.CreateColorMatrix(matrix);
-                        disposable.Add(skColorFilter);
                     }
                     break;
 
@@ -3039,7 +2960,6 @@ namespace Svg.Model
                             0.2125f, 0.7154f, 0.0721f, 0, 0
                         };
                         skColorFilter = ColorFilter.CreateColorMatrix(matrix);
-                        disposable.Add(skColorFilter);
                     }
                     break;
 
@@ -3054,7 +2974,6 @@ namespace Svg.Model
                             0, 0, 0, 1, 0
                         };
                         skColorFilter = ColorFilter.CreateColorMatrix(matrix);
-                        disposable.Add(skColorFilter);
                     };
                     break;
 
@@ -3087,7 +3006,6 @@ namespace Svg.Model
                             }
                         }
                         skColorFilter = ColorFilter.CreateColorMatrix(matrix);
-                        disposable.Add(skColorFilter);
                     }
                     break;
             }
@@ -3184,7 +3102,7 @@ namespace Svg.Model
             }
         }
 
-        internal static ImageFilter? CreateComponentTransfer(SvgComponentTransfer svgComponentTransfer, CompositeDisposable disposable, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateComponentTransfer(SvgComponentTransfer svgComponentTransfer, ImageFilter? input = null, CropRect? cropRect = null)
         {
             var svgFuncA = s_identitySvgFuncA;
             var svgFuncR = s_identitySvgFuncR;
@@ -3229,7 +3147,6 @@ namespace Svg.Model
             Apply(tableB, svgFuncB);
 
             var cf = ColorFilter.CreateTable(tableA, tableR, tableG, tableB);
-            disposable.Add(cf);
 
             return ImageFilter.CreateColorFilter(cf, input, cropRect);
         }
@@ -3418,7 +3335,7 @@ namespace Svg.Model
             return ImageFilter.CreateDisplacementMapEffect(xChannelSelector, yChannelSelector, scale, displacement, inout, cropRect);
         }
 
-        internal static ImageFilter? CreateFlood(SvgFlood svgFlood, SvgVisualElement svgVisualElement, Rect skBounds, CompositeDisposable disposable, ImageFilter? input = null, CropRect? cropRect = null)
+        internal static ImageFilter? CreateFlood(SvgFlood svgFlood, SvgVisualElement svgVisualElement, Rect skBounds, ImageFilter? input = null, CropRect? cropRect = null)
         {
             var floodColor = GetColor(svgVisualElement, svgFlood.FloodColor);
             if (floodColor == null)
@@ -3436,7 +3353,6 @@ namespace Svg.Model
             }
 
             var cf = ColorFilter.CreateBlendMode(floodColor.Value, BlendMode.Src);
-            disposable.Add(cf);
 
             return ImageFilter.CreateColorFilter(cf, input, cropRect);
         }
@@ -3460,7 +3376,7 @@ namespace Svg.Model
             return ImageFilter.CreateBlur(sigmaX, sigmaY, input, cropRect);
         }
 
-        internal static ImageFilter? CreateImage(FilterEffects.SvgImage svgImage, Rect skBounds, CompositeDisposable disposable, IAssetLoader assetLoader, CropRect? cropRect = null)
+        internal static ImageFilter? CreateImage(FilterEffects.SvgImage svgImage, Rect skBounds, IAssetLoader assetLoader, CropRect? cropRect = null)
         {
             var image = GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
             var skImage = image as Image;
@@ -3560,7 +3476,6 @@ namespace Svg.Model
 
             if (skImage != null)
             {
-                disposable.Add(skImage);
                 return ImageFilter.CreateImage(skImage, srcRect, destRect, FilterQuality.High);
             }
 
@@ -3577,8 +3492,8 @@ namespace Svg.Model
                 fragmentTransform = fragmentTransform.PreConcat(skScaleMatrix);
 
                 using var fragmentDrawable = FragmentDrawable.Create(svgFragment, destRect, null, assetLoader, Attributes.None);
-                var skPicture = fragmentDrawable.Snapshot(); // TODO:
-                disposable.Add(skPicture);
+                // TODO:
+                var skPicture = fragmentDrawable.Snapshot(); 
 
                 return ImageFilter.CreatePicture(skPicture, destRect);
             }
@@ -3586,7 +3501,7 @@ namespace Svg.Model
             return null;
         }
 
-        internal static ImageFilter? CreateMerge(SvgMerge svgMerge, Dictionary<string, ImageFilter> results, ImageFilter? lastResult, IFilterSource filterSource, CompositeDisposable disposable, CropRect? cropRect = null)
+        internal static ImageFilter? CreateMerge(SvgMerge svgMerge, Dictionary<string, ImageFilter> results, ImageFilter? lastResult, IFilterSource filterSource, CropRect? cropRect = null)
         {
             var children = new List<SvgMergeNode>();
 
@@ -3604,7 +3519,7 @@ namespace Svg.Model
             {
                 var child = children[i];
                 var inputKey = child.Input;
-                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, false);
+                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, false);
                 if (inputFilter != null)
                 {
                     filters[i] = inputFilter;
@@ -3714,7 +3629,7 @@ namespace Svg.Model
             return ImageFilter.CreateTile(src, dst, input);
         }
 
-        internal static ImageFilter? CreateTurbulence(SvgTurbulence svgTurbulence, Rect skBounds, SvgCoordinateUnits primitiveUnits, CompositeDisposable disposable, CropRect? cropRect = null)
+        internal static ImageFilter? CreateTurbulence(SvgTurbulence svgTurbulence, Rect skBounds, SvgCoordinateUnits primitiveUnits, CropRect? cropRect = null)
         {
             GetOptionalNumbers(svgTurbulence.BaseFrequency, 0f, 0f, out var baseFrequencyX, out var baseFrequencyY);
 
@@ -3736,7 +3651,6 @@ namespace Svg.Model
             {
                 Style = PaintStyle.StrokeAndFill
             };
-            disposable.Add(skPaint);
 
             PointI tileSize;
             switch (svgTurbulence.StitchTiles)
@@ -3766,7 +3680,6 @@ namespace Svg.Model
             }
 
             skPaint.Shader = skShader;
-            disposable.Add(skShader);
 
             if (cropRect == null)
             {
@@ -3776,16 +3689,15 @@ namespace Svg.Model
             return ImageFilter.CreatePaint(skPaint, cropRect);
         }
 
-        internal static ImageFilter? GetGraphic(Picture.Picture skPicture, CompositeDisposable disposable)
+        internal static ImageFilter? GetGraphic(Picture.Picture skPicture)
         {
             var skImageFilter = ImageFilter.CreatePicture(skPicture, skPicture.CullRect);
-            disposable.Add(skImageFilter);
             return skImageFilter;
         }
 
-        internal static ImageFilter? GetAlpha(Picture.Picture skPicture, CompositeDisposable disposable)
+        internal static ImageFilter? GetAlpha(Picture.Picture skPicture)
         {
-            var skImageFilterGraphic = GetGraphic(skPicture, disposable);
+            var skImageFilterGraphic = GetGraphic(skPicture);
 
             var matrix = new float[20]
             {
@@ -3796,45 +3708,37 @@ namespace Svg.Model
             };
 
             var skColorFilter = ColorFilter.CreateColorMatrix(matrix);
-            disposable.Add(skColorFilter);
-
             var skImageFilter = ImageFilter.CreateColorFilter(skColorFilter, skImageFilterGraphic);
-            disposable.Add(skImageFilter);
+
             return skImageFilter;
         }
 
-        internal static ImageFilter? GetPaint(Paint.Paint skPaint, CompositeDisposable disposable)
+        internal static ImageFilter? GetPaint(Paint.Paint skPaint)
         {
             var skImageFilter = ImageFilter.CreatePaint(skPaint);
-            disposable.Add(skImageFilter);
             return skImageFilter;
         }
 
-        internal static ImageFilter GetTransparentBlackImage(CompositeDisposable disposable)
+        internal static ImageFilter GetTransparentBlackImage()
         {
             var skPaint = new Paint.Paint()
             {
                 Style = PaintStyle.StrokeAndFill,
                 Color = s_transparentBlack
             };
-            disposable.Add(skPaint);
-
             var skImageFilter = ImageFilter.CreatePaint(skPaint);
-            disposable.Add(skImageFilter);
             return skImageFilter;
         }
 
-        internal static ImageFilter GetTransparentBlackAlpha(CompositeDisposable disposable)
+        internal static ImageFilter GetTransparentBlackAlpha()
         {
             var skPaint = new Paint.Paint()
             {
                 Style = PaintStyle.StrokeAndFill,
                 Color = s_transparentBlack
             };
-            disposable.Add(skPaint);
 
             var skImageFilterGraphic = ImageFilter.CreatePaint(skPaint);
-            disposable.Add(skImageFilterGraphic);
 
             var matrix = new float[20]
             {
@@ -3845,14 +3749,11 @@ namespace Svg.Model
             };
 
             var skColorFilter = ColorFilter.CreateColorMatrix(matrix);
-            disposable.Add(skColorFilter);
-
             var skImageFilter = ImageFilter.CreateColorFilter(skColorFilter, skImageFilterGraphic);
-            disposable.Add(skImageFilter);
             return skImageFilter;
         }
 
-        internal static ImageFilter? GetInputFilter(string inputKey, Dictionary<string, ImageFilter> results, ImageFilter? lastResult, IFilterSource filterSource, CompositeDisposable disposable, bool isFirst)
+        internal static ImageFilter? GetInputFilter(string inputKey, Dictionary<string, ImageFilter> results, ImageFilter? lastResult, IFilterSource filterSource, bool isFirst)
         {
             if (string.IsNullOrWhiteSpace(inputKey))
             {
@@ -3865,7 +3766,7 @@ namespace Svg.Model
                     var skPicture = filterSource.SourceGraphic();
                     if (skPicture != null)
                     {
-                        var skImageFilter = GetGraphic(skPicture, disposable);
+                        var skImageFilter = GetGraphic(skPicture);
                         if (skImageFilter != null)
                         {
                             results[SourceGraphic] = skImageFilter;
@@ -3892,7 +3793,7 @@ namespace Svg.Model
                         var skPicture = filterSource.SourceGraphic();
                         if (skPicture != null)
                         {
-                            var skImageFilter = GetGraphic(skPicture, disposable);
+                            var skImageFilter = GetGraphic(skPicture);
                             if (skImageFilter != null)
                             {
                                 results[SourceGraphic] = skImageFilter;
@@ -3907,7 +3808,7 @@ namespace Svg.Model
                         var skPicture = filterSource.SourceGraphic();
                         if (skPicture != null)
                         {
-                            var skImageFilter = GetAlpha(skPicture, disposable);
+                            var skImageFilter = GetAlpha(skPicture);
                             if (skImageFilter != null)
                             {
                                 results[SourceAlpha] = skImageFilter;
@@ -3922,7 +3823,7 @@ namespace Svg.Model
                         var skPicture = filterSource.BackgroundImage();
                         if (skPicture != null)
                         {
-                            var skImageFilter = GetGraphic(skPicture, disposable);
+                            var skImageFilter = GetGraphic(skPicture);
                             if (skImageFilter != null)
                             {
                                 results[BackgroundImage] = skImageFilter;
@@ -3931,7 +3832,7 @@ namespace Svg.Model
                         }
                         else
                         {
-                            var skImageFilter = GetTransparentBlackImage(disposable);
+                            var skImageFilter = GetTransparentBlackImage();
                             results[BackgroundImage] = skImageFilter;
                             return skImageFilter;
                         }
@@ -3943,7 +3844,7 @@ namespace Svg.Model
                         var skPicture = filterSource.BackgroundImage();
                         if (skPicture != null)
                         {
-                            var skImageFilter = GetAlpha(skPicture, disposable);
+                            var skImageFilter = GetAlpha(skPicture);
                             if (skImageFilter != null)
                             {
                                 results[BackgroundAlpha] = skImageFilter;
@@ -3952,7 +3853,7 @@ namespace Svg.Model
                         }
                         else
                         {
-                            var skImageFilter = GetTransparentBlackAlpha(disposable);
+                            var skImageFilter = GetTransparentBlackAlpha();
                             results[BackgroundImage] = skImageFilter;
                             return skImageFilter;
                         }
@@ -3964,7 +3865,7 @@ namespace Svg.Model
                         var skPaint = filterSource.FillPaint();
                         if (skPaint != null)
                         {
-                            var skImageFilter = GetPaint(skPaint, disposable);
+                            var skImageFilter = GetPaint(skPaint);
                             if (skImageFilter != null)
                             {
                                 results[FillPaint] = skImageFilter;
@@ -3979,7 +3880,7 @@ namespace Svg.Model
                         var skPaint = filterSource.StrokePaint();
                         if (skPaint != null)
                         {
-                            var skImageFilter = GetPaint(skPaint, disposable);
+                            var skImageFilter = GetPaint(skPaint);
                             if (skImageFilter != null)
                             {
                                 results[StrokePaint] = skImageFilter;
@@ -3993,7 +3894,7 @@ namespace Svg.Model
             return null;
         }
 
-        internal static ImageFilter? GetFilterResult(SvgFilterPrimitive svgFilterPrimitive, ImageFilter? skImageFilter, Dictionary<string, ImageFilter> results, CompositeDisposable disposable)
+        internal static ImageFilter? GetFilterResult(SvgFilterPrimitive svgFilterPrimitive, ImageFilter? skImageFilter, Dictionary<string, ImageFilter> results)
         {
             if (skImageFilter != null)
             {
@@ -4002,7 +3903,6 @@ namespace Svg.Model
                 {
                     results[key] = skImageFilter;
                 }
-                disposable.Add(skImageFilter);
                 return skImageFilter;
             }
             return null;
@@ -4033,7 +3933,7 @@ namespace Svg.Model
             return svgFilters;
         }
 
-        internal static Paint.Paint? GetFilterPaint(SvgVisualElement svgVisualElement, Rect skBounds, IFilterSource filterSource, CompositeDisposable disposable, IAssetLoader assetLoader, out bool isValid)
+        internal static Paint.Paint? GetFilterPaint(SvgVisualElement svgVisualElement, Rect skBounds, IFilterSource filterSource, IAssetLoader assetLoader, out bool isValid)
         {
             var filter = svgVisualElement.Filter;
             if (filter == null || IsNone(filter))
@@ -4227,15 +4127,15 @@ namespace Svg.Model
                     case SvgBlend svgBlend:
                         {
                             var input1Key = svgBlend.Input;
-                            var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, disposable, isFirst);
+                            var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, isFirst);
                             var input2Key = svgBlend.Input2;
-                            var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, disposable, false);
+                            var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, false);
                             if (input2Filter == null)
                             {
                                 break;
                             }
                             var skImageFilter = CreateBlend(svgBlend, input2Filter, input1Filter, skCropRect);
-                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult != null)
                             {
@@ -4248,9 +4148,9 @@ namespace Svg.Model
                     case SvgColourMatrix svgColourMatrix:
                         {
                             var inputKey = svgColourMatrix.Input;
-                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                            var skImageFilter = CreateColorMatrix(svgColourMatrix, disposable, inputFilter, skCropRect);
-                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
+                            var skImageFilter = CreateColorMatrix(svgColourMatrix, inputFilter, skCropRect);
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult != null)
                             {
@@ -4263,9 +4163,9 @@ namespace Svg.Model
                     case SvgComponentTransfer svgComponentTransfer:
                         {
                             var inputKey = svgComponentTransfer.Input;
-                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
-                            var skImageFilter = CreateComponentTransfer(svgComponentTransfer, disposable, inputFilter, skCropRect);
-                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
+                            var skImageFilter = CreateComponentTransfer(svgComponentTransfer, inputFilter, skCropRect);
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult != null)
                             {
@@ -4278,15 +4178,15 @@ namespace Svg.Model
                     case SvgComposite svgComposite:
                         {
                             var input1Key = svgComposite.Input;
-                            var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, disposable, isFirst);
+                            var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, isFirst);
                             var input2Key = svgComposite.Input2;
-                            var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, disposable, false);
+                            var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, false);
                             if (input2Filter == null)
                             {
                                 break;
                             }
                             var skImageFilter = CreateComposite(svgComposite, input2Filter, input1Filter, skCropRect);
-                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult != null)
                             {
@@ -4299,9 +4199,9 @@ namespace Svg.Model
                     case SvgConvolveMatrix svgConvolveMatrix:
                         {
                             var inputKey = svgConvolveMatrix.Input;
-                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
                             var skImageFilter = CreateConvolveMatrix(svgConvolveMatrix, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
-                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult != null)
                             {
@@ -4314,9 +4214,9 @@ namespace Svg.Model
                     case SvgDiffuseLighting svgDiffuseLighting:
                         {
                             var inputKey = svgDiffuseLighting.Input;
-                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
                             var skImageFilter = CreateDiffuseLighting(svgDiffuseLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
-                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult != null)
                             {
@@ -4329,15 +4229,15 @@ namespace Svg.Model
                     case SvgDisplacementMap svgDisplacementMap:
                         {
                             var input1Key = svgDisplacementMap.Input;
-                            var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, disposable, isFirst);
+                            var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, isFirst);
                             var input2Key = svgDisplacementMap.Input2;
-                            var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, disposable, false);
+                            var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, false);
                             if (input2Filter == null)
                             {
                                 break;
                             }
                             var skImageFilter = CreateDisplacementMap(svgDisplacementMap, skFilterPrimitiveRegion, primitiveUnits, input2Filter, input1Filter, skCropRect);
-                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult != null)
                             {
@@ -4349,8 +4249,8 @@ namespace Svg.Model
 
                     case SvgFlood svgFlood:
                         {
-                            var skImageFilter = CreateFlood(svgFlood, svgVisualElement, skFilterPrimitiveRegion, disposable, null, skCropRect);
-                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
+                            var skImageFilter = CreateFlood(svgFlood, svgVisualElement, skFilterPrimitiveRegion, null, skCropRect);
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult != null)
                             {
@@ -4363,9 +4263,9 @@ namespace Svg.Model
                     case SvgGaussianBlur svgGaussianBlur:
                         {
                             var inputKey = svgGaussianBlur.Input;
-                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
                             var skImageFilter = CreateBlur(svgGaussianBlur, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
-                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult != null)
                             {
@@ -4377,8 +4277,8 @@ namespace Svg.Model
 
                     case FilterEffects.SvgImage svgImage:
                         {
-                            var skImageFilter = CreateImage(svgImage, skFilterPrimitiveRegion, disposable, assetLoader, skCropRect);
-                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
+                            var skImageFilter = CreateImage(svgImage, skFilterPrimitiveRegion, assetLoader, skCropRect);
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult != null)
                             {
@@ -4390,8 +4290,8 @@ namespace Svg.Model
 
                     case SvgMerge svgMerge:
                         {
-                            var skImageFilter = CreateMerge(svgMerge, results, lastResult, filterSource, disposable, skCropRect);
-                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
+                            var skImageFilter = CreateMerge(svgMerge, results, lastResult, filterSource, skCropRect);
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult != null)
                             {
@@ -4404,9 +4304,9 @@ namespace Svg.Model
                     case SvgMorphology svgMorphology:
                         {
                             var inputKey = svgMorphology.Input;
-                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
                             var skImageFilter = CreateMorphology(svgMorphology, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
-                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult != null)
                             {
@@ -4419,9 +4319,9 @@ namespace Svg.Model
                     case SvgOffset svgOffset:
                         {
                             var inputKey = svgOffset.Input;
-                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
                             var skImageFilter = CreateOffset(svgOffset, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
-                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult != null)
                             {
@@ -4434,9 +4334,9 @@ namespace Svg.Model
                     case SvgSpecularLighting svgSpecularLighting:
                         {
                             var inputKey = svgSpecularLighting.Input;
-                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
                             var skImageFilter = CreateSpecularLighting(svgSpecularLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
-                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult != null)
                             {
@@ -4449,9 +4349,9 @@ namespace Svg.Model
                     case SvgTile svgTile:
                         {
                             var inputKey = svgTile.Input;
-                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, disposable, isFirst);
+                            var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
                             var skImageFilter = CreateTile(svgTile, prevoiusFilterPrimitiveRegion, inputFilter, skCropRect);
-                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult != null)
                             {
@@ -4463,8 +4363,8 @@ namespace Svg.Model
 
                     case SvgTurbulence svgTurbulence:
                         {
-                            var skImageFilter = CreateTurbulence(svgTurbulence, skFilterPrimitiveRegion, primitiveUnits, disposable, skCropRect);
-                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
+                            var skImageFilter = CreateTurbulence(svgTurbulence, skFilterPrimitiveRegion, primitiveUnits, skCropRect);
+                            lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult != null)
                             {
@@ -4488,7 +4388,6 @@ namespace Svg.Model
                     Style = PaintStyle.StrokeAndFill
                 };
                 skPaint.ImageFilter = lastResult;
-                disposable.Add(skPaint);
 
                 isValid = true;
                 return skPaint;
@@ -4504,16 +4403,16 @@ namespace Svg.Model
 
             switch (svgFontWeight)
             {
+                // TODO: Implement SvgFontWeight.Inherit
                 case SvgFontWeight.Inherit:
-                    // TODO: Implement SvgFontWeight.Inherit
                     break;
 
+                // TODO: Implement SvgFontWeight.Bolder
                 case SvgFontWeight.Bolder:
-                    // TODO: Implement SvgFontWeight.Bolder
                     break;
 
+                // TODO: Implement SvgFontWeight.Lighter
                 case SvgFontWeight.Lighter:
-                    // TODO: Implement SvgFontWeight.Lighter
                     break;
 
                 case SvgFontWeight.W100:
@@ -4528,7 +4427,8 @@ namespace Svg.Model
                     fontWeight = FontStyleWeight.Light;
                     break;
 
-                case SvgFontWeight.W400: // SvgFontWeight.Normal:
+                // SvgFontWeight.Normal
+                case SvgFontWeight.W400:
                     fontWeight = FontStyleWeight.Normal;
                     break;
 
@@ -4540,7 +4440,8 @@ namespace Svg.Model
                     fontWeight = FontStyleWeight.SemiBold;
                     break;
 
-                case SvgFontWeight.W700: // SvgFontWeight.Bold:
+                // SvgFontWeight.Bold
+                case SvgFontWeight.W700:
                     fontWeight = FontStyleWeight.Bold;
                     break;
 
@@ -4562,20 +4463,20 @@ namespace Svg.Model
 
             switch (svgFontStretch)
             {
+                // TODO: Implement SvgFontStretch.Inherit
                 case SvgFontStretch.Inherit:
-                    // TODO: Implement SvgFontStretch.Inherit
                     break;
 
                 case SvgFontStretch.Normal:
                     fontWidth = FontStyleWidth.Normal;
                     break;
 
+                // TODO: Implement SvgFontStretch.Wider
                 case SvgFontStretch.Wider:
-                    // TODO: Implement SvgFontStretch.Wider
                     break;
 
+                // TODO: Implement SvgFontStretch.Narrower
                 case SvgFontStretch.Narrower:
-                    // TODO: Implement SvgFontStretch.Narrower
                     break;
 
                 case SvgFontStretch.UltraCondensed:
@@ -4634,7 +4535,7 @@ namespace Svg.Model
             };
         }
 
-        private static void SetTypeface(SvgTextBase svgText, Paint.Paint skPaint, CompositeDisposable disposable)
+        private static void SetTypeface(SvgTextBase svgText, Paint.Paint skPaint)
         {
             var fontFamily = svgText.FontFamily;
             var fontWeight = ToFontStyleWeight(svgText.FontWeight);
@@ -4650,7 +4551,7 @@ namespace Svg.Model
             };
         }
 
-        internal static void SetPaintText(SvgTextBase svgText, Rect skBounds, Paint.Paint skPaint, CompositeDisposable disposable)
+        internal static void SetPaintText(SvgTextBase svgText, Rect skBounds, Paint.Paint skPaint)
         {
             skPaint.LcdRenderText = true;
             skPaint.SubpixelText = true;
@@ -4678,7 +4579,7 @@ namespace Svg.Model
             if (fontSizeUnit == SvgUnit.None || fontSizeUnit == SvgUnit.Empty)
             {
                 // TODO: Do not use implicit float conversion from SvgUnit.ToDeviceValue
-                //fontSize = new SvgUnit(SvgUnitType.Em, 1.0f);
+                // fontSize = new SvgUnit(SvgUnitType.Em, 1.0f);
                 // NOTE: Use default SkPaint Font_Size
                 fontSize = 12f;
             }
@@ -4689,7 +4590,7 @@ namespace Svg.Model
 
             skPaint.TextSize = fontSize;
 
-            SetTypeface(svgText, skPaint, disposable);
+            SetTypeface(svgText, skPaint);
         }
 
         static SvgModelExtensions()

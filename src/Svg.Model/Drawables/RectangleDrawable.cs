@@ -25,7 +25,7 @@ namespace Svg.Model.Drawables
                 return drawable;
             }
 
-            drawable.Path = svgRectangle.ToPath(svgRectangle.FillRule, skOwnerBounds, drawable.Disposable);
+            drawable.Path = svgRectangle.ToPath(svgRectangle.FillRule, skOwnerBounds);
             if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;
@@ -43,7 +43,7 @@ namespace Svg.Model.Drawables
 
             if (SvgModelExtensions.IsValidFill(svgRectangle))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgRectangle, drawable.TransformedBounds, assetLoader, ignoreAttributes, drawable.Disposable);
+                drawable.Fill = SvgModelExtensions.GetFillPaint(svgRectangle, drawable.TransformedBounds, assetLoader, ignoreAttributes);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
@@ -52,7 +52,7 @@ namespace Svg.Model.Drawables
 
             if (SvgModelExtensions.IsValidStroke(svgRectangle, drawable.TransformedBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgRectangle, drawable.TransformedBounds, assetLoader, ignoreAttributes, drawable.Disposable);
+                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgRectangle, drawable.TransformedBounds, assetLoader, ignoreAttributes);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;

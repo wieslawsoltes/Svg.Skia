@@ -25,7 +25,7 @@ namespace Svg.Model.Drawables
                 return drawable;
             }
 
-            drawable.Path = svgPath.PathData?.ToPath(svgPath.FillRule, drawable.Disposable);
+            drawable.Path = svgPath.PathData?.ToPath(svgPath.FillRule);
             if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;
@@ -43,7 +43,7 @@ namespace Svg.Model.Drawables
 
             if (SvgModelExtensions.IsValidFill(svgPath))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgPath, drawable.TransformedBounds, assetLoader, ignoreAttributes, drawable.Disposable);
+                drawable.Fill = SvgModelExtensions.GetFillPaint(svgPath, drawable.TransformedBounds, assetLoader, ignoreAttributes);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
@@ -52,7 +52,7 @@ namespace Svg.Model.Drawables
 
             if (SvgModelExtensions.IsValidStroke(svgPath, drawable.TransformedBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgPath, drawable.TransformedBounds, assetLoader, ignoreAttributes, drawable.Disposable);
+                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgPath, drawable.TransformedBounds, assetLoader, ignoreAttributes);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
@@ -65,7 +65,7 @@ namespace Svg.Model.Drawables
                 return drawable;
             }
 
-            SvgModelExtensions.CreateMarkers(svgPath, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable, assetLoader);
+            SvgModelExtensions.CreateMarkers(svgPath, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, assetLoader);
 
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);

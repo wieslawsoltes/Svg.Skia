@@ -37,7 +37,7 @@ namespace Svg.Model.Drawables
 
             drawable.ClipPath = null;
             drawable.MaskDrawable = null;
-            drawable.Opacity = drawable.IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgModelExtensions.GetOpacityPaint(svgAnchor, drawable.Disposable);
+            drawable.Opacity = drawable.IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgModelExtensions.GetOpacityPaint(svgAnchor);
             drawable.Filter = null;
 
             return drawable;
@@ -55,7 +55,7 @@ namespace Svg.Model.Drawables
 
             ClipPath = null;
             MaskDrawable = null;
-            Opacity = enableOpacity ? SvgModelExtensions.GetOpacityPaint(element, Disposable) : null;
+            Opacity = enableOpacity ? SvgModelExtensions.GetOpacityPaint(element) : null;
             Filter = null;
 
             foreach (var child in ChildrenDrawables)

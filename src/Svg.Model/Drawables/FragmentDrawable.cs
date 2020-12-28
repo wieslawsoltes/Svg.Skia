@@ -83,7 +83,7 @@ namespace Svg.Model.Drawables
                 {
                     Clip = new ClipPath()
                 };
-                SvgModelExtensions.GetClipPath(svgClipPath, drawable.TransformedBounds, clipPathUris, drawable.Disposable, clipPath);
+                SvgModelExtensions.GetClipPath(svgClipPath, drawable.TransformedBounds, clipPathUris, clipPath);
                 if (clipPath.Clips != null && clipPath.Clips.Count > 0 && !drawable.IgnoreAttributes.HasFlag(Attributes.ClipPath))
                 {
                     drawable.ClipPath = clipPath;
@@ -119,7 +119,7 @@ namespace Svg.Model.Drawables
 
             ClipPath = null;
             MaskDrawable = null;
-            Opacity = enableOpacity ? SvgModelExtensions.GetOpacityPaint(element, Disposable) : null;
+            Opacity = enableOpacity ? SvgModelExtensions.GetOpacityPaint(element) : null;
             Filter = null;
 
             foreach (var child in ChildrenDrawables)

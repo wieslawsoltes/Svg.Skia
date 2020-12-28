@@ -115,7 +115,7 @@ namespace Svg.Model.Drawables
 
             if (enableMask)
             {
-                MaskDrawable = SvgModelExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), Disposable, AssetLoader);
+                MaskDrawable = SvgModelExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), AssetLoader);
                 if (MaskDrawable != null)
                 {
                     CreateMaskPaints();
