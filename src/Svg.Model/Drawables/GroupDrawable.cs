@@ -2,14 +2,14 @@
 {
     public sealed class GroupDrawable : DrawableContainer
     {
-        private GroupDrawable()
-            : base()
+        private GroupDrawable(IAssetLoader assetLoader)
+            : base(assetLoader)
         {
         }
 
-        public static GroupDrawable Create(SvgGroup svgGroup, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
+        public static GroupDrawable Create(SvgGroup svgGroup, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new GroupDrawable
+            var drawable = new GroupDrawable(assetLoader)
             {
                 Element = svgGroup,
                 Parent = parent,
@@ -21,7 +21,7 @@
             // NOTE: Call AddMarkers only once.
             SvgModelExtensions.AddMarkers(svgGroup);
 
-            drawable.CreateChildren(svgGroup, skOwnerBounds, drawable, ignoreAttributes);
+            drawable.CreateChildren(svgGroup, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
 
             // TODO: Check if children are explicitly set to be visible.
             //foreach (var child in drawable.ChildrenDrawables)

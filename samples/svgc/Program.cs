@@ -2,11 +2,12 @@
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Svg;
 using Svg.CodeGen;
-using Svg.Model;
+using SLIS = SixLabors.ImageSharp;
+using SM = Svg.Model;
 
 namespace svgc
 {
@@ -27,8 +28,25 @@ namespace svgc
         public string? Class { get; set; }
     }
 
+    class ImageSharpAssetLoader : SM.IAssetLoader
+    {
+        public SM.Image LoadImage(Stream stream)
+        {
+            var data = SM.Image.FromStream(stream);
+            using var image = SLIS.Image.Load(data);
+            return new SM.Image()
+            {
+                Data = data,
+                Width = image.Width,
+                Height = image.Height
+            };
+        }
+    }
+
     class Program
     {
+        private static readonly SM.IAssetLoader AssetLoader = new ImageSharpAssetLoader();
+
         static void Log(string message)
         {
             Console.WriteLine(message);
@@ -47,10 +65,10 @@ namespace svgc
         static void Generate(string inputPath, string outputPath, string namespaceName = "Svg", string className = "Generated")
         {
             var svg = System.IO.File.ReadAllText(inputPath);
-            var svgDocument = SvgModelExtensions.FromSvg(svg);
+            var svgDocument = SM.SvgModelExtensions.FromSvg(svg);
             if (svgDocument != null)
             {
-                var picture = SvgModelExtensions.ToModel(svgDocument);
+                var picture = SM.SvgModelExtensions.ToModel(svgDocument, AssetLoader);
                 if (picture != null && picture.Commands != null)
                 {
                     var text = SkiaCodeGen.Generate(picture, namespaceName, className);

@@ -2,14 +2,14 @@
 {
     public sealed class AnchorDrawable : DrawableContainer
     {
-        private AnchorDrawable()
-            : base()
+        private AnchorDrawable(IAssetLoader assetLoader)
+            : base(assetLoader)
         {
         }
 
-        public static AnchorDrawable Create(SvgAnchor svgAnchor, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
+        public static AnchorDrawable Create(SvgAnchor svgAnchor, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new AnchorDrawable
+            var drawable = new AnchorDrawable(assetLoader)
             {
                 Element = svgAnchor,
                 Parent = parent,
@@ -17,7 +17,7 @@
                 IsDrawable = true
             };
 
-            drawable.CreateChildren(svgAnchor, skOwnerBounds, drawable, ignoreAttributes);
+            drawable.CreateChildren(svgAnchor, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgAnchor);
 

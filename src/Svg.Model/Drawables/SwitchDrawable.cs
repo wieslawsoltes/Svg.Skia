@@ -4,14 +4,14 @@
     {
         public DrawableBase? FirstChild;
 
-        private SwitchDrawable()
-            : base()
+        private SwitchDrawable(IAssetLoader assetLoader)
+            : base(assetLoader)
         {
         }
 
-        public static SwitchDrawable Create(SvgSwitch svgSwitch, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
+        public static SwitchDrawable Create(SvgSwitch svgSwitch, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new SwitchDrawable
+            var drawable = new SwitchDrawable(assetLoader)
             {
                 Element = svgSwitch,
                 Parent = parent,
@@ -38,7 +38,7 @@
 
                 if (hasRequiredFeatures && hasRequiredExtensions && hasSystemLanguage)
                 {
-                    var childDrawable = DrawableFactory.Create(child, skOwnerBounds, parent, ignoreAttributes);
+                    var childDrawable = DrawableFactory.Create(child, skOwnerBounds, parent, assetLoader, ignoreAttributes);
                     if (childDrawable != null)
                     {
                         drawable.FirstChild = childDrawable;

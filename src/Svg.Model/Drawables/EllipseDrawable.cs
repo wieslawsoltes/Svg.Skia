@@ -2,14 +2,14 @@
 {
     public sealed class EllipseDrawable : DrawablePath
     {
-        private EllipseDrawable()
-            : base()
+        private EllipseDrawable(IAssetLoader assetLoader)
+            : base(assetLoader)
         {
         }
 
-        public static EllipseDrawable Create(SvgEllipse svgEllipse, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
+        public static EllipseDrawable Create(SvgEllipse svgEllipse, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new EllipseDrawable
+            var drawable = new EllipseDrawable(assetLoader)
             {
                 Element = svgEllipse,
                 Parent = parent,
@@ -39,7 +39,7 @@
 
             if (SvgModelExtensions.IsValidFill(svgEllipse))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgEllipse, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Fill = SvgModelExtensions.GetFillPaint(svgEllipse, drawable.TransformedBounds, assetLoader, ignoreAttributes, drawable.Disposable);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
@@ -48,7 +48,7 @@
 
             if (SvgModelExtensions.IsValidStroke(svgEllipse, drawable.TransformedBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgEllipse, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgEllipse, drawable.TransformedBounds, assetLoader, ignoreAttributes, drawable.Disposable);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;

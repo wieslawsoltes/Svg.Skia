@@ -4,14 +4,14 @@ namespace Svg.Model.Drawables
 {
     public sealed class SymbolDrawable : DrawableContainer
     {
-        private SymbolDrawable()
-            : base()
+        private SymbolDrawable(IAssetLoader assetLoader)
+            : base(assetLoader)
         {
         }
 
-        public static SymbolDrawable Create(SvgSymbol svgSymbol, float x, float y, float width, float height, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes)
+        public static SymbolDrawable Create(SvgSymbol svgSymbol, float x, float y, float width, float height, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
-            var drawable = new SymbolDrawable
+            var drawable = new SymbolDrawable(assetLoader)
             {
                 Element = svgSymbol,
                 Parent = parent,
@@ -62,7 +62,7 @@ namespace Svg.Model.Drawables
                     break;
             }
 
-            drawable.CreateChildren(svgSymbol, skOwnerBounds, drawable, ignoreAttributes);
+            drawable.CreateChildren(svgSymbol, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgSymbol);
 

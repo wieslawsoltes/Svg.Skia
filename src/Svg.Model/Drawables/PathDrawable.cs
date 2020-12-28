@@ -2,14 +2,14 @@
 {
     public sealed class PathDrawable : DrawablePath
     {
-        private PathDrawable()
-            : base()
+        private PathDrawable(IAssetLoader assetLoader)
+            : base(assetLoader)
         {
         }
 
-        public static PathDrawable Create(SvgPath svgPath, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
+        public static PathDrawable Create(SvgPath svgPath, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new PathDrawable
+            var drawable = new PathDrawable(assetLoader)
             {
                 Element = svgPath,
                 Parent = parent,
@@ -41,7 +41,7 @@
 
             if (SvgModelExtensions.IsValidFill(svgPath))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgPath, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Fill = SvgModelExtensions.GetFillPaint(svgPath, drawable.TransformedBounds, assetLoader, ignoreAttributes, drawable.Disposable);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
@@ -50,7 +50,7 @@
 
             if (SvgModelExtensions.IsValidStroke(svgPath, drawable.TransformedBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgPath, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgPath, drawable.TransformedBounds, assetLoader, ignoreAttributes, drawable.Disposable);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
@@ -63,7 +63,7 @@
                 return drawable;
             }
 
-            SvgModelExtensions.CreateMarkers(svgPath, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
+            SvgModelExtensions.CreateMarkers(svgPath, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable, assetLoader);
 
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);

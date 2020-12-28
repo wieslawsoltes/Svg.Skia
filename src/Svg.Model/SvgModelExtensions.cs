@@ -16,8 +16,6 @@ namespace Svg.Model
 {
     public static class SvgModelExtensions
     {
-        public static CultureInfo? s_systemLanguageOverride = null;
-
         private static readonly char[] s_space_tab = { ' ', '\t' };
 
         private static readonly char[] s_comma = { ',' };
@@ -1131,7 +1129,7 @@ namespace Svg.Model
             }
         }
 
-        internal static Picture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, Matrix skMatrix, float opacity, Attributes ignoreAttributes)
+        internal static Picture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, Matrix skMatrix, float opacity, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
             var skSize = new Size(width, height);
             var skBounds = Rect.Create(skSize);
@@ -1148,7 +1146,7 @@ namespace Svg.Model
 
             foreach (var svgElement in svgElementCollection)
             {
-                using var drawable = DrawableFactory.Create(svgElement, skBounds, null, ignoreAttributes);
+                using var drawable = DrawableFactory.Create(svgElement, skBounds, null, assetLoader, ignoreAttributes);
                 if (drawable != null)
                 {
                     drawable.PostProcess();
@@ -1166,7 +1164,7 @@ namespace Svg.Model
             return skPictureRecorder.EndRecording();
         }
 
-        internal static Shader? CreatePicture(SvgPatternServer svgPatternServer, Rect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes, CompositeDisposable disposable)
+        internal static Shader? CreatePicture(SvgPatternServer svgPatternServer, Rect skBounds, SvgVisualElement svgVisualElement, float opacity, IAssetLoader assetLoader, Attributes ignoreAttributes, CompositeDisposable disposable)
         {
             var svgReferencedPatternServers = GetLinkedPatternServer(svgPatternServer, svgVisualElement);
 
@@ -1332,13 +1330,13 @@ namespace Svg.Model
                 }
             }
 
-            var skPicture = RecordPicture(firstChildren.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform, opacity, ignoreAttributes);
+            var skPicture = RecordPicture(firstChildren.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform, opacity, assetLoader, ignoreAttributes);
             disposable.Add(skPicture);
 
             return Shader.CreatePicture(skPicture, ShaderTileMode.Repeat, ShaderTileMode.Repeat, skMatrix, skPicture.CullRect);
         }
 
-        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, Rect skBounds, Paint skPaint, bool forStroke, Attributes ignoreAttributes, CompositeDisposable disposable)
+        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, Rect skBounds, Paint skPaint, bool forStroke, IAssetLoader assetLoader, Attributes ignoreAttributes, CompositeDisposable disposable)
         {
             var fallbackServer = SvgPaintServer.None;
             if (server is SvgDeferredPaintServer deferredServer)
@@ -1383,7 +1381,7 @@ namespace Svg.Model
                         var isLinearRGB = colorInterpolation == SvgColourInterpolation.LinearRGB;
                         var skColorSpace = isLinearRGB ? ColorSpace.SrgbLinear : ColorSpace.Srgb;
                         // TODO: Use skColorSpace in CreatePicture
-                        var skPatternShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, ignoreAttributes, disposable);
+                        var skPatternShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, assetLoader, ignoreAttributes, disposable);
                         if (skPatternShader != null)
                         {
                             if (isLinearRGB)
@@ -1532,7 +1530,7 @@ namespace Svg.Model
                     break;
 
                 case SvgDeferredPaintServer svgDeferredPaintServer:
-                    return SetColorOrShader(svgVisualElement, svgDeferredPaintServer, opacity, skBounds, skPaint, forStroke, ignoreAttributes, disposable);
+                    return SetColorOrShader(svgVisualElement, svgDeferredPaintServer, opacity, skBounds, skPaint, forStroke, assetLoader, ignoreAttributes, disposable);
 
                 default:
                     // Do not draw element.
@@ -1583,7 +1581,7 @@ namespace Svg.Model
                 && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
         }
 
-        internal static Paint? GetFillPaint(SvgVisualElement svgVisualElement, Rect skBounds, Attributes ignoreAttributes, CompositeDisposable disposable)
+        internal static Paint? GetFillPaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes, CompositeDisposable disposable)
         {
             var skPaint = new Paint()
             {
@@ -1593,7 +1591,7 @@ namespace Svg.Model
 
             var server = svgVisualElement.Fill;
             var opacity = AdjustSvgOpacity(svgVisualElement.FillOpacity);
-            if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: false, ignoreAttributes, disposable) == false)
+            if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: false, assetLoader, ignoreAttributes, disposable) == false)
             {
                 return null;
             }
@@ -1602,7 +1600,7 @@ namespace Svg.Model
             return skPaint;
         }
 
-        internal static Paint? GetStrokePaint(SvgVisualElement svgVisualElement, Rect skBounds, Attributes ignoreAttributes, CompositeDisposable disposable)
+        internal static Paint? GetStrokePaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes, CompositeDisposable disposable)
         {
             var skPaint = new Paint()
             {
@@ -1612,7 +1610,7 @@ namespace Svg.Model
 
             var server = svgVisualElement.Stroke;
             var opacity = AdjustSvgOpacity(svgVisualElement.StrokeOpacity);
-            if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: true, ignoreAttributes, disposable) == false)
+            if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: true, assetLoader, ignoreAttributes, disposable) == false)
             {
                 return null;
             }
@@ -2267,7 +2265,7 @@ namespace Svg.Model
             return skPath;
         }
 
-        internal static object? GetImage(string uriString, SvgDocument svgOwnerDocument)
+        internal static object? GetImage(string uriString, SvgDocument svgOwnerDocument, IAssetLoader assetLoader)
         {
             try
             {
@@ -2279,7 +2277,7 @@ namespace Svg.Model
                 // handle data/uri embedded images (http://en.wikipedia.org/wiki/Data_URI_scheme)
                 if (uri.IsAbsoluteUri && uri.Scheme == "data")
                 {
-                    return GetImageFromDataUri(uriString, svgOwnerDocument);
+                    return GetImageFromDataUri(uriString, svgOwnerDocument, assetLoader);
                 }
 
                 if (!uri.IsAbsoluteUri)
@@ -2287,7 +2285,7 @@ namespace Svg.Model
                     uri = new Uri(svgOwnerDocument.BaseUri, uri);
                 }
 
-                return GetImageFromWeb(uri);
+                return GetImageFromWeb(uri, assetLoader);
             }
             catch (Exception ex)
             {
@@ -2297,7 +2295,7 @@ namespace Svg.Model
             }
         }
 
-        internal static object GetImageFromWeb(Uri uri)
+        internal static object GetImageFromWeb(Uri uri, IAssetLoader assetLoader)
         {
             var request = WebRequest.Create(uri);
             using var response = request.GetResponse();
@@ -2324,12 +2322,12 @@ namespace Svg.Model
             }
             else
             {
-                var skImage = Image.FromEncodedData(stream);
+                var skImage = assetLoader.LoadImage(stream);
                 return skImage;
             }
         }
 
-        internal static object? GetImageFromDataUri(string uriString, SvgDocument svgOwnerDocument)
+        internal static object? GetImageFromDataUri(string uriString, SvgDocument svgOwnerDocument, IAssetLoader assetLoader)
         {
             var headerStartIndex = 5;
             var headerEndIndex = uriString.IndexOf(",", headerStartIndex);
@@ -2398,7 +2396,7 @@ namespace Svg.Model
             {
                 var dataBytes = base64 ? Convert.FromBase64String(data) : Encoding.Default.GetBytes(data);
                 using var stream = new System.IO.MemoryStream(dataBytes);
-                return Image.FromEncodedData(stream);
+                return assetLoader.LoadImage(stream);
             }
             else
             {
@@ -2809,14 +2807,14 @@ namespace Svg.Model
             return null;
         }
 
-        internal static MaskDrawable? GetSvgElementMask(SvgElement svgElement, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable)
+        internal static MaskDrawable? GetSvgElementMask(SvgElement svgElement, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, IAssetLoader assetLoader)
         {
             var svgMaskRef = svgElement.GetUriElementReference<SvgMask>("mask", uris);
             if (svgMaskRef == null || svgMaskRef.Children == null)
             {
                 return null;
             }
-            var maskDrawable = MaskDrawable.Create(svgMaskRef, skBounds, null, Attributes.None);
+            var maskDrawable = MaskDrawable.Create(svgMaskRef, skBounds, null, assetLoader, Attributes.None);
             disposable.Add(maskDrawable);
             return maskDrawable;
         }
@@ -2881,7 +2879,7 @@ namespace Svg.Model
             }
         }
 
-        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, bool isStartMarker, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable, Attributes ignoreAttributes = Attributes.None)
+        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, bool isStartMarker, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
             float fAngle1 = 0f;
             if (svgMarker.Orient.IsAuto)
@@ -2895,7 +2893,7 @@ namespace Svg.Model
                 }
             }
 
-            var markerDrawable = MarkerDrawable.Create(svgMarker, pOwner, pRefPoint, fAngle1, skOwnerBounds, null, ignoreAttributes);
+            var markerDrawable = MarkerDrawable.Create(svgMarker, pOwner, pRefPoint, fAngle1, skOwnerBounds, null, assetLoader, ignoreAttributes);
             if (markerDrawables == null)
             {
                 markerDrawables = new List<DrawableBase>();
@@ -2904,7 +2902,7 @@ namespace Svg.Model
             disposable.Add(markerDrawable);
         }
 
-        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, Point pMarkerPoint3, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable)
+        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, Point pMarkerPoint3, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable, IAssetLoader assetLoader)
         {
             float xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
             float yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
@@ -2913,7 +2911,7 @@ namespace Svg.Model
             yDiff = pMarkerPoint3.Y - pMarkerPoint2.Y;
             float fAngle2 = (float)(Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI);
 
-            var markerDrawable = MarkerDrawable.Create(svgMarker, pOwner, pRefPoint, (fAngle1 + fAngle2) / 2, skOwnerBounds, null);
+            var markerDrawable = MarkerDrawable.Create(svgMarker, pOwner, pRefPoint, (fAngle1 + fAngle2) / 2, skOwnerBounds, null, assetLoader);
             if (markerDrawables == null)
             {
                 markerDrawables = new List<DrawableBase>();
@@ -2922,7 +2920,7 @@ namespace Svg.Model
             disposable.Add(markerDrawable);
         }
 
-        internal static void CreateMarkers(this SvgMarkerElement svgMarkerElement, Path skPath, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable)
+        internal static void CreateMarkers(this SvgMarkerElement svgMarkerElement, Path skPath, Rect skOwnerBounds, ref List<DrawableBase>? markerDrawables, CompositeDisposable disposable, IAssetLoader assetLoader)
         {
             var pathTypes = skPath.GetPathTypes();
             var pathLength = pathTypes.Count;
@@ -2940,7 +2938,7 @@ namespace Svg.Model
                         ++index;
                     }
                     var refPoint2 = pathLength == 1 ? refPoint1 : pathTypes[index].Point;
-                    CreateMarker(marker, svgMarkerElement, refPoint1, refPoint1, refPoint2, true, skOwnerBounds, ref markerDrawables, disposable);
+                    CreateMarker(marker, svgMarkerElement, refPoint1, refPoint1, refPoint2, true, skOwnerBounds, ref markerDrawables, disposable, assetLoader);
                 }
             }
 
@@ -2965,7 +2963,7 @@ namespace Svg.Model
 
                         if (bezierIndex == -1 || bezierIndex == 2)
                         {
-                            CreateMarker(marker, svgMarkerElement, pathTypes[i].Point, pathTypes[i - 1].Point, pathTypes[i].Point, pathTypes[i + 1].Point, skOwnerBounds, ref markerDrawables, disposable);
+                            CreateMarker(marker, svgMarkerElement, pathTypes[i].Point, pathTypes[i - 1].Point, pathTypes[i].Point, pathTypes[i + 1].Point, skOwnerBounds, ref markerDrawables, disposable, assetLoader);
                         }
                     }
                 }
@@ -2988,7 +2986,7 @@ namespace Svg.Model
                         }
                     }
                     var refPoint2 = pathLength == 1 ? refPoint1 : pathTypes[index].Point;
-                    CreateMarker(marker, svgMarkerElement, refPoint1, refPoint2, pathTypes[pathLength - 1].Point, false, skOwnerBounds, ref markerDrawables, disposable);
+                    CreateMarker(marker, svgMarkerElement, refPoint1, refPoint2, pathTypes[pathLength - 1].Point, false, skOwnerBounds, ref markerDrawables, disposable, assetLoader);
                 }
             }
         }
@@ -3497,9 +3495,9 @@ namespace Svg.Model
             return ImageFilter.CreateBlur(sigmaX, sigmaY, input, cropRect);
         }
 
-        internal static ImageFilter? CreateImage(FilterEffects.SvgImage svgImage, Rect skBounds, CompositeDisposable disposable, CropRect? cropRect = null)
+        internal static ImageFilter? CreateImage(FilterEffects.SvgImage svgImage, Rect skBounds, CompositeDisposable disposable, IAssetLoader assetLoader, CropRect? cropRect = null)
         {
-            var image = GetImage(svgImage.Href, svgImage.OwnerDocument);
+            var image = GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
             var skImage = image as Image;
             var svgFragment = image as SvgFragment;
             if (skImage == null && svgFragment == null)
@@ -3613,7 +3611,7 @@ namespace Svg.Model
                 fragmentTransform = fragmentTransform.PreConcat(skTranslationMatrix);
                 fragmentTransform = fragmentTransform.PreConcat(skScaleMatrix);
 
-                using var fragmentDrawable = FragmentDrawable.Create(svgFragment, destRect, null, Attributes.None);
+                using var fragmentDrawable = FragmentDrawable.Create(svgFragment, destRect, null, assetLoader, Attributes.None);
                 var skPicture = fragmentDrawable.Snapshot(); // TODO:
                 disposable.Add(skPicture);
 
@@ -4070,7 +4068,7 @@ namespace Svg.Model
             return svgFilters;
         }
 
-        internal static Paint? GetFilterPaint(SvgVisualElement svgVisualElement, Rect skBounds, IFilterSource filterSource, CompositeDisposable disposable, out bool isValid)
+        internal static Paint? GetFilterPaint(SvgVisualElement svgVisualElement, Rect skBounds, IFilterSource filterSource, CompositeDisposable disposable, IAssetLoader assetLoader, out bool isValid)
         {
             var filter = svgVisualElement.Filter;
             if (filter == null || IsNone(filter))
@@ -4414,7 +4412,7 @@ namespace Svg.Model
 
                     case FilterEffects.SvgImage svgImage:
                         {
-                            var skImageFilter = CreateImage(svgImage, skFilterPrimitiveRegion, disposable, skCropRect);
+                            var skImageFilter = CreateImage(svgImage, skFilterPrimitiveRegion, disposable, assetLoader, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results, disposable);
 #if DEBUG
                             if (lastResult != null)
@@ -4735,6 +4733,8 @@ namespace Svg.Model
             SvgDocument.PointsPerInch = 96;
         }
 
+        public static CultureInfo? s_systemLanguageOverride = null;
+
         public static Size GetDimensions(SvgFragment svgFragment)
         {
             float w, h;
@@ -4778,11 +4778,11 @@ namespace Svg.Model
             return new Size(w, h);
         }
 
-        public static Picture? ToModel(SvgFragment svgFragment)
+        public static Picture? ToModel(SvgFragment svgFragment, IAssetLoader assetLoader)
         {
             var size = GetDimensions(svgFragment);
             var bounds = Rect.Create(size);
-            using var drawable = DrawableFactory.Create(svgFragment, bounds, null, Attributes.None);
+            using var drawable = DrawableFactory.Create(svgFragment, bounds, null, assetLoader, Attributes.None);
             if (drawable == null)
             {
                 return null;

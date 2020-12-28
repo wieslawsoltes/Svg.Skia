@@ -5,14 +5,14 @@ namespace Svg.Model.Drawables
 {
     public sealed class MaskDrawable : DrawableContainer
     {
-        private MaskDrawable()
-            : base()
+        private MaskDrawable(IAssetLoader assetLoader)
+            : base(assetLoader)
         {
         }
 
-        public static MaskDrawable Create(SvgMask svgMask, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
+        public static MaskDrawable Create(SvgMask svgMask, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new MaskDrawable
+            var drawable = new MaskDrawable(assetLoader)
             {
                 Element = svgMask,
                 Parent = parent,
@@ -81,7 +81,7 @@ namespace Svg.Model.Drawables
                 skMatrix = skMatrix.PreConcat(skBoundsScaleTransform);
             }
 
-            drawable.CreateChildren(svgMask, skOwnerBounds, drawable, ignoreAttributes);
+            drawable.CreateChildren(svgMask, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
 
             drawable.Overflow = skRectTransformed;
 
@@ -114,7 +114,7 @@ namespace Svg.Model.Drawables
 
             if (enableMask)
             {
-                MaskDrawable = SvgModelExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), Disposable);
+                MaskDrawable = SvgModelExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), Disposable, AssetLoader);
                 if (MaskDrawable != null)
                 {
                     CreateMaskPaints();

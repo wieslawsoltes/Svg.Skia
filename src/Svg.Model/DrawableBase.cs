@@ -7,6 +7,7 @@ namespace Svg.Model
 {
     public abstract class DrawableBase : Drawable, IFilterSource, IPictureSource
     {
+        internal readonly IAssetLoader AssetLoader;
         internal readonly CompositeDisposable Disposable;
         public SvgElement? Element;
         public DrawableBase? Parent;
@@ -17,7 +18,7 @@ namespace Svg.Model
         public Matrix Transform;
         public Rect? Overflow;
         public Rect? Clip;
-        public Svg.Model.ClipPath? ClipPath;
+        public ClipPath? ClipPath;
         public MaskDrawable? MaskDrawable;
         public Paint? Mask;
         public Paint? MaskDstIn;
@@ -26,8 +27,9 @@ namespace Svg.Model
         public Paint? Fill;
         public Paint? Stroke;
 
-        protected DrawableBase()
+        protected DrawableBase(IAssetLoader assetLoader)
         {
+            AssetLoader = assetLoader;
             Disposable = new CompositeDisposable();
         }
 
@@ -201,7 +203,7 @@ namespace Svg.Model
 
             if (enableMask)
             {
-                MaskDrawable = SvgModelExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), Disposable);
+                MaskDrawable = SvgModelExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), Disposable, AssetLoader);
                 if (MaskDrawable != null)
                 {
                     CreateMaskPaints();
@@ -216,7 +218,7 @@ namespace Svg.Model
 
             if (visualElement != null && enableFilter)
             {
-                Filter = SvgModelExtensions.GetFilterPaint(visualElement, TransformedBounds, this, Disposable, out var isValid);
+                Filter = SvgModelExtensions.GetFilterPaint(visualElement, TransformedBounds, this, Disposable, AssetLoader, out var isValid);
                 if (isValid == false)
                 {
                     IsDrawable = false;

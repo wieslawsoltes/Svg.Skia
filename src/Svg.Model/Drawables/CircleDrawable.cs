@@ -2,14 +2,14 @@
 {
     public sealed class CircleDrawable : DrawablePath
     {
-        private CircleDrawable()
-            : base()
+        private CircleDrawable(IAssetLoader assetLoader)
+            : base(assetLoader)
         {
         }
 
-        public static CircleDrawable Create(SvgCircle svgCircle, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
+        public static CircleDrawable Create(SvgCircle svgCircle, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new CircleDrawable
+            var drawable = new CircleDrawable(assetLoader)
             {
                 Element = svgCircle,
                 Parent = parent,
@@ -41,7 +41,7 @@
 
             if (SvgModelExtensions.IsValidFill(svgCircle))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgCircle, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Fill = SvgModelExtensions.GetFillPaint(svgCircle, drawable.TransformedBounds, assetLoader, ignoreAttributes, drawable.Disposable);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
@@ -50,7 +50,7 @@
 
             if (SvgModelExtensions.IsValidStroke(svgCircle, drawable.TransformedBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgCircle, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgCircle, drawable.TransformedBounds, assetLoader, ignoreAttributes, drawable.Disposable);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;

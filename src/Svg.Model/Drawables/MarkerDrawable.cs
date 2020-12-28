@@ -8,14 +8,14 @@ namespace Svg.Model.Drawables
         public DrawableBase? MarkerElementDrawable;
         public Rect? MarkerClipRect;
 
-        private MarkerDrawable()
-            : base()
+        private MarkerDrawable(IAssetLoader assetLoader)
+            : base(assetLoader)
         {
         }
 
-        public static MarkerDrawable Create(SvgMarker svgMarker, SvgVisualElement pOwner, Point pMarkerPoint, float fAngle, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
+        public static MarkerDrawable Create(SvgMarker svgMarker, SvgVisualElement pOwner, Point pMarkerPoint, float fAngle, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new MarkerDrawable
+            var drawable = new MarkerDrawable(assetLoader)
             {
                 Element = svgMarker,
                 Parent = parent,
@@ -100,7 +100,7 @@ namespace Svg.Model.Drawables
                     break;
             }
 
-            var markerElementDrawable = DrawableFactory.Create(markerElement, skOwnerBounds, drawable, Attributes.Display);
+            var markerElementDrawable = DrawableFactory.Create(markerElement, skOwnerBounds, drawable, assetLoader, Attributes.Display);
             if (markerElementDrawable != null)
             {
                 drawable.MarkerElementDrawable = markerElementDrawable;

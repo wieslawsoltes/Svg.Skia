@@ -6,17 +6,17 @@ namespace Svg.Model
     {
         public readonly List<DrawableBase> ChildrenDrawables;
 
-        protected DrawableContainer()
-            : base()
+        protected DrawableContainer(IAssetLoader assetLoader)
+            : base(assetLoader)
         {
             ChildrenDrawables = new List<DrawableBase>();
         }
 
-        protected virtual void CreateChildren(SvgElement svgElement, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes)
+        protected virtual void CreateChildren(SvgElement svgElement, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
             foreach (var child in svgElement.Children)
             {
-                var drawable = DrawableFactory.Create(child, skOwnerBounds, parent, ignoreAttributes);
+                var drawable = DrawableFactory.Create(child, skOwnerBounds, parent, assetLoader, ignoreAttributes);
                 if (drawable != null)
                 {
                     ChildrenDrawables.Add(drawable);

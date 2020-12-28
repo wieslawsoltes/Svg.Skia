@@ -2,14 +2,14 @@
 {
     public sealed class RectangleDrawable : DrawablePath
     {
-        private RectangleDrawable()
-            : base()
+        private RectangleDrawable(IAssetLoader assetLoader)
+            : base(assetLoader)
         {
         }
 
-        public static RectangleDrawable Create(SvgRectangle svgRectangle, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
+        public static RectangleDrawable Create(SvgRectangle svgRectangle, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new RectangleDrawable
+            var drawable = new RectangleDrawable(assetLoader)
             {
                 Element = svgRectangle,
                 Parent = parent,
@@ -41,7 +41,7 @@
 
             if (SvgModelExtensions.IsValidFill(svgRectangle))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgRectangle, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Fill = SvgModelExtensions.GetFillPaint(svgRectangle, drawable.TransformedBounds, assetLoader, ignoreAttributes, drawable.Disposable);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
@@ -50,7 +50,7 @@
 
             if (SvgModelExtensions.IsValidStroke(svgRectangle, drawable.TransformedBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgRectangle, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgRectangle, drawable.TransformedBounds, assetLoader, ignoreAttributes, drawable.Disposable);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;

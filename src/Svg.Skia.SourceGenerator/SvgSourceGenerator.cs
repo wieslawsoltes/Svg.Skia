@@ -13,6 +13,8 @@ namespace Svg.Skia
     [Generator]
     public class SvgSourceGenerator : ISourceGenerator
     {
+        private static readonly IAssetLoader AssetLoader = new SkiaAssetLoader();
+
         private static readonly DiagnosticDescriptor s_errorDescriptor = new DiagnosticDescriptor(
 #pragma warning disable RS2008 // Enable analyzer release tracking
             "SV0000",
@@ -103,10 +105,10 @@ namespace Svg.Skia
                     return;
                 }
 
-                var svgDocument = SvgModelExtensions.FromSvg(svg);
+                var svgDocument = SvgModelExtensions.FromSvg(svg!);
                 if (svgDocument != null)
                 {
-                    var picture = SvgModelExtensions.ToModel(svgDocument);
+                    var picture = SvgModelExtensions.ToModel(svgDocument, AssetLoader);
                     if (picture != null && picture.Commands != null)
                     {
                         var code = SkiaCodeGen.Generate(picture, namespaceName!, className!);

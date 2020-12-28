@@ -12,14 +12,14 @@ namespace Svg.Model.Drawables
 
         public DrawableBase? ReferencedDrawable;
 
-        private UseDrawable()
-            : base()
+        private UseDrawable(IAssetLoader assetLoader)
+            : base(assetLoader)
         {
         }
 
-        public static UseDrawable Create(SvgUse svgUse, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
+        public static UseDrawable Create(SvgUse svgUse, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new UseDrawable
+            var drawable = new UseDrawable(assetLoader)
             {
                 Element = svgUse,
                 Parent = parent,
@@ -80,12 +80,12 @@ namespace Svg.Model.Drawables
 
             if (svgReferencedElement is SvgSymbol svgSymbol)
             {
-                drawable.ReferencedDrawable = SymbolDrawable.Create(svgSymbol, x, y, width, height, skOwnerBounds, drawable, ignoreAttributes);
+                drawable.ReferencedDrawable = SymbolDrawable.Create(svgSymbol, x, y, width, height, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
                 drawable.Disposable.Add(drawable.ReferencedDrawable);
             }
             else
             {
-                var referencedDrawable = DrawableFactory.Create(svgReferencedElement, skOwnerBounds, drawable, ignoreAttributes);
+                var referencedDrawable = DrawableFactory.Create(svgReferencedElement, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
                 if (referencedDrawable != null)
                 {
                     drawable.ReferencedDrawable = referencedDrawable;

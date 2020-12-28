@@ -10,14 +10,14 @@ namespace Svg.Model.Drawables
         public Rect DestRect = default;
         public Matrix FragmentTransform;
 
-        private ImageDrawable()
-            : base()
+        private ImageDrawable(IAssetLoader assetLoader)
+            : base(assetLoader)
         {
         }
 
-        public static ImageDrawable Create(SvgImage svgImage, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
+        public static ImageDrawable Create(SvgImage svgImage, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new ImageDrawable
+            var drawable = new ImageDrawable(assetLoader)
             {
                 Element = svgImage,
                 Parent = parent,
@@ -50,7 +50,7 @@ namespace Svg.Model.Drawables
             //    return;
             //}
 
-            var image = SvgModelExtensions.GetImage(svgImage.Href, svgImage.OwnerDocument);
+            var image = SvgModelExtensions.GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
             var skImage = image as Image;
             var svgFragment = image as SvgFragment;
             if (skImage is null && svgFragment is null)
@@ -166,7 +166,7 @@ namespace Svg.Model.Drawables
 
             if (svgFragment != null)
             {
-                drawable.FragmentDrawable = FragmentDrawable.Create(svgFragment, skOwnerBounds, drawable, ignoreAttributes);
+                drawable.FragmentDrawable = FragmentDrawable.Create(svgFragment, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
                 drawable.Disposable.Add(drawable.FragmentDrawable);
             }
 

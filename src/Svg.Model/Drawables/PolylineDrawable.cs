@@ -2,14 +2,14 @@
 {
     public sealed class PolylineDrawable : DrawablePath
     {
-        private PolylineDrawable()
-            : base()
+        private PolylineDrawable(IAssetLoader assetLoader)
+            : base(assetLoader)
         {
         }
 
-        public static PolylineDrawable Create(SvgPolyline svgPolyline, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
+        public static PolylineDrawable Create(SvgPolyline svgPolyline, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new PolylineDrawable
+            var drawable = new PolylineDrawable(assetLoader)
             {
                 Element = svgPolyline,
                 Parent = parent,
@@ -41,7 +41,7 @@
 
             if (SvgModelExtensions.IsValidFill(svgPolyline))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgPolyline, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Fill = SvgModelExtensions.GetFillPaint(svgPolyline, drawable.TransformedBounds, assetLoader, ignoreAttributes, drawable.Disposable);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
@@ -50,7 +50,7 @@
 
             if (SvgModelExtensions.IsValidStroke(svgPolyline, drawable.TransformedBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgPolyline, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgPolyline, drawable.TransformedBounds, assetLoader, ignoreAttributes, drawable.Disposable);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
@@ -63,7 +63,7 @@
                 return drawable;
             }
 
-            SvgModelExtensions.CreateMarkers(svgPolyline, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
+            SvgModelExtensions.CreateMarkers(svgPolyline, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable, assetLoader);
 
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);

@@ -5,6 +5,7 @@ using Avalonia.Metadata;
 using Avalonia.Visuals.Media.Imaging;
 using SP = Svg.Model;
 using ASP = Avalonia.Svg.Picture;
+using Svg.Model;
 
 namespace Avalonia.Svg
 {

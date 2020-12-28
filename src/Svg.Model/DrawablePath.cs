@@ -8,8 +8,8 @@ namespace Svg.Model
 
         public List<DrawableBase>? MarkerDrawables;
 
-        protected DrawablePath()
-            : base()
+        protected DrawablePath(IAssetLoader assetLoader)
+            : base(assetLoader)
         {
         }
 

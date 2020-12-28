@@ -5,14 +5,14 @@ namespace Svg.Model.Drawables
 {
     public sealed class FragmentDrawable : DrawableContainer
     {
-        private FragmentDrawable()
-            : base()
+        private FragmentDrawable(IAssetLoader assetLoader)
+            : base(assetLoader)
         {
         }
 
-        public static FragmentDrawable Create(SvgFragment svgFragment, Rect skOwnerBounds, DrawableBase? parent, Attributes ignoreAttributes = Attributes.None)
+        public static FragmentDrawable Create(SvgFragment svgFragment, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
-            var drawable = new FragmentDrawable
+            var drawable = new FragmentDrawable(assetLoader)
             {
                 Element = svgFragment,
                 Parent = parent,
@@ -38,7 +38,7 @@ namespace Svg.Model.Drawables
                 skOwnerBounds = Rect.Create(x, y, skSize.Width, skSize.Height);
             }
 
-            drawable.CreateChildren(svgFragment, skOwnerBounds, drawable, ignoreAttributes);
+            drawable.CreateChildren(svgFragment, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgFragment);
 
