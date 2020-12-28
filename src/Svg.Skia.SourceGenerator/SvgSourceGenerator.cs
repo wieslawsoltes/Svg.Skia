@@ -119,11 +119,13 @@ namespace Svg.Skia
                     else
                     {
                         context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "Invalid svg picture model."));
+                        return;
                     }
                 }
                 else
                 {
                     context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "Could not load svg document."));
+                    return;
                 }
             }
         }
