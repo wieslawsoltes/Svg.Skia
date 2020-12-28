@@ -8,7 +8,6 @@
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <IncludeBuildOutput>False</IncludeBuildOutput>
     <NoPackageAnalysis>True</NoPackageAnalysis>
-    <RootNamespace>Svg.SourceGenerator.Skia</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -20,6 +19,12 @@
   
   <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\SignAssembly.props" />
+
+  <ItemGroup>
+    <Compile Include="..\Svg.CodeGen.Skia\SkiaCodeGen.cs">
+      <Link>SkiaCodeGen.cs</Link>
+    </Compile>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.1" PrivateAssets="all" />
@@ -43,12 +48,6 @@
     <None Include="..\Svg.Custom\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\Svg.Model\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\Svg.Skia\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\Svg.CodeGen.Skia\SkiaCodeGen.cs">
-      <Link>SkiaCodeGen.cs</Link>
-    </Compile>
   </ItemGroup>
 
   <PropertyGroup>

@@ -7,7 +7,6 @@
     <Nullable>enable</Nullable>
     <IsPackable>True</IsPackable>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-    <RootNamespace>Svg.CodeGen.Skia</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
