@@ -276,7 +276,7 @@ Add NuGet package reference to your `csproj`.
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Svg.Skia.SourceGenerator" Version="0.4.2-preview8" />
+  <PackageReference Include="Svg.SourceGenerator.Skia" Version="0.4.2-preview8" />
 </ItemGroup>
 ```
 
@@ -309,7 +309,7 @@ public void Draw(SKCanvas canvas)
 </ItemGroup>
 
 <ItemGroup>
-  <PackageReference Include="Svg.Skia.SourceGenerator" Version="0.4.2-preview8" />
+  <PackageReference Include="Svg.SourceGenerator.Skia" Version="0.4.2-preview8" />
   <PackageReference Include="Avalonia.SKPictureImage" Version="0.4.2-preview8" />
 </ItemGroup>
 ```
