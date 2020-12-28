@@ -1860,43 +1860,43 @@ namespace Svg.Model
             return skMatrixTotal;
         }
 
-        internal static List<(Svg.Model.Point Point, byte Type)> GetPathTypes(this Svg.Model.Path path)
+        internal static List<(Point Point, byte Type)> GetPathTypes(this Path path)
         {
             // System.Drawing.Drawing2D.GraphicsPath.PathTypes
             // System.Drawing.Drawing2D.PathPointType
             // byte -> PathPointType
-            var pathTypes = new List<(Svg.Model.Point Point, byte Type)>();
+            var pathTypes = new List<(Point Point, byte Type)>();
 
             if (path.Commands == null)
             {
                 return pathTypes;
             }
-            (Svg.Model.Point Point, byte Type) lastPoint = (default, 0);
+            (Point Point, byte Type) lastPoint = (default, 0);
             foreach (var pathCommand in path.Commands)
             {
                 switch (pathCommand)
                 {
-                    case Svg.Model.MoveToPathCommand moveToPathCommand:
+                    case MoveToPathCommand moveToPathCommand:
                         {
-                            var point0 = new Svg.Model.Point(moveToPathCommand.X, moveToPathCommand.Y);
+                            var point0 = new Point(moveToPathCommand.X, moveToPathCommand.Y);
                             pathTypes.Add((point0, (byte)PathPointType.Start));
                             lastPoint = (point0, (byte)PathPointType.Start);
                         }
                         break;
 
-                    case Svg.Model.LineToPathCommand lineToPathCommand:
+                    case LineToPathCommand lineToPathCommand:
                         {
-                            var point1 = new Svg.Model.Point(lineToPathCommand.X, lineToPathCommand.Y);
+                            var point1 = new Point(lineToPathCommand.X, lineToPathCommand.Y);
                             pathTypes.Add((point1, (byte)PathPointType.Line));
                             lastPoint = (point1, (byte)PathPointType.Line);
                         }
                         break;
 
-                    case Svg.Model.CubicToPathCommand cubicToPathCommand:
+                    case CubicToPathCommand cubicToPathCommand:
                         {
-                            var point1 = new Svg.Model.Point(cubicToPathCommand.X0, cubicToPathCommand.Y0);
-                            var point2 = new Svg.Model.Point(cubicToPathCommand.X1, cubicToPathCommand.Y1);
-                            var point3 = new Svg.Model.Point(cubicToPathCommand.X2, cubicToPathCommand.Y2);
+                            var point1 = new Point(cubicToPathCommand.X0, cubicToPathCommand.Y0);
+                            var point2 = new Point(cubicToPathCommand.X1, cubicToPathCommand.Y1);
+                            var point3 = new Point(cubicToPathCommand.X2, cubicToPathCommand.Y2);
                             pathTypes.Add((point1, (byte)PathPointType.Bezier));
                             pathTypes.Add((point2, (byte)PathPointType.Bezier));
                             pathTypes.Add((point3, (byte)PathPointType.Bezier));
@@ -1904,17 +1904,17 @@ namespace Svg.Model
                         }
                         break;
 
-                    case Svg.Model.QuadToPathCommand quadToPathCommand:
+                    case QuadToPathCommand quadToPathCommand:
                         {
-                            var point1 = new Svg.Model.Point(quadToPathCommand.X0, quadToPathCommand.Y0);
-                            var point2 = new Svg.Model.Point(quadToPathCommand.X1, quadToPathCommand.Y1);
+                            var point1 = new Point(quadToPathCommand.X0, quadToPathCommand.Y0);
+                            var point2 = new Point(quadToPathCommand.X1, quadToPathCommand.Y1);
                             pathTypes.Add((point1, (byte)PathPointType.Bezier));
                             pathTypes.Add((point2, (byte)PathPointType.Bezier));
                             lastPoint = (point2, (byte)PathPointType.Bezier);
                         }
                         break;
 
-                    case Svg.Model.ArcToPathCommand arcToPathCommand:
+                    case ArcToPathCommand arcToPathCommand:
                         {
                             var point1 = new Point(arcToPathCommand.X, arcToPathCommand.Y);
                             pathTypes.Add((point1, (byte)PathPointType.Bezier));
@@ -1922,20 +1922,20 @@ namespace Svg.Model
                         }
                         break;
 
-                    case Svg.Model.ClosePathCommand closePathCommand:
+                    case ClosePathCommand closePathCommand:
                         {
                             lastPoint = (lastPoint.Point, (byte)((lastPoint.Type | (byte)PathPointType.CloseSubpath)));
                             pathTypes[pathTypes.Count - 1] = lastPoint;
                         }
                         break;
 
-                    case Svg.Model.AddPolyPathCommand addPolyPathCommand:
+                    case AddPolyPathCommand addPolyPathCommand:
                         {
                             if (addPolyPathCommand.Points != null && addPolyPathCommand.Points.Count > 0)
                             {
                                 foreach (var nexPoint in addPolyPathCommand.Points)
                                 {
-                                    var point1 = new Svg.Model.Point(nexPoint.X, nexPoint.Y);
+                                    var point1 = new Point(nexPoint.X, nexPoint.Y);
                                     pathTypes.Add((point1, (byte)PathPointType.Start));
                                     lastPoint = (point1, (byte)PathPointType.Start);
                                 }
@@ -2458,7 +2458,7 @@ namespace Svg.Model
             };
         }
 
-        internal static void GetClipPath(SvgVisualElement svgVisualElement, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Model.ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
+        internal static void GetClipPath(SvgVisualElement svgVisualElement, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
         {
             if (clipPath is null)
             {
@@ -2481,13 +2481,13 @@ namespace Svg.Model
                             break;
                         }
 
-                        var pathClip = new Svg.Model.PathClip
+                        var pathClip = new PathClip
                         {
                             Path = skPath,
                             Transform = ToMatrix(svgPath.Transforms),
-                            Clip = new Svg.Model.ClipPath()
+                            Clip = new ClipPath()
                             {
-                                Clip = new Svg.Model.ClipPath()
+                                Clip = new ClipPath()
                             }
                         };
                         clipPath.Clips?.Add(pathClip);
@@ -2505,13 +2505,13 @@ namespace Svg.Model
                             break;
                         }
 
-                        var pathClip = new Svg.Model.PathClip
+                        var pathClip = new PathClip
                         {
                             Path = skPath,
                             Transform = ToMatrix(svgRectangle.Transforms),
-                            Clip = new Svg.Model.ClipPath()
+                            Clip = new ClipPath()
                             {
-                                Clip = new Svg.Model.ClipPath()
+                                Clip = new ClipPath()
                             }
                         };
                         clipPath.Clips?.Add(pathClip);
@@ -2529,13 +2529,13 @@ namespace Svg.Model
                             break;
                         }
 
-                        var pathClip = new Svg.Model.PathClip
+                        var pathClip = new PathClip
                         {
                             Path = skPath,
                             Transform = ToMatrix(svgCircle.Transforms),
-                            Clip = new Svg.Model.ClipPath()
+                            Clip = new ClipPath()
                             {
-                                Clip = new Svg.Model.ClipPath()
+                                Clip = new ClipPath()
                             }
                         };
                         clipPath.Clips?.Add(pathClip);
@@ -2553,13 +2553,13 @@ namespace Svg.Model
                             break;
                         }
 
-                        var pathClip = new Svg.Model.PathClip
+                        var pathClip = new PathClip
                         {
                             Path = skPath,
                             Transform = ToMatrix(svgEllipse.Transforms),
-                            Clip = new Svg.Model.ClipPath()
+                            Clip = new ClipPath()
                             {
-                                Clip = new Svg.Model.ClipPath()
+                                Clip = new ClipPath()
                             }
                         };
                         clipPath.Clips?.Add(pathClip);
@@ -2577,13 +2577,13 @@ namespace Svg.Model
                             break;
                         }
 
-                        var pathClip = new Svg.Model.PathClip
+                        var pathClip = new PathClip
                         {
                             Path = skPath,
                             Transform = ToMatrix(svgLine.Transforms),
-                            Clip = new Svg.Model.ClipPath()
+                            Clip = new ClipPath()
                             {
-                                Clip = new Svg.Model.ClipPath()
+                                Clip = new ClipPath()
                             }
                         };
                         clipPath.Clips?.Add(pathClip);
@@ -2601,13 +2601,13 @@ namespace Svg.Model
                             break;
                         }
 
-                        var pathClip = new Svg.Model.PathClip
+                        var pathClip = new PathClip
                         {
                             Path = skPath,
                             Transform = ToMatrix(svgPolyline.Transforms),
-                            Clip = new Svg.Model.ClipPath()
+                            Clip = new ClipPath()
                             {
-                                Clip = new Svg.Model.ClipPath()
+                                Clip = new ClipPath()
                             }
                         };
                         clipPath.Clips?.Add(pathClip);
@@ -2625,13 +2625,13 @@ namespace Svg.Model
                             break;
                         }
 
-                        var pathClip = new Svg.Model.PathClip
+                        var pathClip = new PathClip
                         {
                             Path = skPath,
                             Transform = ToMatrix(svgPolygon.Transforms),
-                            Clip = new Svg.Model.ClipPath()
+                            Clip = new ClipPath()
                             {
-                                Clip = new Svg.Model.ClipPath()
+                                Clip = new ClipPath()
                             }
                         };
                         clipPath.Clips?.Add(pathClip);
@@ -2684,7 +2684,7 @@ namespace Svg.Model
             }
         }
 
-        private static void GetClipPath(SvgElementCollection svgElementCollection, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Model.ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
+        private static void GetClipPath(SvgElementCollection svgElementCollection, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
         {
             foreach (var svgElement in svgElementCollection)
             {
@@ -2699,7 +2699,7 @@ namespace Svg.Model
             }
         }
 
-        internal static void GetClipPathClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Model.ClipPath? clipPath)
+        internal static void GetClipPathClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, ClipPath? clipPath)
         {
             if (clipPath == null)
             {
@@ -2731,7 +2731,7 @@ namespace Svg.Model
             clipPath.Transform = skMatrix; // TODO:
         }
 
-        internal static void GetClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Model.ClipPath? clipPath)
+        internal static void GetClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, ClipPath? clipPath)
         {
             if (clipPath == null)
             {
@@ -2762,17 +2762,17 @@ namespace Svg.Model
 
             if (clipPath.Clips != null && clipPath.Clips.Count == 0)
             {
-                var pathClip = new Svg.Model.PathClip
+                var pathClip = new PathClip
                 {
-                    Path = new Svg.Model.Path(),
-                    Transform = Svg.Model.Matrix.CreateIdentity(),
+                    Path = new Path(),
+                    Transform = Matrix.CreateIdentity(),
                     Clip = null
                 };
                 clipPath.Clips.Add(pathClip);
             }
         }
 
-        internal static void GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, Svg.Model.ClipPath clipPath)
+        internal static void GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, Rect skBounds, HashSet<Uri> uris, CompositeDisposable disposable, ClipPath clipPath)
         {
             if (svgVisualElement == null || svgVisualElement.ClipPath == null)
             {
@@ -4684,7 +4684,7 @@ namespace Svg.Model
             var fontWidth = ToFontStyleWidth(svgText.FontStretch);
             var fontStyle = ToFontStyleSlant(svgText.FontStyle);
 
-            skPaint.Typeface = new Svg.Model.Typeface()
+            skPaint.Typeface = new Typeface()
             {
                 FamilyName = fontFamily,
                 Weight = fontWeight,
