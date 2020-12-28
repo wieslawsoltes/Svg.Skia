@@ -127,8 +127,6 @@ namespace Svg.Model.Primitives
                             }
                         }
                         break;
-                    default:
-                        break;
                 }
             }
 

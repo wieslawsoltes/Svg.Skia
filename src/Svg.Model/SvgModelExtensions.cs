@@ -1733,9 +1733,6 @@ namespace Svg.Model
                         fMinX += width - svgViewBox.Width * fScaleX;
                         fMinY += height - svgViewBox.Height * fScaleY;
                         break;
-
-                    default:
-                        break;
                 }
             }
 
@@ -4386,9 +4383,6 @@ namespace Svg.Model
                             }
 #endif
                         }
-                        break;
-
-                    default:
                         break;
                 }
 

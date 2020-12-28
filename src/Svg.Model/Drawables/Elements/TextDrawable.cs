@@ -542,9 +542,6 @@ namespace Svg.Model.Drawables.Elements
                         case SvgTextSpan svgTextSpan:
                             DrawTextSpan(svgTextSpan, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas, until);
                             break;
-
-                        default:
-                            break;
                     }
                 }
             }
