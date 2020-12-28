@@ -241,7 +241,7 @@ namespace Svg.Skia.Converter
 
             if (settings.SystemLanguage != null)
             {
-                SvgExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture(settings.SystemLanguage);
+                SvgModelExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture(settings.SystemLanguage);
             }
 
             var sw = Stopwatch.StartNew();
@@ -263,14 +263,14 @@ namespace Svg.Skia.Converter
                     else
                     {
                         var inputExtension = inputPath.Extension;
-                        outputPath = Path.ChangeExtension(inputPath.FullName, "." + settings.Format.ToLower());
+                        outputPath = System.IO.Path.ChangeExtension(inputPath.FullName, "." + settings.Format.ToLower());
                         if (settings.OutputDirectory != null && !string.IsNullOrEmpty(settings.OutputDirectory.FullName))
                         {
-                            outputPath = Path.Combine(settings.OutputDirectory.FullName, Path.GetFileName(outputPath));
+                            outputPath = System.IO.Path.Combine(settings.OutputDirectory.FullName, System.IO.Path.GetFileName(outputPath));
                         }
                     }
 
-                    var currentDirectoryName = Path.GetDirectoryName(inputPath.FullName);
+                    var currentDirectoryName = System.IO.Path.GetDirectoryName(inputPath.FullName);
                     if (currentDirectoryName != null)
                     {
                         Directory.SetCurrentDirectory(currentDirectoryName);
@@ -295,7 +295,7 @@ namespace Svg.Skia.Converter
 
             if (settings.SystemLanguage != null)
             {
-                SvgExtensions.s_systemLanguageOverride = null;
+                SvgModelExtensions.s_systemLanguageOverride = null;
             }
 
             if (paths.Count > 0)
