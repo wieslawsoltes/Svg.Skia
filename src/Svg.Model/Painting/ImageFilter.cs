@@ -19,7 +19,7 @@ namespace Svg.Model.Painting
         }
     }
 
-    public abstract class ImageFilter : IDisposable
+    public abstract class ImageFilter
     {
         public static ImageFilter CreateArithmetic(float k1, float k2, float k3, float k4, bool enforcePMColor, ImageFilter background, ImageFilter? foreground = null, CropRect? cropRect = null)
         {
@@ -263,10 +263,6 @@ namespace Svg.Model.Painting
                 Dst = dst,
                 Input = input
             };
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

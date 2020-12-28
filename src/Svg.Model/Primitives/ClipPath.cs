@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Svg.Model.Primitives
 {
-    public class ClipPath : IDisposable
+    public class ClipPath
     {
         public IList<PathClip>? Clips { get; set; }
         public Matrix? Transform { get; set; }
@@ -14,10 +14,6 @@ namespace Svg.Model.Primitives
         public ClipPath()
         {
             Clips = new List<PathClip>();
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

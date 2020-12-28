@@ -1092,12 +1092,12 @@ namespace Svg.Model
         {
             var skSize = new Size(width, height);
             var skBounds = Rect.Create(skSize);
-            using var skPictureRecorder = new PictureRecorder();
-            using var skCanvas = skPictureRecorder.BeginRecording(skBounds);
+            var skPictureRecorder = new PictureRecorder();
+            var skCanvas = skPictureRecorder.BeginRecording(skBounds);
 
             skCanvas.SetMatrix(skMatrix);
 
-            using var skPaintOpacity = ignoreAttributes.HasFlag(Attributes.Opacity) ? null : GetOpacityPaint(opacity);
+            var skPaintOpacity = ignoreAttributes.HasFlag(Attributes.Opacity) ? null : GetOpacityPaint(opacity);
             if (skPaintOpacity is { })
             {
                 skCanvas.SaveLayer(skPaintOpacity);
@@ -2027,7 +2027,6 @@ namespace Svg.Model
 
             if (width <= 0f || height <= 0f)
             {
-                skPath.Dispose();
                 return default;
             }
 
@@ -2100,7 +2099,6 @@ namespace Svg.Model
 
             if (radius <= 0f)
             {
-                skPath.Dispose();
                 return default;
             }
 
@@ -2124,7 +2122,6 @@ namespace Svg.Model
 
             if (rx <= 0f || ry <= 0f)
             {
-                skPath.Dispose();
                 return default;
             }
 

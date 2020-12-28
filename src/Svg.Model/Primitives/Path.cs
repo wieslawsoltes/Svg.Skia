@@ -4,7 +4,7 @@ using Svg.Model.Primitives.PathCommands;
 
 namespace Svg.Model.Primitives
 {
-    public class Path : IDisposable
+    public class Path
     {
         public PathFillType FillType { get; set; }
         public IList<PathCommand>? Commands { get; set; }
@@ -186,10 +186,6 @@ namespace Svg.Model.Primitives
         public void AddPoly(Point[] points, bool close = true)
         {
             Commands?.Add(new AddPolyPathCommand(points, close));
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

@@ -292,8 +292,8 @@ namespace Svg.Model.Drawables
                 return null;
             }
 
-            using var skPictureRecorder = new PictureRecorder();
-            using var skCanvas = skPictureRecorder.BeginRecording(drawable.TransformedBounds);
+            var skPictureRecorder = new PictureRecorder();
+            var skCanvas = skPictureRecorder.BeginRecording(drawable.TransformedBounds);
 
             drawable.Draw(skCanvas, ignoreAttributes, null);
 
@@ -311,8 +311,8 @@ namespace Svg.Model.Drawables
             var container = FindContainerParentBackground(drawable, out var skClipRect);
             if (container is { })
             {
-                using var skPictureRecorder = new PictureRecorder();
-                using var skCanvas = skPictureRecorder.BeginRecording(container.TransformedBounds);
+                var skPictureRecorder = new PictureRecorder();
+                var skCanvas = skPictureRecorder.BeginRecording(container.TransformedBounds);
 
                 if (!skClipRect.IsEmpty)
                 {

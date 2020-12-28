@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Svg.Model.Primitives
 {
-    public class Image : IDisposable
+    public class Image
     {
         public byte[]? Data { get; set; }
         public float Width { get; set; }
@@ -14,10 +14,6 @@ namespace Svg.Model.Primitives
             using var memoryStream = new MemoryStream();
             sourceStream.CopyTo(memoryStream);
             return memoryStream.ToArray();
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

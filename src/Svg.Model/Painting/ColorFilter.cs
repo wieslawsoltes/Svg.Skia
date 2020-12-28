@@ -3,7 +3,7 @@ using Svg.Model.Painting.ColorFilters;
 
 namespace Svg.Model.Painting
 {
-    public abstract class ColorFilter : IDisposable
+    public abstract class ColorFilter
     {
         public static ColorFilter CreateColorMatrix(float[] matrix)
         {
@@ -38,10 +38,6 @@ namespace Svg.Model.Painting
             return new LumaColorColorFilter
             {
             };
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

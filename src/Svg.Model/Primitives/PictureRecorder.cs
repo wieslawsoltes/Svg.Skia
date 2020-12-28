@@ -2,7 +2,7 @@
 
 namespace Svg.Model.Primitives
 {
-    public sealed class PictureRecorder : IDisposable
+    public sealed class PictureRecorder
     {
         public Rect CullRect { get; set; }
         public Canvas? RecordingCanvas { get; set; }
@@ -28,10 +28,6 @@ namespace Svg.Model.Primitives
             RecordingCanvas = null;
 
             return picture;
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

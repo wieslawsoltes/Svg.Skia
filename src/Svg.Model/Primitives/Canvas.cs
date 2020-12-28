@@ -7,7 +7,7 @@ using Svg.Model.Primitives.PathCommands;
 
 namespace Svg.Model.Primitives
 {
-    public class Canvas : IDisposable
+    public class Canvas
     {
         private int _saveCount = 0;
         private readonly Stack<Matrix> _totalMatrices = new();
@@ -90,10 +90,6 @@ namespace Svg.Model.Primitives
                 _saveCount--;
             }
             Commands?.Add(new RestoreCanvasCommand(_saveCount));
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

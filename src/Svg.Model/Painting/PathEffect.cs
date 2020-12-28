@@ -3,7 +3,7 @@ using Svg.Model.Painting.PathEffects;
 
 namespace Svg.Model.Painting
 {
-    public abstract class PathEffect : IDisposable
+    public abstract class PathEffect
     {
         public static PathEffect CreateDash(float[] intervals, float phase)
         {
@@ -12,10 +12,6 @@ namespace Svg.Model.Painting
                 Intervals = intervals,
                 Phase = phase
             };
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

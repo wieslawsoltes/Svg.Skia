@@ -2,7 +2,7 @@
 
 namespace Svg.Model.Painting
 {
-    public sealed class Paint : IDisposable
+    public sealed class Paint
     {
         public PaintStyle Style { get; set; }
         public bool IsAntialias { get; set; }
@@ -45,10 +45,6 @@ namespace Svg.Model.Painting
             PathEffect = null;
             BlendMode = BlendMode.SrcOver;
             FilterQuality = FilterQuality.None;
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

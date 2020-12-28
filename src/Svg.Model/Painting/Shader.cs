@@ -4,7 +4,7 @@ using Svg.Model.Painting.Shaders;
 
 namespace Svg.Model.Painting
 {
-    public abstract class Shader : IDisposable
+    public abstract class Shader
     {
         public static Shader CreateColor(Color color, ColorSpace colorSpace)
         {
@@ -107,10 +107,6 @@ namespace Svg.Model.Painting
                 Mode = mode,
                 LocalMatrix = localMatrix
             };
-        }
-
-        public void Dispose()
-        {
         }
     }
 }
