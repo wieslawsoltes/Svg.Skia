@@ -63,7 +63,7 @@ namespace Svg.Model.Drawables
             };
         }
 
-        protected virtual bool HasFeatures(SvgElement svgElement, Attributes ignoreAttributes)
+        protected bool HasFeatures(SvgElement svgElement, Attributes ignoreAttributes)
         {
             var hasRequiredFeatures = ignoreAttributes.HasFlag(Attributes.RequiredFeatures) || svgElement.HasRequiredFeatures();
             var hasRequiredExtensions = ignoreAttributes.HasFlag(Attributes.RequiredExtensions) || svgElement.HasRequiredExtensions();
@@ -71,7 +71,7 @@ namespace Svg.Model.Drawables
             return hasRequiredFeatures && hasRequiredExtensions && hasSystemLanguage;
         }
 
-        protected virtual bool CanDraw(SvgVisualElement svgVisualElement, Attributes ignoreAttributes)
+        protected bool CanDraw(SvgVisualElement svgVisualElement, Attributes ignoreAttributes)
         {
             var isVisible = ignoreAttributes.HasFlag(Attributes.Visibility) || string.Equals(svgVisualElement.Visibility, "visible", StringComparison.OrdinalIgnoreCase);
             var isDisplay = ignoreAttributes.HasFlag(Attributes.Display) || !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
