@@ -252,7 +252,7 @@ Supported formats: png, jpg, jpeg, webp, pdf, xps
 
 ### About
 
-SVGC compiles SVG drawing markup to C# using SkiaSharp as rendering engine. SVGC can be also used as codegen for upcomming C# 9 Source Generator feature.
+SVGC compiles SVG drawing markup to C# using SkiaSharp as rendering engine. SVGC can be also used as codegen for upcoming C# 9 Source Generator feature.
 
 [![Demo](images/Demo.png)](images/Demo.png)
 
@@ -280,7 +280,7 @@ Add NuGet package reference to your `csproj`.
 </ItemGroup>
 ```
 
-Include `svg` assests file in your `csproj`.
+Include `svg` assets file in your `csproj`.
 
 ```xml
 <ItemGroup>
@@ -307,12 +307,12 @@ public void Draw(SKCanvas canvas)
 <ItemGroup>
   <AdditionalFiles Include="Assets/__tiger.svg" NamespaceName="AvaloniaSample" ClassName="Tiger" />
 </ItemGroup>
-
+```
+```xml
 <ItemGroup>
   <PackageReference Include="Svg.SourceGenerator.Skia" Version="0.4.2-preview8" />
   <PackageReference Include="Avalonia.SKPictureImage" Version="0.4.2-preview8" />
 </ItemGroup>
-```
 ```
 
 `xaml`
