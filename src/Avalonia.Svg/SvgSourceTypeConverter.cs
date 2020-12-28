@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Globalization;
 using Avalonia.Platform;
+using Svg.Model;
 
 namespace Avalonia.Svg
 {
@@ -26,10 +27,10 @@ namespace Avalonia.Svg
             var svg = new SvgSource();
             if (uri.IsAbsoluteUri && uri.IsFile)
             {
-                var document = global::Svg.Skia.SKSvg.Open(uri.LocalPath);
+                var document = SvgModelExtensions.Open(uri.LocalPath);
                 if (document != null)
                 {
-                    svg.Picture = global::Svg.Skia.SKSvg.ToModel(document);
+                    svg.Picture = SvgModelExtensions.ToModel(document);
                 }
 
                 return svg;
@@ -37,10 +38,10 @@ namespace Avalonia.Svg
             else
             {
                 var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
-                var document = global::Svg.Skia.SKSvg.Open(assets.Open(uri, context.GetContextBaseUri()));
+                var document = SvgModelExtensions.Open(assets.Open(uri, context.GetContextBaseUri()));
                 if (document != null)
                 {
-                    svg.Picture = global::Svg.Skia.SKSvg.ToModel(document);
+                    svg.Picture = SvgModelExtensions.ToModel(document);
                 }
             }
 
