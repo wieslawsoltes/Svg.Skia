@@ -4,7 +4,7 @@ using A = Avalonia;
 using AM = Avalonia.Media;
 using AMI = Avalonia.Media.Imaging;
 using AVMI = Avalonia.Visuals.Media.Imaging;
-using SP = Svg.Picture;
+using SP = Svg.Model;
 
 namespace Avalonia.Svg.Picture
 {
@@ -39,6 +39,7 @@ namespace Avalonia.Svg.Picture
 
         public static A.Matrix ToMatrix(this SP.Matrix matrix)
         {
+            // The Persp0, Persp1 and Persp2 are not used.
             return new A.Matrix(
                 matrix.ScaleX,
                 matrix.SkewY,
@@ -46,9 +47,6 @@ namespace Avalonia.Svg.Picture
                 matrix.ScaleY,
                 matrix.TransX,
                 matrix.TransY);
-            // TODO: matrix.Persp0
-            // TODO: matrix.Persp1
-            // TODO: matrix.Persp2
         }
 
         public static AMI.Bitmap? ToBitmap(this SP.Image image)

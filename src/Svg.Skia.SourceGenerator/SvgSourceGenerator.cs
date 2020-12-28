@@ -1,30 +1,33 @@
 #nullable enable
-
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Svg.Model;
+using Svg.CodeGen;
 
 namespace Svg.Skia
 {
     [Generator]
     public class SvgSourceGenerator : ISourceGenerator
     {
+        private static readonly IAssetLoader AssetLoader = new SkiaAssetLoader();
+
         private static readonly DiagnosticDescriptor s_errorDescriptor = new DiagnosticDescriptor(
 #pragma warning disable RS2008 // Enable analyzer release tracking
-            "SI0000",
+            "SV0000",
 #pragma warning restore RS2008 // Enable analyzer release tracking
-            "Error in the SvgSourceGenerator generator",
-            "Error in the SvgSourceGenerator generator: '{0}'",
-            "SvgSourceGenerator",
+            $"Error in the {nameof(SvgSourceGenerator)} generator",
+            $"Error in the {nameof(SvgSourceGenerator)} generator: '{0}'",
+            $"{nameof(SvgSourceGenerator)}",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
         public void Initialize(GeneratorInitializationContext context)
         {
-            //System.Diagnostics.Debugger.Launch();
+            // System.Diagnostics.Debugger.Launch();
         }
 
         public void Execute(GeneratorExecutionContext context)
@@ -96,14 +99,16 @@ namespace Svg.Skia
                 }
 
                 var svg = file.GetText(context.CancellationToken)?.ToString();
+                if (string.IsNullOrWhiteSpace(svg))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "Svg file is null or empty."));
+                    return;
+                }
 
-                SvgDocument.SkipGdiPlusCapabilityCheck = true;
-                SvgDocument.PointsPerInch = 96;
-
-                var svgDocument = SvgDocument.FromSvg<SvgDocument>(svg);
+                var svgDocument = SvgModelExtensions.FromSvg(svg!);
                 if (svgDocument != null)
                 {
-                    var picture = SKSvg.ToModel(svgDocument);
+                    var picture = SvgModelExtensions.ToModel(svgDocument, AssetLoader);
                     if (picture != null && picture.Commands != null)
                     {
                         var code = SkiaCodeGen.Generate(picture, namespaceName!, className!);
@@ -113,11 +118,13 @@ namespace Svg.Skia
                     else
                     {
                         context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "Invalid svg picture model."));
+                        return;
                     }
                 }
                 else
                 {
                     context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "Could not load svg document."));
+                    return;
                 }
             }
         }

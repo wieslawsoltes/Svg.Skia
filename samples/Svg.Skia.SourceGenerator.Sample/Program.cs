@@ -22,14 +22,14 @@ namespace Svg.Skia.SourceGenerator.Sample
 
             sw.Start();
             using var cameraStream = File.OpenWrite("__AJ_Digital_Camera.png");
-            Camera.Picture.ToImage(cameraStream, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1, 1, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul, SKSvgSettings.s_srgb);
+            Camera.Picture.ToImage(cameraStream, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1, 1, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul, SKColorSpace.CreateRgb(SKColorSpaceTransferFn.Srgb, SKColorSpaceXyz.Srgb));
             sw.Stop();
             Console.WriteLine($"Created __AJ_Digital_Camera.png in {sw.Elapsed.TotalMilliseconds}ms");
 
             sw.Reset();
             sw.Start();
             using var tigerStream = File.OpenWrite("__tiger.png");
-            Tiger.Picture.ToImage(tigerStream, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1, 1, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul, SKSvgSettings.s_srgb);
+            Tiger.Picture.ToImage(tigerStream, SKColors.Transparent, SKEncodedImageFormat.Png, 100, 1, 1, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul, SKColorSpace.CreateRgb(SKColorSpaceTransferFn.Srgb, SKColorSpaceXyz.Srgb));
             sw.Stop();
             Console.WriteLine($"Created __tiger.png in {sw.Elapsed.TotalMilliseconds}ms");
 

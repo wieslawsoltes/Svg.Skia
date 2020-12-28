@@ -29,8 +29,7 @@
   <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
-  <Import Project="..\..\build\SkiaSharp.props" />
-  <Import Project="..\..\build\SkiaSharp.Linux.props" />
+  <Import Project="..\..\build\SixLabors.ImageSharp.props" />
   
   <ItemGroup>
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20371.2" />
@@ -38,7 +37,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Svg.Skia.Picture\Svg.Skia.Picture.csproj" />
+    <ProjectReference Include="..\..\src\Svg.Custom\Svg.Custom.csproj" />
+    <ProjectReference Include="..\..\src\Svg.Model\Svg.Model.csproj" />
   </ItemGroup>
 
 </Project>

@@ -30,15 +30,11 @@
   <!--<Import Project="..\..\build\Avalonia.Skia.props" />-->
 
   <ItemGroup>
-    <ProjectReference Include="..\Svg.Skia.Picture\Svg.Skia.Picture.csproj" />
+    <ProjectReference Include="..\Svg.Model\Svg.Model.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_PICTURE</DefineConstants>
-  </PropertyGroup>
 
 </Project>

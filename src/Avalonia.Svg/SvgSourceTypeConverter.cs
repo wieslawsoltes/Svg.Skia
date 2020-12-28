@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Globalization;
 using Avalonia.Platform;
+using SM = Svg.Model;
 
 namespace Avalonia.Svg
 {
@@ -10,6 +11,8 @@ namespace Avalonia.Svg
     /// </summary>
     public class SvgSourceTypeConverter : TypeConverter
     {
+        private static readonly SM.IAssetLoader AssetLoader = new AvaloniaAssetLoader();
+
         /// <inheritdoc/>
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
         {
@@ -26,10 +29,10 @@ namespace Avalonia.Svg
             var svg = new SvgSource();
             if (uri.IsAbsoluteUri && uri.IsFile)
             {
-                var document = global::Svg.Skia.SKSvg.Open(uri.LocalPath);
+                var document = SM.SvgModelExtensions.Open(uri.LocalPath);
                 if (document != null)
                 {
-                    svg.Picture = global::Svg.Skia.SKSvg.ToModel(document);
+                    svg.Picture = SM.SvgModelExtensions.ToModel(document, AssetLoader);
                 }
 
                 return svg;
@@ -37,10 +40,10 @@ namespace Avalonia.Svg
             else
             {
                 var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
-                var document = global::Svg.Skia.SKSvg.Open(assets.Open(uri, context.GetContextBaseUri()));
+                var document = SM.SvgModelExtensions.Open(assets.Open(uri, context.GetContextBaseUri()));
                 if (document != null)
                 {
-                    svg.Picture = global::Svg.Skia.SKSvg.ToModel(document);
+                    svg.Picture = SM.SvgModelExtensions.ToModel(document, AssetLoader);
                 }
             }
 

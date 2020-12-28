@@ -9,6 +9,7 @@ using System.Runtime.Serialization;
 using System.Windows.Data;
 using Newtonsoft.Json;
 using SkiaSharp;
+using Svg.Model;
 using Svg.Skia;
 
 namespace SvgToPng.ViewModels
@@ -101,10 +102,10 @@ namespace SvgToPng.ViewModels
                     return;
                 }
 
-                Directory.SetCurrentDirectory(Path.GetDirectoryName(item.SvgPath));
+                Directory.SetCurrentDirectory(System.IO.Path.GetDirectoryName(item.SvgPath));
 
                 var stopwatchOpen = Stopwatch.StartNew();
-                item.Svg = SKSvg.Open(item.SvgPath);
+                item.Svg = SvgModelExtensions.Open(item.SvgPath);
                 stopwatchOpen.Stop();
                 statusOpen?.Invoke($"{Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
                 Debug.WriteLine($"Open: {Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
@@ -184,16 +185,16 @@ namespace SvgToPng.ViewModels
 
         public void AddItems(List<string> paths, IList<Item> items, string referencePath, string outputPath)
         {
-            var fullReferencePath = string.IsNullOrWhiteSpace(referencePath) ? default : Path.GetFullPath(referencePath);
+            var fullReferencePath = string.IsNullOrWhiteSpace(referencePath) ? default : System.IO.Path.GetFullPath(referencePath);
 
             foreach (var path in paths)
             {
-                string inputName = Path.GetFileNameWithoutExtension(path);
+                string inputName = System.IO.Path.GetFileNameWithoutExtension(path);
                 string referencePng = string.Empty;
 
                 if (!string.IsNullOrWhiteSpace(fullReferencePath))
                 {
-                    referencePng = Path.Combine(fullReferencePath, inputName + ".png");
+                    referencePng = System.IO.Path.Combine(fullReferencePath, inputName + ".png");
                 }
 
                 var item = new Item()
@@ -215,13 +216,13 @@ namespace SvgToPng.ViewModels
             }
 
             var currentDirectory = Directory.GetCurrentDirectory();
-            Directory.SetCurrentDirectory(Path.GetDirectoryName(svgPath));
+            Directory.SetCurrentDirectory(System.IO.Path.GetDirectoryName(svgPath));
 
-            var extension = Path.GetExtension(outputPath);
+            var extension = System.IO.Path.GetExtension(outputPath);
 
             if (string.Compare(extension, ".pdf", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                var svg = SKSvg.Open(svgPath);
+                var svg = SvgModelExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
                 if (picture != null)
                 {
@@ -231,7 +232,7 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".xps", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                var svg = SKSvg.Open(svgPath);
+                var svg = SvgModelExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
                 if (picture != null)
                 {
@@ -240,7 +241,7 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".svg", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                var svg = SKSvg.Open(svgPath);
+                var svg = SvgModelExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
                 if (picture != null)
                 {
@@ -249,7 +250,7 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".jpeg", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                var svg = SKSvg.Open(svgPath);
+                var svg = SvgModelExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
                 if (picture != null)
                 {
@@ -259,7 +260,7 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".jpg", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                var svg = SKSvg.Open(svgPath);
+                var svg = SvgModelExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
                 if (picture != null)
                 {
@@ -269,7 +270,7 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".png", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                var svg = SKSvg.Open(svgPath);
+                var svg = SvgModelExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
                 if (picture != null)
                 {
@@ -279,7 +280,7 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".webp", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                var svg = SKSvg.Open(svgPath);
+                var svg = SvgModelExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
                 if (picture != null)
                 {
@@ -297,7 +298,7 @@ namespace SvgToPng.ViewModels
             {
                 foreach (var format in outputFormats)
                 {
-                    string path = Path.Combine(outputPath, item.Name + "." + format);
+                    string path = System.IO.Path.Combine(outputPath, item.Name + "." + format);
                     ExportItem(item.SvgPath, path, background, scaleX, scaleY);
                 }
             }
@@ -361,7 +362,7 @@ namespace SvgToPng.ViewModels
                     }
                     else
                     {
-                        var extension = Path.GetExtension(path).ToLower();
+                        var extension = System.IO.Path.GetExtension(path).ToLower();
                         if (extension == ".svg" || extension == ".svgz")
                         {
                             yield return path;

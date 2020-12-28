@@ -1,0 +1,18 @@
+﻿namespace Svg.Model
+{
+    public readonly struct PointI
+    {
+        public int X { get; }
+        public int Y { get; }
+
+        public static readonly PointI Empty;
+
+        public readonly bool IsEmpty => X == default && Y == default;
+
+        public PointI(int x, int y)
+        {
+            X = x;
+            Y = y;
+        }
+    }
+}

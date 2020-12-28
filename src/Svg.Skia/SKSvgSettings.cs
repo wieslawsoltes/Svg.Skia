@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Globalization;
 using SkiaSharp;
 
 namespace Svg.Skia
@@ -13,8 +12,6 @@ namespace Svg.Skia
         public static SKColorSpace s_srgbLinear = SKColorSpace.CreateRgb(SKColorSpaceTransferFn.Linear, SKColorSpaceXyz.Srgb); // SKColorSpace.CreateSrgbLinear();
 
         public static SKColorSpace s_srgb = SKColorSpace.CreateRgb(SKColorSpaceTransferFn.Srgb, SKColorSpaceXyz.Srgb); // SKColorSpace.CreateSrgb();
-
-        public static CultureInfo? s_systemLanguageOverride = null;
 
         public static IList<ITypefaceProvider> s_typefaceProviders = new List<ITypefaceProvider>()
         {

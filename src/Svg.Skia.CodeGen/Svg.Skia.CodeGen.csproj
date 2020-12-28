@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
@@ -21,7 +21,7 @@
   <Import Project="..\..\build\ReferenceAssemblies.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\Svg.Skia.Picture\Svg.Skia.Picture.csproj" />
+    <ProjectReference Include="..\Svg.Model\Svg.Model.csproj" />
   </ItemGroup>
 
 </Project>
