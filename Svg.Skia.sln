@@ -79,9 +79,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Skia.Converter", "sampl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Model", "src\Svg.Model\Svg.Model.csproj", "{4C970B2C-6C96-445B-B80B-4EFBF803FD5F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Skia.CodeGen", "src\Svg.Skia.CodeGen\Svg.Skia.CodeGen.csproj", "{29F59C87-EAE6-4DD3-8666-B79BFAF6B34D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.CodeGen.Skia", "src\Svg.CodeGen.Skia\Svg.CodeGen.Skia.csproj", "{29F59C87-EAE6-4DD3-8666-B79BFAF6B34D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Skia.SourceGenerator", "src\Svg.Skia.SourceGenerator\Svg.Skia.SourceGenerator.csproj", "{4E666156-B741-49BF-8ADB-4A3ED7B014A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.SourceGenerator.Skia", "src\Svg.SourceGenerator.Skia\Svg.SourceGenerator.Skia.csproj", "{4E666156-B741-49BF-8ADB-4A3ED7B014A5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "svgc", "samples\svgc\svgc.csproj", "{11CDD679-A078-4F05-B72D-15A5A79206EB}"
 EndProject
