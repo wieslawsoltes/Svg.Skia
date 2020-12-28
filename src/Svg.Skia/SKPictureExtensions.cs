@@ -43,7 +43,6 @@ namespace Svg.Skia
                 skData.SaveTo(stream);
                 return true;
             }
-
             return false;
         }
 
