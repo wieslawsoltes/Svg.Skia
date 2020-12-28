@@ -30,27 +30,27 @@
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgRectangle);
+            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgRectangle);
 
             drawable.TransformedBounds = drawable.Path.Bounds;
 
-            drawable.Transform = SvgExtensions.ToMatrix(svgRectangle.Transforms);
+            drawable.Transform = SvgModelExtensions.ToMatrix(svgRectangle.Transforms);
 
             bool canDrawFill = true;
             bool canDrawStroke = true;
 
-            if (SvgExtensions.IsValidFill(svgRectangle))
+            if (SvgModelExtensions.IsValidFill(svgRectangle))
             {
-                drawable.Fill = SvgExtensions.GetFillPaint(svgRectangle, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Fill = SvgModelExtensions.GetFillPaint(svgRectangle, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
             }
 
-            if (SvgExtensions.IsValidStroke(svgRectangle, drawable.TransformedBounds))
+            if (SvgModelExtensions.IsValidStroke(svgRectangle, drawable.TransformedBounds))
             {
-                drawable.Stroke = SvgExtensions.GetStrokePaint(svgRectangle, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgRectangle, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;

@@ -85,7 +85,7 @@ namespace Svg.Model.Drawables
 
             drawable.Overflow = skRectTransformed;
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgMask);
+            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgMask);
 
             drawable.TransformedBounds = skRectTransformed;
 
@@ -114,7 +114,7 @@ namespace Svg.Model.Drawables
 
             if (enableMask)
             {
-                MaskDrawable = SvgExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), Disposable);
+                MaskDrawable = SvgModelExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), Disposable);
                 if (MaskDrawable != null)
                 {
                     CreateMaskPaints();

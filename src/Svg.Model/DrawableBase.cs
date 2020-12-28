@@ -64,7 +64,7 @@ namespace Svg.Model
                 IsAntialias = true,
                 Style = PaintStyle.StrokeAndFill,
                 BlendMode = BlendMode.DstIn,
-                Color = SvgExtensions.s_transparentBlack,
+                Color = SvgModelExtensions.s_transparentBlack,
                 ColorFilter = lumaColor
             };
             Disposable.Add(MaskDstIn);
@@ -184,7 +184,7 @@ namespace Svg.Model
                 {
                     Clip = new Svg.Model.ClipPath()
                 };
-                SvgExtensions.GetSvgVisualElementClipPath(visualElement, TransformedBounds, new HashSet<Uri>(), Disposable, clipPath);
+                SvgModelExtensions.GetSvgVisualElementClipPath(visualElement, TransformedBounds, new HashSet<Uri>(), Disposable, clipPath);
                 if (clipPath.Clips != null && clipPath.Clips.Count > 0)
                 {
                     ClipPath = clipPath;
@@ -201,7 +201,7 @@ namespace Svg.Model
 
             if (enableMask)
             {
-                MaskDrawable = SvgExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), Disposable);
+                MaskDrawable = SvgModelExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), Disposable);
                 if (MaskDrawable != null)
                 {
                     CreateMaskPaints();
@@ -212,11 +212,11 @@ namespace Svg.Model
                 MaskDrawable = null;
             }
 
-            Opacity = enableOpacity ? SvgExtensions.GetOpacityPaint(element, Disposable) : null;
+            Opacity = enableOpacity ? SvgModelExtensions.GetOpacityPaint(element, Disposable) : null;
 
             if (visualElement != null && enableFilter)
             {
-                Filter = SvgExtensions.GetFilterPaint(visualElement, TransformedBounds, this, Disposable, out var isValid);
+                Filter = SvgModelExtensions.GetFilterPaint(visualElement, TransformedBounds, this, Disposable, out var isValid);
                 if (isValid == false)
                 {
                     IsDrawable = false;

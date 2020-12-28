@@ -50,7 +50,7 @@ namespace Svg.Model.Drawables
             //    return;
             //}
 
-            var image = SvgExtensions.GetImage(svgImage.Href, svgImage.OwnerDocument);
+            var image = SvgModelExtensions.GetImage(svgImage.Href, svgImage.OwnerDocument);
             var skImage = image as Image;
             var svgFragment = image as SvgFragment;
             if (skImage is null && svgFragment is null)
@@ -73,7 +73,7 @@ namespace Svg.Model.Drawables
 
             if (svgFragment != null)
             {
-                var skSize = SvgExtensions.GetDimensions(svgFragment);
+                var skSize = SvgModelExtensions.GetDimensions(svgFragment);
                 drawable.SrcRect = Rect.Create(0f, 0f, skSize.Width, skSize.Height);
             }
 
@@ -153,7 +153,7 @@ namespace Svg.Model.Drawables
 
             drawable.Clip = destClip;
 
-            var skClipRect = SvgExtensions.GetClipRect(svgImage, destClip);
+            var skClipRect = SvgModelExtensions.GetClipRect(svgImage, destClip);
             if (skClipRect != null)
             {
                 drawable.Clip = skClipRect;
@@ -170,7 +170,7 @@ namespace Svg.Model.Drawables
                 drawable.Disposable.Add(drawable.FragmentDrawable);
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgImage);
+            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgImage);
 
             if (drawable.Image != null)
             {
@@ -182,7 +182,7 @@ namespace Svg.Model.Drawables
                 drawable.TransformedBounds = drawable.DestRect;
             }
 
-            drawable.Transform = SvgExtensions.ToMatrix(svgImage.Transforms);
+            drawable.Transform = SvgModelExtensions.ToMatrix(svgImage.Transforms);
             drawable.FragmentTransform = Matrix.CreateIdentity();
             if (drawable.FragmentDrawable != null)
             {

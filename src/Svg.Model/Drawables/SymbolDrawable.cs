@@ -64,14 +64,14 @@ namespace Svg.Model.Drawables
 
             drawable.CreateChildren(svgSymbol, skOwnerBounds, drawable, ignoreAttributes);
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgSymbol);
+            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgSymbol);
 
             drawable.TransformedBounds = Rect.Empty;
 
             drawable.CreateTransformedBounds();
 
-            drawable.Transform = SvgExtensions.ToMatrix(svgSymbol.Transforms);
-            var skMatrixViewBox = SvgExtensions.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
+            drawable.Transform = SvgModelExtensions.ToMatrix(svgSymbol.Transforms);
+            var skMatrixViewBox = SvgModelExtensions.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
             drawable.Transform = drawable.Transform.PreConcat(skMatrixViewBox);
 
             drawable.Fill = null;

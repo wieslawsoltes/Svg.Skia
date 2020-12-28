@@ -30,27 +30,27 @@
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgPolygon);
+            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgPolygon);
 
             drawable.TransformedBounds = drawable.Path.Bounds;
 
-            drawable.Transform = SvgExtensions.ToMatrix(svgPolygon.Transforms);
+            drawable.Transform = SvgModelExtensions.ToMatrix(svgPolygon.Transforms);
 
             bool canDrawFill = true;
             bool canDrawStroke = true;
 
-            if (SvgExtensions.IsValidFill(svgPolygon))
+            if (SvgModelExtensions.IsValidFill(svgPolygon))
             {
-                drawable.Fill = SvgExtensions.GetFillPaint(svgPolygon, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Fill = SvgModelExtensions.GetFillPaint(svgPolygon, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
             }
 
-            if (SvgExtensions.IsValidStroke(svgPolygon, drawable.TransformedBounds))
+            if (SvgModelExtensions.IsValidStroke(svgPolygon, drawable.TransformedBounds))
             {
-                drawable.Stroke = SvgExtensions.GetStrokePaint(svgPolygon, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgPolygon, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
@@ -63,7 +63,7 @@
                 return drawable;
             }
 
-            SvgExtensions.CreateMarkers(svgPolygon, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
+            SvgModelExtensions.CreateMarkers(svgPolygon, drawable.Path, skOwnerBounds, ref drawable.MarkerDrawables, drawable.Disposable);
 
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);

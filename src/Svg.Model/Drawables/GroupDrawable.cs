@@ -19,7 +19,7 @@
             drawable.IsDrawable = drawable.CanDraw(svgGroup, drawable.IgnoreAttributes) && drawable.HasFeatures(svgGroup, drawable.IgnoreAttributes);
 
             // NOTE: Call AddMarkers only once.
-            SvgExtensions.AddMarkers(svgGroup);
+            SvgModelExtensions.AddMarkers(svgGroup);
 
             drawable.CreateChildren(svgGroup, skOwnerBounds, drawable, ignoreAttributes);
 
@@ -38,13 +38,13 @@
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgGroup);
+            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgGroup);
 
             drawable.TransformedBounds = Rect.Empty;
 
             drawable.CreateTransformedBounds();
 
-            drawable.Transform = SvgExtensions.ToMatrix(svgGroup.Transforms);
+            drawable.Transform = SvgModelExtensions.ToMatrix(svgGroup.Transforms);
 
             drawable.Fill = null;
             drawable.Stroke = null;

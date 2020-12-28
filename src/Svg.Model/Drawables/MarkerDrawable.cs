@@ -112,11 +112,11 @@ namespace Svg.Model.Drawables
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgMarker);
+            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgMarker);
 
             drawable.TransformedBounds = drawable.MarkerElementDrawable.TransformedBounds;
 
-            drawable.Transform = SvgExtensions.ToMatrix(svgMarker.Transforms);
+            drawable.Transform = SvgModelExtensions.ToMatrix(svgMarker.Transforms);
             drawable.Transform = drawable.Transform.PreConcat(skMarkerMatrix);
 
             drawable.Fill = null;

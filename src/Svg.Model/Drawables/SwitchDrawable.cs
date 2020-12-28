@@ -54,11 +54,11 @@
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgSwitch);
+            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgSwitch);
 
             drawable.TransformedBounds = drawable.FirstChild.TransformedBounds;
 
-            drawable.Transform = SvgExtensions.ToMatrix(svgSwitch.Transforms);
+            drawable.Transform = SvgModelExtensions.ToMatrix(svgSwitch.Transforms);
 
             drawable.Fill = null;
             drawable.Stroke = null;

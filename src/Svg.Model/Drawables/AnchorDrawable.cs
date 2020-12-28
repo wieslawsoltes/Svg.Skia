@@ -19,13 +19,13 @@
 
             drawable.CreateChildren(svgAnchor, skOwnerBounds, drawable, ignoreAttributes);
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgAnchor);
+            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgAnchor);
 
             drawable.TransformedBounds = Rect.Empty;
 
             drawable.CreateTransformedBounds();
 
-            drawable.Transform = SvgExtensions.ToMatrix(svgAnchor.Transforms);
+            drawable.Transform = SvgModelExtensions.ToMatrix(svgAnchor.Transforms);
 
             drawable.Fill = null;
             drawable.Stroke = null;
@@ -35,7 +35,7 @@
 
             drawable.ClipPath = null;
             drawable.MaskDrawable = null;
-            drawable.Opacity = drawable.IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgExtensions.GetOpacityPaint(svgAnchor, drawable.Disposable);
+            drawable.Opacity = drawable.IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgModelExtensions.GetOpacityPaint(svgAnchor, drawable.Disposable);
             drawable.Filter = null;
 
             return drawable;
@@ -53,7 +53,7 @@
 
             ClipPath = null;
             MaskDrawable = null;
-            Opacity = enableOpacity ? SvgExtensions.GetOpacityPaint(element, Disposable) : null;
+            Opacity = enableOpacity ? SvgModelExtensions.GetOpacityPaint(element, Disposable) : null;
             Filter = null;
 
             foreach (var child in ChildrenDrawables)

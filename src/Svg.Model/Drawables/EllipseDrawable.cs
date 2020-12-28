@@ -30,25 +30,25 @@
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgEllipse);
+            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgEllipse);
             drawable.TransformedBounds = drawable.Path.Bounds;
-            drawable.Transform = SvgExtensions.ToMatrix(svgEllipse.Transforms);
+            drawable.Transform = SvgModelExtensions.ToMatrix(svgEllipse.Transforms);
 
             bool canDrawFill = true;
             bool canDrawStroke = true;
 
-            if (SvgExtensions.IsValidFill(svgEllipse))
+            if (SvgModelExtensions.IsValidFill(svgEllipse))
             {
-                drawable.Fill = SvgExtensions.GetFillPaint(svgEllipse, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Fill = SvgModelExtensions.GetFillPaint(svgEllipse, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
             }
 
-            if (SvgExtensions.IsValidStroke(svgEllipse, drawable.TransformedBounds))
+            if (SvgModelExtensions.IsValidStroke(svgEllipse, drawable.TransformedBounds))
             {
-                drawable.Stroke = SvgExtensions.GetStrokePaint(svgEllipse, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
+                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgEllipse, drawable.TransformedBounds, ignoreAttributes, drawable.Disposable);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;

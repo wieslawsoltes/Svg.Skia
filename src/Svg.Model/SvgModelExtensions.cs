@@ -14,7 +14,7 @@ using Svg.Transforms;
 
 namespace Svg.Model
 {
-    public static class SvgExtensions
+    public static class SvgModelExtensions
     {
         public static CultureInfo? s_systemLanguageOverride = null;
 
@@ -145,17 +145,17 @@ namespace Svg.Model
 
         private static byte[] s_gZipMagicHeaderBytes => new byte[2] { 0x1f, 0x8b };
 
-        public const string SourceGraphic = "SourceGraphic";
+        internal const string SourceGraphic = "SourceGraphic";
 
-        public const string SourceAlpha = "SourceAlpha";
+        internal const string SourceAlpha = "SourceAlpha";
 
-        public const string BackgroundImage = "BackgroundImage";
+        internal const string BackgroundImage = "BackgroundImage";
 
-        public const string BackgroundAlpha = "BackgroundAlpha";
+        internal const string BackgroundAlpha = "BackgroundAlpha";
 
-        public const string FillPaint = "FillPaint";
+        internal const string FillPaint = "FillPaint";
 
-        public const string StrokePaint = "StrokePaint";
+        internal const string StrokePaint = "StrokePaint";
 
         internal static SvgFuncA s_identitySvgFuncA = new SvgFuncA()
         {
@@ -318,49 +318,6 @@ namespace Svg.Model
             return svgUnit.Type == SvgUnitType.Percentage
                 && svgCoordinateUnits == SvgCoordinateUnits.ObjectBoundingBox ?
                     new SvgUnit(SvgUnitType.User, svgUnit.Value / 100) : svgUnit;
-        }
-
-        public static Size GetDimensions(SvgFragment svgFragment)
-        {
-            float w, h;
-            var isWidthperc = svgFragment.Width.Type == SvgUnitType.Percentage;
-            var isHeightperc = svgFragment.Height.Type == SvgUnitType.Percentage;
-
-            var bounds = new Rect();
-            if (isWidthperc || isHeightperc)
-            {
-                if (svgFragment.ViewBox.Width > 0 && svgFragment.ViewBox.Height > 0)
-                {
-                    bounds = new Rect(
-                        svgFragment.ViewBox.MinX, svgFragment.ViewBox.MinY,
-                        svgFragment.ViewBox.Width, svgFragment.ViewBox.Height);
-                }
-                else
-                {
-                    // TODO: Calculate correct bounds using Children bounds.
-                }
-            }
-
-            if (isWidthperc)
-            {
-                w = (bounds.Width + bounds.Left) * (svgFragment.Width.Value * 0.01f);
-            }
-            else
-            {
-                // NOTE: Pass bounds as Rect.Empty because percentage case is handled before.
-                w = svgFragment.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, Rect.Empty);
-            }
-            if (isHeightperc)
-            {
-                h = (bounds.Height + bounds.Top) * (svgFragment.Height.Value * 0.01f);
-            }
-            else
-            {
-                // NOTE: Pass bounds as Rect.Empty because percentage case is handled before.
-                h = svgFragment.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, Rect.Empty);
-            }
-
-            return new Size(w, h);
         }
 
         internal static T? GetReference<T>(this SvgElement svgElement, Uri uri) where T : SvgElement
@@ -4772,9 +4729,52 @@ namespace Svg.Model
             SetTypeface(svgText, skPaint, disposable);
         }
 
+        public static Size GetDimensions(SvgFragment svgFragment)
+        {
+            float w, h;
+            var isWidthperc = svgFragment.Width.Type == SvgUnitType.Percentage;
+            var isHeightperc = svgFragment.Height.Type == SvgUnitType.Percentage;
+
+            var bounds = new Rect();
+            if (isWidthperc || isHeightperc)
+            {
+                if (svgFragment.ViewBox.Width > 0 && svgFragment.ViewBox.Height > 0)
+                {
+                    bounds = new Rect(
+                        svgFragment.ViewBox.MinX, svgFragment.ViewBox.MinY,
+                        svgFragment.ViewBox.Width, svgFragment.ViewBox.Height);
+                }
+                else
+                {
+                    // TODO: Calculate correct bounds using Children bounds.
+                }
+            }
+
+            if (isWidthperc)
+            {
+                w = (bounds.Width + bounds.Left) * (svgFragment.Width.Value * 0.01f);
+            }
+            else
+            {
+                // NOTE: Pass bounds as Rect.Empty because percentage case is handled before.
+                w = svgFragment.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, Rect.Empty);
+            }
+            if (isHeightperc)
+            {
+                h = (bounds.Height + bounds.Top) * (svgFragment.Height.Value * 0.01f);
+            }
+            else
+            {
+                // NOTE: Pass bounds as Rect.Empty because percentage case is handled before.
+                h = svgFragment.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, Rect.Empty);
+            }
+
+            return new Size(w, h);
+        }
+
         public static Picture? ToModel(SvgFragment svgFragment)
         {
-            var size = SvgExtensions.GetDimensions(svgFragment);
+            var size = GetDimensions(svgFragment);
             var bounds = Rect.Create(size);
             using var drawable = DrawableFactory.Create(svgFragment, bounds, null, Attributes.None);
             if (drawable == null)
