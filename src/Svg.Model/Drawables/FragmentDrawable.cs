@@ -77,7 +77,7 @@ namespace Svg.Model.Drawables
 
             var clipPathUris = new HashSet<Uri>();
             var svgClipPath = svgFragment.GetUriElementReference<SvgClipPath>("clip-path", clipPathUris);
-            if (svgClipPath is { } && svgClipPath.Children is { })
+            if (svgClipPath?.Children != null)
             {
                 var clipPath = new ClipPath
                 {
