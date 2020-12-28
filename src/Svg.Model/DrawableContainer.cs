@@ -14,7 +14,7 @@ namespace Svg.Model
             ChildrenDrawables = new List<DrawableBase>();
         }
 
-        protected virtual void CreateChildren(SvgElement svgElement, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        protected void CreateChildren(SvgElement svgElement, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
             foreach (var child in svgElement.Children)
             {
@@ -26,7 +26,7 @@ namespace Svg.Model
             }
         }
 
-        protected virtual void CreateTransformedBounds()
+        protected void CreateTransformedBounds()
         {
             foreach (var drawable in ChildrenDrawables)
             {
