@@ -1105,7 +1105,7 @@ namespace Svg.Model
 
             foreach (var svgElement in svgElementCollection)
             {
-                using var drawable = DrawableFactory.Create(svgElement, skBounds, null, assetLoader, ignoreAttributes);
+                var drawable = DrawableFactory.Create(svgElement, skBounds, null, assetLoader, ignoreAttributes);
                 if (drawable is { })
                 {
                     drawable.PostProcess();
@@ -3502,7 +3502,7 @@ namespace Svg.Model
                 fragmentTransform = fragmentTransform.PreConcat(skTranslationMatrix);
                 fragmentTransform = fragmentTransform.PreConcat(skScaleMatrix);
 
-                using var fragmentDrawable = FragmentDrawable.Create(svgFragment, destRect, null, assetLoader, Attributes.None);
+                var fragmentDrawable = FragmentDrawable.Create(svgFragment, destRect, null, assetLoader, Attributes.None);
                 // TODO:
                 var skPicture = fragmentDrawable.Snapshot(); 
 
@@ -4656,7 +4656,7 @@ namespace Svg.Model
         {
             var size = GetDimensions(svgFragment);
             var fragmentBounds = Rect.Create(size);
-            using var drawable = DrawableFactory.Create(svgFragment, fragmentBounds, null, assetLoader);
+            var drawable = DrawableFactory.Create(svgFragment, fragmentBounds, null, assetLoader);
             if (drawable is null)
             {
                 bounds = default;

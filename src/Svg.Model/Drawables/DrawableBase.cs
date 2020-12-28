@@ -43,11 +43,6 @@ namespace Svg.Model.Drawables
             return IsDrawable ? TransformedBounds : Rect.Empty;
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-        }
-
         protected virtual void CreateMaskPaints()
         {
             Mask = new Paint

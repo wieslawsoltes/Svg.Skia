@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace Svg.Model.Primitives
+﻿namespace Svg.Model.Primitives
 {
-    public abstract class Drawable : IDisposable
+    public abstract class Drawable
     {
         public Rect Bounds => OnGetBounds();
 
@@ -26,14 +24,6 @@ namespace Svg.Model.Primitives
         protected virtual Rect OnGetBounds()
         {
             return Rect.Empty;
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-        }
-
-        public void Dispose()
-        {
         }
     }
 }
