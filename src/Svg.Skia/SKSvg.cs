@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO.Compression;
 using SkiaSharp;
 using Svg.Model;
 
@@ -7,50 +6,9 @@ namespace Svg.Skia
 {
     public class SKSvg : IDisposable
     {
-        static SKSvg()
-        {
-            SvgDocument.SkipGdiPlusCapabilityCheck = true;
-            SvgDocument.PointsPerInch = 96;
-        }
-
-        public static SvgDocument? OpenSvg(string path)
-        {
-            return SvgDocument.Open<SvgDocument>(path, null);
-        }
-
-        public static SvgDocument? OpenSvgz(string path)
-        {
-            using var fileStream = System.IO.File.OpenRead(path);
-            using var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress);
-            using var memoryStream = new System.IO.MemoryStream();
-
-            gzipStream.CopyTo(memoryStream);
-            memoryStream.Position = 0;
-
-            var svgDocument = SvgDocument.Open<SvgDocument>(memoryStream, null);
-
-            return svgDocument;
-        }
-
-        public static SvgDocument? Open(string path)
-        {
-            var extension = System.IO.Path.GetExtension(path);
-            return extension.ToLower() switch
-            {
-                ".svg" => OpenSvg(path),
-                ".svgz" => OpenSvgz(path),
-                _ => OpenSvg(path),
-            };
-        }
-
-        public static SvgDocument? Open(System.IO.Stream stream)
-        {
-            return SvgDocument.Open<SvgDocument>(stream, null);
-        }
-
         public static SKPicture? ToPicture(SvgFragment svgFragment)
         {
-            var picture = SvgExtensions.ToModel(svgFragment);
+            var picture = SvgModelExtensions.ToModel(svgFragment);
             if (picture != null)
             {
                 return SkiaPicture.Record(picture);
@@ -60,7 +18,7 @@ namespace Svg.Skia
 
         public static void Draw(SKCanvas skCanvas, SvgFragment svgFragment)
         {
-            var size = SvgExtensions.GetDimensions(svgFragment);
+            var size = SvgModelExtensions.GetDimensions(svgFragment);
             var bounds = Rect.Create(size);
             using var drawable = DrawableFactory.Create(svgFragment, bounds, null, Attributes.None);
             if (drawable != null)
@@ -76,7 +34,7 @@ namespace Svg.Skia
 
         public static void Draw(SKCanvas skCanvas, string path)
         {
-            var svgDocument = Open(path);
+            var svgDocument = SvgModelExtensions.Open(path);
             if (svgDocument != null)
             {
                 Draw(skCanvas, svgDocument);
@@ -88,7 +46,7 @@ namespace Svg.Skia
         public SKPicture? Load(System.IO.Stream stream)
         {
             Reset();
-            var svgDocument = SvgDocument.Open<SvgDocument>(stream, null);
+            var svgDocument = SvgModelExtensions.Open(stream);
             if (svgDocument != null)
             {
                 Picture = ToPicture(svgDocument);
@@ -100,7 +58,7 @@ namespace Svg.Skia
         public SKPicture? Load(string path)
         {
             Reset();
-            var svgDocument = Open(path);
+            var svgDocument = SvgModelExtensions.Open(path);
             if (svgDocument != null)
             {
                 Picture = ToPicture(svgDocument);
@@ -112,7 +70,7 @@ namespace Svg.Skia
         public SKPicture? FromSvg(string svg)
         {
             Reset();
-            var svgDocument = SvgDocument.FromSvg<SvgDocument>(svg);
+            var svgDocument = SvgModelExtensions.FromSvg(svg);
             if (svgDocument != null)
             {
                 Picture = ToPicture(svgDocument);
