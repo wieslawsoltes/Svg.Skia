@@ -15,11 +15,11 @@ namespace Svg.Skia
     {
         private static readonly DiagnosticDescriptor s_errorDescriptor = new DiagnosticDescriptor(
 #pragma warning disable RS2008 // Enable analyzer release tracking
-            "SI0000",
+            "SV0000",
 #pragma warning restore RS2008 // Enable analyzer release tracking
-            "Error in the SvgSourceGenerator generator",
-            "Error in the SvgSourceGenerator generator: '{0}'",
-            "SvgSourceGenerator",
+            $"Error in the {nameof(SvgSourceGenerator)} generator",
+            $"Error in the {nameof(SvgSourceGenerator)} generator: '{0}'",
+            $"{nameof(SvgSourceGenerator)}",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
