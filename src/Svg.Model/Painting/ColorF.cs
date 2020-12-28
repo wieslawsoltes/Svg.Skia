@@ -20,7 +20,7 @@ namespace Svg.Model.Painting
 
         public static implicit operator Color(ColorF color)
         {
-            return new Color(
+            return new(
                 (byte)(color.Red * 255.0f),
                 (byte)(color.Green * 255.0f),
                 (byte)(color.Blue * 255.0f),

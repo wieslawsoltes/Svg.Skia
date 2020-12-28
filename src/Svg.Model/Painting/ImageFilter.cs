@@ -186,7 +186,7 @@ namespace Svg.Model.Painting
             };
         }
 
-        public static ImageFilter CreatePicture(Picture.Picture picture, Rect cropRect)
+        public static ImageFilter CreatePicture(Picture picture, Rect cropRect)
         {
             return new PictureImageFilter
             {

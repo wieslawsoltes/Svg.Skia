@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Svg.Model.Painting;
-using Svg.Model.Path;
-using Svg.Model.Path.Commands;
+using Svg.Model.Primitives.PathCommands;
 using Svg.Model.PathEffects;
 using Svg.Model.Primitives;
 using Svg.Model.Shaders;

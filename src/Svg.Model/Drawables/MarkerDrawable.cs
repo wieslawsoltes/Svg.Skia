@@ -1,7 +1,6 @@
 ﻿using System;
 using Svg.DataTypes;
 using Svg.Model.Painting;
-using Svg.Model.Picture;
 using Svg.Model.Primitives;
 
 namespace Svg.Model.Drawables
@@ -65,8 +64,8 @@ namespace Svg.Model.Drawables
                         var viewBoxWidth = svgMarker.ViewBox.Width;
                         var viewBoxHeight = svgMarker.ViewBox.Height;
 
-                        var scaleFactorWidth = (viewBoxWidth <= 0) ? 1 : (markerWidth / viewBoxWidth);
-                        var scaleFactorHeight = (viewBoxHeight <= 0) ? 1 : (markerHeight / viewBoxHeight);
+                        var scaleFactorWidth = viewBoxWidth <= 0 ? 1 : markerWidth / viewBoxWidth;
+                        var scaleFactorHeight = viewBoxHeight <= 0 ? 1 : markerHeight / viewBoxHeight;
 
                         viewBoxToMarkerUnitsScaleX = Math.Min(scaleFactorWidth, scaleFactorHeight);
                         viewBoxToMarkerUnitsScaleY = Math.Min(scaleFactorWidth, scaleFactorHeight);

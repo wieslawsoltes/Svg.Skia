@@ -1,6 +1,5 @@
 ﻿using System;
 using Svg.Model.Painting;
-using Svg.Model.Picture;
 using Svg.Model.Primitives;
 
 namespace Svg.Model.Drawables
@@ -106,7 +105,7 @@ namespace Svg.Model.Drawables
                         break;
 
                     case SvgPreserveAspectRatio.xMaxYMin:
-                        xOffset = (destClip.Width - drawable.SrcRect.Width * fScaleX);
+                        xOffset = destClip.Width - drawable.SrcRect.Width * fScaleX;
                         break;
 
                     case SvgPreserveAspectRatio.xMinYMid:
@@ -119,22 +118,22 @@ namespace Svg.Model.Drawables
                         break;
 
                     case SvgPreserveAspectRatio.xMaxYMid:
-                        xOffset = (destClip.Width - drawable.SrcRect.Width * fScaleX);
+                        xOffset = destClip.Width - drawable.SrcRect.Width * fScaleX;
                         yOffset = (destClip.Height - drawable.SrcRect.Height * fScaleY) / 2;
                         break;
 
                     case SvgPreserveAspectRatio.xMinYMax:
-                        yOffset = (destClip.Height - drawable.SrcRect.Height * fScaleY);
+                        yOffset = destClip.Height - drawable.SrcRect.Height * fScaleY;
                         break;
 
                     case SvgPreserveAspectRatio.xMidYMax:
                         xOffset = (destClip.Width - drawable.SrcRect.Width * fScaleX) / 2;
-                        yOffset = (destClip.Height - drawable.SrcRect.Height * fScaleY);
+                        yOffset = destClip.Height - drawable.SrcRect.Height * fScaleY;
                         break;
 
                     case SvgPreserveAspectRatio.xMaxYMax:
-                        xOffset = (destClip.Width - drawable.SrcRect.Width * fScaleX);
-                        yOffset = (destClip.Height - drawable.SrcRect.Height * fScaleY);
+                        xOffset = destClip.Width - drawable.SrcRect.Width * fScaleX;
+                        yOffset = destClip.Height - drawable.SrcRect.Height * fScaleY;
                         break;
                 }
 
@@ -212,7 +211,7 @@ namespace Svg.Model.Drawables
 
             if (Image is { })
             {
-                using var skImagePaint = new Painting.Paint
+                using var skImagePaint = new Paint
                 {
                     IsAntialias = true,
                     FilterQuality = FilterQuality.High

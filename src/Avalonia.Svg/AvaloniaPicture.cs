@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Avalonia.Svg.Commands;
-using Svg.Model.Path.Commands;
-using Svg.Model.Picture;
-using Svg.Model.Picture.Commands;
+using Svg.Model.Primitives.PathCommands;
+using Svg.Model.Primitives;
+using Svg.Model.Primitives.CanvasCommands;
 using SP = Svg.Model;
 using A = Avalonia;
 using AM = Avalonia.Media;

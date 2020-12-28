@@ -18,9 +18,9 @@ namespace Svg.Model.Primitives
 
         public readonly float Height => Bottom - Top;
 
-        public readonly Size Size => new Size(Width, Height);
+        public readonly Size Size => new(Width, Height);
 
-        public readonly Point Location => new Point(Left, Top);
+        public readonly Point Location => new(Left, Top);
 
         public Rect(float left, float top, float right, float bottom)
         {
@@ -32,7 +32,7 @@ namespace Svg.Model.Primitives
 
         public static Rect Create(float x, float y, float width, float height)
         {
-            return new Rect
+            return new()
             {
                 Left = x,
                 Top = y,
@@ -48,7 +48,7 @@ namespace Svg.Model.Primitives
 
         public static Rect Union(Rect a, Rect b)
         {
-            return new Rect(
+            return new(
                 Math.Min(a.Left, b.Left),
                 Math.Min(a.Top, b.Top),
                 Math.Max(a.Right, b.Right),

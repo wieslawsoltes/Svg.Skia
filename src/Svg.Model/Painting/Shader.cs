@@ -66,7 +66,7 @@ namespace Svg.Model.Painting
             };
         }
 
-        public static Shader CreatePicture(Picture.Picture src, ShaderTileMode tmx, ShaderTileMode tmy, Matrix localMatrix, Rect tile)
+        public static Shader CreatePicture(Picture src, ShaderTileMode tmx, ShaderTileMode tmy, Matrix localMatrix, Rect tile)
         {
             return new PictureShader
             {

@@ -1,5 +1,4 @@
-﻿using Svg.Model.Picture;
-using Svg.Model.Primitives;
+﻿using Svg.Model.Primitives;
 
 namespace Svg.Model.Drawables
 {

@@ -11,9 +11,7 @@ using Svg.FilterEffects;
 using Svg.Model.Drawables;
 using Svg.Model.ImageFilters;
 using Svg.Model.Painting;
-using Svg.Model.Path;
-using Svg.Model.Path.Commands;
-using Svg.Model.Picture;
+using Svg.Model.Primitives.PathCommands;
 using Svg.Model.Primitives;
 using Svg.Model.Shaders;
 using Svg.Pathing;
@@ -40,7 +38,7 @@ namespace Svg.Model
             CloseSubpath = 0x80
         }
 
-        internal static HashSet<string> s_supportedFeatures = new HashSet<string>
+        internal static HashSet<string> s_supportedFeatures = new()
         {
             "http://www.w3.org/TR/SVG11/feature#SVG",
             "http://www.w3.org/TR/SVG11/feature#SVGDOM",
@@ -90,11 +88,11 @@ namespace Svg.Model
             "http://www.w3.org/TR/SVG11/feature#Extensibility"
         };
 
-        internal static HashSet<string> s_supportedExtensions = new HashSet<string>
+        internal static HashSet<string> s_supportedExtensions = new()
         {
         };
 
-        internal static Color s_transparentBlack = new Color(0, 0, 0, 255);
+        internal static Color s_transparentBlack = new(0, 0, 0, 255);
 
         private const string MimeTypeSvg = "image/svg+xml";
 
@@ -112,25 +110,25 @@ namespace Svg.Model
 
         internal const string StrokePaint = "StrokePaint";
 
-        internal static SvgFuncA s_identitySvgFuncA = new SvgFuncA
+        internal static SvgFuncA s_identitySvgFuncA = new()
         {
             Type = SvgComponentTransferType.Identity,
             TableValues = new SvgNumberCollection()
         };
 
-        internal static SvgFuncR s_identitySvgFuncR = new SvgFuncR
+        internal static SvgFuncR s_identitySvgFuncR = new()
         {
             Type = SvgComponentTransferType.Identity,
             TableValues = new SvgNumberCollection()
         };
 
-        internal static SvgFuncG s_identitySvgFuncG = new SvgFuncG
+        internal static SvgFuncG s_identitySvgFuncG = new()
         {
             Type = SvgComponentTransferType.Identity,
             TableValues = new SvgNumberCollection()
         };
 
-        internal static SvgFuncB s_identitySvgFuncB = new SvgFuncB
+        internal static SvgFuncB s_identitySvgFuncB = new()
         {
             Type = SvgComponentTransferType.Identity,
             TableValues = new SvgNumberCollection()
@@ -173,7 +171,7 @@ namespace Svg.Model
 
         internal static float CalculateOtherPercentageValue(this Rect skBounds)
         {
-            return (float)(Math.Sqrt((skBounds.Width * skBounds.Width) + (skBounds.Width * skBounds.Height)) / Math.Sqrt(2.0));
+            return (float)(Math.Sqrt(skBounds.Width * skBounds.Width + skBounds.Width * skBounds.Height) / Math.Sqrt(2.0));
         }
 
         internal static float ToDeviceValue(this SvgUnit svgUnit, UnitRenderingType renderType, SvgElement? owner, Rect skBounds)
@@ -189,16 +187,16 @@ namespace Svg.Model
             {
                 case SvgUnitType.Em:
                     points = value * 9;
-                    _deviceValue = (points / 72.0f) * ppi;
+                    _deviceValue = points / 72.0f * ppi;
                     break;
 
                 case SvgUnitType.Ex:
                     points = value * 9;
-                    _deviceValue = (points * 0.5f / 72.0f) * ppi;
+                    _deviceValue = points * 0.5f / 72.0f * ppi;
                     break;
 
                 case SvgUnitType.Centimeter:
-                    _deviceValue = (value / cmInInch) * ppi;
+                    _deviceValue = value / cmInInch * ppi;
                     break;
 
                 case SvgUnitType.Inch:
@@ -206,15 +204,15 @@ namespace Svg.Model
                     break;
 
                 case SvgUnitType.Millimeter:
-                    _deviceValue = (value / 10) / cmInInch * ppi;
+                    _deviceValue = value / 10 / cmInInch * ppi;
                     break;
 
                 case SvgUnitType.Pica:
-                    _deviceValue = ((value * 12) / 72) * ppi;
+                    _deviceValue = value * 12 / 72 * ppi;
                     break;
 
                 case SvgUnitType.Point:
-                    _deviceValue = (value / 72) * ppi;
+                    _deviceValue = value / 72 * ppi;
                     break;
 
                 case SvgUnitType.Pixel:
@@ -231,19 +229,19 @@ namespace Svg.Model
                     switch (renderType)
                     {
                         case UnitRenderingType.Horizontal:
-                            _deviceValue = (size.Width / 100) * value;
+                            _deviceValue = size.Width / 100 * value;
                             break;
 
                         case UnitRenderingType.HorizontalOffset:
-                            _deviceValue = (size.Width / 100) * value + skBounds.Location.X;
+                            _deviceValue = size.Width / 100 * value + skBounds.Location.X;
                             break;
 
                         case UnitRenderingType.Vertical:
-                            _deviceValue = (size.Height / 100) * value;
+                            _deviceValue = size.Height / 100 * value;
                             break;
 
                         case UnitRenderingType.VerticalOffset:
-                            _deviceValue = (size.Height / 100) * value + skBounds.Location.Y;
+                            _deviceValue = size.Height / 100 * value + skBounds.Location.Y;
                             break;
 
                         default:
@@ -551,7 +549,7 @@ namespace Svg.Model
 
         internal static byte CombineWithOpacity(byte alpha, float opacity)
         {
-            return (byte)Math.Round((opacity * (alpha / 255.0)) * 255);
+            return (byte)Math.Round(opacity * (alpha / 255.0) * 255);
         }
 
         internal static Color GetColor(SvgColourServer svgColourServer, float opacity, Attributes ignoreAttributes)
@@ -1089,7 +1087,7 @@ namespace Svg.Model
             }
         }
 
-        internal static Picture.Picture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, Matrix skMatrix, float opacity, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static Picture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, Matrix skMatrix, float opacity, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
             var skSize = new Size(width, height);
             var skBounds = Rect.Create(skSize);
@@ -1295,7 +1293,7 @@ namespace Svg.Model
             return Shader.CreatePicture(skPicture, ShaderTileMode.Repeat, ShaderTileMode.Repeat, skMatrix, skPicture.CullRect);
         }
 
-        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, Rect skBounds, Painting.Paint skPaint, bool forStroke, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, Rect skBounds, Paint skPaint, bool forStroke, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
             var fallbackServer = SvgPaintServer.None;
             if (server is SvgDeferredPaintServer deferredServer)
@@ -1451,7 +1449,7 @@ namespace Svg.Model
             return true;
         }
 
-        internal static void SetDash(SvgVisualElement svgVisualElement, Painting.Paint skPaint, Rect skBounds)
+        internal static void SetDash(SvgVisualElement svgVisualElement, Paint skPaint, Rect skBounds)
         {
             var skPathEffect = CreateDash(svgVisualElement, skBounds);
             if (skPathEffect is { })
@@ -1489,9 +1487,9 @@ namespace Svg.Model
                 && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
         }
 
-        internal static Painting.Paint? GetFillPaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static Paint? GetFillPaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
-            var skPaint = new Painting.Paint
+            var skPaint = new Paint
             {
                 IsAntialias = IsAntialias(svgVisualElement),
                 Style = PaintStyle.Fill
@@ -1507,9 +1505,9 @@ namespace Svg.Model
             return skPaint;
         }
 
-        internal static Painting.Paint? GetStrokePaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static Paint? GetStrokePaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
-            var skPaint = new Painting.Paint
+            var skPaint = new Paint
             {
                 IsAntialias = IsAntialias(svgVisualElement),
                 Style = PaintStyle.Stroke
@@ -1565,11 +1563,11 @@ namespace Svg.Model
             return skPaint;
         }
 
-        internal static Painting.Paint? GetOpacityPaint(float opacity)
+        internal static Paint? GetOpacityPaint(float opacity)
         {
             if (opacity < 1f)
             {
-                return new Painting.Paint
+                return new Paint
                 {
                     IsAntialias = true,
                     Color = new Color(255, 255, 255, (byte)Math.Round(opacity * 255)),
@@ -1579,7 +1577,7 @@ namespace Svg.Model
             return default;
         }
 
-        internal static Painting.Paint? GetOpacityPaint(SvgElement svgElement)
+        internal static Paint? GetOpacityPaint(SvgElement svgElement)
         {
             var opacity = AdjustSvgOpacity(svgElement.Opacity);
             var skPaint = GetOpacityPaint(opacity);
@@ -1592,7 +1590,7 @@ namespace Svg.Model
 
         internal static Matrix ToMatrix(this SvgMatrix svgMatrix)
         {
-            return new Matrix
+            return new()
             {
                 ScaleX = svgMatrix.Points[0],
                 SkewY = svgMatrix.Points[1],
@@ -1687,8 +1685,8 @@ namespace Svg.Model
                     fScaleX = Math.Min(fScaleX, fScaleY);
                     fScaleY = Math.Min(fScaleX, fScaleY);
                 }
-                var fViewMidX = (svgViewBox.Width / 2) * fScaleX;
-                var fViewMidY = (svgViewBox.Height / 2) * fScaleY;
+                var fViewMidX = svgViewBox.Width / 2 * fScaleX;
+                var fViewMidY = svgViewBox.Height / 2 * fScaleY;
                 var fMidX = width / 2;
                 var fMidY = height / 2;
                 fMinX = -svgViewBox.MinX * fScaleX;
@@ -1754,7 +1752,7 @@ namespace Svg.Model
             return skMatrixTotal;
         }
 
-        internal static List<(Point Point, byte Type)> GetPathTypes(this Path.Path path)
+        internal static List<(Point Point, byte Type)> GetPathTypes(this Path path)
         {
             // System.Drawing.Drawing2D.GraphicsPath.PathTypes
             // System.Drawing.Drawing2D.PathPointType
@@ -1818,7 +1816,7 @@ namespace Svg.Model
 
                     case ClosePathCommand closePathCommand:
                         {
-                            lastPoint = (lastPoint.Point, (byte)((lastPoint.Type | (byte)PathPointType.CloseSubpath)));
+                            lastPoint = (lastPoint.Point, (byte)(lastPoint.Type | (byte)PathPointType.CloseSubpath));
                             pathTypes[pathTypes.Count - 1] = lastPoint;
                         }
                         break;
@@ -1849,15 +1847,15 @@ namespace Svg.Model
             return pathTypes;
         }
 
-        internal static Path.Path? ToPath(this SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule)
+        internal static Path? ToPath(this SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule)
         {
             if (svgPathSegmentList is null || svgPathSegmentList.Count <= 0)
             {
                 return default;
             }
 
-            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path.Path
+            var fillType = svgFillRule == SvgFillRule.EvenOdd ? PathFillType.EvenOdd : PathFillType.Winding;
+            var skPath = new Path
             {
                 FillType = fillType
             };
@@ -1992,17 +1990,17 @@ namespace Svg.Model
             return skPath;
         }
 
-        internal static Path.Path? ToPath(this SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, Rect skOwnerBounds)
+        internal static Path? ToPath(this SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, Rect skOwnerBounds)
         {
-            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path.Path
+            var fillType = svgFillRule == SvgFillRule.EvenOdd ? PathFillType.EvenOdd : PathFillType.Winding;
+            var skPath = new Path
             {
                 FillType = fillType
             };
 
             var skPoints = new Point[svgPointCollection.Count / 2];
 
-            for (var i = 0; (i + 1) < svgPointCollection.Count; i += 2)
+            for (var i = 0; i + 1 < svgPointCollection.Count; i += 2)
             {
                 var x = svgPointCollection[i].ToDeviceValue(UnitRenderingType.Other, null, skOwnerBounds);
                 var y = svgPointCollection[i + 1].ToDeviceValue(UnitRenderingType.Other, null, skOwnerBounds);
@@ -2014,10 +2012,10 @@ namespace Svg.Model
             return skPath;
         }
 
-        internal static Path.Path? ToPath(this SvgRectangle svgRectangle, SvgFillRule svgFillRule, Rect skOwnerBounds)
+        internal static Path? ToPath(this SvgRectangle svgRectangle, SvgFillRule svgFillRule, Rect skOwnerBounds)
         {
-            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path.Path
+            var fillType = svgFillRule == SvgFillRule.EvenOdd ? PathFillType.EvenOdd : PathFillType.Winding;
+            var skPath = new Path
             {
                 FillType = fillType
             };
@@ -2090,10 +2088,10 @@ namespace Svg.Model
             return skPath;
         }
 
-        internal static Path.Path? ToPath(this SvgCircle svgCircle, SvgFillRule svgFillRule, Rect skOwnerBounds)
+        internal static Path? ToPath(this SvgCircle svgCircle, SvgFillRule svgFillRule, Rect skOwnerBounds)
         {
-            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path.Path
+            var fillType = svgFillRule == SvgFillRule.EvenOdd ? PathFillType.EvenOdd : PathFillType.Winding;
+            var skPath = new Path
             {
                 FillType = fillType
             };
@@ -2113,10 +2111,10 @@ namespace Svg.Model
             return skPath;
         }
 
-        internal static Path.Path? ToPath(this SvgEllipse svgEllipse, SvgFillRule svgFillRule, Rect skOwnerBounds)
+        internal static Path? ToPath(this SvgEllipse svgEllipse, SvgFillRule svgFillRule, Rect skOwnerBounds)
         {
-            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path.Path
+            var fillType = svgFillRule == SvgFillRule.EvenOdd ? PathFillType.EvenOdd : PathFillType.Winding;
+            var skPath = new Path
             {
                 FillType = fillType
             };
@@ -2139,10 +2137,10 @@ namespace Svg.Model
             return skPath;
         }
 
-        internal static Path.Path? ToPath(this SvgLine svgLine, SvgFillRule svgFillRule, Rect skOwnerBounds)
+        internal static Path? ToPath(this SvgLine svgLine, SvgFillRule svgFillRule, Rect skOwnerBounds)
         {
-            var fillType = (svgFillRule == SvgFillRule.EvenOdd) ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path.Path
+            var fillType = svgFillRule == SvgFillRule.EvenOdd ? PathFillType.EvenOdd : PathFillType.Winding;
+            var skPath = new Path
             {
                 FillType = fillType
             };
@@ -2349,7 +2347,7 @@ namespace Svg.Model
 
         private static SvgFillRule ToFillRule(SvgVisualElement svgVisualElement, SvgClipRule? svgClipPathClipRule)
         {
-            var svgClipRule = (svgClipPathClipRule is { } ? svgClipPathClipRule.Value : svgVisualElement.ClipRule);
+            var svgClipRule = svgClipPathClipRule is { } ? svgClipPathClipRule.Value : svgVisualElement.ClipRule;
             return svgClipRule == SvgClipRule.EvenOdd ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
         }
 
@@ -2669,7 +2667,7 @@ namespace Svg.Model
             {
                 var pathClip = new PathClip
                 {
-                    Path = new Path.Path(),
+                    Path = new Path(),
                     Transform = Matrix.CreateIdentity(),
                     Clip = default
                 };
@@ -2822,7 +2820,7 @@ namespace Svg.Model
             markerHost.AddMarker(markerDrawable);
         }
 
-        internal static void CreateMarkers(this SvgMarkerElement svgMarkerElement, Path.Path skPath, Rect skOwnerBounds, IMarkerHost markerHost, IAssetLoader assetLoader)
+        internal static void CreateMarkers(this SvgMarkerElement svgMarkerElement, Path skPath, Rect skOwnerBounds, IMarkerHost markerHost, IAssetLoader assetLoader)
         {
             var pathTypes = skPath.GetPathTypes();
             var pathLength = pathTypes.Count;
@@ -2944,7 +2942,7 @@ namespace Svg.Model
             {
                 case SvgColourMatrixType.HueRotate:
                     {
-                        var value = (string.IsNullOrEmpty(svgColourMatrix.Values) ? 0 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture));
+                        var value = string.IsNullOrEmpty(svgColourMatrix.Values) ? 0 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture);
                         var hue = (float)DegreeToRadian(value);
                         var cosHue = Math.Cos(hue);
                         var sinHue = Math.Sin(hue);
@@ -2980,7 +2978,7 @@ namespace Svg.Model
 
                 case SvgColourMatrixType.Saturate:
                     {
-                        var value = (string.IsNullOrEmpty(svgColourMatrix.Values) ? 1 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture));
+                        var value = string.IsNullOrEmpty(svgColourMatrix.Values) ? 1 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture);
                         float[] matrix = new float[]
                         {
                             (float)(0.213+0.787*value), (float)(0.715-0.715*value), (float)(0.072-0.072*value), 0, 0,
@@ -3045,7 +3043,7 @@ namespace Svg.Model
                 var c = i / 255.0;
                 var k = (byte)(c * (n - 1));
                 double v1 = tableValues[k];
-                double v2 = tableValues[Math.Min((k + 1), (n - 1))];
+                double v2 = tableValues[Math.Min(k + 1, n - 1)];
                 var val = 255.0 * (v1 + (c * (n - 1) - k) * (v2 - v1));
                 val = Math.Max(0.0, Math.Min(255.0, val));
                 values[i] = (byte)val;
@@ -3062,7 +3060,7 @@ namespace Svg.Model
             }
             for (var i = 0; i < 256; i++)
             {
-                var k = (byte)((i * n) / 255.0);
+                var k = (byte)(i * n / 255.0);
                 k = (byte)Math.Min(k, n - 1);
                 double val = 255 * tableValues[k];
                 val = Math.Max(0.0, Math.Min(255.0, val));
@@ -3085,7 +3083,7 @@ namespace Svg.Model
             for (var i = 0; i < 256; i++)
             {
                 double exponent = transferFunction.Exponent;
-                var val = 255.0 * (transferFunction.Amplitude * Math.Pow((i / 255.0), exponent) + transferFunction.Offset);
+                var val = 255.0 * (transferFunction.Amplitude * Math.Pow(i / 255.0, exponent) + transferFunction.Offset);
                 val = Math.Max(0.0, Math.Min(255.0, val));
                 values[i] = (byte)val;
             }
@@ -3215,7 +3213,7 @@ namespace Svg.Model
                 return default;
             }
 
-            if ((kernelSize.Width * kernelSize.Height) != kernelMatrix.Count)
+            if (kernelSize.Width * kernelSize.Height != kernelMatrix.Count)
             {
                 return default;
             }
@@ -3446,7 +3444,7 @@ namespace Svg.Model
                         break;
 
                     case SvgPreserveAspectRatio.xMaxYMin:
-                        xOffset = (destClip.Width - srcRect.Width * fScaleX);
+                        xOffset = destClip.Width - srcRect.Width * fScaleX;
                         break;
 
                     case SvgPreserveAspectRatio.xMinYMid:
@@ -3459,22 +3457,22 @@ namespace Svg.Model
                         break;
 
                     case SvgPreserveAspectRatio.xMaxYMid:
-                        xOffset = (destClip.Width - srcRect.Width * fScaleX);
+                        xOffset = destClip.Width - srcRect.Width * fScaleX;
                         yOffset = (destClip.Height - srcRect.Height * fScaleY) / 2;
                         break;
 
                     case SvgPreserveAspectRatio.xMinYMax:
-                        yOffset = (destClip.Height - srcRect.Height * fScaleY);
+                        yOffset = destClip.Height - srcRect.Height * fScaleY;
                         break;
 
                     case SvgPreserveAspectRatio.xMidYMax:
                         xOffset = (destClip.Width - srcRect.Width * fScaleX) / 2;
-                        yOffset = (destClip.Height - srcRect.Height * fScaleY);
+                        yOffset = destClip.Height - srcRect.Height * fScaleY;
                         break;
 
                     case SvgPreserveAspectRatio.xMaxYMax:
-                        xOffset = (destClip.Width - srcRect.Width * fScaleX);
-                        yOffset = (destClip.Height - srcRect.Height * fScaleY);
+                        xOffset = destClip.Width - srcRect.Width * fScaleX;
+                        yOffset = destClip.Height - srcRect.Height * fScaleY;
                         break;
                 }
 
@@ -3662,7 +3660,7 @@ namespace Svg.Model
 
             var seed = svgTurbulence.Seed;
 
-            var skPaint = new Painting.Paint
+            var skPaint = new Paint
             {
                 Style = PaintStyle.StrokeAndFill
             };
@@ -3704,13 +3702,13 @@ namespace Svg.Model
             return ImageFilter.CreatePaint(skPaint, cropRect);
         }
 
-        internal static ImageFilter? GetGraphic(Picture.Picture skPicture)
+        internal static ImageFilter? GetGraphic(Picture skPicture)
         {
             var skImageFilter = ImageFilter.CreatePicture(skPicture, skPicture.CullRect);
             return skImageFilter;
         }
 
-        internal static ImageFilter? GetAlpha(Picture.Picture skPicture)
+        internal static ImageFilter? GetAlpha(Picture skPicture)
         {
             var skImageFilterGraphic = GetGraphic(skPicture);
 
@@ -3728,7 +3726,7 @@ namespace Svg.Model
             return skImageFilter;
         }
 
-        internal static ImageFilter? GetPaint(Painting.Paint skPaint)
+        internal static ImageFilter? GetPaint(Paint skPaint)
         {
             var skImageFilter = ImageFilter.CreatePaint(skPaint);
             return skImageFilter;
@@ -3736,7 +3734,7 @@ namespace Svg.Model
 
         internal static ImageFilter GetTransparentBlackImage()
         {
-            var skPaint = new Painting.Paint
+            var skPaint = new Paint
             {
                 Style = PaintStyle.StrokeAndFill,
                 Color = s_transparentBlack
@@ -3747,7 +3745,7 @@ namespace Svg.Model
 
         internal static ImageFilter GetTransparentBlackAlpha()
         {
-            var skPaint = new Painting.Paint
+            var skPaint = new Paint
             {
                 Style = PaintStyle.StrokeAndFill,
                 Color = s_transparentBlack
@@ -3948,7 +3946,7 @@ namespace Svg.Model
             return svgFilters;
         }
 
-        internal static Painting.Paint? GetFilterPaint(SvgVisualElement svgVisualElement, Rect skBounds, IFilterSource filterSource, IAssetLoader assetLoader, out bool isValid)
+        internal static Paint? GetFilterPaint(SvgVisualElement svgVisualElement, Rect skBounds, IFilterSource filterSource, IAssetLoader assetLoader, out bool isValid)
         {
             var filter = svgVisualElement.Filter;
             if (filter is null || IsNone(filter))
@@ -4398,7 +4396,7 @@ namespace Svg.Model
 
             if (lastResult is { })
             {
-                var skPaint = new Painting.Paint
+                var skPaint = new Paint
                 {
                     Style = PaintStyle.StrokeAndFill
                 };
@@ -4550,7 +4548,7 @@ namespace Svg.Model
             };
         }
 
-        private static void SetTypeface(SvgTextBase svgText, Painting.Paint skPaint)
+        private static void SetTypeface(SvgTextBase svgText, Paint skPaint)
         {
             var fontFamily = svgText.FontFamily;
             var fontWeight = ToFontStyleWeight(svgText.FontWeight);
@@ -4566,7 +4564,7 @@ namespace Svg.Model
             };
         }
 
-        internal static void SetPaintText(SvgTextBase svgText, Rect skBounds, Painting.Paint skPaint)
+        internal static void SetPaintText(SvgTextBase svgText, Rect skBounds, Paint skPaint)
         {
             skPaint.LcdRenderText = true;
             skPaint.SubpixelText = true;
@@ -4685,7 +4683,7 @@ namespace Svg.Model
             return drawable;
         }
 
-        public static Picture.Picture? ToModel(SvgFragment svgFragment, IAssetLoader assetLoader)
+        public static Picture? ToModel(SvgFragment svgFragment, IAssetLoader assetLoader)
         {
             var drawable = ToDrawable(svgFragment, assetLoader, out var bounds);
             if (drawable is null || bounds is null)

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Svg.Model.Picture;
 using Svg.Model.Primitives;
 
 namespace Svg.Model

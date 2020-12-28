@@ -7,12 +7,10 @@ using System.Text;
 using Svg.Model.ColorFilters;
 using Svg.Model.ImageFilters;
 using Svg.Model.Painting;
-using Svg.Model.Path;
-using Svg.Model.Path.Commands;
+using Svg.Model.Primitives.PathCommands;
 using Svg.Model.PathEffects;
-using Svg.Model.Picture;
-using Svg.Model.Picture.Commands;
 using Svg.Model.Primitives;
+using Svg.Model.Primitives.CanvasCommands;
 using Svg.Model.Shaders;
 
 namespace Svg.CodeGen.Skia

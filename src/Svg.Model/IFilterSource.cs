@@ -1,10 +1,13 @@
-﻿namespace Svg.Model
+﻿using Svg.Model.Painting;
+using Svg.Model.Primitives;
+
+namespace Svg.Model
 {
     internal interface IFilterSource
     {
-        Picture.Picture? SourceGraphic();
-        Picture.Picture? BackgroundImage();
-        Painting.Paint? FillPaint();
-        Painting.Paint? StrokePaint();
+        Picture? SourceGraphic();
+        Picture? BackgroundImage();
+        Paint? FillPaint();
+        Paint? StrokePaint();
     }
 }

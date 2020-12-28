@@ -18,11 +18,11 @@ namespace Svg.Model.Primitives
 
         public static readonly Matrix Empty;
 
-        public static readonly Matrix Identity = new Matrix { ScaleX = 1, ScaleY = 1, Persp2 = 1 };
+        public static readonly Matrix Identity = new() { ScaleX = 1, ScaleY = 1, Persp2 = 1 };
 
         public static Matrix CreateIdentity()
         {
-            return new Matrix { ScaleX = 1, ScaleY = 1, Persp2 = 1 };
+            return new() { ScaleX = 1, ScaleY = 1, Persp2 = 1 };
         }
 
         public static Matrix CreateTranslation(float x, float y)
@@ -183,7 +183,7 @@ namespace Svg.Model.Primitives
 
         private static Matrix Concat(Matrix a, Matrix b)
         {
-            return new Matrix
+            return new()
             {
                 ScaleX = MulAddMul(a.ScaleX, b.ScaleX, a.SkewX, b.SkewY),
                 SkewX = MulAddMul(a.ScaleX, b.SkewX, a.SkewX, b.ScaleY),

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Svg.Model.Path;
 using Svg.Model.Primitives;
 
 namespace Svg.Model.Drawables

@@ -4,15 +4,13 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using Svg.Model.Painting;
-using Svg.Model.Path;
-using Svg.Model.Picture;
 using Svg.Model.Primitives;
 
 namespace Svg.Model.Drawables
 {
     public sealed class TextDrawable : DrawableBase
     {
-        private static readonly Regex s_multipleSpaces = new Regex(@" {2,}", RegexOptions.Compiled);
+        private static readonly Regex s_multipleSpaces = new(@" {2,}", RegexOptions.Compiled);
 
         public SvgText? Text { get; set; }
 
@@ -25,7 +23,7 @@ namespace Svg.Model.Drawables
 
         public static TextDrawable Create(SvgText svgText, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
-            return new TextDrawable(assetLoader)
+            return new(assetLoader)
             {
                 Element = svgText,
                 Parent = parent,
@@ -114,7 +112,7 @@ namespace Svg.Model.Drawables
             };
         }
 
-        internal void BeginDraw(SvgTextBase svgTextBase, Canvas skCanvas, Rect skBounds, Attributes ignoreAttributes, out MaskDrawable? maskDrawable, out Painting.Paint? maskDstIn, out Painting.Paint? skPaintOpacity, out Painting.Paint? skPaintFilter)
+        internal void BeginDraw(SvgTextBase svgTextBase, Canvas skCanvas, Rect skBounds, Attributes ignoreAttributes, out MaskDrawable? maskDrawable, out Paint? maskDstIn, out Paint? skPaintOpacity, out Paint? skPaintFilter)
         {
             var enableClip = !ignoreAttributes.HasFlag(Attributes.ClipPath);
             var enableMask = !ignoreAttributes.HasFlag(Attributes.Mask);
@@ -145,12 +143,12 @@ namespace Svg.Model.Drawables
 
             if (enableMask)
             {
-                var mask = default(Painting.Paint);
-                maskDstIn = default(Painting.Paint);
+                var mask = default(Paint);
+                maskDstIn = default(Paint);
                 maskDrawable = SvgModelExtensions.GetSvgElementMask(svgTextBase, skBounds, new HashSet<Uri>(), AssetLoader);
                 if (maskDrawable is { })
                 {
-                    mask = new Painting.Paint
+                    mask = new Paint
                     {
                         IsAntialias = true,
                         Style = PaintStyle.StrokeAndFill
@@ -158,7 +156,7 @@ namespace Svg.Model.Drawables
 
                     var lumaColor = ColorFilter.CreateLumaColor();
 
-                    maskDstIn = new Painting.Paint
+                    maskDstIn = new Paint
                     {
                         IsAntialias = true,
                         Style = PaintStyle.StrokeAndFill,
@@ -202,7 +200,7 @@ namespace Svg.Model.Drawables
             }
         }
 
-        internal void EndDraw(Canvas skCanvas, Attributes ignoreAttributes, MaskDrawable? maskDrawable, Painting.Paint? maskDstIn, Painting.Paint? skPaintOpacity, Painting.Paint? skPaintFilter, DrawableBase? until)
+        internal void EndDraw(Canvas skCanvas, Attributes ignoreAttributes, MaskDrawable? maskDrawable, Paint? maskDstIn, Paint? skPaintOpacity, Paint? skPaintFilter, DrawableBase? until)
         {
             var enableMask = !ignoreAttributes.HasFlag(Attributes.Mask);
             var enableOpacity = !ignoreAttributes.HasFlag(Attributes.Opacity);
@@ -279,7 +277,7 @@ namespace Svg.Model.Drawables
             var isValidFill = SvgModelExtensions.IsValidFill(svgTextBase);
             var isValidStroke = SvgModelExtensions.IsValidStroke(svgTextBase, skOwnerBounds);
 
-            if ((!isValidFill && !isValidStroke) || text is null || string.IsNullOrEmpty(text))
+            if (!isValidFill && !isValidStroke || text is null || string.IsNullOrEmpty(text))
             {
                 return;
             }
@@ -352,10 +350,10 @@ namespace Svg.Model.Drawables
             }
             else
             {
-                var x = (xs.Count >= 1) ? xs[0] : currentX;
-                var y = (ys.Count >= 1) ? ys[0] : currentY;
-                var dx = (dxs.Count >= 1) ? dxs[0] : 0f;
-                var dy = (dys.Count >= 1) ? dys[0] : 0f;
+                var x = xs.Count >= 1 ? xs[0] : currentX;
+                var y = ys.Count >= 1 ? ys[0] : currentY;
+                var dx = dxs.Count >= 1 ? dxs[0] : 0f;
+                var dy = dys.Count >= 1 ? dys[0] : 0f;
 
                 DrawTextString(svgTextBase, text, x + dx, y + dy, skOwnerBounds, ignoreAttributes, skCanvas, until);
             }
@@ -511,10 +509,10 @@ namespace Svg.Model.Drawables
             GetPositionsDX(svgText, skOwnerBounds, dxs);
             GetPositionsDY(svgText, skOwnerBounds, dys);
 
-            var x = (xs.Count >= 1) ? xs[0] : 0f;
-            var y = (ys.Count >= 1) ? ys[0] : 0f;
-            var dx = (dxs.Count >= 1) ? dxs[0] : 0f;
-            var dy = (dys.Count >= 1) ? dys[0] : 0f;
+            var x = xs.Count >= 1 ? xs[0] : 0f;
+            var y = ys.Count >= 1 ? ys[0] : 0f;
+            var dx = dxs.Count >= 1 ? dxs[0] : 0f;
+            var dy = dys.Count >= 1 ? dys[0] : 0f;
 
             var currentX = x + dx;
             var currentY = y + dy;

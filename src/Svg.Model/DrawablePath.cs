@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
-using Svg.Model.Picture;
+using Svg.Model.Primitives;
 
 namespace Svg.Model
 {
     public abstract class DrawablePath : DrawableBase, IMarkerHost
     {
-        public Path.Path? Path { get; set; }
+        public Path? Path { get; set; }
         public List<DrawableBase>? MarkerDrawables { get; set; }
 
         protected DrawablePath(IAssetLoader assetLoader)
