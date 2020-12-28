@@ -43,7 +43,7 @@ namespace Svg.Model.Drawables
             return IsDrawable ? TransformedBounds : Rect.Empty;
         }
 
-        protected virtual void CreateMaskPaints()
+        protected void CreateMaskPaints()
         {
             Mask = new Paint
             {
