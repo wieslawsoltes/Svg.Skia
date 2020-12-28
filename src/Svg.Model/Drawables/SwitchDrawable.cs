@@ -42,7 +42,7 @@ namespace Svg.Model.Drawables
                 if (hasRequiredFeatures && hasRequiredExtensions && hasSystemLanguage)
                 {
                     var childDrawable = DrawableFactory.Create(child, skOwnerBounds, parent, assetLoader, ignoreAttributes);
-                    if (childDrawable != null)
+                    if (childDrawable is { })
                     {
                         drawable.FirstChild = childDrawable;
                     }
@@ -50,7 +50,7 @@ namespace Svg.Model.Drawables
                 }
             }
 
-            if (drawable.FirstChild == null)
+            if (drawable.FirstChild is null)
             {
                 drawable.IsDrawable = false;
                 return drawable;
@@ -73,7 +73,7 @@ namespace Svg.Model.Drawables
 
         public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
-            if (until != null && this == until)
+            if (until is { } && this == until)
             {
                 return;
             }

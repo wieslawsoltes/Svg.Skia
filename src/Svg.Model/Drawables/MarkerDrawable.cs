@@ -104,7 +104,7 @@ namespace Svg.Model.Drawables
             }
 
             var markerElementDrawable = DrawableFactory.Create(markerElement, skOwnerBounds, drawable, assetLoader, Attributes.Display);
-            if (markerElementDrawable != null)
+            if (markerElementDrawable is { })
             {
                 drawable.MarkerElementDrawable = markerElementDrawable;
             }
@@ -148,12 +148,12 @@ namespace Svg.Model.Drawables
 
         public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
-            if (until != null && this == until)
+            if (until is { } && this == until)
             {
                 return;
             }
 
-            if (MarkerClipRect != null)
+            if (MarkerClipRect is { })
             {
                 canvas.ClipRect(MarkerClipRect.Value, ClipOperation.Intersect);
             }

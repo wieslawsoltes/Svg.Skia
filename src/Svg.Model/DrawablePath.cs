@@ -21,22 +21,22 @@ namespace Svg.Model
 
         public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
-            if (until != null && this == until)
+            if (until is { } && this == until)
             {
                 return;
             }
 
-            if (Fill != null && Path != null)
+            if (Fill is { } && Path is { })
             {
                 canvas.DrawPath(Path, Fill);
             }
 
-            if (Stroke != null && Path != null)
+            if (Stroke is { } && Path is { })
             {
                 canvas.DrawPath(Path, Stroke);
             }
 
-            if (MarkerDrawables != null)
+            if (MarkerDrawables is { })
             {
                 foreach (var drawable in MarkerDrawables)
                 {
@@ -49,7 +49,7 @@ namespace Svg.Model
         {
             base.PostProcess();
 
-            if (MarkerDrawables != null)
+            if (MarkerDrawables is { })
             {
                 foreach (var drawable in MarkerDrawables)
                 {

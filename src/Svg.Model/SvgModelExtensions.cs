@@ -248,7 +248,7 @@ namespace Svg.Model
 
                         default:
                         case UnitRenderingType.Other:
-                            if (owner?.OwnerDocument != null && owner.OwnerDocument.ViewBox != null && owner.OwnerDocument.ViewBox.Width != 0 && owner.OwnerDocument.ViewBox.Height != 0)
+                            if (owner?.OwnerDocument is { } && owner.OwnerDocument.ViewBox is { } && owner.OwnerDocument.ViewBox.Width != 0 && owner.OwnerDocument.ViewBox.Height != 0)
                             {
                                 _deviceValue = (float)(Math.Sqrt(Math.Pow(owner.OwnerDocument.ViewBox.Width, 2) + Math.Pow(owner.OwnerDocument.ViewBox.Height, 2)) / Math.Sqrt(2) * value / 100.0);
                             }
@@ -283,7 +283,7 @@ namespace Svg.Model
             }
 
             var svgElementById = svgElement.OwnerDocument?.GetElementById(uri.ToString());
-            if (svgElementById != null)
+            if (svgElementById is { })
             {
                 return svgElementById as T;
             }
@@ -312,7 +312,7 @@ namespace Svg.Model
                     return true;
                 }
 
-                if (GetReference<T>(svgElement, referencedElementUri) != null)
+                if (GetReference<T>(svgElement, referencedElementUri) is { })
                 {
                     uris.Add(referencedElementUri);
                 }
@@ -368,7 +368,7 @@ namespace Svg.Model
         internal static T? GetUriElementReference<T>(this SvgElement svgOwnerElement, string name, HashSet<Uri> uris) where T : SvgElement
         {
             var uri = svgOwnerElement.GetUri(name);
-            if (uri != null)
+            if (uri is { })
             {
                 if (HasRecursiveReference(svgOwnerElement, (e) => e.GetUri(name), uris))
                 {
@@ -585,7 +585,7 @@ namespace Svg.Model
             var strokeDashOffset = svgElement.StrokeDashOffset;
             var count = strokeDashArray.Count;
 
-            if (strokeDashArray != null && count > 0)
+            if (strokeDashArray is { } && count > 0)
             {
                 bool isOdd = count % 2 != 0;
                 float sum = 0f;
@@ -613,7 +613,7 @@ namespace Svg.Model
                     return null;
                 }
 
-                float phase = strokeDashOffset != null ? strokeDashOffset.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) : 0f;
+                float phase = strokeDashOffset is { } ? strokeDashOffset.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) : 0f;
 
                 return PathEffect.CreateDash(intervals, phase);
             }
@@ -629,7 +629,7 @@ namespace Svg.Model
             {
                 svgPatternServers.Add(currentPatternServer);
                 currentPatternServer = SvgDeferredPaintServer.TryGet<SvgPatternServer>(currentPatternServer.InheritGradient, svgVisualElement);
-            } while (currentPatternServer != null);
+            } while (currentPatternServer is { });
             return svgPatternServers;
         }
 
@@ -641,7 +641,7 @@ namespace Svg.Model
             {
                 svgGradientServers.Add(currentGradientServer);
                 currentGradientServer = SvgDeferredPaintServer.TryGet<SvgGradientServer>(currentGradientServer.InheritGradient, svgVisualElement);
-            } while (currentGradientServer != null);
+            } while (currentGradientServer is { });
             return svgGradientServers;
         }
 
@@ -765,7 +765,7 @@ namespace Svg.Model
                 if (firstGradientTransform is null)
                 {
                     var pGradientTransform = p.GradientTransform;
-                    if (pGradientTransform != null && pGradientTransform.Count > 0)
+                    if (pGradientTransform is { } && pGradientTransform.Count > 0)
                     {
                         firstGradientTransform = p;
                     }
@@ -784,7 +784,7 @@ namespace Svg.Model
                     if (firstX1 is null)
                     {
                         var pX1 = svgLinearGradientServerHref.X1;
-                        if (pX1 != null && pX1 != SvgUnit.None && TryGetAttribute(svgLinearGradientServerHref, "x1", out _))
+                        if (pX1 is { } && pX1 != SvgUnit.None && TryGetAttribute(svgLinearGradientServerHref, "x1", out _))
                         {
                             firstX1 = svgLinearGradientServerHref;
                         }
@@ -792,7 +792,7 @@ namespace Svg.Model
                     if (firstY1 is null)
                     {
                         var pY1 = svgLinearGradientServerHref.Y1;
-                        if (pY1 != null && pY1 != SvgUnit.None && TryGetAttribute(svgLinearGradientServerHref, "y1", out _))
+                        if (pY1 is { } && pY1 != SvgUnit.None && TryGetAttribute(svgLinearGradientServerHref, "y1", out _))
                         {
                             firstY1 = svgLinearGradientServerHref;
                         }
@@ -800,7 +800,7 @@ namespace Svg.Model
                     if (firstX2 is null)
                     {
                         var pX2 = svgLinearGradientServerHref.X2;
-                        if (pX2 != null && pX2 != SvgUnit.None && TryGetAttribute(svgLinearGradientServerHref, "x2", out _))
+                        if (pX2 is { } && pX2 != SvgUnit.None && TryGetAttribute(svgLinearGradientServerHref, "x2", out _))
                         {
                             firstX2 = svgLinearGradientServerHref;
                         }
@@ -808,7 +808,7 @@ namespace Svg.Model
                     if (firstY2 is null)
                     {
                         var pY2 = svgLinearGradientServerHref.Y2;
-                        if (pY2 != null && pY2 != SvgUnit.None && TryGetAttribute(svgLinearGradientServerHref, "y2", out _))
+                        if (pY2 is { } && pY2 != SvgUnit.None && TryGetAttribute(svgLinearGradientServerHref, "y2", out _))
                         {
                             firstY2 = svgLinearGradientServerHref;
                         }
@@ -875,7 +875,7 @@ namespace Svg.Model
                     Persp2 = 1
                 };
 
-                if (svgGradientTransform != null && svgGradientTransform.Count > 0)
+                if (svgGradientTransform is { } && svgGradientTransform.Count > 0)
                 {
                     var gradientTransform = ToMatrix(svgGradientTransform);
                     skBoundingBoxTransform = skBoundingBoxTransform.PreConcat(gradientTransform);
@@ -886,7 +886,7 @@ namespace Svg.Model
             }
             else
             {
-                if (svgGradientTransform != null && svgGradientTransform.Count > 0)
+                if (svgGradientTransform is { } && svgGradientTransform.Count > 0)
                 {
                     var gradientTransform = ToMatrix(svgGradientTransform);
                     var skColorsF = ToSkColorF(skColors);
@@ -926,7 +926,7 @@ namespace Svg.Model
                 if (firstGradientTransform is null)
                 {
                     var pGradientTransform = p.GradientTransform;
-                    if (pGradientTransform != null && pGradientTransform.Count > 0)
+                    if (pGradientTransform is { } && pGradientTransform.Count > 0)
                     {
                         firstGradientTransform = p;
                     }
@@ -945,7 +945,7 @@ namespace Svg.Model
                     if (firstCenterX is null)
                     {
                         var pCenterX = svgRadialGradientServerHref.CenterX;
-                        if (pCenterX != null && pCenterX != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "cx", out _))
+                        if (pCenterX is { } && pCenterX != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "cx", out _))
                         {
                             firstCenterX = svgRadialGradientServerHref;
                         }
@@ -953,7 +953,7 @@ namespace Svg.Model
                     if (firstCenterY is null)
                     {
                         var pCenterY = svgRadialGradientServerHref.CenterY;
-                        if (pCenterY != null && pCenterY != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "cy", out _))
+                        if (pCenterY is { } && pCenterY != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "cy", out _))
                         {
                             firstCenterY = svgRadialGradientServerHref;
                         }
@@ -961,7 +961,7 @@ namespace Svg.Model
                     if (firstRadius is null)
                     {
                         var pRadius = svgRadialGradientServerHref.Radius;
-                        if (pRadius != null && pRadius != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "r", out _))
+                        if (pRadius is { } && pRadius != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "r", out _))
                         {
                             firstRadius = svgRadialGradientServerHref;
                         }
@@ -969,7 +969,7 @@ namespace Svg.Model
                     if (firstFocalX is null)
                     {
                         var pFocalX = svgRadialGradientServerHref.FocalX;
-                        if (pFocalX != null && pFocalX != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "fx", out _))
+                        if (pFocalX is { } && pFocalX != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "fx", out _))
                         {
                             firstFocalX = svgRadialGradientServerHref;
                         }
@@ -977,7 +977,7 @@ namespace Svg.Model
                     if (firstFocalY is null)
                     {
                         var pFocalY = svgRadialGradientServerHref.FocalY;
-                        if (pFocalY != null && pFocalY != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "fy", out _))
+                        if (pFocalY is { } && pFocalY != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "fy", out _))
                         {
                             firstFocalY = svgRadialGradientServerHref;
                         }
@@ -1051,7 +1051,7 @@ namespace Svg.Model
                     Persp2 = 1
                 };
 
-                if (svgGradientTransform != null && svgGradientTransform.Count > 0)
+                if (svgGradientTransform is { } && svgGradientTransform.Count > 0)
                 {
                     var gradientTransform = ToMatrix(svgGradientTransform);
                     skBoundingBoxTransform = skBoundingBoxTransform.PreConcat(gradientTransform);
@@ -1067,7 +1067,7 @@ namespace Svg.Model
             }
             else
             {
-                if (svgGradientTransform != null && svgGradientTransform.Count > 0)
+                if (svgGradientTransform is { } && svgGradientTransform.Count > 0)
                 {
                     var gradientTransform = ToMatrix(svgGradientTransform);
                     var skColorsF = ToSkColorF(skColors);
@@ -1099,7 +1099,7 @@ namespace Svg.Model
             skCanvas.SetMatrix(skMatrix);
 
             using var skPaintOpacity = ignoreAttributes.HasFlag(Attributes.Opacity) ? null : GetOpacityPaint(opacity);
-            if (skPaintOpacity != null)
+            if (skPaintOpacity is { })
             {
                 skCanvas.SaveLayer(skPaintOpacity);
             }
@@ -1107,14 +1107,14 @@ namespace Svg.Model
             foreach (var svgElement in svgElementCollection)
             {
                 using var drawable = DrawableFactory.Create(svgElement, skBounds, null, assetLoader, ignoreAttributes);
-                if (drawable != null)
+                if (drawable is { })
                 {
                     drawable.PostProcess();
                     drawable.Draw(skCanvas, ignoreAttributes, null);
                 }
             }
 
-            if (skPaintOpacity != null)
+            if (skPaintOpacity is { })
             {
                 skCanvas.Restore();
             }
@@ -1148,7 +1148,7 @@ namespace Svg.Model
                 if (firstX is null)
                 {
                     var pX = p.X;
-                    if (pX != null && pX != SvgUnit.None)
+                    if (pX is { } && pX != SvgUnit.None)
                     {
                         firstX = p;
                     }
@@ -1156,7 +1156,7 @@ namespace Svg.Model
                 if (firstY is null)
                 {
                     var pY = p.Y;
-                    if (pY != null && pY != SvgUnit.None)
+                    if (pY is { } && pY != SvgUnit.None)
                     {
                         firstY = p;
                     }
@@ -1164,7 +1164,7 @@ namespace Svg.Model
                 if (firstWidth is null)
                 {
                     var pWidth = p.Width;
-                    if (pWidth != null && pWidth != SvgUnit.None)
+                    if (pWidth is { } && pWidth != SvgUnit.None)
                     {
                         firstWidth = p;
                     }
@@ -1172,7 +1172,7 @@ namespace Svg.Model
                 if (firstHeight is null)
                 {
                     var pHeight = p.Height;
-                    if (pHeight != null && pHeight != SvgUnit.None)
+                    if (pHeight is { } && pHeight != SvgUnit.None)
                     {
                         firstHeight = p;
                     }
@@ -1184,7 +1184,7 @@ namespace Svg.Model
                         firstPatternUnit = p;
                     }
                 }
-                if (firstPatternContentUnit == null)
+                if (firstPatternContentUnit is null)
                 {
                     if (TryGetAttribute(p, "patternContentUnits", out _))
                     {
@@ -1194,7 +1194,7 @@ namespace Svg.Model
                 if (firstViewBox is null)
                 {
                     var pViewBox = p.ViewBox;
-                    if (pViewBox != null && pViewBox != SvgViewBox.Empty)
+                    if (pViewBox is { } && pViewBox != SvgViewBox.Empty)
                     {
                         firstViewBox = p;
                     }
@@ -1202,7 +1202,7 @@ namespace Svg.Model
                 if (firstAspectRatio is null)
                 {
                     var pAspectRatio = p.AspectRatio;
-                    if (pAspectRatio != null && pAspectRatio.Align != SvgPreserveAspectRatio.xMidYMid)
+                    if (pAspectRatio is { } && pAspectRatio.Align != SvgPreserveAspectRatio.xMidYMid)
                     {
                         firstAspectRatio = p;
                     }
@@ -1318,7 +1318,7 @@ namespace Svg.Model
                         var isLinearRGB = colorInterpolation == SvgColourInterpolation.LinearRGB;
                         var skColorSpace = isLinearRGB ? ColorSpace.SrgbLinear : ColorSpace.Srgb;
                         var skColorShader = Shader.CreateColor(skColor, skColorSpace);
-                        if (skColorShader != null)
+                        if (skColorShader is { })
                         {
                             skPaint.Shader = skColorShader;
                             return true;
@@ -1333,7 +1333,7 @@ namespace Svg.Model
                         var skColorSpace = isLinearRGB ? ColorSpace.SrgbLinear : ColorSpace.Srgb;
                         // TODO: Use skColorSpace in CreatePicture
                         var skPatternShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, assetLoader, ignoreAttributes);
-                        if (skPatternShader != null)
+                        if (skPatternShader is { })
                         {
                             skPaint.Shader = skPatternShader;
                             return true;
@@ -1344,7 +1344,7 @@ namespace Svg.Model
                             {
                                 var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
                                 var skColorShader = Shader.CreateColor(skColor, skColorSpace);
-                                if (skColorShader != null)
+                                if (skColorShader is { })
                                 {
                                     skPaint.Shader = skColorShader;
                                     return true;
@@ -1371,7 +1371,7 @@ namespace Svg.Model
                             {
                                 var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
                                 var skColorShader = Shader.CreateColor(skColor, skColorSpace);
-                                if (skColorShader != null)
+                                if (skColorShader is { })
                                 {
                                     skPaint.Shader = skColorShader;
                                     return true;
@@ -1386,7 +1386,7 @@ namespace Svg.Model
                         else
                         {
                             var skLinearGradientShader = CreateLinearGradient(svgLinearGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes, skColorSpace);
-                            if (skLinearGradientShader != null)
+                            if (skLinearGradientShader is { })
                             {
                                 skPaint.Shader = skLinearGradientShader;
                                 return true;
@@ -1412,7 +1412,7 @@ namespace Svg.Model
                             {
                                 var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
                                 var skColorShader = Shader.CreateColor(skColor, skColorSpace);
-                                if (skColorShader != null)
+                                if (skColorShader is { })
                                 {
                                     skPaint.Shader = skColorShader;
                                     return true;
@@ -1427,7 +1427,7 @@ namespace Svg.Model
                         else
                         {
                             var skRadialGradientShader = CreateTwoPointConicalGradient(svgRadialGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes, skColorSpace);
-                            if (skRadialGradientShader != null)
+                            if (skRadialGradientShader is { })
                             {
                                 skPaint.Shader = skRadialGradientShader;
                                 return true;
@@ -1454,7 +1454,7 @@ namespace Svg.Model
         internal static void SetDash(SvgVisualElement svgVisualElement, Paint.Paint skPaint, Rect skBounds)
         {
             var skPathEffect = CreateDash(svgVisualElement, skBounds);
-            if (skPathEffect != null)
+            if (skPathEffect is { })
             {
                 skPaint.PathEffect = skPathEffect;
             }
@@ -1476,7 +1476,7 @@ namespace Svg.Model
         internal static bool IsValidFill(SvgElement svgElement)
         {
             var fill = svgElement.Fill;
-            return fill != null
+            return fill is { }
                 && fill != SvgPaintServer.None;
         }
 
@@ -1484,7 +1484,7 @@ namespace Svg.Model
         {
             var stroke = svgElement.Stroke;
             var strokeWidth = svgElement.StrokeWidth;
-            return stroke != null
+            return stroke is { }
                 && stroke != SvgPaintServer.None
                 && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
         }
@@ -1557,7 +1557,7 @@ namespace Svg.Model
             skPaint.StrokeWidth = svgVisualElement.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgVisualElement, skBounds);
 
             var strokeDashArray = svgVisualElement.StrokeDashArray;
-            if (strokeDashArray != null)
+            if (strokeDashArray is { })
             {
                 SetDash(svgVisualElement, skPaint, skBounds);
             }
@@ -1583,7 +1583,7 @@ namespace Svg.Model
         {
             float opacity = AdjustSvgOpacity(svgElement.Opacity);
             var skPaint = GetOpacityPaint(opacity);
-            if (skPaint != null)
+            if (skPaint is { })
             {
                 return skPaint;
             }
@@ -1825,7 +1825,7 @@ namespace Svg.Model
 
                     case AddPolyPathCommand addPolyPathCommand:
                         {
-                            if (addPolyPathCommand.Points != null && addPolyPathCommand.Points.Count > 0)
+                            if (addPolyPathCommand.Points is { } && addPolyPathCommand.Points.Count > 0)
                             {
                                 foreach (var nexPoint in addPolyPathCommand.Points)
                                 {
@@ -1851,7 +1851,7 @@ namespace Svg.Model
 
         internal static Path.Path? ToPath(this SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule)
         {
-            if (svgPathSegmentList == null || svgPathSegmentList.Count <= 0)
+            if (svgPathSegmentList is null || svgPathSegmentList.Count <= 0)
             {
                 return default;
             }
@@ -2349,7 +2349,7 @@ namespace Svg.Model
 
         private static SvgFillRule ToFillRule(SvgVisualElement svgVisualElement, SvgClipRule? svgClipPathClipRule)
         {
-            var svgClipRule = (svgClipPathClipRule != null ? svgClipPathClipRule.Value : svgVisualElement.ClipRule);
+            var svgClipRule = (svgClipPathClipRule is { } ? svgClipPathClipRule.Value : svgVisualElement.ClipRule);
             return svgClipRule == SvgClipRule.EvenOdd ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
         }
 
@@ -2384,7 +2384,7 @@ namespace Svg.Model
                     {
                         var fillRule = ToFillRule(svgPath, svgClipPathClipRule);
                         var skPath = svgPath.PathData?.ToPath(fillRule);
-                        if (skPath == null)
+                        if (skPath is null)
                         {
                             break;
                         }
@@ -2408,7 +2408,7 @@ namespace Svg.Model
                     {
                         var fillRule = ToFillRule(svgRectangle, svgClipPathClipRule);
                         var skPath = svgRectangle.ToPath(fillRule, skBounds);
-                        if (skPath == null)
+                        if (skPath is null)
                         {
                             break;
                         }
@@ -2432,7 +2432,7 @@ namespace Svg.Model
                     {
                         var fillRule = ToFillRule(svgCircle, svgClipPathClipRule);
                         var skPath = svgCircle.ToPath(fillRule, skBounds);
-                        if (skPath == null)
+                        if (skPath is null)
                         {
                             break;
                         }
@@ -2456,7 +2456,7 @@ namespace Svg.Model
                     {
                         var fillRule = ToFillRule(svgEllipse, svgClipPathClipRule);
                         var skPath = svgEllipse.ToPath(fillRule, skBounds);
-                        if (skPath == null)
+                        if (skPath is null)
                         {
                             break;
                         }
@@ -2480,7 +2480,7 @@ namespace Svg.Model
                     {
                         var fillRule = ToFillRule(svgLine, svgClipPathClipRule);
                         var skPath = svgLine.ToPath(fillRule, skBounds);
-                        if (skPath == null)
+                        if (skPath is null)
                         {
                             break;
                         }
@@ -2504,7 +2504,7 @@ namespace Svg.Model
                     {
                         var fillRule = ToFillRule(svgPolyline, svgClipPathClipRule);
                         var skPath = svgPolyline.Points?.ToPath(fillRule, false, skBounds);
-                        if (skPath == null)
+                        if (skPath is null)
                         {
                             break;
                         }
@@ -2528,7 +2528,7 @@ namespace Svg.Model
                     {
                         var fillRule = ToFillRule(svgPolygon, svgClipPathClipRule);
                         var skPath = svgPolygon.Points?.ToPath(fillRule, true, skBounds);
-                        if (skPath == null)
+                        if (skPath is null)
                         {
                             break;
                         }
@@ -2556,7 +2556,7 @@ namespace Svg.Model
                         }
 
                         var svgReferencedVisualElement = GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
-                        if (svgReferencedVisualElement == null || svgReferencedVisualElement is SvgSymbol)
+                        if (svgReferencedVisualElement is null || svgReferencedVisualElement is SvgSymbol)
                         {
                             break;
                         }
@@ -2569,11 +2569,11 @@ namespace Svg.Model
                         // TODO:
                         GetClipPath(svgReferencedVisualElement, skBounds, uris, clipPath, svgClipPathClipRule);
 
-                        if (clipPath.Clips != null && clipPath.Clips.Count > 0)
+                        if (clipPath.Clips is { } && clipPath.Clips.Count > 0)
                         {
                             // TODO:
                             var lastClip = clipPath.Clips[clipPath.Clips.Count - 1];
-                            if (lastClip.Clip != null)
+                            if (lastClip.Clip is { })
                             {
                                 GetSvgVisualElementClipPath(svgUse, skBounds, uris, lastClip.Clip);
                             }
@@ -2606,13 +2606,13 @@ namespace Svg.Model
 
         internal static void GetClipPathClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, ClipPath? clipPath)
         {
-            if (clipPath == null)
+            if (clipPath is null)
             {
                 return;
             }
 
             var svgClipPathRef = svgClipPath.GetUriElementReference<SvgClipPath>("clip-path", uris);
-            if (svgClipPathRef == null || svgClipPathRef.Children == null)
+            if (svgClipPathRef is null || svgClipPathRef.Children is null)
             {
                 return;
             }
@@ -2638,7 +2638,7 @@ namespace Svg.Model
 
         internal static void GetClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, ClipPath? clipPath)
         {
-            if (clipPath == null)
+            if (clipPath is null)
             {
                 return;
             }
@@ -2665,7 +2665,7 @@ namespace Svg.Model
 
             clipPath.Transform = skMatrix; // TODO:
 
-            if (clipPath.Clips != null && clipPath.Clips.Count == 0)
+            if (clipPath.Clips is { } && clipPath.Clips.Count == 0)
             {
                 var pathClip = new PathClip
                 {
@@ -2679,7 +2679,7 @@ namespace Svg.Model
 
         internal static void GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, Rect skBounds, HashSet<Uri> uris, ClipPath clipPath)
         {
-            if (svgVisualElement == null || svgVisualElement.ClipPath == null)
+            if (svgVisualElement is null || svgVisualElement.ClipPath is null)
             {
                 return;
             }
@@ -2690,7 +2690,7 @@ namespace Svg.Model
             }
 
             var svgClipPath = GetReference<SvgClipPath>(svgVisualElement, svgVisualElement.ClipPath);
-            if (svgClipPath == null || svgClipPath.Children == null)
+            if (svgClipPath is null || svgClipPath.Children is null)
             {
                 return;
             }
@@ -2723,7 +2723,7 @@ namespace Svg.Model
         internal static MaskDrawable? GetSvgElementMask(SvgElement svgElement, Rect skBounds, HashSet<Uri> uris, IAssetLoader assetLoader)
         {
             var svgMaskRef = svgElement.GetUriElementReference<SvgMask>("mask", uris);
-            if (svgMaskRef == null || svgMaskRef.Children == null)
+            if (svgMaskRef is null || svgMaskRef.Children is null)
             {
                 return null;
             }
@@ -2745,7 +2745,7 @@ namespace Svg.Model
             var groupMarkerMid = svgGroup.MarkerMid;
             var groupMarkerEnd = svgGroup.MarkerEnd;
 
-            if (groupMarkerStart == null && groupMarkerMid == null && groupMarkerEnd == null && marker == null)
+            if (groupMarkerStart is null && groupMarkerMid is null && groupMarkerEnd is null && marker is null)
             {
                 return;
             }
@@ -2754,35 +2754,35 @@ namespace Svg.Model
             {
                 if (svgElement is SvgMarkerElement svgMarkerElement)
                 {
-                    if (svgMarkerElement.MarkerStart == null)
+                    if (svgMarkerElement.MarkerStart is null)
                     {
-                        if (groupMarkerStart != null)
+                        if (groupMarkerStart is { })
                         {
                             svgMarkerElement.MarkerStart = groupMarkerStart;
                         }
-                        else if (marker != null)
+                        else if (marker is { })
                         {
                             svgMarkerElement.MarkerStart = marker;
                         }
                     }
-                    if (svgMarkerElement.MarkerMid == null)
+                    if (svgMarkerElement.MarkerMid is null)
                     {
-                        if (groupMarkerMid != null)
+                        if (groupMarkerMid is { })
                         {
                             svgMarkerElement.MarkerMid = groupMarkerMid;
                         }
-                        else if (marker != null)
+                        else if (marker is { })
                         {
                             svgMarkerElement.MarkerMid = marker;
                         }
                     }
-                    if (svgMarkerElement.MarkerEnd == null)
+                    if (svgMarkerElement.MarkerEnd is null)
                     {
-                        if (groupMarkerEnd != null)
+                        if (groupMarkerEnd is { })
                         {
                             svgMarkerElement.MarkerEnd = groupMarkerEnd;
                         }
-                        else if (marker != null)
+                        else if (marker is { })
                         {
                             svgMarkerElement.MarkerEnd = marker;
                         }
@@ -2828,10 +2828,10 @@ namespace Svg.Model
             var pathLength = pathTypes.Count;
 
             var markerStart = svgMarkerElement.MarkerStart;
-            if (markerStart != null && pathLength > 0 && !HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
+            if (markerStart is { } && pathLength > 0 && !HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
             {
                 var marker = GetReference<SvgMarker>(svgMarkerElement, markerStart);
-                if (marker != null)
+                if (marker is { })
                 {
                     var refPoint1 = pathTypes[0].Point;
                     var index = 1;
@@ -2845,10 +2845,10 @@ namespace Svg.Model
             }
 
             var markerMid = svgMarkerElement.MarkerMid;
-            if (markerMid != null && pathLength > 0 && !HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, new HashSet<Uri>()))
+            if (markerMid is { } && pathLength > 0 && !HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, new HashSet<Uri>()))
             {
                 var marker = GetReference<SvgMarker>(svgMarkerElement, markerMid);
-                if (marker != null)
+                if (marker is { })
                 {
                     int bezierIndex = -1;
                     for (int i = 1; i <= pathLength - 2; i++)
@@ -2872,10 +2872,10 @@ namespace Svg.Model
             }
 
             var markerEnd = svgMarkerElement.MarkerEnd;
-            if (markerEnd != null && pathLength > 0 && !HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, new HashSet<Uri>()))
+            if (markerEnd is { } && pathLength > 0 && !HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, new HashSet<Uri>()))
             {
                 var marker = GetReference<SvgMarker>(svgMarkerElement, markerEnd);
-                if (marker != null)
+                if (marker is { })
                 {
                     var index = pathLength - 1;
                     var refPoint1 = pathTypes[index].Point;
@@ -3210,7 +3210,7 @@ namespace Svg.Model
             var kernelSize = new SizeI((int)orderX, (int)orderY);
             var kernelMatrix = svgConvolveMatrix.KernelMatrix;
 
-            if (kernelMatrix == null)
+            if (kernelMatrix is null)
             {
                 return null;
             }
@@ -3282,7 +3282,7 @@ namespace Svg.Model
         internal static ImageFilter? CreateDiffuseLighting(SvgDiffuseLighting svgDiffuseLighting, Rect skBounds, SvgCoordinateUnits primitiveUnits, SvgVisualElement svgVisualElement, ImageFilter? input = null, CropRect? cropRect = null)
         {
             var lightColor = GetColor(svgVisualElement, svgDiffuseLighting.LightingColor);
-            if (lightColor == null)
+            if (lightColor is null)
             {
                 return null;
             }
@@ -3353,7 +3353,7 @@ namespace Svg.Model
         internal static ImageFilter? CreateFlood(SvgFlood svgFlood, SvgVisualElement svgVisualElement, Rect skBounds, ImageFilter? input = null, CropRect? cropRect = null)
         {
             var floodColor = GetColor(svgVisualElement, svgFlood.FloodColor);
-            if (floodColor == null)
+            if (floodColor is null)
             {
                 return null;
             }
@@ -3362,7 +3362,7 @@ namespace Svg.Model
             var floodAlpha = CombineWithOpacity(floodColor.Value.Alpha, floodOpacity);
             floodColor = new Color(floodColor.Value.Red, floodColor.Value.Green, floodColor.Value.Blue, floodAlpha);
 
-            if (cropRect == null)
+            if (cropRect is null)
             {
                 cropRect = new CropRect(skBounds);
             }
@@ -3396,7 +3396,7 @@ namespace Svg.Model
             var image = GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
             var skImage = image as Image;
             var svgFragment = image as SvgFragment;
-            if (skImage == null && svgFragment == null)
+            if (skImage is null && svgFragment is null)
             {
                 return null;
             }
@@ -3406,12 +3406,12 @@ namespace Svg.Model
             var srcRect = default(Rect);
             var destRect = default(Rect);
 
-            if (skImage != null)
+            if (skImage is { })
             {
                 srcRect = Rect.Create(0f, 0f, skImage.Width, skImage.Height);
             }
 
-            if (svgFragment != null)
+            if (svgFragment is { })
             {
                 var skSize = GetDimensions(svgFragment);
                 srcRect = Rect.Create(0f, 0f, skSize.Width, skSize.Height);
@@ -3489,12 +3489,12 @@ namespace Svg.Model
                 destRect = destClip;
             }
 
-            if (skImage != null)
+            if (skImage is { })
             {
                 return ImageFilter.CreateImage(skImage, srcRect, destRect, FilterQuality.High);
             }
 
-            if (svgFragment != null)
+            if (svgFragment is { })
             {
                 var fragmentTransform = Matrix.CreateIdentity();
                 float dx = destRect.Left;
@@ -3535,7 +3535,7 @@ namespace Svg.Model
                 var child = children[i];
                 var inputKey = child.Input;
                 var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, false);
-                if (inputFilter != null)
+                if (inputFilter is { })
                 {
                     filters[i] = inputFilter;
                 }
@@ -3599,7 +3599,7 @@ namespace Svg.Model
         internal static ImageFilter? CreateSpecularLighting(SvgSpecularLighting svgSpecularLighting, Rect skBounds, SvgCoordinateUnits primitiveUnits, SvgVisualElement svgVisualElement, ImageFilter? input = null, CropRect? cropRect = null)
         {
             var lightColor = GetColor(svgVisualElement, svgSpecularLighting.LightingColor);
-            if (lightColor == null)
+            if (lightColor is null)
             {
                 return null;
             }
@@ -3640,7 +3640,7 @@ namespace Svg.Model
         internal static ImageFilter? CreateTile(SvgTile svgTile, Rect skBounds, ImageFilter? input = null, CropRect? cropRect = null)
         {
             var src = skBounds;
-            var dst = cropRect != null ? cropRect.Rect : skBounds;
+            var dst = cropRect is { } ? cropRect.Rect : skBounds;
             return ImageFilter.CreateTile(src, dst, input);
         }
 
@@ -3696,7 +3696,7 @@ namespace Svg.Model
 
             skPaint.Shader = skShader;
 
-            if (cropRect == null)
+            if (cropRect is null)
             {
                 cropRect = new CropRect(skBounds);
             }
@@ -3779,10 +3779,10 @@ namespace Svg.Model
                         return results[SourceGraphic];
                     }
                     var skPicture = filterSource.SourceGraphic();
-                    if (skPicture != null)
+                    if (skPicture is { })
                     {
                         var skImageFilter = GetGraphic(skPicture);
-                        if (skImageFilter != null)
+                        if (skImageFilter is { })
                         {
                             results[SourceGraphic] = skImageFilter;
                             return skImageFilter;
@@ -3806,10 +3806,10 @@ namespace Svg.Model
                 case SourceGraphic:
                     {
                         var skPicture = filterSource.SourceGraphic();
-                        if (skPicture != null)
+                        if (skPicture is { })
                         {
                             var skImageFilter = GetGraphic(skPicture);
-                            if (skImageFilter != null)
+                            if (skImageFilter is { })
                             {
                                 results[SourceGraphic] = skImageFilter;
                                 return skImageFilter;
@@ -3821,10 +3821,10 @@ namespace Svg.Model
                 case SourceAlpha:
                     {
                         var skPicture = filterSource.SourceGraphic();
-                        if (skPicture != null)
+                        if (skPicture is { })
                         {
                             var skImageFilter = GetAlpha(skPicture);
-                            if (skImageFilter != null)
+                            if (skImageFilter is { })
                             {
                                 results[SourceAlpha] = skImageFilter;
                                 return skImageFilter;
@@ -3836,10 +3836,10 @@ namespace Svg.Model
                 case BackgroundImage:
                     {
                         var skPicture = filterSource.BackgroundImage();
-                        if (skPicture != null)
+                        if (skPicture is { })
                         {
                             var skImageFilter = GetGraphic(skPicture);
-                            if (skImageFilter != null)
+                            if (skImageFilter is { })
                             {
                                 results[BackgroundImage] = skImageFilter;
                                 return skImageFilter;
@@ -3857,10 +3857,10 @@ namespace Svg.Model
                 case BackgroundAlpha:
                     {
                         var skPicture = filterSource.BackgroundImage();
-                        if (skPicture != null)
+                        if (skPicture is { })
                         {
                             var skImageFilter = GetAlpha(skPicture);
-                            if (skImageFilter != null)
+                            if (skImageFilter is { })
                             {
                                 results[BackgroundAlpha] = skImageFilter;
                                 return skImageFilter;
@@ -3878,10 +3878,10 @@ namespace Svg.Model
                 case FillPaint:
                     {
                         var skPaint = filterSource.FillPaint();
-                        if (skPaint != null)
+                        if (skPaint is { })
                         {
                             var skImageFilter = GetPaint(skPaint);
-                            if (skImageFilter != null)
+                            if (skImageFilter is { })
                             {
                                 results[FillPaint] = skImageFilter;
                                 return skImageFilter;
@@ -3893,10 +3893,10 @@ namespace Svg.Model
                 case StrokePaint:
                     {
                         var skPaint = filterSource.StrokePaint();
-                        if (skPaint != null)
+                        if (skPaint is { })
                         {
                             var skImageFilter = GetPaint(skPaint);
-                            if (skImageFilter != null)
+                            if (skImageFilter is { })
                             {
                                 results[StrokePaint] = skImageFilter;
                                 return skImageFilter;
@@ -3911,7 +3911,7 @@ namespace Svg.Model
 
         internal static ImageFilter? GetFilterResult(SvgFilterPrimitive svgFilterPrimitive, ImageFilter? skImageFilter, Dictionary<string, ImageFilter> results)
         {
-            if (skImageFilter != null)
+            if (skImageFilter is { })
             {
                 var key = svgFilterPrimitive.Result;
                 if (!string.IsNullOrWhiteSpace(key))
@@ -3926,7 +3926,7 @@ namespace Svg.Model
         private static List<SvgFilter>? GetLinkedFilter(SvgVisualElement svgVisualElement, HashSet<Uri> uris)
         {
             var currentFilter = GetReference<SvgFilter>(svgVisualElement, svgVisualElement.Filter);
-            if (currentFilter == null)
+            if (currentFilter is null)
             {
                 return null;
             }
@@ -3934,7 +3934,7 @@ namespace Svg.Model
             var svgFilters = new List<SvgFilter>();
             do
             {
-                if (currentFilter != null)
+                if (currentFilter is { })
                 {
                     svgFilters.Add(currentFilter);
                     if (HasRecursiveReference(currentFilter, (e) => e.Href, uris))
@@ -3943,7 +3943,7 @@ namespace Svg.Model
                     }
                     currentFilter = GetReference<SvgFilter>(currentFilter, currentFilter.Href);
                 }
-            } while (currentFilter != null);
+            } while (currentFilter is { });
 
             return svgFilters;
         }
@@ -3951,14 +3951,14 @@ namespace Svg.Model
         internal static Paint.Paint? GetFilterPaint(SvgVisualElement svgVisualElement, Rect skBounds, IFilterSource filterSource, IAssetLoader assetLoader, out bool isValid)
         {
             var filter = svgVisualElement.Filter;
-            if (filter == null || IsNone(filter))
+            if (filter is null || IsNone(filter))
             {
                 isValid = true;
                 return null;
             }
 
             var svgReferencedFilters = GetLinkedFilter(svgVisualElement, new HashSet<Uri>());
-            if (svgReferencedFilters == null || svgReferencedFilters.Count < 0)
+            if (svgReferencedFilters is null || svgReferencedFilters.Count < 0)
             {
                 isValid = false;
                 return null;
@@ -4018,12 +4018,12 @@ namespace Svg.Model
                 return null;
             }
 
-            var xUnit = firstX == null ? new SvgUnit(SvgUnitType.Percentage, -10f) : firstX.X;
-            var yUnit = firstY == null ? new SvgUnit(SvgUnitType.Percentage, -10f) : firstY.Y;
-            var widthUnit = firstWidth == null ? new SvgUnit(SvgUnitType.Percentage, 120f) : firstWidth.Width;
-            var heightUnit = firstHeight == null ? new SvgUnit(SvgUnitType.Percentage, 120f) : firstHeight.Height;
-            var filterUnits = firstFilterUnits == null ? SvgCoordinateUnits.ObjectBoundingBox : firstFilterUnits.FilterUnits;
-            var primitiveUnits = firstPrimitiveUnits == null ? SvgCoordinateUnits.UserSpaceOnUse : firstPrimitiveUnits.FilterUnits;
+            var xUnit = firstX is null ? new SvgUnit(SvgUnitType.Percentage, -10f) : firstX.X;
+            var yUnit = firstY is null ? new SvgUnit(SvgUnitType.Percentage, -10f) : firstY.Y;
+            var widthUnit = firstWidth is null ? new SvgUnit(SvgUnitType.Percentage, 120f) : firstWidth.Width;
+            var heightUnit = firstHeight is null ? new SvgUnit(SvgUnitType.Percentage, 120f) : firstHeight.Height;
+            var filterUnits = firstFilterUnits is null ? SvgCoordinateUnits.ObjectBoundingBox : firstFilterUnits.FilterUnits;
+            var primitiveUnits = firstPrimitiveUnits is null ? SvgCoordinateUnits.UserSpaceOnUse : firstPrimitiveUnits.FilterUnits;
 
             float x = xUnit.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFirstFilter, skBounds);
             float y = yUnit.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFirstFilter, skBounds);
@@ -4145,14 +4145,14 @@ namespace Svg.Model
                             var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, isFirst);
                             var input2Key = svgBlend.Input2;
                             var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, false);
-                            if (input2Filter == null)
+                            if (input2Filter is null)
                             {
                                 break;
                             }
                             var skImageFilter = CreateBlend(svgBlend, input2Filter, input1Filter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
-                            if (lastResult != null)
+                            if (lastResult is { })
                             {
                                 skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
                             }
@@ -4167,7 +4167,7 @@ namespace Svg.Model
                             var skImageFilter = CreateColorMatrix(svgColourMatrix, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
-                            if (lastResult != null)
+                            if (lastResult is { })
                             {
                                 skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
                             }
@@ -4182,7 +4182,7 @@ namespace Svg.Model
                             var skImageFilter = CreateComponentTransfer(svgComponentTransfer, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
-                            if (lastResult != null)
+                            if (lastResult is { })
                             {
                                 skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
                             }
@@ -4196,14 +4196,14 @@ namespace Svg.Model
                             var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, isFirst);
                             var input2Key = svgComposite.Input2;
                             var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, false);
-                            if (input2Filter == null)
+                            if (input2Filter is null)
                             {
                                 break;
                             }
                             var skImageFilter = CreateComposite(svgComposite, input2Filter, input1Filter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
-                            if (lastResult != null)
+                            if (lastResult is { })
                             {
                                 skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
                             }
@@ -4218,7 +4218,7 @@ namespace Svg.Model
                             var skImageFilter = CreateConvolveMatrix(svgConvolveMatrix, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
-                            if (lastResult != null)
+                            if (lastResult is { })
                             {
                                 skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
                             }
@@ -4233,7 +4233,7 @@ namespace Svg.Model
                             var skImageFilter = CreateDiffuseLighting(svgDiffuseLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
-                            if (lastResult != null)
+                            if (lastResult is { })
                             {
                                 skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
                             }
@@ -4247,14 +4247,14 @@ namespace Svg.Model
                             var input1Filter = GetInputFilter(input1Key, results, lastResult, filterSource, isFirst);
                             var input2Key = svgDisplacementMap.Input2;
                             var input2Filter = GetInputFilter(input2Key, results, lastResult, filterSource, false);
-                            if (input2Filter == null)
+                            if (input2Filter is null)
                             {
                                 break;
                             }
                             var skImageFilter = CreateDisplacementMap(svgDisplacementMap, skFilterPrimitiveRegion, primitiveUnits, input2Filter, input1Filter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
-                            if (lastResult != null)
+                            if (lastResult is { })
                             {
                                 skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
                             }
@@ -4267,7 +4267,7 @@ namespace Svg.Model
                             var skImageFilter = CreateFlood(svgFlood, svgVisualElement, skFilterPrimitiveRegion, null, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
-                            if (lastResult != null)
+                            if (lastResult is { })
                             {
                                 skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
                             }
@@ -4282,7 +4282,7 @@ namespace Svg.Model
                             var skImageFilter = CreateBlur(svgGaussianBlur, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
-                            if (lastResult != null)
+                            if (lastResult is { })
                             {
                                 skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
                             }
@@ -4295,7 +4295,7 @@ namespace Svg.Model
                             var skImageFilter = CreateImage(svgImage, skFilterPrimitiveRegion, assetLoader, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
-                            if (lastResult != null)
+                            if (lastResult is { })
                             {
                                 skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
                             }
@@ -4308,7 +4308,7 @@ namespace Svg.Model
                             var skImageFilter = CreateMerge(svgMerge, results, lastResult, filterSource, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
-                            if (lastResult != null)
+                            if (lastResult is { })
                             {
                                 skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
                             }
@@ -4323,7 +4323,7 @@ namespace Svg.Model
                             var skImageFilter = CreateMorphology(svgMorphology, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
-                            if (lastResult != null)
+                            if (lastResult is { })
                             {
                                 skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
                             }
@@ -4338,7 +4338,7 @@ namespace Svg.Model
                             var skImageFilter = CreateOffset(svgOffset, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
-                            if (lastResult != null)
+                            if (lastResult is { })
                             {
                                 skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
                             }
@@ -4353,7 +4353,7 @@ namespace Svg.Model
                             var skImageFilter = CreateSpecularLighting(svgSpecularLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
-                            if (lastResult != null)
+                            if (lastResult is { })
                             {
                                 skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
                             }
@@ -4368,7 +4368,7 @@ namespace Svg.Model
                             var skImageFilter = CreateTile(svgTile, prevoiusFilterPrimitiveRegion, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
-                            if (lastResult != null)
+                            if (lastResult is { })
                             {
                                 skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
                             }
@@ -4381,7 +4381,7 @@ namespace Svg.Model
                             var skImageFilter = CreateTurbulence(svgTurbulence, skFilterPrimitiveRegion, primitiveUnits, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
-                            if (lastResult != null)
+                            if (lastResult is { })
                             {
                                 skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
                             }
@@ -4396,7 +4396,7 @@ namespace Svg.Model
                 prevoiusFilterPrimitiveRegion = skFilterPrimitiveRegion;
             }
 
-            if (lastResult != null)
+            if (lastResult is { })
             {
                 var skPaint = new Paint.Paint
                 {
@@ -4664,7 +4664,7 @@ namespace Svg.Model
             var size = GetDimensions(svgFragment);
             var bounds = Rect.Create(size);
             using var drawable = DrawableFactory.Create(svgFragment, bounds, null, assetLoader, Attributes.None);
-            if (drawable == null)
+            if (drawable is null)
             {
                 return null;
             }

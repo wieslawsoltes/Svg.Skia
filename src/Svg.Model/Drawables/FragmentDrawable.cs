@@ -77,14 +77,14 @@ namespace Svg.Model.Drawables
 
             var clipPathUris = new HashSet<Uri>();
             var svgClipPath = svgFragment.GetUriElementReference<SvgClipPath>("clip-path", clipPathUris);
-            if (svgClipPath != null && svgClipPath.Children != null)
+            if (svgClipPath is { } && svgClipPath.Children is { })
             {
                 var clipPath = new ClipPath
                 {
                     Clip = new ClipPath()
                 };
                 SvgModelExtensions.GetClipPath(svgClipPath, drawable.TransformedBounds, clipPathUris, clipPath);
-                if (clipPath.Clips != null && clipPath.Clips.Count > 0 && !drawable.IgnoreAttributes.HasFlag(Attributes.ClipPath))
+                if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !drawable.IgnoreAttributes.HasFlag(Attributes.ClipPath))
                 {
                     drawable.ClipPath = clipPath;
                 }

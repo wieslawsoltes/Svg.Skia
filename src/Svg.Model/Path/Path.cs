@@ -10,7 +10,7 @@ namespace Svg.Model.Path
         public PathFillType FillType { get; set; }
         public IList<PathCommand>? Commands { get; set; }
 
-        public bool IsEmpty => Commands == null || Commands.Count == 0;
+        public bool IsEmpty => Commands is null || Commands.Count == 0;
 
         public Rect Bounds => GetBounds();
 
@@ -29,7 +29,7 @@ namespace Svg.Model.Path
 
         private Rect GetBounds()
         {
-            if (Commands == null || Commands.Count == 0)
+            if (Commands is null || Commands.Count == 0)
             {
                 return Rect.Empty;
             }
@@ -118,7 +118,7 @@ namespace Svg.Model.Path
                         break;
                     case AddPolyPathCommand addPolyPathCommand:
                         {
-                            if (addPolyPathCommand.Points != null)
+                            if (addPolyPathCommand.Points is { })
                             {
                                 var points = addPolyPathCommand.Points;
                                 foreach (var point in points)

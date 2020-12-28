@@ -19,7 +19,7 @@ namespace Svg.Model
             foreach (var child in svgElement.Children)
             {
                 var drawable = DrawableFactory.Create(child, skOwnerBounds, parent, assetLoader, ignoreAttributes);
-                if (drawable != null)
+                if (drawable is { })
                 {
                     ChildrenDrawables.Add(drawable);
                 }
@@ -46,14 +46,14 @@ namespace Svg.Model
 
         public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
-            if (until != null && this == until)
+            if (until is { } && this == until)
             {
                 return;
             }
 
             foreach (var drawable in ChildrenDrawables)
             {
-                if (until != null && drawable == until)
+                if (until is { } && drawable == until)
                 {
                     break;
                 }

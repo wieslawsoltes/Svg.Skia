@@ -67,7 +67,7 @@ namespace Svg.Model.Drawables
 
             try
             {
-                if (s_referencedElementParent != null)
+                if (s_referencedElementParent is { })
                 {
                     s_referencedElementParent.SetValue(svgReferencedElement, svgUse);
                 }
@@ -87,7 +87,7 @@ namespace Svg.Model.Drawables
             else
             {
                 var referencedDrawable = DrawableFactory.Create(svgReferencedElement, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
-                if (referencedDrawable != null)
+                if (referencedDrawable is { })
                 {
                     drawable.ReferencedDrawable = referencedDrawable;
                 }
@@ -117,7 +117,7 @@ namespace Svg.Model.Drawables
 
             try
             {
-                if (s_referencedElementParent != null)
+                if (s_referencedElementParent is { })
                 {
                     s_referencedElementParent.SetValue(svgReferencedElement, originalReferencedElementParent);
                 }
@@ -133,7 +133,7 @@ namespace Svg.Model.Drawables
 
         public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
-            if (until != null && this == until)
+            if (until is { } && this == until)
             {
                 return;
             }

@@ -10,7 +10,7 @@ namespace Svg.Model.Path
         public Matrix? Transform { get; set; }
         public ClipPath? Clip { get; set; }
 
-        public bool IsEmpty => Clips == null || Clips.Count == 0;
+        public bool IsEmpty => Clips is null || Clips.Count == 0;
 
         public ClipPath()
         {

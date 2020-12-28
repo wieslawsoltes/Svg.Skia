@@ -64,12 +64,12 @@ namespace Svg.Model.Drawables
 
             drawable.SrcRect = default;
 
-            if (skImage != null)
+            if (skImage is { })
             {
                 drawable.SrcRect = Rect.Create(0f, 0f, skImage.Width, skImage.Height);
             }
 
-            if (svgFragment != null)
+            if (svgFragment is { })
             {
                 var skSize = SvgModelExtensions.GetDimensions(svgFragment);
                 drawable.SrcRect = Rect.Create(0f, 0f, skSize.Width, skSize.Height);
@@ -152,36 +152,36 @@ namespace Svg.Model.Drawables
             drawable.Clip = destClip;
 
             var skClipRect = SvgModelExtensions.GetClipRect(svgImage, destClip);
-            if (skClipRect != null)
+            if (skClipRect is { })
             {
                 drawable.Clip = skClipRect;
             }
 
-            if (skImage != null)
+            if (skImage is { })
             {
                 drawable.Image = skImage;
             }
 
-            if (svgFragment != null)
+            if (svgFragment is { })
             {
                 drawable.FragmentDrawable = FragmentDrawable.Create(svgFragment, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
             }
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgImage);
 
-            if (drawable.Image != null)
+            if (drawable.Image is { })
             {
                 drawable.TransformedBounds = drawable.DestRect;
             }
 
-            if (drawable.FragmentDrawable != null)
+            if (drawable.FragmentDrawable is { })
             {
                 drawable.TransformedBounds = drawable.DestRect;
             }
 
             drawable.Transform = SvgModelExtensions.ToMatrix(svgImage.Transforms);
             drawable.FragmentTransform = Matrix.CreateIdentity();
-            if (drawable.FragmentDrawable != null)
+            if (drawable.FragmentDrawable is { })
             {
                 float dx = drawable.DestRect.Left;
                 float dy = drawable.DestRect.Top;
@@ -205,12 +205,12 @@ namespace Svg.Model.Drawables
 
         public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
-            if (until != null && this == until)
+            if (until is { } && this == until)
             {
                 return;
             }
 
-            if (Image != null)
+            if (Image is { })
             {
                 using var skImagePaint = new Paint.Paint
                 {
@@ -220,7 +220,7 @@ namespace Svg.Model.Drawables
                 canvas.DrawImage(Image, SrcRect, DestRect, skImagePaint);
             }
 
-            if (FragmentDrawable != null)
+            if (FragmentDrawable is { })
             {
                 canvas.Save();
 
