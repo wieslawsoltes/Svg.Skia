@@ -248,7 +248,7 @@ namespace Svg.Model
 
                         default:
                         case UnitRenderingType.Other:
-                            if (owner?.OwnerDocument is { } && owner.OwnerDocument.ViewBox is { } && owner.OwnerDocument.ViewBox.Width != 0 && owner.OwnerDocument.ViewBox.Height != 0)
+                            if (owner?.OwnerDocument?.ViewBox != null && owner.OwnerDocument.ViewBox.Width != 0 && owner.OwnerDocument.ViewBox.Height != 0)
                             {
                                 _deviceValue = (float)(Math.Sqrt(Math.Pow(owner.OwnerDocument.ViewBox.Width, 2) + Math.Pow(owner.OwnerDocument.ViewBox.Height, 2)) / Math.Sqrt(2) * value / 100.0);
                             }
@@ -2612,7 +2612,7 @@ namespace Svg.Model
             }
 
             var svgClipPathRef = svgClipPath.GetUriElementReference<SvgClipPath>("clip-path", uris);
-            if (svgClipPathRef is null || svgClipPathRef.Children is null)
+            if (svgClipPathRef?.Children is null)
             {
                 return;
             }
@@ -2679,7 +2679,7 @@ namespace Svg.Model
 
         internal static void GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, Rect skBounds, HashSet<Uri> uris, ClipPath clipPath)
         {
-            if (svgVisualElement is null || svgVisualElement.ClipPath is null)
+            if (svgVisualElement?.ClipPath is null)
             {
                 return;
             }
@@ -2690,7 +2690,7 @@ namespace Svg.Model
             }
 
             var svgClipPath = GetReference<SvgClipPath>(svgVisualElement, svgVisualElement.ClipPath);
-            if (svgClipPath is null || svgClipPath.Children is null)
+            if (svgClipPath?.Children is null)
             {
                 return;
             }
@@ -2723,7 +2723,7 @@ namespace Svg.Model
         internal static MaskDrawable? GetSvgElementMask(SvgElement svgElement, Rect skBounds, HashSet<Uri> uris, IAssetLoader assetLoader)
         {
             var svgMaskRef = svgElement.GetUriElementReference<SvgMask>("mask", uris);
-            if (svgMaskRef is null || svgMaskRef.Children is null)
+            if (svgMaskRef?.Children is null)
             {
                 return null;
             }
