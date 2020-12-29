@@ -6,9 +6,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Windows.Data;
 using Newtonsoft.Json;
 using SkiaSharp;
+using Svg.CodeGen.Skia;
 using Svg.Model;
 using Svg.Skia;
 
@@ -118,7 +120,20 @@ namespace SvgToPng.ViewModels
                     if (item.Drawable is {} && bounds is { })
                     {
                         item.Picture = item.Drawable.Snapshot(bounds.Value);
+                        
                         item.SkiaPicture = item.Picture?.ToSKPicture();
+                        
+                        if (item.Picture?.Commands is { })
+                        {
+                            item.Code = SkiaCodeGen.Generate(item.Picture, "Svg", CreateClassName(item.SvgPath));
+
+                            string CreateClassName(string path)
+                            {
+                                string name = System.IO.Path.GetFileNameWithoutExtension(path);
+                                string className = name.Replace("-", "_");
+                                return $"Svg_{className}";
+                            }
+                        }
                     }
 
                     stopwatchToPicture.Stop();
