@@ -2,6 +2,7 @@
 using System.Runtime.Serialization;
 using SkiaSharp;
 using Svg;
+using Svg.Model.Primitives;
 
 namespace SvgToPng.ViewModels
 {
@@ -21,10 +22,16 @@ namespace SvgToPng.ViewModels
         public string ReferencePngPath { get; set; }
 
         [IgnoreDataMember]
-        public SvgDocument Svg { get; set; }
+        public SvgDocument Document { get; set; }
 
         [IgnoreDataMember]
-        public SKPicture Picture { get; set; }
+        public Drawable Drawable { get; set; }
+
+        [IgnoreDataMember]
+        public Picture Picture { get; set; }
+        
+        [IgnoreDataMember]
+        public SKPicture SkiaPicture { get; set; }
 
         [IgnoreDataMember]
         public SKBitmap ReferencePng { get; set; }
@@ -34,9 +41,9 @@ namespace SvgToPng.ViewModels
 
         public void Reset()
         {
-            Svg = null;
-            Picture?.Dispose();
-            Picture = null;
+            Document = null;
+            SkiaPicture?.Dispose();
+            SkiaPicture = null;
             ReferencePng?.Dispose();
             ReferencePng = null;
             PixelDiff?.Dispose();

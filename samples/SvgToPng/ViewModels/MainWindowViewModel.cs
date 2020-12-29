@@ -105,15 +105,22 @@ namespace SvgToPng.ViewModels
                 Directory.SetCurrentDirectory(System.IO.Path.GetDirectoryName(item.SvgPath));
 
                 var stopwatchOpen = Stopwatch.StartNew();
-                item.Svg = SvgModelExtensions.Open(item.SvgPath);
+                item.Document = SvgModelExtensions.Open(item.SvgPath);
                 stopwatchOpen.Stop();
                 statusOpen?.Invoke($"{Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
                 Debug.WriteLine($"Open: {Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
 
-                if (item.Svg is { })
+                if (item.Document is { })
                 {
                     var stopwatchToPicture = Stopwatch.StartNew();
-                    item.Picture = SKSvg.ToPicture(item.Svg);
+
+                    item.Drawable = SvgModelExtensions.ToDrawable(item.Document, new SkiaAssetLoader(), out var bounds);
+                    if (item.Drawable is {} && bounds is { })
+                    {
+                        item.Picture = item.Drawable.Snapshot(bounds.Value);
+                        item.SkiaPicture = item.Picture?.ToSKPicture();
+                    }
+
                     stopwatchToPicture.Stop();
                     statusToPicture?.Invoke($"{Math.Round(stopwatchToPicture.Elapsed.TotalMilliseconds, 3)}ms");
                     Debug.WriteLine($"ToPicture: {Math.Round(stopwatchToPicture.Elapsed.TotalMilliseconds, 3)}ms");
@@ -153,9 +160,9 @@ namespace SvgToPng.ViewModels
 
                 item.ReferencePng = skReferenceBitmap;
 
-                float scaleX = skReferenceBitmap.Width / item.Picture.CullRect.Width;
-                float scaleY = skReferenceBitmap.Height / item.Picture.CullRect.Height;
-                using var svgBitmap = item.Picture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
+                float scaleX = skReferenceBitmap.Width / item.SkiaPicture.CullRect.Width;
+                float scaleY = skReferenceBitmap.Height / item.SkiaPicture.CullRect.Height;
+                using var svgBitmap = item.SkiaPicture.ToBitmap(SKColors.Transparent, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
                 if (svgBitmap.Width == skReferenceBitmap.Width && svgBitmap.Height == skReferenceBitmap.Height)
                 {
                     var pixelDiff = PixelDiff(skReferenceBitmap, svgBitmap);
@@ -172,12 +179,12 @@ namespace SvgToPng.ViewModels
 
         public void UpdateItem(Item item, Action<string> statusOpen, Action<string> statusToPicture)
         {
-            if (item.Svg == null)
+            if (item.Document == null)
             {
                 LoadSvg(item, statusOpen, statusToPicture);
             }
 
-            if (item.ReferencePng == null && item.Picture is { })
+            if (item.ReferencePng == null && item.SkiaPicture is { })
             {
                 LoadPng(item);
             }

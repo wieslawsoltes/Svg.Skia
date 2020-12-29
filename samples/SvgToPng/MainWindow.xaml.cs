@@ -500,15 +500,15 @@ namespace SvgToPng
 
                 canvas.Clear(SKColors.White);
 
-                if (item.Picture is { })
+                if (item.SkiaPicture is { })
                 {
-                    float pwidth = item.Picture.CullRect.Width;
-                    float pheight = item.Picture.CullRect.Height;
+                    float pwidth = item.SkiaPicture.CullRect.Width;
+                    float pheight = item.SkiaPicture.CullRect.Height;
                     if (pwidth > 0f && pheight > 0f)
                     {
                         skElementSvg.Width = pwidth;
                         skElementSvg.Height = pheight;
-                        canvas.DrawPicture(item.Picture);
+                        canvas.DrawPicture(item.SkiaPicture);
                     }
                 }
 
