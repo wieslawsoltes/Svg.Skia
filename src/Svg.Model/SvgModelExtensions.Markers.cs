@@ -1,123 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Svg.Model.Drawables;
 using Svg.Model.Drawables.Elements;
 using Svg.Model.Primitives;
-using Svg.Model.Primitives.PathCommands;
 
 namespace Svg.Model
 {
     public static partial class SvgModelExtensions
     {
-        [Flags]
-        internal enum PathPointType : byte
-        {
-            Start = 0,
-            Line = 1,
-            Bezier = 3,
-            Bezier3 = 3,
-            PathTypeMask = 0x7,
-            DashMode = 0x10,
-            PathMarker = 0x20,
-            CloseSubpath = 0x80
-        }
-
-        internal static List<(Point Point, byte Type)> GetPathTypes(this Path path)
-        {
-            // System.Drawing.Drawing2D.GraphicsPath.PathTypes
-            // System.Drawing.Drawing2D.PathPointType
-            // byte -> PathPointType
-            var pathTypes = new List<(Point Point, byte Type)>();
-
-            if (path.Commands is null)
-            {
-                return pathTypes;
-            }
-            (Point Point, byte Type) lastPoint = (default, 0);
-            foreach (var pathCommand in path.Commands)
-            {
-                switch (pathCommand)
-                {
-                    case MoveToPathCommand moveToPathCommand:
-                        {
-                            var point0 = new Point(moveToPathCommand.X, moveToPathCommand.Y);
-                            pathTypes.Add((point0, (byte)PathPointType.Start));
-                            lastPoint = (point0, (byte)PathPointType.Start);
-                        }
-                        break;
-
-                    case LineToPathCommand lineToPathCommand:
-                        {
-                            var point1 = new Point(lineToPathCommand.X, lineToPathCommand.Y);
-                            pathTypes.Add((point1, (byte)PathPointType.Line));
-                            lastPoint = (point1, (byte)PathPointType.Line);
-                        }
-                        break;
-
-                    case CubicToPathCommand cubicToPathCommand:
-                        {
-                            var point1 = new Point(cubicToPathCommand.X0, cubicToPathCommand.Y0);
-                            var point2 = new Point(cubicToPathCommand.X1, cubicToPathCommand.Y1);
-                            var point3 = new Point(cubicToPathCommand.X2, cubicToPathCommand.Y2);
-                            pathTypes.Add((point1, (byte)PathPointType.Bezier));
-                            pathTypes.Add((point2, (byte)PathPointType.Bezier));
-                            pathTypes.Add((point3, (byte)PathPointType.Bezier));
-                            lastPoint = (point3, (byte)PathPointType.Bezier);
-                        }
-                        break;
-
-                    case QuadToPathCommand quadToPathCommand:
-                        {
-                            var point1 = new Point(quadToPathCommand.X0, quadToPathCommand.Y0);
-                            var point2 = new Point(quadToPathCommand.X1, quadToPathCommand.Y1);
-                            pathTypes.Add((point1, (byte)PathPointType.Bezier));
-                            pathTypes.Add((point2, (byte)PathPointType.Bezier));
-                            lastPoint = (point2, (byte)PathPointType.Bezier);
-                        }
-                        break;
-
-                    case ArcToPathCommand arcToPathCommand:
-                        {
-                            var point1 = new Point(arcToPathCommand.X, arcToPathCommand.Y);
-                            pathTypes.Add((point1, (byte)PathPointType.Bezier));
-                            lastPoint = (point1, (byte)PathPointType.Bezier);
-                        }
-                        break;
-
-                    case ClosePathCommand closePathCommand:
-                        {
-                            lastPoint = (lastPoint.Point, (byte)(lastPoint.Type | (byte)PathPointType.CloseSubpath));
-                            pathTypes[pathTypes.Count - 1] = lastPoint;
-                        }
-                        break;
-
-                    case AddPolyPathCommand addPolyPathCommand:
-                        {
-                            if (addPolyPathCommand.Points is { } && addPolyPathCommand.Points.Count > 0)
-                            {
-                                foreach (var nexPoint in addPolyPathCommand.Points)
-                                {
-                                    var point1 = new Point(nexPoint.X, nexPoint.Y);
-                                    pathTypes.Add((point1, (byte)PathPointType.Start));
-                                    lastPoint = (point1, (byte)PathPointType.Start);
-                                }
-
-                                var point = addPolyPathCommand.Points[addPolyPathCommand.Points.Count - 1];
-                                lastPoint = (point, (byte)PathPointType.Line);
-                            }
-                        }
-                        break;
-
-                    default:
-                        Debug.WriteLine($"Not implemented path point for {pathCommand?.GetType()} type.");
-                        break;
-                }
-            }
-
-            return pathTypes;
-        }
-
         internal static void AddMarkers(this SvgGroup svgGroup)
         {
             Uri? marker = default;
