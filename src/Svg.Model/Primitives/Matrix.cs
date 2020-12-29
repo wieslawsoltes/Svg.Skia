@@ -224,5 +224,10 @@ namespace Svg.Model.Primitives
         {
             return source; // TODO:
         }
+
+        public override string ToString()
+        {
+            return FormattableString.Invariant($"{ScaleX}, {SkewX}, {TransX}, {SkewY}, {ScaleY}, {TransY}");
+        }
     }
 }

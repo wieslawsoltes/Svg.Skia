@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 
 namespace Svg.Model.Primitives
 {
@@ -53,6 +52,11 @@ namespace Svg.Model.Primitives
                 Math.Min(a.Top, b.Top),
                 Math.Max(a.Right, b.Right),
                 Math.Max(a.Bottom, b.Bottom));
+        }
+
+        public override string ToString()
+        {
+            return FormattableString.Invariant($"{Left}, {Top}, {Width}, {Height}");
         }
     }
 }

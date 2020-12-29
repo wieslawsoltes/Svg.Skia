@@ -1,4 +1,6 @@
-﻿namespace Svg.Model.Primitives
+﻿using System;
+
+namespace Svg.Model.Primitives
 {
     public readonly struct Point
     {
@@ -13,6 +15,11 @@
         {
             X = x;
             Y = y;
+        }
+        
+        public override string ToString()
+        {
+            return FormattableString.Invariant($"{X}, {Y}");
         }
     }
 }

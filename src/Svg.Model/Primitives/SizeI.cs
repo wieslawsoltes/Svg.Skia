@@ -1,4 +1,6 @@
-﻿namespace Svg.Model.Primitives
+﻿using System;
+
+namespace Svg.Model.Primitives
 {
     public readonly struct SizeI
     {
@@ -13,6 +15,11 @@
         {
             Width = width;
             Height = height;
+        }
+        
+        public override string ToString()
+        {
+            return FormattableString.Invariant($"{Width}, {Height}");
         }
     }
 }

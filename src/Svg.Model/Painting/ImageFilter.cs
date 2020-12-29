@@ -1,4 +1,5 @@
-﻿using Svg.Model.Painting.ImageFilters;
+﻿using System;
+using Svg.Model.Painting.ImageFilters;
 using Svg.Model.Primitives;
 using Svg.Model.Painting.Shaders;
 
@@ -15,6 +16,11 @@ namespace Svg.Model.Painting
         public CropRect(Rect rect)
         {
             Rect = rect;
+        }
+        
+        public override string ToString()
+        {
+            return FormattableString.Invariant($"{Rect}");
         }
     }
 

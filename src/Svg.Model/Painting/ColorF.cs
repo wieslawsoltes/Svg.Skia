@@ -1,4 +1,5 @@
-﻿
+﻿using System;
+
 namespace Svg.Model.Painting
 {
     public readonly struct ColorF
@@ -25,6 +26,11 @@ namespace Svg.Model.Painting
                 (byte)(color.Green * 255.0f),
                 (byte)(color.Blue * 255.0f),
                 (byte)(color.Alpha * 255.0f));
+        }
+        
+        public override string ToString()
+        {
+            return FormattableString.Invariant($"{Red}, {Green}, {Blue}, {Alpha}");
         }
     }
 }
