@@ -29,6 +29,9 @@ namespace SvgToPng.ViewModels
 
         [IgnoreDataMember]
         public Picture Picture { get; set; }
+
+        [IgnoreDataMember]
+        public string Code { get; set; }
         
         [IgnoreDataMember]
         public SKPicture SkiaPicture { get; set; }
@@ -42,6 +45,9 @@ namespace SvgToPng.ViewModels
         public void Reset()
         {
             Document = null;
+            Drawable = null;
+            Picture = null;
+            Code = null;
             SkiaPicture?.Dispose();
             SkiaPicture = null;
             ReferencePng?.Dispose();
