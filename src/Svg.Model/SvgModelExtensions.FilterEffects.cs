@@ -1247,23 +1247,11 @@ namespace Svg.Model
                 }
             }
 
-#if DEBUG
-            var skFilterPrimitiveRegions = new List<(SvgFilterPrimitive primitive, Rect region)>();
-            var skImageFilterRegions = new List<(ImageFilter filter, SvgFilterPrimitive primitive, Rect region)>();
-#endif
+            var items = new List<(SvgFilterPrimitive primitive, Rect region)>();
 
-            var count = 0;
             foreach (var svgFilterPrimitive in svgFilterPrimitives)
             {
-                count++;
-                var isFirst = count == 1;
                 var skPrimitiveBounds = skFilterRegion;
-
-                // TOOD: PrimitiveUnits
-                //if (primitiveUnits == SvgCoordinateUnits.UserSpaceOnUse)
-                {
-                    skPrimitiveBounds = skFilterRegion;
-                }
 
                 var xUnitChild = svgFilterPrimitive.X;
                 var yUnitChild = svgFilterPrimitive.Y;
@@ -1302,10 +1290,17 @@ namespace Svg.Model
 
                 var skFilterPrimitiveRegion = Rect.Create(xChild, yChild, widthChild, heightChild);
 
-                var skCropRect = new CropRect(skFilterPrimitiveRegion);
-#if DEBUG
-                skFilterPrimitiveRegions.Add((svgFilterPrimitive, skFilterPrimitiveRegion));
-#endif
+                items.Add((svgFilterPrimitive, skFilterPrimitiveRegion));
+            }
+
+            var count = 0;
+            foreach (var item in items)
+            {
+                count++;
+                var isFirst = count == 1;
+                var skFilterPrimitiveRegion = item.region;
+                var svgFilterPrimitive = item.primitive;
+                var skCropRect = new CropRect(item.region);
 
                 switch (svgFilterPrimitive)
                 {
@@ -1321,12 +1316,7 @@ namespace Svg.Model
                             }
                             var skImageFilter = CreateBlend(svgBlend, input2Filter, input1Filter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-#if DEBUG
-                            if (lastResult is { })
-                            {
-                                skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
-                            }
-#endif
+
                         }
                         break;
 
@@ -1336,12 +1326,6 @@ namespace Svg.Model
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
                             var skImageFilter = CreateColorMatrix(svgColourMatrix, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-#if DEBUG
-                            if (lastResult is { })
-                            {
-                                skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
-                            }
-#endif
                         }
                         break;
 
@@ -1351,12 +1335,6 @@ namespace Svg.Model
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
                             var skImageFilter = CreateComponentTransfer(svgComponentTransfer, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-#if DEBUG
-                            if (lastResult is { })
-                            {
-                                skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
-                            }
-#endif
                         }
                         break;
 
@@ -1372,12 +1350,6 @@ namespace Svg.Model
                             }
                             var skImageFilter = CreateComposite(svgComposite, input2Filter, input1Filter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-#if DEBUG
-                            if (lastResult is { })
-                            {
-                                skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
-                            }
-#endif
                         }
                         break;
 
@@ -1387,12 +1359,6 @@ namespace Svg.Model
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
                             var skImageFilter = CreateConvolveMatrix(svgConvolveMatrix, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-#if DEBUG
-                            if (lastResult is { })
-                            {
-                                skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
-                            }
-#endif
                         }
                         break;
 
@@ -1402,12 +1368,6 @@ namespace Svg.Model
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
                             var skImageFilter = CreateDiffuseLighting(svgDiffuseLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-#if DEBUG
-                            if (lastResult is { })
-                            {
-                                skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
-                            }
-#endif
                         }
                         break;
 
@@ -1423,12 +1383,6 @@ namespace Svg.Model
                             }
                             var skImageFilter = CreateDisplacementMap(svgDisplacementMap, skFilterPrimitiveRegion, primitiveUnits, input2Filter, input1Filter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-#if DEBUG
-                            if (lastResult is { })
-                            {
-                                skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
-                            }
-#endif
                         }
                         break;
 
@@ -1436,12 +1390,6 @@ namespace Svg.Model
                         {
                             var skImageFilter = CreateFlood(svgFlood, svgVisualElement, skFilterPrimitiveRegion, null, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-#if DEBUG
-                            if (lastResult is { })
-                            {
-                                skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
-                            }
-#endif
                         }
                         break;
 
@@ -1451,12 +1399,6 @@ namespace Svg.Model
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
                             var skImageFilter = CreateBlur(svgGaussianBlur, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-#if DEBUG
-                            if (lastResult is { })
-                            {
-                                skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
-                            }
-#endif
                         }
                         break;
 
@@ -1464,12 +1406,6 @@ namespace Svg.Model
                         {
                             var skImageFilter = CreateImage(svgImage, skFilterPrimitiveRegion, assetLoader, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-#if DEBUG
-                            if (lastResult is { })
-                            {
-                                skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
-                            }
-#endif
                         }
                         break;
 
@@ -1477,12 +1413,6 @@ namespace Svg.Model
                         {
                             var skImageFilter = CreateMerge(svgMerge, results, lastResult, filterSource, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-#if DEBUG
-                            if (lastResult is { })
-                            {
-                                skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
-                            }
-#endif
                         }
                         break;
 
@@ -1492,12 +1422,6 @@ namespace Svg.Model
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
                             var skImageFilter = CreateMorphology(svgMorphology, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-#if DEBUG
-                            if (lastResult is { })
-                            {
-                                skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
-                            }
-#endif
                         }
                         break;
 
@@ -1507,12 +1431,6 @@ namespace Svg.Model
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
                             var skImageFilter = CreateOffset(svgOffset, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-#if DEBUG
-                            if (lastResult is { })
-                            {
-                                skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
-                            }
-#endif
                         }
                         break;
 
@@ -1522,12 +1440,6 @@ namespace Svg.Model
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
                             var skImageFilter = CreateSpecularLighting(svgSpecularLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-#if DEBUG
-                            if (lastResult is { })
-                            {
-                                skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
-                            }
-#endif
                         }
                         break;
 
@@ -1537,12 +1449,6 @@ namespace Svg.Model
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
                             var skImageFilter = CreateTile(svgTile, previousFilterPrimitiveRegion, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-#if DEBUG
-                            if (lastResult is { })
-                            {
-                                skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
-                            }
-#endif
                         }
                         break;
 
@@ -1550,12 +1456,6 @@ namespace Svg.Model
                         {
                             var skImageFilter = CreateTurbulence(svgTurbulence, skFilterPrimitiveRegion, primitiveUnits, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-#if DEBUG
-                            if (lastResult is { })
-                            {
-                                skImageFilterRegions.Add((lastResult, svgFilterPrimitive, skFilterPrimitiveRegion));
-                            }
-#endif
                         }
                         break;
                 }
