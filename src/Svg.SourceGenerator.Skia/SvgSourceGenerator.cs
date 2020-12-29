@@ -13,7 +13,7 @@ namespace Svg.SourceGenerator.Skia
     [Generator]
     public class SvgSourceGenerator : ISourceGenerator
     {
-        private static readonly IAssetLoader AssetLoader = new SkiaAssetLoader();
+        private static readonly IAssetLoader _assetLoader = new SkiaAssetLoader();
 
         private static readonly DiagnosticDescriptor s_errorDescriptor = new DiagnosticDescriptor(
 #pragma warning disable RS2008 // Enable analyzer release tracking
@@ -89,7 +89,7 @@ namespace Svg.SourceGenerator.Skia
                     var svgDocument = SvgModelExtensions.FromSvg(svg!);
                     if (svgDocument is { })
                     {
-                        var picture = SvgModelExtensions.ToModel(svgDocument, AssetLoader);
+                        var picture = SvgModelExtensions.ToModel(svgDocument, _assetLoader);
                         if (picture is { } && picture.Commands is { })
                         {
                             var code = SkiaCodeGen.Generate(picture, namespaceName!, className!);
