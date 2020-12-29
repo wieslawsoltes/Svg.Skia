@@ -8,11 +8,11 @@ namespace Svg.Skia
 {
     public class SKSvg : IDisposable
     {
-        private static readonly IAssetLoader AssetLoader = new SkiaAssetLoader();
+        private static readonly IAssetLoader _assetLoader = new SkiaAssetLoader();
 
         public static SKPicture? ToPicture(SvgFragment svgFragment)
         {
-            var picture = SvgModelExtensions.ToModel(svgFragment, AssetLoader);
+            var picture = SvgModelExtensions.ToModel(svgFragment, _assetLoader);
             return picture?.ToSKPicture();
         }
 
@@ -20,7 +20,7 @@ namespace Svg.Skia
         {
             var size = SvgModelExtensions.GetDimensions(svgFragment);
             var bounds = Rect.Create(size);
-            var drawable = DrawableFactory.Create(svgFragment, bounds, null, AssetLoader);
+            var drawable = DrawableFactory.Create(svgFragment, bounds, null, _assetLoader);
             if (drawable is { })
             {
                 drawable.PostProcess();
