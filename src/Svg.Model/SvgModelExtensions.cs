@@ -7,6 +7,8 @@ namespace Svg.Model
 {
     public static partial class SvgModelExtensions
     {
+        public static CultureInfo? s_systemLanguageOverride = default;
+
         private static readonly char[] _spaceTab = {' ', '\t'};
 
         private static readonly char[] _comma = {','};

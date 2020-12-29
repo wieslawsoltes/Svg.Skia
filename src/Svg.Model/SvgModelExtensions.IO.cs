@@ -12,8 +12,6 @@ namespace Svg.Model
 {
     public static partial class SvgModelExtensions
     {
-        public static CultureInfo? s_systemLanguageOverride = default;
-
         private const string MimeTypeSvg = "image/svg+xml";
 
         private static byte[] s_gZipMagicHeaderBytes => new byte[2] { 0x1f, 0x8b };
