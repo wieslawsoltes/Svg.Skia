@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Svg.Model.Painting
+﻿namespace Svg.Model.Painting
 {
     public sealed class Paint
     {

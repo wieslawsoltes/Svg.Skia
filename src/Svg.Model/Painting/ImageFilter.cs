@@ -1,5 +1,4 @@
-﻿using System;
-using Svg.Model.Painting.ImageFilters;
+﻿using Svg.Model.Painting.ImageFilters;
 using Svg.Model.Primitives;
 using Svg.Model.Painting.Shaders;
 

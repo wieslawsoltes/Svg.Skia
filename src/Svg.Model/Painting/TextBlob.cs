@@ -1,5 +1,4 @@
-﻿using System;
-using Svg.Model.Primitives;
+﻿using Svg.Model.Primitives;
 
 namespace Svg.Model.Painting
 {

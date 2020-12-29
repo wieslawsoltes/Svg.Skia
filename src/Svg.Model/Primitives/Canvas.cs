@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using Svg.Model.Painting;
 using Svg.Model.Primitives.CanvasCommands;

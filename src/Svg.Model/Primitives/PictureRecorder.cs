@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Svg.Model.Primitives
+﻿namespace Svg.Model.Primitives
 {
     public sealed class PictureRecorder
     {
