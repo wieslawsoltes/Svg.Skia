@@ -1301,9 +1301,9 @@ namespace Svg.Model
             {
                 countItems++;
                 var isFirst = countItems == 1;
-                var skFilterPrimitiveRegion = item.region;
                 var svgFilterPrimitive = item.primitive;
-                var skCropRect = new CropRect(item.region);
+                var skFilterPrimitiveRegion = item.region;
+                var skCropRect = new CropRect(skFilterPrimitiveRegion);
 
                 switch (svgFilterPrimitive)
                 {
