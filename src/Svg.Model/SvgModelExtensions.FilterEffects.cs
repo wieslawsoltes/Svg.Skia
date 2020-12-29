@@ -1202,7 +1202,7 @@ namespace Svg.Model
 
             var results = new Dictionary<string, ImageFilter>();
             var lastResult = default(ImageFilter);
-            var prevoiusFilterPrimitiveRegion = Rect.Empty;
+            var previousFilterPrimitiveRegion = Rect.Empty;
 
             if (width <= 0f || height <= 0f)
             {
@@ -1212,7 +1212,7 @@ namespace Svg.Model
 
             if (filterUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
-                // TOOD: FilterUnits
+                // TODO: FilterUnits
                 if (xUnit.Type != SvgUnitType.Percentage)
                 {
                     x *= skBounds.Width;
@@ -1535,7 +1535,7 @@ namespace Svg.Model
                         {
                             var inputKey = svgTile.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
-                            var skImageFilter = CreateTile(svgTile, prevoiusFilterPrimitiveRegion, inputFilter, skCropRect);
+                            var skImageFilter = CreateTile(svgTile, previousFilterPrimitiveRegion, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
 #if DEBUG
                             if (lastResult is { })
@@ -1560,7 +1560,7 @@ namespace Svg.Model
                         break;
                 }
 
-                prevoiusFilterPrimitiveRegion = skFilterPrimitiveRegion;
+                previousFilterPrimitiveRegion = skFilterPrimitiveRegion;
             }
 
             if (lastResult is { })
