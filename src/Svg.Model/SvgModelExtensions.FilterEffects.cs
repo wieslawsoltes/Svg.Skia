@@ -1248,6 +1248,7 @@ namespace Svg.Model
             }
 
             var items = new List<(SvgFilterPrimitive primitive, Rect region)>();
+            var regionUnion = new Rect();
 
             foreach (var svgFilterPrimitive in svgFilterPrimitives)
             {
@@ -1291,13 +1292,15 @@ namespace Svg.Model
                 var skFilterPrimitiveRegion = Rect.Create(xChild, yChild, widthChild, heightChild);
 
                 items.Add((svgFilterPrimitive, skFilterPrimitiveRegion));
+
+                regionUnion = Rect.Union(regionUnion, skFilterPrimitiveRegion);
             }
 
-            var count = 0;
+            var countItems = 0;
             foreach (var item in items)
             {
-                count++;
-                var isFirst = count == 1;
+                countItems++;
+                var isFirst = countItems == 1;
                 var skFilterPrimitiveRegion = item.region;
                 var svgFilterPrimitive = item.primitive;
                 var skCropRect = new CropRect(item.region);
