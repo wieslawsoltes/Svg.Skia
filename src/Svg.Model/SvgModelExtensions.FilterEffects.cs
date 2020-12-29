@@ -121,8 +121,7 @@ namespace Svg.Model
                         var hue = (float)DegreeToRadian(value);
                         var cosHue = Math.Cos(hue);
                         var sinHue = Math.Sin(hue);
-                        float[] matrix = new float[]
-                        {
+                        float[] matrix = {
                             (float)(0.213 + cosHue * 0.787 - sinHue * 0.213),
                             (float)(0.715 - cosHue * 0.715 - sinHue * 0.715),
                             (float)(0.072 - cosHue * 0.072 + sinHue * 0.928), 0, 0,
@@ -140,8 +139,7 @@ namespace Svg.Model
 
                 case SvgColourMatrixType.LuminanceToAlpha:
                     {
-                        float[] matrix = new float[]
-                        {
+                        float[] matrix = {
                             0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0,
@@ -154,8 +152,7 @@ namespace Svg.Model
                 case SvgColourMatrixType.Saturate:
                     {
                         var value = string.IsNullOrEmpty(svgColourMatrix.Values) ? 1 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture);
-                        float[] matrix = new float[]
-                        {
+                        float[] matrix = {
                             (float)(0.213+0.787*value), (float)(0.715-0.715*value), (float)(0.072-0.072*value), 0, 0,
                             (float)(0.213-0.213*value), (float)(0.715+0.285*value), (float)(0.072-0.072*value), 0, 0,
                             (float)(0.213-0.213*value), (float)(0.715-0.715*value), (float)(0.072+0.928*value), 0, 0,
