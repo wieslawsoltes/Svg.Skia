@@ -11,7 +11,7 @@ namespace Avalonia.Svg
     /// </summary>
     public class SvgSourceTypeConverter : TypeConverter
     {
-        private static readonly SM.IAssetLoader AssetLoader = new AvaloniaAssetLoader();
+        private static readonly SM.IAssetLoader _assetLoader = new AvaloniaAssetLoader();
 
         /// <inheritdoc/>
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
@@ -32,7 +32,7 @@ namespace Avalonia.Svg
                 var document = SM.SvgModelExtensions.Open(uri.LocalPath);
                 if (document is { })
                 {
-                    svg.Picture = SM.SvgModelExtensions.ToModel(document, AssetLoader);
+                    svg.Picture = SM.SvgModelExtensions.ToModel(document, _assetLoader);
                 }
 
                 return svg;
@@ -43,7 +43,7 @@ namespace Avalonia.Svg
                 var document = SM.SvgModelExtensions.Open(assets.Open(uri, context.GetContextBaseUri()));
                 if (document is { })
                 {
-                    svg.Picture = SM.SvgModelExtensions.ToModel(document, AssetLoader);
+                    svg.Picture = SM.SvgModelExtensions.ToModel(document, _assetLoader);
                 }
             }
 
