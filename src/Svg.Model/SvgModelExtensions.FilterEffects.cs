@@ -1212,8 +1212,8 @@ namespace Svg.Model
             var height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgFirstFilter, skBounds);
 
             var results = new Dictionary<string, ImageFilter>();
+            var regions = new Dictionary<ImageFilter, Rect>();
             var lastResult = default(ImageFilter);
-            var previousFilterPrimitiveRegion = Rect.Empty;
 
             if (width <= 0f || height <= 0f)
             {
@@ -1248,73 +1248,64 @@ namespace Svg.Model
             }
 
             var skFilterRegion = Rect.Create(x, y, width, height);
+            
+            var items = new List<(SvgFilterPrimitive primitive, Rect region)>();
 
-            var svgFilterPrimitives = new List<SvgFilterPrimitive>();
             foreach (var child in firstChildren.Children)
             {
                 if (child is SvgFilterPrimitive svgFilterPrimitive)
                 {
-                    svgFilterPrimitives.Add(svgFilterPrimitive);
+                    var skPrimitiveBounds = skFilterRegion;
+
+                    var xUnitChild = svgFilterPrimitive.X;
+                    var yUnitChild = svgFilterPrimitive.Y;
+                    var widthUnitChild = svgFilterPrimitive.Width;
+                    var heightUnitChild = svgFilterPrimitive.Height;
+
+                    var xChild = xUnitChild.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilterPrimitive,
+                        skPrimitiveBounds);
+                    var yChild = yUnitChild.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilterPrimitive,
+                        skPrimitiveBounds);
+                    var widthChild = widthUnitChild.ToDeviceValue(UnitRenderingType.Horizontal, svgFilterPrimitive,
+                        skPrimitiveBounds);
+                    var heightChild = heightUnitChild.ToDeviceValue(UnitRenderingType.Vertical, svgFilterPrimitive,
+                        skPrimitiveBounds);
+
+                    if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
+                    {
+                        if (xUnitChild.Type != SvgUnitType.Percentage)
+                        {
+                            xChild *= skPrimitiveBounds.Width;
+                            xChild += skPrimitiveBounds.Left;
+                        }
+
+                        if (yUnitChild.Type != SvgUnitType.Percentage)
+                        {
+                            yChild *= skPrimitiveBounds.Height;
+                            yChild += skPrimitiveBounds.Top;
+                        }
+
+                        if (widthUnitChild.Type != SvgUnitType.Percentage)
+                        {
+                            widthChild *= skPrimitiveBounds.Width;
+                        }
+
+                        if (heightUnitChild.Type != SvgUnitType.Percentage)
+                        {
+                            heightChild *= skPrimitiveBounds.Height;
+                        }
+                    }
+
+                    var skFilterPrimitiveRegion = Rect.Create(xChild, yChild, widthChild, heightChild);
+
+                    items.Add((svgFilterPrimitive, skFilterPrimitiveRegion));
                 }
             }
 
-            var items = new List<(SvgFilterPrimitive primitive, Rect region)>();
-            var regionUnion = new Rect();
-
-            foreach (var svgFilterPrimitive in svgFilterPrimitives)
+            for (var i = 0; i < items.Count; i++)
             {
-                var skPrimitiveBounds = skFilterRegion;
-
-                var xUnitChild = svgFilterPrimitive.X;
-                var yUnitChild = svgFilterPrimitive.Y;
-                var widthUnitChild = svgFilterPrimitive.Width;
-                var heightUnitChild = svgFilterPrimitive.Height;
-
-                var xChild = xUnitChild.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilterPrimitive, skPrimitiveBounds);
-                var yChild = yUnitChild.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilterPrimitive, skPrimitiveBounds);
-                var widthChild = widthUnitChild.ToDeviceValue(UnitRenderingType.Horizontal, svgFilterPrimitive, skPrimitiveBounds);
-                var heightChild = heightUnitChild.ToDeviceValue(UnitRenderingType.Vertical, svgFilterPrimitive, skPrimitiveBounds);
-
-                if (primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
-                {
-                    if (xUnitChild.Type != SvgUnitType.Percentage)
-                    {
-                        xChild *= skPrimitiveBounds.Width;
-                        xChild += skPrimitiveBounds.Left;
-                    }
-
-                    if (yUnitChild.Type != SvgUnitType.Percentage)
-                    {
-                        yChild *= skPrimitiveBounds.Height;
-                        yChild += skPrimitiveBounds.Top;
-                    }
-
-                    if (widthUnitChild.Type != SvgUnitType.Percentage)
-                    {
-                        widthChild *= skPrimitiveBounds.Width;
-                    }
-
-                    if (heightUnitChild.Type != SvgUnitType.Percentage)
-                    {
-                        heightChild *= skPrimitiveBounds.Height;
-                    }
-                }
-
-                var skFilterPrimitiveRegion = Rect.Create(xChild, yChild, widthChild, heightChild);
-
-                items.Add((svgFilterPrimitive, skFilterPrimitiveRegion));
-
-                regionUnion = Rect.Union(regionUnion, skFilterPrimitiveRegion);
-            }
-
-            var countItems = 0;
-            foreach (var item in items)
-            {
-                countItems++;
-                var isFirst = countItems == 1;
-                var svgFilterPrimitive = item.primitive;
-                var skFilterPrimitiveRegion = item.region;
-                var skCropRect = new CropRect(skFilterPrimitiveRegion);
+                var (svgFilterPrimitive, skFilterPrimitiveRegion) = items[i];
+                var isFirst = i == 0;
 
                 switch (svgFilterPrimitive)
                 {
@@ -1328,9 +1319,21 @@ namespace Svg.Model
                             {
                                 break;
                             }
+                            if (!(string.IsNullOrWhiteSpace(input1Key) && isFirst) && !IsStandardInput(input1Key) && input1Filter is { } && !IsStandardInput(input2Key))
+                            {
+                                skFilterPrimitiveRegion = Rect.Union(regions[input1Filter], regions[input2Filter]);
+                            }
+                            // if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            // {
+                            //     break;
+                            // }
+                            var skCropRect = new CropRect(skFilterPrimitiveRegion);
                             var skImageFilter = CreateBlend(svgBlend, input2Filter, input1Filter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
-
+                            if (skImageFilter is { })
+                            {
+                                regions[skImageFilter] = skFilterPrimitiveRegion;
+                            }
                         }
                         break;
 
@@ -1338,8 +1341,21 @@ namespace Svg.Model
                         {
                             var inputKey = svgColourMatrix.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
+                            if (!(string.IsNullOrWhiteSpace(inputKey) && isFirst) && !IsStandardInput(inputKey) && inputFilter is { })
+                            {
+                                skFilterPrimitiveRegion = regions[inputFilter];
+                            }
+                            // if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            // {
+                            //     break;
+                            // }
+                            var skCropRect = new CropRect(skFilterPrimitiveRegion);
                             var skImageFilter = CreateColorMatrix(svgColourMatrix, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
+                            if (skImageFilter is { })
+                            {
+                                regions[skImageFilter] = skFilterPrimitiveRegion;
+                            }
                         }
                         break;
 
@@ -1347,8 +1363,21 @@ namespace Svg.Model
                         {
                             var inputKey = svgComponentTransfer.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
+                            if (!(string.IsNullOrWhiteSpace(inputKey) && isFirst) && !IsStandardInput(inputKey) && inputFilter is { })
+                            {
+                                skFilterPrimitiveRegion = regions[inputFilter];
+                            }
+                            // if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            // {
+                            //     break;
+                            // }
+                            var skCropRect = new CropRect(skFilterPrimitiveRegion);
                             var skImageFilter = CreateComponentTransfer(svgComponentTransfer, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
+                            if (skImageFilter is { })
+                            {
+                                regions[skImageFilter] = skFilterPrimitiveRegion;
+                            }
                         }
                         break;
 
@@ -1362,8 +1391,21 @@ namespace Svg.Model
                             {
                                 break;
                             }
+                            if (!(string.IsNullOrWhiteSpace(input1Key) && isFirst) && !IsStandardInput(input1Key) && input1Filter is { } && !IsStandardInput(input2Key))
+                            {
+                                skFilterPrimitiveRegion = Rect.Union(regions[input1Filter], regions[input2Filter]);
+                            }
+                            // if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            // {
+                            //     break;
+                            // }
+                            var skCropRect = new CropRect(skFilterPrimitiveRegion);
                             var skImageFilter = CreateComposite(svgComposite, input2Filter, input1Filter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
+                            if (skImageFilter is { })
+                            {
+                                regions[skImageFilter] = skFilterPrimitiveRegion;
+                            }
                         }
                         break;
 
@@ -1371,8 +1413,21 @@ namespace Svg.Model
                         {
                             var inputKey = svgConvolveMatrix.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
+                            if (!(string.IsNullOrWhiteSpace(inputKey) && isFirst) && !IsStandardInput(inputKey) && inputFilter is { })
+                            {
+                                skFilterPrimitiveRegion = regions[inputFilter];
+                            }
+                            // if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            // {
+                            //     break;
+                            // }
+                            var skCropRect = new CropRect(skFilterPrimitiveRegion);
                             var skImageFilter = CreateConvolveMatrix(svgConvolveMatrix, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
+                            if (skImageFilter is { })
+                            {
+                                regions[skImageFilter] = skFilterPrimitiveRegion;
+                            }
                         }
                         break;
 
@@ -1380,8 +1435,21 @@ namespace Svg.Model
                         {
                             var inputKey = svgDiffuseLighting.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
+                            if (!(string.IsNullOrWhiteSpace(inputKey) && isFirst) && !IsStandardInput(inputKey) && inputFilter is { })
+                            {
+                                skFilterPrimitiveRegion = regions[inputFilter];
+                            }
+                            // if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            // {
+                            //     break;
+                            // }
+                            var skCropRect = new CropRect(skFilterPrimitiveRegion);
                             var skImageFilter = CreateDiffuseLighting(svgDiffuseLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
+                            if (skImageFilter is { })
+                            {
+                                regions[skImageFilter] = skFilterPrimitiveRegion;
+                            }
                         }
                         break;
 
@@ -1395,15 +1463,37 @@ namespace Svg.Model
                             {
                                 break;
                             }
+                            if (!(string.IsNullOrWhiteSpace(input1Key) && isFirst) && !IsStandardInput(input1Key) && input1Filter is { } && !IsStandardInput(input2Key))
+                            {
+                                skFilterPrimitiveRegion = Rect.Union(regions[input1Filter], regions[input2Filter]);
+                            }
+                            // if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            // {
+                            //     break;
+                            // }
+                            var skCropRect = new CropRect(skFilterPrimitiveRegion);
                             var skImageFilter = CreateDisplacementMap(svgDisplacementMap, skFilterPrimitiveRegion, primitiveUnits, input2Filter, input1Filter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
+                            if (skImageFilter is { })
+                            {
+                                regions[skImageFilter] = skFilterPrimitiveRegion;
+                            }
                         }
                         break;
 
                     case SvgFlood svgFlood:
                         {
+                            if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            {
+                                break;
+                            }
+                            var skCropRect = new CropRect(skFilterPrimitiveRegion);
                             var skImageFilter = CreateFlood(svgFlood, svgVisualElement, skFilterPrimitiveRegion, null, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
+                            if (skImageFilter is { })
+                            {
+                                regions[skImageFilter] = skFilterPrimitiveRegion;
+                            }
                         }
                         break;
 
@@ -1411,22 +1501,53 @@ namespace Svg.Model
                         {
                             var inputKey = svgGaussianBlur.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
+                            if (!(string.IsNullOrWhiteSpace(inputKey) && isFirst) && !IsStandardInput(inputKey) && inputFilter is { })
+                            {
+                                skFilterPrimitiveRegion = regions[inputFilter];
+                            }
+                            // if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            // {
+                            //     break;
+                            // }
+                            var skCropRect = new CropRect(skFilterPrimitiveRegion);
                             var skImageFilter = CreateBlur(svgGaussianBlur, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
+                            if (skImageFilter is { })
+                            {
+                                regions[skImageFilter] = skFilterPrimitiveRegion;
+                            }
                         }
                         break;
 
                     case FilterEffects.SvgImage svgImage:
                         {
+                            // if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            // {
+                            //     break;
+                            // }
+                            var skCropRect = new CropRect(skFilterPrimitiveRegion);
                             var skImageFilter = CreateImage(svgImage, skFilterPrimitiveRegion, assetLoader, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
+                            if (skImageFilter is { })
+                            {
+                                regions[skImageFilter] = skFilterPrimitiveRegion;
+                            }
                         }
                         break;
 
                     case SvgMerge svgMerge:
                         {
+                            // if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            // {
+                            //     break;
+                            // }
+                            var skCropRect = new CropRect(skFilterPrimitiveRegion);
                             var skImageFilter = CreateMerge(svgMerge, results, lastResult, filterSource, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
+                            if (skImageFilter is { })
+                            {
+                                regions[skImageFilter] = skFilterPrimitiveRegion;
+                            }
                         }
                         break;
 
@@ -1434,8 +1555,21 @@ namespace Svg.Model
                         {
                             var inputKey = svgMorphology.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
+                            if (!(string.IsNullOrWhiteSpace(inputKey) && isFirst) && !IsStandardInput(inputKey) && inputFilter is { })
+                            {
+                                skFilterPrimitiveRegion = regions[inputFilter];
+                            }
+                            // if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            // {
+                            //     break;
+                            // }
+                            var skCropRect = new CropRect(skFilterPrimitiveRegion);
                             var skImageFilter = CreateMorphology(svgMorphology, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
+                            if (skImageFilter is { })
+                            {
+                                regions[skImageFilter] = skFilterPrimitiveRegion;
+                            }
                         }
                         break;
 
@@ -1443,8 +1577,21 @@ namespace Svg.Model
                         {
                             var inputKey = svgOffset.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
+                            if (!(string.IsNullOrWhiteSpace(inputKey) && isFirst) && !IsStandardInput(inputKey) && inputFilter is { })
+                            {
+                                skFilterPrimitiveRegion = regions[inputFilter];
+                            }
+                            // if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            // {
+                            //     break;
+                            // }
+                            var skCropRect = new CropRect(skFilterPrimitiveRegion);
                             var skImageFilter = CreateOffset(svgOffset, skFilterPrimitiveRegion, primitiveUnits, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
+                            if (skImageFilter is { })
+                            {
+                                regions[skImageFilter] = skFilterPrimitiveRegion;
+                            }
                         }
                         break;
 
@@ -1452,8 +1599,21 @@ namespace Svg.Model
                         {
                             var inputKey = svgSpecularLighting.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
+                            if (!(string.IsNullOrWhiteSpace(inputKey) && isFirst) && !IsStandardInput(inputKey) && inputFilter is { })
+                            {
+                                skFilterPrimitiveRegion = regions[inputFilter];
+                            }
+                            // if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            // {
+                            //     break;
+                            // }
+                            var skCropRect = new CropRect(skFilterPrimitiveRegion);
                             var skImageFilter = CreateSpecularLighting(svgSpecularLighting, skFilterPrimitiveRegion, primitiveUnits, svgVisualElement, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
+                            if (skImageFilter is { })
+                            {
+                                regions[skImageFilter] = skFilterPrimitiveRegion;
+                            }
                         }
                         break;
 
@@ -1461,20 +1621,41 @@ namespace Svg.Model
                         {
                             var inputKey = svgTile.Input;
                             var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, isFirst);
-                            var skImageFilter = CreateTile(svgTile, previousFilterPrimitiveRegion, inputFilter, skCropRect);
+                            var tileBounds = skFilterPrimitiveRegion;
+                            if (!(string.IsNullOrWhiteSpace(inputKey) && isFirst) && !IsStandardInput(inputKey) && inputFilter is { })
+                            {
+                                tileBounds = regions[inputFilter];
+                            }
+                            // if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            // {
+                            //     break;
+                            // }
+                            var skCropRect = new CropRect(skFilterPrimitiveRegion);
+                            var skImageFilter = CreateTile(svgTile, tileBounds, inputFilter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
+                            if (skImageFilter is { })
+                            {
+                                regions[skImageFilter] = skFilterPrimitiveRegion;
+                            }
                         }
                         break;
 
                     case SvgTurbulence svgTurbulence:
                         {
+                            // if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            // {
+                            //     break;
+                            // }
+                            var skCropRect = new CropRect(skFilterPrimitiveRegion);
                             var skImageFilter = CreateTurbulence(svgTurbulence, skFilterPrimitiveRegion, primitiveUnits, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
+                            if (skImageFilter is { })
+                            {
+                                regions[skImageFilter] = skFilterPrimitiveRegion;
+                            }
                         }
                         break;
                 }
-
-                previousFilterPrimitiveRegion = skFilterPrimitiveRegion;
             }
 
             if (lastResult is { })
