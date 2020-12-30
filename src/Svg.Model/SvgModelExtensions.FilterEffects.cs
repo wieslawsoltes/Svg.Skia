@@ -1251,7 +1251,7 @@ namespace Svg.Model
             {
                 if (child is SvgFilterPrimitive svgFilterPrimitive)
                 {
-                    var skPrimitiveBounds = skFilterRegion;
+                    var skPrimitiveBounds = skFilterRegion; // skFilterRegion, skBounds
 
                     var xUnitChild = svgFilterPrimitive.X;
                     var yUnitChild = svgFilterPrimitive.Y;
