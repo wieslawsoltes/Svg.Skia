@@ -132,8 +132,10 @@ namespace Svg.Model.Drawables
             {
                 canvas.SaveLayer(Filter);
             }
-
-            OnDraw(canvas, ignoreAttributes, until);
+            else
+            {
+                OnDraw(canvas, ignoreAttributes, until);
+            }
 
             if (Filter is { } && enableFilter)
             {
