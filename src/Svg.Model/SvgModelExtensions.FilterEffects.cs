@@ -29,6 +29,20 @@ namespace Svg.Model
 
         internal const string StrokePaint = "StrokePaint";
 
+        internal static bool IsStandardInput(string key)
+        {
+            return key switch
+            {
+                SourceGraphic => true,
+                SourceAlpha => true,
+                BackgroundImage => true,
+                BackgroundAlpha => true,
+                FillPaint => true,
+                StrokePaint => true,
+                _ => false
+            };
+        }
+
         internal static SvgFuncA s_identitySvgFuncA = new()
         {
             Type = SvgComponentTransferType.Identity,
