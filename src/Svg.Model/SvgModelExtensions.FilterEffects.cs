@@ -1483,10 +1483,10 @@ namespace Svg.Model
 
                     case SvgFlood svgFlood:
                         {
-                            if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
-                            {
-                                break;
-                            }
+                            // if (!skFilterRegion.Contains(skFilterPrimitiveRegion))
+                            // {
+                            //     break;
+                            // }
                             var skCropRect = new CropRect(skFilterPrimitiveRegion);
                             var skImageFilter = CreateFlood(svgFlood, svgVisualElement, skFilterPrimitiveRegion, null, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
