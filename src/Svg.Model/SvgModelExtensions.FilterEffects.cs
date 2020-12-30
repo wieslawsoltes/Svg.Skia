@@ -1211,10 +1211,6 @@ namespace Svg.Model
             var width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgFirstFilter, skBounds);
             var height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgFirstFilter, skBounds);
 
-            var results = new Dictionary<string, ImageFilter>();
-            var regions = new Dictionary<ImageFilter, Rect>();
-            var lastResult = default(ImageFilter);
-
             if (width <= 0f || height <= 0f)
             {
                 isValid = false;
@@ -1301,6 +1297,10 @@ namespace Svg.Model
                     items.Add((svgFilterPrimitive, skFilterPrimitiveRegion));
                 }
             }
+
+            var results = new Dictionary<string, ImageFilter>();
+            var regions = new Dictionary<ImageFilter, Rect>();
+            var lastResult = default(ImageFilter);
 
             for (var i = 0; i < items.Count; i++)
             {
