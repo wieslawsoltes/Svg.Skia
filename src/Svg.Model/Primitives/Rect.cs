@@ -49,6 +49,17 @@ namespace Svg.Model.Primitives
             return Create(0, 0, size.Width, size.Height);
         }
 
+        public bool Contains(Point p)
+        {
+            return p.X >= Left && p.X <= Left + Width &&
+                   p.Y >= Top && p.Y <= Top + Height;
+        }
+
+        public bool Contains(Rect r)
+        {
+            return Contains(r.TopLeft) && Contains(r.BottomRight);
+        }
+
         public static Rect Union(Rect a, Rect b)
         {
             return new(
