@@ -974,10 +974,7 @@ namespace Svg.Model
                     }
                     return default;
                 }
-                else
-                {
-                    return lastResult;
-                }
+                return lastResult;
             }
 
             if (results.ContainsKey(inputKey))
