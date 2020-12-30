@@ -48,8 +48,15 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.Transform = SvgModelExtensions.ToMatrix(svgGroup.Transforms);
 
-            drawable.Fill = null;
-            drawable.Stroke = null;
+            if (SvgModelExtensions.IsValidFill(svgGroup))
+            {
+                drawable.Fill = SvgModelExtensions.GetFillPaint(svgGroup, drawable.TransformedBounds, assetLoader, ignoreAttributes);
+            }
+
+            if (SvgModelExtensions.IsValidStroke(svgGroup, drawable.TransformedBounds))
+            {
+                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgGroup, drawable.TransformedBounds, assetLoader, ignoreAttributes);
+            }
 
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
