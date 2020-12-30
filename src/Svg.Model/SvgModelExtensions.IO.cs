@@ -172,12 +172,15 @@ namespace Svg.Model
                             return LoadSvgz(bytesStream, svgOwnerDocument.BaseUri);
                         }
                     }
-                    var encoding = string.IsNullOrEmpty(charset) ? Encoding.UTF8 : Encoding.GetEncoding(charset);
-                    data = encoding.GetString(bytes);
+                    using var stream = new System.IO.MemoryStream(bytes);
+                    return assetLoader.LoadImage(stream);
                 }
-                var buffer = Encoding.Default.GetBytes(data);
-                using var stream = new System.IO.MemoryStream(buffer);
-                return assetLoader.LoadImage(stream);
+                else
+                {
+                    var bytes = Encoding.Default.GetBytes(data);
+                    using var stream = new System.IO.MemoryStream(bytes);
+                    return assetLoader.LoadImage(stream);
+                }
             }
 
             return default;
