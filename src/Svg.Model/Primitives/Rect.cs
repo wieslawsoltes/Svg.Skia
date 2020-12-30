@@ -8,6 +8,10 @@ namespace Svg.Model.Primitives
         public float Top { get; set; }
         public float Right { get; set; }
         public float Bottom { get; set; }
+        public Point TopLeft => new Point(Left, Top);
+        public Point TopRight => new Point(Right, Top);
+        public Point BottomLeft => new Point(Left, Bottom);
+        public Point BottomRight => new Point(Right, Bottom);
 
         public static readonly Rect Empty = default;
 
