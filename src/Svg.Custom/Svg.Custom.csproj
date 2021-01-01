@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="**\*.cs" Exclude="obj\**" />
+    <Compile Include="**\*.cs" Exclude="bin\**;obj\**" />
     <Compile Include="..\..\externals\SVG\Source\**\*.cs" Exclude="..\..\externals\SVG\Source\obj\**" />
     <Compile Remove="..\..\externals\SVG\Source\Properties\AssemblyInfo.cs" />
     <Compile Remove="..\..\externals\SVG\Source\External\ExCSS\Parser.generated.cs" />
