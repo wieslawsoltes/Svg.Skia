@@ -98,7 +98,7 @@ namespace Svg.Model.Drawables.Elements
         {
             value = ApplyTransformation(svgTextBase, value);
             value = new StringBuilder(value).Replace("\r\n", " ").Replace('\r', ' ').Replace('\n', ' ').Replace('\t', ' ').ToString();
-            return svgTextBase.SpaceHandling == XmlSpaceHandling.preserve ? value : s_multipleSpaces.Replace(value.Trim(), " ");
+            return svgTextBase.SpaceHandling == XmlSpaceHandling.Preserve ? value : s_multipleSpaces.Replace(value.Trim(), " ");
         }
 
         internal string ApplyTransformation(SvgTextBase svgTextBase, string value)
