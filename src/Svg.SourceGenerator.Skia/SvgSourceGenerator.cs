@@ -20,7 +20,7 @@ namespace Svg.SourceGenerator.Skia
             "SV0000",
 #pragma warning restore RS2008 // Enable analyzer release tracking
             $"Error in the {nameof(SvgSourceGenerator)} generator",
-            $"Error in the {nameof(SvgSourceGenerator)} generator: '{0}'",
+            $"Error in the {nameof(SvgSourceGenerator)} generator: " + "{0}",
             $"{nameof(SvgSourceGenerator)}",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
