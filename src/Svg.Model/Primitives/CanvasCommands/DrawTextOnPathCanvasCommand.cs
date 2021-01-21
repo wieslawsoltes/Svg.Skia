@@ -1,7 +1,7 @@
 ﻿
 using Svg.Model.Painting;
 
-namespace Svg.Model.Primitives.PathCommands
+namespace Svg.Model.Primitives.CanvasCommands
 {
     public sealed class DrawTextOnPathCanvasCommand : CanvasCommand
     {
