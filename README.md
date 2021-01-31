@@ -172,8 +172,6 @@ using (var svg = new SKSvg())
 
 ### AvaloniaUI
 
-You need to use `0.10.0-preview6` version of AvaloniaUI.
-
 #### Install Package
 
 ```
@@ -270,13 +268,13 @@ Add NuGet package reference to your `csproj`.
 <PropertyGroup>
   <OutputType>Exe</OutputType>
   <TargetFramework>net5.0</TargetFramework>
-  <LangVersion>preview</LangVersion>
+  <LangVersion>latest</LangVersion>
 </PropertyGroup>
 ```
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Svg.SourceGenerator.Skia" Version="0.4.2-preview8" />
+  <PackageReference Include="Svg.SourceGenerator.Skia" Version="0.5.0" />
 </ItemGroup>
 ```
 
@@ -310,8 +308,8 @@ public void Draw(SKCanvas canvas)
 ```
 ```xml
 <ItemGroup>
-  <PackageReference Include="Svg.SourceGenerator.Skia" Version="0.4.2-preview8" />
-  <PackageReference Include="Avalonia.SKPictureImage" Version="0.4.2-preview8" />
+  <PackageReference Include="Svg.SourceGenerator.Skia" Version="0.5.0" />
+  <PackageReference Include="Avalonia.SKPictureImage" Version="0.5.0" />
 </ItemGroup>
 ```
 
