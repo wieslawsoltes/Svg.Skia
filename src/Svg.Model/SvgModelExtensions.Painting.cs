@@ -1058,62 +1058,27 @@ namespace Svg.Model
 
         internal static FontStyleWeight ToFontStyleWeight(SvgFontWeight svgFontWeight)
         {
-            var fontWeight = FontStyleWeight.Normal;
-
-            switch (svgFontWeight)
+            return svgFontWeight switch
             {
                 // TODO: Implement SvgFontWeight.Inherit
-                case SvgFontWeight.Inherit:
-                    break;
-
+                SvgFontWeight.Inherit => FontStyleWeight.Normal,
                 // TODO: Implement SvgFontWeight.Bolder
-                case SvgFontWeight.Bolder:
-                    break;
-
+                SvgFontWeight.Bolder => FontStyleWeight.Normal,
                 // TODO: Implement SvgFontWeight.Lighter
-                case SvgFontWeight.Lighter:
-                    break;
-
-                case SvgFontWeight.W100:
-                    fontWeight = FontStyleWeight.Thin;
-                    break;
-
-                case SvgFontWeight.W200:
-                    fontWeight = FontStyleWeight.ExtraLight;
-                    break;
-
-                case SvgFontWeight.W300:
-                    fontWeight = FontStyleWeight.Light;
-                    break;
-
-                // SvgFontWeight.Normal
-                case SvgFontWeight.W400:
-                    fontWeight = FontStyleWeight.Normal;
-                    break;
-
-                case SvgFontWeight.W500:
-                    fontWeight = FontStyleWeight.Medium;
-                    break;
-
-                case SvgFontWeight.W600:
-                    fontWeight = FontStyleWeight.SemiBold;
-                    break;
-
-                // SvgFontWeight.Bold
-                case SvgFontWeight.W700:
-                    fontWeight = FontStyleWeight.Bold;
-                    break;
-
-                case SvgFontWeight.W800:
-                    fontWeight = FontStyleWeight.ExtraBold;
-                    break;
-
-                case SvgFontWeight.W900:
-                    fontWeight = FontStyleWeight.Black;
-                    break;
-            }
-
-            return fontWeight;
+                SvgFontWeight.Lighter => FontStyleWeight.Normal,
+                SvgFontWeight.W100 => FontStyleWeight.Thin,
+                SvgFontWeight.W200 => FontStyleWeight.ExtraLight,
+                SvgFontWeight.W300 => FontStyleWeight.Light,
+                SvgFontWeight.Normal => FontStyleWeight.Normal,
+                SvgFontWeight.W400 => FontStyleWeight.Normal,
+                SvgFontWeight.W500 => FontStyleWeight.Medium,
+                SvgFontWeight.W600 => FontStyleWeight.SemiBold,
+                SvgFontWeight.Bold => FontStyleWeight.Bold,
+                SvgFontWeight.W700 => FontStyleWeight.Bold,
+                SvgFontWeight.W800 => FontStyleWeight.ExtraBold,
+                SvgFontWeight.W900 => FontStyleWeight.Black,
+                _ => FontStyleWeight.Normal,
+            };
         }
 
         internal static FontStyleWidth ToFontStyleWidth(SvgFontStretch svgFontStretch)
