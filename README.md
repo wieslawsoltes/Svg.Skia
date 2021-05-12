@@ -182,33 +182,10 @@ dotnet add package Avalonia.Svg.Skia
 Install-Package Avalonia.Svg.Skia
 ```
 
-#### Add namespace to XAML
+#### Set Image Source
 
 ```XAML
-<UseControl xmlns="https://github.com/avaloniaui"
-            xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Avalonia.Svg.Skia">
-```
-
-#### Set Image.Source
-
-```XAML
-<Image>
-   <Image.Source>
-       <svg:SvgImage Source="/Assets/__AJ_Digital_Camera.svg"/>
-   </Image.Source>
-</Image>
-```
-
-### Use Resources
-
-```XAML
-<UserControl.Resources>
-    <svg:SvgImage x:Key="__tiger" Source="/Assets/__tiger.svg"/>
-</UserControl.Resources>
-```
-
-```XAML
-<Image Name="svgResourceImage" Source="{DynamicResource __tiger}"/>
+<Image Source="{SvgImage /Assets/__AJ_Digital_Camera.svg}"/>
 ```
 
 ### Tool

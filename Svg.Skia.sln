@@ -67,7 +67,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{B65D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Svg.Skia", "src\Avalonia.Svg.Skia\Avalonia.Svg.Skia.csproj", "{8BAAB509-6073-4D68-9F16-EA28986839B1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaSgvImage", "samples\AvaloniaSgvImage\AvaloniaSgvImage.csproj", "{81724F00-B7C3-4E25-B473-C7433BABDC81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaSvgSkiaSample", "samples\AvaloniaSvgSkiaSample\AvaloniaSvgSkiaSample.csproj", "{81724F00-B7C3-4E25-B473-C7433BABDC81}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Custom", "src\Svg.Custom\Svg.Custom.csproj", "{CFA46E73-0050-4C57-85CE-6C5868A2483C}"
 EndProject
@@ -85,7 +85,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.SourceGenerator.Skia", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "svgc", "samples\svgc\svgc.csproj", "{11CDD679-A078-4F05-B72D-15A5A79206EB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaSample", "samples\AvaloniaSample\AvaloniaSample.csproj", "{6CF9532C-72AF-4509-BE5A-D6B4821BC6DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaSKPictureImageSample", "samples\AvaloniaSKPictureImageSample\AvaloniaSKPictureImageSample.csproj", "{6CF9532C-72AF-4509-BE5A-D6B4821BC6DC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.SourceGenerator.Skia.Sample", "samples\Svg.SourceGenerator.Skia.Sample\Svg.SourceGenerator.Skia.Sample.csproj", "{DE4FB2BF-C204-4964-930E-BD22E1168040}"
 EndProject
@@ -106,6 +106,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SvgXml.Diagnostics", "experimental\SvgXml.Diagnostics\SvgXml.Diagnostics.csproj", "{705D1C16-7604-4C49-AF60-55A25D2120A8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Svg.Generators", "externals\SVG\Generators\Svg.Generators.csproj", "{AF8AEF5B-0664-4106-9BD3-389758F39B12}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaSvgSample", "samples\AvaloniaSvgSample\AvaloniaSvgSample.csproj", "{E4A42678-C73F-4D71-95B9-254849B0084A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -673,6 +675,30 @@ Global
 		{AF8AEF5B-0664-4106-9BD3-389758F39B12}.Release|x64.Build.0 = Release|Any CPU
 		{AF8AEF5B-0664-4106-9BD3-389758F39B12}.Release|x86.ActiveCfg = Release|Any CPU
 		{AF8AEF5B-0664-4106-9BD3-389758F39B12}.Release|x86.Build.0 = Release|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Debug|ARM.Build.0 = Debug|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Debug|iPhone.ActiveCfg = Debug|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Debug|x64.Build.0 = Debug|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Debug|x86.Build.0 = Debug|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Release|ARM.ActiveCfg = Release|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Release|ARM.Build.0 = Release|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Release|iPhone.ActiveCfg = Release|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Release|iPhone.Build.0 = Release|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Release|x64.ActiveCfg = Release|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Release|x64.Build.0 = Release|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Release|x86.ActiveCfg = Release|Any CPU
+		{E4A42678-C73F-4D71-95B9-254849B0084A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -704,6 +730,7 @@ Global
 		{12D79EDB-5B5A-4A87-904E-E50DFF3C874D} = {64A83705-2C93-46EB-858D-76C81AAC7151}
 		{705D1C16-7604-4C49-AF60-55A25D2120A8} = {64A83705-2C93-46EB-858D-76C81AAC7151}
 		{AF8AEF5B-0664-4106-9BD3-389758F39B12} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
+		{E4A42678-C73F-4D71-95B9-254849B0084A} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12D5E557-A27B-4FB2-83A3-4AC75B04B22C}
