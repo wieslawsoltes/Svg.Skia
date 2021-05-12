@@ -56,7 +56,7 @@
 
         <TabItem Header="Content">
             <Panel Margin="16" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <Button Content="{SvgContent /Assets/__tiger.svg}" Background="Transparent" Width="100" Height="100"/>
+                <Button Content="{SvgImage /Assets/__tiger.svg}" Background="Transparent" Width="100" Height="100"/>
             </Panel>
         </TabItem>
 

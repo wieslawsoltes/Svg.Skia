@@ -188,12 +188,6 @@ Install-Package Avalonia.Svg.Skia
 <Image Source="{SvgImage /Assets/__AJ_Digital_Camera.svg}"/>
 ```
 
-#### Use as Content
-
-```XAML
-<Button Content="{SvgContent /Assets/icon.svg}"/>
-```
-
 ### Tool
 
 ```

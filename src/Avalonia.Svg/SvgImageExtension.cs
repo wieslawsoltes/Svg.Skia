@@ -1,5 +1,7 @@
 ﻿using System;
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
 
 namespace Avalonia.Svg
 {
@@ -26,6 +28,15 @@ namespace Avalonia.Svg
             var context = (IUriContext)serviceProvider.GetService(typeof(IUriContext))!;
             var baseUri = context.BaseUri;
             var source = SvgSource.Load(path, baseUri);
+            var target = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget))!;
+            if (target.TargetProperty is AvaloniaProperty property)
+            {
+                if (property.PropertyType == typeof(IImage))
+                {
+                    return new SvgImage {Source = source};
+                }
+                return new Image {Source = new SvgImage {Source = source}};
+            }
             return new SvgImage {Source = source};
         }
     }
