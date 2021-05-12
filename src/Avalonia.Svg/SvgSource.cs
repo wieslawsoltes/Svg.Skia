@@ -23,7 +23,7 @@ namespace Avalonia.Svg
         /// <param name="path">The path to file or resource.</param>
         /// <param name="baseUri">The base uri.</param>
         /// <returns>The svg source.</returns>
-        public static SvgSource Load(string path, Uri baseUri)
+        public static SvgSource Load(string path, Uri? baseUri)
         {
             var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
             if (uri.IsAbsoluteUri && uri.IsFile)
