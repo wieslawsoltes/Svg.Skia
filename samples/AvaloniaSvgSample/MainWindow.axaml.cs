@@ -1,10 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using SS = Svg.Skia;
 using Avalonia.Svg;
 
 namespace AvaloniaSvgSample
@@ -91,39 +91,24 @@ namespace AvaloniaSvgSample
                 {
                     if (sender == _svgExtensionDockPanel)
                     {
-                        var svg = new SvgSource();
-                        var picture = svg.Load(fileName);
-                        if (picture is { })
+                        _svgExtensionImage.Source = new SvgImage
                         {
-                            _svgExtensionImage.Source = new SvgImage
-                            {
-                                Source = svg
-                            };
-                        }
+                            Source = SvgSource.Load(fileName, null)
+                        };
                     }
                     else if (sender == _svgSourceDockPanel)
                     {
-                        var svg = new SvgSource();
-                        var picture = svg.Load(fileName);
-                        if (picture is { })
+                        _svgSourceImage.Source = new SvgImage
                         {
-                            _svgSourceImage.Source = new SvgImage
-                            {
-                                Source = svg
-                            };
-                        }
+                            Source = SvgSource.Load(fileName, null)
+                        };
                     }
                     else if (sender == _svgResourceDockPanel)
                     {
-                        var svg = new SvgSource();
-                        var picture = svg.Load(fileName);
-                        if (picture is { })
+                        _svgResourceImage.Source = new SvgImage
                         {
-                            _svgResourceImage.Source = new SvgImage
-                            {
-                                Source = svg
-                            };
-                        }
+                            Source = SvgSource.Load(fileName, null)
+                        };
                     }
                 }
             }
