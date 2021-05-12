@@ -1,7 +1,7 @@
 ﻿using System;
 using Avalonia;
 
-namespace AvaloniaSgvImage
+namespace AvaloniaSvgSample
 {
     internal class Program
     {

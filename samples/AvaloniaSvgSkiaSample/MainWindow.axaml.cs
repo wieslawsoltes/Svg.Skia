@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
@@ -6,24 +7,34 @@ using Avalonia.Media;
 using SS = Svg.Skia;
 using Avalonia.Svg.Skia;
 
-namespace AvaloniaSgvImage
+namespace AvaloniaSvgSkiaSample
 {
     public class MainWindow : Window
     {
-        private readonly Image _svgSourceImage;
-        private readonly Image _svgResourceImage;
-        private readonly DockPanel _svgSourceDockPanel;
-        private readonly DockPanel _svgResourceDockPanel;
+        private Image _svgExtensionImage;
+        private Image _svgSourceImage;
+        private Image _svgResourceImage;
+        private DockPanel _svgExtensionDockPanel;
+        private DockPanel _svgSourceDockPanel;
+        private DockPanel _svgResourceDockPanel;
 
         public MainWindow()
         {
             InitializeComponent();
+#if DEBUG
+            this.AttachDevTools();
+#endif
+        }
 
-            //VisualRoot.Renderer.DrawDirtyRects = true;
-            //VisualRoot.Renderer.DrawFps = true;
+        private void InitializeComponent()
+        {
+            AvaloniaXamlLoader.Load(this);
 
+            _svgExtensionImage = this.FindControl<Image>("svgExtensionImage");
             _svgSourceImage = this.FindControl<Image>("svgSourceImage");
             _svgResourceImage = this.FindControl<Image>("svgResourceImage");
+
+            _svgExtensionDockPanel = this.FindControl<DockPanel>("svgExtensionDockPanel");
             _svgSourceDockPanel = this.FindControl<DockPanel>("svgSourceDockPanel");
             _svgResourceDockPanel = this.FindControl<DockPanel>("svgResourceDockPanel");
 
@@ -34,17 +45,21 @@ namespace AvaloniaSgvImage
             _svgResourceDockPanel.AddHandler(DragDrop.DragOverEvent, DragOver);
         }
 
-        private void InitializeComponent()
+        public void SvgExtensionStretchChanged(object sender, SelectionChangedEventArgs e)
         {
-            AvaloniaXamlLoader.Load(this);
+            if (_svgExtensionImage is { })
+            {
+                var comboBox = (ComboBox)sender;
+                _svgExtensionImage.Stretch = (Stretch)comboBox.SelectedIndex;
+            }
         }
 
         public void SvgSourceStretchChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_svgSourceImage is { })
             {
-                var comboxBox = (ComboBox)sender;
-                _svgSourceImage.Stretch = (Stretch)comboxBox.SelectedIndex;
+                var comboBox = (ComboBox)sender;
+                _svgSourceImage.Stretch = (Stretch)comboBox.SelectedIndex;
             }
         }
 
@@ -52,8 +67,8 @@ namespace AvaloniaSgvImage
         {
             if (_svgResourceImage is { })
             {
-                var comboxBox = (ComboBox)sender;
-                _svgResourceImage.Stretch = (Stretch)comboxBox.SelectedIndex;
+                var comboBox = (ComboBox)sender;
+                _svgResourceImage.Stretch = (Stretch)comboBox.SelectedIndex;
             }
         }
 
@@ -74,24 +89,21 @@ namespace AvaloniaSgvImage
                 var fileName = e.Data.GetFileNames()?.FirstOrDefault();
                 if (!string.IsNullOrWhiteSpace(fileName))
                 {
-                    if (sender == _svgSourceDockPanel)
+                    if (sender == _svgExtensionDockPanel)
                     {
                         var svg = new SvgSource();
-#if USE_PICTURE
-                        var document = SS.SKSvg.Open(fileName);
-                        if (document is { })
+                        var picture = svg.Load(fileName);
+                        if (picture is { })
                         {
-                            var picture = SS.SKSvg.ToModel(document);
-                            if (picture is { })
+                            _svgExtensionImage.Source = new SvgImage
                             {
-                                svg.Picture = picture;
-                                _svgSourceImage.Source = new SvgImage()
-                                {
-                                    Source = svg
-                                };
-                            }
+                                Source = svg
+                            };
                         }
-#else
+                    }
+                    else if (sender == _svgSourceDockPanel)
+                    {
+                        var svg = new SvgSource();
                         var picture = svg.Load(fileName);
                         if (picture is { })
                         {
@@ -100,27 +112,9 @@ namespace AvaloniaSgvImage
                                 Source = svg
                             };
                         }
-#endif
                     }
-
-                    if (sender == _svgResourceDockPanel)
+                    else if (sender == _svgResourceDockPanel)
                     {
-#if USE_PICTURE
-                        var svg = new SvgSource();
-                        var document = SS.SKSvg.Open(fileName);
-                        if (document is { })
-                        {
-                            var picture = SS.SKSvg.ToModel(document);
-                            if (picture is { })
-                            {
-                                svg.Picture = picture;
-                                _svgResourceImage.Source = new SvgImage()
-                                {
-                                    Source = svg
-                                };
-                            }
-                        }
-#else
                         var svg = new SvgSource();
                         var picture = svg.Load(fileName);
                         if (picture is { })
@@ -130,7 +124,6 @@ namespace AvaloniaSgvImage
                                 Source = svg
                             };
                         }
-#endif
                     }
                 }
             }

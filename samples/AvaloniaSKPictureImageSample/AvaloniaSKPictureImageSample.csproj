@@ -17,7 +17,7 @@
   <Import Project="..\..\build\Avalonia.Diagnostics.props" />
   
   <ItemGroup>
-    <AdditionalFiles Include="Assets/__tiger.svg" NamespaceName="AvaloniaSample" ClassName="Tiger" />
+    <AdditionalFiles Include="Assets/__tiger.svg" NamespaceName="AvaloniaSKPictureImageSample" ClassName="Tiger" />
   </ItemGroup>
   
   <ItemGroup>

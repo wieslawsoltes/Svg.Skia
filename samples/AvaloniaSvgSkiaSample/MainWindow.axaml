@@ -4,30 +4,27 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Avalonia.Svg.Skia"
         mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
-        x:Class="AvaloniaSgvImage.MainWindow"
+        x:Class="AvaloniaSvgSkiaSample.MainWindow"
         Width="900" Height="600" WindowStartupLocation="CenterScreen"
         UseLayoutRounding="True"
-        Title="Avalonia SgvImage">
-    <Window.Styles>
-        <Style Selector="TextBlock.h1">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeLarge}" />
-            <Setter Property="FontWeight" Value="Medium" />
-        </Style>
-        <Style Selector="TextBlock.h2">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
-        </Style>
-        <Style Selector="TextBlock.h3">
-            <Setter Property="FontSize" Value="{DynamicResource FontSizeSmall}" />
-        </Style>
-    </Window.Styles>
-    <DockPanel Margin="2">
-        <StackPanel DockPanel.Dock="Top" Orientation="Vertical" Spacing="4">
-            <TextBlock Classes="h1">Avalonia SvgImage</TextBlock>
-            <TextBlock Classes="h2">Displays an Svg image</TextBlock>
-        </StackPanel>
-        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,*" Margin="32">
-            <DockPanel x:Name="svgSourceDockPanel" Background="Transparent" Grid.Column="0" Grid.Row="1" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" DragDrop.AllowDrop="True">
-                <TextBlock DockPanel.Dock="Top" Classes="h3" Margin="0 8">Svg (Source)</TextBlock>
+        Title="Avalonia SgvImage Sample">
+
+    <TabControl>
+
+        <TabItem Header="Extension">
+            <DockPanel x:Name="svgExtensionDockPanel" Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" DragDrop.AllowDrop="True">
+                <ComboBox Name="svgExtensionStretch" DockPanel.Dock="Top" SelectedIndex="2" SelectionChanged="SvgExtensionStretchChanged">
+                    <ComboBoxItem>None</ComboBoxItem>
+                    <ComboBoxItem>Fill</ComboBoxItem>
+                    <ComboBoxItem>Uniform</ComboBoxItem>
+                    <ComboBoxItem>UniformToFill</ComboBoxItem>
+                </ComboBox>
+                <Image Name="svgExtensionImage" Source="{SvgImage /Assets/__tiger.svg}"/>
+            </DockPanel>
+        </TabItem>
+
+        <TabItem Header="Source">
+            <DockPanel x:Name="svgSourceDockPanel" Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" DragDrop.AllowDrop="True">
                 <ComboBox Name="svgSourceStretch" DockPanel.Dock="Top" SelectedIndex="2" SelectionChanged="SvgSourceStretchChanged">
                     <ComboBoxItem>None</ComboBoxItem>
                     <ComboBoxItem>Fill</ComboBoxItem>
@@ -40,11 +37,13 @@
                     </Image.Source>
                 </Image>
             </DockPanel>
-            <DockPanel x:Name="svgResourceDockPanel" Background="Transparent" Grid.Column="1" Grid.Row="1" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" DragDrop.AllowDrop="True">
+        </TabItem>
+
+        <TabItem Header="Resource">
+            <DockPanel x:Name="svgResourceDockPanel" Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" DragDrop.AllowDrop="True">
                 <DockPanel.Resources>
                     <svg:SvgImage x:Key="__tiger" Source="/Assets/__tiger.svg" />
                 </DockPanel.Resources>
-                <TextBlock DockPanel.Dock="Top" Classes="h3" Margin="0 8">Svg (Resources)</TextBlock>
                 <ComboBox Name="svgReourceStretch" DockPanel.Dock="Top" SelectedIndex="2" SelectionChanged="SvgResourceStretchChanged">
                     <ComboBoxItem>None</ComboBoxItem>
                     <ComboBoxItem>Fill</ComboBoxItem>
@@ -52,7 +51,15 @@
                     <ComboBoxItem>UniformToFill</ComboBoxItem>
                 </ComboBox>
                 <Image Name="svgResourceImage" Source="{DynamicResource __tiger}" />
-            </DockPanel>
-        </Grid>
-    </DockPanel>
+            </DockPanel> 
+        </TabItem>
+
+        <TabItem Header="Content">
+            <Panel Margin="16" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Button Content="{SvgContent /Assets/__tiger.svg}" Background="Transparent" Width="100" Height="100"/>
+            </Panel>
+        </TabItem>
+
+    </TabControl>
+
 </Window>

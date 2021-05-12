@@ -2,7 +2,7 @@
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
-namespace AvaloniaSgvImage
+namespace AvaloniaSvgSkiaSample
 {
     public class App : Application
     {
