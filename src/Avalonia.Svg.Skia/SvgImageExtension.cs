@@ -28,7 +28,5 @@ namespace Avalonia.Svg.Skia
             var source = SvgSource.Load(path, baseUri);
             return new SvgImage {Source = source};
         }
-
-
     }
 }
