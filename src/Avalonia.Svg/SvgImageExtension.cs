@@ -28,7 +28,5 @@ namespace Avalonia.Svg
             var source = SvgSource.Load(path, baseUri);
             return new SvgImage {Source = source};
         }
-
-
     }
 }
