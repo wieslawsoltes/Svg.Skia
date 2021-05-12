@@ -1,5 +1,6 @@
 ﻿using System;
 using Avalonia;
+using Avalonia.Svg.Skia;
 
 namespace AvaloniaSvgSkiaSample
 {
@@ -10,8 +11,11 @@ namespace AvaloniaSvgSkiaSample
             .StartWithClassicDesktopLifetime(args);
 
         public static AppBuilder BuildAvaloniaApp()
-            => AppBuilder.Configure<App>()
+        {
+            GC.KeepAlive(typeof(SvgImageExtension).Assembly);
+            return AppBuilder.Configure<App>()
                 .UsePlatformDetect()
                 .LogToTrace();
+        }
     }
 }
