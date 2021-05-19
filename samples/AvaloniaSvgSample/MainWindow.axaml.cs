@@ -38,6 +38,9 @@ namespace AvaloniaSvgSample
             _svgSourceDockPanel = this.FindControl<DockPanel>("svgSourceDockPanel");
             _svgResourceDockPanel = this.FindControl<DockPanel>("svgResourceDockPanel");
 
+            _svgExtensionDockPanel.AddHandler(DragDrop.DropEvent, Drop);
+            _svgExtensionDockPanel.AddHandler(DragDrop.DragOverEvent, DragOver);
+
             _svgSourceDockPanel.AddHandler(DragDrop.DropEvent, Drop);
             _svgSourceDockPanel.AddHandler(DragDrop.DragOverEvent, DragOver);
 
