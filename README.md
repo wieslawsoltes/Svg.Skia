@@ -182,7 +182,13 @@ dotnet add package Avalonia.Svg.Skia
 Install-Package Avalonia.Svg.Skia
 ```
 
-#### Set Image Source
+### Svg control
+
+```XAML
+<Svg Path="/Assets/__AJ_Digital_Camera.svg"/>
+```
+
+#### Image control
 
 ```XAML
 <Image Source="{SvgImage /Assets/__AJ_Digital_Camera.svg}"/>
