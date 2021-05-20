@@ -75,10 +75,10 @@ namespace Avalonia.SKPictureImage
                 return;
             }
             var bounds = source.CullRect;
-            var scale = Matrix.CreateScale(destRect.Width / sourceRect.Width, destRect.Height / sourceRect.Height);
-            var translate = Matrix.CreateTranslation(-sourceRect.X + destRect.X - bounds.Top, -sourceRect.Y + destRect.Y - bounds.Left);
+            var scaleMatrix = Matrix.CreateScale(destRect.Width / sourceRect.Width, destRect.Height / sourceRect.Height);
+            var translateMatrix = Matrix.CreateTranslation(-sourceRect.X + destRect.X - bounds.Top, -sourceRect.Y + destRect.Y - bounds.Left);
             using (context.PushClip(destRect))
-            using (context.PushPreTransform(translate * scale))
+            using (context.PushPreTransform(translateMatrix * scaleMatrix))
             {
                 context.Custom(new SKPictureDrawOperation(new Rect(0, 0, bounds.Width, bounds.Height), source));
             }

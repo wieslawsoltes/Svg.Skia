@@ -48,14 +48,14 @@ namespace Avalonia.Svg.Skia
             }
 
             var bounds = source.Picture.CullRect;
-            var scale = Matrix.CreateScale(
+            var scaleMatrix = Matrix.CreateScale(
                 destRect.Width / sourceRect.Width,
                 destRect.Height / sourceRect.Height);
-            var translate = Matrix.CreateTranslation(
+            var translateMatrix = Matrix.CreateTranslation(
                 -sourceRect.X + destRect.X - bounds.Top,
                 -sourceRect.Y + destRect.Y - bounds.Left);
             using (context.PushClip(destRect))
-            using (context.PushPreTransform(translate * scale))
+            using (context.PushPreTransform(translateMatrix * scaleMatrix))
             {
                 context.Custom(
                     new SvgCustomDrawOperation(
