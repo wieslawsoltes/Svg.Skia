@@ -20,6 +20,20 @@ namespace Avalonia.Svg.Skia
         public static readonly StyledProperty<string?> PathProperty =
             AvaloniaProperty.Register<Svg, string?>(nameof(Path));
 
+        /// <summary>
+        /// Defines the <see cref="Stretch"/> property.
+        /// </summary>
+        public static readonly StyledProperty<Stretch> StretchProperty =
+            AvaloniaProperty.Register<Image, Stretch>(nameof(Stretch), Stretch.Uniform);
+
+        /// <summary>
+        /// Defines the <see cref="StretchDirection"/> property.
+        /// </summary>
+        public static readonly StyledProperty<StretchDirection> StretchDirectionProperty =
+            AvaloniaProperty.Register<Image, StretchDirection>(
+                nameof(StretchDirection),
+                StretchDirection.Both);
+
         /// <inheritdoc/>
         public event EventHandler? Invalidated;
 
@@ -33,11 +47,28 @@ namespace Avalonia.Svg.Skia
             set => SetValue(PathProperty, value);
         }
 
+        /// <summary>
+        /// Gets or sets a value controlling how the image will be stretched.
+        /// </summary>
+        public Stretch Stretch
+        {
+            get { return GetValue(StretchProperty); }
+            set { SetValue(StretchProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets a value controlling in what direction the image will be stretched.
+        /// </summary>
+        public StretchDirection StretchDirection
+        {
+            get { return GetValue(StretchDirectionProperty); }
+            set { SetValue(StretchDirectionProperty, value); }
+        }
+
         static Svg()
         {
-            AffectsMeasure<Svg>(PathProperty);
-            AffectsArrange<Svg>(PathProperty);
-            AffectsRender<Svg>(PathProperty);   
+            AffectsRender<Svg>(PathProperty, StretchProperty, StretchDirectionProperty);
+            AffectsMeasure<Svg>(PathProperty, StretchProperty, StretchDirectionProperty);
         }
   
         /// <summary>
@@ -60,14 +91,35 @@ namespace Avalonia.Svg.Skia
 
         protected override Size MeasureOverride(Size availableSize)
         {
-            return _svg?.Picture is { } 
-                ? new Size(_svg.Picture.CullRect.Width, _svg.Picture.CullRect.Height) 
-                : default;
+            var result = new Size();
+
+            if (_svg?.Picture != null)
+            {
+                var sourceSize = _svg?.Picture is { } 
+                    ? new Size(_svg.Picture.CullRect.Width, _svg.Picture.CullRect.Height) 
+                    : default;
+
+                result = Stretch.CalculateSize(availableSize, sourceSize, StretchDirection);
+            }
+
+            return result;
         }
 
         protected override Size ArrangeOverride(Size finalSize)
         {
-            return finalSize;
+            if (_svg?.Picture != null)
+            {
+                var sourceSize = _svg?.Picture is { } 
+                    ? new Size(_svg.Picture.CullRect.Width, _svg.Picture.CullRect.Height) 
+                    : default;
+
+                var result = Stretch.CalculateSize(finalSize, sourceSize);
+                return result;
+            }
+            else
+            {
+                return new Size();
+            }
         }
 
         public override void Render(DrawingContext context)
@@ -78,15 +130,26 @@ namespace Avalonia.Svg.Skia
                 return;
             }
 
+            Rect viewPort = new Rect(Bounds.Size);
+            Size sourceSize = new Size(source.Picture.CullRect.Width, source.Picture.CullRect.Height);
+
+            Vector scale = Stretch.CalculateScaling(Bounds.Size, sourceSize, StretchDirection);
+            Size scaledSize = sourceSize * scale;
+            Rect destRect = viewPort
+                .CenterRect(new Rect(scaledSize))
+                .Intersect(viewPort);
+            Rect sourceRect = new Rect(sourceSize)
+                .CenterRect(new Rect(destRect.Size / scale));
+
             var bounds = source.Picture.CullRect;
-            var scale = Matrix.CreateScale(
-                Bounds.Width / bounds.Width,
-                Bounds.Height / bounds.Height);
-            var translate = Matrix.CreateTranslation(
-                -bounds.Left + Bounds.X - bounds.Top,
-                -bounds.Top + Bounds.Y - bounds.Left);
-            using (context.PushClip(Bounds))
-            using (context.PushPreTransform(translate * scale))
+            var scaleMatrix = Matrix.CreateScale(
+                destRect.Width / sourceRect.Width,
+                destRect.Height / sourceRect.Height);
+            var translateMatrix = Matrix.CreateTranslation(
+                -sourceRect.X + destRect.X - bounds.Top,
+                -sourceRect.Y + destRect.Y - bounds.Left);
+            using (context.PushClip(destRect))
+            using (context.PushPreTransform(translateMatrix * scaleMatrix))
             {
                 context.Custom(
                     new SvgCustomDrawOperation(
