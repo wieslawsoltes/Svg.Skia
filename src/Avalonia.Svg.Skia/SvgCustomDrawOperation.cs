@@ -1,14 +1,15 @@
 ﻿using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
+using Svg.Skia;
 
 namespace Avalonia.Svg.Skia
 {
     internal class SvgCustomDrawOperation : ICustomDrawOperation
     {
-        private readonly SvgSource _svg;
+        private readonly SKSvg? _svg;
 
-        public SvgCustomDrawOperation(Rect bounds, SvgSource svg)
+        public SvgCustomDrawOperation(Rect bounds, SKSvg? svg)
         {
             _svg = svg;
             Bounds = bounds;
@@ -26,7 +27,7 @@ namespace Avalonia.Svg.Skia
 
         public void Render(IDrawingContextImpl context)
         {
-            if (_svg is null || _svg.Picture is null)
+            if (_svg?.Picture is null)
             {
                 return;
             }
