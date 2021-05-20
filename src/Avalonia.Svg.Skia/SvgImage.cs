@@ -1,4 +1,5 @@
 ﻿using System;
+using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Visuals.Media.Imaging;
@@ -13,8 +14,8 @@ namespace Avalonia.Svg.Skia
         /// <summary>
         /// Defines the <see cref="Source"/> property.
         /// </summary>
-        public static readonly StyledProperty<SvgSource> SourceProperty =
-            AvaloniaProperty.Register<SvgImage, SvgSource>(nameof(Source));
+        public static readonly StyledProperty<SvgSource?> SourceProperty =
+            AvaloniaProperty.Register<SvgImage, SvgSource?>(nameof(Source));
 
         /// <inheritdoc/>
         public event EventHandler? Invalidated;
@@ -23,7 +24,7 @@ namespace Avalonia.Svg.Skia
         /// Gets or sets the <see cref="SvgSource"/> content.
         /// </summary>
         [Content]
-        public SvgSource Source
+        public SvgSource? Source
         {
             get => GetValue(SourceProperty);
             set => SetValue(SourceProperty, value);
@@ -41,7 +42,7 @@ namespace Avalonia.Svg.Skia
             BitmapInterpolationMode bitmapInterpolationMode)
         {
             var source = Source;
-            if (source is null || source.Picture is null)
+            if (source?.Picture is null)
             {
                 return;
             }
