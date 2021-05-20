@@ -24,13 +24,13 @@ namespace Avalonia.Svg.Skia
         /// Defines the <see cref="Stretch"/> property.
         /// </summary>
         public static readonly StyledProperty<Stretch> StretchProperty =
-            AvaloniaProperty.Register<Image, Stretch>(nameof(Stretch), Stretch.Uniform);
+            AvaloniaProperty.Register<Svg, Stretch>(nameof(Stretch), Stretch.Uniform);
 
         /// <summary>
         /// Defines the <see cref="StretchDirection"/> property.
         /// </summary>
         public static readonly StyledProperty<StretchDirection> StretchDirectionProperty =
-            AvaloniaProperty.Register<Image, StretchDirection>(
+            AvaloniaProperty.Register<Svg, StretchDirection>(
                 nameof(StretchDirection),
                 StretchDirection.Both);
 
