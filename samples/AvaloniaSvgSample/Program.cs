@@ -15,6 +15,9 @@ namespace AvaloniaSvgSample
             GC.KeepAlive(typeof(SvgImageExtension).Assembly);
             return AppBuilder.Configure<App>()
                 .UsePlatformDetect()
+                .With(new X11PlatformOptions
+                {
+                })
                 .LogToTrace();
         }
     }

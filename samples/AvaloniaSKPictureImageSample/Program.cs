@@ -10,6 +10,9 @@ namespace AvaloniaSKPictureImageSample
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()
                 .UsePlatformDetect()
+                .With(new X11PlatformOptions
+                {
+                })
                 .UseSkia()
                 .LogToTrace();
     }
