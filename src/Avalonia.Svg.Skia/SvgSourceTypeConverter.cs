@@ -21,7 +21,7 @@ namespace Avalonia.Svg.Skia
         {
             var path = (string)value;
             var baseUri = context.GetContextBaseUri();
-            return SvgSource.Load(path, baseUri);
+            return SvgSource.Load<SvgSource>(path, baseUri);
         }
     }
 }

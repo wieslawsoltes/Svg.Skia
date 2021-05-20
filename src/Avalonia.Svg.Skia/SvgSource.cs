@@ -12,18 +12,18 @@ namespace Avalonia.Svg.Skia
     [TypeConverter(typeof(SvgSourceTypeConverter))]
     public class SvgSource : SKSvg
     {
-        /// <summary>
+        /// <summary>t
         /// Loads svg source from file or resource.
         /// </summary>
         /// <param name="path">The path to file or resource.</param>
         /// <param name="baseUri">The base uri.</param>
         /// <returns>The svg source.</returns>
-        public static SvgSource Load(string path, Uri? baseUri)
+        public static T Load<T>(string path, Uri? baseUri) where T : SKSvg, new()
         {
             var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
             if (uri.IsAbsoluteUri && uri.IsFile)
             {
-                var source = new SvgSource();
+                var source = new T();
                 source.Load(uri.LocalPath);
                 return source;
             }
@@ -31,7 +31,7 @@ namespace Avalonia.Svg.Skia
             {
                 var loader = AvaloniaLocator.Current.GetService<IAssetLoader>();
                 var stream = loader.Open(uri, baseUri);
-                var source = new SvgSource();
+                var source = new T();
                 source.Load(stream);
                 return source;
             }

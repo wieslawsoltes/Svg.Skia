@@ -27,7 +27,7 @@ namespace Avalonia.Svg.Skia
             var path = Path;
             var context = (IUriContext)serviceProvider.GetService(typeof(IUriContext))!;
             var baseUri = context.BaseUri;
-            var source = SvgSource.Load(path, baseUri);
+            var source = SvgSource.Load<SvgSource>(path, baseUri);
             var target = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget))!;
             if (target.TargetProperty is AvaloniaProperty property)
             {
