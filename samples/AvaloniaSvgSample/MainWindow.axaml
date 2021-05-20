@@ -11,6 +11,18 @@
 
     <TabControl>
 
+        <TabItem Header="Svg">
+            <DockPanel x:Name="svgSvgDockPanel" Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" DragDrop.AllowDrop="True">
+                <ComboBox Name="svgSvgStretch" DockPanel.Dock="Top" SelectedIndex="2" SelectionChanged="SvgSvgStretchChanged">
+                    <ComboBoxItem>None</ComboBoxItem>
+                    <ComboBoxItem>Fill</ComboBoxItem>
+                    <ComboBoxItem>Uniform</ComboBoxItem>
+                    <ComboBoxItem>UniformToFill</ComboBoxItem>
+                </ComboBox>
+                <Svg Name="svgSvg" Path="/Assets/__tiger.svg"/>
+            </DockPanel>
+        </TabItem>
+
         <TabItem Header="Extension">
             <DockPanel x:Name="svgExtensionDockPanel" Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" DragDrop.AllowDrop="True">
                 <ComboBox Name="svgExtensionStretch" DockPanel.Dock="Top" SelectedIndex="2" SelectionChanged="SvgExtensionStretchChanged">

@@ -11,9 +11,11 @@ namespace AvaloniaSvgSample
 {
     public class MainWindow : Window
     {
+        private Avalonia.Svg.Svg _svgSvg;
         private Image _svgExtensionImage;
         private Image _svgSourceImage;
         private Image _svgResourceImage;
+        private DockPanel _svgSvgDockPanel;
         private DockPanel _svgExtensionDockPanel;
         private DockPanel _svgSourceDockPanel;
         private DockPanel _svgResourceDockPanel;
@@ -30,13 +32,18 @@ namespace AvaloniaSvgSample
         {
             AvaloniaXamlLoader.Load(this);
 
+            _svgSvg = this.FindControl<Avalonia.Svg.Svg>("svgSvg");
             _svgExtensionImage = this.FindControl<Image>("svgExtensionImage");
             _svgSourceImage = this.FindControl<Image>("svgSourceImage");
             _svgResourceImage = this.FindControl<Image>("svgResourceImage");
 
+            _svgSvgDockPanel = this.FindControl<DockPanel>("svgSvgDockPanel");
             _svgExtensionDockPanel = this.FindControl<DockPanel>("svgExtensionDockPanel");
             _svgSourceDockPanel = this.FindControl<DockPanel>("svgSourceDockPanel");
             _svgResourceDockPanel = this.FindControl<DockPanel>("svgResourceDockPanel");
+
+            _svgSvgDockPanel.AddHandler(DragDrop.DropEvent, Drop);
+            _svgSvgDockPanel.AddHandler(DragDrop.DragOverEvent, DragOver);
 
             _svgExtensionDockPanel.AddHandler(DragDrop.DropEvent, Drop);
             _svgExtensionDockPanel.AddHandler(DragDrop.DragOverEvent, DragOver);
@@ -46,6 +53,15 @@ namespace AvaloniaSvgSample
 
             _svgResourceDockPanel.AddHandler(DragDrop.DropEvent, Drop);
             _svgResourceDockPanel.AddHandler(DragDrop.DragOverEvent, DragOver);
+        }
+
+        public void SvgSvgStretchChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_svgSvg is { })
+            {
+                var comboBox = (ComboBox)sender;
+                _svgSvg.Stretch = (Stretch)comboBox.SelectedIndex;
+            }
         }
 
         public void SvgExtensionStretchChanged(object sender, SelectionChangedEventArgs e)
@@ -92,7 +108,11 @@ namespace AvaloniaSvgSample
                 var fileName = e.Data.GetFileNames()?.FirstOrDefault();
                 if (!string.IsNullOrWhiteSpace(fileName))
                 {
-                    if (sender == _svgExtensionDockPanel)
+                    if (sender == _svgSvgDockPanel)
+                    {
+                        _svgSvg.Path = fileName;
+                    }
+                    else if (sender == _svgExtensionDockPanel)
                     {
                         _svgExtensionImage.Source = new SvgImage
                         {
