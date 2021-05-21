@@ -40,7 +40,8 @@
                 <ComboBoxItem>UniformToFill</ComboBoxItem>
             </ComboBox>
             <Svg Stretch="{Binding #SvgStretch.SelectedItem.Content}"
-                 Path="{Binding SelectedItem.Path}" />
+                 Path="{Binding SelectedItem.Path}"
+                 EnableCache="True"/>
         </DockPanel>
 
     </Grid>
