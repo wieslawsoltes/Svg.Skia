@@ -13,6 +13,7 @@ namespace AvaloniaSvgSkiaSample
         public static AppBuilder BuildAvaloniaApp()
         {
             GC.KeepAlive(typeof(SvgImageExtension).Assembly);
+            GC.KeepAlive(typeof(Avalonia.Svg.Skia.Svg).Assembly);
             return AppBuilder.Configure<App>()
                 .UsePlatformDetect()
                 .With(new X11PlatformOptions
