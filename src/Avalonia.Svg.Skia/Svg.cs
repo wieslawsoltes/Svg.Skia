@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using Avalonia.Controls;
+using Avalonia.Logging;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using Svg.Skia;
@@ -13,6 +15,8 @@ namespace Avalonia.Svg.Skia
     {
         private readonly Uri _baseUri;
         private SKSvg? _svg;
+        private bool _enableCache;
+        private Dictionary<string, SKSvg>? _cache;
 
         /// <summary>
         /// Defines the <see cref="Path"/> property.
@@ -33,6 +37,14 @@ namespace Avalonia.Svg.Skia
             AvaloniaProperty.Register<Svg, StretchDirection>(
                 nameof(StretchDirection),
                 StretchDirection.Both);
+
+        /// <summary>
+        /// Defines the <see cref="EnableCache"/> property.
+        /// </summary>
+        public static readonly DirectProperty<Svg, bool> EnableCacheProperty =
+            AvaloniaProperty.RegisterDirect<Svg, bool>(nameof(EnableCache),
+                o => o.EnableCache,
+                (o, v) => o.EnableCache = v);
 
         /// <inheritdoc/>
         public event EventHandler? Invalidated;
@@ -63,6 +75,15 @@ namespace Avalonia.Svg.Skia
         {
             get { return GetValue(StretchDirectionProperty); }
             set { SetValue(StretchDirectionProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets a value controlling whether the loaded images are cached.
+        /// </summary>
+        public bool EnableCache
+        {
+            get { return _enableCache; }
+            set { SetAndRaise(EnableCacheProperty, ref _enableCache, value); }
         }
 
         static Svg()
@@ -162,19 +183,66 @@ namespace Avalonia.Svg.Skia
 
             if (change.Property == PathProperty)
             {
-                Load();
+                var path = change.NewValue.GetValueOrDefault<string?>();
+                Load(path);
                 RaiseInvalidated(EventArgs.Empty);
+            }
+
+            if (change.Property == EnableCacheProperty)
+            {
+                var enableCache = change.NewValue.GetValueOrDefault<bool>();
+                if (enableCache == false)
+                {
+                    if (_cache is { })
+                    {
+                        foreach (var kvp in _cache)
+                        {
+                            kvp.Value.Dispose();
+                        }
+
+                        _cache = null;
+                    }
+                }
+                else
+                {
+                    _cache = new Dictionary<string, SKSvg>();
+                }
             }
         }
 
-        private void Load()
+        private void Load(string? path)
         {
-            _svg?.Dispose();
-
-            var path = Path;
-            if (path is not null)
+            if (path is null)
             {
-                _svg = SvgSource.Load<SvgSource>(path, _baseUri);
+                _svg?.Dispose();
+            }
+            else
+            {
+                if (_enableCache && _cache is { } && _cache.TryGetValue(path, out var svg))
+                {
+                    _svg = svg;
+                }
+                else
+                {
+                    if (!_enableCache)
+                    {
+                        _svg?.Dispose();
+                    }
+
+                    try
+                    {
+                        _svg = SvgSource.Load<SvgSource>(path, _baseUri);
+                        if (_enableCache && _cache is { })
+                        {
+                            _cache[path] = _svg;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.TryGet(LogEventLevel.Warning, LogArea.Control)?.Log(this, "Failed to load svg image: " + e);
+                        _svg = null;
+                    }
+                }
             }
         }
 
