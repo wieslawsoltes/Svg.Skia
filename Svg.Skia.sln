@@ -97,6 +97,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Svg.Generators", "externals
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaSvgSample", "samples\AvaloniaSvgSample\AvaloniaSvgSample.csproj", "{E4A42678-C73F-4D71-95B9-254849B0084A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "samples\TestApp\TestApp.csproj", "{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -177,6 +179,10 @@ Global
 		{E4A42678-C73F-4D71-95B9-254849B0084A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4A42678-C73F-4D71-95B9-254849B0084A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E4A42678-C73F-4D71-95B9-254849B0084A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -204,6 +210,7 @@ Global
 		{223B7A5A-E263-4D40-9A6E-FE31EAE92F45} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
 		{AF8AEF5B-0664-4106-9BD3-389758F39B12} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
 		{E4A42678-C73F-4D71-95B9-254849B0084A} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
+		{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12D5E557-A27B-4FB2-83A3-4AC75B04B22C}
