@@ -6,10 +6,43 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="TestApp.Views.MainWindow"
         Icon="/Assets/Icon.ico"
-        Title="TestApp">
+        Title="TestApp"
+        WindowStartupLocation="CenterScreen"
+        DragDrop.AllowDrop="True">
 
     <Design.DataContext>
-        <vm:MainWindowViewModel/>
+        <vm:MainWindowViewModel />
     </Design.DataContext>
+
+    <Grid ColumnDefinitions="200,8,*">
+        <ListBox Grid.Column="0"
+                 Items="{Binding Items}"
+                 SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Name}"
+                               ToolTip.Tip="{Binding Path}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <GridSplitter Grid.Column="1" Background="Transparent" />
+
+        <DockPanel Grid.Column="2"
+                   Name="DockPanel"
+                   Background="Transparent"
+                   Margin="16"
+                   VerticalAlignment="Stretch"
+                   HorizontalAlignment="Stretch">
+            <ComboBox Name="SvgStretch" SelectedIndex="2" DockPanel.Dock="Top">
+                <ComboBoxItem>None</ComboBoxItem>
+                <ComboBoxItem>Fill</ComboBoxItem>
+                <ComboBoxItem>Uniform</ComboBoxItem>
+                <ComboBoxItem>UniformToFill</ComboBoxItem>
+            </ComboBox>
+            <Svg Stretch="{Binding #SvgStretch.SelectedItem.Content}"
+                 Path="{Binding SelectedItem.Path}" />
+        </DockPanel>
+
+    </Grid>
 
 </Window>
