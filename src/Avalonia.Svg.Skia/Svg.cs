@@ -91,35 +91,31 @@ namespace Avalonia.Svg.Skia
 
         protected override Size MeasureOverride(Size availableSize)
         {
-            var result = new Size();
-
-            if (_svg?.Picture != null)
+            if (_svg?.Picture == null)
             {
-                var sourceSize = _svg?.Picture is { } 
-                    ? new Size(_svg.Picture.CullRect.Width, _svg.Picture.CullRect.Height) 
-                    : default;
-
-                result = Stretch.CalculateSize(availableSize, sourceSize, StretchDirection);
+                return new Size();
             }
 
-            return result;
+            var sourceSize = _svg?.Picture is { } 
+                ? new Size(_svg.Picture.CullRect.Width, _svg.Picture.CullRect.Height) 
+                : default;
+
+            return Stretch.CalculateSize(availableSize, sourceSize, StretchDirection);
+
         }
 
         protected override Size ArrangeOverride(Size finalSize)
         {
-            if (_svg?.Picture != null)
-            {
-                var sourceSize = _svg?.Picture is { } 
-                    ? new Size(_svg.Picture.CullRect.Width, _svg.Picture.CullRect.Height) 
-                    : default;
-
-                var result = Stretch.CalculateSize(finalSize, sourceSize);
-                return result;
-            }
-            else
+            if (_svg?.Picture == null)
             {
                 return new Size();
             }
+
+            var sourceSize = _svg?.Picture is { } 
+                ? new Size(_svg.Picture.CullRect.Width, _svg.Picture.CullRect.Height) 
+                : default;
+
+            return Stretch.CalculateSize(finalSize, sourceSize);
         }
 
         public override void Render(DrawingContext context)
@@ -130,15 +126,15 @@ namespace Avalonia.Svg.Skia
                 return;
             }
 
-            Rect viewPort = new Rect(Bounds.Size);
-            Size sourceSize = new Size(source.Picture.CullRect.Width, source.Picture.CullRect.Height);
+            var viewPort = new Rect(Bounds.Size);
+            var sourceSize = new Size(source.Picture.CullRect.Width, source.Picture.CullRect.Height);
 
-            Vector scale = Stretch.CalculateScaling(Bounds.Size, sourceSize, StretchDirection);
-            Size scaledSize = sourceSize * scale;
-            Rect destRect = viewPort
+            var scale = Stretch.CalculateScaling(Bounds.Size, sourceSize, StretchDirection);
+            var scaledSize = sourceSize * scale;
+            var destRect = viewPort
                 .CenterRect(new Rect(scaledSize))
                 .Intersect(viewPort);
-            Rect sourceRect = new Rect(sourceSize)
+            var sourceRect = new Rect(sourceSize)
                 .CenterRect(new Rect(destRect.Size / scale));
 
             var bounds = source.Picture.CullRect;
@@ -148,6 +144,7 @@ namespace Avalonia.Svg.Skia
             var translateMatrix = Matrix.CreateTranslation(
                 -sourceRect.X + destRect.X - bounds.Top,
                 -sourceRect.Y + destRect.Y - bounds.Left);
+
             using (context.PushClip(destRect))
             using (context.PushPreTransform(translateMatrix * scaleMatrix))
             {
@@ -162,17 +159,22 @@ namespace Avalonia.Svg.Skia
         protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
         {
             base.OnPropertyChanged(change);
+
             if (change.Property == PathProperty)
             {
-                _svg?.Dispose();
-
-                var path = Path;
-                if (path is not null)
-                {
-                    _svg = SvgSource.Load<SvgSource>(path, _baseUri);
-                }
-
+                Load();
                 RaiseInvalidated(EventArgs.Empty);
+            }
+        }
+
+        private void Load()
+        {
+            _svg?.Dispose();
+
+            var path = Path;
+            if (path is not null)
+            {
+                _svg = SvgSource.Load<SvgSource>(path, _baseUri);
             }
         }
 

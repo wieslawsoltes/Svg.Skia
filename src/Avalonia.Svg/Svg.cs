@@ -92,35 +92,32 @@ namespace Avalonia.Svg
 
         protected override Size MeasureOverride(Size availableSize)
         {
-            var result = new Size();
-
-            if (_picture != null)
+            if (_picture == null)
             {
-                var sourceSize = _picture is { } 
-                    ? new Size(_picture.CullRect.Width, _picture.CullRect.Height) 
-                    : default;
-
-                result = Stretch.CalculateSize(availableSize, sourceSize, StretchDirection);
+                return new Size();
             }
 
-            return result;
+            var sourceSize = _picture is { } 
+                ? new Size(_picture.CullRect.Width, _picture.CullRect.Height) 
+                : default;
+
+            return Stretch.CalculateSize(availableSize, sourceSize, StretchDirection);
+
         }
 
         protected override Size ArrangeOverride(Size finalSize)
         {
-            if (_picture != null)
-            {
-                var sourceSize = _picture is { } 
-                    ? new Size(_picture.CullRect.Width, _picture.CullRect.Height) 
-                    : default;
-
-                var result = Stretch.CalculateSize(finalSize, sourceSize);
-                return result;
-            }
-            else
+            if (_picture == null)
             {
                 return new Size();
             }
+
+            var sourceSize = _picture is { } 
+                ? new Size(_picture.CullRect.Width, _picture.CullRect.Height) 
+                : default;
+
+            return Stretch.CalculateSize(finalSize, sourceSize);
+
         }
 
         public override void Render(DrawingContext context)
@@ -130,15 +127,15 @@ namespace Avalonia.Svg
                 return;
             }
 
-            Rect viewPort = new Rect(Bounds.Size);
-            Size sourceSize = new Size(_picture.CullRect.Width,_picture.CullRect.Height);
+            var viewPort = new Rect(Bounds.Size);
+            var sourceSize = new Size(_picture.CullRect.Width,_picture.CullRect.Height);
 
-            Vector scale = Stretch.CalculateScaling(Bounds.Size, sourceSize, StretchDirection);
-            Size scaledSize = sourceSize * scale;
-            Rect destRect = viewPort
+            var scale = Stretch.CalculateScaling(Bounds.Size, sourceSize, StretchDirection);
+            var scaledSize = sourceSize * scale;
+            var destRect = viewPort
                 .CenterRect(new Rect(scaledSize))
                 .Intersect(viewPort);
-            Rect sourceRect = new Rect(sourceSize)
+            var sourceRect = new Rect(sourceSize)
                 .CenterRect(new Rect(destRect.Size / scale));
 
             var bounds = _picture.CullRect;
@@ -148,6 +145,7 @@ namespace Avalonia.Svg
             var translateMatrix = Matrix.CreateTranslation(
                 -sourceRect.X + destRect.X - bounds.Top,
                 -sourceRect.Y + destRect.Y - bounds.Left);
+
             using (context.PushClip(destRect))
             using (context.PushPreTransform(translateMatrix * scaleMatrix))
             {
@@ -162,22 +160,27 @@ namespace Avalonia.Svg
         protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
         {
             base.OnPropertyChanged(change);
+
             if (change.Property == PathProperty)
             {
-                _picture = default;
-                _avaloniaPicture?.Dispose();
-
-                var path = Path;
-                if (path is not null)
-                {
-                    _picture = SvgSource.LoadPicture(path, _baseUri);
-                    if (_picture is { })
-                    {
-                        _avaloniaPicture = AvaloniaPicture.Record(_picture);
-                    }
-                }
-
+                Load();
                 RaiseInvalidated(EventArgs.Empty);
+            }
+        }
+
+        private void Load()
+        {
+            _picture = default;
+            _avaloniaPicture?.Dispose();
+
+            var path = Path;
+            if (path is not null)
+            {
+                _picture = SvgSource.LoadPicture(path, _baseUri);
+                if (_picture is { })
+                {
+                    _avaloniaPicture = AvaloniaPicture.Record(_picture);
+                }
             }
         }
 
