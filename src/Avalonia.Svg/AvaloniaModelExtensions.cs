@@ -202,7 +202,7 @@ namespace Avalonia.Svg
                 (byte)(color.Blue * 255f));
         }
 
-        public static AM.Color[] ToSKColors(this Color[] colors)
+        public static AM.Color[] ToColors(this Color[] colors)
         {
             var skColors = new AM.Color[colors.Length];
 
@@ -214,7 +214,7 @@ namespace Avalonia.Svg
             return skColors;
         }
 
-        public static AM.Color[] ToSKColors(this ColorF[] colors)
+        public static AM.Color[] ToColors(this ColorF[] colors)
         {
             var skColors = new AM.Color[colors.Length];
 
