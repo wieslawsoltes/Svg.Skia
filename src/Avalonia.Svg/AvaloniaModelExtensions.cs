@@ -8,6 +8,7 @@ using Svg.Model.Painting.Shaders;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AMI = Avalonia.Media.Imaging;
+using AMII = Avalonia.Media.Immutable;
 using AVMI = Avalonia.Visuals.Media.Imaging;
 using SP = Svg.Model;
 
@@ -245,10 +246,10 @@ namespace Avalonia.Svg
             }
         }
 
-        private static AM.SolidColorBrush ToSolidColorBrush(this ColorShader colorShader)
+        private static  AM.IBrush ToSolidColorBrush(this ColorShader colorShader)
         {
             var color = colorShader.Color.ToColor();
-            return new AM.SolidColorBrush(color);
+            return new AMII.ImmutableSolidColorBrush(color);
         }
 
         public static AM.GradientSpreadMethod ToGradientSpreadMethod(this ShaderTileMode shaderTileMode)
@@ -269,85 +270,85 @@ namespace Avalonia.Svg
 
         public static AM.IBrush? ToLinearGradientBrush(this LinearGradientShader linearGradientShader)
         {
-            if (linearGradientShader.Colors is { } && linearGradientShader.ColorPos is { })
+            if (linearGradientShader.Colors is null || linearGradientShader.ColorPos is null)
             {
-                var linearGradientBrush = new AM.LinearGradientBrush
-                {
-                    SpreadMethod = linearGradientShader.Mode.ToGradientSpreadMethod()
-                };
+                return null;
+            }
+ 
+            var spreadMethod = linearGradientShader.Mode.ToGradientSpreadMethod();
+            var start = linearGradientShader.Start.ToPoint();
+            var end = linearGradientShader.End.ToPoint();
 
-                var startPoint = linearGradientShader.Start.ToPoint();
-                var endPoint = linearGradientShader.End.ToPoint();
-
-                if (linearGradientShader.LocalMatrix is { })
-                {
-                    // TODO: linearGradientShader.LocalMatrix
-                    var localMatrix = linearGradientShader.LocalMatrix.Value.ToMatrix();
-                    startPoint = localMatrix.TransformPoint(startPoint);
-                    endPoint = localMatrix.TransformPoint(endPoint);
-                }
-
-                linearGradientBrush.StartPoint = new A.RelativePoint(startPoint, A.RelativeUnit.Absolute);
-
-                linearGradientBrush.EndPoint = new A.RelativePoint(endPoint, A.RelativeUnit.Absolute);
-
-                linearGradientBrush.GradientStops = new AM.GradientStops();
-
-                for (int i = 0; i < linearGradientShader.Colors.Length; i++)
-                {
-                    var color = linearGradientShader.Colors[i].ToColor();
-                    var offset = linearGradientShader.ColorPos[i];
-                    var gradientStop = new AM.GradientStop(color, offset);
-                    linearGradientBrush.GradientStops.Add(gradientStop);
-                }
-
-                return linearGradientBrush;
+            if (linearGradientShader.LocalMatrix is { })
+            {
+                // TODO: linearGradientShader.LocalMatrix
+                var localMatrix = linearGradientShader.LocalMatrix.Value.ToMatrix();
+                start = localMatrix.TransformPoint(start);
+                end = localMatrix.TransformPoint(end);
             }
 
-            return null;
+            var startPoint = new A.RelativePoint(start, A.RelativeUnit.Absolute);
+            var endPoint = new A.RelativePoint(end, A.RelativeUnit.Absolute);
+
+            var gradientStops = new List<AMII.ImmutableGradientStop>();
+            for (int i = 0; i < linearGradientShader.Colors.Length; i++)
+            {
+                var color = linearGradientShader.Colors[i].ToColor();
+                var offset = linearGradientShader.ColorPos[i];
+                var gradientStop = new AMII.ImmutableGradientStop(offset, color);
+                gradientStops.Add(gradientStop);
+            }
+
+            return new AMII.ImmutableLinearGradientBrush(
+                gradientStops,
+                1,
+                spreadMethod,
+                startPoint,
+                endPoint);
         }
 
         public static AM.IBrush? ToRadialGradientBrush(this TwoPointConicalGradientShader twoPointConicalGradientShader)
         {
-            if (twoPointConicalGradientShader.Colors is { } && twoPointConicalGradientShader.ColorPos is { })
+            if (twoPointConicalGradientShader.Colors is null || twoPointConicalGradientShader.ColorPos is null)
             {
-                var radialGradientBrush = new AM.RadialGradientBrush
-                {
-                    SpreadMethod = twoPointConicalGradientShader.Mode.ToGradientSpreadMethod()
-                };
-
-                var gradientOrigin = twoPointConicalGradientShader.Start.ToPoint();
-                var center = twoPointConicalGradientShader.End.ToPoint();
- 
-                if (twoPointConicalGradientShader.LocalMatrix is { })
-                {
-                    // TODO: radialGradientBrush.LocalMatrix
-                    var localMatrix = twoPointConicalGradientShader.LocalMatrix.Value.ToMatrix();
-                    gradientOrigin = localMatrix.TransformPoint(gradientOrigin);
-                    center = localMatrix.TransformPoint(center);
-                }
-                
-                radialGradientBrush.GradientOrigin = new A.RelativePoint(gradientOrigin, A.RelativeUnit.Absolute);
-
-                radialGradientBrush.Center = new A.RelativePoint(center, A.RelativeUnit.Absolute);
-
-                // TODO: twoPointConicalGradientShader.StartRadius
-                radialGradientBrush.Radius = twoPointConicalGradientShader.EndRadius;
-
-                radialGradientBrush.GradientStops = new AM.GradientStops();
-
-                for (int i = 0; i < twoPointConicalGradientShader.Colors.Length; i++)
-                {
-                    var color = twoPointConicalGradientShader.Colors[i].ToColor();
-                    var offset = twoPointConicalGradientShader.ColorPos[i];
-                    var gradientStop = new AM.GradientStop(color, offset);
-                    radialGradientBrush.GradientStops.Add(gradientStop);
-                }
-
-                return radialGradientBrush;
+                return null;
             }
 
-            return null;
+            var spreadMethod = twoPointConicalGradientShader.Mode.ToGradientSpreadMethod();
+            var gradientOrigin = twoPointConicalGradientShader.Start.ToPoint();
+            var center = twoPointConicalGradientShader.End.ToPoint();
+ 
+            if (twoPointConicalGradientShader.LocalMatrix is { })
+            {
+                // TODO: radialGradientBrush.LocalMatrix
+                var localMatrix = twoPointConicalGradientShader.LocalMatrix.Value.ToMatrix();
+                gradientOrigin = localMatrix.TransformPoint(gradientOrigin);
+                center = localMatrix.TransformPoint(center);
+            }
+
+            var gradientOriginPoint = new A.RelativePoint(gradientOrigin, A.RelativeUnit.Absolute);
+            var centerPoint = new A.RelativePoint(center, A.RelativeUnit.Absolute);
+
+            // TODO: twoPointConicalGradientShader.StartRadius
+            var radius = twoPointConicalGradientShader.EndRadius;
+
+            var gradientStops = new List<AMII.ImmutableGradientStop>();
+            for (int i = 0; i < twoPointConicalGradientShader.Colors.Length; i++)
+            {
+                var color = twoPointConicalGradientShader.Colors[i].ToColor();
+                var offset = twoPointConicalGradientShader.ColorPos[i];
+                var gradientStop = new AMII.ImmutableGradientStop(offset, color);
+                gradientStops.Add(gradientStop);
+            }
+
+            // TODO: Use ImmutableConicGradientBrush? Calculate 'angle' using 'StartRadius' and 'EndRadius'.
+            return new AMII.ImmutableRadialGradientBrush(
+                gradientStops,
+                1,
+                spreadMethod,
+                centerPoint,
+                gradientOriginPoint,
+                radius);
         }
 
         public static AM.IBrush? ToBrush(this Shader? shader)
@@ -378,7 +379,7 @@ namespace Avalonia.Svg
             var lineCap = paint.StrokeCap.ToPenLineCap();
             var lineJoin = paint.StrokeJoin.ToPenLineJoin();
 
-            var dashStyle = default(AM.IDashStyle);
+            var dashStyle = default(AMII.ImmutableDashStyle);
             if (paint.PathEffect is DashPathEffect dashPathEffect && dashPathEffect.Intervals is { })
             {
                 var dashes = new List<double>();
@@ -387,18 +388,17 @@ namespace Avalonia.Svg
                     dashes.Add(interval / paint.StrokeWidth);
                 }
                 var offset = dashPathEffect.Phase / paint.StrokeWidth;
-                dashStyle = new AM.DashStyle(dashes, offset);
+                dashStyle = new AMII.ImmutableDashStyle(dashes, offset);
             }
 
-            return new AM.Pen
-            {
-                Brush = brush,
-                Thickness = paint.StrokeWidth,
-                LineCap = lineCap,
-                LineJoin = lineJoin,
-                MiterLimit = paint.StrokeMiter,
-                DashStyle = dashStyle
-            };
+            return new AMII.ImmutablePen(
+                brush,
+                paint.StrokeWidth,
+                dashStyle,
+                lineCap,
+                lineJoin,
+                paint.StrokeMiter
+            );
         }
 
         public static (AM.IBrush? brush, AM.IPen? pen) ToBrushAndPen(this Paint paint)
