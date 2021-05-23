@@ -5,7 +5,7 @@ using Svg.Skia;
 
 namespace Avalonia.Svg.Skia
 {
-    internal class SvgCustomDrawOperation : ICustomDrawOperation
+    public class SvgCustomDrawOperation : ICustomDrawOperation
     {
         private readonly SKSvg? _svg;
 
