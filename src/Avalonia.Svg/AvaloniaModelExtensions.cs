@@ -310,10 +310,19 @@ namespace Avalonia.Svg
                 };
 
                 var gradientOrigin = twoPointConicalGradientShader.Start.ToPoint();
-                radialGradientBrush.GradientOrigin = new A.RelativePoint(gradientOrigin, A.RelativeUnit.Relative);
-
                 var center = twoPointConicalGradientShader.End.ToPoint();
-                radialGradientBrush.Center = new A.RelativePoint(center, A.RelativeUnit.Relative);
+ 
+                if (twoPointConicalGradientShader.LocalMatrix is { })
+                {
+                    // TODO: radialGradientBrush.LocalMatrix
+                    var localMatrix = twoPointConicalGradientShader.LocalMatrix.Value.ToMatrix();
+                    gradientOrigin = localMatrix.TransformPoint(gradientOrigin);
+                    center = localMatrix.TransformPoint(center);
+                }
+                
+                radialGradientBrush.GradientOrigin = new A.RelativePoint(gradientOrigin, A.RelativeUnit.Absolute);
+
+                radialGradientBrush.Center = new A.RelativePoint(center, A.RelativeUnit.Absolute);
 
                 // TODO: twoPointConicalGradientShader.StartRadius
                 radialGradientBrush.Radius = twoPointConicalGradientShader.EndRadius;
@@ -327,8 +336,6 @@ namespace Avalonia.Svg
                     var gradientStop = new AM.GradientStop(color, offset);
                     radialGradientBrush.GradientStops.Add(gradientStop);
                 }
-
-                // TODO: radialGradientBrush.LocalMatrix
 
                 return radialGradientBrush;
             }
