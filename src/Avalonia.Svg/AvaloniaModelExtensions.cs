@@ -15,6 +15,13 @@ namespace Avalonia.Svg
 {
     public static class AvaloniaModelExtensions
     {
+        private static Point TransformPoint(this A.Matrix matrix, Point point)
+        {
+            return new Point(
+                (point.X * matrix.M11) + (point.Y * matrix.M21) + matrix.M31,
+                (point.X * matrix.M12) + (point.Y * matrix.M22) + matrix.M32);
+        }
+
         public static A.Point ToPoint(this global::Svg.Model.Primitives.Point point)
         {
             return new A.Point(point.X, point.Y);
