@@ -313,8 +313,8 @@ namespace Avalonia.Svg
             }
 
             var spreadMethod = twoPointConicalGradientShader.Mode.ToGradientSpreadMethod();
-            var gradientOrigin = twoPointConicalGradientShader.Start.ToPoint();
-            var center = twoPointConicalGradientShader.End.ToPoint();
+            var center = twoPointConicalGradientShader.Start.ToPoint();
+            var gradientOrigin = twoPointConicalGradientShader.End.ToPoint();
  
             if (twoPointConicalGradientShader.LocalMatrix is { })
             {
@@ -327,8 +327,13 @@ namespace Avalonia.Svg
             var gradientOriginPoint = new A.RelativePoint(gradientOrigin, A.RelativeUnit.Absolute);
             var centerPoint = new A.RelativePoint(center, A.RelativeUnit.Absolute);
 
-            // TODO: twoPointConicalGradientShader.StartRadius
-            var radius = twoPointConicalGradientShader.EndRadius;
+            // NOTE: twoPointConicalGradientShader.StartRadius is always 0.0
+            var startRadius = twoPointConicalGradientShader.StartRadius;
+
+            // TODO: Avalonia is passing 'radius' to 'SKShader.CreateTwoPointConicalGradient' as 'startRadius'
+            // TODO: but we need to pass it as 'endRadius' to 'SKShader.CreateTwoPointConicalGradient'
+            var endRadius = twoPointConicalGradientShader.EndRadius;
+            var radius = 0.5; // endRadius
 
             var gradientStops = new List<AMII.ImmutableGradientStop>();
             for (int i = 0; i < twoPointConicalGradientShader.Colors.Length; i++)
