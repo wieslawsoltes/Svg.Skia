@@ -341,7 +341,6 @@ namespace Avalonia.Svg
                 gradientStops.Add(gradientStop);
             }
 
-            // TODO: Use ImmutableConicGradientBrush? Calculate 'angle' using 'StartRadius' and 'EndRadius'.
             return new AMII.ImmutableRadialGradientBrush(
                 gradientStops,
                 1,
