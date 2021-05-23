@@ -48,7 +48,8 @@ namespace Svg.Skia
             var svgDocument = SvgModelExtensions.Open(stream);
             if (svgDocument is { })
             {
-                Picture = ToPicture(svgDocument);
+                Model = SvgModelExtensions.ToModel(svgDocument, s_assetLoader);
+                Picture = Model?.ToSKPicture();
                 return Picture;
             }
             return null;
@@ -60,7 +61,8 @@ namespace Svg.Skia
             var svgDocument = SvgModelExtensions.Open(path);
             if (svgDocument is { })
             {
-                Picture = ToPicture(svgDocument);
+                Model = SvgModelExtensions.ToModel(svgDocument, s_assetLoader);
+                Picture = Model?.ToSKPicture();
                 return Picture;
             }
             return null;
@@ -72,7 +74,8 @@ namespace Svg.Skia
             var svgDocument = SvgModelExtensions.FromSvg(svg);
             if (svgDocument is { })
             {
-                Picture = ToPicture(svgDocument);
+                Model = SvgModelExtensions.ToModel(svgDocument, s_assetLoader);
+                Picture = Model?.ToSKPicture();
                 return Picture;
             }
             return null;
@@ -83,7 +86,8 @@ namespace Svg.Skia
             Reset();
             if (svgDocument is { })
             {
-                Picture = ToPicture(svgDocument);
+                Model = SvgModelExtensions.ToModel(svgDocument, s_assetLoader);
+                Picture = Model?.ToSKPicture();
                 return Picture;
             }
             return null;
