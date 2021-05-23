@@ -110,6 +110,8 @@ namespace Svg.Skia
 
         private void Reset()
         {
+            Model = null;
+
             Picture?.Dispose();
             Picture = null;
         }
