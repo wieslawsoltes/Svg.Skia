@@ -16,11 +16,9 @@ namespace Avalonia.Svg
 {
     public static class AvaloniaModelExtensions
     {
-        private static Point TransformPoint(this A.Matrix matrix, Point point)
+        public static Point Transform(this  Matrix m, Point point)
         {
-            return new Point(
-                (point.X * matrix.M11) + (point.Y * matrix.M21) + matrix.M31,
-                (point.X * matrix.M12) + (point.Y * matrix.M22) + matrix.M32);
+            return point * m;
         }
 
         public static A.Point ToPoint(this global::Svg.Model.Primitives.Point point)
@@ -283,8 +281,8 @@ namespace Avalonia.Svg
             {
                 // TODO: linearGradientShader.LocalMatrix
                 var localMatrix = linearGradientShader.LocalMatrix.Value.ToMatrix();
-                start = localMatrix.TransformPoint(start);
-                end = localMatrix.TransformPoint(end);
+                start = localMatrix.Transform(start);
+                end = localMatrix.Transform(end);
             }
 
             var startPoint = new A.RelativePoint(start, A.RelativeUnit.Absolute);
@@ -322,8 +320,8 @@ namespace Avalonia.Svg
             {
                 // TODO: radialGradientBrush.LocalMatrix
                 var localMatrix = twoPointConicalGradientShader.LocalMatrix.Value.ToMatrix();
-                gradientOrigin = localMatrix.TransformPoint(gradientOrigin);
-                center = localMatrix.TransformPoint(center);
+                gradientOrigin = localMatrix.Transform(gradientOrigin);
+                center = localMatrix.Transform(center);
             }
 
             var gradientOriginPoint = new A.RelativePoint(gradientOrigin, A.RelativeUnit.Absolute);
