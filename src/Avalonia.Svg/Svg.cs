@@ -66,6 +66,11 @@ namespace Avalonia.Svg
             set { SetValue(StretchDirectionProperty, value); }
         }
 
+        /// <summary>
+        /// Gets svg model.
+        /// </summary>
+        public Picture? Model => _picture;
+
         static Svg()
         {
             AffectsRender<Svg>(PathProperty, StretchProperty, StretchDirectionProperty);
