@@ -8,11 +8,14 @@ using SP = Svg.Model;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AVMI = Avalonia.Visuals.Media.Imaging;
+using AP = Avalonia.Platform;
 
 namespace Avalonia.Svg
 {
     public sealed class AvaloniaPicture : IDisposable
     {
+        private static AP.IPlatformRenderInterface Factory => A.AvaloniaLocator.Current.GetService<AP.IPlatformRenderInterface>();
+
         private readonly List<DrawCommand>? _commands;
 
         public IReadOnlyList<DrawCommand>? Commands => _commands;
@@ -130,7 +133,7 @@ namespace Avalonia.Svg
                                     case AddOvalPathCommand addOvalPathCommand:
                                         {
                                             var rect = addOvalPathCommand.Rect.ToRect();
-                                            var ellipseGeometry = new AM.EllipseGeometry(rect);
+                                            var ellipseGeometry = Factory.CreateEllipseGeometry(rect);
                                             avaloniaPicture._commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
                                             success = true;
                                         }
@@ -142,7 +145,7 @@ namespace Avalonia.Svg
                                             var y = addCirclePathCommand.Y;
                                             var radius = addCirclePathCommand.Radius;
                                             var rect = new A.Rect(x - radius, y - radius, radius + radius, radius + radius);
-                                            var ellipseGeometry = new AM.EllipseGeometry(rect);
+                                            var ellipseGeometry = Factory.CreateEllipseGeometry(rect);
                                             avaloniaPicture._commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
                                             success = true;
                                         }
@@ -152,9 +155,8 @@ namespace Avalonia.Svg
                                         {
                                             if (addPolyPathCommand.Points is { })
                                             {
-                                                var points = addPolyPathCommand.Points.ToPoints();
                                                 var close = addPolyPathCommand.Close;
-                                                var polylineGeometry = new AM.PolylineGeometry(points, close);
+                                                var polylineGeometry = addPolyPathCommand.Points.ToGeometry(close);
                                                 avaloniaPicture._commands.Add(new GeometryDrawCommand(brush, pen, polylineGeometry));
                                                 success = true;
                                             }

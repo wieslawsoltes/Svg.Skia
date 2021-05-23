@@ -1,4 +1,5 @@
 ﻿using AM = Avalonia.Media;
+using AP = Avalonia.Platform;
 
 namespace Avalonia.Svg.Commands
 {
@@ -6,9 +7,9 @@ namespace Avalonia.Svg.Commands
     {
         public AM.IBrush? Brush { get; }
         public AM.IPen? Pen { get; }
-        public AM.Geometry? Geometry { get; }
+        public AP.IGeometryImpl? Geometry { get; }
 
-        public GeometryDrawCommand(AM.IBrush? brush, AM.IPen? pen, AM.Geometry? geometry)
+        public GeometryDrawCommand(AM.IBrush? brush, AM.IPen? pen, AP.IGeometryImpl? geometry)
         {
             Brush = brush;
             Pen = pen;

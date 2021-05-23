@@ -10,12 +10,15 @@ using AM = Avalonia.Media;
 using AMI = Avalonia.Media.Imaging;
 using AMII = Avalonia.Media.Immutable;
 using AVMI = Avalonia.Visuals.Media.Imaging;
+using AP = Avalonia.Platform;
 using SP = Svg.Model;
 
 namespace Avalonia.Svg
 {
     public static class AvaloniaModelExtensions
     {
+        private static AP.IPlatformRenderInterface Factory => A.AvaloniaLocator.Current.GetService<AP.IPlatformRenderInterface>();
+
         public static Point Transform(this  Matrix m, Point point)
         {
             return point * m;
@@ -476,14 +479,35 @@ namespace Avalonia.Svg
             }
         }
 
-        public static AM.Geometry? ToGeometry(this Path path, bool isFilled)
+        public static AP.IGeometryImpl? ToGeometry(this IList<global::Svg.Model.Primitives.Point> points, bool isFilled)
+        {
+            var geometry = Factory.CreateStreamGeometry();
+
+            using var context = geometry.Open();
+
+            if (points.Count > 0)
+            {
+                context.BeginFigure(points[0].ToPoint(), isFilled);
+
+                for (int i = 1; i < points.Count; i++)
+                {
+                    context.LineTo(points[i].ToPoint());
+                }
+
+                context.EndFigure(isFilled);
+            }
+
+            return geometry;
+        }
+        
+        public static AP.IGeometryImpl? ToGeometry(this Path path, bool isFilled)
         {
             if (path.Commands is null)
             {
                 return null;
             }
 
-            var streamGeometry = new AM.StreamGeometry();
+            var streamGeometry = Factory.CreateStreamGeometry();
 
             using var streamGeometryContext = streamGeometry.Open();
 
