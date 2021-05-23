@@ -448,7 +448,7 @@ namespace Avalonia.Svg
             return ft;
         }
 
-        public static AM.FillRule ToSKPathFillType(this PathFillType pathFillType)
+        public static AM.FillRule ToFillRule(this PathFillType pathFillType)
         {
             switch (pathFillType)
             {
@@ -485,7 +485,7 @@ namespace Avalonia.Svg
 
             using var streamGeometryContext = streamGeometry.Open();
 
-            streamGeometryContext.SetFillRule(path.FillType.ToSKPathFillType());
+            streamGeometryContext.SetFillRule(path.FillType.ToFillRule());
 
             bool endFigure = false;
             bool haveFigure = false;
