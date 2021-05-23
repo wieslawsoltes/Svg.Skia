@@ -39,12 +39,12 @@ namespace Avalonia.Svg
             return skPoints;
         }
 
-        public static A.Size ToSKSize(this global::Svg.Model.Primitives.Size size)
+        public static A.Size ToSize(this global::Svg.Model.Primitives.Size size)
         {
             return new A.Size(size.Width, size.Height);
         }
 
-        public static A.Rect ToSKRect(this global::Svg.Model.Primitives.Rect rect)
+        public static A.Rect ToRect(this global::Svg.Model.Primitives.Rect rect)
         {
             return new A.Rect(rect.Left, rect.Top, rect.Width, rect.Height);
         }
