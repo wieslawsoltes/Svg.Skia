@@ -277,10 +277,19 @@ namespace Avalonia.Svg
                 };
 
                 var startPoint = linearGradientShader.Start.ToPoint();
-                linearGradientBrush.StartPoint = new A.RelativePoint(startPoint, A.RelativeUnit.Relative);
-
                 var endPoint = linearGradientShader.End.ToPoint();
-                linearGradientBrush.EndPoint = new A.RelativePoint(endPoint, A.RelativeUnit.Relative);
+
+                if (linearGradientShader.LocalMatrix is { })
+                {
+                    // TODO: linearGradientShader.LocalMatrix
+                    var localMatrix = linearGradientShader.LocalMatrix.Value.ToMatrix();
+                    startPoint = localMatrix.TransformPoint(startPoint);
+                    endPoint = localMatrix.TransformPoint(endPoint);
+                }
+
+                linearGradientBrush.StartPoint = new A.RelativePoint(startPoint, A.RelativeUnit.Absolute);
+
+                linearGradientBrush.EndPoint = new A.RelativePoint(endPoint, A.RelativeUnit.Absolute);
 
                 linearGradientBrush.GradientStops = new AM.GradientStops();
 
@@ -291,8 +300,6 @@ namespace Avalonia.Svg
                     var gradientStop = new AM.GradientStop(color, offset);
                     linearGradientBrush.GradientStops.Add(gradientStop);
                 }
-
-                // TODO: linearGradientShader.LocalMatrix
 
                 return linearGradientBrush;
             }
