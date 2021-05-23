@@ -45,7 +45,7 @@ namespace Avalonia.Svg
 
                 case ClipRectCanvasCommand clipRectCanvasCommand:
                     {
-                        var rect = clipRectCanvasCommand.Rect.ToSKRect();
+                        var rect = clipRectCanvasCommand.Rect.ToRect();
                         // TODO: clipRectCanvasCommand.Operation;
                         // TODO: clipRectCanvasCommand.Antialias;
                         avaloniaPicture._commands.Add(new ClipDrawCommand(rect));
@@ -87,8 +87,8 @@ namespace Avalonia.Svg
                             var image = drawImageCanvasCommand.Image.ToBitmap();
                             if (image is { })
                             {
-                                var source = drawImageCanvasCommand.Source.ToSKRect();
-                                var dest = drawImageCanvasCommand.Dest.ToSKRect();
+                                var source = drawImageCanvasCommand.Source.ToRect();
+                                var dest = drawImageCanvasCommand.Dest.ToRect();
                                 var bitmapInterpolationMode = drawImageCanvasCommand.Paint?.FilterQuality.ToBitmapInterpolationMode() ?? AVMI.BitmapInterpolationMode.Default;
                                 avaloniaPicture._commands.Add(new ImageDrawCommand(image, source, dest, bitmapInterpolationMode));
                             }
@@ -111,7 +111,7 @@ namespace Avalonia.Svg
                                 {
                                     case AddRectPathCommand addRectPathCommand:
                                         {
-                                            var rect = addRectPathCommand.Rect.ToSKRect();
+                                            var rect = addRectPathCommand.Rect.ToRect();
                                             avaloniaPicture._commands.Add(new RectangleDrawCommand(brush, pen, rect, 0, 0));
                                             success = true;
                                         }
@@ -119,7 +119,7 @@ namespace Avalonia.Svg
 
                                     case AddRoundRectPathCommand addRoundRectPathCommand:
                                         {
-                                            var rect = addRoundRectPathCommand.Rect.ToSKRect();
+                                            var rect = addRoundRectPathCommand.Rect.ToRect();
                                             var rx = addRoundRectPathCommand.Rx;
                                             var ry = addRoundRectPathCommand.Ry;
                                             avaloniaPicture._commands.Add(new RectangleDrawCommand(brush, pen, rect, rx, ry));
@@ -129,7 +129,7 @@ namespace Avalonia.Svg
 
                                     case AddOvalPathCommand addOvalPathCommand:
                                         {
-                                            var rect = addOvalPathCommand.Rect.ToSKRect();
+                                            var rect = addOvalPathCommand.Rect.ToRect();
                                             var ellipseGeometry = new AM.EllipseGeometry(rect);
                                             avaloniaPicture._commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
                                             success = true;
