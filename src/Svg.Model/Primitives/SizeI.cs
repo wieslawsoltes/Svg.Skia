@@ -16,7 +16,7 @@ namespace Svg.Model.Primitives
             Width = width;
             Height = height;
         }
-        
+
         public override string ToString()
         {
             return FormattableString.Invariant($"{Width}, {Height}");

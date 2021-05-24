@@ -61,7 +61,7 @@ namespace Svg.Model
             {
                 return default;
             }
-            
+
             if (stream.CanSeek)
             {
                 stream.Position = 0;
@@ -94,7 +94,7 @@ namespace Svg.Model
             {
                 return default;
             }
-            
+
             var headerStartIndex = 5;
             var headerEndIndex = uriString.IndexOf(",", headerStartIndex);
             if (headerEndIndex < 0 || headerEndIndex + 1 >= uriString.Length)

@@ -4,10 +4,10 @@ using System.Globalization;
 using Svg.FilterEffects;
 using Svg.Model.Drawables;
 using Svg.Model.Drawables.Elements;
-using Svg.Model.Painting.ImageFilters;
 using Svg.Model.Painting;
-using Svg.Model.Primitives;
+using Svg.Model.Painting.ImageFilters;
 using Svg.Model.Painting.Shaders;
+using Svg.Model.Primitives;
 
 namespace Svg.Model
 {
@@ -692,7 +692,7 @@ namespace Svg.Model
 
                 var fragmentDrawable = FragmentDrawable.Create(svgFragment, destRect, null, assetLoader, Attributes.None);
                 // TODO:
-                var skPicture = fragmentDrawable.Snapshot(); 
+                var skPicture = fragmentDrawable.Snapshot();
 
                 return ImageFilter.CreatePicture(skPicture, destRect);
             }
@@ -1244,7 +1244,7 @@ namespace Svg.Model
             }
 
             var skFilterRegion = Rect.Create(x, y, width, height);
-            
+
             var items = new List<(SvgFilterPrimitive primitive, Rect region)>();
 
             foreach (var child in firstChildren.Children)
@@ -1257,7 +1257,7 @@ namespace Svg.Model
                     var yUnitChild = svgFilterPrimitive.Y;
                     var widthUnitChild = svgFilterPrimitive.Width;
                     var heightUnitChild = svgFilterPrimitive.Height;
-                    
+
                     var xChild = xUnitChild.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilterPrimitive, skPrimitiveBounds);
                     var yChild = yUnitChild.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilterPrimitive, skPrimitiveBounds);
                     var widthChild = widthUnitChild.ToDeviceValue(UnitRenderingType.Horizontal, svgFilterPrimitive, skPrimitiveBounds);

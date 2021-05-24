@@ -9,9 +9,9 @@ namespace Svg.Model
     {
         public static CultureInfo? s_systemLanguageOverride = default;
 
-        private static readonly char[] _spaceTab = {' ', '\t'};
+        private static readonly char[] _spaceTab = { ' ', '\t' };
 
-        private static readonly char[] _comma = {','};
+        private static readonly char[] _comma = { ',' };
 
         internal static HashSet<string> s_supportedFeatures = new()
         {

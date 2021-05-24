@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using Svg.DataTypes;
 using Svg.Model.Drawables;
 using Svg.Model.Painting;
-using Svg.Model.Primitives;
 using Svg.Model.Painting.Shaders;
+using Svg.Model.Primitives;
 
 namespace Svg.Model
 {

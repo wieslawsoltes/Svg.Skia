@@ -27,7 +27,7 @@ namespace Svg.Model.Painting
                 color.Blue * (1 / 255.0f),
                 color.Alpha * (1 / 255.0f));
         }
-        
+
         public override string ToString()
         {
             return FormattableString.Invariant($"{Red}, {Green}, {Blue}, {Alpha}");

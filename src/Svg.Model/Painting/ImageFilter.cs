@@ -1,7 +1,7 @@
 ﻿using System;
 using Svg.Model.Painting.ImageFilters;
-using Svg.Model.Primitives;
 using Svg.Model.Painting.Shaders;
+using Svg.Model.Primitives;
 
 namespace Svg.Model.Painting
 {
@@ -17,7 +17,7 @@ namespace Svg.Model.Painting
         {
             Rect = rect;
         }
-        
+
         public override string ToString()
         {
             return FormattableString.Invariant($"{Rect}");

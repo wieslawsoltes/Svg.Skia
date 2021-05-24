@@ -1,5 +1,5 @@
-﻿using Svg.Model.Primitives;
-using Svg.Model.Painting.Shaders;
+﻿using Svg.Model.Painting.Shaders;
+using Svg.Model.Primitives;
 
 namespace Svg.Model.Painting
 {

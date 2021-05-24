@@ -18,7 +18,7 @@ namespace Svg.Model.Primitives
             Y = y;
             Z = z;
         }
-        
+
         public override string ToString()
         {
             return FormattableString.Invariant($"{X}, {Y}, {Z}");
