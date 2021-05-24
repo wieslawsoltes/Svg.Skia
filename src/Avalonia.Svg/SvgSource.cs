@@ -2,8 +2,8 @@
 using System.ComponentModel;
 using Avalonia.Platform;
 using Svg.Model.Primitives;
-using SP = Svg.Model;
 using SM = Svg.Model;
+using SP = Svg.Model;
 
 namespace Avalonia.Svg
 {
@@ -56,7 +56,7 @@ namespace Avalonia.Svg
         /// <returns>The svg source.</returns>
         public static SvgSource Load(string path, Uri? baseUri)
         {
-            return new() {Picture = LoadPicture(path, baseUri)};
+            return new() { Picture = LoadPicture(path, baseUri) };
         }
     }
 }

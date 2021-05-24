@@ -103,7 +103,7 @@ namespace Avalonia.Svg.Skia
             AffectsRender<Svg>(PathProperty, StretchProperty, StretchDirectionProperty);
             AffectsMeasure<Svg>(PathProperty, StretchProperty, StretchDirectionProperty);
         }
-  
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Svg"/> class.
         /// </summary>
@@ -129,8 +129,8 @@ namespace Avalonia.Svg.Skia
                 return new Size();
             }
 
-            var sourceSize = _svg?.Picture is { } 
-                ? new Size(_svg.Picture.CullRect.Width, _svg.Picture.CullRect.Height) 
+            var sourceSize = _svg?.Picture is { }
+                ? new Size(_svg.Picture.CullRect.Width, _svg.Picture.CullRect.Height)
                 : default;
 
             return Stretch.CalculateSize(availableSize, sourceSize, StretchDirection);
@@ -144,8 +144,8 @@ namespace Avalonia.Svg.Skia
                 return new Size();
             }
 
-            var sourceSize = _svg?.Picture is { } 
-                ? new Size(_svg.Picture.CullRect.Width, _svg.Picture.CullRect.Height) 
+            var sourceSize = _svg?.Picture is { }
+                ? new Size(_svg.Picture.CullRect.Width, _svg.Picture.CullRect.Height)
                 : default;
 
             return Stretch.CalculateSize(finalSize, sourceSize);

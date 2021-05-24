@@ -32,8 +32,8 @@ namespace Avalonia.SKPictureImage
             if (canvas is { } && _bitmap is { })
             {
                 canvas.DrawBitmap(
-                    _bitmap, 
-                    SKRect.Create(0, 0, _bitmap.Width, _bitmap.Height), 
+                    _bitmap,
+                    SKRect.Create(0, 0, _bitmap.Width, _bitmap.Height),
                     SKRect.Create((float)_bounds.Left, (float)_bounds.Top, (float)_bounds.Width, (float)_bounds.Height),
                     null);
             }

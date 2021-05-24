@@ -39,7 +39,7 @@ namespace Svg.Skia
         }
 
         public Picture? Model { get; set; }
-        
+
         public SKPicture? Picture { get; set; }
 
         public SKPicture? Load(System.IO.Stream stream)

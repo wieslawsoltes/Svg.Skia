@@ -33,11 +33,11 @@ namespace Avalonia.Svg
             {
                 if (property.PropertyType == typeof(IImage))
                 {
-                    return new SvgImage {Source = source};
+                    return new SvgImage { Source = source };
                 }
-                return new Image {Source = new SvgImage {Source = source}};
+                return new Image { Source = new SvgImage { Source = source } };
             }
-            return new SvgImage {Source = source};
+            return new SvgImage { Source = source };
         }
     }
 }

@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using Svg.Model.Painting;
-using Svg.Model.Primitives.PathCommands;
 using Svg.Model.Painting.PathEffects;
-using Svg.Model.Primitives;
 using Svg.Model.Painting.Shaders;
+using Svg.Model.Primitives;
+using Svg.Model.Primitives.PathCommands;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AMI = Avalonia.Media.Imaging;
 using AMII = Avalonia.Media.Immutable;
-using AVMI = Avalonia.Visuals.Media.Imaging;
 using AP = Avalonia.Platform;
+using AVMI = Avalonia.Visuals.Media.Imaging;
 using SP = Svg.Model;
 
 namespace Avalonia.Svg
@@ -19,7 +19,7 @@ namespace Avalonia.Svg
     {
         private static AP.IPlatformRenderInterface Factory => A.AvaloniaLocator.Current.GetService<AP.IPlatformRenderInterface>();
 
-        public static Point Transform(this  Matrix m, Point point)
+        public static Point Transform(this Matrix m, Point point)
         {
             return point * m;
         }
@@ -247,7 +247,7 @@ namespace Avalonia.Svg
             }
         }
 
-        private static  AM.IBrush ToSolidColorBrush(this ColorShader colorShader)
+        private static AM.IBrush ToSolidColorBrush(this ColorShader colorShader)
         {
             var color = colorShader.Color.ToColor();
             return new AMII.ImmutableSolidColorBrush(color);
@@ -275,7 +275,7 @@ namespace Avalonia.Svg
             {
                 return null;
             }
- 
+
             var spreadMethod = linearGradientShader.Mode.ToGradientSpreadMethod();
             var start = linearGradientShader.Start.ToPoint();
             var end = linearGradientShader.End.ToPoint();
@@ -318,7 +318,7 @@ namespace Avalonia.Svg
             var spreadMethod = twoPointConicalGradientShader.Mode.ToGradientSpreadMethod();
             var center = twoPointConicalGradientShader.Start.ToPoint();
             var gradientOrigin = twoPointConicalGradientShader.End.ToPoint();
- 
+
             if (twoPointConicalGradientShader.LocalMatrix is { })
             {
                 // TODO: radialGradientBrush.LocalMatrix
@@ -499,7 +499,7 @@ namespace Avalonia.Svg
 
             return geometry;
         }
-        
+
         public static AP.IGeometryImpl? ToGeometry(this Path path, bool isFilled)
         {
             if (path.Commands is null)

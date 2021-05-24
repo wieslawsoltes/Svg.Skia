@@ -28,7 +28,7 @@ namespace Svg.Skia
             Draw(skPicture, background, scaleX, scaleY, skCanvas);
             return skBitmap;
         }
-        
+
         public static bool ToImage(this SKPicture skPicture, Stream stream, SKColor background, SKEncodedImageFormat format, int quality, float scaleX, float scaleY, SKColorType skColorType, SKAlphaType skAlphaType, SKColorSpace skColorSpace)
         {
             using var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY, skColorType, skAlphaType, skColorSpace);

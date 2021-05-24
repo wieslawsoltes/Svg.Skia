@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using Avalonia.Svg.Commands;
-using Svg.Model.Primitives.PathCommands;
 using Svg.Model.Primitives;
 using Svg.Model.Primitives.CanvasCommands;
-using SP = Svg.Model;
+using Svg.Model.Primitives.PathCommands;
 using A = Avalonia;
 using AM = Avalonia.Media;
-using AVMI = Avalonia.Visuals.Media.Imaging;
 using AP = Avalonia.Platform;
+using AVMI = Avalonia.Visuals.Media.Imaging;
+using SP = Svg.Model;
 
 namespace Avalonia.Svg
 {

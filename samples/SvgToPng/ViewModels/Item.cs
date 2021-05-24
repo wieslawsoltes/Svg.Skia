@@ -32,7 +32,7 @@ namespace SvgToPng.ViewModels
 
         [IgnoreDataMember]
         public string Code { get; set; }
-        
+
         [IgnoreDataMember]
         public SKPicture SkiaPicture { get; set; }
 

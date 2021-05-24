@@ -117,12 +117,12 @@ namespace SvgToPng.ViewModels
                     var stopwatchToPicture = Stopwatch.StartNew();
 
                     item.Drawable = SvgModelExtensions.ToDrawable(item.Document, new SkiaAssetLoader(), out var bounds);
-                    if (item.Drawable is {} && bounds is { })
+                    if (item.Drawable is { } && bounds is { })
                     {
                         item.Picture = item.Drawable.Snapshot(bounds.Value);
-                        
+
                         item.SkiaPicture = item.Picture?.ToSKPicture();
-                        
+
                         if (item.Picture?.Commands is { })
                         {
                             item.Code = SkiaCodeGen.Generate(item.Picture, "Svg", CreateClassName(item.SvgPath));

@@ -4,8 +4,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using SS = Svg.Skia;
 using Avalonia.Svg.Skia;
+using SS = Svg.Skia;
 
 namespace AvaloniaSvgSkiaSample
 {

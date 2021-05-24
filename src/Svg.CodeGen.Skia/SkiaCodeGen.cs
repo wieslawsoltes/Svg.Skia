@@ -4,14 +4,14 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using Svg.Model.Painting;
 using Svg.Model.Painting.ColorFilters;
 using Svg.Model.Painting.ImageFilters;
-using Svg.Model.Painting;
-using Svg.Model.Primitives.PathCommands;
 using Svg.Model.Painting.PathEffects;
+using Svg.Model.Painting.Shaders;
 using Svg.Model.Primitives;
 using Svg.Model.Primitives.CanvasCommands;
-using Svg.Model.Painting.Shaders;
+using Svg.Model.Primitives.PathCommands;
 
 namespace Svg.CodeGen.Skia
 {

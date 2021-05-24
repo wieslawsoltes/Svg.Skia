@@ -76,7 +76,7 @@ namespace Avalonia.Svg
             AffectsRender<Svg>(PathProperty, StretchProperty, StretchDirectionProperty);
             AffectsMeasure<Svg>(PathProperty, StretchProperty, StretchDirectionProperty);
         }
-  
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Svg"/> class.
         /// </summary>
@@ -102,8 +102,8 @@ namespace Avalonia.Svg
                 return new Size();
             }
 
-            var sourceSize = _picture is { } 
-                ? new Size(_picture.CullRect.Width, _picture.CullRect.Height) 
+            var sourceSize = _picture is { }
+                ? new Size(_picture.CullRect.Width, _picture.CullRect.Height)
                 : default;
 
             return Stretch.CalculateSize(availableSize, sourceSize, StretchDirection);
@@ -117,8 +117,8 @@ namespace Avalonia.Svg
                 return new Size();
             }
 
-            var sourceSize = _picture is { } 
-                ? new Size(_picture.CullRect.Width, _picture.CullRect.Height) 
+            var sourceSize = _picture is { }
+                ? new Size(_picture.CullRect.Width, _picture.CullRect.Height)
                 : default;
 
             return Stretch.CalculateSize(finalSize, sourceSize);
@@ -133,7 +133,7 @@ namespace Avalonia.Svg
             }
 
             var viewPort = new Rect(Bounds.Size);
-            var sourceSize = new Size(_picture.CullRect.Width,_picture.CullRect.Height);
+            var sourceSize = new Size(_picture.CullRect.Width, _picture.CullRect.Height);
 
             var scale = Stretch.CalculateScaling(Bounds.Size, sourceSize, StretchDirection);
             var scaledSize = sourceSize * scale;
