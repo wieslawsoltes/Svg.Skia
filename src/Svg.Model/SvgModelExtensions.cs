@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Svg.Document_Structure;
 
 namespace Svg.Model
 {
@@ -63,7 +62,7 @@ namespace Svg.Model
             "http://www.w3.org/TR/SVG11/feature#Extensibility"
         };
 
-        internal static HashSet<string> s_supportedExtensions = new() { };
+        internal static HashSet<string> s_supportedExtensions = new();
 
         internal static T? GetReference<T>(this SvgElement svgElement, Uri? uri) where T : SvgElement
         {
@@ -142,7 +141,7 @@ namespace Svg.Model
             }
 
             uris.Add(referencedElementUri);
-            return ElementReferencesUri<T>(svgElement, getUri, uris, svgReferencedElement);
+            return ElementReferencesUri(svgElement, getUri, uris, svgReferencedElement);
         }
 
         internal static Uri? GetUri(this SvgElement svgElement, string name)
