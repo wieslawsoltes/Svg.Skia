@@ -19,7 +19,7 @@ namespace Svg.Model
 
         private static SvgFillRule ToFillRule(SvgVisualElement svgVisualElement, SvgClipRule? svgClipPathClipRule)
         {
-            var svgClipRule = svgClipPathClipRule is { } ? svgClipPathClipRule.Value : svgVisualElement.ClipRule;
+            var svgClipRule = svgClipPathClipRule ?? svgVisualElement.ClipRule;
             return svgClipRule == SvgClipRule.EvenOdd ? SvgFillRule.EvenOdd : SvgFillRule.NonZero;
         }
 
