@@ -33,7 +33,7 @@
                    Margin="16"
                    VerticalAlignment="Stretch"
                    HorizontalAlignment="Stretch">
-            <ComboBox Name="SvgStretch" SelectedIndex="2" DockPanel.Dock="Top">
+            <ComboBox Name="SvgStretch" SelectedIndex="0" DockPanel.Dock="Top">
                 <ComboBoxItem>None</ComboBoxItem>
                 <ComboBoxItem>Fill</ComboBoxItem>
                 <ComboBoxItem>Uniform</ComboBoxItem>
