@@ -84,7 +84,7 @@ namespace Svg.Model
                         }
                         break;
 
-                    case ClosePathCommand closePathCommand:
+                    case ClosePathCommand:
                         {
                             lastPoint = (lastPoint.Point, (byte)(lastPoint.Type | (byte)PathPointType.CloseSubpath));
                             pathTypes[pathTypes.Count - 1] = lastPoint;
@@ -99,7 +99,6 @@ namespace Svg.Model
                                 {
                                     var point1 = new Point(nexPoint.X, nexPoint.Y);
                                     pathTypes.Add((point1, (byte)PathPointType.Start));
-                                    lastPoint = (point1, (byte)PathPointType.Start);
                                 }
 
                                 var point = addPolyPathCommand.Points[addPolyPathCommand.Points.Count - 1];
