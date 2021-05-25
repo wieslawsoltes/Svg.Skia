@@ -336,8 +336,12 @@ namespace Svg.Model
  
         internal static Rect? CalculateRect(SvgUnit xUnit, SvgUnit yUnit, SvgUnit widthUnit, SvgUnit heightUnit, SvgCoordinateUnits coordinateUnits, Rect skBounds, SvgElement? svgElement)
         {
-            var x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgElement, skBounds);
-            var y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgElement, skBounds);
+            var xRenderType  = coordinateUnits == SvgCoordinateUnits.UserSpaceOnUse ? UnitRenderingType.HorizontalOffset : UnitRenderingType.Horizontal;
+            var x = xUnit.ToDeviceValue(xRenderType, svgElement, skBounds);
+
+            var yRenderType  = coordinateUnits == SvgCoordinateUnits.UserSpaceOnUse ? UnitRenderingType.VerticalOffset : UnitRenderingType.Vertical;
+            var y = yUnit.ToDeviceValue(yRenderType, svgElement, skBounds);
+
             var width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgElement, skBounds);
             var height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgElement, skBounds);
 
