@@ -29,40 +29,44 @@ namespace Svg.Model
 
             foreach (var svgElement in svgGroup.Children)
             {
-                if (svgElement is SvgMarkerElement svgMarkerElement)
+                if (svgElement is not SvgMarkerElement svgMarkerElement)
                 {
-                    if (svgMarkerElement.MarkerStart is null)
+                    continue;
+                }
+
+                if (svgMarkerElement.MarkerStart is null)
+                {
+                    if (groupMarkerStart is { })
                     {
-                        if (groupMarkerStart is { })
-                        {
-                            svgMarkerElement.MarkerStart = groupMarkerStart;
-                        }
-                        else if (marker is { })
-                        {
-                            svgMarkerElement.MarkerStart = marker;
-                        }
+                        svgMarkerElement.MarkerStart = groupMarkerStart;
                     }
-                    if (svgMarkerElement.MarkerMid is null)
+                    else if (marker is { })
                     {
-                        if (groupMarkerMid is { })
-                        {
-                            svgMarkerElement.MarkerMid = groupMarkerMid;
-                        }
-                        else if (marker is { })
-                        {
-                            svgMarkerElement.MarkerMid = marker;
-                        }
+                        svgMarkerElement.MarkerStart = marker;
                     }
-                    if (svgMarkerElement.MarkerEnd is null)
+                }
+
+                if (svgMarkerElement.MarkerMid is null)
+                {
+                    if (groupMarkerMid is { })
                     {
-                        if (groupMarkerEnd is { })
-                        {
-                            svgMarkerElement.MarkerEnd = groupMarkerEnd;
-                        }
-                        else if (marker is { })
-                        {
-                            svgMarkerElement.MarkerEnd = marker;
-                        }
+                        svgMarkerElement.MarkerMid = groupMarkerMid;
+                    }
+                    else if (marker is { })
+                    {
+                        svgMarkerElement.MarkerMid = marker;
+                    }
+                }
+
+                if (svgMarkerElement.MarkerEnd is null)
+                {
+                    if (groupMarkerEnd is { })
+                    {
+                        svgMarkerElement.MarkerEnd = groupMarkerEnd;
+                    }
+                    else if (marker is { })
+                    {
+                        svgMarkerElement.MarkerEnd = marker;
                     }
                 }
             }
