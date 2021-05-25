@@ -73,19 +73,15 @@ namespace Svg.Model
 
             if (isSvgMimeType || isSvg)
             {
-                var svgDocument = LoadSvg(stream, uri);
-                return svgDocument;
+                return LoadSvg(stream, uri);
             }
-            else if (isSvgMimeType || isSvgz)
+
+            if (isSvgMimeType || isSvgz)
             {
-                var svgDocument = LoadSvgz(stream, uri);
-                return svgDocument;
+                return LoadSvgz(stream, uri);
             }
-            else
-            {
-                var skImage = assetLoader.LoadImage(stream);
-                return skImage;
-            }
+
+            return assetLoader.LoadImage(stream);
         }
 
         internal static object? GetImageFromDataUri(string? uriString, SvgDocument svgOwnerDocument, IAssetLoader assetLoader)
