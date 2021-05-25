@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Svg.FilterEffects;
 using Svg.Model.Drawables;
 using Svg.Model.Painting;
@@ -95,6 +96,10 @@ namespace Svg.Model
 
             var items = new List<(SvgFilterPrimitive primitive, Rect region)>();
 
+            Debug.WriteLine($"-------------------------------------------------------------------------");
+            Debug.WriteLine($"[ELEMENT]\t{svgVisualElement.GetType()} ({skBounds})");
+            Debug.WriteLine($"[FILTER]\t{filter.ToString()} ({skFilterRegion}), filterUnits={filterUnits}, primitiveUnits={primitiveUnits}");
+
             foreach (var child in firstChildren.Children)
             {
                 if (child is not SvgFilterPrimitive svgFilterPrimitive)
@@ -117,6 +122,8 @@ namespace Svg.Model
                     // TODO:
                     continue;
                 }
+
+                Debug.WriteLine($"[PRIMITIVE]\t{svgFilterPrimitive.GetType().Name} ({skFilterPrimitiveRegion})");
 
                 items.Add((svgFilterPrimitive, skFilterPrimitiveRegion.Value));
             }
