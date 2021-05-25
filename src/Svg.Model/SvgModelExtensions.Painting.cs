@@ -79,7 +79,7 @@ namespace Svg.Model
                     return default;
                 }
 
-                var phase = strokeDashOffset is { } ? strokeDashOffset.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) : 0f;
+                var phase = strokeDashOffset?.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) ?? 0f;
 
                 return PathEffect.CreateDash(intervals, phase);
             }
@@ -282,13 +282,13 @@ namespace Svg.Model
                 }
             }
 
-            var svgSpreadMethod = firstSpreadMethod is null ? SvgGradientSpreadMethod.Pad : firstSpreadMethod.SpreadMethod;
+            var svgSpreadMethod = firstSpreadMethod?.SpreadMethod ?? SvgGradientSpreadMethod.Pad;
             var svgGradientTransform = firstGradientTransform?.GradientTransform;
-            var svgGradientUnits = firstGradientUnits is null ? SvgCoordinateUnits.ObjectBoundingBox : firstGradientUnits.GradientUnits;
-            var x1Unit = firstX1 is null ? new SvgUnit(SvgUnitType.Percentage, 0f) : firstX1.X1;
-            var y1Unit = firstY1 is null ? new SvgUnit(SvgUnitType.Percentage, 0f) : firstY1.Y1;
-            var x2Unit = firstX2 is null ? new SvgUnit(SvgUnitType.Percentage, 100f) : firstX2.X2;
-            var y2Unit = firstY2 is null ? new SvgUnit(SvgUnitType.Percentage, 0f) : firstY2.Y2;
+            var svgGradientUnits = firstGradientUnits?.GradientUnits ?? SvgCoordinateUnits.ObjectBoundingBox;
+            var x1Unit = firstX1?.X1 ?? new SvgUnit(SvgUnitType.Percentage, 0f);
+            var y1Unit = firstY1?.Y1 ?? new SvgUnit(SvgUnitType.Percentage, 0f);
+            var x2Unit = firstX2?.X2 ?? new SvgUnit(SvgUnitType.Percentage, 100f);
+            var y2Unit = firstY2?.Y2 ?? new SvgUnit(SvgUnitType.Percentage, 0f);
 
             var normalizedX1 = x1Unit.Normalize(svgGradientUnits);
             var normalizedY1 = y1Unit.Normalize(svgGradientUnits);
@@ -451,14 +451,14 @@ namespace Svg.Model
                 }
             }
 
-            var svgSpreadMethod = firstSpreadMethod is null ? SvgGradientSpreadMethod.Pad : firstSpreadMethod.SpreadMethod;
+            var svgSpreadMethod = firstSpreadMethod?.SpreadMethod ?? SvgGradientSpreadMethod.Pad;
             var svgGradientTransform = firstGradientTransform?.GradientTransform;
-            var svgGradientUnits = firstGradientUnits is null ? SvgCoordinateUnits.ObjectBoundingBox : firstGradientUnits.GradientUnits;
-            var centerXUnit = firstCenterX is null ? new SvgUnit(SvgUnitType.Percentage, 50f) : firstCenterX.CenterX;
-            var centerYUnit = firstCenterY is null ? new SvgUnit(SvgUnitType.Percentage, 50f) : firstCenterY.CenterY;
-            var radiusUnit = firstRadius is null ? new SvgUnit(SvgUnitType.Percentage, 50f) : firstRadius.Radius;
-            var focalXUnit = firstFocalX is null ? centerXUnit : firstFocalX.FocalX;
-            var focalYUnit = firstFocalY is null ? centerYUnit : firstFocalY.FocalY;
+            var svgGradientUnits = firstGradientUnits?.GradientUnits ?? SvgCoordinateUnits.ObjectBoundingBox;
+            var centerXUnit = firstCenterX?.CenterX ?? new SvgUnit(SvgUnitType.Percentage, 50f);
+            var centerYUnit = firstCenterY?.CenterY ?? new SvgUnit(SvgUnitType.Percentage, 50f);
+            var radiusUnit = firstRadius?.Radius ?? new SvgUnit(SvgUnitType.Percentage, 50f);
+            var focalXUnit = firstFocalX?.FocalX ?? centerXUnit;
+            var focalYUnit = firstFocalY?.FocalY ?? centerYUnit;
 
             var normalizedCenterX = centerXUnit.Normalize(svgGradientUnits);
             var normalizedCenterY = centerYUnit.Normalize(svgGradientUnits);
@@ -680,13 +680,13 @@ namespace Svg.Model
                 return default;
             }
 
-            var xUnit = firstX is null ? new SvgUnit(0f) : firstX.X;
-            var yUnit = firstY is null ? new SvgUnit(0f) : firstY.Y;
+            var xUnit = firstX?.X ?? new SvgUnit(0f);
+            var yUnit = firstY?.Y ?? new SvgUnit(0f);
             var widthUnit = firstWidth.Width;
             var heightUnit = firstHeight.Height;
-            var patternUnits = firstPatternUnit is null ? SvgCoordinateUnits.ObjectBoundingBox : firstPatternUnit.PatternUnits;
-            var patternContentUnits = firstPatternContentUnit is null ? SvgCoordinateUnits.UserSpaceOnUse : firstPatternContentUnit.PatternContentUnits;
-            var viewBox = firstViewBox is null ? SvgViewBox.Empty : firstViewBox.ViewBox;
+            var patternUnits = firstPatternUnit?.PatternUnits ?? SvgCoordinateUnits.ObjectBoundingBox;
+            var patternContentUnits = firstPatternContentUnit?.PatternContentUnits ?? SvgCoordinateUnits.UserSpaceOnUse;
+            var viewBox = firstViewBox?.ViewBox ?? SvgViewBox.Empty;
             var aspectRatio = firstAspectRatio is null ? new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid, false) : firstAspectRatio.AspectRatio;
 
             var x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgPatternServer, skBounds);
