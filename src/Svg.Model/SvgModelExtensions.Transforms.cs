@@ -334,6 +334,47 @@ namespace Svg.Model
             return skMatrixTotal;
         }
  
+        internal static Rect? CalculateRect(SvgUnit xUnit, SvgUnit yUnit, SvgUnit widthUnit, SvgUnit heightUnit, SvgCoordinateUnits coordinateUnits, Rect skBounds, SvgElement? svgElement)
+        {
+            var x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgElement, skBounds);
+            var y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgElement, skBounds);
+            var width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgElement, skBounds);
+            var height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgElement, skBounds);
+
+            if (width <= 0 || height <= 0)
+            {
+                return default;
+            }
+
+            if (coordinateUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            {
+                if (xUnit.Type != SvgUnitType.Percentage)
+                {
+                    x *= skBounds.Width;
+                }
+
+                if (yUnit.Type != SvgUnitType.Percentage)
+                {
+                    y *= skBounds.Height;
+                }
+
+                if (widthUnit.Type != SvgUnitType.Percentage)
+                {
+                    width *= skBounds.Width;
+                }
+
+                if (heightUnit.Type != SvgUnitType.Percentage)
+                {
+                    height *= skBounds.Height;
+                }
+
+                x += skBounds.Left;
+                y += skBounds.Top;
+            } 
+
+            return Rect.Create(x, y, width, height);
+        }
+
         internal static Rect CalculateRect(SvgAspectRatio svgAspectRatio, Rect srcRect, Rect destRect)
         {
             if (svgAspectRatio.Align == SvgPreserveAspectRatio.none)

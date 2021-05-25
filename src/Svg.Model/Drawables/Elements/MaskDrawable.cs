@@ -32,45 +32,14 @@ namespace Svg.Model.Drawables.Elements
             var yUnit = svgMask.Y;
             var widthUnit = svgMask.Width;
             var heightUnit = svgMask.Height;
-            var x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skOwnerBounds);
-            var y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgMask, skOwnerBounds);
-            var width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgMask, skOwnerBounds);
-            var height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgMask, skOwnerBounds);
 
-            if (width <= 0 || height <= 0)
+            var skRectTransformed = SvgModelExtensions.CalculateRect(xUnit, yUnit, widthUnit, heightUnit, maskUnits, skOwnerBounds, svgMask);
+            if (skRectTransformed is null)
             {
                 drawable.IsDrawable = false;
                 return drawable;
             }
-
-            if (maskUnits == SvgCoordinateUnits.ObjectBoundingBox)
-            {
-                if (xUnit.Type != SvgUnitType.Percentage)
-                {
-                    x *= skOwnerBounds.Width;
-                }
-
-                if (yUnit.Type != SvgUnitType.Percentage)
-                {
-                    y *= skOwnerBounds.Height;
-                }
-
-                if (widthUnit.Type != SvgUnitType.Percentage)
-                {
-                    width *= skOwnerBounds.Width;
-                }
-
-                if (heightUnit.Type != SvgUnitType.Percentage)
-                {
-                    height *= skOwnerBounds.Height;
-                }
-
-                x += skOwnerBounds.Left;
-                y += skOwnerBounds.Top;
-            }
-
-            var skRectTransformed = Rect.Create(x, y, width, height);
-
+   
             var skMatrix = Matrix.CreateIdentity();
 
             if (maskContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
@@ -88,7 +57,7 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgMask);
 
-            drawable.TransformedBounds = skRectTransformed;
+            drawable.TransformedBounds = skRectTransformed.Value;
 
             drawable.Transform = skMatrix;
 

@@ -687,50 +687,18 @@ namespace Svg.Model
             var viewBox = firstViewBox?.ViewBox ?? SvgViewBox.Empty;
             var aspectRatio = firstAspectRatio is null ? new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid, false) : firstAspectRatio.AspectRatio;
 
-            var x = xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgPatternServer, skBounds);
-            var y = yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgPatternServer, skBounds);
-            var width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgPatternServer, skBounds);
-            var height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgPatternServer, skBounds);
-
-            if (width <= 0 || height <= 0)
+            var skRectTransformed = CalculateRect(xUnit, yUnit, widthUnit, heightUnit, patternUnits, skBounds, svgPatternServer);
+            if (skRectTransformed is null)
             {
                 return default;
             }
-
-            if (patternUnits == SvgCoordinateUnits.ObjectBoundingBox)
-            {
-                if (xUnit.Type != SvgUnitType.Percentage)
-                {
-                    x *= skBounds.Width;
-                }
-
-                if (yUnit.Type != SvgUnitType.Percentage)
-                {
-                    y *= skBounds.Height;
-                }
-
-                if (widthUnit.Type != SvgUnitType.Percentage)
-                {
-                    width *= skBounds.Width;
-                }
-
-                if (heightUnit.Type != SvgUnitType.Percentage)
-                {
-                    height *= skBounds.Height;
-                }
-
-                x += skBounds.Left;
-                y += skBounds.Top;
-            }
-
-            var skRectTransformed = Rect.Create(x, y, width, height);
 
             var skMatrix = Matrix.CreateIdentity();
 
             var skPatternTransformMatrix = ToMatrix(svgPatternServer.PatternTransform);
             skMatrix = skMatrix.PreConcat(skPatternTransformMatrix);
 
-            var translateTransform = Matrix.CreateTranslation(skRectTransformed.Left, skRectTransformed.Top);
+            var translateTransform = Matrix.CreateTranslation(skRectTransformed.Value.Left, skRectTransformed.Value.Top);
             skMatrix = skMatrix.PreConcat(translateTransform);
 
             var skPictureTransform = Matrix.CreateIdentity();
@@ -741,8 +709,8 @@ namespace Svg.Model
                     aspectRatio,
                     0f,
                     0f,
-                    skRectTransformed.Width,
-                    skRectTransformed.Height);
+                    skRectTransformed.Value.Width,
+                    skRectTransformed.Value.Height);
                 skPictureTransform = skPictureTransform.PreConcat(viewBoxTransform);
             }
             else
@@ -754,7 +722,7 @@ namespace Svg.Model
                 }
             }
 
-            var skPicture = RecordPicture(firstChildren.Children, skRectTransformed.Width, skRectTransformed.Height, skPictureTransform, opacity, assetLoader, ignoreAttributes);
+            var skPicture = RecordPicture(firstChildren.Children, skRectTransformed.Value.Width, skRectTransformed.Value.Height, skPictureTransform, opacity, assetLoader, ignoreAttributes);
 
             return Shader.CreatePicture(skPicture, ShaderTileMode.Repeat, ShaderTileMode.Repeat, skMatrix, skPicture.CullRect);
         }
