@@ -824,7 +824,7 @@ namespace Svg.Model
         internal static ImageFilter? CreateTile(SvgTile svgTile, Rect skBounds, ImageFilter? input = default, CropRect? cropRect = default)
         {
             var src = skBounds;
-            var dst = cropRect is { } ? cropRect.Rect : skBounds;
+            var dst = cropRect?.Rect ?? skBounds;
             return ImageFilter.CreateTile(src, dst, input);
         }
 
@@ -1199,12 +1199,12 @@ namespace Svg.Model
                 return default;
             }
 
-            var xUnit = firstX is null ? new SvgUnit(SvgUnitType.Percentage, -10f) : firstX.X;
-            var yUnit = firstY is null ? new SvgUnit(SvgUnitType.Percentage, -10f) : firstY.Y;
-            var widthUnit = firstWidth is null ? new SvgUnit(SvgUnitType.Percentage, 120f) : firstWidth.Width;
-            var heightUnit = firstHeight is null ? new SvgUnit(SvgUnitType.Percentage, 120f) : firstHeight.Height;
-            var filterUnits = firstFilterUnits is null ? SvgCoordinateUnits.ObjectBoundingBox : firstFilterUnits.FilterUnits;
-            var primitiveUnits = firstPrimitiveUnits is null ? SvgCoordinateUnits.UserSpaceOnUse : firstPrimitiveUnits.FilterUnits;
+            var xUnit = firstX?.X ?? new SvgUnit(SvgUnitType.Percentage, -10f);
+            var yUnit = firstY?.Y ?? new SvgUnit(SvgUnitType.Percentage, -10f);
+            var widthUnit = firstWidth?.Width ?? new SvgUnit(SvgUnitType.Percentage, 120f);
+            var heightUnit = firstHeight?.Height ?? new SvgUnit(SvgUnitType.Percentage, 120f);
+            var filterUnits = firstFilterUnits?.FilterUnits ?? SvgCoordinateUnits.ObjectBoundingBox;
+            var primitiveUnits = firstPrimitiveUnits?.FilterUnits ?? SvgCoordinateUnits.UserSpaceOnUse;
 
             var x = xUnit.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFirstFilter, skBounds);
             var y = yUnit.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFirstFilter, skBounds);
