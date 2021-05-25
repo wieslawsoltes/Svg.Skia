@@ -30,7 +30,7 @@ namespace Svg.Model
             {
                 "nonzero" => SvgClipRule.NonZero,
                 "evenodd" => SvgClipRule.EvenOdd,
-                "inherit" => SvgClipRule.Inherit,// TODO:
+                "inherit" => SvgClipRule.Inherit, // TODO:
                 _ => null
             };
         }
