@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Svg.Document_Structure;
 using Svg.Model.Drawables.Elements;
 using Svg.Model.Primitives;
 
