@@ -588,7 +588,6 @@ namespace Svg.Model
             var destClip = skBounds;
 
             var srcRect = default(Rect);
-            var destRect = default(Rect);
 
             if (skImage is { })
             {
@@ -601,77 +600,7 @@ namespace Svg.Model
                 srcRect = Rect.Create(0f, 0f, skSize.Width, skSize.Height);
             }
 
-            var aspectRatio = svgImage.AspectRatio;
-            if (aspectRatio.Align != SvgPreserveAspectRatio.none)
-            {
-                var fScaleX = destClip.Width / srcRect.Width;
-                var fScaleY = destClip.Height / srcRect.Height;
-                var xOffset = 0f;
-                var yOffset = 0f;
-
-                if (aspectRatio.Slice)
-                {
-                    fScaleX = Math.Max(fScaleX, fScaleY);
-                    fScaleY = Math.Max(fScaleX, fScaleY);
-                }
-                else
-                {
-                    fScaleX = Math.Min(fScaleX, fScaleY);
-                    fScaleY = Math.Min(fScaleX, fScaleY);
-                }
-
-                switch (aspectRatio.Align)
-                {
-                    case SvgPreserveAspectRatio.xMinYMin:
-                        break;
-
-                    case SvgPreserveAspectRatio.xMidYMin:
-                        xOffset = (destClip.Width - srcRect.Width * fScaleX) / 2;
-                        break;
-
-                    case SvgPreserveAspectRatio.xMaxYMin:
-                        xOffset = destClip.Width - srcRect.Width * fScaleX;
-                        break;
-
-                    case SvgPreserveAspectRatio.xMinYMid:
-                        yOffset = (destClip.Height - srcRect.Height * fScaleY) / 2;
-                        break;
-
-                    case SvgPreserveAspectRatio.xMidYMid:
-                        xOffset = (destClip.Width - srcRect.Width * fScaleX) / 2;
-                        yOffset = (destClip.Height - srcRect.Height * fScaleY) / 2;
-                        break;
-
-                    case SvgPreserveAspectRatio.xMaxYMid:
-                        xOffset = destClip.Width - srcRect.Width * fScaleX;
-                        yOffset = (destClip.Height - srcRect.Height * fScaleY) / 2;
-                        break;
-
-                    case SvgPreserveAspectRatio.xMinYMax:
-                        yOffset = destClip.Height - srcRect.Height * fScaleY;
-                        break;
-
-                    case SvgPreserveAspectRatio.xMidYMax:
-                        xOffset = (destClip.Width - srcRect.Width * fScaleX) / 2;
-                        yOffset = destClip.Height - srcRect.Height * fScaleY;
-                        break;
-
-                    case SvgPreserveAspectRatio.xMaxYMax:
-                        xOffset = destClip.Width - srcRect.Width * fScaleX;
-                        yOffset = destClip.Height - srcRect.Height * fScaleY;
-                        break;
-                }
-
-                destRect = Rect.Create(
-                    destClip.Left + xOffset,
-                    destClip.Top + yOffset,
-                    srcRect.Width * fScaleX,
-                    srcRect.Height * fScaleY);
-            }
-            else
-            {
-                destRect = destClip;
-            }
+            var destRect = CalculateRect(svgImage.AspectRatio, srcRect, destClip);
 
             if (skImage is { })
             {

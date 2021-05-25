@@ -244,7 +244,7 @@ namespace Svg.Model
             return skMatrixTotal;
         }
 
-        internal static Matrix ToMatrix(this SvgViewBox svgViewBox, SvgAspectRatio svgAspectRatio, float x, float y, float width, float height)
+        internal static Matrix ToMatrix(this SvgViewBox svgViewBox, SvgAspectRatio? svgAspectRatio, float x, float y, float width, float height)
         {
             if (svgViewBox.Equals(SvgViewBox.Empty))
             {
@@ -332,6 +332,78 @@ namespace Svg.Model
             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixScale);
 
             return skMatrixTotal;
+        }
+ 
+        internal static Rect CalculateRect(SvgAspectRatio svgAspectRatio, Rect srcRect, Rect destRect)
+        {
+            if (svgAspectRatio.Align == SvgPreserveAspectRatio.none)
+            {
+                return new Rect(destRect.Left, destRect.Top, destRect.Right, destRect.Bottom);
+            }
+
+            var fScaleX = destRect.Width / srcRect.Width;
+            var fScaleY = destRect.Height / srcRect.Height;
+            var xOffset = 0f;
+            var yOffset = 0f;
+
+            if (svgAspectRatio.Slice)
+            {
+                fScaleX = Math.Max(fScaleX, fScaleY);
+                fScaleY = Math.Max(fScaleX, fScaleY);
+            }
+            else
+            {
+                fScaleX = Math.Min(fScaleX, fScaleY);
+                fScaleY = Math.Min(fScaleX, fScaleY);
+            }
+
+            switch (svgAspectRatio.Align)
+            {
+                case SvgPreserveAspectRatio.xMinYMin:
+                    break;
+
+                case SvgPreserveAspectRatio.xMidYMin:
+                    xOffset = (destRect.Width - srcRect.Width * fScaleX) / 2;
+                    break;
+
+                case SvgPreserveAspectRatio.xMaxYMin:
+                    xOffset = destRect.Width - srcRect.Width * fScaleX;
+                    break;
+
+                case SvgPreserveAspectRatio.xMinYMid:
+                    yOffset = (destRect.Height - srcRect.Height * fScaleY) / 2;
+                    break;
+
+                case SvgPreserveAspectRatio.xMidYMid:
+                    xOffset = (destRect.Width - srcRect.Width * fScaleX) / 2;
+                    yOffset = (destRect.Height - srcRect.Height * fScaleY) / 2;
+                    break;
+
+                case SvgPreserveAspectRatio.xMaxYMid:
+                    xOffset = destRect.Width - srcRect.Width * fScaleX;
+                    yOffset = (destRect.Height - srcRect.Height * fScaleY) / 2;
+                    break;
+
+                case SvgPreserveAspectRatio.xMinYMax:
+                    yOffset = destRect.Height - srcRect.Height * fScaleY;
+                    break;
+
+                case SvgPreserveAspectRatio.xMidYMax:
+                    xOffset = (destRect.Width - srcRect.Width * fScaleX) / 2;
+                    yOffset = destRect.Height - srcRect.Height * fScaleY;
+                    break;
+
+                case SvgPreserveAspectRatio.xMaxYMax:
+                    xOffset = destRect.Width - srcRect.Width * fScaleX;
+                    yOffset = destRect.Height - srcRect.Height * fScaleY;
+                    break;
+            }
+
+            return Rect.Create(
+                destRect.Left + xOffset,
+                destRect.Top + yOffset,
+                srcRect.Width * fScaleX,
+                srcRect.Height * fScaleY);
         }
     }
 }
