@@ -8,6 +8,7 @@
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <IncludeBuildOutput>False</IncludeBuildOutput>
     <NoPackageAnalysis>True</NoPackageAnalysis>
+    <IsRoslynComponent>true</IsRoslynComponent>
   </PropertyGroup>
 
   <PropertyGroup>
