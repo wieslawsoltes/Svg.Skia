@@ -150,7 +150,7 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.Clip = destClip;
 
-            var skClipRect = SvgModelExtensions.GetClipRect(svgImage, destClip);
+            var skClipRect = SvgModelExtensions.GetClipRect(svgImage.Clip, destClip);
             if (skClipRect is { })
             {
                 drawable.Clip = skClipRect;

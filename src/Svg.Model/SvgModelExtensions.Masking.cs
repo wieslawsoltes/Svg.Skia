@@ -367,9 +367,8 @@ namespace Svg.Model
             GetClipPath(svgClipPath, skBounds, uris, clipPath);
         }
 
-        internal static Rect? GetClipRect(SvgVisualElement svgVisualElement, Rect skRectBounds)
+        internal static Rect? GetClipRect(string clip, Rect skRectBounds)
         {
-            var clip = svgVisualElement.Clip;
             if (!string.IsNullOrEmpty(clip) && clip.StartsWith("rect(", StringComparison.Ordinal))
             {
                 clip = clip.Trim();
