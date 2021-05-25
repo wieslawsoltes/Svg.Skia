@@ -80,8 +80,7 @@ namespace Svg.Model
             return default;
         }
 
-        internal static bool ElementReferencesUri<T>(this T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris,
-            SvgElement? svgReferencedElement) where T : SvgElement
+        internal static bool ElementReferencesUri<T>(this T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris, SvgElement? svgReferencedElement) where T : SvgElement
         {
             if (svgReferencedElement is null)
             {
@@ -163,54 +162,44 @@ namespace Svg.Model
             where T : SvgElement
         {
             var uri = svgOwnerElement.GetUri(name);
-            if (uri is { })
+            if (uri is null)
             {
-                if (HasRecursiveReference(svgOwnerElement, (e) => e.GetUri(name), uris))
-                {
-                    return default;
-                }
-
-                var svgElement = GetReference<T>(svgOwnerElement, uri);
-                if (svgElement is null)
-                {
-                    return default;
-                }
-
-                return svgElement;
+                return default;
             }
 
-            return default;
+            if (HasRecursiveReference(svgOwnerElement, (e) => e.GetUri(name), uris))
+            {
+                return default;
+            }
+
+            return GetReference<T>(svgOwnerElement, uri) ?? default;
         }
 
         internal static bool HasRequiredFeatures(this SvgElement svgElement)
         {
-            var hasRequiredFeatures = true;
-
-            if (TryGetAttribute(svgElement, "requiredFeatures", out var requiredFeaturesString))
+            if (!TryGetAttribute(svgElement, "requiredFeatures", out var requiredFeaturesString))
             {
-                if (string.IsNullOrEmpty(requiredFeaturesString))
+                return true;
+            }
+            
+            if (string.IsNullOrEmpty(requiredFeaturesString))
+            {
+                return false;
+            }
+
+            var features = requiredFeaturesString.Trim().Split(_spaceTab, StringSplitOptions.RemoveEmptyEntries);
+            if (features.Length <= 0)
+            {
+                return false;
+            }
+
+            var hasRequiredFeatures = true;
+            foreach (var feature in features)
+            {
+                if (!s_supportedFeatures.Contains(feature))
                 {
                     hasRequiredFeatures = false;
-                }
-                else
-                {
-                    var features = requiredFeaturesString.Trim()
-                        .Split(_spaceTab, StringSplitOptions.RemoveEmptyEntries);
-                    if (features.Length > 0)
-                    {
-                        foreach (var feature in features)
-                        {
-                            if (!s_supportedFeatures.Contains(feature))
-                            {
-                                hasRequiredFeatures = false;
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        hasRequiredFeatures = false;
-                    }
+                    break;
                 }
             }
 
@@ -219,33 +208,29 @@ namespace Svg.Model
 
         internal static bool HasRequiredExtensions(this SvgElement svgElement)
         {
-            var hasRequiredExtensions = true;
-
-            if (TryGetAttribute(svgElement, "requiredExtensions", out var requiredExtensionsString))
+            if (!TryGetAttribute(svgElement, "requiredExtensions", out var requiredExtensionsString))
             {
-                if (string.IsNullOrEmpty(requiredExtensionsString))
+                return true;
+            }
+            
+            if (string.IsNullOrEmpty(requiredExtensionsString))
+            {
+               return false;
+            }
+
+            var extensions = requiredExtensionsString.Trim().Split(_spaceTab, StringSplitOptions.RemoveEmptyEntries);
+            if (extensions.Length <= 0)
+            {
+                return false;
+            }
+
+            var hasRequiredExtensions = true;
+            foreach (var extension in extensions)
+            {
+                if (!s_supportedExtensions.Contains(extension))
                 {
                     hasRequiredExtensions = false;
-                }
-                else
-                {
-                    var extensions = requiredExtensionsString.Trim()
-                        .Split(_spaceTab, StringSplitOptions.RemoveEmptyEntries);
-                    if (extensions.Length > 0)
-                    {
-                        foreach (var extension in extensions)
-                        {
-                            if (!s_supportedExtensions.Contains(extension))
-                            {
-                                hasRequiredExtensions = false;
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        hasRequiredExtensions = false;
-                    }
+                    break;
                 }
             }
 
@@ -254,44 +239,39 @@ namespace Svg.Model
 
         internal static bool HasSystemLanguage(this SvgElement svgElement)
         {
-            var hasSystemLanguage = true;
-
-            if (TryGetAttribute(svgElement, "systemLanguage", out var systemLanguageString))
+            if (!TryGetAttribute(svgElement, "systemLanguage", out var systemLanguageString))
             {
-                if (string.IsNullOrEmpty(systemLanguageString))
-                {
-                    hasSystemLanguage = false;
-                }
-                else
-                {
-                    var languages = systemLanguageString.Trim().Split(_comma, StringSplitOptions.RemoveEmptyEntries);
-                    if (languages.Length > 0)
-                    {
-                        hasSystemLanguage = false;
-                        var systemLanguage = s_systemLanguageOverride ?? CultureInfo.InstalledUICulture;
+                return true;
+            }
 
-                        foreach (var language in languages)
-                        {
-                            try
-                            {
-                                var languageCultureInfo = CultureInfo.CreateSpecificCulture(language.Trim());
-                                if (systemLanguage.Equals(languageCultureInfo) ||
-                                    systemLanguage.TwoLetterISOLanguageName ==
-                                    languageCultureInfo.TwoLetterISOLanguageName)
-                                {
-                                    hasSystemLanguage = true;
-                                }
-                            }
-                            catch
-                            {
-                                // ignored
-                            }
-                        }
-                    }
-                    else
+            if (string.IsNullOrEmpty(systemLanguageString))
+            {
+                return false;
+            }
+
+            var languages = systemLanguageString.Trim().Split(_comma, StringSplitOptions.RemoveEmptyEntries);
+            if (languages.Length <= 0)
+            {
+               return false;
+            }
+
+            var hasSystemLanguage = false;
+            var systemLanguage = s_systemLanguageOverride ?? CultureInfo.InstalledUICulture;
+
+            foreach (var language in languages)
+            {
+                try
+                {
+                    var languageCultureInfo = CultureInfo.CreateSpecificCulture(language.Trim());
+                    if (systemLanguage.Equals(languageCultureInfo) 
+                        || systemLanguage.TwoLetterISOLanguageName == languageCultureInfo.TwoLetterISOLanguageName)
                     {
-                        hasSystemLanguage = false;
+                        hasSystemLanguage = true;
                     }
+                }
+                catch
+                {
+                    // ignored
                 }
             }
 
@@ -300,49 +280,43 @@ namespace Svg.Model
 
         internal static bool IsContainerElement(this SvgElement svgElement)
         {
-            switch (svgElement)
+            return svgElement switch
             {
-                case SvgAnchor _:
-                case SvgDefinitionList _:
-                case SvgMissingGlyph _:
-                case SvgGlyph _:
-                case SvgGroup _:
-                case SvgMarker _:
-                case SvgMask _:
-                case SvgPatternServer _:
-                case SvgFragment _:
-                case SvgSwitch _:
-                case SvgSymbol _:
-                    return true;
-
-                default:
-                    return false;
-            }
+                SvgAnchor _ => true,
+                SvgDefinitionList _ => true,
+                SvgMissingGlyph _ => true,
+                SvgGlyph _ => true,
+                SvgGroup _ => true,
+                SvgMarker _ => true,
+                SvgMask _ => true,
+                SvgPatternServer _ => true,
+                SvgFragment _ => true,
+                SvgSwitch _ => true,
+                SvgSymbol _ => true,
+                _ => false
+            };
         }
 
         internal static bool IsKnownElement(this SvgElement svgElement)
         {
-            switch (svgElement)
+            return svgElement switch
             {
-                case SvgAnchor _:
-                case SvgCircle _:
-                case SvgEllipse _:
-                case SvgFragment _:
-                case SvgGroup _:
-                case SvgImage _:
-                case SvgLine _:
-                case SvgPath _:
-                case SvgPolyline _:
-                case SvgPolygon _:
-                case SvgRectangle _:
-                case SvgSwitch _:
-                case SvgText _:
-                case SvgUse _:
-                    return true;
-
-                default:
-                    return false;
-            }
+                SvgAnchor _ => true,
+                SvgCircle _ => true,
+                SvgEllipse _ => true,
+                SvgFragment _ => true,
+                SvgGroup _ => true,
+                SvgImage _ => true,
+                SvgLine _ => true,
+                SvgPath _ => true,
+                SvgPolyline _ => true,
+                SvgPolygon _ => true,
+                SvgRectangle _ => true,
+                SvgSwitch _ => true,
+                SvgText _ => true,
+                SvgUse _ => true,
+                _ => false
+            };
         }
     }
 }
