@@ -1,8 +1,9 @@
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using TestApp.ViewModels;
 
@@ -50,6 +51,14 @@ namespace TestApp.Views
                         }
                     }
                 }
+            }
+        }
+
+        private void FileItem_OnDoubleTapped(object? sender, RoutedEventArgs e)
+        {
+            if (sender is Control control && control.DataContext is FileItemViewModel fileItemViewModel)
+            {
+                Process.Start("explorer", fileItemViewModel.Path);
             }
         }
     }
