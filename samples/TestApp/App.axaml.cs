@@ -27,7 +27,7 @@ namespace TestApp
 
                 LoadConfiguration(mainWindowViewModel);
 
-                desktop.MainWindow = new MainWindow { DataContext = mainWindowViewModel };
+                desktop.MainWindow = new MainWindow {DataContext = mainWindowViewModel};
 
                 desktop.Exit += (_, _) =>
                 {
@@ -43,7 +43,6 @@ namespace TestApp
             var configuration = new Configuration()
             {
                 Paths = mainWindowViewModel.Items?.Select(x => x.Path).ToList(),
-                SelectedPath = mainWindowViewModel.SelectedItem?.Path,
                 Query = mainWindowViewModel.ItemQuery
             };
 
@@ -53,7 +52,6 @@ namespace TestApp
 
         private static void LoadConfiguration(MainWindowViewModel mainWindowViewModel)
         {
-
             if (!File.Exists(ConfigurationPath))
             {
                 return;
@@ -67,16 +65,6 @@ namespace TestApp
                 foreach (var path in configuration.Paths)
                 {
                     mainWindowViewModel.Items?.Add(new FileItemViewModel(Path.GetFileName(path), path));
-                }
-            }
-
-
-            if (configuration?.SelectedPath is { })
-            {
-                var selectedItem = mainWindowViewModel.Items?.FirstOrDefault(x => x.Path == configuration.SelectedPath);
-                if (selectedItem is { })
-                {
-                    mainWindowViewModel.SelectedItem = selectedItem;
                 }
             }
 
