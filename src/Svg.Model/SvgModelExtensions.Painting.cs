@@ -1052,7 +1052,7 @@ namespace Svg.Model
                     fontWeight = FontStyleWeight.Light;
                     break;
 
-                // SvgFontWeight.Normal
+                case SvgFontWeight.Normal:
                 case SvgFontWeight.W400:
                     fontWeight = FontStyleWeight.Normal;
                     break;
@@ -1065,7 +1065,7 @@ namespace Svg.Model
                     fontWeight = FontStyleWeight.SemiBold;
                     break;
 
-                // SvgFontWeight.Bold
+                case SvgFontWeight.Bold:
                 case SvgFontWeight.W700:
                     fontWeight = FontStyleWeight.Bold;
                     break;
