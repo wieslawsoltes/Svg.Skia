@@ -60,13 +60,13 @@ namespace Svg.Model.Drawables
             }
         }
 
-        public override void PostProcess()
+        public override void PostProcess(Rect? viewport)
         {
-            base.PostProcess();
+            base.PostProcess(viewport);
 
             foreach (var child in ChildrenDrawables)
             {
-                child.PostProcess();
+                child.PostProcess(viewport);
             }
         }
     }

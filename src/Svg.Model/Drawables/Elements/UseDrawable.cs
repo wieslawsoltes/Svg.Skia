@@ -140,11 +140,11 @@ namespace Svg.Model.Drawables.Elements
             ReferencedDrawable?.Draw(canvas, ignoreAttributes, until);
         }
 
-        public override void PostProcess()
+        public override void PostProcess(Rect? viewport)
         {
-            base.PostProcess();
+            base.PostProcess(viewport);
             // TODO: Fix PostProcess() using correct ReferencedElement Parent.
-            ReferencedDrawable?.PostProcess();
+            ReferencedDrawable?.PostProcess(viewport);
         }
     }
 }

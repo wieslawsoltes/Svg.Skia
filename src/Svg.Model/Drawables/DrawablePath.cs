@@ -45,15 +45,15 @@ namespace Svg.Model.Drawables
             }
         }
 
-        public override void PostProcess()
+        public override void PostProcess(Rect? viewport)
         {
-            base.PostProcess();
+            base.PostProcess(viewport);
 
             if (MarkerDrawables is { })
             {
                 foreach (var drawable in MarkerDrawables)
                 {
-                    drawable.PostProcess();
+                    drawable.PostProcess(viewport);
                 }
             }
         }

@@ -222,7 +222,8 @@ namespace Svg.Model.Primitives
 
         public readonly Rect MapRect(Rect source)
         {
-            return source; // TODO:
+            // TODO: MapRect
+            return source;
         }
 
         public override string ToString()

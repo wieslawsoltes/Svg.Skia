@@ -620,7 +620,7 @@ namespace Svg.Model
                 fragmentTransform = fragmentTransform.PreConcat(skScaleMatrix);
 
                 var fragmentDrawable = FragmentDrawable.Create(svgFragment, destRect, null, assetLoader, Attributes.None);
-                // TODO:
+                // TODO: fragmentDrawable.Snapshot()
                 var skPicture = fragmentDrawable.Snapshot();
 
                 return ImageFilter.CreatePicture(skPicture, destRect);
@@ -789,7 +789,7 @@ namespace Svg.Model
                     break;
 
                 case SvgStitchType.Stitch:
-                    // TODO:
+                    // TODO: SvgStitchType.Stitch
                     tileSize = new PointI();
                     break;
             }

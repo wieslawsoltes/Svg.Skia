@@ -127,7 +127,8 @@ namespace Avalonia.Svg
             {
                 default:
                 case FontStyleWeight.Invisible:
-                    throw new NotSupportedException(); // TODO:
+                    // TODO: FontStyleWeight.Invisible
+                    throw new NotSupportedException();
                 case FontStyleWeight.Thin:
                     return AM.FontWeight.Thin;
 
@@ -166,7 +167,8 @@ namespace Avalonia.Svg
             {
                 default:
                 case FontStyleSlant.Upright:
-                    return AM.FontStyle.Normal; // TODO:
+                    // TODO: FontStyleSlant.Upright
+                    return AM.FontStyle.Normal;
                 case FontStyleSlant.Italic:
                     return AM.FontStyle.Italic;
 
@@ -370,7 +372,7 @@ namespace Avalonia.Svg
                     return ToRadialGradientBrush(twoPointConicalGradientShader);
 
                 case PictureShader pictureShader:
-                    // TODO:
+                    // TODO: pictureShader
                     return null;
 
                 default:
@@ -554,7 +556,8 @@ namespace Avalonia.Svg
                             var x = moveToPathCommand.X;
                             var y = moveToPathCommand.Y;
                             var point = new A.Point(x, y);
-                            streamGeometryContext.BeginFigure(point, isFilled); // TODO: isFilled
+                            // TODO: isFilled
+                            streamGeometryContext.BeginFigure(point, isFilled);
                         }
                         break;
 
@@ -664,7 +667,8 @@ namespace Avalonia.Svg
 
         public static AM.Geometry? ToGeometry(this ClipPath clipPath, bool isFilled)
         {
-            return null; // TODO:
+            // TODO: clipPath
+            return null;
         }
     }
 }

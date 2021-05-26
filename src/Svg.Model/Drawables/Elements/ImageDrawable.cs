@@ -161,10 +161,10 @@ namespace Svg.Model.Drawables.Elements
             }
         }
 
-        public override void PostProcess()
+        public override void PostProcess(Rect? viewport)
         {
-            base.PostProcess();
-            FragmentDrawable?.PostProcess();
+            base.PostProcess(viewport);
+            FragmentDrawable?.PostProcess(viewport);
         }
     }
 }

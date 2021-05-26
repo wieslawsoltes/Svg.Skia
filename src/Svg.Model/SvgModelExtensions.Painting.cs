@@ -573,7 +573,7 @@ namespace Svg.Model
                 var drawable = DrawableFactory.Create(svgElement, skBounds, null, assetLoader, ignoreAttributes);
                 if (drawable is { })
                 {
-                    drawable.PostProcess();
+                    drawable.PostProcess(skBounds);
                     drawable.Draw(skCanvas, ignoreAttributes, null);
                 }
             }
