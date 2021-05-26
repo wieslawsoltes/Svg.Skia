@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Avalonia;
@@ -45,10 +46,7 @@ namespace TestApp.Views
                 {
                     if (DataContext is MainWindowViewModel vm)
                     {
-                        foreach (var path in paths)
-                        {
-                            vm.Items?.Add(new FileItemViewModel(Path.GetFileName(path), path));
-                        }
+                        vm.Drop(paths);
                     }
                 }
             }
