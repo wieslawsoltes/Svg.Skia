@@ -8,6 +8,8 @@ namespace TestApp
 {
     public class App : Application
     {
+        private const string ConfigurationPath = "TestApp.json";
+
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -17,7 +19,16 @@ namespace TestApp
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                desktop.MainWindow = new MainWindow { DataContext = new MainWindowViewModel(), };
+                var mainWindowViewModel = new MainWindowViewModel();
+
+                mainWindowViewModel.LoadConfiguration(ConfigurationPath);
+
+                desktop.MainWindow = new MainWindow {DataContext = mainWindowViewModel};
+
+                desktop.Exit += (_, _) =>
+                {
+                    mainWindowViewModel.SaveConfiguration(ConfigurationPath);
+                };
             }
 
             base.OnFrameworkInitializationCompleted();

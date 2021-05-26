@@ -14,23 +14,73 @@
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
-    <Grid ColumnDefinitions="200,8,*">
+    <Grid ColumnDefinitions="250,8,*" RowDefinitions="Auto,*,Auto">
+
+        <TextBox Grid.Column="0"
+                 Grid.Row="0"
+                 Margin="6"
+                 Text="{Binding ItemQuery}"
+                 Watermark="Filter...">
+            <TextBox.InnerRightContent>
+                <Button Content="X" 
+                        Command="{Binding ResetQueryCommand}"/>
+            </TextBox.InnerRightContent>
+        </TextBox>
+
         <ListBox Grid.Column="0"
-                 Items="{Binding Items}"
+                 Grid.Row="1"
+                 Margin="6,0,6,0"
+                 Items="{Binding FilteredItems}"
                  SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+            <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="Margin" Value="0"/>
+                    <Setter Property="Padding" Value="0"/>
+                </Style>
+            </ListBox.Styles>
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding Name}"
-                               ToolTip.Tip="{Binding Path}" />
+                               ToolTip.Tip="{Binding Path}"
+                               Background="Transparent"
+                               Padding="12"
+                               DoubleTapped="FileItem_OnDoubleTapped"/>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <GridSplitter Grid.Column="1" Background="Transparent" />
+        
+        <UniformGrid Grid.Column="0"
+                     Grid.Row="2"
+                     Columns="3">
+            <Button Content="Clear" 
+                    Margin="6" 
+                    HorizontalContentAlignment="Center" 
+                    HorizontalAlignment="Stretch" 
+                    Command="{Binding ClearConfigurationCommand}"/>
+            <Button Content="Save" 
+                    Margin="6"
+                    HorizontalContentAlignment="Center" 
+                    HorizontalAlignment="Stretch" 
+                    Command="{Binding SaveConfigurationCommand}"/>
+            <Button Content="Load" 
+                    Margin="6" 
+                    HorizontalContentAlignment="Center" 
+                    HorizontalAlignment="Stretch" 
+                    Command="{Binding LoadConfigurationCommand}"/>
+        </UniformGrid>
+
+        <GridSplitter Grid.Column="1"
+                      Grid.Row="0"
+                      Grid.RowSpan="3"
+                      Background="Transparent" />
 
         <DockPanel Grid.Column="2"
+                   Grid.Row="0"
+                   Grid.RowSpan="3"
                    Name="DockPanel"
                    Background="Transparent"
-                   Margin="16"
+                   Margin="6"
                    VerticalAlignment="Stretch"
                    HorizontalAlignment="Stretch">
             <ComboBox Name="SvgStretch" SelectedIndex="0" DockPanel.Dock="Top">
