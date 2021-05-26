@@ -29,10 +29,20 @@
                  Grid.Row="1"
                  Items="{Binding FilteredItems}"
                  SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+            <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="Margin" Value="0"/>
+                    <Setter Property="Padding" Value="0"/>
+                </Style>
+            </ListBox.Styles>
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding Name}"
-                               ToolTip.Tip="{Binding Path}" />
+                               ToolTip.Tip="{Binding Path}"
+                               Background="Transparent"
+                               Padding="12"
+                               DoubleTapped="FileItem_OnDoubleTapped"/>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
