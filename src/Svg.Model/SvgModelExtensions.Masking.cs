@@ -30,7 +30,8 @@ namespace Svg.Model
             {
                 "nonzero" => SvgClipRule.NonZero,
                 "evenodd" => SvgClipRule.EvenOdd,
-                "inherit" => SvgClipRule.Inherit, // TODO:
+                // TODO: SvgClipRule.Inherit
+                "inherit" => SvgClipRule.Inherit,
                 _ => null
             };
         }
@@ -235,12 +236,12 @@ namespace Svg.Model
                             break;
                         }
 
-                        // TODO:
+                        // TODO: GetClipPath
                         GetClipPath(svgReferencedVisualElement, skBounds, uris, clipPath, svgClipPathClipRule);
 
                         if (clipPath.Clips is { } && clipPath.Clips.Count > 0)
                         {
-                            // TODO:
+                            // TODO: clipPath.Clips
                             var lastClip = clipPath.Clips[clipPath.Clips.Count - 1];
                             if (lastClip.Clip is { })
                             {
@@ -302,7 +303,8 @@ namespace Svg.Model
             var skTransformsMatrix = ToMatrix(svgClipPathRef.Transforms);
             skMatrix = skMatrix.PostConcat(skTransformsMatrix);
 
-            clipPath.Transform = skMatrix; // TODO:
+            // TODO: clipPath.Transform
+            clipPath.Transform = skMatrix;
         }
 
         internal static void GetClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, ClipPath? clipPath)
@@ -332,7 +334,8 @@ namespace Svg.Model
             var skTransformsMatrix = ToMatrix(svgClipPath.Transforms);
             skMatrix = skMatrix.PostConcat(skTransformsMatrix);
 
-            clipPath.Transform = skMatrix; // TODO:
+            // TODO: clipPath.Transform
+            clipPath.Transform = skMatrix;
 
             if (clipPath.Clips is { } && clipPath.Clips.Count == 0)
             {

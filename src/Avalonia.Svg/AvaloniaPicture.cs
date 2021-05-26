@@ -57,14 +57,14 @@ namespace Avalonia.Svg
 
                 case SaveCanvasCommand _:
                     {
-                        // TODO:
+                        // TODO: SaveCanvasCommand
                         avaloniaPicture._commands.Add(new SaveDrawCommand());
                     }
                     break;
 
                 case RestoreCanvasCommand _:
                     {
-                        // TODO:
+                        // TODO: RestoreCanvasCommand
                         avaloniaPicture._commands.Add(new RestoreDrawCommand());
                     }
                     break;
@@ -78,7 +78,7 @@ namespace Avalonia.Svg
 
                 case SaveLayerCanvasCommand saveLayerCanvasCommand:
                     {
-                        // TODO:
+                        // TODO: SaveLayerCanvasCommand
                         avaloniaPicture._commands.Add(new SaveLayerDrawCommand());
                     }
                     break;
@@ -195,7 +195,7 @@ namespace Avalonia.Svg
 
                 case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:
                     {
-                        // TODO:
+                        // TODO: DrawTextBlobCanvasCommand
                     }
                     break;
 
@@ -215,7 +215,7 @@ namespace Avalonia.Svg
 
                 case DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand:
                     {
-                        // TODO:
+                        // TODO: DrawTextOnPathCanvasCommand
                     }
                     break;
 

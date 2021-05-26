@@ -383,7 +383,7 @@ namespace Svg.Model.Drawables.Elements
                 return;
             }
 
-            // TODO:
+            // TODO: svgPath.Transforms
             // var skMatrixPath = SvgModelExtensions.ToSKMatrix(svgPath.Transforms);
             // skPath.Transform(skMatrixPath);
 
@@ -574,13 +574,13 @@ namespace Svg.Model.Drawables.Elements
 
         protected override void OnDraw(Canvas canvas)
         {
-            // TODO:
+            // TODO: OnDraw
             Draw(canvas, IgnoreAttributes, null);
         }
 
         public override void PostProcess()
         {
-            // TODO:
+            // TODO: PostProcess
         }
     }
 }
