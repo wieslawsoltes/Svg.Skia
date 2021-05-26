@@ -89,7 +89,6 @@ namespace Svg.Model
             var filterUnits = firstFilterUnits?.FilterUnits ?? SvgCoordinateUnits.ObjectBoundingBox;
             var primitiveUnits = firstPrimitiveUnits?.PrimitiveUnits ?? SvgCoordinateUnits.UserSpaceOnUse;
 
-            // TODO: Hard clip element using filter region.
             var skFilterRegion = CalculateRect(xUnit, yUnit, widthUnit, heightUnit, filterUnits, skBounds, svgFirstFilter);
             if (skFilterRegion is null)
             {
