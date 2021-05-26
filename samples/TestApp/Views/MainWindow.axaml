@@ -14,9 +14,20 @@
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
-    <Grid ColumnDefinitions="200,8,*">
+    <Grid ColumnDefinitions="250,8,*" RowDefinitions="Auto,*">
+
+        <TextBox Grid.Column="0"
+                 Grid.Row="0"
+                 Text="{Binding ItemQuery}"
+                 Watermark="Filter...">
+            <TextBox.InnerRightContent>
+                <Button Content="X" Command="{Binding ResetQueryCommand}"/>
+            </TextBox.InnerRightContent>
+        </TextBox>
+
         <ListBox Grid.Column="0"
-                 Items="{Binding Items}"
+                 Grid.Row="1"
+                 Items="{Binding FilteredItems}"
                  SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
@@ -25,9 +36,15 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <GridSplitter Grid.Column="1" Background="Transparent" />
+
+        <GridSplitter Grid.Column="1"
+                      Grid.Row="0"
+                      Grid.RowSpan="2"
+                      Background="Transparent" />
 
         <DockPanel Grid.Column="2"
+                   Grid.Row="0"
+                   Grid.RowSpan="2"
                    Name="DockPanel"
                    Background="Transparent"
                    Margin="16"
