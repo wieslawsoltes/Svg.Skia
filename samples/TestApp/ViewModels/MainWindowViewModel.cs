@@ -18,8 +18,8 @@ namespace TestApp.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
+        private readonly ObservableCollection<FileItemViewModel>? _items;
         private FileItemViewModel? _selectedItem;
-        private ObservableCollection<FileItemViewModel>? _items;
         private string? _itemQuery;
         private ReadOnlyObservableCollection<FileItemViewModel>? _filteredItems;
 
@@ -27,12 +27,6 @@ namespace TestApp.ViewModels
         {
             get => _selectedItem;
             set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
-        }
-
-        public ObservableCollection<FileItemViewModel>? Items
-        {
-            get => _items;
-            set => this.RaiseAndSetIfChanged(ref _items, value);
         }
 
         public string? ItemQuery
@@ -112,7 +106,7 @@ namespace TestApp.ViewModels
             {
                 ItemQuery = null;
                 SelectedItem = null;
-                Items?.Clear();
+                _items?.Clear();
             });
         }
 
@@ -138,7 +132,7 @@ namespace TestApp.ViewModels
                 {
                     case ".svg":
                     case ".svgz":
-                        Items?.Add(new FileItemViewModel(Path.GetFileName(path), path));
+                        _items?.Add(new FileItemViewModel(Path.GetFileName(path), path));
                         break;
                     case ".json":
                         LoadConfiguration(path);
@@ -160,33 +154,26 @@ namespace TestApp.ViewModels
             if (configuration?.Paths is { })
             {
                 SelectedItem = null;
-                Items?.Clear();
+                _items?.Clear();
 
                 foreach (var path in configuration.Paths)
                 {
-                    Items?.Add(new FileItemViewModel(Path.GetFileName(path), path));
+                    _items?.Add(new FileItemViewModel(Path.GetFileName(path), path));
                 }
             }
 
-            if (configuration?.Query is { })
-            {
-                ItemQuery = configuration.Query;
-            }
-            else
-            {
-                ItemQuery = null;
-            }
+            ItemQuery = configuration?.Query;
         }
 
         public void SaveConfiguration(string configurationPath)
         {
             var configuration = new Configuration()
             {
-                Paths = Items?.Select(x => x.Path).ToList(),
+                Paths = _items?.Select(x => x.Path).ToList(),
                 Query = ItemQuery
             };
 
-            var json = JsonSerializer.Serialize<Configuration>(configuration);
+            var json = JsonSerializer.Serialize(configuration);
             File.WriteAllText(configurationPath, json);
         }
 
