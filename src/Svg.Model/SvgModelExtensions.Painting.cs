@@ -1028,16 +1028,16 @@ namespace Svg.Model
 
             switch (svgFontWeight)
             {
-                // TODO: Implement SvgFontWeight.Inherit
                 case SvgFontWeight.Inherit:
+                    // TODO: Implement SvgFontWeight.Inherit
                     break;
 
-                // TODO: Implement SvgFontWeight.Bolder
                 case SvgFontWeight.Bolder:
+                    // TODO: Implement SvgFontWeight.Bolder
                     break;
 
-                // TODO: Implement SvgFontWeight.Lighter
                 case SvgFontWeight.Lighter:
+                    // TODO: Implement SvgFontWeight.Lighter
                     break;
 
                 case SvgFontWeight.W100:
