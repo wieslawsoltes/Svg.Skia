@@ -70,7 +70,7 @@ namespace Svg.Model.Drawables.Elements
             return drawable;
         }
 
-        public override void PostProcess()
+        public override void PostProcess(Rect? viewport)
         {
             var element = Element;
             if (element is null)

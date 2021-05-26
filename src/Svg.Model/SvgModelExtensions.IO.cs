@@ -211,7 +211,7 @@ namespace Svg.Model
                 bounds = default;
                 return default;
             }
-            drawable.PostProcess();
+            drawable.PostProcess(fragmentBounds);
 
             if (fragmentBounds.IsEmpty)
             {

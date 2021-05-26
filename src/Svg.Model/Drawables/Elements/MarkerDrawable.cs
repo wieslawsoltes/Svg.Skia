@@ -160,10 +160,10 @@ namespace Svg.Model.Drawables.Elements
             MarkerElementDrawable?.Draw(canvas, ignoreAttributes, until);
         }
 
-        public override void PostProcess()
+        public override void PostProcess(Rect? viewport)
         {
-            base.PostProcess();
-            MarkerElementDrawable?.PostProcess();
+            base.PostProcess(viewport);
+            MarkerElementDrawable?.PostProcess(viewport);
         }
     }
 }

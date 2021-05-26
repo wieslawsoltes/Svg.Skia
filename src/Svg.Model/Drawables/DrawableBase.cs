@@ -25,6 +25,7 @@ namespace Svg.Model.Drawables
         public Paint? MaskDstIn { get; set; }
         public Paint? Opacity { get; set; }
         public Paint? Filter { get; set; }
+        public Rect? FilterClip { get; set; }
         public Paint? Fill { get; set; }
         public Paint? Stroke { get; set; }
 
@@ -130,7 +131,13 @@ namespace Svg.Model.Drawables
 
             if (Filter is { } && enableFilter)
             {
+                if (FilterClip is not null)
+                {
+                    canvas.ClipRect(FilterClip.Value, ClipOperation.Intersect);
+                }
+
                 canvas.SaveLayer(Filter);
+
             }
             else
             {
@@ -158,7 +165,7 @@ namespace Svg.Model.Drawables
             canvas.Restore();
         }
 
-        public virtual void PostProcess()
+        public virtual void PostProcess(Rect? viewport)
         {
             var element = Element;
             if (element is null)
@@ -211,11 +218,11 @@ namespace Svg.Model.Drawables
 
             if (visualElement is { } && enableFilter)
             {
-                Filter = SvgModelExtensions.GetFilterPaint(visualElement, TransformedBounds, this, AssetLoader, out var isValid);
+                Filter = SvgModelExtensions.GetFilterPaint(visualElement, TransformedBounds, viewport ?? TransformedBounds, this, AssetLoader, out var isValid, out var filterClip);
+                FilterClip = filterClip;
                 if (isValid == false)
                 {
                     IsDrawable = false;
-                    return;
                 }
             }
             else
