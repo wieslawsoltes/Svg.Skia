@@ -14,12 +14,20 @@ namespace Svg.Model
             var value = svgUnit.Value;
             float? _deviceValue;
             float points;
+            float? ownerFontSize = owner?.FontSize;
 
             switch (type)
             {
                 case SvgUnitType.Em:
-                    points = value * 9;
-                    _deviceValue = points / 72.0f * ppi;
+                    if (ownerFontSize.HasValue)
+                    {
+                        _deviceValue = ownerFontSize.Value * value;
+                    }
+                    else
+                    {
+                        points = value * 9;
+                        _deviceValue = points / 72.0f * ppi;
+                    }
                     break;
 
                 case SvgUnitType.Ex:
