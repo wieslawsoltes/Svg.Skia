@@ -2,7 +2,7 @@
 
 namespace Svg.Model.Primitives
 {
-    public struct Matrix
+    public struct Matrix : IEquatable<Matrix>
     {
         public float ScaleX { get; set; }
         public float SkewX { get; set; }
@@ -19,6 +19,8 @@ namespace Svg.Model.Primitives
         public static readonly Matrix Empty;
 
         public static readonly Matrix Identity = new() { ScaleX = 1, ScaleY = 1, Persp2 = 1 };
+
+        public bool IsIdentity => Equals(Identity);
 
         public static Matrix CreateIdentity()
         {
@@ -234,6 +236,35 @@ namespace Svg.Model.Primitives
                 right * SkewY + bottom * ScaleY + TransY);
         }
 
+        public bool Equals(Matrix other)
+        {
+            return ScaleX == other.ScaleX &&
+                   SkewY == other.SkewY &&
+                   SkewX == other.SkewX &&
+                   ScaleY == other.ScaleY &&
+                   TransX == other.TransX &&
+                   TransY == other.TransY;
+        }
+
+        public override bool Equals(object obj) => obj is Matrix other && Equals(other);
+
+        public override int GetHashCode()
+        {
+            return ScaleX.GetHashCode() + SkewY.GetHashCode() +
+                   SkewX.GetHashCode() + ScaleY.GetHashCode() +
+                   TransX.GetHashCode() + TransY.GetHashCode();
+        }
+
+        public static bool operator ==(Matrix value1, Matrix value2)
+        {
+            return value1.Equals(value2);
+        }
+
+        public static bool operator !=(Matrix value1, Matrix value2)
+        {
+            return !value1.Equals(value2);
+        }
+        
         public override string ToString()
         {
             return FormattableString.Invariant($"{ScaleX}, {SkewX}, {TransX}, {SkewY}, {ScaleY}, {TransY}");
