@@ -99,7 +99,9 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgUse);
 
-            drawable.TransformedBounds = drawable.ReferencedDrawable.TransformedBounds;
+            var skBounds = drawable.ReferencedDrawable.TransformedBounds;
+
+            drawable.TransformedBounds = skBounds;
 
             drawable.Transform = SvgModelExtensions.ToMatrix(svgUse.Transforms);
             if (!(svgReferencedElement is SvgSymbol))
@@ -108,11 +110,11 @@ namespace Svg.Model.Drawables.Elements
                 drawable.Transform = drawable.Transform.PreConcat(skMatrixTranslateXY);
             }
 
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
+
+            drawable.Fill = null;
+            drawable.Stroke = null;
 
             try
             {

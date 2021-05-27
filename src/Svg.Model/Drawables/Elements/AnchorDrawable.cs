@@ -23,17 +23,21 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgAnchor);
 
-            drawable.TransformedBounds = Rect.Empty;
+            var skBounds = Rect.Empty;
+            
+            drawable.TransformedBounds = skBounds;
 
             drawable.CreateTransformedBounds();
+
+            skBounds = drawable.TransformedBounds;
+
+            // TODO: Transform _skBounds using _skMatrix.
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
 
             drawable.Transform = SvgModelExtensions.ToMatrix(svgAnchor.Transforms);
 
             drawable.Fill = null;
             drawable.Stroke = null;
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
 
             drawable.ClipPath = null;
             drawable.MaskDrawable = null;

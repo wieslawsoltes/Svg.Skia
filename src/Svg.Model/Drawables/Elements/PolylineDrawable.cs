@@ -34,25 +34,30 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgPolyline);
 
-            drawable.TransformedBounds = drawable.Path.Bounds;
+            var skBounds = drawable.Path.Bounds;
+
+            drawable.TransformedBounds = skBounds;
 
             drawable.Transform = SvgModelExtensions.ToMatrix(svgPolyline.Transforms);
+
+            // TODO: Transform _skBounds using _skMatrix.
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
 
             var canDrawFill = true;
             var canDrawStroke = true;
 
             if (SvgModelExtensions.IsValidFill(svgPolyline))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgPolyline, drawable.TransformedBounds, assetLoader, ignoreAttributes);
+                drawable.Fill = SvgModelExtensions.GetFillPaint(svgPolyline, skBounds, assetLoader, ignoreAttributes);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
             }
 
-            if (SvgModelExtensions.IsValidStroke(svgPolyline, drawable.TransformedBounds))
+            if (SvgModelExtensions.IsValidStroke(svgPolyline, skBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgPolyline, drawable.TransformedBounds, assetLoader, ignoreAttributes);
+                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgPolyline, skBounds, assetLoader, ignoreAttributes);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
@@ -66,9 +71,6 @@ namespace Svg.Model.Drawables.Elements
             }
 
             SvgModelExtensions.CreateMarkers(svgPolyline, drawable.Path, skOwnerBounds, drawable, assetLoader);
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
 
             return drawable;
         }

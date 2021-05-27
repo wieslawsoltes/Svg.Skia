@@ -43,13 +43,20 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgFragment);
 
-            drawable.TransformedBounds = skOwnerBounds;
+            var skBounds = skOwnerBounds;
+
+            drawable.TransformedBounds = skBounds;
 
             drawable.CreateTransformedBounds();
+
+            skBounds = drawable.TransformedBounds;
 
             drawable.Transform = SvgModelExtensions.ToMatrix(svgFragment.Transforms);
             var skMatrixViewBox = SvgModelExtensions.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
             drawable.Transform = drawable.Transform.PreConcat(skMatrixViewBox);
+
+            // TODO: Transform _skBounds using _skMatrix.
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
 
             switch (svgFragment.Overflow)
             {
@@ -64,8 +71,8 @@ namespace Svg.Model.Drawables.Elements
                         drawable.Overflow = Rect.Create(
                             x,
                             y,
-                            Math.Abs(drawable.TransformedBounds.Left) + drawable.TransformedBounds.Width,
-                            Math.Abs(drawable.TransformedBounds.Top) + drawable.TransformedBounds.Height);
+                            Math.Abs(skBounds.Left) + skBounds.Width,
+                            Math.Abs(skBounds.Top) + skBounds.Height);
                     }
                     else
                     {
@@ -82,7 +89,7 @@ namespace Svg.Model.Drawables.Elements
                 {
                     Clip = new ClipPath()
                 };
-                SvgModelExtensions.GetClipPath(svgClipPath, drawable.TransformedBounds, clipPathUris, clipPath);
+                SvgModelExtensions.GetClipPath(svgClipPath, skOwnerBounds, clipPathUris, clipPath);
                 if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !drawable.IgnoreAttributes.HasFlag(Attributes.ClipPath))
                 {
                     drawable.ClipPath = clipPath;
@@ -99,9 +106,6 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.Fill = null;
             drawable.Stroke = null;
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
 
             return drawable;
         }

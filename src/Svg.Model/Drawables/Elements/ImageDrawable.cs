@@ -96,18 +96,23 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgImage);
 
+            var skBounds = default(Rect);
+
             if (drawable.Image is { })
             {
-                drawable.TransformedBounds = drawable.DestRect;
+                skBounds = drawable.DestRect;
+                drawable.TransformedBounds = skBounds;
             }
 
             if (drawable.FragmentDrawable is { })
             {
-                drawable.TransformedBounds = drawable.DestRect;
+                skBounds = drawable.DestRect;
+                drawable.TransformedBounds = skBounds;
             }
 
             drawable.Transform = SvgModelExtensions.ToMatrix(svgImage.Transforms);
             drawable.FragmentTransform = Matrix.CreateIdentity();
+
             if (drawable.FragmentDrawable is { })
             {
                 var dx = drawable.DestRect.Left;
@@ -121,11 +126,11 @@ namespace Svg.Model.Drawables.Elements
                 // TODO: FragmentTransform
             }
 
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
+
+            drawable.Fill = null;
+            drawable.Stroke = null;
 
             return drawable;
         }

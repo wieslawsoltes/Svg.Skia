@@ -115,16 +115,18 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgMarker);
 
-            drawable.TransformedBounds = drawable.MarkerElementDrawable.TransformedBounds;
+            var skBounds = drawable.MarkerElementDrawable.TransformedBounds;
+
+            drawable.TransformedBounds = skBounds;
 
             drawable.Transform = SvgModelExtensions.ToMatrix(svgMarker.Transforms);
             drawable.Transform = drawable.Transform.PreConcat(skMarkerMatrix);
 
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
+
+            drawable.Fill = null;
+            drawable.Stroke = null;
 
             return drawable;
         }

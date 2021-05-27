@@ -34,25 +34,30 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgLine);
 
-            drawable.TransformedBounds = drawable.Path.Bounds;
+            var skBounds = drawable.Path.Bounds;
+
+            drawable.TransformedBounds = skBounds;
 
             drawable.Transform = SvgModelExtensions.ToMatrix(svgLine.Transforms);
+
+            // TODO: Transform _skBounds using _skMatrix.
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
 
             var canDrawFill = true;
             var canDrawStroke = true;
 
             if (SvgModelExtensions.IsValidFill(svgLine))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgLine, drawable.TransformedBounds, assetLoader, ignoreAttributes);
+                drawable.Fill = SvgModelExtensions.GetFillPaint(svgLine, skBounds, assetLoader, ignoreAttributes);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
             }
 
-            if (SvgModelExtensions.IsValidStroke(svgLine, drawable.TransformedBounds))
+            if (SvgModelExtensions.IsValidStroke(svgLine, skBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgLine, drawable.TransformedBounds, assetLoader, ignoreAttributes);
+                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgLine, skBounds, assetLoader, ignoreAttributes);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
@@ -66,9 +71,6 @@ namespace Svg.Model.Drawables.Elements
             }
 
             SvgModelExtensions.CreateMarkers(svgLine, drawable.Path, skOwnerBounds, drawable, assetLoader);
-
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
 
             return drawable;
         }
