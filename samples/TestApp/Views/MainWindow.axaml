@@ -45,7 +45,14 @@
                                ToolTip.Tip="{Binding Path}"
                                Background="Transparent"
                                Padding="12"
-                               DoubleTapped="FileItem_OnDoubleTapped"/>
+                               DoubleTapped="FileItem_OnDoubleTapped">
+                        <TextBlock.ContextFlyout>
+                            <MenuFlyout Placement="Bottom">
+                                <MenuItem Header="Open in Explorer" Command="{Binding OpenInExplorerCommand}"/>
+                                <MenuItem Header="Open in Notepad" Command="{Binding OpenInNotepadCommand}"/>
+                            </MenuFlyout>
+                        </TextBlock.ContextFlyout>
+                    </TextBlock>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
