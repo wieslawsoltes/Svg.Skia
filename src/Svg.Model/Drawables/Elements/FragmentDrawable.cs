@@ -43,13 +43,13 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgFragment);
 
-            var skBounds = skOwnerBounds;
+            drawable.GeometryBounds = skOwnerBounds;
 
-            drawable.TransformedBounds = skBounds;
+            drawable.TransformedBounds = drawable.GeometryBounds;
 
             drawable.CreateTransformedBounds();
 
-            skBounds = drawable.TransformedBounds;
+            drawable.GeometryBounds = drawable.TransformedBounds;
 
             drawable.Transform = SvgModelExtensions.ToMatrix(svgFragment.Transforms);
             var skMatrixViewBox = SvgModelExtensions.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
@@ -71,8 +71,8 @@ namespace Svg.Model.Drawables.Elements
                         drawable.Overflow = Rect.Create(
                             x,
                             y,
-                            Math.Abs(skBounds.Left) + skBounds.Width,
-                            Math.Abs(skBounds.Top) + skBounds.Height);
+                            Math.Abs(drawable.GeometryBounds.Left) + drawable.GeometryBounds.Width,
+                            Math.Abs(drawable.GeometryBounds.Top) + drawable.GeometryBounds.Height);
                     }
                     else
                     {

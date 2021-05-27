@@ -57,9 +57,9 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgMask);
 
-            var skBounds = skRectTransformed.Value;
+            drawable.GeometryBounds = skRectTransformed.Value;
 
-            drawable.TransformedBounds = skBounds;
+            drawable.TransformedBounds = drawable.GeometryBounds;
 
             drawable.Transform = skMatrix;
 

@@ -99,9 +99,9 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgUse);
 
-            var skBounds = drawable.ReferencedDrawable.TransformedBounds;
+            drawable.GeometryBounds = drawable.ReferencedDrawable.TransformedBounds;
 
-            drawable.TransformedBounds = skBounds;
+            drawable.TransformedBounds = drawable.GeometryBounds;
 
             drawable.Transform = SvgModelExtensions.ToMatrix(svgUse.Transforms);
             if (!(svgReferencedElement is SvgSymbol))

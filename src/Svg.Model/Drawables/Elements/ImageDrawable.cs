@@ -96,18 +96,18 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgImage);
 
-            var skBounds = default(Rect);
+            drawable.GeometryBounds = default(Rect);
 
             if (drawable.Image is { })
             {
-                skBounds = drawable.DestRect;
-                drawable.TransformedBounds = skBounds;
+                drawable.GeometryBounds = drawable.DestRect;
+                drawable.TransformedBounds = drawable.GeometryBounds;
             }
 
             if (drawable.FragmentDrawable is { })
             {
-                skBounds = drawable.DestRect;
-                drawable.TransformedBounds = skBounds;
+                drawable.GeometryBounds = drawable.DestRect;
+                drawable.TransformedBounds = drawable.GeometryBounds;
             }
 
             drawable.Transform = SvgModelExtensions.ToMatrix(svgImage.Transforms);

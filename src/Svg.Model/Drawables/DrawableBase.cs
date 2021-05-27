@@ -15,6 +15,7 @@ namespace Svg.Model.Drawables
         public bool IsDrawable { get; set; }
         public Attributes IgnoreAttributes { get; set; }
         public bool IsAntialias { get; set; }
+        public Rect GeometryBounds { get; set; }
         public Rect TransformedBounds { get; set; }
         public Matrix Transform { get; set; }
         public Rect? Overflow { get; set; }

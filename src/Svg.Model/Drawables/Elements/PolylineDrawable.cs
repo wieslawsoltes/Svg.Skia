@@ -34,9 +34,9 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgPolyline);
 
-            var skBounds = drawable.Path.Bounds;
+            drawable.GeometryBounds = drawable.Path.Bounds;
 
-            drawable.TransformedBounds = skBounds;
+            drawable.TransformedBounds = drawable.GeometryBounds;
 
             drawable.Transform = SvgModelExtensions.ToMatrix(svgPolyline.Transforms);
 
@@ -48,16 +48,16 @@ namespace Svg.Model.Drawables.Elements
 
             if (SvgModelExtensions.IsValidFill(svgPolyline))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgPolyline, skBounds, assetLoader, ignoreAttributes);
+                drawable.Fill = SvgModelExtensions.GetFillPaint(svgPolyline, drawable.GeometryBounds, assetLoader, ignoreAttributes);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
             }
 
-            if (SvgModelExtensions.IsValidStroke(svgPolyline, skBounds))
+            if (SvgModelExtensions.IsValidStroke(svgPolyline, drawable.GeometryBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgPolyline, skBounds, assetLoader, ignoreAttributes);
+                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgPolyline, drawable.GeometryBounds, assetLoader, ignoreAttributes);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
