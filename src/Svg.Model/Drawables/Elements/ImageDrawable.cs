@@ -160,7 +160,7 @@ namespace Svg.Model.Drawables.Elements
                 skMatrixTotal = skMatrixTotal.PreConcat(FragmentTransform);
                 canvas.SetMatrix(skMatrixTotal);
 
-                FragmentDrawable.Draw(canvas, ignoreAttributes, until);
+                FragmentDrawable.Draw(canvas, ignoreAttributes, until, true);
 
                 canvas.Restore();
             }

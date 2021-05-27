@@ -56,7 +56,7 @@ namespace Svg.Model.Drawables
                 {
                     break;
                 }
-                drawable.Draw(canvas, ignoreAttributes, until);
+                drawable.Draw(canvas, ignoreAttributes, until, true);
             }
         }
 

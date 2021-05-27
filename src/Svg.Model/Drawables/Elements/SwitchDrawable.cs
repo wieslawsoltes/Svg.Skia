@@ -79,7 +79,7 @@ namespace Svg.Model.Drawables.Elements
                 return;
             }
 
-            FirstChild?.Draw(canvas, ignoreAttributes, until);
+            FirstChild?.Draw(canvas, ignoreAttributes, until, true);
         }
 
         public override void PostProcess(Rect? viewport)

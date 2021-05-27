@@ -159,7 +159,7 @@ namespace Svg.Model.Drawables.Elements
                 canvas.ClipRect(MarkerClipRect.Value, ClipOperation.Intersect);
             }
 
-            MarkerElementDrawable?.Draw(canvas, ignoreAttributes, until);
+            MarkerElementDrawable?.Draw(canvas, ignoreAttributes, until, true);
         }
 
         public override void PostProcess(Rect? viewport)

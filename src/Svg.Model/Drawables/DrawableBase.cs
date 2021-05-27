@@ -37,7 +37,7 @@ namespace Svg.Model.Drawables
 
         protected override void OnDraw(Canvas canvas)
         {
-            Draw(canvas, IgnoreAttributes, null);
+            Draw(canvas, IgnoreAttributes, null, true);
         }
 
         protected override Rect OnGetBounds()
@@ -82,7 +82,7 @@ namespace Svg.Model.Drawables
 
         public abstract void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until);
 
-        public virtual void Draw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
+        public virtual void Draw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until, bool enableTransform)
         {
             if (!IsDrawable)
             {
@@ -106,7 +106,7 @@ namespace Svg.Model.Drawables
                 canvas.ClipRect(Overflow.Value, ClipOperation.Intersect);
             }
 
-            if (!Transform.IsIdentity)
+            if (!Transform.IsIdentity && enableTransform)
             {
                 var skMatrixTotal = canvas.TotalMatrix;
                 skMatrixTotal = skMatrixTotal.PreConcat(Transform);
@@ -160,7 +160,7 @@ namespace Svg.Model.Drawables
             if (MaskDrawable is { } && MaskDstIn is { } && enableMask)
             {
                 canvas.SaveLayer(MaskDstIn);
-                MaskDrawable.Draw(canvas, ignoreAttributes, until);
+                MaskDrawable.Draw(canvas, ignoreAttributes, until, true);
                 canvas.Restore();
                 canvas.Restore();
             }
@@ -189,7 +189,7 @@ namespace Svg.Model.Drawables
                 {
                     Clip = new ClipPath()
                 };
-                SvgModelExtensions.GetSvgVisualElementClipPath(visualElement, TransformedBounds, new HashSet<Uri>(), clipPath);
+                SvgModelExtensions.GetSvgVisualElementClipPath(visualElement, GeometryBounds, new HashSet<Uri>(), clipPath);
                 if (clipPath.Clips is { } && clipPath.Clips.Count > 0)
                 {
                     ClipPath = clipPath;
@@ -206,7 +206,7 @@ namespace Svg.Model.Drawables
 
             if (enableMask)
             {
-                MaskDrawable = SvgModelExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), AssetLoader);
+                MaskDrawable = SvgModelExtensions.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader);
                 if (MaskDrawable is { })
                 {
                     CreateMaskPaints();
@@ -221,7 +221,7 @@ namespace Svg.Model.Drawables
 
             if (visualElement is { } && enableFilter)
             {
-                Filter = SvgModelExtensions.GetFilterPaint(visualElement, TransformedBounds, viewport ?? TransformedBounds, this, AssetLoader, out var isValid, out var filterClip);
+                Filter = SvgModelExtensions.GetFilterPaint(visualElement, GeometryBounds, viewport ?? GeometryBounds, this, AssetLoader, out var isValid, out var filterClip);
                 FilterClip = filterClip;
                 if (isValid == false)
                 {
@@ -307,7 +307,7 @@ namespace Svg.Model.Drawables
             var skPictureRecorder = new PictureRecorder();
             var skCanvas = skPictureRecorder.BeginRecording(drawable.TransformedBounds);
 
-            drawable.Draw(skCanvas, ignoreAttributes, null);
+            drawable.Draw(skCanvas, ignoreAttributes, null, false);
 
             return skPictureRecorder.EndRecording();
         }
@@ -331,7 +331,7 @@ namespace Svg.Model.Drawables
                     skCanvas.ClipRect(skClipRect, ClipOperation.Intersect);
                 }
 
-                container.Draw(skCanvas, ignoreAttributes, drawable);
+                container.Draw(skCanvas, ignoreAttributes, drawable, false);
 
                 return skPictureRecorder.EndRecording();
             }

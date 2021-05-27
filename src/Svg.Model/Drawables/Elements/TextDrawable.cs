@@ -112,7 +112,7 @@ namespace Svg.Model.Drawables.Elements
             };
         }
 
-        internal void BeginDraw(SvgTextBase svgTextBase, Canvas skCanvas, Rect skBounds, Attributes ignoreAttributes, out MaskDrawable? maskDrawable, out Paint? maskDstIn, out Paint? skPaintOpacity, out Paint? skPaintFilter, out Rect? skFilterClip)
+        internal void BeginDraw(SvgTextBase svgTextBase, Canvas skCanvas, Rect skBounds, Attributes ignoreAttributes, bool enableTransform, out MaskDrawable? maskDrawable, out Paint? maskDstIn, out Paint? skPaintOpacity, out Paint? skPaintFilter, out Rect? skFilterClip)
         {
             var enableClip = !ignoreAttributes.HasFlag(Attributes.ClipPath);
             var enableMask = !ignoreAttributes.HasFlag(Attributes.Mask);
@@ -123,9 +123,12 @@ namespace Svg.Model.Drawables.Elements
 
             var skMatrix = SvgModelExtensions.ToMatrix(svgTextBase.Transforms);
 
-            var skMatrixTotal = skCanvas.TotalMatrix;
-            skMatrixTotal = skMatrixTotal.PreConcat(skMatrix);
-            skCanvas.SetMatrix(skMatrixTotal);
+            if (!skMatrix.IsIdentity && enableTransform)
+            {
+                var skMatrixTotal = skCanvas.TotalMatrix;
+                skMatrixTotal = skMatrixTotal.PreConcat(skMatrix);
+                skCanvas.SetMatrix(skMatrixTotal);
+            }
 
             if (enableClip)
             {
@@ -227,7 +230,7 @@ namespace Svg.Model.Drawables.Elements
             if (maskDrawable is { } && enableMask && maskDstIn is { })
             {
                 skCanvas.SaveLayer(maskDstIn);
-                maskDrawable.Draw(skCanvas, ignoreAttributes, until);
+                maskDrawable.Draw(skCanvas, ignoreAttributes, until, true);
                 skCanvas.Restore();
                 skCanvas.Restore();
             }
@@ -367,7 +370,7 @@ namespace Svg.Model.Drawables.Elements
             }
         }
 
-        internal void DrawTextPath(SvgTextPath svgTextPath, float currentX, float currentY, Rect skOwnerBounds, Attributes ignoreAttributes, Canvas skCanvas, DrawableBase? until)
+        internal void DrawTextPath(SvgTextPath svgTextPath, float currentX, float currentY, Rect skOwnerBounds, Attributes ignoreAttributes, bool enableTransform, Canvas skCanvas, DrawableBase? until)
         {
             if (!CanDraw(svgTextPath, ignoreAttributes) || !HasFeatures(svgTextPath, ignoreAttributes))
             {
@@ -404,7 +407,7 @@ namespace Svg.Model.Drawables.Elements
             // TODO: Calculate correct bounds.
             var skBounds = skOwnerBounds;
 
-            BeginDraw(svgTextPath, skCanvas, skBounds, ignoreAttributes, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
+            BeginDraw(svgTextPath, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
             // TODO: Fix SvgTextPath rendering.
             var isValidFill = SvgModelExtensions.IsValidFill(svgTextPath);
@@ -441,7 +444,7 @@ namespace Svg.Model.Drawables.Elements
             EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, skFilterClip, until);
         }
 
-        internal void DrawTextRef(SvgTextRef svgTextRef, float currentX, float currentY, Rect skOwnerBounds, Attributes ignoreAttributes, Canvas skCanvas, DrawableBase? until)
+        internal void DrawTextRef(SvgTextRef svgTextRef, float currentX, float currentY, Rect skOwnerBounds, Attributes ignoreAttributes, bool enableTransform, Canvas skCanvas, DrawableBase? until)
         {
             if (!CanDraw(svgTextRef, ignoreAttributes) || !HasFeatures(svgTextRef, ignoreAttributes))
             {
@@ -462,7 +465,7 @@ namespace Svg.Model.Drawables.Elements
             // TODO: Calculate correct bounds.
             var skBounds = skOwnerBounds;
 
-            BeginDraw(svgTextRef, skCanvas, skBounds, ignoreAttributes, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
+            BeginDraw(svgTextRef, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
             // TODO: Draw svgReferencedText
             if (!string.IsNullOrEmpty(svgReferencedText.Text))
@@ -474,7 +477,7 @@ namespace Svg.Model.Drawables.Elements
             EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, skFilterClip, until);
         }
 
-        internal void DrawTextSpan(SvgTextSpan svgTextSpan, float currentX, float currentY, Rect skOwnerBounds, Attributes ignoreAttributes, Canvas skCanvas, DrawableBase? until)
+        internal void DrawTextSpan(SvgTextSpan svgTextSpan, float currentX, float currentY, Rect skOwnerBounds, Attributes ignoreAttributes, bool enableTransform, Canvas skCanvas, DrawableBase? until)
         {
             if (!CanDraw(svgTextSpan, ignoreAttributes) || !HasFeatures(svgTextSpan, ignoreAttributes))
             {
@@ -484,7 +487,7 @@ namespace Svg.Model.Drawables.Elements
             // TODO: Calculate correct bounds.
             var skBounds = skOwnerBounds;
 
-            BeginDraw(svgTextSpan, skCanvas, skBounds, ignoreAttributes, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
+            BeginDraw(svgTextSpan, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
             // TODO: Implement SvgTextSpan drawing.
             if (!string.IsNullOrEmpty(svgTextSpan.Text))
@@ -496,7 +499,7 @@ namespace Svg.Model.Drawables.Elements
             EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, skFilterClip, until);
         }
 
-        internal void DrawText(SvgText svgText, Rect skOwnerBounds, Attributes ignoreAttributes, Canvas skCanvas, DrawableBase? until)
+        internal void DrawText(SvgText svgText, Rect skOwnerBounds, Attributes ignoreAttributes, Canvas skCanvas, DrawableBase? until, bool enableTransform)
         {
             if (!CanDraw(svgText, ignoreAttributes) || !HasFeatures(svgText, ignoreAttributes))
             {
@@ -506,7 +509,7 @@ namespace Svg.Model.Drawables.Elements
             // TODO: Calculate correct bounds.
             var skBounds = skOwnerBounds;
 
-            BeginDraw(svgText, skCanvas, skBounds, ignoreAttributes, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
+            BeginDraw(svgText, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
             var xs = new List<float>();
             var ys = new List<float>();
@@ -540,15 +543,15 @@ namespace Svg.Model.Drawables.Elements
                     switch (textNode)
                     {
                         case SvgTextPath svgTextPath:
-                            DrawTextPath(svgTextPath, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas, until);
+                            DrawTextPath(svgTextPath, currentX, currentY, skOwnerBounds, ignoreAttributes, true, skCanvas, until);
                             break;
 
                         case SvgTextRef svgTextRef:
-                            DrawTextRef(svgTextRef, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas, until);
+                            DrawTextRef(svgTextRef, currentX, currentY, skOwnerBounds, ignoreAttributes, true, skCanvas, until);
                             break;
 
                         case SvgTextSpan svgTextSpan:
-                            DrawTextSpan(svgTextSpan, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas, until);
+                            DrawTextSpan(svgTextSpan, currentX, currentY, skOwnerBounds, ignoreAttributes, true, skCanvas, until);
                             break;
                     }
                 }
@@ -567,7 +570,7 @@ namespace Svg.Model.Drawables.Elements
             // TODO: Currently using custom OnDraw override.
         }
 
-        public override void Draw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
+        public override void Draw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until, bool enableTransform)
         {
             if (until is { } && this == until)
             {
@@ -576,14 +579,14 @@ namespace Svg.Model.Drawables.Elements
 
             if (Text is { })
             {
-                DrawText(Text, OwnerBounds, ignoreAttributes, canvas, until);
+                DrawText(Text, OwnerBounds, ignoreAttributes, canvas, until, enableTransform);
             }
         }
 
         protected override void OnDraw(Canvas canvas)
         {
             // TODO: OnDraw
-            Draw(canvas, IgnoreAttributes, null);
+            Draw(canvas, IgnoreAttributes, null, true);
         }
 
         public override void PostProcess(Rect? viewport)

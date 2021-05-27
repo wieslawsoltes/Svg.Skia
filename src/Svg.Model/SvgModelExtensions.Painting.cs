@@ -574,7 +574,7 @@ namespace Svg.Model
                 if (drawable is { })
                 {
                     drawable.PostProcess(skBounds);
-                    drawable.Draw(skCanvas, ignoreAttributes, null);
+                    drawable.Draw(skCanvas, ignoreAttributes, null, true);
                 }
             }
 

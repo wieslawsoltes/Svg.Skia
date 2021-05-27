@@ -40,7 +40,7 @@ namespace Svg.Model.Drawables
             {
                 foreach (var drawable in MarkerDrawables)
                 {
-                    drawable.Draw(canvas, ignoreAttributes, until);
+                    drawable.Draw(canvas, ignoreAttributes, until, true);
                 }
             }
         }

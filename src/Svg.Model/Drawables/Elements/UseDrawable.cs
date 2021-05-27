@@ -139,7 +139,7 @@ namespace Svg.Model.Drawables.Elements
                 return;
             }
 
-            ReferencedDrawable?.Draw(canvas, ignoreAttributes, until);
+            ReferencedDrawable?.Draw(canvas, ignoreAttributes, until, true);
         }
 
         public override void PostProcess(Rect? viewport)

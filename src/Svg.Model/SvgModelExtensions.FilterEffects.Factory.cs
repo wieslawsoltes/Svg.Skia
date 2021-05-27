@@ -89,7 +89,9 @@ namespace Svg.Model
             var filterUnits = firstFilterUnits?.FilterUnits ?? SvgCoordinateUnits.ObjectBoundingBox;
             var primitiveUnits = firstPrimitiveUnits?.PrimitiveUnits ?? SvgCoordinateUnits.UserSpaceOnUse;
 
-            var skFilterRegion = CalculateRect(xUnit, yUnit, widthUnit, heightUnit, filterUnits, skBounds, svgFirstFilter);
+            var filterUseBoundingBox = filterUnits == SvgCoordinateUnits.ObjectBoundingBox;
+
+            var skFilterRegion = CalculateRect(xUnit, yUnit, widthUnit, heightUnit, filterUnits, filterUseBoundingBox ? skBounds : skViewport, svgFirstFilter);
             if (skFilterRegion is null)
             {
                 isValid = false;
@@ -111,18 +113,18 @@ namespace Svg.Model
                 var widthChild = skFilterRegion.Value.Width;
                 var heightChild = skFilterRegion.Value.Height;
 
-                var useBoundingBox = primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox;
+                var primitiveUseBoundingBox = primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox;
                 
                 if (TryGetAttribute(svgFilterPrimitive, "x", out var xChildString))
                 {
                     if (new SvgUnitConverter().ConvertFromString(xChildString) is SvgUnit xChildUnit)
                     {
                         xChild = xChildUnit.ToDeviceValue(
-                            useBoundingBox ? UnitRenderingType.Horizontal : UnitRenderingType.HorizontalOffset, 
+                            primitiveUseBoundingBox ? UnitRenderingType.Horizontal : UnitRenderingType.HorizontalOffset, 
                             svgFilterPrimitive, 
-                            useBoundingBox ? skBounds : skViewport);
+                            primitiveUseBoundingBox ? skBounds : skViewport);
 
-                        if (useBoundingBox)
+                        if (primitiveUseBoundingBox)
                         {
                             if (xChildUnit.Type != SvgUnitType.Percentage)
                             {
@@ -138,11 +140,11 @@ namespace Svg.Model
                     if (new SvgUnitConverter().ConvertFromString(yChildString) is SvgUnit yUnitChild)
                     {
                         yChild = yUnitChild.ToDeviceValue(
-                            useBoundingBox ? UnitRenderingType.Vertical : UnitRenderingType.VerticalOffset, 
+                            primitiveUseBoundingBox ? UnitRenderingType.Vertical : UnitRenderingType.VerticalOffset, 
                             svgFilterPrimitive, 
-                            useBoundingBox ? skBounds : skViewport);
+                            primitiveUseBoundingBox ? skBounds : skViewport);
       
-                        if (useBoundingBox)
+                        if (primitiveUseBoundingBox)
                         {
                             if (yUnitChild.Type != SvgUnitType.Percentage)
                             {
@@ -160,9 +162,9 @@ namespace Svg.Model
                         widthChild = widthUnitChild.ToDeviceValue(
                             UnitRenderingType.Horizontal, 
                             svgFilterPrimitive, 
-                            useBoundingBox ? skBounds : skViewport);
+                            primitiveUseBoundingBox ? skBounds : skViewport);
 
-                        if (useBoundingBox)
+                        if (primitiveUseBoundingBox)
                         {
                             if (widthUnitChild.Type != SvgUnitType.Percentage)
                             {
@@ -179,9 +181,9 @@ namespace Svg.Model
                         heightChild = heightUnitChild.ToDeviceValue(
                             UnitRenderingType.Vertical, 
                             svgFilterPrimitive, 
-                            useBoundingBox ? skBounds : skViewport);
+                            primitiveUseBoundingBox ? skBounds : skViewport);
 
-                        if (useBoundingBox)
+                        if (primitiveUseBoundingBox)
                         {
                             if (heightUnitChild.Type != SvgUnitType.Percentage)
                             {
@@ -195,7 +197,7 @@ namespace Svg.Model
                 {
                     continue;
                 }
-                
+
                 var skFilterPrimitiveRegion = Rect.Create(xChild, yChild, widthChild, heightChild);
 
                 items.Add((svgFilterPrimitive, skFilterPrimitiveRegion));
