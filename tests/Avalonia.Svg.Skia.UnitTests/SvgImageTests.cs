@@ -1,5 +1,4 @@
-﻿#if !USE_PICTURE
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Platform;
 using Avalonia.Shared.PlatformSupport;
@@ -28,4 +27,3 @@ namespace Avalonia.Svg.Skia.UnitTests
         }
     }
 }
-#endif

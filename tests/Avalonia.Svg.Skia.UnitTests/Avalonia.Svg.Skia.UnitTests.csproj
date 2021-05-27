@@ -18,10 +18,6 @@
     <AvaloniaResource Include="Assets\*" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <DefineConstants>$(DefineConstants);USE_PICTURE</DefineConstants>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\Avalonia.Svg.Skia\Avalonia.Svg.Skia.csproj" />
   </ItemGroup>
