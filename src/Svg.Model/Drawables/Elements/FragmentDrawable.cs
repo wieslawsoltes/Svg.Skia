@@ -45,11 +45,9 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.GeometryBounds = skOwnerBounds;
 
+            drawable.CreateGeometryBounds();
+
             drawable.TransformedBounds = drawable.GeometryBounds;
-
-            drawable.CreateTransformedBounds();
-
-            drawable.GeometryBounds = drawable.TransformedBounds;
 
             drawable.Transform = SvgModelExtensions.ToMatrix(svgFragment.Transforms);
             var skMatrixViewBox = SvgModelExtensions.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);

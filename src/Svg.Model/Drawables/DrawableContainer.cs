@@ -25,19 +25,19 @@ namespace Svg.Model.Drawables
             }
         }
 
-        protected void CreateTransformedBounds()
+        protected void CreateGeometryBounds()
         {
             foreach (var drawable in ChildrenDrawables)
             {
-                if (TransformedBounds.IsEmpty)
+                if (GeometryBounds.IsEmpty)
                 {
-                    TransformedBounds = drawable.TransformedBounds;
+                    GeometryBounds = drawable.GeometryBounds;
                 }
                 else
                 {
-                    if (!drawable.TransformedBounds.IsEmpty)
+                    if (!drawable.GeometryBounds.IsEmpty)
                     {
-                        TransformedBounds = Rect.Union(TransformedBounds, drawable.TransformedBounds);
+                        GeometryBounds = Rect.Union(GeometryBounds, drawable.GeometryBounds);
                     }
                 }
             }
