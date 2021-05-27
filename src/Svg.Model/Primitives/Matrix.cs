@@ -246,7 +246,7 @@ namespace Svg.Model.Primitives
                    TransY == other.TransY;
         }
 
-        public override bool Equals(object obj) => obj is Matrix other && Equals(other);
+        public override bool Equals(object? obj) => obj is Matrix other && Equals(other);
 
         public override int GetHashCode()
         {
