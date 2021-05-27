@@ -106,9 +106,12 @@ namespace Svg.Model.Drawables
                 canvas.ClipRect(Overflow.Value, ClipOperation.Intersect);
             }
 
-            var skMatrixTotal = canvas.TotalMatrix;
-            skMatrixTotal = skMatrixTotal.PreConcat(Transform);
-            canvas.SetMatrix(skMatrixTotal);
+            if (!Transform.IsIdentity)
+            {
+                var skMatrixTotal = canvas.TotalMatrix;
+                skMatrixTotal = skMatrixTotal.PreConcat(Transform);
+                canvas.SetMatrix(skMatrixTotal);
+            }
 
             if (Clip is { })
             {
