@@ -138,7 +138,6 @@ namespace Svg.Model.Drawables
                 }
 
                 canvas.SaveLayer(Filter);
-
             }
             else
             {
