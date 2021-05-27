@@ -222,8 +222,16 @@ namespace Svg.Model.Primitives
 
         public readonly Rect MapRect(Rect source)
         {
+            var left = source.Left;
+            var top = source.Top;
+            var right = source.Right;
+            var bottom = source.Bottom;
             // TODO: MapRect
-            return source;
+            return new Rect(
+                left * ScaleX + top * SkewX + TransX,
+                left * SkewY + top * ScaleY + TransY,
+                right * ScaleX + bottom * SkewX + TransX,
+                right * SkewY + bottom * ScaleY + TransY);
         }
 
         public override string ToString()
