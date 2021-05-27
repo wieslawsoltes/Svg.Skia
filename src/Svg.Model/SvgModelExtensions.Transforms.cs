@@ -342,47 +342,57 @@ namespace Svg.Model
             return skMatrixTotal;
         }
  
-        internal static Rect? CalculateRect(SvgUnit xUnit, SvgUnit yUnit, SvgUnit widthUnit, SvgUnit heightUnit, SvgCoordinateUnits coordinateUnits, Rect skBounds, SvgElement? svgElement)
+        internal static Rect? CalculateRect(SvgUnit xUnit, SvgUnit yUnit, SvgUnit widthUnit, SvgUnit heightUnit, SvgCoordinateUnits coordinateUnits, Rect skBounds, Rect skViewport, SvgElement? svgElement)
         {
-            var xRenderType  = coordinateUnits == SvgCoordinateUnits.UserSpaceOnUse ? UnitRenderingType.HorizontalOffset : UnitRenderingType.Horizontal;
-            var x = xUnit.ToDeviceValue(xRenderType, svgElement, skBounds);
+            var useBoundingBox = coordinateUnits == SvgCoordinateUnits.ObjectBoundingBox;
 
-            var yRenderType  = coordinateUnits == SvgCoordinateUnits.UserSpaceOnUse ? UnitRenderingType.VerticalOffset : UnitRenderingType.Vertical;
-            var y = yUnit.ToDeviceValue(yRenderType, svgElement, skBounds);
+            var xRenderType  = useBoundingBox ? UnitRenderingType.Horizontal : UnitRenderingType.HorizontalOffset;
+            var x = xUnit.ToDeviceValue(xRenderType, svgElement, useBoundingBox ? skBounds : skViewport);
 
-            var width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgElement, skBounds);
-            var height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgElement, skBounds);
+            var yRenderType  = useBoundingBox ? UnitRenderingType.Vertical : UnitRenderingType.VerticalOffset;
+            var y = yUnit.ToDeviceValue(yRenderType, svgElement, useBoundingBox ? skBounds : skViewport);
+
+            var width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgElement, useBoundingBox ? skBounds : skViewport);
+            var height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgElement, useBoundingBox ? skBounds : skViewport);
 
             if (width <= 0 || height <= 0)
             {
                 return default;
             }
 
-            if (coordinateUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            if (useBoundingBox)
             {
                 if (xUnit.Type != SvgUnitType.Percentage)
                 {
                     x *= skBounds.Width;
                 }
-
+                x += skBounds.Left;
+            }
+            
+            if (useBoundingBox)
+            {
                 if (yUnit.Type != SvgUnitType.Percentage)
                 {
                     y *= skBounds.Height;
                 }
-
+                y += skBounds.Top;
+            }
+            
+            if (useBoundingBox)
+            {
                 if (widthUnit.Type != SvgUnitType.Percentage)
                 {
                     width *= skBounds.Width;
                 }
-
+            }
+            
+            if (useBoundingBox)
+            {
                 if (heightUnit.Type != SvgUnitType.Percentage)
                 {
                     height *= skBounds.Height;
                 }
-
-                x += skBounds.Left;
-                y += skBounds.Top;
-            } 
+            }
 
             return Rect.Create(x, y, width, height);
         }

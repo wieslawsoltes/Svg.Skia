@@ -33,7 +33,8 @@ namespace Svg.Model.Drawables.Elements
             var widthUnit = svgMask.Width;
             var heightUnit = svgMask.Height;
 
-            var skRectTransformed = SvgModelExtensions.CalculateRect(xUnit, yUnit, widthUnit, heightUnit, maskUnits, skOwnerBounds, svgMask);
+            // TODO: Pass correct skViewport
+            var skRectTransformed = SvgModelExtensions.CalculateRect(xUnit, yUnit, widthUnit, heightUnit, maskUnits, skOwnerBounds, skOwnerBounds, svgMask);
             if (skRectTransformed is null)
             {
                 drawable.IsDrawable = false;

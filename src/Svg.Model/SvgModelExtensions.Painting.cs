@@ -687,7 +687,8 @@ namespace Svg.Model
             var viewBox = firstViewBox?.ViewBox ?? SvgViewBox.Empty;
             var aspectRatio = firstAspectRatio is null ? new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid, false) : firstAspectRatio.AspectRatio;
 
-            var skRectTransformed = CalculateRect(xUnit, yUnit, widthUnit, heightUnit, patternUnits, skBounds, svgPatternServer);
+            // TODO: Pass correct skViewport
+            var skRectTransformed = CalculateRect(xUnit, yUnit, widthUnit, heightUnit, patternUnits, skBounds, skBounds, svgPatternServer);
             if (skRectTransformed is null)
             {
                 return default;

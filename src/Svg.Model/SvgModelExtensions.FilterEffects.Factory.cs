@@ -89,9 +89,8 @@ namespace Svg.Model
             var filterUnits = firstFilterUnits?.FilterUnits ?? SvgCoordinateUnits.ObjectBoundingBox;
             var primitiveUnits = firstPrimitiveUnits?.PrimitiveUnits ?? SvgCoordinateUnits.UserSpaceOnUse;
 
-            var filterUseBoundingBox = filterUnits == SvgCoordinateUnits.ObjectBoundingBox;
+            var skFilterRegion = CalculateRect(xUnit, yUnit, widthUnit, heightUnit, filterUnits, skBounds, skViewport, svgFirstFilter);
 
-            var skFilterRegion = CalculateRect(xUnit, yUnit, widthUnit, heightUnit, filterUnits, filterUseBoundingBox ? skBounds : skViewport, svgFirstFilter);
             if (skFilterRegion is null)
             {
                 isValid = false;
@@ -114,7 +113,7 @@ namespace Svg.Model
                 var heightChild = skFilterRegion.Value.Height;
 
                 var primitiveUseBoundingBox = primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox;
-                
+
                 if (TryGetAttribute(svgFilterPrimitive, "x", out var xChildString))
                 {
                     if (new SvgUnitConverter().ConvertFromString(xChildString) is SvgUnit xChildUnit)
