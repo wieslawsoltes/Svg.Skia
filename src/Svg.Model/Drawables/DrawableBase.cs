@@ -308,8 +308,8 @@ namespace Svg.Model.Drawables
             var cullRect = Rect.Create(
                 0, 
                 0, 
-                skBounds.Width + skBounds.Left, 
-                skBounds.Height + skBounds.Top);
+                Math.Abs(skBounds.Left) + skBounds.Width, 
+                Math.Abs(skBounds.Top) + skBounds.Height);
             var skPictureRecorder = new PictureRecorder();
             var skCanvas = skPictureRecorder.BeginRecording(cullRect);
 
@@ -333,8 +333,8 @@ namespace Svg.Model.Drawables
                 var cullRect = Rect.Create(
                     0, 
                     0, 
-                    skBounds.Width + skBounds.Left, 
-                    skBounds.Height + skBounds.Top);
+                    Math.Abs(skBounds.Left) + skBounds.Width, 
+                    Math.Abs(skBounds.Top) + skBounds.Height);
                 var skPictureRecorder = new PictureRecorder();
                 var skCanvas = skPictureRecorder.BeginRecording(cullRect);
 
