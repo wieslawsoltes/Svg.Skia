@@ -249,36 +249,33 @@ namespace Svg.Model.Drawables
                 return null;
             }
 
-            if (element.IsContainerElement())
+            if (element.IsContainerElement() && element.TryGetAttribute("enable-background", out string enableBackground))
             {
-                if (element.TryGetAttribute("enable-background", out string enableBackground))
+                enableBackground = enableBackground.Trim();
+
+                if (enableBackground.Equals("accumulate", StringComparison.Ordinal))
                 {
-                    enableBackground = enableBackground.Trim();
-
-                    if (enableBackground.Equals("accumulate", StringComparison.Ordinal))
+                    // TODO:
+                }
+                else if (enableBackground.StartsWith("new", StringComparison.Ordinal))
+                {
+                    if (enableBackground.Length > 3)
                     {
-                        // TODO:
-                    }
-                    else if (enableBackground.StartsWith("new", StringComparison.Ordinal))
-                    {
-                        if (enableBackground.Length > 3)
+                        var values = new List<float>();
+                        var parts = enableBackground.Substring(4, enableBackground.Length - 4).Split(' ');
+                        foreach (var o in parts)
                         {
-                            var values = new List<float>();
-                            var parts = enableBackground.Substring(4, enableBackground.Length - 4).Split(' ');
-                            foreach (var o in parts)
-                            {
-                                values.Add(float.Parse(o.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture));
-                            }
-
-                            if (values.Count != 4)
-                            {
-                                return null;
-                            }
-
-                            skClipRect = Rect.Create(values[0], values[1], values[2], values[3]);
+                            values.Add(float.Parse(o.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture));
                         }
-                        return drawable;
+
+                        if (values.Count != 4)
+                        {
+                            return null;
+                        }
+
+                        skClipRect = Rect.Create(values[0], values[1], values[2], values[3]);
                     }
+                    return drawable;
                 }
             }
 
