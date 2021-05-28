@@ -205,15 +205,7 @@ namespace Avalonia.Svg.Skia
                 var enableCache = change.NewValue.GetValueOrDefault<bool>();
                 if (enableCache == false)
                 {
-                    if (_cache is { })
-                    {
-                        foreach (var kvp in _cache)
-                        {
-                            kvp.Value.Dispose();
-                        }
-
-                        _cache = null;
-                    }
+                    DisposeCache();
                 }
                 else
                 {
@@ -227,35 +219,55 @@ namespace Avalonia.Svg.Skia
             if (path is null)
             {
                 _svg?.Dispose();
+                _svg = null;
+                DisposeCache();
+                return;
             }
-            else
-            {
-                if (_enableCache && _cache is { } && _cache.TryGetValue(path, out var svg))
-                {
-                    _svg = svg;
-                }
-                else
-                {
-                    if (!_enableCache)
-                    {
-                        _svg?.Dispose();
-                    }
 
-                    try
-                    {
-                        _svg = SvgSource.Load<SvgSource>(path, _baseUri);
-                        if (_enableCache && _cache is { })
-                        {
-                            _cache[path] = _svg;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.TryGet(LogEventLevel.Warning, LogArea.Control)?.Log(this, "Failed to load svg image: " + e);
-                        _svg = null;
-                    }
+            if (_enableCache && _cache is { } && _cache.TryGetValue(path, out var svg))
+            {
+                _svg = svg;
+                return;
+            }
+
+            if (!_enableCache)
+            {
+                _svg?.Dispose();
+                _svg = null;
+            }
+
+            try
+            {
+                _svg = SvgSource.Load<SvgSource>(path, _baseUri);
+
+                if (_enableCache && _cache is { })
+                {
+                    _cache[path] = _svg;
                 }
             }
+            catch (Exception e)
+            {
+                Logger.TryGet(LogEventLevel.Warning, LogArea.Control)?.Log(this, "Failed to load svg image: " + e);
+                _svg = null;
+            }
+        }
+
+        private void DisposeCache()
+        {
+            if (_cache is null)
+            {
+                return;
+            }
+
+            foreach (var kvp in _cache)
+            {
+                if (kvp.Value != _svg)
+                {
+                    kvp.Value.Dispose();
+                }
+            }
+
+            _cache = null;
         }
 
         /// <summary>
