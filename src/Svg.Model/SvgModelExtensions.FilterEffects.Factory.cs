@@ -90,7 +90,6 @@ namespace Svg.Model
             var primitiveUnits = firstPrimitiveUnits?.PrimitiveUnits ?? SvgCoordinateUnits.UserSpaceOnUse;
 
             var skFilterRegion = CalculateRect(xUnit, yUnit, widthUnit, heightUnit, filterUnits, skBounds, skViewport, svgFirstFilter);
-
             if (skFilterRegion is null)
             {
                 isValid = false;
@@ -98,117 +97,15 @@ namespace Svg.Model
                 return default;
             }
 
-            var items = new List<(SvgFilterPrimitive primitive, Rect region)>();
-
-            foreach (var child in firstChildren.Children)
-            {
-                if (child is not SvgFilterPrimitive svgFilterPrimitive)
-                {
-                    continue;
-                }
-
-                var xChild = skFilterRegion.Value.Left;
-                var yChild = skFilterRegion.Value.Top;
-                var widthChild = skFilterRegion.Value.Width;
-                var heightChild = skFilterRegion.Value.Height;
-
-                var primitiveUseBoundingBox = primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox;
-
-                if (TryGetAttribute(svgFilterPrimitive, "x", out var xChildString))
-                {
-                    if (new SvgUnitConverter().ConvertFromString(xChildString) is SvgUnit xChildUnit)
-                    {
-                        xChild = xChildUnit.ToDeviceValue(
-                            primitiveUseBoundingBox ? UnitRenderingType.Horizontal : UnitRenderingType.HorizontalOffset, 
-                            svgFilterPrimitive, 
-                            primitiveUseBoundingBox ? skBounds : skViewport);
-
-                        if (primitiveUseBoundingBox)
-                        {
-                            if (xChildUnit.Type != SvgUnitType.Percentage)
-                            {
-                                xChild *= skBounds.Width;
-                            }
-                            xChild += skBounds.Left;
-                        }
-                    }
-                }
-
-                if (TryGetAttribute(svgFilterPrimitive, "y", out var yChildString))
-                {
-                    if (new SvgUnitConverter().ConvertFromString(yChildString) is SvgUnit yUnitChild)
-                    {
-                        yChild = yUnitChild.ToDeviceValue(
-                            primitiveUseBoundingBox ? UnitRenderingType.Vertical : UnitRenderingType.VerticalOffset, 
-                            svgFilterPrimitive, 
-                            primitiveUseBoundingBox ? skBounds : skViewport);
-      
-                        if (primitiveUseBoundingBox)
-                        {
-                            if (yUnitChild.Type != SvgUnitType.Percentage)
-                            {
-                                yChild *= skBounds.Height;
-                            }
-                            yChild += skBounds.Top;
-                        }
-                    }
-                }
-                
-                if (TryGetAttribute(svgFilterPrimitive, "width", out var  widthChildString))
-                {
-                    if (new SvgUnitConverter().ConvertFromString(widthChildString) is SvgUnit widthUnitChild)
-                    {
-                        widthChild = widthUnitChild.ToDeviceValue(
-                            UnitRenderingType.Horizontal, 
-                            svgFilterPrimitive, 
-                            primitiveUseBoundingBox ? skBounds : skViewport);
-
-                        if (primitiveUseBoundingBox)
-                        {
-                            if (widthUnitChild.Type != SvgUnitType.Percentage)
-                            {
-                                widthChild *= skBounds.Width;
-                            }
-                        }
-                    }
-                }
-                
-                if (TryGetAttribute(svgFilterPrimitive, "height", out var heightChildString))
-                {
-                    if (new SvgUnitConverter().ConvertFromString(heightChildString) is SvgUnit heightUnitChild)
-                    {
-                        heightChild = heightUnitChild.ToDeviceValue(
-                            UnitRenderingType.Vertical, 
-                            svgFilterPrimitive, 
-                            primitiveUseBoundingBox ? skBounds : skViewport);
-
-                        if (primitiveUseBoundingBox)
-                        {
-                            if (heightUnitChild.Type != SvgUnitType.Percentage)
-                            {
-                                heightChild *= skBounds.Height;
-                            }
-                        }
-                    }
-                }
-
-                if (widthChild <= 0 || heightChild <= 0)
-                {
-                    continue;
-                }
-
-                var skFilterPrimitiveRegion = Rect.Create(xChild, yChild, widthChild, heightChild);
-
-                items.Add((svgFilterPrimitive, skFilterPrimitiveRegion));
-            }
+            var primitives = GetFilterPrimitives(firstChildren, primitiveUnits, skFilterRegion.Value, skBounds, skViewport);
 
             var results = new Dictionary<string, ImageFilter>();
             var regions = new Dictionary<ImageFilter, Rect>();
             var lastResult = default(ImageFilter);
 
-            for (var i = 0; i < items.Count; i++)
+            for (var i = 0; i < primitives.Count; i++)
             {
-                var (svgFilterPrimitive, skFilterPrimitiveRegion) = items[i];
+                var (svgFilterPrimitive, skFilterPrimitiveRegion) = primitives[i];
                 var isFirst = i == 0;
 
                 switch (svgFilterPrimitive)
@@ -513,6 +410,117 @@ namespace Svg.Model
             isValid = false;
             filterClip = default;
             return default;
+        }
+
+        private static List<(SvgFilterPrimitive primitive, Rect region)> GetFilterPrimitives(SvgFilter svgFilter, SvgCoordinateUnits primitiveUnits, Rect skFilterRegion, Rect skBounds, Rect skViewport)
+        {
+            var primitives = new List<(SvgFilterPrimitive primitive, Rect region)>();
+
+            foreach (var child in svgFilter.Children)
+            {
+                if (child is not SvgFilterPrimitive svgFilterPrimitive)
+                {
+                    continue;
+                }
+
+                var xChild = skFilterRegion.Left;
+                var yChild = skFilterRegion.Top;
+                var widthChild = skFilterRegion.Width;
+                var heightChild = skFilterRegion.Height;
+
+                var primitiveUseBoundingBox = primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox;
+
+                if (TryGetAttribute(svgFilterPrimitive, "x", out var xChildString))
+                {
+                    if (new SvgUnitConverter().ConvertFromString(xChildString) is SvgUnit xChildUnit)
+                    {
+                        xChild = xChildUnit.ToDeviceValue(
+                            primitiveUseBoundingBox ? UnitRenderingType.Horizontal : UnitRenderingType.HorizontalOffset,
+                            svgFilterPrimitive,
+                            primitiveUseBoundingBox ? skBounds : skViewport);
+
+                        if (primitiveUseBoundingBox)
+                        {
+                            if (xChildUnit.Type != SvgUnitType.Percentage)
+                            {
+                                xChild *= skBounds.Width;
+                            }
+
+                            xChild += skBounds.Left;
+                        }
+                    }
+                }
+
+                if (TryGetAttribute(svgFilterPrimitive, "y", out var yChildString))
+                {
+                    if (new SvgUnitConverter().ConvertFromString(yChildString) is SvgUnit yUnitChild)
+                    {
+                        yChild = yUnitChild.ToDeviceValue(
+                            primitiveUseBoundingBox ? UnitRenderingType.Vertical : UnitRenderingType.VerticalOffset,
+                            svgFilterPrimitive,
+                            primitiveUseBoundingBox ? skBounds : skViewport);
+
+                        if (primitiveUseBoundingBox)
+                        {
+                            if (yUnitChild.Type != SvgUnitType.Percentage)
+                            {
+                                yChild *= skBounds.Height;
+                            }
+
+                            yChild += skBounds.Top;
+                        }
+                    }
+                }
+
+                if (TryGetAttribute(svgFilterPrimitive, "width", out var widthChildString))
+                {
+                    if (new SvgUnitConverter().ConvertFromString(widthChildString) is SvgUnit widthUnitChild)
+                    {
+                        widthChild = widthUnitChild.ToDeviceValue(
+                            UnitRenderingType.Horizontal,
+                            svgFilterPrimitive,
+                            primitiveUseBoundingBox ? skBounds : skViewport);
+
+                        if (primitiveUseBoundingBox)
+                        {
+                            if (widthUnitChild.Type != SvgUnitType.Percentage)
+                            {
+                                widthChild *= skBounds.Width;
+                            }
+                        }
+                    }
+                }
+
+                if (TryGetAttribute(svgFilterPrimitive, "height", out var heightChildString))
+                {
+                    if (new SvgUnitConverter().ConvertFromString(heightChildString) is SvgUnit heightUnitChild)
+                    {
+                        heightChild = heightUnitChild.ToDeviceValue(
+                            UnitRenderingType.Vertical,
+                            svgFilterPrimitive,
+                            primitiveUseBoundingBox ? skBounds : skViewport);
+
+                        if (primitiveUseBoundingBox)
+                        {
+                            if (heightUnitChild.Type != SvgUnitType.Percentage)
+                            {
+                                heightChild *= skBounds.Height;
+                            }
+                        }
+                    }
+                }
+
+                if (widthChild <= 0 || heightChild <= 0)
+                {
+                    continue;
+                }
+
+                var skFilterPrimitiveRegion = Rect.Create(xChild, yChild, widthChild, heightChild);
+
+                primitives.Add((svgFilterPrimitive, skFilterPrimitiveRegion));
+            }
+
+            return primitives;
         }
     }
 }
