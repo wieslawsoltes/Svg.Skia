@@ -304,8 +304,13 @@ namespace Svg.Model.Drawables
                 return null;
             }
 
+            var cullRect = Rect.Create(
+                0, 
+                0, 
+                drawable.TransformedBounds.Width + drawable.TransformedBounds.Left, 
+                drawable.TransformedBounds.Height + drawable.TransformedBounds.Top);
             var skPictureRecorder = new PictureRecorder();
-            var skCanvas = skPictureRecorder.BeginRecording(drawable.TransformedBounds);
+            var skCanvas = skPictureRecorder.BeginRecording(cullRect);
 
             drawable.Draw(skCanvas, ignoreAttributes, null, false);
 
@@ -323,8 +328,13 @@ namespace Svg.Model.Drawables
             var container = FindContainerParentBackground(drawable, out var skClipRect);
             if (container is { })
             {
+                var cullRect = Rect.Create(
+                    0, 
+                    0, 
+                    drawable.TransformedBounds.Width + drawable.TransformedBounds.Left, 
+                    drawable.TransformedBounds.Height + drawable.TransformedBounds.Top);
                 var skPictureRecorder = new PictureRecorder();
-                var skCanvas = skPictureRecorder.BeginRecording(container.TransformedBounds);
+                var skCanvas = skPictureRecorder.BeginRecording(cullRect);
 
                 if (!skClipRect.IsEmpty)
                 {
