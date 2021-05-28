@@ -327,27 +327,28 @@ namespace Svg.Model.Drawables
             }
 
             var container = FindContainerParentBackground(drawable, out var skClipRect);
-            if (container is { })
+            if (container is null)
             {
-                var skBounds = drawable.GeometryBounds;
-                var cullRect = Rect.Create(
-                    0, 
-                    0, 
-                    Math.Abs(skBounds.Left) + skBounds.Width, 
-                    Math.Abs(skBounds.Top) + skBounds.Height);
-                var skPictureRecorder = new PictureRecorder();
-                var skCanvas = skPictureRecorder.BeginRecording(cullRect);
-
-                if (!skClipRect.IsEmpty)
-                {
-                    skCanvas.ClipRect(skClipRect, ClipOperation.Intersect);
-                }
-
-                container.Draw(skCanvas, ignoreAttributes, drawable, false);
-
-                return skPictureRecorder.EndRecording();
+                return null;
             }
-            return null;
+
+            var skBounds = drawable.GeometryBounds;
+            var cullRect = Rect.Create(
+                0, 
+                0, 
+                Math.Abs(skBounds.Left) + skBounds.Width, 
+                Math.Abs(skBounds.Top) + skBounds.Height);
+            var skPictureRecorder = new PictureRecorder();
+            var skCanvas = skPictureRecorder.BeginRecording(cullRect);
+
+            if (!skClipRect.IsEmpty)
+            {
+                skCanvas.ClipRect(skClipRect, ClipOperation.Intersect);
+            }
+
+            container.Draw(skCanvas, ignoreAttributes, drawable, false);
+
+            return skPictureRecorder.EndRecording();
         }
 
         private const Attributes FilterInput = Attributes.ClipPath | Attributes.Mask | Attributes.Opacity | Attributes.Filter;
