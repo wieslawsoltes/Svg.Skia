@@ -90,13 +90,24 @@
                    Margin="6"
                    VerticalAlignment="Stretch"
                    HorizontalAlignment="Stretch">
-            <ComboBox Name="SvgStretch" SelectedIndex="0" DockPanel.Dock="Top">
-                <ComboBoxItem>None</ComboBoxItem>
-                <ComboBoxItem>Fill</ComboBoxItem>
-                <ComboBoxItem>Uniform</ComboBoxItem>
-                <ComboBoxItem>UniformToFill</ComboBoxItem>
-            </ComboBox>
-            <Svg Stretch="{Binding #SvgStretch.SelectedItem.Content}"
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                <Label Content="Stretch:"
+                       Margin="0,0,6,0"
+                       VerticalAlignment="Center"/>
+                <ComboBox Name="SvgStretch" SelectedIndex="0">
+                    <ComboBoxItem>None</ComboBoxItem>
+                    <ComboBoxItem>Fill</ComboBoxItem>
+                    <ComboBoxItem>Uniform</ComboBoxItem>
+                    <ComboBoxItem>UniformToFill</ComboBoxItem>
+                </ComboBox>
+                <Label Content="Cache:"
+                       Margin="6,0,6,0"
+                       VerticalAlignment="Center"/>
+                <ToggleSwitch IsChecked="{Binding #Svg.EnableCache}"
+                              Margin="0,0,0,0"/>
+            </StackPanel>
+            <Svg Name="Svg"
+                 Stretch="{Binding #SvgStretch.SelectedItem.Content}"
                  Path="{Binding SelectedItem.Path}"
                  EnableCache="True"/>
         </DockPanel>
