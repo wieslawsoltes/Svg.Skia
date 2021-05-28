@@ -1,50 +1,49 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using SkiaSharp;
 
 namespace Svg.Skia.TypefaceProviders
 {
-    public sealed class FontManagerTypefacerovider : ITypefaceProvider
+    public sealed class FontManagerTypefaceProvider : ITypefaceProvider
     {
         public static readonly char[] s_fontFamilyTrim = { '\'' };
 
-        public SKFontManager FontManager { get; set; }
+        public SkiaSharp.SKFontManager FontManager { get; set; }
 
-        public FontManagerTypefacerovider()
+        public FontManagerTypefaceProvider()
         {
-            FontManager = SKFontManager.Default;
+            FontManager = SkiaSharp.SKFontManager.Default;
         }
 
-        public SKTypeface CreateTypeface(Stream stream, int index = 0)
-        {
-            return FontManager.CreateTypeface(stream, index);
-        }
-
-        public SKTypeface CreateTypeface(SKStreamAsset stream, int index = 0)
+        public SkiaSharp.SKTypeface CreateTypeface(Stream stream, int index = 0)
         {
             return FontManager.CreateTypeface(stream, index);
         }
 
-        public SKTypeface CreateTypeface(string path, int index = 0)
+        public SkiaSharp.SKTypeface CreateTypeface(SkiaSharp.SKStreamAsset stream, int index = 0)
+        {
+            return FontManager.CreateTypeface(stream, index);
+        }
+
+        public SkiaSharp.SKTypeface CreateTypeface(string path, int index = 0)
         {
             return FontManager.CreateTypeface(path, index);
         }
 
-        public SKTypeface CreateTypeface(SKData data, int index = 0)
+        public SkiaSharp.SKTypeface CreateTypeface(SkiaSharp.SKData data, int index = 0)
         {
             return FontManager.CreateTypeface(data, index);
         }
 
-        public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
+        public SkiaSharp.SKTypeface? FromFamilyName(string fontFamily, SkiaSharp.SKFontStyleWeight fontWeight, SkiaSharp.SKFontStyleWidth fontWidth, SkiaSharp.SKFontStyleSlant fontStyle)
         {
-            var skTypeface = default(SKTypeface);
+            var skTypeface = default(SkiaSharp.SKTypeface);
             var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
             if (fontFamilyNames is { } && fontFamilyNames.Length > 0)
             {
-                var defaultName = SKTypeface.Default.FamilyName;
+                var defaultName = SkiaSharp.SKTypeface.Default.FamilyName;
                 var skFontManager = FontManager;
-                var skFontStyle = new SKFontStyle(fontWeight, fontWidth, fontStyle);
+                var skFontStyle = new SkiaSharp.SKFontStyle(fontWeight, fontWidth, fontStyle);
 
                 foreach (var fontFamilyName in fontFamilyNames)
                 {

@@ -1,5 +1,4 @@
 ﻿using System;
-using SkiaSharp;
 using Svg.Model;
 using Svg.Model.Drawables;
 using Svg.Model.Primitives;
@@ -10,13 +9,13 @@ namespace Svg.Skia
     {
         private static readonly IAssetLoader s_assetLoader = new SkiaAssetLoader();
 
-        public static SKPicture? ToPicture(SvgFragment svgFragment)
+        public static SkiaSharp.SKPicture? ToPicture(SvgFragment svgFragment)
         {
             var picture = SvgModelExtensions.ToModel(svgFragment, s_assetLoader);
             return picture?.ToSKPicture();
         }
 
-        public static void Draw(SKCanvas skCanvas, SvgFragment svgFragment)
+        public static void Draw(SkiaSharp.SKCanvas skCanvas, SvgFragment svgFragment)
         {
             var size = SvgModelExtensions.GetDimensions(svgFragment);
             var bounds = Rect.Create(size);
@@ -29,7 +28,7 @@ namespace Svg.Skia
             }
         }
 
-        public static void Draw(SKCanvas skCanvas, string path)
+        public static void Draw(SkiaSharp.SKCanvas skCanvas, string path)
         {
             var svgDocument = SvgModelExtensions.Open(path);
             if (svgDocument is { })
@@ -40,9 +39,9 @@ namespace Svg.Skia
 
         public Picture? Model { get; set; }
 
-        public SKPicture? Picture { get; set; }
+        public SkiaSharp.SKPicture? Picture { get; set; }
 
-        public SKPicture? Load(System.IO.Stream stream)
+        public SkiaSharp.SKPicture? Load(System.IO.Stream stream)
         {
             Reset();
             var svgDocument = SvgModelExtensions.Open(stream);
@@ -55,7 +54,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public SKPicture? Load(string path)
+        public SkiaSharp.SKPicture? Load(string path)
         {
             Reset();
             var svgDocument = SvgModelExtensions.Open(path);
@@ -68,7 +67,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public SKPicture? FromSvg(string svg)
+        public SkiaSharp.SKPicture? FromSvg(string svg)
         {
             Reset();
             var svgDocument = SvgModelExtensions.FromSvg(svg);
@@ -81,7 +80,7 @@ namespace Svg.Skia
             return null;
         }
 
-        public SKPicture? FromSvgDocument(SvgDocument? svgDocument)
+        public SkiaSharp.SKPicture? FromSvgDocument(SvgDocument? svgDocument)
         {
             Reset();
             if (svgDocument is { })
@@ -93,21 +92,21 @@ namespace Svg.Skia
             return null;
         }
 
-        public bool Save(System.IO.Stream stream, SKColor background, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
+        public bool Save(System.IO.Stream stream, SkiaSharp.SKColor background, SkiaSharp.SKEncodedImageFormat format = SkiaSharp.SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
         {
             if (Picture is { })
             {
-                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SKSvgSettings.s_srgb);
+                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul, SKSvgSettings.s_srgb);
             }
             return false;
         }
 
-        public bool Save(string path, SKColor background, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
+        public bool Save(string path, SkiaSharp.SKColor background, SkiaSharp.SKEncodedImageFormat format = SkiaSharp.SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
         {
             if (Picture is { })
             {
                 using var stream = System.IO.File.OpenWrite(path);
-                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul, SKSvgSettings.s_srgb);
+                return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul, SKSvgSettings.s_srgb);
             }
             return false;
         }

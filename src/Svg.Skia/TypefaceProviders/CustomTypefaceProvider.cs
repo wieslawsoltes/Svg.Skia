@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using SkiaSharp;
 
 namespace Svg.Skia.TypefaceProviders
 {
@@ -9,37 +8,37 @@ namespace Svg.Skia.TypefaceProviders
     {
         public static readonly char[] s_fontFamilyTrim = { '\'' };
 
-        public SKTypeface? Typeface { get; set; }
+        public SkiaSharp.SKTypeface? Typeface { get; set; }
 
         public string FamilyName { get; set; }
 
         public CustomTypefaceProvider(Stream stream, int index = 0)
         {
-            Typeface = SKTypeface.FromStream(stream, index);
+            Typeface = SkiaSharp.SKTypeface.FromStream(stream, index);
             FamilyName = Typeface.FamilyName;
         }
 
-        public CustomTypefaceProvider(SKStreamAsset stream, int index = 0)
+        public CustomTypefaceProvider(SkiaSharp.SKStreamAsset stream, int index = 0)
         {
-            Typeface = SKTypeface.FromStream(stream, index);
+            Typeface = SkiaSharp.SKTypeface.FromStream(stream, index);
             FamilyName = Typeface.FamilyName;
         }
 
         public CustomTypefaceProvider(string path, int index = 0)
         {
-            Typeface = SKTypeface.FromFile(path, index);
+            Typeface = SkiaSharp.SKTypeface.FromFile(path, index);
             FamilyName = Typeface.FamilyName;
         }
 
-        public CustomTypefaceProvider(SKData data, int index = 0)
+        public CustomTypefaceProvider(SkiaSharp.SKData data, int index = 0)
         {
-            Typeface = SKTypeface.FromData(data, index);
+            Typeface = SkiaSharp.SKTypeface.FromData(data, index);
             FamilyName = Typeface.FamilyName;
         }
 
-        public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
+        public SkiaSharp.SKTypeface? FromFamilyName(string fontFamily, SkiaSharp.SKFontStyleWeight fontWeight, SkiaSharp.SKFontStyleWidth fontWidth, SkiaSharp.SKFontStyleSlant fontStyle)
         {
-            var skTypeface = default(SKTypeface);
+            var skTypeface = default(SkiaSharp.SKTypeface);
             var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
             if (fontFamilyNames is { } && fontFamilyNames.Length > 0)
             {
