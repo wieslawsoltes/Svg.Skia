@@ -299,7 +299,7 @@ namespace Svg.Model.Drawables
                 return null;
             }
 
-            var skBounds = drawable.TransformedBounds;
+            var skBounds = drawable.GeometryBounds;
             if (skBounds.Width <= 0f && skBounds.Height <= 0f)
             {
                 return null;
@@ -329,7 +329,7 @@ namespace Svg.Model.Drawables
             var container = FindContainerParentBackground(drawable, out var skClipRect);
             if (container is { })
             {
-                var skBounds = drawable.TransformedBounds;
+                var skBounds = drawable.GeometryBounds;
                 var cullRect = Rect.Create(
                     0, 
                     0, 
