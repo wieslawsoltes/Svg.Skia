@@ -18,7 +18,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static UseDrawable Create(SvgUse svgUse, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static UseDrawable Create(SvgUse svgUse, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new UseDrawable(assetLoader)
             {
@@ -132,7 +132,7 @@ namespace Svg.Model.Drawables.Elements
             return drawable;
         }
 
-        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
+        public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)
         {
             if (until is { } && this == until)
             {

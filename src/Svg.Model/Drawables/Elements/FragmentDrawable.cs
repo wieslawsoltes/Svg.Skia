@@ -11,7 +11,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static FragmentDrawable Create(SvgFragment svgFragment, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static FragmentDrawable Create(SvgFragment svgFragment, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new FragmentDrawable(assetLoader)
             {
@@ -88,7 +88,7 @@ namespace Svg.Model.Drawables.Elements
                     Clip = new ClipPath()
                 };
                 SvgModelExtensions.GetClipPath(svgClipPath, skOwnerBounds, clipPathUris, clipPath);
-                if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !drawable.IgnoreAttributes.HasFlag(Attributes.ClipPath))
+                if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !drawable.IgnoreAttributes.HasFlag(DrawAttributes.ClipPath))
                 {
                     drawable.ClipPath = clipPath;
                 }
@@ -116,7 +116,7 @@ namespace Svg.Model.Drawables.Elements
                 return;
             }
 
-            var enableOpacity = !IgnoreAttributes.HasFlag(Attributes.Opacity);
+            var enableOpacity = !IgnoreAttributes.HasFlag(DrawAttributes.Opacity);
 
             ClipPath = null;
             MaskDrawable = null;

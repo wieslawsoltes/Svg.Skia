@@ -13,7 +13,7 @@ namespace Svg.Model.Drawables
             ChildrenDrawables = new List<DrawableBase>();
         }
 
-        protected void CreateChildren(SvgElement svgElement, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        protected void CreateChildren(SvgElement svgElement, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes)
         {
             foreach (var child in svgElement.Children)
             {
@@ -43,7 +43,7 @@ namespace Svg.Model.Drawables
             }
         }
 
-        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
+        public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)
         {
             if (until is { } && this == until)
             {

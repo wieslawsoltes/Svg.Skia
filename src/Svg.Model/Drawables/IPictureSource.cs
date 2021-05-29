@@ -4,7 +4,7 @@ namespace Svg.Model.Drawables
 {
     internal interface IPictureSource
     {
-        void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until);
-        void Draw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until, bool enableTransform);
+        void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until);
+        void Draw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until, bool enableTransform);
     }
 }

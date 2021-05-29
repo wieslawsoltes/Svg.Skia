@@ -11,7 +11,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static MaskDrawable Create(SvgMask svgMask, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static MaskDrawable Create(SvgMask svgMask, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new MaskDrawable(assetLoader)
             {
@@ -81,7 +81,7 @@ namespace Svg.Model.Drawables.Elements
                 return;
             }
 
-            var enableMask = !IgnoreAttributes.HasFlag(Attributes.Mask);
+            var enableMask = !IgnoreAttributes.HasFlag(DrawAttributes.Mask);
 
             ClipPath = null;
 

@@ -116,7 +116,7 @@ namespace Svg.Model
             return pathTypes;
         }
 
-        internal static SKPath? ToPath(this SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule)
+        internal static SKPath? ToPath(this SvgPathSegmentList? svgPathSegmentList, SvgFillRule svgFillRule)
         {
             if (svgPathSegmentList is null || svgPathSegmentList.Count <= 0)
             {

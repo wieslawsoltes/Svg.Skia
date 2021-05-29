@@ -8,10 +8,10 @@ namespace Svg.Model
 {
     public static partial class SvgModelExtensions
     {
-        internal static bool CanDraw(SvgVisualElement svgVisualElement, Attributes ignoreAttributes)
+        internal static bool CanDraw(SvgVisualElement svgVisualElement, DrawAttributes ignoreAttributes)
         {
             var visible = svgVisualElement.Visible;
-            var ignoreDisplay = ignoreAttributes.HasFlag(Attributes.Display);
+            var ignoreDisplay = ignoreAttributes.HasFlag(DrawAttributes.Display);
             var display = ignoreDisplay || !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
             return visible && display;
         }
@@ -43,7 +43,7 @@ namespace Svg.Model
                 return;
             }
 
-            if (!CanDraw(svgVisualElement, Attributes.None))
+            if (!CanDraw(svgVisualElement, DrawAttributes.None))
             {
                 return;
             }
@@ -231,7 +231,7 @@ namespace Svg.Model
                             break;
                         }
 
-                        if (!CanDraw(svgReferencedVisualElement, Attributes.None))
+                        if (!CanDraw(svgReferencedVisualElement, DrawAttributes.None))
                         {
                             break;
                         }
@@ -265,7 +265,7 @@ namespace Svg.Model
             {
                 if (svgElement is SvgVisualElement visualChild)
                 {
-                    if (!CanDraw(visualChild, Attributes.None))
+                    if (!CanDraw(visualChild, DrawAttributes.None))
                     {
                         continue;
                     }
@@ -349,7 +349,7 @@ namespace Svg.Model
             }
         }
 
-        internal static void GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, ClipPath clipPath)
+        internal static void GetSvgVisualElementClipPath(SvgVisualElement? svgVisualElement, SKRect skBounds, HashSet<Uri> uris, ClipPath clipPath)
         {
             if (svgVisualElement?.ClipPath is null)
             {
@@ -398,7 +398,7 @@ namespace Svg.Model
             {
                 return default;
             }
-            var maskDrawable = MaskDrawable.Create(svgMaskRef, skBounds, null, assetLoader, Attributes.None);
+            var maskDrawable = MaskDrawable.Create(svgMaskRef, skBounds, null, assetLoader);
             return maskDrawable;
         }
     }

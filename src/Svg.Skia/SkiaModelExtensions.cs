@@ -366,14 +366,14 @@ namespace Svg.Skia
             return new(cropRect.Rect.ToSKRect());
         }
 
-        public static SkiaSharp.SKColorChannel ToSKColorChannel(this ColorChannel colorChannel)
+        public static SkiaSharp.SKColorChannel ToSKColorChannel(this SKColorChannel colorChannel)
         {
             return colorChannel switch
             {
-                ColorChannel.R => SkiaSharp.SKColorChannel.R,
-                ColorChannel.G => SkiaSharp.SKColorChannel.G,
-                ColorChannel.B => SkiaSharp.SKColorChannel.B,
-                ColorChannel.A => SkiaSharp.SKColorChannel.A,
+                SKColorChannel.R => SkiaSharp.SKColorChannel.R,
+                SKColorChannel.G => SkiaSharp.SKColorChannel.G,
+                SKColorChannel.B => SkiaSharp.SKColorChannel.B,
+                SKColorChannel.A => SkiaSharp.SKColorChannel.A,
                 _ => SkiaSharp.SKColorChannel.R
             };
         }

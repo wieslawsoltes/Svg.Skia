@@ -84,7 +84,7 @@ namespace Svg.Model.Painting
             };
         }
 
-        public static SKImageFilter CreateDisplacementMapEffect(ColorChannel xChannelSelector, ColorChannel yChannelSelector, float scale, SKImageFilter displacement, SKImageFilter? input = null, SKCropRect? cropRect = null)
+        public static SKImageFilter CreateDisplacementMapEffect(SKColorChannel xChannelSelector, SKColorChannel yChannelSelector, float scale, SKImageFilter displacement, SKImageFilter? input = null, SKCropRect? cropRect = null)
         {
             return new DisplacementMapEffectImageFilter
             {

@@ -13,7 +13,7 @@ namespace Svg.Model
     {
         private const string MimeTypeSvg = "image/svg+xml";
 
-        private static byte[] s_gZipMagicHeaderBytes => new byte[2] { 0x1f, 0x8b };
+        private static byte[] GZipMagicHeaderBytes => new byte[] { 0x1f, 0x8b };
 
         static SvgModelExtensions()
         {
@@ -92,7 +92,7 @@ namespace Svg.Model
             }
 
             var headerStartIndex = 5;
-            var headerEndIndex = uriString.IndexOf(",", headerStartIndex);
+            var headerEndIndex = uriString.IndexOf(",", headerStartIndex, StringComparison.Ordinal);
             if (headerEndIndex < 0 || headerEndIndex + 1 >= uriString.Length)
             {
                 throw new Exception("Invalid data URI");
@@ -139,7 +139,7 @@ namespace Svg.Model
                     var bytes = Convert.FromBase64String(data);
                     if (bytes.Length > 2)
                     {
-                        var isCompressed = bytes[0] == s_gZipMagicHeaderBytes[0] && bytes[1] == s_gZipMagicHeaderBytes[1];
+                        var isCompressed = bytes[0] == GZipMagicHeaderBytes[0] && bytes[1] == GZipMagicHeaderBytes[1];
                         if (isCompressed)
                         {
                             using var bytesStream = new System.IO.MemoryStream(bytes);
@@ -161,7 +161,7 @@ namespace Svg.Model
                     var bytes = Convert.FromBase64String(data);
                     if (bytes.Length > 2)
                     {
-                        var isCompressed = bytes[0] == s_gZipMagicHeaderBytes[0] && bytes[1] == s_gZipMagicHeaderBytes[1];
+                        var isCompressed = bytes[0] == GZipMagicHeaderBytes[0] && bytes[1] == GZipMagicHeaderBytes[1];
                         if (isCompressed)
                         {
                             using var bytesStream = new System.IO.MemoryStream(bytes);

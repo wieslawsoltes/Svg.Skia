@@ -20,10 +20,10 @@ namespace Svg.Model
             return (byte)Math.Round(opacity * (alpha / 255.0) * 255);
         }
 
-        internal static SKColor GetColor(SvgColourServer svgColourServer, float opacity, Attributes ignoreAttributes)
+        internal static SKColor GetColor(SvgColourServer svgColourServer, float opacity, DrawAttributes ignoreAttributes)
         {
             var colour = svgColourServer.Colour;
-            var alpha = ignoreAttributes.HasFlag(Attributes.Opacity) ?
+            var alpha = ignoreAttributes.HasFlag(DrawAttributes.Opacity) ?
                 svgColourServer.Colour.A :
                 CombineWithOpacity(svgColourServer.Colour.A, opacity);
 
@@ -39,7 +39,7 @@ namespace Svg.Model
 
             if (server is SvgColourServer stopColorSvgColourServer)
             {
-                return GetColor(stopColorSvgColourServer, 1f, Attributes.None);
+                return GetColor(stopColorSvgColourServer, 1f, DrawAttributes.None);
             }
 
             return new SKColor(0x00, 0x00, 0x00, 0xFF);
@@ -111,7 +111,7 @@ namespace Svg.Model
             return svgGradientServers;
         }
 
-        private static void GetStopsImpl(SvgGradientServer svgGradientServer, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
+        private static void GetStopsImpl(SvgGradientServer svgGradientServer, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, DrawAttributes ignoreAttributes)
         {
             foreach (var child in svgGradientServer.Children)
             {
@@ -140,7 +140,7 @@ namespace Svg.Model
             }
         }
 
-        internal static void GetStops(List<SvgGradientServer> svgReferencedGradientServers, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
+        internal static void GetStops(List<SvgGradientServer> svgReferencedGradientServers, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, DrawAttributes ignoreAttributes)
         {
             foreach (var svgReferencedGradientServer in svgReferencedGradientServers)
             {
@@ -206,7 +206,7 @@ namespace Svg.Model
             };
         }
 
-        internal static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes, SKColorSpace skColorSpace)
+        internal static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, DrawAttributes ignoreAttributes, SKColorSpace skColorSpace)
         {
             var svgReferencedGradientServers = GetLinkedGradientServer(svgLinearGradientServer, svgVisualElement);
 
@@ -365,7 +365,7 @@ namespace Svg.Model
             }
         }
 
-        internal static SKShader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes, SKColorSpace skColorSpace)
+        internal static SKShader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, DrawAttributes ignoreAttributes, SKColorSpace skColorSpace)
         {
             var svgReferencedGradientServers = GetLinkedGradientServer(svgRadialGradientServer, svgVisualElement);
 
@@ -553,7 +553,7 @@ namespace Svg.Model
             }
         }
 
-        internal static SKPicture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static SKPicture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity, IAssetLoader assetLoader, DrawAttributes ignoreAttributes)
         {
             var skSize = new SKSize(width, height);
             var skBounds = SKRect.Create(skSize);
@@ -562,7 +562,7 @@ namespace Svg.Model
 
             skCanvas.SetMatrix(skMatrix);
 
-            var skPaintOpacity = ignoreAttributes.HasFlag(Attributes.Opacity) ? null : GetOpacityPaint(opacity);
+            var skPaintOpacity = ignoreAttributes.HasFlag(DrawAttributes.Opacity) ? null : GetOpacityPaint(opacity);
             if (skPaintOpacity is { })
             {
                 skCanvas.SaveLayer(skPaintOpacity);
@@ -588,7 +588,7 @@ namespace Svg.Model
             return skPictureRecorder.EndRecording();
         }
 
-        internal static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, IAssetLoader assetLoader, DrawAttributes ignoreAttributes)
         {
             var svgReferencedPatternServers = GetLinkedPatternServer(svgPatternServer, svgVisualElement);
 
@@ -728,7 +728,7 @@ namespace Svg.Model
             return SKShader.CreatePicture(skPicture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, skMatrix, skPicture.CullRect);
         }
 
-        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, SKRect skBounds, SKPaint skPaint, bool forStroke, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, SKRect skBounds, SKPaint skPaint, bool forStroke, IAssetLoader assetLoader, DrawAttributes ignoreAttributes)
         {
             var fallbackServer = SvgPaintServer.None;
             if (server is SvgDeferredPaintServer deferredServer)
@@ -922,7 +922,7 @@ namespace Svg.Model
                 && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
         }
 
-        internal static SKPaint? GetFillPaint(SvgVisualElement svgVisualElement, SKRect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static SKPaint? GetFillPaint(SvgVisualElement svgVisualElement, SKRect skBounds, IAssetLoader assetLoader, DrawAttributes ignoreAttributes)
         {
             var skPaint = new SKPaint
             {
@@ -940,7 +940,7 @@ namespace Svg.Model
             return skPaint;
         }
 
-        internal static SKPaint? GetStrokePaint(SvgVisualElement svgVisualElement, SKRect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static SKPaint? GetStrokePaint(SvgVisualElement svgVisualElement, SKRect skBounds, IAssetLoader assetLoader, DrawAttributes ignoreAttributes)
         {
             var skPaint = new SKPaint
             {

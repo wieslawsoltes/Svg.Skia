@@ -1,7 +1,7 @@
 ﻿
 namespace Svg.Model.Painting.ImageFilters
 {
-    public enum ColorChannel
+    public enum SKColorChannel
     {
         R = 0,
         G = 1,

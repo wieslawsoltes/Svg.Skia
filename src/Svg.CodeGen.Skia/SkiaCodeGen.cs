@@ -675,18 +675,18 @@ namespace Svg.CodeGen.Skia
             return $"new SKImageFilter.CropRect({cropRect.Rect.ToSKRect()})";
         }
 
-        public static string ToSKColorChannel(this ColorChannel colorChannel)
+        public static string ToSKColorChannel(this SKColorChannel colorChannel)
         {
             switch (colorChannel)
             {
                 default:
-                case ColorChannel.R:
+                case SKColorChannel.R:
                     return "SKColorChannel.R";
-                case ColorChannel.G:
+                case SKColorChannel.G:
                     return "SKColorChannel.G";
-                case ColorChannel.B:
+                case SKColorChannel.B:
                     return "SKColorChannel.B";
-                case ColorChannel.A:
+                case SKColorChannel.A:
                     return "SKColorChannel.A";
             }
         }

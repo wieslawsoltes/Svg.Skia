@@ -8,9 +8,9 @@ namespace Svg.Model
     {
         public static CultureInfo? s_systemLanguageOverride = default;
 
-        private static readonly char[] _spaceTab = { ' ', '\t' };
+        private static readonly char[] s_spaceTab = { ' ', '\t' };
 
-        private static readonly char[] _comma = { ',' };
+        private static readonly char[] s_comma = { ',' };
 
         internal static HashSet<string> s_supportedFeatures = new()
         {
@@ -187,7 +187,7 @@ namespace Svg.Model
                 return false;
             }
 
-            var features = requiredFeaturesString.Trim().Split(_spaceTab, StringSplitOptions.RemoveEmptyEntries);
+            var features = requiredFeaturesString.Trim().Split(s_spaceTab, StringSplitOptions.RemoveEmptyEntries);
             if (features.Length <= 0)
             {
                 return false;
@@ -218,7 +218,7 @@ namespace Svg.Model
                return false;
             }
 
-            var extensions = requiredExtensionsString.Trim().Split(_spaceTab, StringSplitOptions.RemoveEmptyEntries);
+            var extensions = requiredExtensionsString.Trim().Split(s_spaceTab, StringSplitOptions.RemoveEmptyEntries);
             if (extensions.Length <= 0)
             {
                 return false;
@@ -249,7 +249,7 @@ namespace Svg.Model
                 return false;
             }
 
-            var languages = systemLanguageString.Trim().Split(_comma, StringSplitOptions.RemoveEmptyEntries);
+            var languages = systemLanguageString.Trim().Split(s_comma, StringSplitOptions.RemoveEmptyEntries);
             if (languages.Length <= 0)
             {
                return false;

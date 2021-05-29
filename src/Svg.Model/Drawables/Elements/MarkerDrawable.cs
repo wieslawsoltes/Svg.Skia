@@ -15,13 +15,13 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static MarkerDrawable Create(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static MarkerDrawable Create(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new MarkerDrawable(assetLoader)
             {
                 Element = svgMarker,
                 Parent = parent,
-                IgnoreAttributes = Attributes.Display | ignoreAttributes,
+                IgnoreAttributes = DrawAttributes.Display | ignoreAttributes,
                 IsDrawable = true
             };
 
@@ -102,7 +102,7 @@ namespace Svg.Model.Drawables.Elements
                     break;
             }
 
-            var markerElementDrawable = DrawableFactory.Create(markerElement, skOwnerBounds, drawable, assetLoader, Attributes.Display);
+            var markerElementDrawable = DrawableFactory.Create(markerElement, skOwnerBounds, drawable, assetLoader, DrawAttributes.Display);
             if (markerElementDrawable is { })
             {
                 drawable.MarkerElementDrawable = markerElementDrawable;
@@ -147,7 +147,7 @@ namespace Svg.Model.Drawables.Elements
             return markerElement;
         }
 
-        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
+        public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)
         {
             if (until is { } && this == until)
             {

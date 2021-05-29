@@ -508,15 +508,15 @@ namespace Svg.Model
             return default;
         }
 
-        private static ColorChannel GetColorChannel(SvgChannelSelector svgChannelSelector)
+        private static SKColorChannel GetColorChannel(SvgChannelSelector svgChannelSelector)
         {
             return svgChannelSelector switch
             {
-                SvgChannelSelector.R => ColorChannel.R,
-                SvgChannelSelector.G => ColorChannel.G,
-                SvgChannelSelector.B => ColorChannel.B,
-                SvgChannelSelector.A => ColorChannel.A,
-                _ => ColorChannel.A
+                SvgChannelSelector.R => SKColorChannel.R,
+                SvgChannelSelector.G => SKColorChannel.G,
+                SvgChannelSelector.B => SKColorChannel.B,
+                SvgChannelSelector.A => SKColorChannel.A,
+                _ => SKColorChannel.A
             };
         }
 
@@ -618,8 +618,9 @@ namespace Svg.Model
                 var skScaleMatrix = SKMatrix.CreateScale(sx, sy);
                 fragmentTransform = fragmentTransform.PreConcat(skTranslationMatrix);
                 fragmentTransform = fragmentTransform.PreConcat(skScaleMatrix);
+                // TODO: fragmentTransform
 
-                var fragmentDrawable = FragmentDrawable.Create(svgFragment, destRect, null, assetLoader, Attributes.None);
+                var fragmentDrawable = FragmentDrawable.Create(svgFragment, destRect, null, assetLoader, DrawAttributes.None);
                 // TODO: fragmentDrawable.Snapshot()
                 var skPicture = fragmentDrawable.Snapshot();
 

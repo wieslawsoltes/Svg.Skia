@@ -13,7 +13,7 @@ namespace Svg.Model.Drawables
         public SvgElement? Element { get; set; }
         public DrawableBase? Parent { get; set; }
         public bool IsDrawable { get; set; }
-        public Attributes IgnoreAttributes { get; set; }
+        public DrawAttributes IgnoreAttributes { get; set; }
         public bool IsAntialias { get; set; }
         public SKRect GeometryBounds { get; set; }
         public SKRect TransformedBounds { get; set; }
@@ -65,24 +65,24 @@ namespace Svg.Model.Drawables
             };
         }
 
-        protected bool HasFeatures(SvgElement svgElement, Attributes ignoreAttributes)
+        protected bool HasFeatures(SvgElement svgElement, DrawAttributes ignoreAttributes)
         {
-            var hasRequiredFeatures = ignoreAttributes.HasFlag(Attributes.RequiredFeatures) || svgElement.HasRequiredFeatures();
-            var hasRequiredExtensions = ignoreAttributes.HasFlag(Attributes.RequiredExtensions) || svgElement.HasRequiredExtensions();
-            var hasSystemLanguage = ignoreAttributes.HasFlag(Attributes.SystemLanguage) || svgElement.HasSystemLanguage();
+            var hasRequiredFeatures = ignoreAttributes.HasFlag(DrawAttributes.RequiredFeatures) || svgElement.HasRequiredFeatures();
+            var hasRequiredExtensions = ignoreAttributes.HasFlag(DrawAttributes.RequiredExtensions) || svgElement.HasRequiredExtensions();
+            var hasSystemLanguage = ignoreAttributes.HasFlag(DrawAttributes.SystemLanguage) || svgElement.HasSystemLanguage();
             return hasRequiredFeatures && hasRequiredExtensions && hasSystemLanguage;
         }
 
-        protected bool CanDraw(SvgVisualElement svgVisualElement, Attributes ignoreAttributes)
+        protected bool CanDraw(SvgVisualElement svgVisualElement, DrawAttributes ignoreAttributes)
         {
-            var isVisible = ignoreAttributes.HasFlag(Attributes.Visibility) || string.Equals(svgVisualElement.Visibility, "visible", StringComparison.OrdinalIgnoreCase);
-            var isDisplay = ignoreAttributes.HasFlag(Attributes.Display) || !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
+            var isVisible = ignoreAttributes.HasFlag(DrawAttributes.Visibility) || string.Equals(svgVisualElement.Visibility, "visible", StringComparison.OrdinalIgnoreCase);
+            var isDisplay = ignoreAttributes.HasFlag(DrawAttributes.Display) || !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
             return isVisible && isDisplay;
         }
 
-        public abstract void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until);
+        public abstract void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until);
 
-        public virtual void Draw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until, bool enableTransform)
+        public virtual void Draw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until, bool enableTransform)
         {
             if (!IsDrawable)
             {
@@ -94,10 +94,10 @@ namespace Svg.Model.Drawables
                 return;
             }
 
-            var enableClip = !ignoreAttributes.HasFlag(Attributes.ClipPath);
-            var enableMask = !ignoreAttributes.HasFlag(Attributes.Mask);
-            var enableOpacity = !ignoreAttributes.HasFlag(Attributes.Opacity);
-            var enableFilter = !ignoreAttributes.HasFlag(Attributes.Filter);
+            var enableClip = !ignoreAttributes.HasFlag(DrawAttributes.ClipPath);
+            var enableMask = !ignoreAttributes.HasFlag(DrawAttributes.Mask);
+            var enableOpacity = !ignoreAttributes.HasFlag(DrawAttributes.Opacity);
+            var enableFilter = !ignoreAttributes.HasFlag(DrawAttributes.Filter);
 
             canvas.Save();
 
@@ -178,10 +178,10 @@ namespace Svg.Model.Drawables
 
             var visualElement = element as SvgVisualElement;
 
-            var enableClip = !IgnoreAttributes.HasFlag(Attributes.ClipPath);
-            var enableMask = !IgnoreAttributes.HasFlag(Attributes.Mask);
-            var enableOpacity = !IgnoreAttributes.HasFlag(Attributes.Opacity);
-            var enableFilter = !IgnoreAttributes.HasFlag(Attributes.Filter);
+            var enableClip = !IgnoreAttributes.HasFlag(DrawAttributes.ClipPath);
+            var enableMask = !IgnoreAttributes.HasFlag(DrawAttributes.Mask);
+            var enableOpacity = !IgnoreAttributes.HasFlag(DrawAttributes.Opacity);
+            var enableFilter = !IgnoreAttributes.HasFlag(DrawAttributes.Filter);
 
             if (visualElement is { } && enableClip)
             {
@@ -288,7 +288,7 @@ namespace Svg.Model.Drawables
             return null;
         }
 
-        public SKPicture? RecordGraphic(DrawableBase? drawable, Attributes ignoreAttributes)
+        public SKPicture? RecordGraphic(DrawableBase? drawable, DrawAttributes ignoreAttributes)
         {
             // TODO: Record using ColorSpace.CreateSrgbLinear because .color-interpolation-filters. is by default linearRGB.
             if (drawable is null)
@@ -315,7 +315,7 @@ namespace Svg.Model.Drawables
             return skPictureRecorder.EndRecording();
         }
 
-        public SKPicture? RecordBackground(DrawableBase? drawable, Attributes ignoreAttributes)
+        public SKPicture? RecordBackground(DrawableBase? drawable, DrawAttributes ignoreAttributes)
         {
             // TODO: Record using ColorSpace.CreateSrgbLinear because 'color-interpolation-filters' is by default linearRGB.
             if (drawable is null)
@@ -348,7 +348,7 @@ namespace Svg.Model.Drawables
             return skPictureRecorder.EndRecording();
         }
 
-        private const Attributes FilterInput = Attributes.ClipPath | Attributes.Mask | Attributes.Opacity | Attributes.Filter;
+        private const DrawAttributes FilterInput = DrawAttributes.ClipPath | DrawAttributes.Mask | DrawAttributes.Opacity | DrawAttributes.Filter;
 
         SKPicture? IFilterSource.SourceGraphic() => RecordGraphic(this, FilterInput);
 

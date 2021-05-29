@@ -9,7 +9,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static AnchorDrawable Create(SvgAnchor svgAnchor, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static AnchorDrawable Create(SvgAnchor svgAnchor, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new AnchorDrawable(assetLoader)
             {
@@ -39,7 +39,7 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.ClipPath = null;
             drawable.MaskDrawable = null;
-            drawable.Opacity = drawable.IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgModelExtensions.GetOpacityPaint(svgAnchor);
+            drawable.Opacity = drawable.IgnoreAttributes.HasFlag(DrawAttributes.Opacity) ? null : SvgModelExtensions.GetOpacityPaint(svgAnchor);
             drawable.Filter = null;
 
             return drawable;
@@ -53,7 +53,7 @@ namespace Svg.Model.Drawables.Elements
                 return;
             }
 
-            var enableOpacity = !IgnoreAttributes.HasFlag(Attributes.Opacity);
+            var enableOpacity = !IgnoreAttributes.HasFlag(DrawAttributes.Opacity);
 
             ClipPath = null;
             MaskDrawable = null;

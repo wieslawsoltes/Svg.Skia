@@ -46,10 +46,12 @@ namespace Svg.Model.Primitives
 
         public static SKMatrix CreateScale(float x, float y)
         {
+            // ReSharper disable CompareOfFloatsByEqualityOperator
             if (x == 1 && y == 1)
             {
                 return Identity;
             }
+            // ReSharper restore CompareOfFloatsByEqualityOperator
 
             return new SKMatrix
             {
@@ -61,10 +63,12 @@ namespace Svg.Model.Primitives
 
         public static SKMatrix CreateScale(float x, float y, float pivotX, float pivotY)
         {
+            // ReSharper disable CompareOfFloatsByEqualityOperator
             if (x == 1 && y == 1)
             {
                 return Identity;
             }
+            // ReSharper restore CompareOfFloatsByEqualityOperator
 
             var tx = pivotX - x * pivotX;
             var ty = pivotY - y * pivotY;
@@ -238,12 +242,14 @@ namespace Svg.Model.Primitives
 
         public bool Equals(SKMatrix other)
         {
+            // ReSharper disable CompareOfFloatsByEqualityOperator
             return ScaleX == other.ScaleX &&
                    SkewY == other.SkewY &&
                    SkewX == other.SkewX &&
                    ScaleY == other.ScaleY &&
                    TransX == other.TransX &&
                    TransY == other.TransY;
+            // ReSharper restore CompareOfFloatsByEqualityOperator
         }
 
         public override bool Equals(object? obj) => obj is SKMatrix other && Equals(other);

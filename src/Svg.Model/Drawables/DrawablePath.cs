@@ -19,7 +19,7 @@ namespace Svg.Model.Drawables
             MarkerDrawables.Add(drawable);
         }
 
-        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
+        public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)
         {
             if (until is { } && this == until)
             {

@@ -3,7 +3,7 @@
 namespace Svg.Model
 {
     [Flags]
-    public enum Attributes
+    public enum DrawAttributes
     {
         None = 0,
         Display = 1,

@@ -106,7 +106,7 @@ namespace Svg.Model
             return _deviceValue.Value;
         }
 
-        internal static void GetOptionalNumbers(this SvgNumberCollection svgNumberCollection, float defaultValue1, float defaultValue2, out float value1, out float value2)
+        internal static void GetOptionalNumbers(this SvgNumberCollection? svgNumberCollection, float defaultValue1, float defaultValue2, out float value1, out float value2)
         {
             value1 = defaultValue1;
             value2 = defaultValue2;
@@ -197,7 +197,7 @@ namespace Svg.Model
             };
         }
 
-        internal static SKMatrix ToMatrix(this SvgTransformCollection svgTransformCollection)
+        internal static SKMatrix ToMatrix(this SvgTransformCollection? svgTransformCollection)
         {
             var skMatrixTotal = SKMatrix.CreateIdentity();
 
