@@ -87,6 +87,7 @@ namespace ShimSkiaSharp.Primitives
                 TotalMatrix = _totalMatrices.Pop();
                 _saveCount--;
             }
+
             Commands?.Add(new RestoreCanvasCommand(_saveCount));
         }
     }

@@ -1,5 +1,4 @@
-﻿
-namespace ShimSkiaSharp.Painting.ColorFilters
+﻿namespace ShimSkiaSharp.Painting.ColorFilters
 {
     public sealed class LumaColorColorFilter : SKColorFilter
     {

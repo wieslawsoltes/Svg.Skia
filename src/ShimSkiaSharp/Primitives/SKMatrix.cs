@@ -18,13 +18,13 @@ namespace ShimSkiaSharp.Primitives
 
         public static readonly SKMatrix Empty;
 
-        public static readonly SKMatrix Identity = new() { ScaleX = 1, ScaleY = 1, Persp2 = 1 };
+        public static readonly SKMatrix Identity = new() {ScaleX = 1, ScaleY = 1, Persp2 = 1};
 
         public bool IsIdentity => Equals(Identity);
 
         public static SKMatrix CreateIdentity()
         {
-            return new() { ScaleX = 1, ScaleY = 1, Persp2 = 1 };
+            return new() {ScaleX = 1, ScaleY = 1, Persp2 = 1};
         }
 
         public static SKMatrix CreateTranslation(float x, float y)
@@ -270,7 +270,7 @@ namespace ShimSkiaSharp.Primitives
         {
             return !value1.Equals(value2);
         }
-        
+
         public override string ToString()
         {
             return FormattableString.Invariant($"{ScaleX}, {SkewX}, {TransX}, {SkewY}, {ScaleY}, {TransY}");

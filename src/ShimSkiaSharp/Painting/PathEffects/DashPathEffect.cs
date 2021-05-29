@@ -1,5 +1,4 @@
-﻿
-namespace ShimSkiaSharp.Painting.PathEffects
+﻿namespace ShimSkiaSharp.Painting.PathEffects
 {
     public class DashPathEffect : SKPathEffect
     {

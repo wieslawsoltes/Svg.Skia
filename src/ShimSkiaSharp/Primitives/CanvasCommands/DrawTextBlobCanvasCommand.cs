@@ -1,5 +1,4 @@
-﻿
-using ShimSkiaSharp.Painting;
+﻿using ShimSkiaSharp.Painting;
 
 namespace ShimSkiaSharp.Primitives.CanvasCommands
 {

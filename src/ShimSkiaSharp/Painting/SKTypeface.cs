@@ -1,5 +1,4 @@
-﻿
-namespace ShimSkiaSharp.Painting
+﻿namespace ShimSkiaSharp.Painting
 {
     public class SKTypeface
     {

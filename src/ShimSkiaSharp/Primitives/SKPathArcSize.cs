@@ -1,5 +1,4 @@
-﻿
-namespace ShimSkiaSharp.Primitives
+﻿namespace ShimSkiaSharp.Primitives
 {
     public enum SKPathArcSize
     {

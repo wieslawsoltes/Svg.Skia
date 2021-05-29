@@ -40,92 +40,92 @@ namespace ShimSkiaSharp.Primitives
                 switch (pathCommand)
                 {
                     case MoveToPathCommand moveToPathCommand:
-                        {
-                            var x = moveToPathCommand.X;
-                            var y = moveToPathCommand.Y;
-                            ComputePointBounds(x, y, ref bounds);
-                        }
+                    {
+                        var x = moveToPathCommand.X;
+                        var y = moveToPathCommand.Y;
+                        ComputePointBounds(x, y, ref bounds);
+                    }
                         break;
                     case LineToPathCommand lineToPathCommand:
-                        {
-                            var x = lineToPathCommand.X;
-                            var y = lineToPathCommand.Y;
-                            ComputePointBounds(x, y, ref bounds);
-                        }
+                    {
+                        var x = lineToPathCommand.X;
+                        var y = lineToPathCommand.Y;
+                        ComputePointBounds(x, y, ref bounds);
+                    }
                         break;
                     case ArcToPathCommand arcToPathCommand:
-                        {
-                            var x = arcToPathCommand.X;
-                            var y = arcToPathCommand.Y;
-                            ComputePointBounds(x, y, ref bounds);
-                        }
+                    {
+                        var x = arcToPathCommand.X;
+                        var y = arcToPathCommand.Y;
+                        ComputePointBounds(x, y, ref bounds);
+                    }
                         break;
                     case QuadToPathCommand quadToPathCommand:
-                        {
-                            var x0 = quadToPathCommand.X0;
-                            var y0 = quadToPathCommand.Y0;
-                            var x1 = quadToPathCommand.X1;
-                            var y1 = quadToPathCommand.Y1;
-                            ComputePointBounds(x0, y0, ref bounds);
-                            ComputePointBounds(x1, y1, ref bounds);
-                        }
+                    {
+                        var x0 = quadToPathCommand.X0;
+                        var y0 = quadToPathCommand.Y0;
+                        var x1 = quadToPathCommand.X1;
+                        var y1 = quadToPathCommand.Y1;
+                        ComputePointBounds(x0, y0, ref bounds);
+                        ComputePointBounds(x1, y1, ref bounds);
+                    }
                         break;
                     case CubicToPathCommand cubicToPathCommand:
-                        {
-                            var x0 = cubicToPathCommand.X0;
-                            var y0 = cubicToPathCommand.Y0;
-                            var x1 = cubicToPathCommand.X1;
-                            var y1 = cubicToPathCommand.Y1;
-                            var x2 = cubicToPathCommand.X2;
-                            var y2 = cubicToPathCommand.Y2;
-                            ComputePointBounds(x0, y0, ref bounds);
-                            ComputePointBounds(x1, y1, ref bounds);
-                            ComputePointBounds(x2, y2, ref bounds);
-                        }
+                    {
+                        var x0 = cubicToPathCommand.X0;
+                        var y0 = cubicToPathCommand.Y0;
+                        var x1 = cubicToPathCommand.X1;
+                        var y1 = cubicToPathCommand.Y1;
+                        var x2 = cubicToPathCommand.X2;
+                        var y2 = cubicToPathCommand.Y2;
+                        ComputePointBounds(x0, y0, ref bounds);
+                        ComputePointBounds(x1, y1, ref bounds);
+                        ComputePointBounds(x2, y2, ref bounds);
+                    }
                         break;
                     case ClosePathCommand _:
                         break;
                     case AddRectPathCommand addRectPathCommand:
-                        {
-                            var rect = addRectPathCommand.Rect;
-                            ComputePointBounds(rect.Left, rect.Top, ref bounds);
-                            ComputePointBounds(rect.Right, rect.Bottom, ref bounds);
-                        }
+                    {
+                        var rect = addRectPathCommand.Rect;
+                        ComputePointBounds(rect.Left, rect.Top, ref bounds);
+                        ComputePointBounds(rect.Right, rect.Bottom, ref bounds);
+                    }
                         break;
                     case AddRoundRectPathCommand addRoundRectPathCommand:
-                        {
-                            var rect = addRoundRectPathCommand.Rect;
-                            ComputePointBounds(rect.Left, rect.Top, ref bounds);
-                            ComputePointBounds(rect.Right, rect.Bottom, ref bounds);
-                        }
+                    {
+                        var rect = addRoundRectPathCommand.Rect;
+                        ComputePointBounds(rect.Left, rect.Top, ref bounds);
+                        ComputePointBounds(rect.Right, rect.Bottom, ref bounds);
+                    }
                         break;
                     case AddOvalPathCommand addOvalPathCommand:
-                        {
-                            var rect = addOvalPathCommand.Rect;
-                            ComputePointBounds(rect.Left, rect.Top, ref bounds);
-                            ComputePointBounds(rect.Right, rect.Bottom, ref bounds);
-                        }
+                    {
+                        var rect = addOvalPathCommand.Rect;
+                        ComputePointBounds(rect.Left, rect.Top, ref bounds);
+                        ComputePointBounds(rect.Right, rect.Bottom, ref bounds);
+                    }
                         break;
                     case AddCirclePathCommand addCirclePathCommand:
-                        {
-                            var x = addCirclePathCommand.X;
-                            var y = addCirclePathCommand.Y;
-                            var radius = addCirclePathCommand.Radius;
-                            ComputePointBounds(x - radius, y - radius, ref bounds);
-                            ComputePointBounds(x + radius, y + radius, ref bounds);
-                        }
+                    {
+                        var x = addCirclePathCommand.X;
+                        var y = addCirclePathCommand.Y;
+                        var radius = addCirclePathCommand.Radius;
+                        ComputePointBounds(x - radius, y - radius, ref bounds);
+                        ComputePointBounds(x + radius, y + radius, ref bounds);
+                    }
                         break;
                     case AddPolyPathCommand addPolyPathCommand:
+                    {
+                        if (addPolyPathCommand.Points is { })
                         {
-                            if (addPolyPathCommand.Points is { })
+                            var points = addPolyPathCommand.Points;
+                            foreach (var point in points)
                             {
-                                var points = addPolyPathCommand.Points;
-                                foreach (var point in points)
-                                {
-                                    ComputePointBounds(point.X, point.Y, ref bounds);
-                                }
+                                ComputePointBounds(point.X, point.Y, ref bounds);
                             }
                         }
+                    }
                         break;
                 }
             }

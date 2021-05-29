@@ -1,5 +1,4 @@
-﻿
-namespace ShimSkiaSharp.Primitives.PathCommands
+﻿namespace ShimSkiaSharp.Primitives.PathCommands
 {
     public sealed class MoveToPathCommand : PathCommand
     {

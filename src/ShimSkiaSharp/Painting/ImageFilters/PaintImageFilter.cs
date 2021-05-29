@@ -1,5 +1,4 @@
-﻿
-namespace ShimSkiaSharp.Painting.ImageFilters
+﻿namespace ShimSkiaSharp.Painting.ImageFilters
 {
     public sealed class PaintImageFilter : SKImageFilter
     {

@@ -1,5 +1,4 @@
-﻿
-namespace ShimSkiaSharp.Primitives.CanvasCommands
+﻿namespace ShimSkiaSharp.Primitives.CanvasCommands
 {
     public sealed class RestoreCanvasCommand : CanvasCommand
     {
