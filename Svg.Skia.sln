@@ -101,6 +101,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "samples\TestApp\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "externals", "externals", "{C5FFCF4B-86DC-453E-8006-44EE9EEFEE39}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShimShiaSharp", "src\ShimShiaSharp\ShimShiaSharp.csproj", "{6D2786A1-F110-4448-9CBF-D3CC9D803F31}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -185,6 +187,10 @@ Global
 		{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D2786A1-F110-4448-9CBF-D3CC9D803F31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D2786A1-F110-4448-9CBF-D3CC9D803F31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D2786A1-F110-4448-9CBF-D3CC9D803F31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D2786A1-F110-4448-9CBF-D3CC9D803F31}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -213,6 +219,7 @@ Global
 		{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
 		{CFA46E73-0050-4C57-85CE-6C5868A2483C} = {C5FFCF4B-86DC-453E-8006-44EE9EEFEE39}
 		{AF8AEF5B-0664-4106-9BD3-389758F39B12} = {C5FFCF4B-86DC-453E-8006-44EE9EEFEE39}
+		{6D2786A1-F110-4448-9CBF-D3CC9D803F31} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12D5E557-A27B-4FB2-83A3-4AC75B04B22C}
