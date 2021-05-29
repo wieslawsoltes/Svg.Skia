@@ -230,7 +230,7 @@ namespace Svg.Model
             bounds = fragmentBounds;
             return drawable;
         }
-
+#if !USE_SKIASHARP
         public static SKPicture? ToModel(SvgFragment svgFragment, IAssetLoader assetLoader)
         {
             var drawable = ToDrawable(svgFragment, assetLoader, out var bounds);
@@ -241,7 +241,7 @@ namespace Svg.Model
             var picture = drawable.Snapshot(bounds.Value);
             return picture;
         }
-
+#endif
         public static SvgDocument? OpenSvg(string path)
         {
             return SvgDocument.Open<SvgDocument>(path, null);
