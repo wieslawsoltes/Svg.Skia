@@ -1171,14 +1171,7 @@ namespace Svg.Model
             var fontWeight = ToFontStyleWeight(svgText.FontWeight);
             var fontWidth = ToFontStyleWidth(svgText.FontStretch);
             var fontStyle = ToFontStyleSlant(svgText.FontStyle);
-
-            skPaint.Typeface = new SKTypeface
-            {
-                FamilyName = fontFamily,
-                FontWeight = fontWeight,
-                FontWidth = fontWidth,
-                Style = fontStyle
-            };
+            skPaint.Typeface = SKTypeface.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
         }
 
         internal static void SetPaintText(SvgTextBase svgText, SKRect skBounds, SKPaint skPaint)
