@@ -1,6 +1,10 @@
 ﻿using System.Collections.Generic;
-
+#if USE_SKIASHARP
+using SkiaSharp;
+namespace SkiaSharp
+#else
 namespace ShimSkiaSharp.Primitives
+#endif
 {
     public class ClipPath
     {
