@@ -1,5 +1,5 @@
 ﻿using System;
-using Svg.Model.Primitives;
+using ShimSkiaSharp.Primitives;
 using Svg.Transforms;
 
 namespace Svg.Model

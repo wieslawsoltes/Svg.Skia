@@ -1,5 +1,5 @@
 ﻿using Svg.Document_Structure;
-using Svg.Model.Primitives;
+using ShimSkiaSharp.Primitives;
 
 namespace Svg.Model.Drawables.Elements
 {

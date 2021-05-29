@@ -2,7 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Metadata;
-using Svg.Model.Primitives;
+using ShimSkiaSharp.Primitives;
 
 namespace Avalonia.Svg
 {

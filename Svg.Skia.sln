@@ -101,7 +101,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "samples\TestApp\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "externals", "externals", "{C5FFCF4B-86DC-453E-8006-44EE9EEFEE39}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShimShiaSharp", "src\ShimShiaSharp\ShimShiaSharp.csproj", "{6D2786A1-F110-4448-9CBF-D3CC9D803F31}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShimSkiaSharp", "src\ShimSkiaSharp\ShimSkiaSharp.csproj", "{6D2786A1-F110-4448-9CBF-D3CC9D803F31}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

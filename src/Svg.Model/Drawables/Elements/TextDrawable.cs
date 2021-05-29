@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
-using Svg.Model.Painting;
-using Svg.Model.Primitives;
+using ShimSkiaSharp.Painting;
+using ShimSkiaSharp.Primitives;
 
 namespace Svg.Model.Drawables.Elements
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using Avalonia.Platform;
-using Svg.Model.Primitives;
+using ShimSkiaSharp.Primitives;
 using SM = Svg.Model;
 using SP = Svg.Model;
 

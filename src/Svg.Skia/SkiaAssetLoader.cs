@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using Svg.Model;
-using Svg.Model.Primitives;
+using ShimSkiaSharp.Primitives;
 
 namespace Svg.Skia
 {

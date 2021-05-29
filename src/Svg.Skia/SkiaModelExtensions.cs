@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
-using Svg.Model.Painting;
-using Svg.Model.Painting.ColorFilters;
-using Svg.Model.Painting.ImageFilters;
-using Svg.Model.Painting.PathEffects;
-using Svg.Model.Painting.Shaders;
-using Svg.Model.Primitives;
-using Svg.Model.Primitives.CanvasCommands;
-using Svg.Model.Primitives.PathCommands;
+using ShimSkiaSharp.Painting;
+using ShimSkiaSharp.Painting.ColorFilters;
+using ShimSkiaSharp.Painting.ImageFilters;
+using ShimSkiaSharp.Painting.PathEffects;
+using ShimSkiaSharp.Painting.Shaders;
+using ShimSkiaSharp.Primitives;
+using ShimSkiaSharp.Primitives.CanvasCommands;
+using ShimSkiaSharp.Primitives.PathCommands;
 
 namespace Svg.Skia
 {

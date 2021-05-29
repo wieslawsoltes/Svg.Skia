@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using Svg.FilterEffects;
 using Svg.Model.Drawables;
-using Svg.Model.Painting;
-using Svg.Model.Primitives;
+using ShimSkiaSharp.Painting;
+using ShimSkiaSharp.Primitives;
 
 namespace Svg.Model
 {

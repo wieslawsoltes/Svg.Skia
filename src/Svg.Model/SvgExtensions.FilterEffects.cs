@@ -4,10 +4,10 @@ using System.Globalization;
 using Svg.FilterEffects;
 using Svg.Model.Drawables;
 using Svg.Model.Drawables.Elements;
-using Svg.Model.Painting;
-using Svg.Model.Painting.ImageFilters;
-using Svg.Model.Painting.Shaders;
-using Svg.Model.Primitives;
+using ShimSkiaSharp.Painting;
+using ShimSkiaSharp.Painting.ImageFilters;
+using ShimSkiaSharp.Painting.Shaders;
+using ShimSkiaSharp.Primitives;
 
 namespace Svg.Model
 {

@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Globalization;
 using Svg.Model.Drawables.Elements;
-using Svg.Model.Painting;
-using Svg.Model.Primitives;
+using ShimSkiaSharp.Painting;
+using ShimSkiaSharp.Primitives;
 
 namespace Svg.Model.Drawables
 {

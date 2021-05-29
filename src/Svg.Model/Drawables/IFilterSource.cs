@@ -1,5 +1,5 @@
-﻿using Svg.Model.Painting;
-using Svg.Model.Primitives;
+﻿using ShimSkiaSharp.Painting;
+using ShimSkiaSharp.Primitives;
 
 namespace Svg.Model.Drawables
 {

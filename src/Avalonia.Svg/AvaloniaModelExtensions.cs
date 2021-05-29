@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Svg.Model.Painting;
-using Svg.Model.Painting.PathEffects;
-using Svg.Model.Painting.Shaders;
-using Svg.Model.Primitives;
-using Svg.Model.Primitives.PathCommands;
+using ShimSkiaSharp.Painting;
+using ShimSkiaSharp.Painting.PathEffects;
+using ShimSkiaSharp.Painting.Shaders;
+using ShimSkiaSharp.Primitives;
+using ShimSkiaSharp.Primitives.PathCommands;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AMI = Avalonia.Media.Imaging;

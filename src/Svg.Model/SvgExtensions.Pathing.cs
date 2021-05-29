@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Svg.Model.Primitives;
-using Svg.Model.Primitives.PathCommands;
+using ShimSkiaSharp.Primitives;
+using ShimSkiaSharp.Primitives.PathCommands;
 using Svg.Pathing;
 
 namespace Svg.Model

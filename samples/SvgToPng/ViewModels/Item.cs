@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 using Svg;
-using Svg.Model.Primitives;
+using ShimSkiaSharp.Primitives;
 
 namespace SvgToPng.ViewModels
 {
