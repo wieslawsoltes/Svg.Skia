@@ -1175,8 +1175,8 @@ namespace Svg.Model
             skPaint.Typeface = new SKTypeface
             {
                 FamilyName = fontFamily,
-                Weight = fontWeight,
-                Width = fontWidth,
+                FontWeight = fontWeight,
+                FontWidth = fontWidth,
                 Style = fontStyle
             };
         }

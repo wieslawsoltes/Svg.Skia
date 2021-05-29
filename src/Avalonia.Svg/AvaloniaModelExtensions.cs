@@ -184,8 +184,8 @@ namespace Avalonia.Svg
             }
 
             var familyName = typeface.FamilyName;
-            var weight = typeface.Weight.ToFontWeight();
-            // TODO: typeface.Weight
+            var weight = typeface.FontWeight.ToFontWeight();
+            // TODO: typeface.FontWidth
             var slant = typeface.Style.ToFontStyle();
 
             return new AM.Typeface(familyName, slant, weight);

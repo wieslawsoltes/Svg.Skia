@@ -178,8 +178,8 @@ namespace Svg.Skia
             if (typeface is null || typeface.FamilyName is null) return SkiaSharp.SKTypeface.Default;
 
             var fontFamily = typeface.FamilyName;
-            var fontWeight = typeface.Weight.ToSKFontStyleWeight();
-            var fontWidth = typeface.Width.ToSKFontStyleWidth();
+            var fontWeight = typeface.FontWeight.ToSKFontStyleWeight();
+            var fontWidth = typeface.FontWidth.ToSKFontStyleWidth();
             var fontStyle = typeface.Style.ToSKFontStyleSlant();
 
             if (SKSvgSettings.s_typefaceProviders is { } && SKSvgSettings.s_typefaceProviders.Count > 0)
