@@ -11,7 +11,6 @@ using AMI = Avalonia.Media.Imaging;
 using AMII = Avalonia.Media.Immutable;
 using AP = Avalonia.Platform;
 using AVMI = Avalonia.Visuals.Media.Imaging;
-using SP = Svg.Model;
 
 namespace Avalonia.Svg
 {
