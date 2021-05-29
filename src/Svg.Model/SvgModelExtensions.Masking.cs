@@ -36,7 +36,7 @@ namespace Svg.Model
             };
         }
 
-        internal static void GetClipPath(SvgVisualElement svgVisualElement, Rect skBounds, HashSet<Uri> uris, ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
+        internal static void GetClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
         {
             if (clipPath is null)
             {
@@ -259,7 +259,7 @@ namespace Svg.Model
             }
         }
 
-        private static void GetClipPath(SvgElementCollection svgElementCollection, Rect skBounds, HashSet<Uri> uris, ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
+        private static void GetClipPath(SvgElementCollection svgElementCollection, SKRect skBounds, HashSet<Uri> uris, ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
         {
             foreach (var svgElement in svgElementCollection)
             {
@@ -274,7 +274,7 @@ namespace Svg.Model
             }
         }
 
-        internal static void GetClipPathClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, ClipPath? clipPath)
+        internal static void GetClipPathClipPath(SvgClipPath svgClipPath, SKRect skBounds, HashSet<Uri> uris, ClipPath? clipPath)
         {
             if (clipPath is null)
             {
@@ -289,14 +289,14 @@ namespace Svg.Model
 
             GetClipPath(svgClipPathRef, skBounds, uris, clipPath);
 
-            var skMatrix = Matrix.CreateIdentity();
+            var skMatrix = SKMatrix.CreateIdentity();
 
             if (svgClipPathRef.ClipPathUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
-                var skScaleMatrix = Matrix.CreateScale(skBounds.Width, skBounds.Height);
+                var skScaleMatrix = SKMatrix.CreateScale(skBounds.Width, skBounds.Height);
                 skMatrix = skMatrix.PostConcat(skScaleMatrix);
 
-                var skTranslateMatrix = Matrix.CreateTranslation(skBounds.Left, skBounds.Top);
+                var skTranslateMatrix = SKMatrix.CreateTranslation(skBounds.Left, skBounds.Top);
                 skMatrix = skMatrix.PostConcat(skTranslateMatrix);
             }
 
@@ -307,7 +307,7 @@ namespace Svg.Model
             clipPath.Transform = skMatrix;
         }
 
-        internal static void GetClipPath(SvgClipPath svgClipPath, Rect skBounds, HashSet<Uri> uris, ClipPath? clipPath)
+        internal static void GetClipPath(SvgClipPath svgClipPath, SKRect skBounds, HashSet<Uri> uris, ClipPath? clipPath)
         {
             if (clipPath is null)
             {
@@ -320,14 +320,14 @@ namespace Svg.Model
 
             GetClipPath(svgClipPath.Children, skBounds, uris, clipPath, clipPathClipRule);
 
-            var skMatrix = Matrix.CreateIdentity();
+            var skMatrix = SKMatrix.CreateIdentity();
 
             if (svgClipPath.ClipPathUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
-                var skScaleMatrix = Matrix.CreateScale(skBounds.Width, skBounds.Height);
+                var skScaleMatrix = SKMatrix.CreateScale(skBounds.Width, skBounds.Height);
                 skMatrix = skMatrix.PostConcat(skScaleMatrix);
 
-                var skTranslateMatrix = Matrix.CreateTranslation(skBounds.Left, skBounds.Top);
+                var skTranslateMatrix = SKMatrix.CreateTranslation(skBounds.Left, skBounds.Top);
                 skMatrix = skMatrix.PostConcat(skTranslateMatrix);
             }
 
@@ -341,15 +341,15 @@ namespace Svg.Model
             {
                 var pathClip = new PathClip
                 {
-                    Path = new Path(),
-                    Transform = Matrix.CreateIdentity(),
+                    Path = new SKPath(),
+                    Transform = SKMatrix.CreateIdentity(),
                     Clip = default
                 };
                 clipPath.Clips.Add(pathClip);
             }
         }
 
-        internal static void GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, Rect skBounds, HashSet<Uri> uris, ClipPath clipPath)
+        internal static void GetSvgVisualElementClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, ClipPath clipPath)
         {
             if (svgVisualElement?.ClipPath is null)
             {
@@ -370,7 +370,7 @@ namespace Svg.Model
             GetClipPath(svgClipPath, skBounds, uris, clipPath);
         }
 
-        internal static Rect? GetClipRect(string clip, Rect skRectBounds)
+        internal static SKRect? GetClipRect(string clip, SKRect skRectBounds)
         {
             if (!string.IsNullOrEmpty(clip) && clip.StartsWith("rect(", StringComparison.Ordinal))
             {
@@ -381,7 +381,7 @@ namespace Svg.Model
                     offsets.Add(float.Parse(o.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture));
                 }
 
-                var skClipRect = Rect.Create(
+                var skClipRect = SKRect.Create(
                     skRectBounds.Left + offsets[3],
                     skRectBounds.Top + offsets[0],
                     skRectBounds.Width - (offsets[3] + offsets[1]),
@@ -391,7 +391,7 @@ namespace Svg.Model
             return default;
         }
 
-        internal static MaskDrawable? GetSvgElementMask(SvgElement svgElement, Rect skBounds, HashSet<Uri> uris, IAssetLoader assetLoader)
+        internal static MaskDrawable? GetSvgElementMask(SvgElement svgElement, SKRect skBounds, HashSet<Uri> uris, IAssetLoader assetLoader)
         {
             var svgMaskRef = svgElement.GetUriElementReference<SvgMask>("mask", uris);
             if (svgMaskRef?.Children is null)

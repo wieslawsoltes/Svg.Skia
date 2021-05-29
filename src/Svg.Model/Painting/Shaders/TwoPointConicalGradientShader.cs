@@ -2,16 +2,16 @@
 
 namespace Svg.Model.Painting.Shaders
 {
-    public sealed class TwoPointConicalGradientShader : Shader
+    public sealed class TwoPointConicalGradientShader : SKShader
     {
-        public Point Start { get; set; }
+        public SKPoint Start { get; set; }
         public float StartRadius { get; set; }
-        public Point End { get; set; }
+        public SKPoint End { get; set; }
         public float EndRadius { get; set; }
-        public ColorF[]? Colors { get; set; }
-        public ColorSpace ColorSpace { get; set; }
+        public SKColorF[]? Colors { get; set; }
+        public SKColorSpace ColorSpace { get; set; }
         public float[]? ColorPos { get; set; }
-        public ShaderTileMode Mode { get; set; }
-        public Matrix? LocalMatrix { get; set; }
+        public SKShaderTileMode Mode { get; set; }
+        public SKMatrix? LocalMatrix { get; set; }
     }
 }

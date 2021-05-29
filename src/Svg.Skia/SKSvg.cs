@@ -18,7 +18,7 @@ namespace Svg.Skia
         public static void Draw(SkiaSharp.SKCanvas skCanvas, SvgFragment svgFragment)
         {
             var size = SvgModelExtensions.GetDimensions(svgFragment);
-            var bounds = Rect.Create(size);
+            var bounds = SKRect.Create(size);
             var drawable = DrawableFactory.Create(svgFragment, bounds, null, s_assetLoader);
             if (drawable is { })
             {
@@ -37,7 +37,7 @@ namespace Svg.Skia
             }
         }
 
-        public Picture? Model { get; set; }
+        public SKPicture? Model { get; set; }
 
         public SkiaSharp.SKPicture? Picture { get; set; }
 

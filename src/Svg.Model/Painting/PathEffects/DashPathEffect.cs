@@ -1,7 +1,7 @@
 ﻿
 namespace Svg.Model.Painting.PathEffects
 {
-    public class DashPathEffect : PathEffect
+    public class DashPathEffect : SKPathEffect
     {
         public float[]? Intervals { get; set; }
         public float Phase { get; set; }

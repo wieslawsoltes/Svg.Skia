@@ -9,7 +9,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static GroupDrawable Create(SvgGroup svgGroup, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static GroupDrawable Create(SvgGroup svgGroup, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new GroupDrawable(assetLoader)
             {
@@ -42,7 +42,7 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgGroup);
 
-            drawable.GeometryBounds = Rect.Empty;
+            drawable.GeometryBounds = SKRect.Empty;
 
             drawable.CreateGeometryBounds();
 

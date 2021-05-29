@@ -15,7 +15,7 @@ namespace Avalonia.Svg
     {
         private static readonly SM.IAssetLoader s_assetLoader = new AvaloniaAssetLoader();
 
-        public Picture? Picture { get; set; }
+        public SKPicture? Picture { get; set; }
 
         /// <summary>
         /// Loads svg picture from file or resource.
@@ -23,7 +23,7 @@ namespace Avalonia.Svg
         /// <param name="path">The path to file or resource.</param>
         /// <param name="baseUri">The base uri.</param>
         /// <returns>The svg picture.</returns>
-        public static Picture? LoadPicture(string path, Uri? baseUri)
+        public static SKPicture? LoadPicture(string path, Uri? baseUri)
         {
             var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
             if (uri.IsAbsoluteUri && uri.IsFile)

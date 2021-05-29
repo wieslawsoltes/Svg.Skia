@@ -11,7 +11,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static MaskDrawable Create(SvgMask svgMask, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static MaskDrawable Create(SvgMask svgMask, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new MaskDrawable(assetLoader)
             {
@@ -41,14 +41,14 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
    
-            var skMatrix = Matrix.CreateIdentity();
+            var skMatrix = SKMatrix.CreateIdentity();
 
             if (maskContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
-                var skBoundsTranslateTransform = Matrix.CreateTranslation(skOwnerBounds.Left, skOwnerBounds.Top);
+                var skBoundsTranslateTransform = SKMatrix.CreateTranslation(skOwnerBounds.Left, skOwnerBounds.Top);
                 skMatrix = skMatrix.PreConcat(skBoundsTranslateTransform);
 
-                var skBoundsScaleTransform = Matrix.CreateScale(skOwnerBounds.Width, skOwnerBounds.Height);
+                var skBoundsScaleTransform = SKMatrix.CreateScale(skOwnerBounds.Width, skOwnerBounds.Height);
                 skMatrix = skMatrix.PreConcat(skBoundsScaleTransform);
             }
 
@@ -73,7 +73,7 @@ namespace Svg.Model.Drawables.Elements
             return drawable;
         }
 
-        public override void PostProcess(Rect? viewport)
+        public override void PostProcess(SKRect? viewport)
         {
             var element = Element;
             if (element is null)

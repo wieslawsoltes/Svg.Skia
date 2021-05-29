@@ -6,12 +6,12 @@ namespace Svg.Model.Primitives.CanvasCommands
     public sealed class DrawTextOnPathCanvasCommand : CanvasCommand
     {
         public string Text { get; }
-        public Path? Path { get; }
+        public SKPath? Path { get; }
         public float HOffset { get; }
         public float VOffset { get; }
-        public Paint? Paint { get; }
+        public SKPaint? Paint { get; }
 
-        public DrawTextOnPathCanvasCommand(string text, Path path, float hOffset, float vOffset, Paint paint)
+        public DrawTextOnPathCanvasCommand(string text, SKPath path, float hOffset, float vOffset, SKPaint paint)
         {
             Text = text;
             Path = path;

@@ -1,8 +1,8 @@
 ﻿namespace Svg.Model.Painting.Shaders
 {
-    public sealed class ColorShader : Shader
+    public sealed class ColorShader : SKShader
     {
-        public Color Color { get; set; }
-        public ColorSpace ColorSpace { get; set; }
+        public SKColor Color { get; set; }
+        public SKColorSpace ColorSpace { get; set; }
     }
 }

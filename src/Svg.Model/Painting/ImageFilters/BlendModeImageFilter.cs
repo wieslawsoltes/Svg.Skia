@@ -1,11 +1,11 @@
 ﻿
 namespace Svg.Model.Painting.ImageFilters
 {
-    public sealed class BlendModeImageFilter : ImageFilter
+    public sealed class BlendModeImageFilter : SKImageFilter
     {
-        public BlendMode Mode { get; set; }
-        public ImageFilter? Background { get; set; }
-        public ImageFilter? Foreground { get; set; }
-        public CropRect? CropRect { get; set; }
+        public SKBlendMode Mode { get; set; }
+        public SKImageFilter? Background { get; set; }
+        public SKImageFilter? Foreground { get; set; }
+        public SKCropRect? CropRect { get; set; }
     }
 }

@@ -13,7 +13,7 @@ namespace Svg.Model.Drawables
             ChildrenDrawables = new List<DrawableBase>();
         }
 
-        protected void CreateChildren(SvgElement svgElement, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        protected void CreateChildren(SvgElement svgElement, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
             foreach (var child in svgElement.Children)
             {
@@ -37,13 +37,13 @@ namespace Svg.Model.Drawables
                 {
                     if (!drawable.GeometryBounds.IsEmpty)
                     {
-                        GeometryBounds = Rect.Union(GeometryBounds, drawable.GeometryBounds);
+                        GeometryBounds = SKRect.Union(GeometryBounds, drawable.GeometryBounds);
                     }
                 }
             }
         }
 
-        public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
             if (until is { } && this == until)
             {
@@ -60,7 +60,7 @@ namespace Svg.Model.Drawables
             }
         }
 
-        public override void PostProcess(Rect? viewport)
+        public override void PostProcess(SKRect? viewport)
         {
             base.PostProcess(viewport);
 

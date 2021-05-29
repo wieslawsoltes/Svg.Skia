@@ -224,7 +224,7 @@ namespace Avalonia.Svg
             }
         }
 
-        public static AvaloniaPicture Record(Picture picture)
+        public static AvaloniaPicture Record(SKPicture picture)
         {
             var avaloniaPicture = new AvaloniaPicture();
 

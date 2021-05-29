@@ -2,14 +2,14 @@
 
 namespace Svg.Model.Painting.Shaders
 {
-    public sealed class LinearGradientShader : Shader
+    public sealed class LinearGradientShader : SKShader
     {
-        public Point Start { get; set; }
-        public Point End { get; set; }
-        public ColorF[]? Colors { get; set; }
-        public ColorSpace ColorSpace { get; set; }
+        public SKPoint Start { get; set; }
+        public SKPoint End { get; set; }
+        public SKColorF[]? Colors { get; set; }
+        public SKColorSpace ColorSpace { get; set; }
         public float[]? ColorPos { get; set; }
-        public ShaderTileMode Mode { get; set; }
-        public Matrix? LocalMatrix { get; set; }
+        public SKShaderTileMode Mode { get; set; }
+        public SKMatrix? LocalMatrix { get; set; }
     }
 }

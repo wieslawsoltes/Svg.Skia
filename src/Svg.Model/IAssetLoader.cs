@@ -5,6 +5,6 @@ namespace Svg.Model
 {
     public interface IAssetLoader
     {
-        Image LoadImage(Stream stream);
+        SKImage LoadImage(Stream stream);
     }
 }

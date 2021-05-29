@@ -5,10 +5,10 @@ namespace Svg.Model.Primitives.CanvasCommands
 {
     public sealed class DrawPathCanvasCommand : CanvasCommand
     {
-        public Path? Path { get; }
-        public Paint? Paint { get; }
+        public SKPath? Path { get; }
+        public SKPaint? Paint { get; }
 
-        public DrawPathCanvasCommand(Path path, Paint paint)
+        public DrawPathCanvasCommand(SKPath path, SKPaint paint)
         {
             Path = path;
             Paint = paint;

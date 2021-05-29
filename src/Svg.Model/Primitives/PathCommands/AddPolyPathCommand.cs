@@ -4,10 +4,10 @@ namespace Svg.Model.Primitives.PathCommands
 {
     public sealed class AddPolyPathCommand : PathCommand
     {
-        public IList<Point>? Points { get; }
+        public IList<SKPoint>? Points { get; }
         public bool Close { get; }
 
-        public AddPolyPathCommand(IList<Point> points, bool close)
+        public AddPolyPathCommand(IList<SKPoint> points, bool close)
         {
             Points = points;
             Close = close;

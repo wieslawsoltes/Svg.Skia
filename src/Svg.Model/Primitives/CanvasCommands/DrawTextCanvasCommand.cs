@@ -8,9 +8,9 @@ namespace Svg.Model.Primitives.CanvasCommands
         public string Text { get; }
         public float X { get; }
         public float Y { get; }
-        public Paint? Paint { get; }
+        public SKPaint? Paint { get; }
 
-        public DrawTextCanvasCommand(string text, float x, float y, Paint paint)
+        public DrawTextCanvasCommand(string text, float x, float y, SKPaint paint)
         {
             Text = text;
             X = x;

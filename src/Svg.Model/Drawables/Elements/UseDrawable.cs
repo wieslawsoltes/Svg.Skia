@@ -18,7 +18,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static UseDrawable Create(SvgUse svgUse, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static UseDrawable Create(SvgUse svgUse, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new UseDrawable(assetLoader)
             {
@@ -106,7 +106,7 @@ namespace Svg.Model.Drawables.Elements
             drawable.Transform = SvgModelExtensions.ToMatrix(svgUse.Transforms);
             if (!(svgReferencedElement is SvgSymbol))
             {
-                var skMatrixTranslateXY = Matrix.CreateTranslation(x, y);
+                var skMatrixTranslateXY = SKMatrix.CreateTranslation(x, y);
                 drawable.Transform = drawable.Transform.PreConcat(skMatrixTranslateXY);
             }
 
@@ -132,7 +132,7 @@ namespace Svg.Model.Drawables.Elements
             return drawable;
         }
 
-        public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
             if (until is { } && this == until)
             {
@@ -142,7 +142,7 @@ namespace Svg.Model.Drawables.Elements
             ReferencedDrawable?.Draw(canvas, ignoreAttributes, until, true);
         }
 
-        public override void PostProcess(Rect? viewport)
+        public override void PostProcess(SKRect? viewport)
         {
             base.PostProcess(viewport);
             // TODO: Fix PostProcess() using correct ReferencedElement Parent.

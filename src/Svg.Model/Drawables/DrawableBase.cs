@@ -7,7 +7,7 @@ using Svg.Model.Primitives;
 
 namespace Svg.Model.Drawables
 {
-    public abstract class DrawableBase : Drawable, IFilterSource, IPictureSource
+    public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
     {
         public IAssetLoader AssetLoader { get; }
         public SvgElement? Element { get; set; }
@@ -15,51 +15,51 @@ namespace Svg.Model.Drawables
         public bool IsDrawable { get; set; }
         public Attributes IgnoreAttributes { get; set; }
         public bool IsAntialias { get; set; }
-        public Rect GeometryBounds { get; set; }
-        public Rect TransformedBounds { get; set; }
-        public Matrix Transform { get; set; }
-        public Rect? Overflow { get; set; }
-        public Rect? Clip { get; set; }
+        public SKRect GeometryBounds { get; set; }
+        public SKRect TransformedBounds { get; set; }
+        public SKMatrix Transform { get; set; }
+        public SKRect? Overflow { get; set; }
+        public SKRect? Clip { get; set; }
         public ClipPath? ClipPath { get; set; }
         public MaskDrawable? MaskDrawable { get; set; }
-        public Paint? Mask { get; set; }
-        public Paint? MaskDstIn { get; set; }
-        public Paint? Opacity { get; set; }
-        public Paint? Filter { get; set; }
-        public Rect? FilterClip { get; set; }
-        public Paint? Fill { get; set; }
-        public Paint? Stroke { get; set; }
+        public SKPaint? Mask { get; set; }
+        public SKPaint? MaskDstIn { get; set; }
+        public SKPaint? Opacity { get; set; }
+        public SKPaint? Filter { get; set; }
+        public SKRect? FilterClip { get; set; }
+        public SKPaint? Fill { get; set; }
+        public SKPaint? Stroke { get; set; }
 
         protected DrawableBase(IAssetLoader assetLoader)
         {
             AssetLoader = assetLoader;
         }
 
-        protected override void OnDraw(Canvas canvas)
+        protected override void OnDraw(SKCanvas canvas)
         {
             Draw(canvas, IgnoreAttributes, null, true);
         }
 
-        protected override Rect OnGetBounds()
+        protected override SKRect OnGetBounds()
         {
-            return IsDrawable ? TransformedBounds : Rect.Empty;
+            return IsDrawable ? TransformedBounds : SKRect.Empty;
         }
 
         protected void CreateMaskPaints()
         {
-            Mask = new Paint
+            Mask = new SKPaint
             {
                 IsAntialias = true,
-                Style = PaintStyle.StrokeAndFill
+                Style = SKPaintStyle.StrokeAndFill
             };
 
-            var lumaColor = ColorFilter.CreateLumaColor();
+            var lumaColor = SKColorFilter.CreateLumaColor();
 
-            MaskDstIn = new Paint
+            MaskDstIn = new SKPaint
             {
                 IsAntialias = true,
-                Style = PaintStyle.StrokeAndFill,
-                BlendMode = BlendMode.DstIn,
+                Style = SKPaintStyle.StrokeAndFill,
+                BlendMode = SKBlendMode.DstIn,
                 Color = SvgModelExtensions.s_transparentBlack,
                 ColorFilter = lumaColor
             };
@@ -80,9 +80,9 @@ namespace Svg.Model.Drawables
             return isVisible && isDisplay;
         }
 
-        public abstract void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until);
+        public abstract void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until);
 
-        public virtual void Draw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until, bool enableTransform)
+        public virtual void Draw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until, bool enableTransform)
         {
             if (!IsDrawable)
             {
@@ -103,7 +103,7 @@ namespace Svg.Model.Drawables
 
             if (Overflow is { })
             {
-                canvas.ClipRect(Overflow.Value, ClipOperation.Intersect);
+                canvas.ClipRect(Overflow.Value, SKClipOperation.Intersect);
             }
 
             if (!Transform.IsIdentity && enableTransform)
@@ -115,12 +115,12 @@ namespace Svg.Model.Drawables
 
             if (Clip is { })
             {
-                canvas.ClipRect(Clip.Value, ClipOperation.Intersect);
+                canvas.ClipRect(Clip.Value, SKClipOperation.Intersect);
             }
 
             if (ClipPath is { } && enableClip)
             {
-                canvas.ClipPath(ClipPath, ClipOperation.Intersect, IsAntialias);
+                canvas.ClipPath(ClipPath, SKClipOperation.Intersect, IsAntialias);
             }
 
             if (MaskDrawable is { } && Mask is { } && enableMask)
@@ -137,7 +137,7 @@ namespace Svg.Model.Drawables
             {
                 if (FilterClip is not null)
                 {
-                    canvas.ClipRect(FilterClip.Value, ClipOperation.Intersect);
+                    canvas.ClipRect(FilterClip.Value, SKClipOperation.Intersect);
                 }
 
                 canvas.SaveLayer(Filter);
@@ -168,7 +168,7 @@ namespace Svg.Model.Drawables
             canvas.Restore();
         }
 
-        public virtual void PostProcess(Rect? viewport)
+        public virtual void PostProcess(SKRect? viewport)
         {
             var element = Element;
             if (element is null)
@@ -234,9 +234,9 @@ namespace Svg.Model.Drawables
             }
         }
 
-        public DrawableBase? FindContainerParentBackground(DrawableBase? drawable, out Rect skClipRect)
+        public DrawableBase? FindContainerParentBackground(DrawableBase? drawable, out SKRect skClipRect)
         {
-            skClipRect = Rect.Empty;
+            skClipRect = SKRect.Empty;
 
             if (drawable is null)
             {
@@ -273,7 +273,7 @@ namespace Svg.Model.Drawables
                             return null;
                         }
 
-                        skClipRect = Rect.Create(values[0], values[1], values[2], values[3]);
+                        skClipRect = SKRect.Create(values[0], values[1], values[2], values[3]);
                     }
                     return drawable;
                 }
@@ -288,7 +288,7 @@ namespace Svg.Model.Drawables
             return null;
         }
 
-        public Picture? RecordGraphic(DrawableBase? drawable, Attributes ignoreAttributes)
+        public SKPicture? RecordGraphic(DrawableBase? drawable, Attributes ignoreAttributes)
         {
             // TODO: Record using ColorSpace.CreateSrgbLinear because .color-interpolation-filters. is by default linearRGB.
             if (drawable is null)
@@ -302,12 +302,12 @@ namespace Svg.Model.Drawables
                 return null;
             }
 
-            var cullRect = Rect.Create(
+            var cullRect = SKRect.Create(
                 0, 
                 0, 
                 Math.Abs(skBounds.Left) + skBounds.Width, 
                 Math.Abs(skBounds.Top) + skBounds.Height);
-            var skPictureRecorder = new PictureRecorder();
+            var skPictureRecorder = new SKPictureRecorder();
             var skCanvas = skPictureRecorder.BeginRecording(cullRect);
 
             drawable.Draw(skCanvas, ignoreAttributes, null, false);
@@ -315,7 +315,7 @@ namespace Svg.Model.Drawables
             return skPictureRecorder.EndRecording();
         }
 
-        public Picture? RecordBackground(DrawableBase? drawable, Attributes ignoreAttributes)
+        public SKPicture? RecordBackground(DrawableBase? drawable, Attributes ignoreAttributes)
         {
             // TODO: Record using ColorSpace.CreateSrgbLinear because 'color-interpolation-filters' is by default linearRGB.
             if (drawable is null)
@@ -330,17 +330,17 @@ namespace Svg.Model.Drawables
             }
 
             var skBounds = drawable.GeometryBounds;
-            var cullRect = Rect.Create(
+            var cullRect = SKRect.Create(
                 0, 
                 0, 
                 Math.Abs(skBounds.Left) + skBounds.Width, 
                 Math.Abs(skBounds.Top) + skBounds.Height);
-            var skPictureRecorder = new PictureRecorder();
+            var skPictureRecorder = new SKPictureRecorder();
             var skCanvas = skPictureRecorder.BeginRecording(cullRect);
 
             if (!skClipRect.IsEmpty)
             {
-                skCanvas.ClipRect(skClipRect, ClipOperation.Intersect);
+                skCanvas.ClipRect(skClipRect, SKClipOperation.Intersect);
             }
 
             container.Draw(skCanvas, ignoreAttributes, drawable, false);
@@ -350,12 +350,12 @@ namespace Svg.Model.Drawables
 
         private const Attributes FilterInput = Attributes.ClipPath | Attributes.Mask | Attributes.Opacity | Attributes.Filter;
 
-        Picture? IFilterSource.SourceGraphic() => RecordGraphic(this, FilterInput);
+        SKPicture? IFilterSource.SourceGraphic() => RecordGraphic(this, FilterInput);
 
-        Picture? IFilterSource.BackgroundImage() => RecordBackground(this, FilterInput);
+        SKPicture? IFilterSource.BackgroundImage() => RecordBackground(this, FilterInput);
 
-        Paint? IFilterSource.FillPaint() => Fill;
+        SKPaint? IFilterSource.FillPaint() => Fill;
 
-        Paint? IFilterSource.StrokePaint() => Stroke;
+        SKPaint? IFilterSource.StrokePaint() => Stroke;
     }
 }

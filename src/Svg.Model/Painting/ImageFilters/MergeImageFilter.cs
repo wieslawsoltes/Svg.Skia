@@ -1,9 +1,9 @@
 ﻿
 namespace Svg.Model.Painting.ImageFilters
 {
-    public sealed class MergeImageFilter : ImageFilter
+    public sealed class MergeImageFilter : SKImageFilter
     {
-        public ImageFilter[]? Filters { get; set; }
-        public CropRect? CropRect { get; set; }
+        public SKImageFilter[]? Filters { get; set; }
+        public SKCropRect? CropRect { get; set; }
     }
 }

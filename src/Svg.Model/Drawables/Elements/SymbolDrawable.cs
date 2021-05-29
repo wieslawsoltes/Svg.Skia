@@ -10,7 +10,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static SymbolDrawable Create(SvgSymbol svgSymbol, float x, float y, float width, float height, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        public static SymbolDrawable Create(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
             var drawable = new SymbolDrawable(assetLoader)
             {
@@ -59,7 +59,7 @@ namespace Svg.Model.Drawables.Elements
                     break;
 
                 default:
-                    drawable.Overflow = Rect.Create(x, y, width, height);
+                    drawable.Overflow = SKRect.Create(x, y, width, height);
                     break;
             }
 
@@ -67,7 +67,7 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgSymbol);
 
-            drawable.GeometryBounds = Rect.Empty;
+            drawable.GeometryBounds = SKRect.Empty;
 
             drawable.CreateGeometryBounds();
 

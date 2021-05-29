@@ -1,9 +1,9 @@
 ﻿
 namespace Svg.Model.Painting.ColorFilters
 {
-    public sealed class BlendModeColorFilter : ColorFilter
+    public sealed class BlendModeColorFilter : SKColorFilter
     {
-        public Color Color { get; set; }
-        public BlendMode Mode { get; set; }
+        public SKColor Color { get; set; }
+        public SKBlendMode Mode { get; set; }
     }
 }

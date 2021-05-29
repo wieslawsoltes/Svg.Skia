@@ -20,17 +20,17 @@ namespace Svg.Model
             return (byte)Math.Round(opacity * (alpha / 255.0) * 255);
         }
 
-        internal static Color GetColor(SvgColourServer svgColourServer, float opacity, Attributes ignoreAttributes)
+        internal static SKColor GetColor(SvgColourServer svgColourServer, float opacity, Attributes ignoreAttributes)
         {
             var colour = svgColourServer.Colour;
             var alpha = ignoreAttributes.HasFlag(Attributes.Opacity) ?
                 svgColourServer.Colour.A :
                 CombineWithOpacity(svgColourServer.Colour.A, opacity);
 
-            return new Color(colour.R, colour.G, colour.B, alpha);
+            return new SKColor(colour.R, colour.G, colour.B, alpha);
         }
 
-        internal static Color? GetColor(SvgVisualElement svgVisualElement, SvgPaintServer server)
+        internal static SKColor? GetColor(SvgVisualElement svgVisualElement, SvgPaintServer server)
         {
             if (server is SvgDeferredPaintServer svgDeferredPaintServer)
             {
@@ -42,10 +42,10 @@ namespace Svg.Model
                 return GetColor(stopColorSvgColourServer, 1f, Attributes.None);
             }
 
-            return new Color(0x00, 0x00, 0x00, 0xFF);
+            return new SKColor(0x00, 0x00, 0x00, 0xFF);
         }
 
-        internal static PathEffect? CreateDash(SvgElement svgElement, Rect skBounds)
+        internal static SKPathEffect? CreateDash(SvgElement svgElement, SKRect skBounds)
         {
             var strokeDashArray = svgElement.StrokeDashArray;
             var strokeDashOffset = svgElement.StrokeDashOffset;
@@ -81,7 +81,7 @@ namespace Svg.Model
 
                 var phase = strokeDashOffset.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds);
 
-                return PathEffect.CreateDash(intervals, phase);
+                return SKPathEffect.CreateDash(intervals, phase);
             }
 
             return default;
@@ -111,7 +111,7 @@ namespace Svg.Model
             return svgGradientServers;
         }
 
-        private static void GetStopsImpl(SvgGradientServer svgGradientServer, Rect skBounds, List<Color> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
+        private static void GetStopsImpl(SvgGradientServer svgGradientServer, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
         {
             foreach (var child in svgGradientServer.Children)
             {
@@ -140,7 +140,7 @@ namespace Svg.Model
             }
         }
 
-        internal static void GetStops(List<SvgGradientServer> svgReferencedGradientServers, Rect skBounds, List<Color> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
+        internal static void GetStops(List<SvgGradientServer> svgReferencedGradientServers, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes)
         {
             foreach (var svgReferencedGradientServer in svgReferencedGradientServers)
             {
@@ -172,9 +172,9 @@ namespace Svg.Model
             }
         }
 
-        internal static ColorF[] ToSkColorF(this Color[] skColors)
+        internal static SKColorF[] ToSkColorF(this SKColor[] skColors)
         {
-            var skColorsF = new ColorF[skColors.Length];
+            var skColorsF = new SKColorF[skColors.Length];
 
             for (var i = 0; i < skColors.Length; i++)
             {
@@ -206,7 +206,7 @@ namespace Svg.Model
             };
         }
 
-        internal static Shader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, Rect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes, ColorSpace skColorSpace)
+        internal static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes, SKColorSpace skColorSpace)
         {
             var svgReferencedGradientServers = GetLinkedGradientServer(svgLinearGradientServer, svgVisualElement);
 
@@ -299,9 +299,9 @@ namespace Svg.Model
             var x2 = normalizedX2.ToDeviceValue(UnitRenderingType.Horizontal, svgLinearGradientServer, skBounds);
             var y2 = normalizedY2.ToDeviceValue(UnitRenderingType.Vertical, svgLinearGradientServer, skBounds);
 
-            var skStart = new Point(x1, y1);
-            var skEnd = new Point(x2, y2);
-            var colors = new List<Color>();
+            var skStart = new SKPoint(x1, y1);
+            var skEnd = new SKPoint(x2, y2);
+            var colors = new List<SKColor>();
             var colorPos = new List<float>();
 
             GetStops(svgReferencedGradientServers, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
@@ -309,25 +309,25 @@ namespace Svg.Model
 
             var shaderTileMode = svgSpreadMethod switch
             {
-                SvgGradientSpreadMethod.Reflect => ShaderTileMode.Mirror,
-                SvgGradientSpreadMethod.Repeat => ShaderTileMode.Repeat,
-                _ => ShaderTileMode.Clamp,
+                SvgGradientSpreadMethod.Reflect => SKShaderTileMode.Mirror,
+                SvgGradientSpreadMethod.Repeat => SKShaderTileMode.Repeat,
+                _ => SKShaderTileMode.Clamp,
             };
             var skColors = colors.ToArray();
             float[] skColorPos = colorPos.ToArray();
 
             if (skColors.Length == 0)
             {
-                return Shader.CreateColor(new Color(0xFF, 0xFF, 0xFF, 0x00), skColorSpace);
+                return SKShader.CreateColor(new SKColor(0xFF, 0xFF, 0xFF, 0x00), skColorSpace);
             }
             else if (skColors.Length == 1)
             {
-                return Shader.CreateColor(skColors[0], skColorSpace);
+                return SKShader.CreateColor(skColors[0], skColorSpace);
             }
 
             if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
-                var skBoundingBoxTransform = new Matrix
+                var skBoundingBoxTransform = new SKMatrix
                 {
                     ScaleX = skBounds.Width,
                     SkewY = 0f,
@@ -347,7 +347,7 @@ namespace Svg.Model
                 }
 
                 var skColorsF = ToSkColorF(skColors);
-                return Shader.CreateLinearGradient(skStart, skEnd, skColorsF, skColorSpace, skColorPos, shaderTileMode, skBoundingBoxTransform);
+                return SKShader.CreateLinearGradient(skStart, skEnd, skColorsF, skColorSpace, skColorPos, shaderTileMode, skBoundingBoxTransform);
             }
             else
             {
@@ -355,17 +355,17 @@ namespace Svg.Model
                 {
                     var gradientTransform = ToMatrix(svgGradientTransform);
                     var skColorsF = ToSkColorF(skColors);
-                    return Shader.CreateLinearGradient(skStart, skEnd, skColorsF, skColorSpace, skColorPos, shaderTileMode, gradientTransform);
+                    return SKShader.CreateLinearGradient(skStart, skEnd, skColorsF, skColorSpace, skColorPos, shaderTileMode, gradientTransform);
                 }
                 else
                 {
                     var skColorsF = ToSkColorF(skColors);
-                    return Shader.CreateLinearGradient(skStart, skEnd, skColorsF, skColorSpace, skColorPos, shaderTileMode);
+                    return SKShader.CreateLinearGradient(skStart, skEnd, skColorsF, skColorSpace, skColorPos, shaderTileMode);
                 }
             }
         }
 
-        internal static Shader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, Rect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes, ColorSpace skColorSpace)
+        internal static SKShader CreateTwoPointConicalGradient(SvgRadialGradientServer svgRadialGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, Attributes ignoreAttributes, SKColorSpace skColorSpace)
         {
             var svgReferencedGradientServers = GetLinkedGradientServer(svgRadialGradientServer, svgVisualElement);
 
@@ -473,10 +473,10 @@ namespace Svg.Model
             var focalX = normalizedFocalX.ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
             var focalY = normalizedFocalY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
 
-            var skStart = new Point(centerX, centerY);
-            var skEnd = new Point(focalX, focalY);
+            var skStart = new SKPoint(centerX, centerY);
+            var skEnd = new SKPoint(focalX, focalY);
 
-            var colors = new List<Color>();
+            var colors = new List<SKColor>();
             var colorPos = new List<float>();
 
             GetStops(svgReferencedGradientServers, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
@@ -484,25 +484,25 @@ namespace Svg.Model
 
             var shaderTileMode = svgSpreadMethod switch
             {
-                SvgGradientSpreadMethod.Reflect => ShaderTileMode.Mirror,
-                SvgGradientSpreadMethod.Repeat => ShaderTileMode.Repeat,
-                _ => ShaderTileMode.Clamp,
+                SvgGradientSpreadMethod.Reflect => SKShaderTileMode.Mirror,
+                SvgGradientSpreadMethod.Repeat => SKShaderTileMode.Repeat,
+                _ => SKShaderTileMode.Clamp,
             };
             var skColors = colors.ToArray();
             float[] skColorPos = colorPos.ToArray();
 
             if (skColors.Length == 0)
             {
-                return Shader.CreateColor(new Color(0xFF, 0xFF, 0xFF, 0x00), skColorSpace);
+                return SKShader.CreateColor(new SKColor(0xFF, 0xFF, 0xFF, 0x00), skColorSpace);
             }
             else if (skColors.Length == 1)
             {
-                return Shader.CreateColor(skColors[0], skColorSpace);
+                return SKShader.CreateColor(skColors[0], skColorSpace);
             }
 
             if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
-                var skBoundingBoxTransform = new Matrix
+                var skBoundingBoxTransform = new SKMatrix
                 {
                     ScaleX = skBounds.Width,
                     SkewY = 0f,
@@ -522,7 +522,7 @@ namespace Svg.Model
                 }
 
                 var skColorsF = ToSkColorF(skColors);
-                return Shader.CreateTwoPointConicalGradient(
+                return SKShader.CreateTwoPointConicalGradient(
                     skStart, startRadius,
                     skEnd, endRadius,
                     skColorsF, skColorSpace, skColorPos,
@@ -535,7 +535,7 @@ namespace Svg.Model
                 {
                     var gradientTransform = ToMatrix(svgGradientTransform);
                     var skColorsF = ToSkColorF(skColors);
-                    return Shader.CreateTwoPointConicalGradient(
+                    return SKShader.CreateTwoPointConicalGradient(
                         skStart, startRadius,
                         skEnd, endRadius,
                         skColorsF, skColorSpace, skColorPos,
@@ -544,7 +544,7 @@ namespace Svg.Model
                 else
                 {
                     var skColorsF = ToSkColorF(skColors);
-                    return Shader.CreateTwoPointConicalGradient(
+                    return SKShader.CreateTwoPointConicalGradient(
                         skStart, startRadius,
                         skEnd, endRadius,
                         skColorsF, skColorSpace, skColorPos,
@@ -553,11 +553,11 @@ namespace Svg.Model
             }
         }
 
-        internal static Picture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, Matrix skMatrix, float opacity, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static SKPicture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
-            var skSize = new Size(width, height);
-            var skBounds = Rect.Create(skSize);
-            var skPictureRecorder = new PictureRecorder();
+            var skSize = new SKSize(width, height);
+            var skBounds = SKRect.Create(skSize);
+            var skPictureRecorder = new SKPictureRecorder();
             var skCanvas = skPictureRecorder.BeginRecording(skBounds);
 
             skCanvas.SetMatrix(skMatrix);
@@ -588,7 +588,7 @@ namespace Svg.Model
             return skPictureRecorder.EndRecording();
         }
 
-        internal static Shader? CreatePicture(SvgPatternServer svgPatternServer, Rect skBounds, SvgVisualElement svgVisualElement, float opacity, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
             var svgReferencedPatternServers = GetLinkedPatternServer(svgPatternServer, svgVisualElement);
 
@@ -694,15 +694,15 @@ namespace Svg.Model
                 return default;
             }
 
-            var skMatrix = Matrix.CreateIdentity();
+            var skMatrix = SKMatrix.CreateIdentity();
 
             var skPatternTransformMatrix = ToMatrix(svgPatternServer.PatternTransform);
             skMatrix = skMatrix.PreConcat(skPatternTransformMatrix);
 
-            var translateTransform = Matrix.CreateTranslation(skRectTransformed.Value.Left, skRectTransformed.Value.Top);
+            var translateTransform = SKMatrix.CreateTranslation(skRectTransformed.Value.Left, skRectTransformed.Value.Top);
             skMatrix = skMatrix.PreConcat(translateTransform);
 
-            var skPictureTransform = Matrix.CreateIdentity();
+            var skPictureTransform = SKMatrix.CreateIdentity();
             if (!viewBox.Equals(SvgViewBox.Empty))
             {
                 var viewBoxTransform = ToMatrix(
@@ -718,17 +718,17 @@ namespace Svg.Model
             {
                 if (patternContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
                 {
-                    var skBoundsScaleTransform = Matrix.CreateScale(skBounds.Width, skBounds.Height);
+                    var skBoundsScaleTransform = SKMatrix.CreateScale(skBounds.Width, skBounds.Height);
                     skPictureTransform = skPictureTransform.PreConcat(skBoundsScaleTransform);
                 }
             }
 
             var skPicture = RecordPicture(firstChildren.Children, skRectTransformed.Value.Width, skRectTransformed.Value.Height, skPictureTransform, opacity, assetLoader, ignoreAttributes);
 
-            return Shader.CreatePicture(skPicture, ShaderTileMode.Repeat, ShaderTileMode.Repeat, skMatrix, skPicture.CullRect);
+            return SKShader.CreatePicture(skPicture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, skMatrix, skPicture.CullRect);
         }
 
-        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, Rect skBounds, Paint skPaint, bool forStroke, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, SKRect skBounds, SKPaint skPaint, bool forStroke, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
             var fallbackServer = SvgPaintServer.None;
             if (server is SvgDeferredPaintServer deferredServer)
@@ -749,8 +749,8 @@ namespace Svg.Model
                         var skColor = GetColor(svgColourServer, opacity, ignoreAttributes);
                         var colorInterpolation = GetColorInterpolation(svgVisualElement);
                         var isLinearRgb = colorInterpolation == SvgColourInterpolation.LinearRGB;
-                        var skColorSpace = isLinearRgb ? ColorSpace.SrgbLinear : ColorSpace.Srgb;
-                        var skColorShader = Shader.CreateColor(skColor, skColorSpace);
+                        var skColorSpace = isLinearRgb ? SKColorSpace.SrgbLinear : SKColorSpace.Srgb;
+                        var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
                         if (skColorShader is { })
                         {
                             skPaint.Shader = skColorShader;
@@ -763,7 +763,7 @@ namespace Svg.Model
                     {
                         var colorInterpolation = GetColorInterpolation(svgVisualElement);
                         var isLinearRgb = colorInterpolation == SvgColourInterpolation.LinearRGB;
-                        var skColorSpace = isLinearRgb ? ColorSpace.SrgbLinear : ColorSpace.Srgb;
+                        var skColorSpace = isLinearRgb ? SKColorSpace.SrgbLinear : SKColorSpace.Srgb;
                         // TODO: Use skColorSpace in CreatePicture
                         var skPatternShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, assetLoader, ignoreAttributes);
                         if (skPatternShader is { })
@@ -776,7 +776,7 @@ namespace Svg.Model
                             if (fallbackServer is SvgColourServer svgColourServerFallback)
                             {
                                 var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
-                                var skColorShader = Shader.CreateColor(skColor, skColorSpace);
+                                var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
                                 if (skColorShader is { })
                                 {
                                     skPaint.Shader = skColorShader;
@@ -796,14 +796,14 @@ namespace Svg.Model
                     {
                         var colorInterpolation = GetColorInterpolation(svgLinearGradientServer);
                         var isLinearRgb = colorInterpolation == SvgColourInterpolation.LinearRGB;
-                        var skColorSpace = isLinearRgb ? ColorSpace.SrgbLinear : ColorSpace.Srgb;
+                        var skColorSpace = isLinearRgb ? SKColorSpace.SrgbLinear : SKColorSpace.Srgb;
 
                         if (svgLinearGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox && (skBounds.Width == 0f || skBounds.Height == 0f))
                         {
                             if (fallbackServer is SvgColourServer svgColourServerFallback)
                             {
                                 var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
-                                var skColorShader = Shader.CreateColor(skColor, skColorSpace);
+                                var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
                                 if (skColorShader is { })
                                 {
                                     skPaint.Shader = skColorShader;
@@ -837,14 +837,14 @@ namespace Svg.Model
                     {
                         var colorInterpolation = GetColorInterpolation(svgRadialGradientServer);
                         var isLinearRgb = colorInterpolation == SvgColourInterpolation.LinearRGB;
-                        var skColorSpace = isLinearRgb ? ColorSpace.SrgbLinear : ColorSpace.Srgb;
+                        var skColorSpace = isLinearRgb ? SKColorSpace.SrgbLinear : SKColorSpace.Srgb;
 
                         if (svgRadialGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox && (skBounds.Width == 0f || skBounds.Height == 0f))
                         {
                             if (fallbackServer is SvgColourServer svgColourServerFallback)
                             {
                                 var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
-                                var skColorShader = Shader.CreateColor(skColor, skColorSpace);
+                                var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
                                 if (skColorShader is { })
                                 {
                                     skPaint.Shader = skColorShader;
@@ -884,7 +884,7 @@ namespace Svg.Model
             return true;
         }
 
-        internal static void SetDash(SvgVisualElement svgVisualElement, Paint skPaint, Rect skBounds)
+        internal static void SetDash(SvgVisualElement svgVisualElement, SKPaint skPaint, SKRect skBounds)
         {
             var skPathEffect = CreateDash(svgVisualElement, skBounds);
             if (skPathEffect is { })
@@ -913,7 +913,7 @@ namespace Svg.Model
                 && fill != SvgPaintServer.None;
         }
 
-        internal static bool IsValidStroke(SvgElement svgElement, Rect skBounds)
+        internal static bool IsValidStroke(SvgElement svgElement, SKRect skBounds)
         {
             var stroke = svgElement.Stroke;
             var strokeWidth = svgElement.StrokeWidth;
@@ -922,12 +922,12 @@ namespace Svg.Model
                 && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
         }
 
-        internal static Paint? GetFillPaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static SKPaint? GetFillPaint(SvgVisualElement svgVisualElement, SKRect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
-            var skPaint = new Paint
+            var skPaint = new SKPaint
             {
                 IsAntialias = IsAntialias(svgVisualElement),
-                Style = PaintStyle.Fill
+                Style = SKPaintStyle.Fill
             };
 
             var server = svgVisualElement.Fill;
@@ -940,12 +940,12 @@ namespace Svg.Model
             return skPaint;
         }
 
-        internal static Paint? GetStrokePaint(SvgVisualElement svgVisualElement, Rect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        internal static SKPaint? GetStrokePaint(SvgVisualElement svgVisualElement, SKRect skBounds, IAssetLoader assetLoader, Attributes ignoreAttributes)
         {
-            var skPaint = new Paint
+            var skPaint = new SKPaint
             {
                 IsAntialias = IsAntialias(svgVisualElement),
-                Style = PaintStyle.Stroke
+                Style = SKPaintStyle.Stroke
             };
 
             var server = svgVisualElement.Stroke;
@@ -958,30 +958,30 @@ namespace Svg.Model
             switch (svgVisualElement.StrokeLineCap)
             {
                 case SvgStrokeLineCap.Butt:
-                    skPaint.StrokeCap = StrokeCap.Butt;
+                    skPaint.StrokeCap = SKStrokeCap.Butt;
                     break;
 
                 case SvgStrokeLineCap.Round:
-                    skPaint.StrokeCap = StrokeCap.Round;
+                    skPaint.StrokeCap = SKStrokeCap.Round;
                     break;
 
                 case SvgStrokeLineCap.Square:
-                    skPaint.StrokeCap = StrokeCap.Square;
+                    skPaint.StrokeCap = SKStrokeCap.Square;
                     break;
             }
 
             switch (svgVisualElement.StrokeLineJoin)
             {
                 case SvgStrokeLineJoin.Miter:
-                    skPaint.StrokeJoin = StrokeJoin.Miter;
+                    skPaint.StrokeJoin = SKStrokeJoin.Miter;
                     break;
 
                 case SvgStrokeLineJoin.Round:
-                    skPaint.StrokeJoin = StrokeJoin.Round;
+                    skPaint.StrokeJoin = SKStrokeJoin.Round;
                     break;
 
                 case SvgStrokeLineJoin.Bevel:
-                    skPaint.StrokeJoin = StrokeJoin.Bevel;
+                    skPaint.StrokeJoin = SKStrokeJoin.Bevel;
                     break;
             }
 
@@ -998,21 +998,21 @@ namespace Svg.Model
             return skPaint;
         }
 
-        internal static Paint? GetOpacityPaint(float opacity)
+        internal static SKPaint? GetOpacityPaint(float opacity)
         {
             if (opacity < 1f)
             {
-                return new Paint
+                return new SKPaint
                 {
                     IsAntialias = true,
-                    Color = new Color(255, 255, 255, (byte)Math.Round(opacity * 255)),
-                    Style = PaintStyle.StrokeAndFill
+                    Color = new SKColor(255, 255, 255, (byte)Math.Round(opacity * 255)),
+                    Style = SKPaintStyle.StrokeAndFill
                 };
             }
             return default;
         }
 
-        internal static Paint? GetOpacityPaint(SvgElement svgElement)
+        internal static SKPaint? GetOpacityPaint(SvgElement svgElement)
         {
             var opacity = AdjustSvgOpacity(svgElement.Opacity);
             var skPaint = GetOpacityPaint(opacity);
@@ -1023,9 +1023,9 @@ namespace Svg.Model
             return default;
         }
 
-        internal static FontStyleWeight ToFontStyleWeight(SvgFontWeight svgFontWeight)
+        internal static SKFontStyleWeight ToFontStyleWeight(SvgFontWeight svgFontWeight)
         {
-            var fontWeight = FontStyleWeight.Normal;
+            var fontWeight = SKFontStyleWeight.Normal;
 
             switch (svgFontWeight)
             {
@@ -1042,50 +1042,50 @@ namespace Svg.Model
                     break;
 
                 case SvgFontWeight.W100:
-                    fontWeight = FontStyleWeight.Thin;
+                    fontWeight = SKFontStyleWeight.Thin;
                     break;
 
                 case SvgFontWeight.W200:
-                    fontWeight = FontStyleWeight.ExtraLight;
+                    fontWeight = SKFontStyleWeight.ExtraLight;
                     break;
 
                 case SvgFontWeight.W300:
-                    fontWeight = FontStyleWeight.Light;
+                    fontWeight = SKFontStyleWeight.Light;
                     break;
 
                 case SvgFontWeight.Normal:
                 case SvgFontWeight.W400:
-                    fontWeight = FontStyleWeight.Normal;
+                    fontWeight = SKFontStyleWeight.Normal;
                     break;
 
                 case SvgFontWeight.W500:
-                    fontWeight = FontStyleWeight.Medium;
+                    fontWeight = SKFontStyleWeight.Medium;
                     break;
 
                 case SvgFontWeight.W600:
-                    fontWeight = FontStyleWeight.SemiBold;
+                    fontWeight = SKFontStyleWeight.SemiBold;
                     break;
 
                 case SvgFontWeight.Bold:
                 case SvgFontWeight.W700:
-                    fontWeight = FontStyleWeight.Bold;
+                    fontWeight = SKFontStyleWeight.Bold;
                     break;
 
                 case SvgFontWeight.W800:
-                    fontWeight = FontStyleWeight.ExtraBold;
+                    fontWeight = SKFontStyleWeight.ExtraBold;
                     break;
 
                 case SvgFontWeight.W900:
-                    fontWeight = FontStyleWeight.Black;
+                    fontWeight = SKFontStyleWeight.Black;
                     break;
             }
 
             return fontWeight;
         }
 
-        internal static FontStyleWidth ToFontStyleWidth(SvgFontStretch svgFontStretch)
+        internal static SKFontStyleWidth ToFontStyleWidth(SvgFontStretch svgFontStretch)
         {
-            var fontWidth = FontStyleWidth.Normal;
+            var fontWidth = SKFontStyleWidth.Normal;
 
             switch (svgFontStretch)
             {
@@ -1094,7 +1094,7 @@ namespace Svg.Model
                     break;
 
                 case SvgFontStretch.Normal:
-                    fontWidth = FontStyleWidth.Normal;
+                    fontWidth = SKFontStyleWidth.Normal;
                     break;
 
                 // TODO: Implement SvgFontStretch.Wider
@@ -1106,69 +1106,69 @@ namespace Svg.Model
                     break;
 
                 case SvgFontStretch.UltraCondensed:
-                    fontWidth = FontStyleWidth.UltraCondensed;
+                    fontWidth = SKFontStyleWidth.UltraCondensed;
                     break;
 
                 case SvgFontStretch.ExtraCondensed:
-                    fontWidth = FontStyleWidth.ExtraCondensed;
+                    fontWidth = SKFontStyleWidth.ExtraCondensed;
                     break;
 
                 case SvgFontStretch.Condensed:
-                    fontWidth = FontStyleWidth.Condensed;
+                    fontWidth = SKFontStyleWidth.Condensed;
                     break;
 
                 case SvgFontStretch.SemiCondensed:
-                    fontWidth = FontStyleWidth.SemiCondensed;
+                    fontWidth = SKFontStyleWidth.SemiCondensed;
                     break;
 
                 case SvgFontStretch.SemiExpanded:
-                    fontWidth = FontStyleWidth.SemiExpanded;
+                    fontWidth = SKFontStyleWidth.SemiExpanded;
                     break;
 
                 case SvgFontStretch.Expanded:
-                    fontWidth = FontStyleWidth.Expanded;
+                    fontWidth = SKFontStyleWidth.Expanded;
                     break;
 
                 case SvgFontStretch.ExtraExpanded:
-                    fontWidth = FontStyleWidth.ExtraExpanded;
+                    fontWidth = SKFontStyleWidth.ExtraExpanded;
                     break;
 
                 case SvgFontStretch.UltraExpanded:
-                    fontWidth = FontStyleWidth.UltraExpanded;
+                    fontWidth = SKFontStyleWidth.UltraExpanded;
                     break;
             }
 
             return fontWidth;
         }
 
-        internal static TextAlign ToTextAlign(SvgTextAnchor textAnchor)
+        internal static SKTextAlign ToTextAlign(SvgTextAnchor textAnchor)
         {
             return textAnchor switch
             {
-                SvgTextAnchor.Middle => TextAlign.Center,
-                SvgTextAnchor.End => TextAlign.Right,
-                _ => TextAlign.Left,
+                SvgTextAnchor.Middle => SKTextAlign.Center,
+                SvgTextAnchor.End => SKTextAlign.Right,
+                _ => SKTextAlign.Left,
             };
         }
 
-        internal static FontStyleSlant ToFontStyleSlant(SvgFontStyle fontStyle)
+        internal static SKFontStyleSlant ToFontStyleSlant(SvgFontStyle fontStyle)
         {
             return fontStyle switch
             {
-                SvgFontStyle.Oblique => FontStyleSlant.Oblique,
-                SvgFontStyle.Italic => FontStyleSlant.Italic,
-                _ => FontStyleSlant.Upright,
+                SvgFontStyle.Oblique => SKFontStyleSlant.Oblique,
+                SvgFontStyle.Italic => SKFontStyleSlant.Italic,
+                _ => SKFontStyleSlant.Upright,
             };
         }
 
-        private static void SetTypeface(SvgTextBase svgText, Paint skPaint)
+        private static void SetTypeface(SvgTextBase svgText, SKPaint skPaint)
         {
             var fontFamily = svgText.FontFamily;
             var fontWeight = ToFontStyleWeight(svgText.FontWeight);
             var fontWidth = ToFontStyleWidth(svgText.FontStretch);
             var fontStyle = ToFontStyleSlant(svgText.FontStyle);
 
-            skPaint.Typeface = new Typeface
+            skPaint.Typeface = new SKTypeface
             {
                 FamilyName = fontFamily,
                 Weight = fontWeight,
@@ -1177,11 +1177,11 @@ namespace Svg.Model
             };
         }
 
-        internal static void SetPaintText(SvgTextBase svgText, Rect skBounds, Paint skPaint)
+        internal static void SetPaintText(SvgTextBase svgText, SKRect skBounds, SKPaint skPaint)
         {
             skPaint.LcdRenderText = true;
             skPaint.SubpixelText = true;
-            skPaint.TextEncoding = TextEncoding.Utf16;
+            skPaint.TextEncoding = SKTextEncoding.Utf16;
 
             skPaint.TextAlign = ToTextAlign(svgText.TextAnchor);
 

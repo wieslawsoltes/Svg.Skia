@@ -6,12 +6,12 @@ namespace Svg.Model.Primitives.PathCommands
         public float Rx { get; }
         public float Ry { get; }
         public float XAxisRotate { get; }
-        public PathArcSize LargeArc { get; }
-        public PathDirection Sweep { get; }
+        public SKPathArcSize LargeArc { get; }
+        public SKPathDirection Sweep { get; }
         public float X { get; }
         public float Y { get; }
 
-        public ArcToPathCommand(float rx, float ry, float xAxisRotate, PathArcSize largeArc, PathDirection sweep, float x, float y)
+        public ArcToPathCommand(float rx, float ry, float xAxisRotate, SKPathArcSize largeArc, SKPathDirection sweep, float x, float y)
         {
             Rx = rx;
             Ry = ry;

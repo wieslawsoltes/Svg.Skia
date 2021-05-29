@@ -2,12 +2,12 @@
 
 namespace Svg.Model.Painting.Shaders
 {
-    public sealed class PictureShader : Shader
+    public sealed class PictureShader : SKShader
     {
-        public Picture? Src { get; set; }
-        public ShaderTileMode TmX { get; set; }
-        public ShaderTileMode TmY { get; set; }
-        public Matrix LocalMatrix { get; set; }
-        public Rect Tile { get; set; }
+        public SKPicture? Src { get; set; }
+        public SKShaderTileMode TmX { get; set; }
+        public SKShaderTileMode TmY { get; set; }
+        public SKMatrix LocalMatrix { get; set; }
+        public SKRect Tile { get; set; }
     }
 }

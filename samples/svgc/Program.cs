@@ -31,11 +31,11 @@ namespace svgc
 
     class ImageSharpAssetLoader : SM.IAssetLoader
     {
-        public SMP.Image LoadImage(Stream stream)
+        public SMP.SKImage LoadImage(Stream stream)
         {
-            var data = SMP.Image.FromStream(stream);
+            var data = SMP.SKImage.FromStream(stream);
             using var image = SLIS.Image.Load(data);
-            return new SMP.Image
+            return new SMP.SKImage
             {
                 Data = data,
                 Width = image.Width,

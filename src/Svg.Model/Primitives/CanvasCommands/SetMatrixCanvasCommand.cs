@@ -3,9 +3,9 @@ namespace Svg.Model.Primitives.CanvasCommands
 {
     public sealed class SetMatrixCanvasCommand : CanvasCommand
     {
-        public Matrix Matrix { get; }
+        public SKMatrix Matrix { get; }
 
-        public SetMatrixCanvasCommand(Matrix matrix)
+        public SetMatrixCanvasCommand(SKMatrix matrix)
         {
             Matrix = matrix;
         }

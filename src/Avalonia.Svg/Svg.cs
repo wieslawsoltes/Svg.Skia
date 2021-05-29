@@ -12,7 +12,7 @@ namespace Avalonia.Svg
     public class Svg : Control, IAffectsRender
     {
         private readonly Uri _baseUri;
-        private Picture? _picture;
+        private SKPicture? _picture;
         private AvaloniaPicture? _avaloniaPicture;
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace Avalonia.Svg
         /// <summary>
         /// Gets svg model.
         /// </summary>
-        public Picture? Model => _picture;
+        public SKPicture? Model => _picture;
 
         static Svg()
         {

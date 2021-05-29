@@ -5,12 +5,12 @@ namespace Svg.Model.Primitives.CanvasCommands
 {
     public sealed class DrawImageCanvasCommand : CanvasCommand
     {
-        public Image? Image { get; }
-        public Rect Source { get; }
-        public Rect Dest { get; }
-        public Paint? Paint { get; }
+        public SKImage? Image { get; }
+        public SKRect Source { get; }
+        public SKRect Dest { get; }
+        public SKPaint? Paint { get; }
 
-        public DrawImageCanvasCommand(Image image, Rect source, Rect dest, Paint? paint = null)
+        public DrawImageCanvasCommand(SKImage image, SKRect source, SKRect dest, SKPaint? paint = null)
         {
             Image = image;
             Source = source;

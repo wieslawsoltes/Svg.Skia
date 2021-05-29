@@ -1,7 +1,7 @@
 ﻿
 namespace Svg.Model.Painting.ColorFilters
 {
-    public sealed class TableColorFilter : ColorFilter
+    public sealed class TableColorFilter : SKColorFilter
     {
         public byte[]? TableA { get; set; }
         public byte[]? TableR { get; set; }

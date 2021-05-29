@@ -2,9 +2,9 @@
 
 namespace Svg.Model.Painting.ImageFilters
 {
-    public sealed class PictureImageFilter : ImageFilter
+    public sealed class PictureImageFilter : SKImageFilter
     {
-        public Picture? Picture { get; set; }
-        public Rect? CropRect { get; set; }
+        public SKPicture? Picture { get; set; }
+        public SKRect? CropRect { get; set; }
     }
 }

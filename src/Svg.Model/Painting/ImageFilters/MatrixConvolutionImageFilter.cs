@@ -3,16 +3,16 @@ using Svg.Model.Primitives;
 
 namespace Svg.Model.Painting.ImageFilters
 {
-    public sealed class MatrixConvolutionImageFilter : ImageFilter
+    public sealed class MatrixConvolutionImageFilter : SKImageFilter
     {
-        public SizeI KernelSize { get; set; }
+        public SKSizeI KernelSize { get; set; }
         public float[]? Kernel { get; set; }
         public float Gain { get; set; }
         public float Bias { get; set; }
-        public PointI KernelOffset { get; set; }
-        public ShaderTileMode TileMode { get; set; }
+        public SKPointI KernelOffset { get; set; }
+        public SKShaderTileMode TileMode { get; set; }
         public bool ConvolveAlpha { get; set; }
-        public ImageFilter? Input { get; set; }
-        public CropRect? CropRect { get; set; }
+        public SKImageFilter? Input { get; set; }
+        public SKCropRect? CropRect { get; set; }
     }
 }

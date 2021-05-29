@@ -9,7 +9,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static AnchorDrawable Create(SvgAnchor svgAnchor, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static AnchorDrawable Create(SvgAnchor svgAnchor, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new AnchorDrawable(assetLoader)
             {
@@ -23,7 +23,7 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgAnchor);
 
-            drawable.GeometryBounds = Rect.Empty;
+            drawable.GeometryBounds = SKRect.Empty;
             
             drawable.CreateGeometryBounds();
 
@@ -45,7 +45,7 @@ namespace Svg.Model.Drawables.Elements
             return drawable;
         }
 
-        public override void PostProcess(Rect? viewport)
+        public override void PostProcess(SKRect? viewport)
         {
             var element = Element;
             if (element is null)

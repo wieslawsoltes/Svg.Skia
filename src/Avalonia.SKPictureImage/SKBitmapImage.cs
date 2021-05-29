@@ -3,7 +3,6 @@ using System;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Visuals.Media.Imaging;
-using SkiaSharp;
 
 namespace Avalonia.SKPictureImage
 {
@@ -15,8 +14,8 @@ namespace Avalonia.SKPictureImage
         /// <summary>
         /// Defines the <see cref="Source"/> property.
         /// </summary>
-        public static readonly StyledProperty<SKBitmap> SourceProperty =
-            AvaloniaProperty.Register<SKBitmapImage, SKBitmap>(nameof(Source));
+        public static readonly StyledProperty<SkiaSharp.SKBitmap> SourceProperty =
+            AvaloniaProperty.Register<SKBitmapImage, SkiaSharp.SKBitmap>(nameof(Source));
 
         public event EventHandler Invalidated;
 
@@ -24,7 +23,7 @@ namespace Avalonia.SKPictureImage
         /// Gets or sets the <see cref="SKBitmap"/> content.
         /// </summary>
         [Content]
-        public SKBitmap Source
+        public SkiaSharp.SKBitmap Source
         {
             get => GetValue(SourceProperty);
             set => SetValue(SourceProperty, value);
@@ -41,7 +40,7 @@ namespace Avalonia.SKPictureImage
             {
                 return;
             }
-            var bounds = SKRect.Create(0, 0, source.Width, source.Height);
+            var bounds = SkiaSharp.SKRect.Create(0, 0, source.Width, source.Height);
             var scaleMatrix = Matrix.CreateScale(destRect.Width / sourceRect.Width, destRect.Height / sourceRect.Height);
             var translateMatrix = Matrix.CreateTranslation(-sourceRect.X + destRect.X - bounds.Top, -sourceRect.Y + destRect.Y - bounds.Left);
             using (context.PushClip(destRect))

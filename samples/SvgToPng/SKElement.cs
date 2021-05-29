@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using SkiaSharp;
 using Svg.Skia;
 
 namespace SvgToPng
@@ -27,7 +26,7 @@ namespace SvgToPng
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public SKSize CanvasSize => bitmap == null ? SKSize.Empty : new SKSize(bitmap.PixelWidth, bitmap.PixelHeight);
+        public SkiaSharp.SKSize CanvasSize => bitmap == null ? SkiaSharp.SKSize.Empty : new SkiaSharp.SKSize(bitmap.PixelWidth, bitmap.PixelHeight);
 
         public bool IgnorePixelScaling
         {
@@ -56,7 +55,7 @@ namespace SvgToPng
             if (size.Width <= 0 || size.Height <= 0)
                 return;
 
-            var info = new SKImageInfo(size.Width, size.Height, SKImageInfo.PlatformColorType, SKAlphaType.Premul, SKSvgSettings.s_srgb);
+            var info = new SkiaSharp.SKImageInfo(size.Width, size.Height, SkiaSharp.SKImageInfo.PlatformColorType, SkiaSharp.SKAlphaType.Premul, SKSvgSettings.s_srgb);
             // reset the bitmap if the size has changed
             if (bitmap == null || info.Width != bitmap.PixelWidth || info.Height != bitmap.PixelHeight)
             {
@@ -65,7 +64,7 @@ namespace SvgToPng
 
             // draw on the bitmap
             bitmap.Lock();
-            using (var surface = SKSurface.Create(info, bitmap.BackBuffer, bitmap.BackBufferStride))
+            using (var surface = SkiaSharp.SKSurface.Create(info, bitmap.BackBuffer, bitmap.BackBufferStride))
             {
                 OnPaintSurface(new SKPaintSurfaceEventArgs(surface, info));
             }
@@ -89,7 +88,7 @@ namespace SvgToPng
             InvalidateVisual();
         }
 
-        private SKSizeI CreateSize(out double scaleX, out double scaleY)
+        private SkiaSharp.SKSizeI CreateSize(out double scaleX, out double scaleY)
         {
             scaleX = 1.0;
             scaleY = 1.0;
@@ -98,15 +97,15 @@ namespace SvgToPng
             var h = ActualHeight;
 
             if (!IsPositive(w) || !IsPositive(h))
-                return SKSizeI.Empty;
+                return SkiaSharp.SKSizeI.Empty;
 
             if (IgnorePixelScaling)
-                return new SKSizeI((int)w, (int)h);
+                return new SkiaSharp.SKSizeI((int)w, (int)h);
 
             var m = PresentationSource.FromVisual(this).CompositionTarget.TransformToDevice;
             scaleX = m.M11;
             scaleY = m.M22;
-            return new SKSizeI((int)(w * scaleX), (int)(h * scaleY));
+            return new SkiaSharp.SKSizeI((int)(w * scaleX), (int)(h * scaleY));
 
             bool IsPositive(double value)
             {

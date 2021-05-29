@@ -3,9 +3,9 @@ namespace Svg.Model.Primitives.PathCommands
 {
     public sealed class AddOvalPathCommand : PathCommand
     {
-        public Rect Rect { get; }
+        public SKRect Rect { get; }
 
-        public AddOvalPathCommand(Rect rect)
+        public AddOvalPathCommand(SKRect rect)
         {
             Rect = rect;
         }

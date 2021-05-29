@@ -11,7 +11,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static FragmentDrawable Create(SvgFragment svgFragment, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static FragmentDrawable Create(SvgFragment svgFragment, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new FragmentDrawable(assetLoader)
             {
@@ -36,7 +36,7 @@ namespace Svg.Model.Drawables.Elements
 
             if (skOwnerBounds.IsEmpty)
             {
-                skOwnerBounds = Rect.Create(x, y, skSize.Width, skSize.Height);
+                skOwnerBounds = SKRect.Create(x, y, skSize.Width, skSize.Height);
             }
 
             drawable.CreateChildren(svgFragment, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
@@ -66,7 +66,7 @@ namespace Svg.Model.Drawables.Elements
                 default:
                     if (skSize.IsEmpty)
                     {
-                        drawable.Overflow = Rect.Create(
+                        drawable.Overflow = SKRect.Create(
                             x,
                             y,
                             Math.Abs(drawable.GeometryBounds.Left) + drawable.GeometryBounds.Width,
@@ -74,7 +74,7 @@ namespace Svg.Model.Drawables.Elements
                     }
                     else
                     {
-                        drawable.Overflow = Rect.Create(x, y, skSize.Width, skSize.Height);
+                        drawable.Overflow = SKRect.Create(x, y, skSize.Width, skSize.Height);
                     }
                     break;
             }
@@ -108,7 +108,7 @@ namespace Svg.Model.Drawables.Elements
             return drawable;
         }
 
-        public override void PostProcess(Rect? viewport)
+        public override void PostProcess(SKRect? viewport)
         {
             var element = Element;
             if (element is null)

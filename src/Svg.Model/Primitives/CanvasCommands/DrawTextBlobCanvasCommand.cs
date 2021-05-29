@@ -5,12 +5,12 @@ namespace Svg.Model.Primitives.CanvasCommands
 {
     public sealed class DrawTextBlobCanvasCommand : CanvasCommand
     {
-        public TextBlob? TextBlob { get; }
+        public SKTextBlob? TextBlob { get; }
         public float X { get; }
         public float Y { get; }
-        public Paint? Paint { get; }
+        public SKPaint? Paint { get; }
 
-        public DrawTextBlobCanvasCommand(TextBlob textBlob, float x, float y, Paint paint)
+        public DrawTextBlobCanvasCommand(SKTextBlob textBlob, float x, float y, SKPaint paint)
         {
             TextBlob = textBlob;
             X = x;

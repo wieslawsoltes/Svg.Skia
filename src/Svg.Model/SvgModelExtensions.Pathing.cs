@@ -22,25 +22,25 @@ namespace Svg.Model
             CloseSubpath = 0x80
         }
 
-        internal static List<(Point Point, byte Type)> GetPathTypes(this Path path)
+        internal static List<(SKPoint Point, byte Type)> GetPathTypes(this SKPath path)
         {
             // System.Drawing.Drawing2D.GraphicsPath.PathTypes
             // System.Drawing.Drawing2D.PathPointType
             // byte -> PathPointType
-            var pathTypes = new List<(Point Point, byte Type)>();
+            var pathTypes = new List<(SKPoint Point, byte Type)>();
 
             if (path.Commands is null)
             {
                 return pathTypes;
             }
-            (Point Point, byte Type) lastPoint = (default, 0);
+            (SKPoint Point, byte Type) lastPoint = (default, 0);
             foreach (var pathCommand in path.Commands)
             {
                 switch (pathCommand)
                 {
                     case MoveToPathCommand moveToPathCommand:
                         {
-                            var point0 = new Point(moveToPathCommand.X, moveToPathCommand.Y);
+                            var point0 = new SKPoint(moveToPathCommand.X, moveToPathCommand.Y);
                             pathTypes.Add((point0, (byte)PathPointType.Start));
                             lastPoint = (point0, (byte)PathPointType.Start);
                         }
@@ -48,7 +48,7 @@ namespace Svg.Model
 
                     case LineToPathCommand lineToPathCommand:
                         {
-                            var point1 = new Point(lineToPathCommand.X, lineToPathCommand.Y);
+                            var point1 = new SKPoint(lineToPathCommand.X, lineToPathCommand.Y);
                             pathTypes.Add((point1, (byte)PathPointType.Line));
                             lastPoint = (point1, (byte)PathPointType.Line);
                         }
@@ -56,9 +56,9 @@ namespace Svg.Model
 
                     case CubicToPathCommand cubicToPathCommand:
                         {
-                            var point1 = new Point(cubicToPathCommand.X0, cubicToPathCommand.Y0);
-                            var point2 = new Point(cubicToPathCommand.X1, cubicToPathCommand.Y1);
-                            var point3 = new Point(cubicToPathCommand.X2, cubicToPathCommand.Y2);
+                            var point1 = new SKPoint(cubicToPathCommand.X0, cubicToPathCommand.Y0);
+                            var point2 = new SKPoint(cubicToPathCommand.X1, cubicToPathCommand.Y1);
+                            var point3 = new SKPoint(cubicToPathCommand.X2, cubicToPathCommand.Y2);
                             pathTypes.Add((point1, (byte)PathPointType.Bezier));
                             pathTypes.Add((point2, (byte)PathPointType.Bezier));
                             pathTypes.Add((point3, (byte)PathPointType.Bezier));
@@ -68,8 +68,8 @@ namespace Svg.Model
 
                     case QuadToPathCommand quadToPathCommand:
                         {
-                            var point1 = new Point(quadToPathCommand.X0, quadToPathCommand.Y0);
-                            var point2 = new Point(quadToPathCommand.X1, quadToPathCommand.Y1);
+                            var point1 = new SKPoint(quadToPathCommand.X0, quadToPathCommand.Y0);
+                            var point2 = new SKPoint(quadToPathCommand.X1, quadToPathCommand.Y1);
                             pathTypes.Add((point1, (byte)PathPointType.Bezier));
                             pathTypes.Add((point2, (byte)PathPointType.Bezier));
                             lastPoint = (point2, (byte)PathPointType.Bezier);
@@ -78,7 +78,7 @@ namespace Svg.Model
 
                     case ArcToPathCommand arcToPathCommand:
                         {
-                            var point1 = new Point(arcToPathCommand.X, arcToPathCommand.Y);
+                            var point1 = new SKPoint(arcToPathCommand.X, arcToPathCommand.Y);
                             pathTypes.Add((point1, (byte)PathPointType.Bezier));
                             lastPoint = (point1, (byte)PathPointType.Bezier);
                         }
@@ -97,7 +97,7 @@ namespace Svg.Model
                             {
                                 foreach (var nexPoint in addPolyPathCommand.Points)
                                 {
-                                    var point1 = new Point(nexPoint.X, nexPoint.Y);
+                                    var point1 = new SKPoint(nexPoint.X, nexPoint.Y);
                                     pathTypes.Add((point1, (byte)PathPointType.Start));
                                 }
 
@@ -116,15 +116,15 @@ namespace Svg.Model
             return pathTypes;
         }
 
-        internal static Path? ToPath(this SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule)
+        internal static SKPath? ToPath(this SvgPathSegmentList svgPathSegmentList, SvgFillRule svgFillRule)
         {
             if (svgPathSegmentList is null || svgPathSegmentList.Count <= 0)
             {
                 return default;
             }
 
-            var fillType = svgFillRule == SvgFillRule.EvenOdd ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path
+            var fillType = svgFillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
+            var skPath = new SKPath
             {
                 FillType = fillType
             };
@@ -225,8 +225,8 @@ namespace Svg.Model
                             var rx = svgArcSegment.RadiusX;
                             var ry = svgArcSegment.RadiusY;
                             var xAxisRotate = svgArcSegment.Angle;
-                            var largeArc = svgArcSegment.Size == SvgArcSize.Small ? PathArcSize.Small : PathArcSize.Large;
-                            var sweep = svgArcSegment.Sweep == SvgArcSweep.Negative ? PathDirection.CounterClockwise : PathDirection.Clockwise;
+                            var largeArc = svgArcSegment.Size == SvgArcSize.Small ? SKPathArcSize.Small : SKPathArcSize.Large;
+                            var sweep = svgArcSegment.Sweep == SvgArcSweep.Negative ? SKPathDirection.CounterClockwise : SKPathDirection.Clockwise;
                             var x = svgArcSegment.End.X;
                             var y = svgArcSegment.End.Y;
                             skPath.ArcTo(rx, ry, xAxisRotate, largeArc, sweep, x, y);
@@ -259,21 +259,21 @@ namespace Svg.Model
             return skPath;
         }
 
-        internal static Path? ToPath(this SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, Rect skOwnerBounds)
+        internal static SKPath? ToPath(this SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, SKRect skOwnerBounds)
         {
-            var fillType = svgFillRule == SvgFillRule.EvenOdd ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path
+            var fillType = svgFillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
+            var skPath = new SKPath
             {
                 FillType = fillType
             };
 
-            var skPoints = new Point[svgPointCollection.Count / 2];
+            var skPoints = new SKPoint[svgPointCollection.Count / 2];
 
             for (var i = 0; i + 1 < svgPointCollection.Count; i += 2)
             {
                 var x = svgPointCollection[i].ToDeviceValue(UnitRenderingType.Other, null, skOwnerBounds);
                 var y = svgPointCollection[i + 1].ToDeviceValue(UnitRenderingType.Other, null, skOwnerBounds);
-                skPoints[i / 2] = new Point(x, y);
+                skPoints[i / 2] = new SKPoint(x, y);
             }
 
             skPath.AddPoly(skPoints, isClosed);
@@ -281,10 +281,10 @@ namespace Svg.Model
             return skPath;
         }
 
-        internal static Path? ToPath(this SvgRectangle svgRectangle, SvgFillRule svgFillRule, Rect skOwnerBounds)
+        internal static SKPath? ToPath(this SvgRectangle svgRectangle, SvgFillRule svgFillRule, SKRect skOwnerBounds)
         {
-            var fillType = svgFillRule == SvgFillRule.EvenOdd ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path
+            var fillType = svgFillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
+            var skPath = new SKPath
             {
                 FillType = fillType
             };
@@ -342,7 +342,7 @@ namespace Svg.Model
             }
 
             var isRound = rx > 0f && ry > 0f;
-            var skRectBounds = Rect.Create(x, y, width, height);
+            var skRectBounds = SKRect.Create(x, y, width, height);
 
             if (isRound)
             {
@@ -356,10 +356,10 @@ namespace Svg.Model
             return skPath;
         }
 
-        internal static Path? ToPath(this SvgCircle svgCircle, SvgFillRule svgFillRule, Rect skOwnerBounds)
+        internal static SKPath? ToPath(this SvgCircle svgCircle, SvgFillRule svgFillRule, SKRect skOwnerBounds)
         {
-            var fillType = svgFillRule == SvgFillRule.EvenOdd ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path
+            var fillType = svgFillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
+            var skPath = new SKPath
             {
                 FillType = fillType
             };
@@ -378,10 +378,10 @@ namespace Svg.Model
             return skPath;
         }
 
-        internal static Path? ToPath(this SvgEllipse svgEllipse, SvgFillRule svgFillRule, Rect skOwnerBounds)
+        internal static SKPath? ToPath(this SvgEllipse svgEllipse, SvgFillRule svgFillRule, SKRect skOwnerBounds)
         {
-            var fillType = svgFillRule == SvgFillRule.EvenOdd ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path
+            var fillType = svgFillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
+            var skPath = new SKPath
             {
                 FillType = fillType
             };
@@ -396,17 +396,17 @@ namespace Svg.Model
                 return default;
             }
 
-            var skRectBounds = Rect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
+            var skRectBounds = SKRect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
 
             skPath.AddOval(skRectBounds);
 
             return skPath;
         }
 
-        internal static Path? ToPath(this SvgLine svgLine, SvgFillRule svgFillRule, Rect skOwnerBounds)
+        internal static SKPath? ToPath(this SvgLine svgLine, SvgFillRule svgFillRule, SKRect skOwnerBounds)
         {
-            var fillType = svgFillRule == SvgFillRule.EvenOdd ? PathFillType.EvenOdd : PathFillType.Winding;
-            var skPath = new Path
+            var fillType = svgFillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
+            var skPath = new SKPath
             {
                 FillType = fillType
             };

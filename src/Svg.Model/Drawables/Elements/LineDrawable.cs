@@ -9,7 +9,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static LineDrawable Create(SvgLine svgLine, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static LineDrawable Create(SvgLine svgLine, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new LineDrawable(assetLoader)
             {

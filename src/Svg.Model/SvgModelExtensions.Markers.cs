@@ -72,7 +72,7 @@ namespace Svg.Model
             }
         }
 
-        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, bool isStartMarker, Rect skOwnerBounds, IMarkerHost markerHost, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skOwnerBounds, IMarkerHost markerHost, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
             var fAngle1 = 0f;
             if (svgMarker.Orient.IsAuto)
@@ -90,7 +90,7 @@ namespace Svg.Model
             markerHost.AddMarker(markerDrawable);
         }
 
-        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, Point pRefPoint, Point pMarkerPoint1, Point pMarkerPoint2, Point pMarkerPoint3, Rect skOwnerBounds, IMarkerHost markerHost, IAssetLoader assetLoader)
+        internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, SKPoint pMarkerPoint3, SKRect skOwnerBounds, IMarkerHost markerHost, IAssetLoader assetLoader)
         {
             var xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
             var yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
@@ -103,7 +103,7 @@ namespace Svg.Model
             markerHost.AddMarker(markerDrawable);
         }
 
-        internal static void CreateMarkers(this SvgMarkerElement svgMarkerElement, Path skPath, Rect skOwnerBounds, IMarkerHost markerHost, IAssetLoader assetLoader)
+        internal static void CreateMarkers(this SvgMarkerElement svgMarkerElement, SKPath skPath, SKRect skOwnerBounds, IMarkerHost markerHost, IAssetLoader assetLoader)
         {
             var pathTypes = skPath.GetPathTypes();
             var pathLength = pathTypes.Count;

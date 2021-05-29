@@ -1,10 +1,10 @@
 ﻿
 namespace Svg.Model.Painting.ImageFilters
 {
-    public sealed class ColorFilterImageFilter : ImageFilter
+    public sealed class ColorFilterImageFilter : SKImageFilter
     {
-        public ColorFilter? ColorFilter { get; set; }
-        public ImageFilter? Input { get; set; }
-        public CropRect? CropRect { get; set; }
+        public SKColorFilter? ColorFilter { get; set; }
+        public SKImageFilter? Input { get; set; }
+        public SKCropRect? CropRect { get; set; }
     }
 }

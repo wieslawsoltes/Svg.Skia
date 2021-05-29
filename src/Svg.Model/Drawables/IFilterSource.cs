@@ -5,9 +5,9 @@ namespace Svg.Model.Drawables
 {
     internal interface IFilterSource
     {
-        Picture? SourceGraphic();
-        Picture? BackgroundImage();
-        Paint? FillPaint();
-        Paint? StrokePaint();
+        SKPicture? SourceGraphic();
+        SKPicture? BackgroundImage();
+        SKPaint? FillPaint();
+        SKPaint? StrokePaint();
     }
 }

@@ -8,14 +8,14 @@ namespace Svg.Model.Drawables.Elements
     public sealed class MarkerDrawable : DrawableBase
     {
         public DrawableBase? MarkerElementDrawable { get; set; }
-        public Rect? MarkerClipRect { get; set; }
+        public SKRect? MarkerClipRect { get; set; }
 
         private MarkerDrawable(IAssetLoader assetLoader)
             : base(assetLoader)
         {
         }
 
-        public static MarkerDrawable Create(SvgMarker svgMarker, SvgVisualElement pOwner, Point pMarkerPoint, float fAngle, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static MarkerDrawable Create(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new MarkerDrawable(assetLoader)
             {
@@ -37,12 +37,12 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            var skMarkerMatrix = Matrix.CreateIdentity();
+            var skMarkerMatrix = SKMatrix.CreateIdentity();
 
-            var skMatrixMarkerPoint = Matrix.CreateTranslation(pMarkerPoint.X, pMarkerPoint.Y);
+            var skMatrixMarkerPoint = SKMatrix.CreateTranslation(pMarkerPoint.X, pMarkerPoint.Y);
             skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixMarkerPoint);
 
-            var skMatrixAngle = Matrix.CreateRotationDegrees(svgMarker.Orient.IsAuto ? fAngle : svgMarker.Orient.Angle);
+            var skMatrixAngle = SKMatrix.CreateRotationDegrees(svgMarker.Orient.IsAuto ? fAngle : svgMarker.Orient.Angle);
             skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixAngle);
 
             var strokeWidth = pOwner.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
@@ -58,7 +58,7 @@ namespace Svg.Model.Drawables.Elements
             {
                 case SvgMarkerUnits.StrokeWidth:
                     {
-                        var skMatrixStrokeWidth = Matrix.CreateScale(strokeWidth, strokeWidth);
+                        var skMatrixStrokeWidth = SKMatrix.CreateScale(strokeWidth, strokeWidth);
                         skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixStrokeWidth);
 
                         var viewBoxWidth = svgMarker.ViewBox.Width;
@@ -70,17 +70,17 @@ namespace Svg.Model.Drawables.Elements
                         viewBoxToMarkerUnitsScaleX = Math.Min(scaleFactorWidth, scaleFactorHeight);
                         viewBoxToMarkerUnitsScaleY = Math.Min(scaleFactorWidth, scaleFactorHeight);
 
-                        var skMatrixTranslateRefXY = Matrix.CreateTranslation(-refX * viewBoxToMarkerUnitsScaleX, -refY * viewBoxToMarkerUnitsScaleY);
+                        var skMatrixTranslateRefXY = SKMatrix.CreateTranslation(-refX * viewBoxToMarkerUnitsScaleX, -refY * viewBoxToMarkerUnitsScaleY);
                         skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixTranslateRefXY);
 
-                        var skMatrixScaleXY = Matrix.CreateScale(viewBoxToMarkerUnitsScaleX, viewBoxToMarkerUnitsScaleY);
+                        var skMatrixScaleXY = SKMatrix.CreateScale(viewBoxToMarkerUnitsScaleX, viewBoxToMarkerUnitsScaleY);
                         skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixScaleXY);
                     }
                     break;
 
                 case SvgMarkerUnits.UserSpaceOnUse:
                     {
-                        var skMatrixTranslateRefXY = Matrix.CreateTranslation(-refX, -refY);
+                        var skMatrixTranslateRefXY = SKMatrix.CreateTranslation(-refX, -refY);
                         skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixTranslateRefXY);
                     }
                     break;
@@ -94,7 +94,7 @@ namespace Svg.Model.Drawables.Elements
                     break;
 
                 default:
-                    drawable.MarkerClipRect = Rect.Create(
+                    drawable.MarkerClipRect = SKRect.Create(
                         svgMarker.ViewBox.MinX,
                         svgMarker.ViewBox.MinY,
                         markerWidth / viewBoxToMarkerUnitsScaleX,
@@ -147,7 +147,7 @@ namespace Svg.Model.Drawables.Elements
             return markerElement;
         }
 
-        public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
             if (until is { } && this == until)
             {
@@ -156,13 +156,13 @@ namespace Svg.Model.Drawables.Elements
 
             if (MarkerClipRect is { })
             {
-                canvas.ClipRect(MarkerClipRect.Value, ClipOperation.Intersect);
+                canvas.ClipRect(MarkerClipRect.Value, SKClipOperation.Intersect);
             }
 
             MarkerElementDrawable?.Draw(canvas, ignoreAttributes, until, true);
         }
 
-        public override void PostProcess(Rect? viewport)
+        public override void PostProcess(SKRect? viewport)
         {
             base.PostProcess(viewport);
             MarkerElementDrawable?.PostProcess(viewport);

@@ -2,16 +2,16 @@
 
 namespace Svg.Model.Painting.ImageFilters
 {
-    public sealed class SpotLitDiffuseImageFilter : ImageFilter
+    public sealed class SpotLitDiffuseImageFilter : SKImageFilter
     {
-        public Point3 Location { get; set; }
-        public Point3 Target { get; set; }
+        public SKPoint3 Location { get; set; }
+        public SKPoint3 Target { get; set; }
         public float SpecularExponent { get; set; }
         public float CutoffAngle { get; set; }
-        public Color LightColor { get; set; }
+        public SKColor LightColor { get; set; }
         public float SurfaceScale { get; set; }
         public float Kd { get; set; }
-        public ImageFilter? Input { get; set; }
-        public CropRect? CropRect { get; set; }
+        public SKImageFilter? Input { get; set; }
+        public SKCropRect? CropRect { get; set; }
     }
 }

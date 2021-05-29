@@ -11,7 +11,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static SwitchDrawable Create(SvgSwitch svgSwitch, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static SwitchDrawable Create(SvgSwitch svgSwitch, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new SwitchDrawable(assetLoader)
             {
@@ -72,7 +72,7 @@ namespace Svg.Model.Drawables.Elements
             return drawable;
         }
 
-        public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
             if (until is { } && this == until)
             {
@@ -82,7 +82,7 @@ namespace Svg.Model.Drawables.Elements
             FirstChild?.Draw(canvas, ignoreAttributes, until, true);
         }
 
-        public override void PostProcess(Rect? viewport)
+        public override void PostProcess(SKRect? viewport)
         {
             base.PostProcess(viewport);
             FirstChild?.PostProcess(viewport);

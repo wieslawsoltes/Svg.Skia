@@ -6,18 +6,18 @@ namespace Svg.Model.Drawables.Elements
 {
     public sealed class ImageDrawable : DrawableBase
     {
-        public Image? Image { get; set; }
+        public SKImage? Image { get; set; }
         public FragmentDrawable? FragmentDrawable { get; set; }
-        public Rect SrcRect { get; set; }
-        public Rect DestRect { get; set; }
-        public Matrix FragmentTransform { get; set; }
+        public SKRect SrcRect { get; set; }
+        public SKRect DestRect { get; set; }
+        public SKMatrix FragmentTransform { get; set; }
 
         private ImageDrawable(IAssetLoader assetLoader)
             : base(assetLoader)
         {
         }
 
-        public static ImageDrawable Create(SvgImage svgImage, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static ImageDrawable Create(SvgImage svgImage, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
         {
             var drawable = new ImageDrawable(assetLoader)
             {
@@ -37,7 +37,7 @@ namespace Svg.Model.Drawables.Elements
             var height = svgImage.Height.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skOwnerBounds);
             var x = svgImage.Location.X.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, skOwnerBounds);
             var y = svgImage.Location.Y.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skOwnerBounds);
-            var location = new Point(x, y);
+            var location = new SKPoint(x, y);
 
             if (width <= 0f || height <= 0f || svgImage.Href is null)
             {
@@ -53,7 +53,7 @@ namespace Svg.Model.Drawables.Elements
             //}
 
             var image = SvgModelExtensions.GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
-            var skImage = image as Image;
+            var skImage = image as SKImage;
             var svgFragment = image as SvgFragment;
             if (skImage is null && svgFragment is null)
             {
@@ -65,16 +65,16 @@ namespace Svg.Model.Drawables.Elements
 
             if (skImage is { })
             {
-                drawable.SrcRect = Rect.Create(0f, 0f, skImage.Width, skImage.Height);
+                drawable.SrcRect = SKRect.Create(0f, 0f, skImage.Width, skImage.Height);
             }
 
             if (svgFragment is { })
             {
                 var skSize = SvgModelExtensions.GetDimensions(svgFragment);
-                drawable.SrcRect = Rect.Create(0f, 0f, skSize.Width, skSize.Height);
+                drawable.SrcRect = SKRect.Create(0f, 0f, skSize.Width, skSize.Height);
             }
 
-            var destClip = Rect.Create(location.X, location.Y, width, height);
+            var destClip = SKRect.Create(location.X, location.Y, width, height);
             drawable.DestRect = SvgModelExtensions.CalculateRect(svgImage.AspectRatio, drawable.SrcRect, destClip);
             drawable.Clip = destClip;
 
@@ -96,7 +96,7 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgImage);
 
-            drawable.GeometryBounds = default(Rect);
+            drawable.GeometryBounds = default(SKRect);
 
             if (drawable.Image is { })
             {
@@ -111,7 +111,7 @@ namespace Svg.Model.Drawables.Elements
             }
 
             drawable.Transform = SvgModelExtensions.ToMatrix(svgImage.Transforms);
-            drawable.FragmentTransform = Matrix.CreateIdentity();
+            drawable.FragmentTransform = SKMatrix.CreateIdentity();
 
             if (drawable.FragmentDrawable is { })
             {
@@ -119,8 +119,8 @@ namespace Svg.Model.Drawables.Elements
                 var dy = drawable.DestRect.Top;
                 var sx = drawable.DestRect.Width / drawable.SrcRect.Width;
                 var sy = drawable.DestRect.Height / drawable.SrcRect.Height;
-                var skTranslationMatrix = Matrix.CreateTranslation(dx, dy);
-                var skScaleMatrix = Matrix.CreateScale(sx, sy);
+                var skTranslationMatrix = SKMatrix.CreateTranslation(dx, dy);
+                var skScaleMatrix = SKMatrix.CreateScale(sx, sy);
                 drawable.FragmentTransform = drawable.FragmentTransform.PreConcat(skTranslationMatrix);
                 drawable.FragmentTransform = drawable.FragmentTransform.PreConcat(skScaleMatrix);
                 // TODO: FragmentTransform
@@ -135,7 +135,7 @@ namespace Svg.Model.Drawables.Elements
             return drawable;
         }
 
-        public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
+        public override void OnDraw(SKCanvas canvas, Attributes ignoreAttributes, DrawableBase? until)
         {
             if (until is { } && this == until)
             {
@@ -144,10 +144,10 @@ namespace Svg.Model.Drawables.Elements
 
             if (Image is { })
             {
-                var skImagePaint = new Paint
+                var skImagePaint = new SKPaint
                 {
                     IsAntialias = true,
-                    FilterQuality = FilterQuality.High
+                    FilterQuality = SKFilterQuality.High
                 };
                 canvas.DrawImage(Image, SrcRect, DestRect, skImagePaint);
             }
@@ -166,7 +166,7 @@ namespace Svg.Model.Drawables.Elements
             }
         }
 
-        public override void PostProcess(Rect? viewport)
+        public override void PostProcess(SKRect? viewport)
         {
             base.PostProcess(viewport);
             FragmentDrawable?.PostProcess(viewport);

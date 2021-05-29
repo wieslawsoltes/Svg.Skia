@@ -5,11 +5,11 @@ namespace Svg.Model.Primitives.CanvasCommands
 {
     public sealed class ClipRectCanvasCommand : CanvasCommand
     {
-        public Rect Rect { get; }
-        public ClipOperation Operation { get; }
+        public SKRect Rect { get; }
+        public SKClipOperation Operation { get; }
         public bool Antialias { get; }
 
-        public ClipRectCanvasCommand(Rect rect, ClipOperation operation, bool antialias)
+        public ClipRectCanvasCommand(SKRect rect, SKClipOperation operation, bool antialias)
         {
             Rect = rect;
             Operation = operation;

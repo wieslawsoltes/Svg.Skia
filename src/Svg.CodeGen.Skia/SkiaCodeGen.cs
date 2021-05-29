@@ -144,17 +144,17 @@ namespace Svg.CodeGen.Skia
             return result;
         }
 
-        public static string ToSKPoint(this Point point)
+        public static string ToSKPoint(this SKPoint point)
         {
             return $"new SKPoint({point.X.ToFloatString()}, {point.Y.ToFloatString()})";
         }
 
-        public static string ToSKPoint3(this Point3 point3)
+        public static string ToSKPoint3(this SKPoint3 point3)
         {
             return $"new SKPoint3({point3.X.ToFloatString()}, {point3.Y.ToFloatString()}, {point3.Z.ToFloatString()})";
         }
 
-        public static string ToSKPoints(this IList<Point> points)
+        public static string ToSKPoints(this IList<SKPoint> points)
         {
             var result = $"new SKPoint[{points.Count}] {{ ";
 
@@ -173,32 +173,32 @@ namespace Svg.CodeGen.Skia
             return result;
         }
 
-        public static string ToSKPointI(this PointI pointI)
+        public static string ToSKPointI(this SKPointI pointI)
         {
             return $"new SKPointI({pointI.X.ToIntString()}, {pointI.Y.ToIntString()})";
         }
 
-        public static string ToSKSize(this Size size)
+        public static string ToSKSize(this SKSize size)
         {
             return $"new SKSize({size.Width.ToFloatString()}, {size.Height.ToFloatString()})";
         }
 
-        public static string ToSKSizeI(this SizeI sizeI)
+        public static string ToSKSizeI(this SKSizeI sizeI)
         {
             return $"new SKSizeI({sizeI.Width.ToIntString()}, {sizeI.Height.ToIntString()})";
         }
 
-        public static string ToSKRect(this Rect rect)
+        public static string ToSKRect(this SKRect rect)
         {
             return $"new SKRect({rect.Left.ToFloatString()}, {rect.Top.ToFloatString()}, {rect.Right.ToFloatString()}, {rect.Bottom.ToFloatString()})";
         }
 
-        public static string ToSKMatrix(this Matrix matrix)
+        public static string ToSKMatrix(this SKMatrix matrix)
         {
             return $"new SKMatrix({matrix.ScaleX.ToFloatString()}, {matrix.SkewX.ToFloatString()}, {matrix.TransX.ToFloatString()}, {matrix.SkewY.ToFloatString()}, {matrix.ScaleY.ToFloatString()}, {matrix.TransY.ToFloatString()}, {matrix.Persp0.ToFloatString()}, {matrix.Persp1.ToFloatString()}, {matrix.Persp2.ToFloatString()})";
         }
 
-        public static void ToSKImage(this Image image, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
+        public static void ToSKImage(this SKImage image, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
         {
             var counterImage = counter.Image;
 
@@ -212,149 +212,149 @@ namespace Svg.CodeGen.Skia
             sb.AppendLine($"SKImage.FromEncodedData({image.Data.ToByteArray()});");
         }
 
-        public static string ToSKPaintStyle(this PaintStyle paintStyle)
+        public static string ToSKPaintStyle(this SKPaintStyle paintStyle)
         {
             switch (paintStyle)
             {
                 default:
-                case PaintStyle.Fill:
+                case SKPaintStyle.Fill:
                     return "SKPaintStyle.Fill";
-                case PaintStyle.Stroke:
+                case SKPaintStyle.Stroke:
                     return "SKPaintStyle.Stroke";
-                case PaintStyle.StrokeAndFill:
+                case SKPaintStyle.StrokeAndFill:
                     return "SKPaintStyle.StrokeAndFill";
             }
         }
 
-        public static string ToSKStrokeCap(this StrokeCap strokeCap)
+        public static string ToSKStrokeCap(this SKStrokeCap strokeCap)
         {
             switch (strokeCap)
             {
                 default:
-                case StrokeCap.Butt:
+                case SKStrokeCap.Butt:
                     return "SKStrokeCap.Butt";
-                case StrokeCap.Round:
+                case SKStrokeCap.Round:
                     return "SKStrokeCap.Round";
-                case StrokeCap.Square:
+                case SKStrokeCap.Square:
                     return "SKStrokeCap.Square";
             }
         }
 
-        public static string ToSKStrokeJoin(this StrokeJoin strokeJoin)
+        public static string ToSKStrokeJoin(this SKStrokeJoin strokeJoin)
         {
             switch (strokeJoin)
             {
                 default:
-                case StrokeJoin.Miter:
+                case SKStrokeJoin.Miter:
                     return "SKStrokeJoin.Miter";
-                case StrokeJoin.Round:
+                case SKStrokeJoin.Round:
                     return "SKStrokeJoin.Round";
-                case StrokeJoin.Bevel:
+                case SKStrokeJoin.Bevel:
                     return "SKStrokeJoin.Bevel";
             }
         }
 
-        public static string ToSKTextAlign(this TextAlign textAlign)
+        public static string ToSKTextAlign(this SKTextAlign textAlign)
         {
             switch (textAlign)
             {
                 default:
-                case TextAlign.Left:
+                case SKTextAlign.Left:
                     return "SKTextAlign.Left";
-                case TextAlign.Center:
+                case SKTextAlign.Center:
                     return "SKTextAlign.Center";
-                case TextAlign.Right:
+                case SKTextAlign.Right:
                     return "SKTextAlign.Right";
             }
         }
 
-        public static string ToSKTextEncoding(this TextEncoding textEncoding)
+        public static string ToSKTextEncoding(this SKTextEncoding textEncoding)
         {
             switch (textEncoding)
             {
                 default:
-                case TextEncoding.Utf8:
+                case SKTextEncoding.Utf8:
                     return "SKTextEncoding.Utf8";
-                case TextEncoding.Utf16:
+                case SKTextEncoding.Utf16:
                     return "SKTextEncoding.Utf16";
-                case TextEncoding.Utf32:
+                case SKTextEncoding.Utf32:
                     return "SKTextEncoding.Utf32";
-                case TextEncoding.GlyphId:
+                case SKTextEncoding.GlyphId:
                     return "SKTextEncoding.GlyphId";
             }
         }
 
-        public static string ToSKFontStyleWeight(this FontStyleWeight fontStyleWeight)
+        public static string ToSKFontStyleWeight(this SKFontStyleWeight fontStyleWeight)
         {
             switch (fontStyleWeight)
             {
                 default:
-                case FontStyleWeight.Invisible:
+                case SKFontStyleWeight.Invisible:
                     return "SKFontStyleWeight.Invisible";
-                case FontStyleWeight.Thin:
+                case SKFontStyleWeight.Thin:
                     return "SKFontStyleWeight.Thin";
-                case FontStyleWeight.ExtraLight:
+                case SKFontStyleWeight.ExtraLight:
                     return "SKFontStyleWeight.ExtraLight";
-                case FontStyleWeight.Light:
+                case SKFontStyleWeight.Light:
                     return "SKFontStyleWeight.Light";
-                case FontStyleWeight.Normal:
+                case SKFontStyleWeight.Normal:
                     return "SKFontStyleWeight.Normal";
-                case FontStyleWeight.Medium:
+                case SKFontStyleWeight.Medium:
                     return "SKFontStyleWeight.Medium";
-                case FontStyleWeight.SemiBold:
+                case SKFontStyleWeight.SemiBold:
                     return "SKFontStyleWeight.SemiBold";
-                case FontStyleWeight.Bold:
+                case SKFontStyleWeight.Bold:
                     return "SKFontStyleWeight.Bold";
-                case FontStyleWeight.ExtraBold:
+                case SKFontStyleWeight.ExtraBold:
                     return "SKFontStyleWeight.ExtraBold";
-                case FontStyleWeight.Black:
+                case SKFontStyleWeight.Black:
                     return "SKFontStyleWeight.Black";
-                case FontStyleWeight.ExtraBlack:
+                case SKFontStyleWeight.ExtraBlack:
                     return "SKFontStyleWeight.ExtraBlack";
             }
         }
 
-        public static string ToSKFontStyleWidth(this FontStyleWidth fontStyleWidth)
+        public static string ToSKFontStyleWidth(this SKFontStyleWidth fontStyleWidth)
         {
             switch (fontStyleWidth)
             {
                 default:
-                case FontStyleWidth.UltraCondensed:
+                case SKFontStyleWidth.UltraCondensed:
                     return "SKFontStyleWidth.UltraCondensed";
-                case FontStyleWidth.ExtraCondensed:
+                case SKFontStyleWidth.ExtraCondensed:
                     return "SKFontStyleWidth.ExtraCondensed";
-                case FontStyleWidth.Condensed:
+                case SKFontStyleWidth.Condensed:
                     return "SKFontStyleWidth.Condensed";
-                case FontStyleWidth.SemiCondensed:
+                case SKFontStyleWidth.SemiCondensed:
                     return "SKFontStyleWidth.SemiCondensed";
-                case FontStyleWidth.Normal:
+                case SKFontStyleWidth.Normal:
                     return "SKFontStyleWidth.Normal";
-                case FontStyleWidth.SemiExpanded:
+                case SKFontStyleWidth.SemiExpanded:
                     return "SKFontStyleWidth.SemiExpanded";
-                case FontStyleWidth.Expanded:
+                case SKFontStyleWidth.Expanded:
                     return "SKFontStyleWidth.Expanded";
-                case FontStyleWidth.ExtraExpanded:
+                case SKFontStyleWidth.ExtraExpanded:
                     return "SKFontStyleWidth.ExtraExpanded";
-                case FontStyleWidth.UltraExpanded:
+                case SKFontStyleWidth.UltraExpanded:
                     return "SKFontStyleWidth.UltraExpanded";
             }
         }
 
-        public static string ToSKFontStyleSlant(this FontStyleSlant fontStyleSlant)
+        public static string ToSKFontStyleSlant(this SKFontStyleSlant fontStyleSlant)
         {
             switch (fontStyleSlant)
             {
                 default:
-                case FontStyleSlant.Upright:
+                case SKFontStyleSlant.Upright:
                     return "SKFontStyleSlant.Upright";
-                case FontStyleSlant.Italic:
+                case SKFontStyleSlant.Italic:
                     return "SKFontStyleSlant.Italic";
-                case FontStyleSlant.Oblique:
+                case SKFontStyleSlant.Oblique:
                     return "SKFontStyleSlant.Oblique";
             }
         }
 
-        public static void ToSKTypeface(this Typeface? typeface, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
+        public static void ToSKTypeface(this SKTypeface? typeface, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
         {
             var counterTypeface = counter.Typeface;
 
@@ -404,17 +404,17 @@ namespace Svg.CodeGen.Skia
             sb.AppendLine($"{indent}}}");
         }
 
-        public static string ToSKColor(this Color color)
+        public static string ToSKColor(this SKColor color)
         {
             return $"new SKColor({color.Red}, {color.Green}, {color.Blue}, {color.Alpha})";
         }
 
-        public static string ToSKColor(this ColorF color)
+        public static string ToSKColor(this SKColorF color)
         {
             return $"new SKColorF({color.Red.ToFloatString()}, {color.Green.ToFloatString()}, {color.Blue.ToFloatString()}, {color.Alpha.ToFloatString()})";
         }
 
-        public static string ToSKColors(this Color[] colors)
+        public static string ToSKColors(this SKColor[] colors)
         {
             var skColors = $"new SKColor[{colors.Length}] {{ ";
 
@@ -433,12 +433,12 @@ namespace Svg.CodeGen.Skia
             return skColors;
         }
 
-        public static string ToSKColorF(this ColorF color)
+        public static string ToSKColorF(this SKColorF color)
         {
             return $"new SKColorF({color.Red.ToFloatString()}, {color.Green.ToFloatString()}, {color.Blue.ToFloatString()}, {color.Alpha.ToFloatString()})";
         }
 
-        public static string ToSKColors(this ColorF[] colors)
+        public static string ToSKColors(this SKColorF[] colors)
         {
             var skColors = $"new SKColorF[{colors.Length}] {{ ";
 
@@ -457,23 +457,23 @@ namespace Svg.CodeGen.Skia
             return skColors;
         }
 
-        public static string ToSKShaderTileMode(this ShaderTileMode shaderTileMode)
+        public static string ToSKShaderTileMode(this SKShaderTileMode shaderTileMode)
         {
             switch (shaderTileMode)
             {
                 default:
-                case ShaderTileMode.Clamp:
+                case SKShaderTileMode.Clamp:
                     return "SKShaderTileMode.Clamp";
-                case ShaderTileMode.Repeat:
+                case SKShaderTileMode.Repeat:
                     return "SKShaderTileMode.Repeat";
-                case ShaderTileMode.Mirror:
+                case SKShaderTileMode.Mirror:
                     return "SKShaderTileMode.Mirror";
-                case ShaderTileMode.Decal:
+                case SKShaderTileMode.Decal:
                     return "SKShaderTileMode.Decal";
             }
         }
 
-        public static void ToSKShader(this Shader? shader, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
+        public static void ToSKShader(this SKShader? shader, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
         {
             var counterShader = counter.Shader;
 
@@ -484,7 +484,7 @@ namespace Svg.CodeGen.Skia
                         sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
                         sb.AppendLine($"SKShader.CreateColor(");
                         sb.AppendLine($"{indent}    {colorShader.Color.ToSKColor()},");
-                        sb.AppendLine($"{indent}    {(colorShader.ColorSpace == ColorSpace.Srgb ? s_srgb : s_srgbLinear)});");
+                        sb.AppendLine($"{indent}    {(colorShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)});");
                         return;
                     }
                 case LinearGradientShader linearGradientShader:
@@ -502,7 +502,7 @@ namespace Svg.CodeGen.Skia
                             sb.AppendLine($"{indent}    {linearGradientShader.Start.ToSKPoint()},");
                             sb.AppendLine($"{indent}    {linearGradientShader.End.ToSKPoint()},");
                             sb.AppendLine($"{indent}    {linearGradientShader.Colors.ToSKColors()},");
-                            sb.AppendLine($"{indent}    {(linearGradientShader.ColorSpace == ColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
+                            sb.AppendLine($"{indent}    {(linearGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
                             sb.AppendLine($"{indent}    {linearGradientShader.ColorPos.ToFloatArray()},");
                             sb.AppendLine($"{indent}    {linearGradientShader.Mode.ToSKShaderTileMode()},");
                             sb.AppendLine($"{indent}    {linearGradientShader.LocalMatrix.Value.ToSKMatrix()});");
@@ -515,7 +515,7 @@ namespace Svg.CodeGen.Skia
                             sb.AppendLine($"{indent}    {linearGradientShader.Start.ToSKPoint()},");
                             sb.AppendLine($"{indent}    {linearGradientShader.End.ToSKPoint()},");
                             sb.AppendLine($"{indent}    {linearGradientShader.Colors.ToSKColors()},");
-                            sb.AppendLine($"{indent}    {(linearGradientShader.ColorSpace == ColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
+                            sb.AppendLine($"{indent}    {(linearGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
                             sb.AppendLine($"{indent}    {linearGradientShader.ColorPos.ToFloatArray()},");
                             sb.AppendLine($"{indent}    {linearGradientShader.Mode.ToSKShaderTileMode()});");
                             return;
@@ -538,7 +538,7 @@ namespace Svg.CodeGen.Skia
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.End.ToSKPoint()},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.EndRadius.ToFloatString()},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Colors.ToSKColors()},");
-                            sb.AppendLine($"{indent}    {(twoPointConicalGradientShader.ColorSpace == ColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
+                            sb.AppendLine($"{indent}    {(twoPointConicalGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.ColorPos.ToFloatArray()},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Mode.ToSKShaderTileMode()},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.LocalMatrix.Value.ToSKMatrix()});");
@@ -553,7 +553,7 @@ namespace Svg.CodeGen.Skia
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.End.ToSKPoint()},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.EndRadius.ToFloatString()},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Colors.ToSKColors()},");
-                            sb.AppendLine($"{indent}    {(twoPointConicalGradientShader.ColorSpace == ColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
+                            sb.AppendLine($"{indent}    {(twoPointConicalGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.ColorPos.ToFloatArray()},");
                             sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Mode.ToSKShaderTileMode()});");
                             return;
@@ -610,7 +610,7 @@ namespace Svg.CodeGen.Skia
             }
         }
 
-        public static void ToSKColorFilter(this ColorFilter? colorFilter, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
+        public static void ToSKColorFilter(this SKColorFilter? colorFilter, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
         {
             var counterColorFilter = counter.ColorFilter;
 
@@ -670,7 +670,7 @@ namespace Svg.CodeGen.Skia
             }
         }
 
-        public static string ToCropRect(this CropRect cropRect)
+        public static string ToCropRect(this SKImageFilter.SKCropRect cropRect)
         {
             return $"new SKImageFilter.CropRect({cropRect.Rect.ToSKRect()})";
         }
@@ -691,7 +691,7 @@ namespace Svg.CodeGen.Skia
             }
         }
 
-        public static void ToSKImageFilter(this ImageFilter? imageFilter, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
+        public static void ToSKImageFilter(this SKImageFilter? imageFilter, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
         {
             var counterImageFilter = counter.ImageFilter;
 
@@ -1226,7 +1226,7 @@ namespace Svg.CodeGen.Skia
             }
         }
 
-        public static void ToSKPathEffect(this PathEffect? pathEffect, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
+        public static void ToSKPathEffect(this SKPathEffect? pathEffect, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
         {
             var counterPathEffect = counter.PathEffect;
 
@@ -1254,89 +1254,89 @@ namespace Svg.CodeGen.Skia
             }
         }
 
-        public static string ToSKBlendMode(this BlendMode blendMode)
+        public static string ToSKBlendMode(this SKBlendMode blendMode)
         {
             switch (blendMode)
             {
                 default:
-                case BlendMode.Clear:
+                case SKBlendMode.Clear:
                     return "SKBlendMode.Clear";
-                case BlendMode.Src:
+                case SKBlendMode.Src:
                     return "SKBlendMode.Src";
-                case BlendMode.Dst:
+                case SKBlendMode.Dst:
                     return "SKBlendMode.Dst";
-                case BlendMode.SrcOver:
+                case SKBlendMode.SrcOver:
                     return "SKBlendMode.SrcOver";
-                case BlendMode.DstOver:
+                case SKBlendMode.DstOver:
                     return "SKBlendMode.DstOver";
-                case BlendMode.SrcIn:
+                case SKBlendMode.SrcIn:
                     return "SKBlendMode.SrcIn";
-                case BlendMode.DstIn:
+                case SKBlendMode.DstIn:
                     return "SKBlendMode.DstIn";
-                case BlendMode.SrcOut:
+                case SKBlendMode.SrcOut:
                     return "SKBlendMode.SrcOut";
-                case BlendMode.DstOut:
+                case SKBlendMode.DstOut:
                     return "SKBlendMode.DstOut";
-                case BlendMode.SrcATop:
+                case SKBlendMode.SrcATop:
                     return "SKBlendMode.SrcATop";
-                case BlendMode.DstATop:
+                case SKBlendMode.DstATop:
                     return "SKBlendMode.DstATop";
-                case BlendMode.Xor:
+                case SKBlendMode.Xor:
                     return "SKBlendMode.Xor";
-                case BlendMode.Plus:
+                case SKBlendMode.Plus:
                     return "SKBlendMode.Plus";
-                case BlendMode.Modulate:
+                case SKBlendMode.Modulate:
                     return "SKBlendMode.Modulate";
-                case BlendMode.Screen:
+                case SKBlendMode.Screen:
                     return "SKBlendMode.Screen";
-                case BlendMode.Overlay:
+                case SKBlendMode.Overlay:
                     return "SKBlendMode.Overlay";
-                case BlendMode.Darken:
+                case SKBlendMode.Darken:
                     return "SKBlendMode.Darken";
-                case BlendMode.Lighten:
+                case SKBlendMode.Lighten:
                     return "SKBlendMode.Lighten";
-                case BlendMode.ColorDodge:
+                case SKBlendMode.ColorDodge:
                     return "SKBlendMode.ColorDodge";
-                case BlendMode.ColorBurn:
+                case SKBlendMode.ColorBurn:
                     return "SKBlendMode.ColorBurn";
-                case BlendMode.HardLight:
+                case SKBlendMode.HardLight:
                     return "SKBlendMode.HardLight";
-                case BlendMode.SoftLight:
+                case SKBlendMode.SoftLight:
                     return "SKBlendMode.SoftLight";
-                case BlendMode.Difference:
+                case SKBlendMode.Difference:
                     return "SKBlendMode.Difference";
-                case BlendMode.Exclusion:
+                case SKBlendMode.Exclusion:
                     return "SKBlendMode.Exclusion";
-                case BlendMode.Multiply:
+                case SKBlendMode.Multiply:
                     return "SKBlendMode.Multiply";
-                case BlendMode.Hue:
+                case SKBlendMode.Hue:
                     return "SKBlendMode.Hue";
-                case BlendMode.Saturation:
+                case SKBlendMode.Saturation:
                     return "SKBlendMode.Saturation";
-                case BlendMode.Color:
+                case SKBlendMode.Color:
                     return "SKBlendMode.Color";
-                case BlendMode.Luminosity:
+                case SKBlendMode.Luminosity:
                     return "SKBlendMode.Luminosity";
             }
         }
 
-        public static string ToSKFilterQuality(this FilterQuality filterQuality)
+        public static string ToSKFilterQuality(this SKFilterQuality filterQuality)
         {
             switch (filterQuality)
             {
                 default:
-                case FilterQuality.None:
+                case SKFilterQuality.None:
                     return "SKFilterQuality.None";
-                case FilterQuality.Low:
+                case SKFilterQuality.Low:
                     return "SKFilterQuality.Low";
-                case FilterQuality.Medium:
+                case SKFilterQuality.Medium:
                     return "SKFilterQuality.Medium";
-                case FilterQuality.High:
+                case SKFilterQuality.High:
                     return "SKFilterQuality.High";
             }
         }
 
-        public static void ToSKPaint(this Paint paint, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
+        public static void ToSKPaint(this SKPaint paint, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
         {
             var counterPaint = counter.Paint;
 
@@ -1358,7 +1358,7 @@ namespace Svg.CodeGen.Skia
             // BlendMode=SrcOver
             // FilterQuality=None
 
-            if (paint.Style != PaintStyle.Fill)
+            if (paint.Style != SKPaintStyle.Fill)
             {
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.Style = {paint.Style.ToSKPaintStyle()};");
             }
@@ -1373,12 +1373,12 @@ namespace Svg.CodeGen.Skia
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.StrokeWidth = {paint.StrokeWidth.ToFloatString()};");
             }
 
-            if (paint.StrokeCap != StrokeCap.Butt)
+            if (paint.StrokeCap != SKStrokeCap.Butt)
             {
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.StrokeCap = {paint.StrokeCap.ToSKStrokeCap()};");
             }
 
-            if (paint.StrokeJoin != StrokeJoin.Miter)
+            if (paint.StrokeJoin != SKStrokeJoin.Miter)
             {
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.StrokeJoin = {paint.StrokeJoin.ToSKStrokeJoin()};");
             }
@@ -1393,7 +1393,7 @@ namespace Svg.CodeGen.Skia
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.TextSize = {paint.TextSize.ToFloatString()};");
             }
 
-            if (paint.TextAlign != TextAlign.Left)
+            if (paint.TextAlign != SKTextAlign.Left)
             {
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.TextAlign = {paint.TextAlign.ToSKTextAlign()};");
             }
@@ -1419,7 +1419,7 @@ namespace Svg.CodeGen.Skia
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.SubpixelText = {paint.SubpixelText.ToBoolString()};");
             }
 
-            if (paint.TextEncoding != TextEncoding.Utf8)
+            if (paint.TextEncoding != SKTextEncoding.Utf8)
             {
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.TextEncoding = {paint.TextEncoding.ToSKTextEncoding()};");
             }
@@ -1457,89 +1457,89 @@ namespace Svg.CodeGen.Skia
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.PathEffect = {counter.PathEffectVarName}{counterPathEffect};");
             }
 
-            if (paint.BlendMode != BlendMode.SrcOver)
+            if (paint.BlendMode != SKBlendMode.SrcOver)
             {
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.BlendMode = {paint.BlendMode.ToSKBlendMode()};");
             }
 
-            if (paint.FilterQuality != FilterQuality.None)
+            if (paint.FilterQuality != SKFilterQuality.None)
             {
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.FilterQuality = {paint.FilterQuality.ToSKFilterQuality()};");
             }
         }
 
-        public static string ToSKClipOperation(this ClipOperation clipOperation)
+        public static string ToSKClipOperation(this SKClipOperation clipOperation)
         {
             switch (clipOperation)
             {
                 default:
-                case ClipOperation.Difference:
+                case SKClipOperation.Difference:
                     return "SKClipOperation.Difference";
-                case ClipOperation.Intersect:
+                case SKClipOperation.Intersect:
                     return "SKClipOperation.Intersect";
             }
         }
 
-        public static string ToSKPathFillType(this PathFillType pathFillType)
+        public static string ToSKPathFillType(this SKPathFillType pathFillType)
         {
             switch (pathFillType)
             {
                 default:
-                case PathFillType.Winding:
+                case SKPathFillType.Winding:
                     return "SKPathFillType.Winding";
-                case PathFillType.EvenOdd:
+                case SKPathFillType.EvenOdd:
                     return "SKPathFillType.EvenOdd";
             }
         }
 
-        public static string ToSKPathArcSize(this PathArcSize pathArcSize)
+        public static string ToSKPathArcSize(this SKPathArcSize pathArcSize)
         {
             switch (pathArcSize)
             {
                 default:
-                case PathArcSize.Small:
+                case SKPathArcSize.Small:
                     return "SKPathArcSize.Small";
-                case PathArcSize.Large:
+                case SKPathArcSize.Large:
                     return "SKPathArcSize.Large";
             }
         }
 
-        public static string ToSKPathDirection(this PathDirection pathDirection)
+        public static string ToSKPathDirection(this SKPathDirection pathDirection)
         {
             switch (pathDirection)
             {
                 default:
-                case PathDirection.Clockwise:
+                case SKPathDirection.Clockwise:
                     return "SKPathDirection.Clockwise";
-                case PathDirection.CounterClockwise:
+                case SKPathDirection.CounterClockwise:
                     return "SKPathDirection.CounterClockwise";
             }
         }
 
-        public static string ToSKPathOp(this PathOp pathOp)
+        public static string ToSKPathOp(this SKPathOp pathOp)
         {
             switch (pathOp)
             {
                 default:
-                case PathOp.Difference:
+                case SKPathOp.Difference:
                     return "SKPathOp.Difference";
-                case PathOp.Intersect:
+                case SKPathOp.Intersect:
                     return "SKPathOp.Intersect";
-                case PathOp.Union:
+                case SKPathOp.Union:
                     return "SKPathOp.Union";
-                case PathOp.Xor:
+                case SKPathOp.Xor:
                     return "SKPathOp.Xor";
-                case PathOp.ReverseDifference:
+                case SKPathOp.ReverseDifference:
                     return "SKPathOp.ReverseDifference";
             }
         }
 
-        public static void ToSKPath(this Path path, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
+        public static void ToSKPath(this SKPath path, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
         {
             var counterPath = counter.Path;
 
             sb.AppendLine($"{indent}var {counter.PathVarName}{counterPath} = new SKPath();");
-            if (path.FillType != PathFillType.Winding)
+            if (path.FillType != SKPathFillType.Winding)
             {
                 sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.FillType = {path.FillType.ToSKPathFillType()};");
             }
@@ -1719,7 +1719,7 @@ namespace Svg.CodeGen.Skia
             isDefault = isDefaultPathResult;
         }
 
-        public static void ToSKPicture(this Picture? picture, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
+        public static void ToSKPicture(this SKPicture? picture, SkiaCodeGenObjectCounter counter, StringBuilder sb, string indent)
         {
             var counterPicture = counter.Picture;
 
@@ -2059,7 +2059,7 @@ namespace Svg.CodeGen.Skia
 
     public class SkiaCodeGen
     {
-        public static string Generate(Picture picture, string namespaceName, string className)
+        public static string Generate(SKPicture picture, string namespaceName, string className)
         {
             var counter = new SkiaCodeGenObjectCounter();
 

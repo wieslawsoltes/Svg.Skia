@@ -6,7 +6,7 @@ namespace Svg.Model
 {
     public static partial class SvgModelExtensions
     {
-        internal static float ToDeviceValue(this SvgUnit svgUnit, UnitRenderingType renderType, SvgElement? owner, Rect skBounds)
+        internal static float ToDeviceValue(this SvgUnit svgUnit, UnitRenderingType renderType, SvgElement? owner, SKRect skBounds)
         {
             const float cmInInch = 2.54f;
             var ppi = SvgDocument.PointsPerInch;
@@ -126,7 +126,7 @@ namespace Svg.Model
             }
         }
 
-        internal static float CalculateOtherPercentageValue(this Rect skBounds)
+        internal static float CalculateOtherPercentageValue(this SKRect skBounds)
         {
             return (float)(Math.Sqrt(skBounds.Width * skBounds.Width + skBounds.Width * skBounds.Height) / Math.Sqrt(2.0));
         }
@@ -138,18 +138,18 @@ namespace Svg.Model
                     new SvgUnit(SvgUnitType.User, svgUnit.Value / 100) : svgUnit;
         }
 
-        public static Size GetDimensions(SvgFragment svgFragment)
+        public static SKSize GetDimensions(SvgFragment svgFragment)
         {
             float w, h;
             var isWidthperc = svgFragment.Width.Type == SvgUnitType.Percentage;
             var isHeightperc = svgFragment.Height.Type == SvgUnitType.Percentage;
 
-            var bounds = new Rect();
+            var bounds = new SKRect();
             if (isWidthperc || isHeightperc)
             {
                 if (svgFragment.ViewBox.Width > 0 && svgFragment.ViewBox.Height > 0)
                 {
-                    bounds = new Rect(
+                    bounds = new SKRect(
                         svgFragment.ViewBox.MinX, svgFragment.ViewBox.MinY,
                         svgFragment.ViewBox.Width, svgFragment.ViewBox.Height);
                 }
@@ -166,7 +166,7 @@ namespace Svg.Model
             else
             {
                 // NOTE: Pass bounds as Rect.Empty because percentage case is handled before.
-                w = svgFragment.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, Rect.Empty);
+                w = svgFragment.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, SKRect.Empty);
             }
             if (isHeightperc)
             {
@@ -175,13 +175,13 @@ namespace Svg.Model
             else
             {
                 // NOTE: Pass bounds as Rect.Empty because percentage case is handled before.
-                h = svgFragment.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, Rect.Empty);
+                h = svgFragment.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, SKRect.Empty);
             }
 
-            return new Size(w, h);
+            return new SKSize(w, h);
         }
 
-        internal static Matrix ToMatrix(this SvgMatrix svgMatrix)
+        internal static SKMatrix ToMatrix(this SvgMatrix svgMatrix)
         {
             return new()
             {
@@ -197,9 +197,9 @@ namespace Svg.Model
             };
         }
 
-        internal static Matrix ToMatrix(this SvgTransformCollection svgTransformCollection)
+        internal static SKMatrix ToMatrix(this SvgTransformCollection svgTransformCollection)
         {
-            var skMatrixTotal = Matrix.CreateIdentity();
+            var skMatrixTotal = SKMatrix.CreateIdentity();
 
             if (svgTransformCollection is null)
             {
@@ -219,14 +219,14 @@ namespace Svg.Model
 
                     case SvgRotate svgRotate:
                         {
-                            var skMatrixRotate = Matrix.CreateRotationDegrees(svgRotate.Angle, svgRotate.CenterX, svgRotate.CenterY);
+                            var skMatrixRotate = SKMatrix.CreateRotationDegrees(svgRotate.Angle, svgRotate.CenterX, svgRotate.CenterY);
                             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixRotate);
                         }
                         break;
 
                     case SvgScale svgScale:
                         {
-                            var skMatrixScale = Matrix.CreateScale(svgScale.X, svgScale.Y);
+                            var skMatrixScale = SKMatrix.CreateScale(svgScale.X, svgScale.Y);
                             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixScale);
                         }
                         break;
@@ -235,14 +235,14 @@ namespace Svg.Model
                         {
                             var sx = (float)Math.Tan(Math.PI * svgSkew.AngleX / 180);
                             var sy = (float)Math.Tan(Math.PI * svgSkew.AngleY / 180);
-                            var skMatrixSkew = Matrix.CreateSkew(sx, sy);
+                            var skMatrixSkew = SKMatrix.CreateSkew(sx, sy);
                             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixSkew);
                         }
                         break;
 
                     case SvgTranslate svgTranslate:
                         {
-                            var skMatrixTranslate = Matrix.CreateTranslation(svgTranslate.X, svgTranslate.Y);
+                            var skMatrixTranslate = SKMatrix.CreateTranslation(svgTranslate.X, svgTranslate.Y);
                             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixTranslate);
                         }
                         break;
@@ -252,11 +252,11 @@ namespace Svg.Model
             return skMatrixTotal;
         }
 
-        internal static Matrix ToMatrix(this SvgViewBox svgViewBox, SvgAspectRatio? svgAspectRatio, float x, float y, float width, float height)
+        internal static SKMatrix ToMatrix(this SvgViewBox svgViewBox, SvgAspectRatio? svgAspectRatio, float x, float y, float width, float height)
         {
             if (svgViewBox.Equals(SvgViewBox.Empty))
             {
-                return Matrix.CreateTranslation(x, y);
+                return SKMatrix.CreateTranslation(x, y);
             }
 
             var fScaleX = width / svgViewBox.Width;
@@ -328,21 +328,21 @@ namespace Svg.Model
                 }
             }
 
-            var skMatrixTotal = Matrix.CreateIdentity();
+            var skMatrixTotal = SKMatrix.CreateIdentity();
 
-            var skMatrixXY = Matrix.CreateTranslation(x, y);
+            var skMatrixXY = SKMatrix.CreateTranslation(x, y);
             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixXY);
 
-            var skMatrixMinXY = Matrix.CreateTranslation(fMinX, fMinY);
+            var skMatrixMinXY = SKMatrix.CreateTranslation(fMinX, fMinY);
             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixMinXY);
 
-            var skMatrixScale = Matrix.CreateScale(fScaleX, fScaleY);
+            var skMatrixScale = SKMatrix.CreateScale(fScaleX, fScaleY);
             skMatrixTotal = skMatrixTotal.PreConcat(skMatrixScale);
 
             return skMatrixTotal;
         }
  
-        internal static Rect? CalculateRect(SvgUnit xUnit, SvgUnit yUnit, SvgUnit widthUnit, SvgUnit heightUnit, SvgCoordinateUnits coordinateUnits, Rect skBounds, Rect skViewport, SvgElement? svgElement)
+        internal static SKRect? CalculateRect(SvgUnit xUnit, SvgUnit yUnit, SvgUnit widthUnit, SvgUnit heightUnit, SvgCoordinateUnits coordinateUnits, SKRect skBounds, SKRect skViewport, SvgElement? svgElement)
         {
             var useBoundingBox = coordinateUnits == SvgCoordinateUnits.ObjectBoundingBox;
 
@@ -394,14 +394,14 @@ namespace Svg.Model
                 }
             }
 
-            return Rect.Create(x, y, width, height);
+            return SKRect.Create(x, y, width, height);
         }
 
-        internal static Rect CalculateRect(SvgAspectRatio svgAspectRatio, Rect srcRect, Rect destRect)
+        internal static SKRect CalculateRect(SvgAspectRatio svgAspectRatio, SKRect srcRect, SKRect destRect)
         {
             if (svgAspectRatio.Align == SvgPreserveAspectRatio.none)
             {
-                return new Rect(destRect.Left, destRect.Top, destRect.Right, destRect.Bottom);
+                return new SKRect(destRect.Left, destRect.Top, destRect.Right, destRect.Bottom);
             }
 
             var fScaleX = destRect.Width / srcRect.Width;
@@ -462,7 +462,7 @@ namespace Svg.Model
                     break;
             }
 
-            return Rect.Create(
+            return SKRect.Create(
                 destRect.Left + xOffset,
                 destRect.Top + yOffset,
                 srcRect.Width * fScaleX,

@@ -201,10 +201,10 @@ namespace Svg.Model
             return svgDocument;
         }
 
-        public static Drawable? ToDrawable(SvgFragment svgFragment, IAssetLoader assetLoader, out Rect? bounds)
+        public static SKDrawable? ToDrawable(SvgFragment svgFragment, IAssetLoader assetLoader, out SKRect? bounds)
         {
             var size = GetDimensions(svgFragment);
-            var fragmentBounds = Rect.Create(size);
+            var fragmentBounds = SKRect.Create(size);
             var drawable = DrawableFactory.Create(svgFragment, fragmentBounds, null, assetLoader);
             if (drawable is null)
             {
@@ -216,7 +216,7 @@ namespace Svg.Model
             if (fragmentBounds.IsEmpty)
             {
                 var drawableBounds = drawable.Bounds;
-                fragmentBounds = Rect.Create(
+                fragmentBounds = SKRect.Create(
                     0f,
                     0f,
                     Math.Abs(drawableBounds.Left) + drawableBounds.Width,
@@ -227,7 +227,7 @@ namespace Svg.Model
             return drawable;
         }
 
-        public static Picture? ToModel(SvgFragment svgFragment, IAssetLoader assetLoader)
+        public static SKPicture? ToModel(SvgFragment svgFragment, IAssetLoader assetLoader)
         {
             var drawable = ToDrawable(svgFragment, assetLoader, out var bounds);
             if (drawable is null || bounds is null)

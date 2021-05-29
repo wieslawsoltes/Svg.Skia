@@ -2,10 +2,10 @@
 
 namespace Svg.Model.Painting.ImageFilters
 {
-    public sealed class TileImageFilter : ImageFilter
+    public sealed class TileImageFilter : SKImageFilter
     {
-        public Rect Src { get; set; }
-        public Rect Dst { get; set; }
-        public ImageFilter? Input { get; set; }
+        public SKRect Src { get; set; }
+        public SKRect Dst { get; set; }
+        public SKImageFilter? Input { get; set; }
     }
 }

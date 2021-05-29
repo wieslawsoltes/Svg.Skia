@@ -7,11 +7,11 @@ namespace Avalonia.Svg
 {
     public class AvaloniaAssetLoader : SM.IAssetLoader
     {
-        public Image LoadImage(Stream stream)
+        public SKImage LoadImage(Stream stream)
         {
-            var data = Image.FromStream(stream);
+            var data = SKImage.FromStream(stream);
             using var image = new AMI.Bitmap(stream);
-            return new Image
+            return new SKImage
             {
                 Data = data,
                 Width = (float)image.Size.Width,

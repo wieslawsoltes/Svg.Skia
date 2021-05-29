@@ -2,8 +2,8 @@
 {
     public class PathClip
     {
-        public Path? Path { get; set; }
-        public Matrix? Transform { get; set; }
+        public SKPath? Path { get; set; }
+        public SKMatrix? Transform { get; set; }
         public ClipPath? Clip { get; set; }
     }
 }
