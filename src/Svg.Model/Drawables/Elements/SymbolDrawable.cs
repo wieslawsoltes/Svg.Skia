@@ -65,7 +65,7 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.CreateChildren(svgSymbol, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgSymbol);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgSymbol);
 
             drawable.GeometryBounds = SKRect.Empty;
 
@@ -73,8 +73,8 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.TransformedBounds = drawable.GeometryBounds;
 
-            drawable.Transform = SvgModelExtensions.ToMatrix(svgSymbol.Transforms);
-            var skMatrixViewBox = SvgModelExtensions.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
+            drawable.Transform = SvgExtensions.ToMatrix(svgSymbol.Transforms);
+            var skMatrixViewBox = SvgExtensions.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
             drawable.Transform = drawable.Transform.PreConcat(skMatrixViewBox);
 
             // TODO: Transform _skBounds using _skMatrix.

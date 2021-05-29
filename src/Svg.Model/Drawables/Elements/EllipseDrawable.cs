@@ -32,8 +32,8 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgEllipse);
-            drawable.Transform = SvgModelExtensions.ToMatrix(svgEllipse.Transforms);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgEllipse);
+            drawable.Transform = SvgExtensions.ToMatrix(svgEllipse.Transforms);
 
             drawable.GeometryBounds = drawable.Path.Bounds;
 
@@ -45,18 +45,18 @@ namespace Svg.Model.Drawables.Elements
             var canDrawFill = true;
             var canDrawStroke = true;
 
-            if (SvgModelExtensions.IsValidFill(svgEllipse))
+            if (SvgExtensions.IsValidFill(svgEllipse))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgEllipse, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Fill = SvgExtensions.GetFillPaint(svgEllipse, drawable.GeometryBounds, assetLoader, ignoreAttributes);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
             }
 
-            if (SvgModelExtensions.IsValidStroke(svgEllipse, drawable.GeometryBounds))
+            if (SvgExtensions.IsValidStroke(svgEllipse, drawable.GeometryBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgEllipse, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Stroke = SvgExtensions.GetStrokePaint(svgEllipse, drawable.GeometryBounds, assetLoader, ignoreAttributes);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;

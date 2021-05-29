@@ -28,10 +28,10 @@ namespace Avalonia.Svg
             var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
             if (uri.IsAbsoluteUri && uri.IsFile)
             {
-                var document = SM.SvgModelExtensions.Open(uri.LocalPath);
+                var document = SM.SvgExtensions.Open(uri.LocalPath);
                 if (document is { })
                 {
-                    return SM.SvgModelExtensions.ToModel(document, s_assetLoader);
+                    return SM.SvgExtensions.ToModel(document, s_assetLoader);
                 }
                 return default;
             }
@@ -39,10 +39,10 @@ namespace Avalonia.Svg
             {
                 var loader = AvaloniaLocator.Current.GetService<IAssetLoader>();
                 var stream = loader.Open(uri, baseUri);
-                var document = SM.SvgModelExtensions.Open(stream);
+                var document = SM.SvgExtensions.Open(stream);
                 if (document is { })
                 {
-                    return SM.SvgModelExtensions.ToModel(document, s_assetLoader);
+                    return SM.SvgExtensions.ToModel(document, s_assetLoader);
                 }
                 return default;
             }

@@ -21,7 +21,7 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.CreateChildren(svgAnchor, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgAnchor);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgAnchor);
 
             drawable.GeometryBounds = SKRect.Empty;
             
@@ -32,14 +32,14 @@ namespace Svg.Model.Drawables.Elements
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
 
-            drawable.Transform = SvgModelExtensions.ToMatrix(svgAnchor.Transforms);
+            drawable.Transform = SvgExtensions.ToMatrix(svgAnchor.Transforms);
 
             drawable.Fill = null;
             drawable.Stroke = null;
 
             drawable.ClipPath = null;
             drawable.MaskDrawable = null;
-            drawable.Opacity = drawable.IgnoreAttributes.HasFlag(DrawAttributes.Opacity) ? null : SvgModelExtensions.GetOpacityPaint(svgAnchor);
+            drawable.Opacity = drawable.IgnoreAttributes.HasFlag(DrawAttributes.Opacity) ? null : SvgExtensions.GetOpacityPaint(svgAnchor);
             drawable.Filter = null;
 
             return drawable;
@@ -57,7 +57,7 @@ namespace Svg.Model.Drawables.Elements
 
             ClipPath = null;
             MaskDrawable = null;
-            Opacity = enableOpacity ? SvgModelExtensions.GetOpacityPaint(element) : null;
+            Opacity = enableOpacity ? SvgExtensions.GetOpacityPaint(element) : null;
             Filter = null;
 
             foreach (var child in ChildrenDrawables)

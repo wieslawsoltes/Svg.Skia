@@ -32,13 +32,13 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgPath);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgPath);
 
             drawable.GeometryBounds = drawable.Path.Bounds;
 
             drawable.TransformedBounds = drawable.GeometryBounds;
 
-            drawable.Transform = SvgModelExtensions.ToMatrix(svgPath.Transforms);
+            drawable.Transform = SvgExtensions.ToMatrix(svgPath.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
@@ -46,18 +46,18 @@ namespace Svg.Model.Drawables.Elements
             var canDrawFill = true;
             var canDrawStroke = true;
 
-            if (SvgModelExtensions.IsValidFill(svgPath))
+            if (SvgExtensions.IsValidFill(svgPath))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgPath, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Fill = SvgExtensions.GetFillPaint(svgPath, drawable.GeometryBounds, assetLoader, ignoreAttributes);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
             }
 
-            if (SvgModelExtensions.IsValidStroke(svgPath, drawable.GeometryBounds))
+            if (SvgExtensions.IsValidStroke(svgPath, drawable.GeometryBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgPath, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Stroke = SvgExtensions.GetStrokePaint(svgPath, drawable.GeometryBounds, assetLoader, ignoreAttributes);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
@@ -70,7 +70,7 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            SvgModelExtensions.CreateMarkers(svgPath, drawable.Path, skOwnerBounds, drawable, assetLoader);
+            SvgExtensions.CreateMarkers(svgPath, drawable.Path, skOwnerBounds, drawable, assetLoader);
 
             return drawable;
         }

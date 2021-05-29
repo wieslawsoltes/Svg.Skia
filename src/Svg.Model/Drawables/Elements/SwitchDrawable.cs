@@ -55,13 +55,13 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgSwitch);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgSwitch);
 
             drawable.GeometryBounds = drawable.FirstChild.TransformedBounds;
 
             drawable.TransformedBounds = drawable.GeometryBounds;
 
-            drawable.Transform = SvgModelExtensions.ToMatrix(svgSwitch.Transforms);
+            drawable.Transform = SvgExtensions.ToMatrix(svgSwitch.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);

@@ -32,7 +32,7 @@ namespace Svg.Model.Drawables.Elements
             var x = svgFragmentParent is null ? 0f : svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skOwnerBounds);
             var y = svgFragmentParent is null ? 0f : svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skOwnerBounds);
 
-            var skSize = SvgModelExtensions.GetDimensions(svgFragment);
+            var skSize = SvgExtensions.GetDimensions(svgFragment);
 
             if (skOwnerBounds.IsEmpty)
             {
@@ -41,7 +41,7 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.CreateChildren(svgFragment, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgFragment);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgFragment);
 
             drawable.GeometryBounds = skOwnerBounds;
 
@@ -49,8 +49,8 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.TransformedBounds = drawable.GeometryBounds;
 
-            drawable.Transform = SvgModelExtensions.ToMatrix(svgFragment.Transforms);
-            var skMatrixViewBox = SvgModelExtensions.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
+            drawable.Transform = SvgExtensions.ToMatrix(svgFragment.Transforms);
+            var skMatrixViewBox = SvgExtensions.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
             drawable.Transform = drawable.Transform.PreConcat(skMatrixViewBox);
 
             // TODO: Transform _skBounds using _skMatrix.
@@ -87,7 +87,7 @@ namespace Svg.Model.Drawables.Elements
                 {
                     Clip = new ClipPath()
                 };
-                SvgModelExtensions.GetClipPath(svgClipPath, skOwnerBounds, clipPathUris, clipPath);
+                SvgExtensions.GetClipPath(svgClipPath, skOwnerBounds, clipPathUris, clipPath);
                 if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !drawable.IgnoreAttributes.HasFlag(DrawAttributes.ClipPath))
                 {
                     drawable.ClipPath = clipPath;
@@ -120,7 +120,7 @@ namespace Svg.Model.Drawables.Elements
 
             ClipPath = null;
             MaskDrawable = null;
-            Opacity = enableOpacity ? SvgModelExtensions.GetOpacityPaint(element) : null;
+            Opacity = enableOpacity ? SvgExtensions.GetOpacityPaint(element) : null;
             Filter = null;
 
             foreach (var child in ChildrenDrawables)

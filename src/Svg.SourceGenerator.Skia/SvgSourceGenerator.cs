@@ -86,10 +86,10 @@ namespace Svg.SourceGenerator.Skia
                         return;
                     }
 
-                    var svgDocument = SvgModelExtensions.FromSvg(svg!);
+                    var svgDocument = SvgExtensions.FromSvg(svg!);
                     if (svgDocument is { })
                     {
-                        var picture = SvgModelExtensions.ToModel(svgDocument, _assetLoader);
+                        var picture = SvgExtensions.ToModel(svgDocument, _assetLoader);
                         if (picture is { } && picture.Commands is { })
                         {
                             var code = SkiaCodeGen.Generate(picture, namespaceName!, className!);

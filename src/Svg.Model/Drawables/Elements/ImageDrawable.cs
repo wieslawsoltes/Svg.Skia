@@ -52,7 +52,7 @@ namespace Svg.Model.Drawables.Elements
             //    return;
             //}
 
-            var image = SvgModelExtensions.GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
+            var image = SvgExtensions.GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
             var skImage = image as SKImage;
             var svgFragment = image as SvgFragment;
             if (skImage is null && svgFragment is null)
@@ -70,15 +70,15 @@ namespace Svg.Model.Drawables.Elements
 
             if (svgFragment is { })
             {
-                var skSize = SvgModelExtensions.GetDimensions(svgFragment);
+                var skSize = SvgExtensions.GetDimensions(svgFragment);
                 drawable.SrcRect = SKRect.Create(0f, 0f, skSize.Width, skSize.Height);
             }
 
             var destClip = SKRect.Create(location.X, location.Y, width, height);
-            drawable.DestRect = SvgModelExtensions.CalculateRect(svgImage.AspectRatio, drawable.SrcRect, destClip);
+            drawable.DestRect = SvgExtensions.CalculateRect(svgImage.AspectRatio, drawable.SrcRect, destClip);
             drawable.Clip = destClip;
 
-            var skClipRect = SvgModelExtensions.GetClipRect(svgImage.Clip, destClip);
+            var skClipRect = SvgExtensions.GetClipRect(svgImage.Clip, destClip);
             if (skClipRect is { })
             {
                 drawable.Clip = skClipRect;
@@ -94,7 +94,7 @@ namespace Svg.Model.Drawables.Elements
                 drawable.FragmentDrawable = FragmentDrawable.Create(svgFragment, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
             }
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgImage);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgImage);
 
             drawable.GeometryBounds = default(SKRect);
 
@@ -110,7 +110,7 @@ namespace Svg.Model.Drawables.Elements
                 drawable.TransformedBounds = drawable.GeometryBounds;
             }
 
-            drawable.Transform = SvgModelExtensions.ToMatrix(svgImage.Transforms);
+            drawable.Transform = SvgExtensions.ToMatrix(svgImage.Transforms);
             drawable.FragmentTransform = SKMatrix.CreateIdentity();
 
             if (drawable.FragmentDrawable is { })

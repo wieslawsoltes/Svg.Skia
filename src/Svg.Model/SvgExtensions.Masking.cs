@@ -6,7 +6,7 @@ using Svg.Model.Primitives;
 
 namespace Svg.Model
 {
-    public static partial class SvgModelExtensions
+    public static partial class SvgExtensions
     {
         internal static bool CanDraw(SvgVisualElement svgVisualElement, DrawAttributes ignoreAttributes)
         {

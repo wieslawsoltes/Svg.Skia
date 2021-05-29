@@ -66,10 +66,10 @@ namespace svgc
         static void Generate(string inputPath, string outputPath, string namespaceName = "Svg", string className = "Generated")
         {
             var svg = System.IO.File.ReadAllText(inputPath);
-            var svgDocument = SM.SvgModelExtensions.FromSvg(svg);
+            var svgDocument = SM.SvgExtensions.FromSvg(svg);
             if (svgDocument is { })
             {
-                var picture = SM.SvgModelExtensions.ToModel(svgDocument, AssetLoader);
+                var picture = SM.SvgExtensions.ToModel(svgDocument, AssetLoader);
                 if (picture is { } && picture.Commands is { })
                 {
                     var text = SkiaCodeGen.Generate(picture, namespaceName, className);

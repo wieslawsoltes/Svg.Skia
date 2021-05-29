@@ -21,7 +21,7 @@ namespace Svg.Model.Drawables.Elements
             drawable.IsDrawable = drawable.CanDraw(svgGroup, drawable.IgnoreAttributes) && drawable.HasFeatures(svgGroup, drawable.IgnoreAttributes);
 
             // NOTE: Call AddMarkers only once.
-            SvgModelExtensions.AddMarkers(svgGroup);
+            SvgExtensions.AddMarkers(svgGroup);
 
             drawable.CreateChildren(svgGroup, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
 
@@ -40,7 +40,7 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgGroup);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgGroup);
 
             drawable.GeometryBounds = SKRect.Empty;
 
@@ -48,19 +48,19 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.TransformedBounds = drawable.GeometryBounds;
 
-            drawable.Transform = SvgModelExtensions.ToMatrix(svgGroup.Transforms);
+            drawable.Transform = SvgExtensions.ToMatrix(svgGroup.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
 
-            if (SvgModelExtensions.IsValidFill(svgGroup))
+            if (SvgExtensions.IsValidFill(svgGroup))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgGroup, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Fill = SvgExtensions.GetFillPaint(svgGroup, drawable.GeometryBounds, assetLoader, ignoreAttributes);
             }
 
-            if (SvgModelExtensions.IsValidStroke(svgGroup, drawable.GeometryBounds))
+            if (SvgExtensions.IsValidStroke(svgGroup, drawable.GeometryBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgGroup, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Stroke = SvgExtensions.GetStrokePaint(svgGroup, drawable.GeometryBounds, assetLoader, ignoreAttributes);
             }
 
             return drawable;

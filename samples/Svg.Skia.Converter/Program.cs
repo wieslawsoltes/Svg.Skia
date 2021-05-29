@@ -240,7 +240,7 @@ namespace Svg.Skia.Converter
 
             if (settings.SystemLanguage is { })
             {
-                SvgModelExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture(settings.SystemLanguage);
+                SvgExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture(settings.SystemLanguage);
             }
 
             var sw = Stopwatch.StartNew();
@@ -294,7 +294,7 @@ namespace Svg.Skia.Converter
 
             if (settings.SystemLanguage is { })
             {
-                SvgModelExtensions.s_systemLanguageOverride = null;
+                SvgExtensions.s_systemLanguageOverride = null;
             }
 
             if (paths.Count > 0)

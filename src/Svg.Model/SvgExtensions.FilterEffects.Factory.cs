@@ -7,7 +7,7 @@ using Svg.Model.Primitives;
 
 namespace Svg.Model
 {
-    public static partial class SvgModelExtensions
+    public static partial class SvgExtensions
     {
         internal static SKPaint? GetFilterPaint(SvgVisualElement svgVisualElement, SKRect skBounds, SKRect skViewport, IFilterSource filterSource, IAssetLoader assetLoader, out bool isValid, out SKRect? filterClip)
         {

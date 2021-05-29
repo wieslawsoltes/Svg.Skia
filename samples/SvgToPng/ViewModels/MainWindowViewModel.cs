@@ -105,7 +105,7 @@ namespace SvgToPng.ViewModels
                 Directory.SetCurrentDirectory(System.IO.Path.GetDirectoryName(item.SvgPath));
 
                 var stopwatchOpen = Stopwatch.StartNew();
-                item.Document = SvgModelExtensions.Open(item.SvgPath);
+                item.Document = SvgExtensions.Open(item.SvgPath);
                 stopwatchOpen.Stop();
                 statusOpen?.Invoke($"{Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
                 Debug.WriteLine($"Open: {Math.Round(stopwatchOpen.Elapsed.TotalMilliseconds, 3)}ms");
@@ -114,7 +114,7 @@ namespace SvgToPng.ViewModels
                 {
                     var stopwatchToPicture = Stopwatch.StartNew();
 
-                    item.Drawable = SvgModelExtensions.ToDrawable(item.Document, new SkiaAssetLoader(), out var bounds);
+                    item.Drawable = SvgExtensions.ToDrawable(item.Document, new SkiaAssetLoader(), out var bounds);
                     if (item.Drawable is { } && bounds is { })
                     {
                         item.Picture = item.Drawable.Snapshot(bounds.Value);
@@ -242,7 +242,7 @@ namespace SvgToPng.ViewModels
 
             if (string.Compare(extension, ".pdf", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                var svg = SvgModelExtensions.Open(svgPath);
+                var svg = SvgExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
                 if (picture is { })
                 {
@@ -252,7 +252,7 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".xps", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                var svg = SvgModelExtensions.Open(svgPath);
+                var svg = SvgExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
                 if (picture is { })
                 {
@@ -261,7 +261,7 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".svg", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                var svg = SvgModelExtensions.Open(svgPath);
+                var svg = SvgExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
                 if (picture is { })
                 {
@@ -270,7 +270,7 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".jpeg", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                var svg = SvgModelExtensions.Open(svgPath);
+                var svg = SvgExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
                 if (picture is { })
                 {
@@ -280,7 +280,7 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".jpg", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                var svg = SvgModelExtensions.Open(svgPath);
+                var svg = SvgExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
                 if (picture is { })
                 {
@@ -290,7 +290,7 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".png", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                var svg = SvgModelExtensions.Open(svgPath);
+                var svg = SvgExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
                 if (picture is { })
                 {
@@ -300,7 +300,7 @@ namespace SvgToPng.ViewModels
             }
             else if (string.Compare(extension, ".webp", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                var svg = SvgModelExtensions.Open(svgPath);
+                var svg = SvgExtensions.Open(svgPath);
                 using var picture = SKSvg.ToPicture(svg);
                 if (picture is { })
                 {

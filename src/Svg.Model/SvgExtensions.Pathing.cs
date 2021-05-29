@@ -7,7 +7,7 @@ using Svg.Pathing;
 
 namespace Svg.Model
 {
-    public static partial class SvgModelExtensions
+    public static partial class SvgExtensions
     {
         [Flags]
         internal enum PathPointType : byte

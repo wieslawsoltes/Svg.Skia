@@ -23,7 +23,7 @@ namespace SvgToPng
         {
             InitializeComponent();
 #if DEBUG
-            SvgModelExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture("en-US");
+            SvgExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture("en-US");
 #endif
             var vm = MainWindowViewModel.Load<MainWindowViewModel>("VM.json");
             if (vm is { })

@@ -8,7 +8,7 @@ using Svg.Model.Primitives;
 
 namespace Svg.Model
 {
-    public static partial class SvgModelExtensions
+    public static partial class SvgExtensions
     {
         internal static float AdjustSvgOpacity(float opacity)
         {

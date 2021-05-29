@@ -32,13 +32,13 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgCircle);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgCircle);
 
             drawable.GeometryBounds = drawable.Path.Bounds;
             
             drawable.TransformedBounds = drawable.GeometryBounds;
 
-            drawable.Transform = SvgModelExtensions.ToMatrix(svgCircle.Transforms);
+            drawable.Transform = SvgExtensions.ToMatrix(svgCircle.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
             drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
@@ -46,18 +46,18 @@ namespace Svg.Model.Drawables.Elements
             var canDrawFill = true;
             var canDrawStroke = true;
 
-            if (SvgModelExtensions.IsValidFill(svgCircle))
+            if (SvgExtensions.IsValidFill(svgCircle))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgCircle, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Fill = SvgExtensions.GetFillPaint(svgCircle, drawable.GeometryBounds, assetLoader, ignoreAttributes);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
             }
 
-            if (SvgModelExtensions.IsValidStroke(svgCircle, drawable.GeometryBounds))
+            if (SvgExtensions.IsValidStroke(svgCircle, drawable.GeometryBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgCircle, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Stroke = SvgExtensions.GetStrokePaint(svgCircle, drawable.GeometryBounds, assetLoader, ignoreAttributes);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;

@@ -60,7 +60,7 @@ namespace Svg.Model.Drawables
                 IsAntialias = true,
                 Style = SKPaintStyle.StrokeAndFill,
                 BlendMode = SKBlendMode.DstIn,
-                Color = SvgModelExtensions.s_transparentBlack,
+                Color = SvgExtensions.s_transparentBlack,
                 ColorFilter = lumaColor
             };
         }
@@ -189,7 +189,7 @@ namespace Svg.Model.Drawables
                 {
                     Clip = new ClipPath()
                 };
-                SvgModelExtensions.GetSvgVisualElementClipPath(visualElement, GeometryBounds, new HashSet<Uri>(), clipPath);
+                SvgExtensions.GetSvgVisualElementClipPath(visualElement, GeometryBounds, new HashSet<Uri>(), clipPath);
                 if (clipPath.Clips is { } && clipPath.Clips.Count > 0)
                 {
                     ClipPath = clipPath;
@@ -206,7 +206,7 @@ namespace Svg.Model.Drawables
 
             if (enableMask)
             {
-                MaskDrawable = SvgModelExtensions.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader);
+                MaskDrawable = SvgExtensions.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader);
                 if (MaskDrawable is { })
                 {
                     CreateMaskPaints();
@@ -217,11 +217,11 @@ namespace Svg.Model.Drawables
                 MaskDrawable = null;
             }
 
-            Opacity = enableOpacity ? SvgModelExtensions.GetOpacityPaint(element) : null;
+            Opacity = enableOpacity ? SvgExtensions.GetOpacityPaint(element) : null;
 
             if (visualElement is { } && enableFilter)
             {
-                Filter = SvgModelExtensions.GetFilterPaint(visualElement, GeometryBounds, viewport ?? GeometryBounds, this, AssetLoader, out var isValid, out var filterClip);
+                Filter = SvgExtensions.GetFilterPaint(visualElement, GeometryBounds, viewport ?? GeometryBounds, this, AssetLoader, out var isValid, out var filterClip);
                 FilterClip = filterClip;
                 if (isValid == false)
                 {

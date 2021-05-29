@@ -34,7 +34,7 @@ namespace Svg.Model.Drawables.Elements
             var heightUnit = svgMask.Height;
 
             // TODO: Pass correct skViewport
-            var skRectTransformed = SvgModelExtensions.CalculateRect(xUnit, yUnit, widthUnit, heightUnit, maskUnits, skOwnerBounds, skOwnerBounds, svgMask);
+            var skRectTransformed = SvgExtensions.CalculateRect(xUnit, yUnit, widthUnit, heightUnit, maskUnits, skOwnerBounds, skOwnerBounds, svgMask);
             if (skRectTransformed is null)
             {
                 drawable.IsDrawable = false;
@@ -56,7 +56,7 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.Overflow = skRectTransformed;
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgMask);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgMask);
 
             drawable.GeometryBounds = skRectTransformed.Value;
 
@@ -87,7 +87,7 @@ namespace Svg.Model.Drawables.Elements
 
             if (enableMask)
             {
-                MaskDrawable = SvgModelExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), AssetLoader);
+                MaskDrawable = SvgExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), AssetLoader);
                 if (MaskDrawable is { })
                 {
                     CreateMaskPaints();

@@ -9,13 +9,13 @@ using Svg.Model.Primitives;
 
 namespace Svg.Model
 {
-    public static partial class SvgModelExtensions
+    public static partial class SvgExtensions
     {
         private const string MimeTypeSvg = "image/svg+xml";
 
         private static byte[] GZipMagicHeaderBytes => new byte[] { 0x1f, 0x8b };
 
-        static SvgModelExtensions()
+        static SvgExtensions()
         {
             SvgDocument.SkipGdiPlusCapabilityCheck = true;
             SvgDocument.PointsPerInch = 96;

@@ -11,13 +11,13 @@ namespace Svg.Skia
 
         public static SkiaSharp.SKPicture? ToPicture(SvgFragment svgFragment)
         {
-            var picture = SvgModelExtensions.ToModel(svgFragment, s_assetLoader);
+            var picture = SvgExtensions.ToModel(svgFragment, s_assetLoader);
             return picture?.ToSKPicture();
         }
 
         public static void Draw(SkiaSharp.SKCanvas skCanvas, SvgFragment svgFragment)
         {
-            var size = SvgModelExtensions.GetDimensions(svgFragment);
+            var size = SvgExtensions.GetDimensions(svgFragment);
             var bounds = SKRect.Create(size);
             var drawable = DrawableFactory.Create(svgFragment, bounds, null, s_assetLoader);
             if (drawable is { })
@@ -30,7 +30,7 @@ namespace Svg.Skia
 
         public static void Draw(SkiaSharp.SKCanvas skCanvas, string path)
         {
-            var svgDocument = SvgModelExtensions.Open(path);
+            var svgDocument = SvgExtensions.Open(path);
             if (svgDocument is { })
             {
                 Draw(skCanvas, svgDocument);
@@ -44,10 +44,10 @@ namespace Svg.Skia
         public SkiaSharp.SKPicture? Load(System.IO.Stream stream)
         {
             Reset();
-            var svgDocument = SvgModelExtensions.Open(stream);
+            var svgDocument = SvgExtensions.Open(stream);
             if (svgDocument is { })
             {
-                Model = SvgModelExtensions.ToModel(svgDocument, s_assetLoader);
+                Model = SvgExtensions.ToModel(svgDocument, s_assetLoader);
                 Picture = Model?.ToSKPicture();
                 return Picture;
             }
@@ -57,10 +57,10 @@ namespace Svg.Skia
         public SkiaSharp.SKPicture? Load(string path)
         {
             Reset();
-            var svgDocument = SvgModelExtensions.Open(path);
+            var svgDocument = SvgExtensions.Open(path);
             if (svgDocument is { })
             {
-                Model = SvgModelExtensions.ToModel(svgDocument, s_assetLoader);
+                Model = SvgExtensions.ToModel(svgDocument, s_assetLoader);
                 Picture = Model?.ToSKPicture();
                 return Picture;
             }
@@ -70,10 +70,10 @@ namespace Svg.Skia
         public SkiaSharp.SKPicture? FromSvg(string svg)
         {
             Reset();
-            var svgDocument = SvgModelExtensions.FromSvg(svg);
+            var svgDocument = SvgExtensions.FromSvg(svg);
             if (svgDocument is { })
             {
-                Model = SvgModelExtensions.ToModel(svgDocument, s_assetLoader);
+                Model = SvgExtensions.ToModel(svgDocument, s_assetLoader);
                 Picture = Model?.ToSKPicture();
                 return Picture;
             }
@@ -85,7 +85,7 @@ namespace Svg.Skia
             Reset();
             if (svgDocument is { })
             {
-                Model = SvgModelExtensions.ToModel(svgDocument, s_assetLoader);
+                Model = SvgExtensions.ToModel(svgDocument, s_assetLoader);
                 Picture = Model?.ToSKPicture();
                 return Picture;
             }
