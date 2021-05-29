@@ -1,11 +1,21 @@
 ﻿using System.IO;
 using Svg.Model;
+#if USE_SKIASHARP
+using SkiaSharp;
+#else
 using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Skia
 {
     public class SkiaAssetLoader : IAssetLoader
     {
+#if USE_SKIASHARP
+        public SKImage LoadImage(Stream stream)
+        {
+            return SKImage.FromEncodedData(stream);
+        }
+#else
         public SKImage LoadImage(Stream stream)
         {
             var data = SKImage.FromStream(stream);
@@ -17,5 +27,6 @@ namespace Svg.Skia
                 Height = image.Height
             };
         }
+#endif
     }
 }
