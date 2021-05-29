@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+#if USE_SKIASHARP
+using SkiaSharp;
+#else
 using ShimSkiaSharp.Primitives;
 using ShimSkiaSharp.Primitives.PathCommands;
+#endif
 using Svg.Pathing;
 
 namespace Svg.Model

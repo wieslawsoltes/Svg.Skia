@@ -5,7 +5,11 @@ using System.IO.Compression;
 using System.Net;
 using System.Text;
 using Svg.Model.Drawables;
+#if USE_SKIASHARP
+using SkiaSharp;
+#else
 using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model
 {

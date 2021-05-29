@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+#if USE_SKIASHARP
+using SkiaSharp;
+#else
 using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model.Drawables.Elements
 {

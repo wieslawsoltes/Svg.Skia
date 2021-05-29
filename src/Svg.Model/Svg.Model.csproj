@@ -16,9 +16,15 @@
     <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;model</PackageTags>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!--<DefineConstants>$(DefineConstants);USE_SKIASHARP</DefineConstants>-->
+  </PropertyGroup>
+
   <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
+  <!--<Import Project="..\..\build\SkiaSharp.props" />-->
+  <!--<Import Project="..\..\build\SkiaSharp.HarfBuzz.props" />-->
 
   <!--<Import Project="..\..\build\Svg.props" />-->
   <ItemGroup>

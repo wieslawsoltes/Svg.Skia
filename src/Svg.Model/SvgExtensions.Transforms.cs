@@ -1,5 +1,9 @@
 ﻿using System;
+#if USE_SKIASHARP
+using SkiaSharp;
+#else
 using ShimSkiaSharp.Primitives;
+#endif
 using Svg.Transforms;
 
 namespace Svg.Model

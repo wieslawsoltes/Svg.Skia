@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using Svg.DataTypes;
 using Svg.Model.Drawables;
+#if USE_SKIASHARP
+using SkiaSharp;
+#else
 using ShimSkiaSharp.Painting;
 using ShimSkiaSharp.Painting.Shaders;
 using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model
 {

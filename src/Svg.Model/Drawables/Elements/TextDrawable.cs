@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+#if USE_SKIASHARP
+using SkiaSharp;
+#else
 using ShimSkiaSharp.Painting;
 using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model.Drawables.Elements
 {

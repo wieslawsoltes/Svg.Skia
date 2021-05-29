@@ -2,8 +2,12 @@
 using System.Collections.Generic;
 using Svg.FilterEffects;
 using Svg.Model.Drawables;
+#if USE_SKIASHARP
+using SkiaSharp;
+#else
 using ShimSkiaSharp.Painting;
 using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model
 {
