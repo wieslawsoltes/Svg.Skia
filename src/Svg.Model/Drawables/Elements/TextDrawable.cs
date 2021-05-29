@@ -338,7 +338,11 @@ namespace Svg.Model.Drawables.Elements
                     if (skPaint is { })
                     {
                         SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
+#if USE_SKIASHARP
+                        var textBlob = SKTextBlob.CreatePositioned(text, skPaint.ToFont(), points);
+#else
                         var textBlob = SKTextBlob.CreatePositioned(text, points);
+#endif
                         skCanvas.DrawText(textBlob, 0, 0, skPaint);
                     }
                 }
@@ -349,7 +353,11 @@ namespace Svg.Model.Drawables.Elements
                     if (skPaint is { })
                     {
                         SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
+#if USE_SKIASHARP
+                        var textBlob = SKTextBlob.CreatePositioned(text, skPaint.ToFont(), points);
+#else
                         var textBlob = SKTextBlob.CreatePositioned(text, points);
+#endif
                         skCanvas.DrawText(textBlob, 0, 0, skPaint);
                     }
                 }
