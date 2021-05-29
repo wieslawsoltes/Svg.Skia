@@ -5,6 +5,6 @@
         public SKBlendMode Mode { get; set; }
         public SKImageFilter? Background { get; set; }
         public SKImageFilter? Foreground { get; set; }
-        public SKCropRect? CropRect { get; set; }
+        public CropRect? CropRect { get; set; }
     }
 }

@@ -10,6 +10,6 @@ namespace ShimSkiaSharp.Painting.ImageFilters
         public float Ks { get; set; }
         public float Shininess { get; set; }
         public SKImageFilter? Input { get; set; }
-        public SKCropRect? CropRect { get; set; }
+        public CropRect? CropRect { get; set; }
     }
 }

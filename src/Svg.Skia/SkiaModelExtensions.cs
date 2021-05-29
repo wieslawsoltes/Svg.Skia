@@ -361,7 +361,7 @@ namespace Svg.Skia
             }
         }
 
-        public static SkiaSharp.SKImageFilter.CropRect ToCropRect(this SKImageFilter.SKCropRect cropRect)
+        public static SkiaSharp.SKImageFilter.CropRect ToCropRect(this SKImageFilter.CropRect cropRect)
         {
             return new(cropRect.Rect.ToSKRect());
         }

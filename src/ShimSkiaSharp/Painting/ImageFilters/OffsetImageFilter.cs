@@ -5,6 +5,6 @@
         public float Dx { get; set; }
         public float Dy { get; set; }
         public SKImageFilter? Input { get; set; }
-        public SKCropRect? CropRect { get; set; }
+        public CropRect? CropRect { get; set; }
     }
 }

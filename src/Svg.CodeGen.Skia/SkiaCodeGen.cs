@@ -670,7 +670,7 @@ namespace Svg.CodeGen.Skia
             }
         }
 
-        public static string ToCropRect(this SKImageFilter.SKCropRect cropRect)
+        public static string ToCropRect(this SKImageFilter.CropRect cropRect)
         {
             return $"new SKImageFilter.CropRect({cropRect.Rect.ToSKRect()})";
         }

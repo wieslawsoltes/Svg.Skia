@@ -4,6 +4,6 @@
     {
         public SKColorFilter? ColorFilter { get; set; }
         public SKImageFilter? Input { get; set; }
-        public SKCropRect? CropRect { get; set; }
+        public CropRect? CropRect { get; set; }
     }
 }
