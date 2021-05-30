@@ -124,7 +124,12 @@ namespace Svg.Model.Drawables
 
             if (ClipPath is { } && enableClip)
             {
+#if USE_SKIASHARP
+                // TODO: canvas.ClipPath(ClipPath, SKClipOperation.Intersect, IsAntialias);
+                throw new NotImplementedException();
+#else
                 canvas.ClipPath(ClipPath, SKClipOperation.Intersect, IsAntialias);
+#endif
             }
 
             if (MaskDrawable is { } && Mask is { } && enableMask)
