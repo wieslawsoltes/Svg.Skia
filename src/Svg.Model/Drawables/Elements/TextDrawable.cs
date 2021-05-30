@@ -144,7 +144,12 @@ namespace Svg.Model.Drawables.Elements
                 if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !IgnoreAttributes.HasFlag(DrawAttributes.ClipPath))
                 {
                     var antialias = SvgExtensions.IsAntialias(svgTextBase);
+#if USE_SKIASHARP
+                    // TODO: skCanvas.ClipPath(clipPath, SKClipOperation.Intersect, antialias);
+                    throw new NotImplementedException();
+#else
                     skCanvas.ClipPath(clipPath, SKClipOperation.Intersect, antialias);
+#endif
                 }
             }
 
