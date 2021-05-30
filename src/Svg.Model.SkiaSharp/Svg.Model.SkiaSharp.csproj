@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>netstandard2.0;net5.0;net461</TargetFrameworks>
+    <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
+    <EnableDefaultItems>False</EnableDefaultItems>
+    <IsPackable>True</IsPackable>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Description>An SVG rendering object model library.</Description>
+    <PackageId>Svg.Model.SkiaSharp</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;model</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);USE_SKIASHARP</DefineConstants>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\Base.props" />
+  <Import Project="..\..\build\SignAssembly.props" />
+  <Import Project="..\..\build\ReferenceAssemblies.props" />
+  <!--<Import Project="..\..\build\Svg.props" />-->
+  <Import Project="..\..\build\SkiaSharp.props" />
+  <Import Project="..\..\build\SkiaSharp.HarfBuzz.props" />
+
+  <ItemGroup>
+    <!--<ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />-->
+    <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="**\*.cs" Exclude="obj\**" />
+    <Compile Include="..\Svg.Model\**\*.cs" Exclude="..\Svg.Model\obj\**" />
+    <Compile Include="..\ShimSkiaSharp\Primitives\ClipPath.cs">
+      <Link>ShimSkiaSharp\Primitives\ClipPath.cs</Link>
+    </Compile>
+    <Compile Include="..\ShimSkiaSharp\Primitives\PathClip.cs">
+      <Link>ShimSkiaSharp\Primitives\PathClip.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+</Project>
