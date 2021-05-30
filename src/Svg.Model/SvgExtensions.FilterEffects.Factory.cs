@@ -127,20 +127,20 @@ namespace Svg.Model
                                 break;
                             }
 
-                            if (IsStandardInput(input1FilterResult?.key) || IsStandardInput(input2FilterResult?.key))
+                            if (IsStandardInput(input1FilterResult?.key) || IsStandardInput(input2FilterResult.Value.key))
                             {
                                 skFilterPrimitiveRegion = skFilterRegion.Value;
                             }
                             else
                             {
-                                if (input1FilterResult is { } && !string.IsNullOrWhiteSpace(input1Key) && input2FilterResult is { } && !string.IsNullOrWhiteSpace(input2Key))
+                                if (input1FilterResult is { } && !string.IsNullOrWhiteSpace(input1Key) && !string.IsNullOrWhiteSpace(input2Key))
                                 {
                                     skFilterPrimitiveRegion = SKRect.Union(regions[input1FilterResult.Value.filter], regions[input2FilterResult.Value.filter]);
                                 }
                             }
 
                             var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
-                            var skImageFilter = CreateBlend(svgBlend, input2FilterResult?.filter, input1FilterResult?.filter, skCropRect);
+                            var skImageFilter = CreateBlend(svgBlend, input2FilterResult.Value.filter, input1FilterResult?.filter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
                             if (skImageFilter is { })
                             {
@@ -214,20 +214,20 @@ namespace Svg.Model
                                 break;
                             }
 
-                            if (IsStandardInput(input1FilterResult?.key) || IsStandardInput(input2FilterResult?.key))
+                            if (IsStandardInput(input1FilterResult?.key) || IsStandardInput(input2FilterResult.Value.key))
                             {
                                 skFilterPrimitiveRegion = skFilterRegion.Value;
                             }
                             else
                             {
-                                if (input1FilterResult is { } && !string.IsNullOrWhiteSpace(input1Key) && input2FilterResult is { } && !string.IsNullOrWhiteSpace(input2Key))
+                                if (input1FilterResult is { } && !string.IsNullOrWhiteSpace(input1Key) && !string.IsNullOrWhiteSpace(input2Key))
                                 {
                                     skFilterPrimitiveRegion = SKRect.Union(regions[input1FilterResult.Value.filter], regions[input2FilterResult.Value.filter]);
                                 }
                             }
 
                             var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
-                            var skImageFilter = CreateComposite(svgComposite, input2FilterResult?.filter, input1FilterResult?.filter, skCropRect);
+                            var skImageFilter = CreateComposite(svgComposite, input2FilterResult.Value.filter, input1FilterResult?.filter, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
                             if (skImageFilter is { })
                             {
@@ -301,13 +301,13 @@ namespace Svg.Model
                                 break;
                             }
 
-                            if (IsStandardInput(input1FilterResult?.key) || IsStandardInput(input2FilterResult?.key))
+                            if (IsStandardInput(input1FilterResult?.key) || IsStandardInput(input2FilterResult.Value.key))
                             {
                                 skFilterPrimitiveRegion = skFilterRegion.Value;
                             }
                             else
                             {
-                                if (input1FilterResult is { } && !string.IsNullOrWhiteSpace(input1Key) && input2FilterResult is { } && !string.IsNullOrWhiteSpace(input2Key))
+                                if (input1FilterResult is { } && !string.IsNullOrWhiteSpace(input1Key) && !string.IsNullOrWhiteSpace(input2Key))
                                 {
                                     skFilterPrimitiveRegion = SKRect.Union(regions[input1FilterResult.Value.filter], regions[input2FilterResult.Value.filter]);
                                 }
