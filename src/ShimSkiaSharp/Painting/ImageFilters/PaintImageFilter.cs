@@ -3,6 +3,6 @@
     public sealed class PaintImageFilter : SKImageFilter
     {
         public SKPaint? Paint { get; set; }
-        public CropRect? CropRect { get; set; }
+        public CropRect? Clip { get; set; }
     }
 }

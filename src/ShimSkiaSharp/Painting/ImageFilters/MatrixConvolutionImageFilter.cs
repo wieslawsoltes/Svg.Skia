@@ -13,6 +13,6 @@ namespace ShimSkiaSharp.Painting.ImageFilters
         public SKShaderTileMode TileMode { get; set; }
         public bool ConvolveAlpha { get; set; }
         public SKImageFilter? Input { get; set; }
-        public CropRect? CropRect { get; set; }
+        public CropRect? Clip { get; set; }
     }
 }

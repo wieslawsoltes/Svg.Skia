@@ -394,7 +394,7 @@ namespace Svg.Skia
                             arithmeticImageFilter.EforcePMColor,
                             arithmeticImageFilter.Background?.ToSKImageFilter(),
                             arithmeticImageFilter.Foreground?.ToSKImageFilter(),
-                            arithmeticImageFilter.CropRect?.ToCropRect());
+                            arithmeticImageFilter.Clip?.ToCropRect());
                     }
                 case BlendModeImageFilter blendModeImageFilter:
                     {
@@ -404,7 +404,7 @@ namespace Svg.Skia
                             blendModeImageFilter.Mode.ToSKBlendMode(),
                             blendModeImageFilter.Background?.ToSKImageFilter(),
                             blendModeImageFilter.Foreground?.ToSKImageFilter(),
-                            blendModeImageFilter.CropRect?.ToCropRect());
+                            blendModeImageFilter.Clip?.ToCropRect());
                     }
                 case BlurImageFilter blurImageFilter:
                     {
@@ -412,7 +412,7 @@ namespace Svg.Skia
                             blurImageFilter.SigmaX,
                             blurImageFilter.SigmaY,
                             blurImageFilter.Input?.ToSKImageFilter(),
-                            blurImageFilter.CropRect?.ToCropRect());
+                            blurImageFilter.Clip?.ToCropRect());
                     }
                 case ColorFilterImageFilter colorFilterImageFilter:
                     {
@@ -421,7 +421,7 @@ namespace Svg.Skia
                         return SkiaSharp.SKImageFilter.CreateColorFilter(
                             colorFilterImageFilter.ColorFilter?.ToSKColorFilter(),
                             colorFilterImageFilter.Input?.ToSKImageFilter(),
-                            colorFilterImageFilter.CropRect?.ToCropRect());
+                            colorFilterImageFilter.Clip?.ToCropRect());
                     }
                 case DilateImageFilter dilateImageFilter:
                     {
@@ -429,7 +429,7 @@ namespace Svg.Skia
                             dilateImageFilter.RadiusX,
                             dilateImageFilter.RadiusY,
                             dilateImageFilter.Input?.ToSKImageFilter(),
-                            dilateImageFilter.CropRect?.ToCropRect());
+                            dilateImageFilter.Clip?.ToCropRect());
                     }
                 case DisplacementMapEffectImageFilter displacementMapEffectImageFilter:
                     {
@@ -441,7 +441,7 @@ namespace Svg.Skia
                             displacementMapEffectImageFilter.Scale,
                             displacementMapEffectImageFilter.Displacement?.ToSKImageFilter(),
                             displacementMapEffectImageFilter.Input?.ToSKImageFilter(),
-                            displacementMapEffectImageFilter.CropRect?.ToCropRect());
+                            displacementMapEffectImageFilter.Clip?.ToCropRect());
                     }
                 case DistantLitDiffuseImageFilter distantLitDiffuseImageFilter:
                     {
@@ -451,7 +451,7 @@ namespace Svg.Skia
                             distantLitDiffuseImageFilter.SurfaceScale,
                             distantLitDiffuseImageFilter.Kd,
                             distantLitDiffuseImageFilter.Input?.ToSKImageFilter(),
-                            distantLitDiffuseImageFilter.CropRect?.ToCropRect());
+                            distantLitDiffuseImageFilter.Clip?.ToCropRect());
                     }
                 case DistantLitSpecularImageFilter distantLitSpecularImageFilter:
                     {
@@ -462,7 +462,7 @@ namespace Svg.Skia
                             distantLitSpecularImageFilter.Ks,
                             distantLitSpecularImageFilter.Shininess,
                             distantLitSpecularImageFilter.Input?.ToSKImageFilter(),
-                            distantLitSpecularImageFilter.CropRect?.ToCropRect());
+                            distantLitSpecularImageFilter.Clip?.ToCropRect());
                     }
                 case ErodeImageFilter erodeImageFilter:
                     {
@@ -470,7 +470,7 @@ namespace Svg.Skia
                             erodeImageFilter.RadiusX,
                             erodeImageFilter.RadiusY,
                             erodeImageFilter.Input?.ToSKImageFilter(),
-                            erodeImageFilter.CropRect?.ToCropRect());
+                            erodeImageFilter.Clip?.ToCropRect());
                     }
                 case ImageImageFilter imageImageFilter:
                     {
@@ -495,7 +495,7 @@ namespace Svg.Skia
                             matrixConvolutionImageFilter.TileMode.ToSKShaderTileMode(),
                             matrixConvolutionImageFilter.ConvolveAlpha,
                             matrixConvolutionImageFilter.Input?.ToSKImageFilter(),
-                            matrixConvolutionImageFilter.CropRect?.ToCropRect());
+                            matrixConvolutionImageFilter.Clip?.ToCropRect());
                     }
                 case MergeImageFilter mergeImageFilter:
                     {
@@ -503,7 +503,7 @@ namespace Svg.Skia
 
                         return SkiaSharp.SKImageFilter.CreateMerge(
                             mergeImageFilter.Filters?.ToSKImageFilters(),
-                            mergeImageFilter.CropRect?.ToCropRect());
+                            mergeImageFilter.Clip?.ToCropRect());
                     }
                 case OffsetImageFilter offsetImageFilter:
                     {
@@ -511,7 +511,7 @@ namespace Svg.Skia
                             offsetImageFilter.Dx,
                             offsetImageFilter.Dy,
                             offsetImageFilter.Input?.ToSKImageFilter(),
-                            offsetImageFilter.CropRect?.ToCropRect());
+                            offsetImageFilter.Clip?.ToCropRect());
                     }
                 case PaintImageFilter paintImageFilter:
                     {
@@ -519,7 +519,7 @@ namespace Svg.Skia
 
                         return SkiaSharp.SKImageFilter.CreatePaint(
                             paintImageFilter.Paint.ToSKPaint(),
-                            paintImageFilter.CropRect?.ToCropRect());
+                            paintImageFilter.Clip?.ToCropRect());
                     }
                 case PictureImageFilter pictureImageFilter:
                     {
@@ -537,7 +537,7 @@ namespace Svg.Skia
                             pointLitDiffuseImageFilter.SurfaceScale,
                             pointLitDiffuseImageFilter.Kd,
                             pointLitDiffuseImageFilter.Input?.ToSKImageFilter(),
-                            pointLitDiffuseImageFilter.CropRect?.ToCropRect());
+                            pointLitDiffuseImageFilter.Clip?.ToCropRect());
                     }
                 case PointLitSpecularImageFilter pointLitSpecularImageFilter:
                     {
@@ -548,7 +548,7 @@ namespace Svg.Skia
                             pointLitSpecularImageFilter.Ks,
                             pointLitSpecularImageFilter.Shininess,
                             pointLitSpecularImageFilter.Input?.ToSKImageFilter(),
-                            pointLitSpecularImageFilter.CropRect?.ToCropRect());
+                            pointLitSpecularImageFilter.Clip?.ToCropRect());
                     }
                 case SpotLitDiffuseImageFilter spotLitDiffuseImageFilter:
                     {
@@ -561,7 +561,7 @@ namespace Svg.Skia
                             spotLitDiffuseImageFilter.SurfaceScale,
                             spotLitDiffuseImageFilter.Kd,
                             spotLitDiffuseImageFilter.Input?.ToSKImageFilter(),
-                            spotLitDiffuseImageFilter.CropRect?.ToCropRect());
+                            spotLitDiffuseImageFilter.Clip?.ToCropRect());
                     }
                 case SpotLitSpecularImageFilter spotLitSpecularImageFilter:
                     {
@@ -575,7 +575,7 @@ namespace Svg.Skia
                             spotLitSpecularImageFilter.Ks,
                             spotLitSpecularImageFilter.SpecularExponent,
                             spotLitSpecularImageFilter.Input?.ToSKImageFilter(),
-                            spotLitSpecularImageFilter.CropRect?.ToCropRect());
+                            spotLitSpecularImageFilter.Clip?.ToCropRect());
                     }
                 case TileImageFilter tileImageFilter:
                     {

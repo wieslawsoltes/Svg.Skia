@@ -9,6 +9,6 @@
         public bool EforcePMColor { get; set; }
         public SKImageFilter? Background { get; set; }
         public SKImageFilter? Foreground { get; set; }
-        public CropRect? CropRect { get; set; }
+        public CropRect? Clip { get; set; }
     }
 }

@@ -37,7 +37,7 @@ namespace ShimSkiaSharp.Painting
                 EforcePMColor = enforcePMColor,
                 Background = background,
                 Foreground = foreground,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -48,7 +48,7 @@ namespace ShimSkiaSharp.Painting
                 Mode = mode,
                 Background = background,
                 Foreground = foreground,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -59,7 +59,7 @@ namespace ShimSkiaSharp.Painting
                 SigmaX = sigmaX,
                 SigmaY = sigmaY,
                 Input = input,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -69,7 +69,7 @@ namespace ShimSkiaSharp.Painting
             {
                 ColorFilter = cf,
                 Input = input,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -80,7 +80,7 @@ namespace ShimSkiaSharp.Painting
                 RadiusX = radiusX,
                 RadiusY = radiusY,
                 Input = input,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -93,7 +93,7 @@ namespace ShimSkiaSharp.Painting
                 Scale = scale,
                 Displacement = displacement,
                 Input = input,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -106,7 +106,7 @@ namespace ShimSkiaSharp.Painting
                 SurfaceScale = surfaceScale,
                 Kd = kd,
                 Input = input,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -120,7 +120,7 @@ namespace ShimSkiaSharp.Painting
                 Ks = ks,
                 Shininess = shininess,
                 Input = input,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -131,7 +131,7 @@ namespace ShimSkiaSharp.Painting
                 RadiusX = radiusX,
                 RadiusY = radiusY,
                 Input = input,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -158,7 +158,7 @@ namespace ShimSkiaSharp.Painting
                 TileMode = tileMode,
                 ConvolveAlpha = convolveAlpha,
                 Input = input,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -167,7 +167,7 @@ namespace ShimSkiaSharp.Painting
             return new MergeImageFilter
             {
                 Filters = filters,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -178,7 +178,7 @@ namespace ShimSkiaSharp.Painting
                 Dx = dx,
                 Dy = dy,
                 Input = input,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -187,7 +187,7 @@ namespace ShimSkiaSharp.Painting
             return new PaintImageFilter
             {
                 Paint = paint,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -196,7 +196,7 @@ namespace ShimSkiaSharp.Painting
             return new PictureImageFilter
             {
                 Picture = picture,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -209,7 +209,7 @@ namespace ShimSkiaSharp.Painting
                 SurfaceScale = surfaceScale,
                 Kd = kd,
                 Input = input,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -223,7 +223,7 @@ namespace ShimSkiaSharp.Painting
                 Ks = ks,
                 Shininess = shininess,
                 Input = input,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -239,7 +239,7 @@ namespace ShimSkiaSharp.Painting
                 SurfaceScale = surfaceScale,
                 Kd = kd,
                 Input = input,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 
@@ -256,7 +256,7 @@ namespace ShimSkiaSharp.Painting
                 Ks = ks,
                 Shininess = shininess,
                 Input = input,
-                CropRect = cropRect
+                Clip = cropRect
             };
         }
 

@@ -5,6 +5,6 @@ namespace ShimSkiaSharp.Painting.ImageFilters
     public sealed class PictureImageFilter : SKImageFilter
     {
         public SKPicture? Picture { get; set; }
-        public SKRect? CropRect { get; set; }
+        public SKRect? Clip { get; set; }
     }
 }

@@ -3,6 +3,6 @@
     public sealed class MergeImageFilter : SKImageFilter
     {
         public SKImageFilter[]? Filters { get; set; }
-        public CropRect? CropRect { get; set; }
+        public CropRect? Clip { get; set; }
     }
 }
