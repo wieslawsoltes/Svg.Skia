@@ -33,7 +33,7 @@ namespace Svg.Model
 
         private const string StrokePaint = "StrokePaint";
 
-        private static bool IsStandardInput(string key)
+        private static bool IsStandardInput(string? key)
         {
             return key switch
             {
@@ -634,7 +634,7 @@ namespace Svg.Model
             return default;
         }
 
-        private static SKImageFilter? CreateMerge(SvgMerge svgMerge, Dictionary<string, SKImageFilter> results, SKImageFilter? lastResult, IFilterSource filterSource, SKImageFilter.CropRect? cropRect = default)
+        private static SKImageFilter? CreateMerge(SvgMerge svgMerge, Dictionary<string, SKImageFilter> results, (string key, SKImageFilter filter)? lastResult, IFilterSource filterSource, SKImageFilter.CropRect? cropRect = default)
         {
             var children = new List<SvgMergeNode>();
 
@@ -655,7 +655,7 @@ namespace Svg.Model
                 var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, false);
                 if (inputFilter is { })
                 {
-                    filters[i] = inputFilter;
+                    filters[i] = inputFilter.Value.filter;
                 }
                 else
                 {
@@ -886,7 +886,7 @@ namespace Svg.Model
             return skImageFilter;
         }
 
-        private static SKImageFilter? GetInputFilter(string inputKey, Dictionary<string, SKImageFilter> results, SKImageFilter? lastResult, IFilterSource filterSource, bool isFirst)
+        private static (string key, SKImageFilter filter)? GetInputFilter(string inputKey, Dictionary<string, SKImageFilter> results, (string key, SKImageFilter filter)? lastResult, IFilterSource filterSource, bool isFirst)
         {
             if (string.IsNullOrWhiteSpace(inputKey))
             {
@@ -897,7 +897,7 @@ namespace Svg.Model
 
                 if (results.ContainsKey(SourceGraphic))
                 {
-                    return results[SourceGraphic];
+                    return (SourceGraphic, results[SourceGraphic]);
                 }
 
                 var skPicture = filterSource.SourceGraphic();
@@ -907,7 +907,7 @@ namespace Svg.Model
                     if (skImageFilter is { })
                     {
                         results[SourceGraphic] = skImageFilter;
-                        return skImageFilter;
+                        return (SourceGraphic, skImageFilter);
                     }
                 }
                 return default;
@@ -915,7 +915,7 @@ namespace Svg.Model
 
             if (results.ContainsKey(inputKey))
             {
-                return results[inputKey];
+                return (inputKey, results[inputKey]);
             }
 
             switch (inputKey)
@@ -929,7 +929,7 @@ namespace Svg.Model
                             if (skImageFilter is { })
                             {
                                 results[SourceGraphic] = skImageFilter;
-                                return skImageFilter;
+                                return (SourceGraphic, skImageFilter);
                             }
                         }
                     }
@@ -944,7 +944,7 @@ namespace Svg.Model
                             if (skImageFilter is { })
                             {
                                 results[SourceAlpha] = skImageFilter;
-                                return skImageFilter;
+                                return (SourceAlpha, skImageFilter);
                             }
                         }
                     }
@@ -959,14 +959,14 @@ namespace Svg.Model
                             if (skImageFilter is { })
                             {
                                 results[BackgroundImage] = skImageFilter;
-                                return skImageFilter;
+                                return (BackgroundImage, skImageFilter);
                             }
                         }
                         else
                         {
                             var skImageFilter = GetTransparentBlackImage();
                             results[BackgroundImage] = skImageFilter;
-                            return skImageFilter;
+                            return (BackgroundImage, skImageFilter);
                         }
                     }
                     break;
@@ -980,14 +980,14 @@ namespace Svg.Model
                             if (skImageFilter is { })
                             {
                                 results[BackgroundAlpha] = skImageFilter;
-                                return skImageFilter;
+                                return (BackgroundAlpha, skImageFilter);
                             }
                         }
                         else
                         {
                             var skImageFilter = GetTransparentBlackAlpha();
                             results[BackgroundImage] = skImageFilter;
-                            return skImageFilter;
+                            return (BackgroundImage, skImageFilter);
                         }
                     }
                     break;
@@ -1001,7 +1001,7 @@ namespace Svg.Model
                             if (skImageFilter is { })
                             {
                                 results[FillPaint] = skImageFilter;
-                                return skImageFilter;
+                                return (FillPaint, skImageFilter);
                             }
                         }
                     }
@@ -1016,7 +1016,7 @@ namespace Svg.Model
                             if (skImageFilter is { })
                             {
                                 results[StrokePaint] = skImageFilter;
-                                return skImageFilter;
+                                return (StrokePaint, skImageFilter);
                             }
                         }
                     }
@@ -1026,7 +1026,7 @@ namespace Svg.Model
             return default;
         }
 
-        private static SKImageFilter? GetFilterResult(SvgFilterPrimitive svgFilterPrimitive, SKImageFilter? skImageFilter, Dictionary<string, SKImageFilter> results)
+        private static (string key, SKImageFilter filter)? GetFilterResult(SvgFilterPrimitive svgFilterPrimitive, SKImageFilter? skImageFilter, Dictionary<string, SKImageFilter> results)
         {
             if (skImageFilter is { })
             {
@@ -1035,7 +1035,7 @@ namespace Svg.Model
                 {
                     results[key] = skImageFilter;
                 }
-                return skImageFilter;
+                return (key, skImageFilter);
             }
             return default;
         }
