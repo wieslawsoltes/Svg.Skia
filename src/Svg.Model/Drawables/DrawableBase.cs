@@ -174,6 +174,11 @@ namespace Svg.Model.Drawables
                         };
                         canvas.DrawPath(path, clipPaint);
                     }
+                }
+#endif
+#if false
+                if (FilterClip is not null)
+                {
                     Debug.WriteLine($"GeometryBounds {GeometryBounds}");
                     {
                         var path = new SKPath();
