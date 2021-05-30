@@ -25,7 +25,13 @@ namespace Svg.Model
             PathMarker = 0x20,
             CloseSubpath = 0x80
         }
-
+#if USE_SKIASHARP
+        internal static List<(SKPoint Point, byte Type)> GetPathTypes(this SKPath path)
+        {
+            // TODO: GetPathTypes
+            throw new NotImplementedException();
+        }
+#else
         internal static List<(SKPoint Point, byte Type)> GetPathTypes(this SKPath path)
         {
             // System.Drawing.Drawing2D.GraphicsPath.PathTypes
@@ -119,7 +125,7 @@ namespace Svg.Model
 
             return pathTypes;
         }
-
+#endif
         internal static SKPath? ToPath(this SvgPathSegmentList? svgPathSegmentList, SvgFillRule svgFillRule)
         {
             if (svgPathSegmentList is null || svgPathSegmentList.Count <= 0)
