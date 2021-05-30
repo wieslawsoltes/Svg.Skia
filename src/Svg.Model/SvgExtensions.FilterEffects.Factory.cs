@@ -566,6 +566,14 @@ namespace Svg.Model
                         }
                     }
                 }
+                else
+                {
+                    if (!primitiveUseBoundingBox)
+                    {
+                        // TODO: Handle missing x attribute
+                        // xChild = skBounds.Left;
+                    }
+                }
 
                 if (TryGetAttribute(svgFilterPrimitive, "y", out var yChildString))
                 {
@@ -587,6 +595,14 @@ namespace Svg.Model
                         }
                     }
                 }
+                else
+                {
+                    if (!primitiveUseBoundingBox)
+                    {
+                        // TODO: Handle missing y attribute
+                        // yChild = skBounds.Top;
+                    }
+                }
 
                 if (TryGetAttribute(svgFilterPrimitive, "width", out var widthChildString))
                 {
@@ -606,6 +622,14 @@ namespace Svg.Model
                         }
                     }
                 }
+                else
+                {
+                    if (!primitiveUseBoundingBox)
+                    {
+                        // TODO: Handle missing width attribute
+                        // widthChild = skBounds.Width;
+                    }
+                }
 
                 if (TryGetAttribute(svgFilterPrimitive, "height", out var heightChildString))
                 {
@@ -623,6 +647,14 @@ namespace Svg.Model
                                 heightChild *= skBounds.Height;
                             }
                         }
+                    }
+                }
+                else
+                {
+                    if (!primitiveUseBoundingBox)
+                    {
+                        // TODO: Handle missing height attribute
+                        // heightChild = skBounds.Height;
                     }
                 }
 
