@@ -110,7 +110,7 @@ namespace Svg.Model
             };
         }
 
-        private static SKImageFilter? CreateBlend(SvgBlend svgBlend, SKImageFilter background, SKImageFilter? foreground = default, SKImageFilter.CropRect? cropRect = default)
+        private static SKImageFilter? CreateBlend(SvgBlend svgBlend, SKImageFilter? background, SKImageFilter? foreground = default, SKImageFilter.CropRect? cropRect = default)
         {
             var mode = GetBlendMode(svgBlend.Mode);
             return SKImageFilter.CreateBlendMode(mode, background, foreground, cropRect);
@@ -354,7 +354,7 @@ namespace Svg.Model
             return SKImageFilter.CreateColorFilter(cf, input, cropRect);
         }
 
-        private static SKImageFilter? CreateComposite(SvgComposite svgComposite, SKImageFilter background, SKImageFilter? foreground = default, SKImageFilter.CropRect? cropRect = default)
+        private static SKImageFilter? CreateComposite(SvgComposite svgComposite, SKImageFilter? background, SKImageFilter? foreground = default, SKImageFilter.CropRect? cropRect = default)
         {
             var oper = svgComposite.Operator;
             if (oper == SvgCompositeOperator.Arithmetic)
@@ -524,7 +524,7 @@ namespace Svg.Model
             };
         }
 
-        private static SKImageFilter? CreateDisplacementMap(SvgDisplacementMap svgDisplacementMap, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter displacement, SKImageFilter? inout = default, SKImageFilter.CropRect? cropRect = default)
+        private static SKImageFilter? CreateDisplacementMap(SvgDisplacementMap svgDisplacementMap, SKRect skBounds, SvgCoordinateUnits primitiveUnits, SKImageFilter? displacement, SKImageFilter? inout = default, SKImageFilter.CropRect? cropRect = default)
         {
             var xChannelSelector = GetColorChannel(svgDisplacementMap.XChannelSelector);
             var yChannelSelector = GetColorChannel(svgDisplacementMap.YChannelSelector);
