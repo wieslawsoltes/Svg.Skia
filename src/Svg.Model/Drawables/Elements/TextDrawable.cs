@@ -140,7 +140,7 @@ namespace Svg.Model.Drawables.Elements
                 {
                     Clip = new ClipPath()
                 };
-                SvgExtensions.GetSvgVisualElementClipPath(svgTextBase, TransformedBounds, new HashSet<Uri>(), clipPath);
+                SvgExtensions.GetSvgVisualElementClipPath(svgTextBase, GeometryBounds, new HashSet<Uri>(), clipPath);
                 if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !IgnoreAttributes.HasFlag(DrawAttributes.ClipPath))
                 {
                     var antialias = SvgExtensions.IsAntialias(svgTextBase);
