@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using Svg.Model.Drawables.Elements;
 #if USE_SKIASHARP
@@ -159,6 +160,32 @@ namespace Svg.Model.Drawables
             if (Filter is { } && enableFilter)
             {
                 canvas.Restore();
+                // DEBUG: Filter Region
+#if false
+                if (FilterClip is not null)
+                {
+                    Debug.WriteLine($"FilterClip {FilterClip}");
+                    {
+                        var path = new SKPath();
+                        path.AddRect(FilterClip.Value);
+                        var clipPaint = new SKPaint
+                        {
+                            IsAntialias = true, Style = SKPaintStyle.Stroke, Color = new SKColor(255, 0, 0, 255)
+                        };
+                        canvas.DrawPath(path, clipPaint);
+                    }
+                    Debug.WriteLine($"GeometryBounds {GeometryBounds}");
+                    {
+                        var path = new SKPath();
+                        path.AddRect(GeometryBounds);
+                        var clipPaint = new SKPaint
+                        {
+                            IsAntialias = true, Style = SKPaintStyle.Stroke, Color = new SKColor(0, 255, 255, 255)
+                        };
+                        canvas.DrawPath(path, clipPaint);
+                    }
+                }
+#endif
             }
 
             if (Opacity is { } && enableOpacity)
@@ -174,7 +201,35 @@ namespace Svg.Model.Drawables
                 canvas.Restore();
             }
 
+            // DEBUG: GeometryBounds
+#if false
+            Debug.WriteLine($"GeometryBounds {GeometryBounds}");
+            {
+                var path = new SKPath();
+                path.AddRect(GeometryBounds);
+                var clipPaint = new SKPaint
+                {
+                    IsAntialias = true, Style = SKPaintStyle.Stroke, Color = new SKColor(0, 255, 255, 255)
+                };
+                canvas.DrawPath(path, clipPaint);
+            }
+#endif
+
             canvas.Restore();
+
+            // DEBUG: TransformedBounds
+#if false
+            Debug.WriteLine($"TransformedBounds {TransformedBounds}");
+            {
+                var path = new SKPath();
+                path.AddRect(TransformedBounds);
+                var clipPaint = new SKPaint
+                {
+                    IsAntialias = true, Style = SKPaintStyle.Stroke, Color = new SKColor(0, 255, 255, 255)
+                };
+                canvas.DrawPath(path, clipPaint);
+            }
+#endif
         }
 
         public virtual void PostProcess(SKRect? viewport)
