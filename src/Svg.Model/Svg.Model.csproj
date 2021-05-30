@@ -16,17 +16,11 @@
     <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;model</PackageTags>
   </PropertyGroup>
 
-<!--  <PropertyGroup>-->
-<!--    <DefineConstants>$(DefineConstants);USE_SKIASHARP</DefineConstants>-->
-<!--  </PropertyGroup>-->
-
   <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
-<!--  <Import Project="..\..\build\SkiaSharp.props" />-->
-<!--  <Import Project="..\..\build\SkiaSharp.HarfBuzz.props" />-->
-
   <!--<Import Project="..\..\build\Svg.props" />-->
+
   <ItemGroup>
     <!--<ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />-->
     <ProjectReference Include="..\ShimSkiaSharp\ShimSkiaSharp.csproj" />
@@ -35,12 +29,6 @@
 
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />
-<!--    <Compile Include="..\ShimSkiaSharp\Primitives\ClipPath.cs">-->
-<!--      <Link>ClipPath.cs</Link>-->
-<!--    </Compile>-->
-<!--    <Compile Include="..\ShimSkiaSharp\Primitives\PathClip.cs">-->
-<!--      <Link>PathClip.cs</Link>-->
-<!--    </Compile>-->
   </ItemGroup>
 
 </Project>
