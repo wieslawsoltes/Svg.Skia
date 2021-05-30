@@ -49,12 +49,10 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.CreateGeometryBounds();
 
-            drawable.TransformedBounds = drawable.GeometryBounds;
-
             drawable.Transform = SvgExtensions.ToMatrix(svgGroup.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
 
             if (SvgExtensions.IsValidFill(svgGroup))
             {

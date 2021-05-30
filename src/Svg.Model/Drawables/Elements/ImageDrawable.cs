@@ -105,13 +105,11 @@ namespace Svg.Model.Drawables.Elements
             if (drawable.Image is { })
             {
                 drawable.GeometryBounds = drawable.DestRect;
-                drawable.TransformedBounds = drawable.GeometryBounds;
             }
 
             if (drawable.FragmentDrawable is { })
             {
                 drawable.GeometryBounds = drawable.DestRect;
-                drawable.TransformedBounds = drawable.GeometryBounds;
             }
 
             drawable.Transform = SvgExtensions.ToMatrix(svgImage.Transforms);
@@ -131,7 +129,7 @@ namespace Svg.Model.Drawables.Elements
             }
 
             // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
 
             drawable.Fill = null;
             drawable.Stroke = null;

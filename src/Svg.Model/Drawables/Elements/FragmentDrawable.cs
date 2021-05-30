@@ -51,14 +51,12 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.CreateGeometryBounds();
 
-            drawable.TransformedBounds = drawable.GeometryBounds;
-
             drawable.Transform = SvgExtensions.ToMatrix(svgFragment.Transforms);
             var skMatrixViewBox = SvgExtensions.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
             drawable.Transform = drawable.Transform.PreConcat(skMatrixViewBox);
 
             // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
 
             switch (svgFragment.Overflow)
             {

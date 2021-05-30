@@ -64,12 +64,10 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.GeometryBounds = skRectTransformed.Value;
 
-            drawable.TransformedBounds = drawable.GeometryBounds;
-
             drawable.Transform = skMatrix;
 
             // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
 
             drawable.Fill = null;
             drawable.Stroke = null;
@@ -91,7 +89,7 @@ namespace Svg.Model.Drawables.Elements
 
             if (enableMask)
             {
-                MaskDrawable = SvgExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), AssetLoader);
+                MaskDrawable = SvgExtensions.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader);
                 if (MaskDrawable is { })
                 {
                     CreateMaskPaints();

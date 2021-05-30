@@ -31,10 +31,8 @@ namespace Svg.Model.Drawables.Elements
             
             drawable.CreateGeometryBounds();
 
-            drawable.TransformedBounds = drawable.GeometryBounds;
-
             // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
 
             drawable.Transform = SvgExtensions.ToMatrix(svgAnchor.Transforms);
 
