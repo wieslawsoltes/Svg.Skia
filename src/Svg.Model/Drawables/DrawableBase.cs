@@ -160,7 +160,7 @@ namespace Svg.Model.Drawables
             if (Filter is { } && enableFilter)
             {
                 canvas.Restore();
-                // DEBUG: Filter Region
+                // DEBUG: Filter Region - FilterClip
 #if false
                 if (FilterClip is not null)
                 {
@@ -176,6 +176,7 @@ namespace Svg.Model.Drawables
                     }
                 }
 #endif
+                // DEBUG: Filter Region - GeometryBounds
 #if false
                 if (FilterClip is not null)
                 {
