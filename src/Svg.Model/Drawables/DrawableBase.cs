@@ -212,19 +212,6 @@ namespace Svg.Model.Drawables
                 canvas.Restore();
             }
 
-            // DEBUG: GeometryBounds
-#if false
-            Debug.WriteLine($"GeometryBounds {GeometryBounds}");
-            {
-                var path = new SKPath();
-                path.AddRect(GeometryBounds);
-                var clipPaint = new SKPaint
-                {
-                    IsAntialias = true, Style = SKPaintStyle.Stroke, Color = new SKColor(0, 255, 255, 255)
-                };
-                canvas.DrawPath(path, clipPaint);
-            }
-#endif
             canvas.Restore();
         }
 
