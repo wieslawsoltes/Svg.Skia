@@ -164,6 +164,7 @@ namespace Svg.Model.Drawables
             if (Filter is { } && enableFilter)
             {
                 canvas.Restore();
+
                 // DEBUG: Filter Region - FilterClip
 #if false
                 if (FilterClip is not null)
@@ -224,22 +225,7 @@ namespace Svg.Model.Drawables
                 canvas.DrawPath(path, clipPaint);
             }
 #endif
-
             canvas.Restore();
-
-            // DEBUG: TransformedBounds
-#if false
-            Debug.WriteLine($"TransformedBounds {TransformedBounds}");
-            {
-                var path = new SKPath();
-                path.AddRect(TransformedBounds);
-                var clipPaint = new SKPaint
-                {
-                    IsAntialias = true, Style = SKPaintStyle.Stroke, Color = new SKColor(0, 255, 255, 255)
-                };
-                canvas.DrawPath(path, clipPaint);
-            }
-#endif
         }
 
         public virtual void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
