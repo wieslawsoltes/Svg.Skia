@@ -191,7 +191,7 @@ namespace Svg.Model.Drawables
                         path.AddRect(GeometryBounds);
                         var clipPaint = new SKPaint
                         {
-                            IsAntialias = true, Style = SKPaintStyle.Stroke, Color = new SKColor(0, 255, 255, 255)
+                            IsAntialias = true, Style = SKPaintStyle.Stroke, Color = new SKColor(255, 0, 255, 255)
                         };
                         canvas.DrawPath(path, clipPaint);
                     }
