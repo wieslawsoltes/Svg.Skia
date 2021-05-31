@@ -76,11 +76,11 @@ namespace Svg.Model.Drawables
 #if USE_DEBUG_DRAW_BOUNDS
         public override void DebugDrawBounds(SKCanvas canvas)
         {
-            base.DebugDraw(canvas);
+            base.DebugDrawBounds(canvas);
 
             foreach (var child in ChildrenDrawables)
             {
-                child.DebugDraw(canvas);
+                child.DebugDrawBounds(canvas);
             }
         }
 #endif
