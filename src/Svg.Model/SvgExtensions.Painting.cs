@@ -577,14 +577,25 @@ namespace Svg.Model
                 skCanvas.SaveLayer(skPaintOpacity);
             }
 
+            var drawables = new List<DrawableBase>();
+            
             foreach (var svgElement in svgElementCollection)
             {
                 var drawable = DrawableFactory.Create(svgElement, skBounds, null, assetLoader, ignoreAttributes);
                 if (drawable is { })
                 {
-                    drawable.PostProcess(skBounds);
-                    drawable.Draw(skCanvas, ignoreAttributes, null, true);
+                    drawables.Add(drawable);
                 }
+            }
+
+            foreach (var drawable in drawables)
+            {
+                drawable.PostProcess(skBounds, skMatrix);
+            }
+
+            foreach (var drawable in drawables)
+            {
+                drawable.Draw(skCanvas, ignoreAttributes, null, true);
             }
 
             if (skPaintOpacity is { })

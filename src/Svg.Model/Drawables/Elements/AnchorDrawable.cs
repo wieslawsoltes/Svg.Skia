@@ -31,9 +31,6 @@ namespace Svg.Model.Drawables.Elements
             
             drawable.CreateGeometryBounds();
 
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
-
             drawable.Transform = SvgExtensions.ToMatrix(svgAnchor.Transforms);
 
             drawable.Fill = null;
@@ -47,7 +44,7 @@ namespace Svg.Model.Drawables.Elements
             return drawable;
         }
 
-        public override void PostProcess(SKRect? viewport)
+        public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
         {
             var element = Element;
             if (element is null)
@@ -62,9 +59,12 @@ namespace Svg.Model.Drawables.Elements
             Opacity = enableOpacity ? SvgExtensions.GetOpacityPaint(element) : null;
             Filter = null;
 
+            TotalTransform = totalMatrix.PreConcat(Transform);
+            TransformedBounds = TotalTransform.MapRect(GeometryBounds);
+
             foreach (var child in ChildrenDrawables)
             {
-                child.PostProcess(viewport);
+                child.PostProcess(viewport, totalMatrix);
             }
         }
     }

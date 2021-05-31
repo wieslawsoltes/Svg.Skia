@@ -66,9 +66,6 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.Transform = SvgExtensions.ToMatrix(svgSwitch.Transforms);
 
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
-
             drawable.Fill = null;
             drawable.Stroke = null;
 
@@ -85,10 +82,11 @@ namespace Svg.Model.Drawables.Elements
             FirstChild?.Draw(canvas, ignoreAttributes, until, true);
         }
 
-        public override void PostProcess(SKRect? viewport)
+        public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
         {
-            base.PostProcess(viewport);
-            FirstChild?.PostProcess(viewport);
+            base.PostProcess(viewport, totalMatrix);
+
+            FirstChild?.PostProcess(viewport, TotalTransform);
         }
     }
 }

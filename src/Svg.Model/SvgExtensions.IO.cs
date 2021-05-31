@@ -215,7 +215,7 @@ namespace Svg.Model
                 bounds = default;
                 return default;
             }
-            drawable.PostProcess(fragmentBounds);
+            drawable.PostProcess(fragmentBounds, SKMatrix.Identity);
 
             if (fragmentBounds.IsEmpty)
             {

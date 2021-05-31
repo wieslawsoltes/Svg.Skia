@@ -49,15 +49,15 @@ namespace Svg.Model.Drawables
             }
         }
 
-        public override void PostProcess(SKRect? viewport)
+        public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
         {
-            base.PostProcess(viewport);
+            base.PostProcess(viewport, totalMatrix);
 
             if (MarkerDrawables is { })
             {
                 foreach (var drawable in MarkerDrawables)
                 {
-                    drawable.PostProcess(viewport);
+                    drawable.PostProcess(viewport, TotalTransform);
                 }
             }
         }

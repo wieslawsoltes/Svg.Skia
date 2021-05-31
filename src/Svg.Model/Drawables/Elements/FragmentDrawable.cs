@@ -55,9 +55,6 @@ namespace Svg.Model.Drawables.Elements
             var skMatrixViewBox = SvgExtensions.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
             drawable.Transform = drawable.Transform.PreConcat(skMatrixViewBox);
 
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
-
             switch (svgFragment.Overflow)
             {
                 case SvgOverflow.Auto:
@@ -110,7 +107,7 @@ namespace Svg.Model.Drawables.Elements
             return drawable;
         }
 
-        public override void PostProcess(SKRect? viewport)
+        public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
         {
             var element = Element;
             if (element is null)
@@ -125,9 +122,12 @@ namespace Svg.Model.Drawables.Elements
             Opacity = enableOpacity ? SvgExtensions.GetOpacityPaint(element) : null;
             Filter = null;
 
+            TotalTransform = totalMatrix.PreConcat(Transform);
+            TransformedBounds = TotalTransform.MapRect(GeometryBounds);
+
             foreach (var child in ChildrenDrawables)
             {
-                child.PostProcess(viewport);
+                child.PostProcess(viewport, TotalTransform);
             }
         }
     }

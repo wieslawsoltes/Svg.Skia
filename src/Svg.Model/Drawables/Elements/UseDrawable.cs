@@ -113,9 +113,6 @@ namespace Svg.Model.Drawables.Elements
                 drawable.Transform = drawable.Transform.PreConcat(skMatrixTranslateXY);
             }
 
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
-
             drawable.Fill = null;
             drawable.Stroke = null;
 
@@ -145,11 +142,12 @@ namespace Svg.Model.Drawables.Elements
             ReferencedDrawable?.Draw(canvas, ignoreAttributes, until, true);
         }
 
-        public override void PostProcess(SKRect? viewport)
+        public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
         {
-            base.PostProcess(viewport);
+            base.PostProcess(viewport, totalMatrix);
+
             // TODO: Fix PostProcess() using correct ReferencedElement Parent.
-            ReferencedDrawable?.PostProcess(viewport);
+            ReferencedDrawable?.PostProcess(viewport, TotalTransform);
         }
     }
 }

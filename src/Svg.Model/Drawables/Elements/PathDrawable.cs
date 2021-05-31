@@ -42,9 +42,6 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.Transform = SvgExtensions.ToMatrix(svgPath.Transforms);
 
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
-
             var canDrawFill = true;
             var canDrawStroke = true;
 

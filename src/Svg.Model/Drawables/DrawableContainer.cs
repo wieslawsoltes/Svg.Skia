@@ -64,13 +64,13 @@ namespace Svg.Model.Drawables
             }
         }
 
-        public override void PostProcess(SKRect? viewport)
+        public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
         {
-            base.PostProcess(viewport);
+            base.PostProcess(viewport, totalMatrix);
 
             foreach (var child in ChildrenDrawables)
             {
-                child.PostProcess(viewport);
+                child.PostProcess(viewport, TotalTransform);
             }
         }
     }

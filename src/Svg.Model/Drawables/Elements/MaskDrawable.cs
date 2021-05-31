@@ -66,16 +66,13 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.Transform = skMatrix;
 
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
-
             drawable.Fill = null;
             drawable.Stroke = null;
 
             return drawable;
         }
 
-        public override void PostProcess(SKRect? viewport)
+        public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
         {
             var element = Element;
             if (element is null)
@@ -102,6 +99,9 @@ namespace Svg.Model.Drawables.Elements
 
             Opacity = null;
             Filter = null;
+
+            TotalTransform = totalMatrix.PreConcat(Transform);
+            TransformedBounds = TotalTransform.MapRect(GeometryBounds);
         }
     }
 }

@@ -597,7 +597,7 @@ namespace Svg.Model.Drawables.Elements
             Draw(canvas, IgnoreAttributes, null, true);
         }
 
-        public override void PostProcess(SKRect? viewport)
+        public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
         {
             // TODO: PostProcess
         }

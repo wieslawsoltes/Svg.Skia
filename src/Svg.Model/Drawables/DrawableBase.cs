@@ -23,6 +23,7 @@ namespace Svg.Model.Drawables
         public SKRect GeometryBounds { get; set; }
         public SKRect TransformedBounds { get; set; }
         public SKMatrix Transform { get; set; }
+        public SKMatrix TotalTransform { get; set; }
         public SKRect? Overflow { get; set; }
         public SKRect? Clip { get; set; }
         public ClipPath? ClipPath { get; set; }
@@ -47,7 +48,7 @@ namespace Svg.Model.Drawables
 
         protected override SKRect OnGetBounds()
         {
-            return IsDrawable ? TransformedBounds : SKRect.Empty;
+            return IsDrawable ? GeometryBounds : SKRect.Empty;
         }
 
         protected void CreateMaskPaints()
@@ -238,7 +239,7 @@ namespace Svg.Model.Drawables
 #endif
         }
 
-        public virtual void PostProcess(SKRect? viewport)
+        public virtual void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
         {
             var element = Element;
             if (element is null)
@@ -252,6 +253,9 @@ namespace Svg.Model.Drawables
             var enableMask = !IgnoreAttributes.HasFlag(DrawAttributes.Mask);
             var enableOpacity = !IgnoreAttributes.HasFlag(DrawAttributes.Opacity);
             var enableFilter = !IgnoreAttributes.HasFlag(DrawAttributes.Filter);
+
+            TotalTransform = totalMatrix.PreConcat(Transform);
+            TransformedBounds = TotalTransform.MapRect(GeometryBounds);
 
             if (visualElement is { } && enableClip)
             {

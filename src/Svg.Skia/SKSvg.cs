@@ -22,7 +22,7 @@ namespace Svg.Skia
             var drawable = DrawableFactory.Create(svgFragment, bounds, null, s_assetLoader);
             if (drawable is { })
             {
-                drawable.PostProcess(bounds);
+                drawable.PostProcess(bounds, SKMatrix.Identity);
                 var picture = drawable.Snapshot(bounds);
                 picture.Draw(skCanvas);
             }

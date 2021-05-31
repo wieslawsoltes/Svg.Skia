@@ -128,9 +128,6 @@ namespace Svg.Model.Drawables.Elements
                 // TODO: FragmentTransform
             }
 
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
-
             drawable.Fill = null;
             drawable.Stroke = null;
 
@@ -168,10 +165,11 @@ namespace Svg.Model.Drawables.Elements
             }
         }
 
-        public override void PostProcess(SKRect? viewport)
+        public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
         {
-            base.PostProcess(viewport);
-            FragmentDrawable?.PostProcess(viewport);
+            base.PostProcess(viewport, totalMatrix);
+
+            FragmentDrawable?.PostProcess(viewport, TotalTransform);
         }
     }
 }

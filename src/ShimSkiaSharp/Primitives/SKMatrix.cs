@@ -271,6 +271,11 @@ namespace ShimSkiaSharp.Primitives
             return !value1.Equals(value2);
         }
 
+        public static SKMatrix operator *(SKMatrix value1, SKMatrix value2)
+        {
+            return value1.PreConcat(value2);
+        }
+
         public override string ToString()
         {
             return FormattableString.Invariant($"{ScaleX}, {SkewX}, {TransX}, {SkewY}, {ScaleY}, {TransY}");

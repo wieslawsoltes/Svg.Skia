@@ -79,9 +79,6 @@ namespace Svg.Model.Drawables.Elements
             var skMatrixViewBox = SvgExtensions.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
             drawable.Transform = drawable.Transform.PreConcat(skMatrixViewBox);
 
-            // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
-
             drawable.Fill = null;
             drawable.Stroke = null;
 
