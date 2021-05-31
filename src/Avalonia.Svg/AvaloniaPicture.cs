@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Avalonia.Svg.Commands;
-using Svg.Model.Primitives;
-using Svg.Model.Primitives.CanvasCommands;
-using Svg.Model.Primitives.PathCommands;
+using ShimSkiaSharp.Primitives;
+using ShimSkiaSharp.Primitives.CanvasCommands;
+using ShimSkiaSharp.Primitives.PathCommands;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AP = Avalonia.Platform;
@@ -224,7 +224,7 @@ namespace Avalonia.Svg
             }
         }
 
-        public static AvaloniaPicture Record(Picture picture)
+        public static AvaloniaPicture Record(SKPicture picture)
         {
             var avaloniaPicture = new AvaloniaPicture();
 

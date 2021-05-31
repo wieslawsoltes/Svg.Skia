@@ -10,9 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using SkiaSharp;
 using Svg.Model;
-//using SkiaSharp.Views.Desktop;
 using SvgToPng.ViewModels;
 
 namespace SvgToPng
@@ -25,7 +23,7 @@ namespace SvgToPng
         {
             InitializeComponent();
 #if DEBUG
-            SvgModelExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture("en-US");
+            SvgExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture("en-US");
 #endif
             var vm = MainWindowViewModel.Load<MainWindowViewModel>("VM.json");
             if (vm is { })
@@ -304,7 +302,7 @@ namespace SvgToPng
             var textScaleX = TextOutputScaleX.Text;
             var textScaleY = TextOutputScaleY.Text;
 
-            if (SKColor.TryParse(textBackground, out var skBackgroundColor) == false)
+            if (SkiaSharp.SKColor.TryParse(textBackground, out var skBackgroundColor) == false)
             {
                 return;
             }
@@ -407,7 +405,7 @@ namespace SvgToPng
                     var textScaleX = TextOutputScaleX.Text;
                     var textScaleY = TextOutputScaleY.Text;
 
-                    if (SKColor.TryParse(textBackground, out var skBackgroundColor) == false)
+                    if (SkiaSharp.SKColor.TryParse(textBackground, out var skBackgroundColor) == false)
                     {
                         return;
                     }
@@ -492,13 +490,13 @@ namespace SvgToPng
             OnPaintSurfaceDiff(e.Surface.Canvas, e.Info.Width, e.Info.Height);
         }
 
-        private void OnPaintSurfaceSvg(SKCanvas canvas, int width, int height)
+        private void OnPaintSurfaceSvg(SkiaSharp.SKCanvas canvas, int width, int height)
         {
             if (items.SelectedItem is Item item)
             {
                 var stopwatch = Stopwatch.StartNew();
 
-                canvas.Clear(SKColors.White);
+                canvas.Clear(SkiaSharp.SKColors.White);
 
                 if (item.SkiaPicture is { })
                 {
@@ -518,13 +516,13 @@ namespace SvgToPng
             }
             else
             {
-                canvas.Clear(SKColors.White);
+                canvas.Clear(SkiaSharp.SKColors.White);
             }
         }
 
-        private void OnPaintSurfacePng(SKCanvas canvas, int width, int height)
+        private void OnPaintSurfacePng(SkiaSharp.SKCanvas canvas, int width, int height)
         {
-            canvas.Clear(SKColors.White);
+            canvas.Clear(SkiaSharp.SKColors.White);
 
             if (items.SelectedItem is Item item && item.ReferencePng is { } && CheckDrawReference.IsChecked == true)
             {
@@ -539,9 +537,9 @@ namespace SvgToPng
             }
         }
 
-        private void OnPaintSurfaceDiff(SKCanvas canvas, int width, int height)
+        private void OnPaintSurfaceDiff(SkiaSharp.SKCanvas canvas, int width, int height)
         {
-            canvas.Clear(SKColors.White);
+            canvas.Clear(SkiaSharp.SKColors.White);
 
             if (items.SelectedItem is Item item && item.PixelDiff is { } && CheckDrawDiff.IsChecked == true)
             {

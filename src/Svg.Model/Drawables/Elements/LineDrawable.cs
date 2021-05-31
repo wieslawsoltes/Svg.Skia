@@ -1,4 +1,8 @@
-﻿using Svg.Model.Primitives;
+﻿#if USE_SKIASHARP
+using SkiaSharp;
+#else
+using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model.Drawables.Elements
 {
@@ -9,7 +13,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static LineDrawable Create(SvgLine svgLine, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static LineDrawable Create(SvgLine svgLine, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new LineDrawable(assetLoader)
             {
@@ -32,32 +36,30 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgLine);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgLine);
 
             drawable.GeometryBounds = drawable.Path.Bounds;
 
-            drawable.TransformedBounds = drawable.GeometryBounds;
-
-            drawable.Transform = SvgModelExtensions.ToMatrix(svgLine.Transforms);
+            drawable.Transform = SvgExtensions.ToMatrix(svgLine.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
 
             var canDrawFill = true;
             var canDrawStroke = true;
 
-            if (SvgModelExtensions.IsValidFill(svgLine))
+            if (SvgExtensions.IsValidFill(svgLine))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgLine, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Fill = SvgExtensions.GetFillPaint(svgLine, drawable.GeometryBounds, assetLoader, ignoreAttributes);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
             }
 
-            if (SvgModelExtensions.IsValidStroke(svgLine, drawable.GeometryBounds))
+            if (SvgExtensions.IsValidStroke(svgLine, drawable.GeometryBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgLine, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Stroke = SvgExtensions.GetStrokePaint(svgLine, drawable.GeometryBounds, assetLoader, ignoreAttributes);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
@@ -70,7 +72,7 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            SvgModelExtensions.CreateMarkers(svgLine, drawable.Path, skOwnerBounds, drawable, assetLoader);
+            SvgExtensions.CreateMarkers(svgLine, drawable.Path, skOwnerBounds, drawable, assetLoader);
 
             return drawable;
         }

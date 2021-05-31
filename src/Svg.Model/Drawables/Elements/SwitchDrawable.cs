@@ -1,4 +1,8 @@
-﻿using Svg.Model.Primitives;
+﻿#if USE_SKIASHARP
+using SkiaSharp;
+#else
+using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model.Drawables.Elements
 {
@@ -11,7 +15,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static SwitchDrawable Create(SvgSwitch svgSwitch, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static SwitchDrawable Create(SvgSwitch svgSwitch, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new SwitchDrawable(assetLoader)
             {
@@ -55,16 +59,15 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgSwitch);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgSwitch);
 
-            drawable.GeometryBounds = drawable.FirstChild.TransformedBounds;
+            // TODO: use drawable.FirstChild.GeometryBounds
+            drawable.GeometryBounds = drawable.FirstChild.GeometryBounds;
 
-            drawable.TransformedBounds = drawable.GeometryBounds;
-
-            drawable.Transform = SvgModelExtensions.ToMatrix(svgSwitch.Transforms);
+            drawable.Transform = SvgExtensions.ToMatrix(svgSwitch.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
 
             drawable.Fill = null;
             drawable.Stroke = null;
@@ -72,7 +75,7 @@ namespace Svg.Model.Drawables.Elements
             return drawable;
         }
 
-        public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
+        public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)
         {
             if (until is { } && this == until)
             {
@@ -82,7 +85,7 @@ namespace Svg.Model.Drawables.Elements
             FirstChild?.Draw(canvas, ignoreAttributes, until, true);
         }
 
-        public override void PostProcess(Rect? viewport)
+        public override void PostProcess(SKRect? viewport)
         {
             base.PostProcess(viewport);
             FirstChild?.PostProcess(viewport);

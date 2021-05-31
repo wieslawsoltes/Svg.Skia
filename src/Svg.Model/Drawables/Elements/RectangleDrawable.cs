@@ -1,4 +1,8 @@
-﻿using Svg.Model.Primitives;
+﻿#if USE_SKIASHARP
+using SkiaSharp;
+#else
+using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model.Drawables.Elements
 {
@@ -9,7 +13,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static RectangleDrawable Create(SvgRectangle svgRectangle, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static RectangleDrawable Create(SvgRectangle svgRectangle, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new RectangleDrawable(assetLoader)
             {
@@ -32,32 +36,30 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgRectangle);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgRectangle);
 
             drawable.GeometryBounds = drawable.Path.Bounds;
 
-            drawable.TransformedBounds = drawable.GeometryBounds;
-
-            drawable.Transform = SvgModelExtensions.ToMatrix(svgRectangle.Transforms);
+            drawable.Transform = SvgExtensions.ToMatrix(svgRectangle.Transforms);
 
             // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
 
             var canDrawFill = true;
             var canDrawStroke = true;
 
-            if (SvgModelExtensions.IsValidFill(svgRectangle))
+            if (SvgExtensions.IsValidFill(svgRectangle))
             {
-                drawable.Fill = SvgModelExtensions.GetFillPaint(svgRectangle, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Fill = SvgExtensions.GetFillPaint(svgRectangle, drawable.GeometryBounds, assetLoader, ignoreAttributes);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
                 }
             }
 
-            if (SvgModelExtensions.IsValidStroke(svgRectangle, drawable.GeometryBounds))
+            if (SvgExtensions.IsValidStroke(svgRectangle, drawable.GeometryBounds))
             {
-                drawable.Stroke = SvgModelExtensions.GetStrokePaint(svgRectangle, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Stroke = SvgExtensions.GetStrokePaint(svgRectangle, drawable.GeometryBounds, assetLoader, ignoreAttributes);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;

@@ -3,28 +3,27 @@ using System;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Visuals.Media.Imaging;
-using SkiaSharp;
 
 namespace Avalonia.SKPictureImage
 {
     /// <summary>
-    /// An <see cref="IImage"/> that uses a <see cref="SKPicture"/> for content.
+    /// An <see cref="IImage"/> that uses a <see cref="SkiaSharp.SKPicture"/> for content.
     /// </summary>
     public class SKPictureImage : AvaloniaObject, IImage, IAffectsRender
     {
         /// <summary>
         /// Defines the <see cref="Source"/> property.
         /// </summary>
-        public static readonly StyledProperty<SKPicture> SourceProperty =
-            AvaloniaProperty.Register<SKPictureImage, SKPicture>(nameof(Source));
+        public static readonly StyledProperty<SkiaSharp.SKPicture> SourceProperty =
+            AvaloniaProperty.Register<SKPictureImage, SkiaSharp.SKPicture>(nameof(Source));
 
         public event EventHandler Invalidated;
 
         /// <summary>
-        /// Gets or sets the <see cref="SKPicture"/> content.
+        /// Gets or sets the <see cref="SkiaSharp.SKPicture"/> content.
         /// </summary>
         [Content]
-        public SKPicture Source
+        public SkiaSharp.SKPicture Source
         {
             get => GetValue(SourceProperty);
             set => SetValue(SourceProperty, value);

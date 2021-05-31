@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using SkiaSharp;
 
 namespace Svg.Skia.TypefaceProviders
 {
@@ -8,17 +7,17 @@ namespace Svg.Skia.TypefaceProviders
     {
         public static readonly char[] s_fontFamilyTrim = { '\'' };
 
-        public SKTypeface? FromFamilyName(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
+        public SkiaSharp.SKTypeface? FromFamilyName(string fontFamily, SkiaSharp.SKFontStyleWeight fontWeight, SkiaSharp.SKFontStyleWidth fontWidth, SkiaSharp.SKFontStyleSlant fontStyle)
         {
-            var skTypeface = default(SKTypeface);
+            var skTypeface = default(SkiaSharp.SKTypeface);
             var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
             if (fontFamilyNames is { } && fontFamilyNames.Length > 0)
             {
-                var defaultName = SKTypeface.Default.FamilyName;
+                var defaultName = SkiaSharp.SKTypeface.Default.FamilyName;
 
                 foreach (var fontFamilyName in fontFamilyNames)
                 {
-                    skTypeface = SKTypeface.FromFamilyName(fontFamilyName, fontWeight, fontWidth, fontStyle);
+                    skTypeface = SkiaSharp.SKTypeface.FromFamilyName(fontFamilyName, fontWeight, fontWidth, fontStyle);
                     if (skTypeface is { })
                     {
                         if (!skTypeface.FamilyName.Equals(fontFamilyName, StringComparison.Ordinal)

@@ -1,13 +1,12 @@
 ﻿using System;
 using System.ComponentModel;
 using Avalonia.Platform;
-using SkiaSharp;
 using Svg.Skia;
 
 namespace Avalonia.Svg.Skia
 {
     /// <summary>
-    /// Represents a <see cref="SKPicture"/> based image.
+    /// Represents a <see cref="SkiaSharp.SKPicture"/> based image.
     /// </summary>
     [TypeConverter(typeof(SvgSourceTypeConverter))]
     public class SvgSource : SKSvg

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using Avalonia.Platform;
-using Svg.Model.Primitives;
+using ShimSkiaSharp.Primitives;
 using SM = Svg.Model;
 using SP = Svg.Model;
 
@@ -15,7 +15,7 @@ namespace Avalonia.Svg
     {
         private static readonly SM.IAssetLoader s_assetLoader = new AvaloniaAssetLoader();
 
-        public Picture? Picture { get; set; }
+        public SKPicture? Picture { get; set; }
 
         /// <summary>
         /// Loads svg picture from file or resource.
@@ -23,15 +23,15 @@ namespace Avalonia.Svg
         /// <param name="path">The path to file or resource.</param>
         /// <param name="baseUri">The base uri.</param>
         /// <returns>The svg picture.</returns>
-        public static Picture? LoadPicture(string path, Uri? baseUri)
+        public static SKPicture? LoadPicture(string path, Uri? baseUri)
         {
             var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
             if (uri.IsAbsoluteUri && uri.IsFile)
             {
-                var document = SM.SvgModelExtensions.Open(uri.LocalPath);
+                var document = SM.SvgExtensions.Open(uri.LocalPath);
                 if (document is { })
                 {
-                    return SM.SvgModelExtensions.ToModel(document, s_assetLoader);
+                    return SM.SvgExtensions.ToModel(document, s_assetLoader);
                 }
                 return default;
             }
@@ -39,10 +39,10 @@ namespace Avalonia.Svg
             {
                 var loader = AvaloniaLocator.Current.GetService<IAssetLoader>();
                 var stream = loader.Open(uri, baseUri);
-                var document = SM.SvgModelExtensions.Open(stream);
+                var document = SM.SvgExtensions.Open(stream);
                 if (document is { })
                 {
-                    return SM.SvgModelExtensions.ToModel(document, s_assetLoader);
+                    return SM.SvgExtensions.ToModel(document, s_assetLoader);
                 }
                 return default;
             }

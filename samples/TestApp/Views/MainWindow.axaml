@@ -90,9 +90,30 @@
                    Margin="6"
                    VerticalAlignment="Stretch"
                    HorizontalAlignment="Stretch">
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,6">
+                <Label Content="ScrollBar"
+                       Margin="0,0,0,0"
+                       VerticalAlignment="Center"/>
+                <Label Content="H:"
+                       Margin="6,0,6,0"
+                       VerticalAlignment="Center"/>
+                <ComboBox Name="HorizontalScrollBarVisibility" SelectedIndex="0">
+                    <ComboBoxItem>Disabled</ComboBoxItem>
+                    <ComboBoxItem>Auto</ComboBoxItem>
+                    <ComboBoxItem>Hidden</ComboBoxItem>
+                    <ComboBoxItem>Visible</ComboBoxItem>
+                </ComboBox>
+                <Label Content="V:"
+                       Margin="6,0,6,0"
+                       VerticalAlignment="Center"/>
+                <ComboBox Name="VerticalScrollBarVisibility" SelectedIndex="0">
+                    <ComboBoxItem>Disabled</ComboBoxItem>
+                    <ComboBoxItem>Auto</ComboBoxItem>
+                    <ComboBoxItem>Hidden</ComboBoxItem>
+                    <ComboBoxItem>Visible</ComboBoxItem>
+                </ComboBox>
                 <Label Content="Stretch:"
-                       Margin="0,0,6,0"
+                       Margin="6,0,6,0"
                        VerticalAlignment="Center"/>
                 <ComboBox Name="SvgStretch" SelectedIndex="0">
                     <ComboBoxItem>None</ComboBoxItem>
@@ -100,16 +121,18 @@
                     <ComboBoxItem>Uniform</ComboBoxItem>
                     <ComboBoxItem>UniformToFill</ComboBoxItem>
                 </ComboBox>
-                <Label Content="Cache:"
-                       Margin="6,0,6,0"
-                       VerticalAlignment="Center"/>
                 <ToggleSwitch IsChecked="{Binding #Svg.EnableCache}"
-                              Margin="0,0,0,0"/>
+                              OnContent="Cache Enabled"
+                              OffContent="Cache Disabled"
+                              Margin="6,0,0,0"/>
             </StackPanel>
-            <Svg Name="Svg"
-                 Stretch="{Binding #SvgStretch.SelectedItem.Content}"
-                 Path="{Binding SelectedItem.Path}"
-                 EnableCache="True"/>
+            <ScrollViewer HorizontalScrollBarVisibility="{Binding #HorizontalScrollBarVisibility.SelectedItem.Content}" 
+                          VerticalScrollBarVisibility="{Binding #VerticalScrollBarVisibility.SelectedItem.Content}">
+                <Svg Name="Svg"
+                     Stretch="{Binding #SvgStretch.SelectedItem.Content}"
+                     Path="{Binding SelectedItem.Path}"
+                     EnableCache="True"/>
+            </ScrollViewer>
         </DockPanel>
 
     </Grid>

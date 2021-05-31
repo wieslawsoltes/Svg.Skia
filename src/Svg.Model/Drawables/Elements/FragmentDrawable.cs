@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Svg.Model.Primitives;
+#if USE_SKIASHARP
+using SkiaSharp;
+#else
+using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model.Drawables.Elements
 {
@@ -11,7 +15,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static FragmentDrawable Create(SvgFragment svgFragment, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static FragmentDrawable Create(SvgFragment svgFragment, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new FragmentDrawable(assetLoader)
             {
@@ -32,29 +36,27 @@ namespace Svg.Model.Drawables.Elements
             var x = svgFragmentParent is null ? 0f : svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skOwnerBounds);
             var y = svgFragmentParent is null ? 0f : svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skOwnerBounds);
 
-            var skSize = SvgModelExtensions.GetDimensions(svgFragment);
+            var skSize = SvgExtensions.GetDimensions(svgFragment);
 
             if (skOwnerBounds.IsEmpty)
             {
-                skOwnerBounds = Rect.Create(x, y, skSize.Width, skSize.Height);
+                skOwnerBounds = SKRect.Create(x, y, skSize.Width, skSize.Height);
             }
 
             drawable.CreateChildren(svgFragment, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgFragment);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgFragment);
 
             drawable.GeometryBounds = skOwnerBounds;
 
             drawable.CreateGeometryBounds();
 
-            drawable.TransformedBounds = drawable.GeometryBounds;
-
-            drawable.Transform = SvgModelExtensions.ToMatrix(svgFragment.Transforms);
-            var skMatrixViewBox = SvgModelExtensions.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
+            drawable.Transform = SvgExtensions.ToMatrix(svgFragment.Transforms);
+            var skMatrixViewBox = SvgExtensions.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
             drawable.Transform = drawable.Transform.PreConcat(skMatrixViewBox);
 
             // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
 
             switch (svgFragment.Overflow)
             {
@@ -66,7 +68,7 @@ namespace Svg.Model.Drawables.Elements
                 default:
                     if (skSize.IsEmpty)
                     {
-                        drawable.Overflow = Rect.Create(
+                        drawable.Overflow = SKRect.Create(
                             x,
                             y,
                             Math.Abs(drawable.GeometryBounds.Left) + drawable.GeometryBounds.Width,
@@ -74,7 +76,7 @@ namespace Svg.Model.Drawables.Elements
                     }
                     else
                     {
-                        drawable.Overflow = Rect.Create(x, y, skSize.Width, skSize.Height);
+                        drawable.Overflow = SKRect.Create(x, y, skSize.Width, skSize.Height);
                     }
                     break;
             }
@@ -87,8 +89,8 @@ namespace Svg.Model.Drawables.Elements
                 {
                     Clip = new ClipPath()
                 };
-                SvgModelExtensions.GetClipPath(svgClipPath, skOwnerBounds, clipPathUris, clipPath);
-                if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !drawable.IgnoreAttributes.HasFlag(Attributes.ClipPath))
+                SvgExtensions.GetClipPath(svgClipPath, skOwnerBounds, clipPathUris, clipPath);
+                if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !drawable.IgnoreAttributes.HasFlag(DrawAttributes.ClipPath))
                 {
                     drawable.ClipPath = clipPath;
                 }
@@ -108,7 +110,7 @@ namespace Svg.Model.Drawables.Elements
             return drawable;
         }
 
-        public override void PostProcess(Rect? viewport)
+        public override void PostProcess(SKRect? viewport)
         {
             var element = Element;
             if (element is null)
@@ -116,11 +118,11 @@ namespace Svg.Model.Drawables.Elements
                 return;
             }
 
-            var enableOpacity = !IgnoreAttributes.HasFlag(Attributes.Opacity);
+            var enableOpacity = !IgnoreAttributes.HasFlag(DrawAttributes.Opacity);
 
             ClipPath = null;
             MaskDrawable = null;
-            Opacity = enableOpacity ? SvgModelExtensions.GetOpacityPaint(element) : null;
+            Opacity = enableOpacity ? SvgExtensions.GetOpacityPaint(element) : null;
             Filter = null;
 
             foreach (var child in ChildrenDrawables)

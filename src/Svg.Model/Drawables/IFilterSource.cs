@@ -1,13 +1,17 @@
-﻿using Svg.Model.Painting;
-using Svg.Model.Primitives;
+﻿#if USE_SKIASHARP
+using SkiaSharp;
+#else
+using ShimSkiaSharp.Painting;
+using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model.Drawables
 {
     internal interface IFilterSource
     {
-        Picture? SourceGraphic();
-        Picture? BackgroundImage();
-        Paint? FillPaint();
-        Paint? StrokePaint();
+        SKPicture? SourceGraphic();
+        SKPicture? BackgroundImage();
+        SKPaint? FillPaint();
+        SKPaint? StrokePaint();
     }
 }

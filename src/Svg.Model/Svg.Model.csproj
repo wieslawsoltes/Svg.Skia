@@ -19,10 +19,11 @@
   <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
-
   <!--<Import Project="..\..\build\Svg.props" />-->
+
   <ItemGroup>
     <!--<ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />-->
+    <ProjectReference Include="..\ShimSkiaSharp\ShimSkiaSharp.csproj" />
     <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
   </ItemGroup>
 

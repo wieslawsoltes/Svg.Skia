@@ -1,15 +1,14 @@
 ﻿using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
-using SkiaSharp;
 
 namespace Avalonia.SKPictureImage
 {
     public class SKPictureDrawOperation : ICustomDrawOperation
     {
-        private readonly SKPicture? _picture;
+        private readonly SkiaSharp.SKPicture? _picture;
 
-        public SKPictureDrawOperation(Rect bounds, SKPicture? picture)
+        public SKPictureDrawOperation(Rect bounds, SkiaSharp.SKPicture? picture)
         {
             _picture = picture;
             Bounds = bounds;

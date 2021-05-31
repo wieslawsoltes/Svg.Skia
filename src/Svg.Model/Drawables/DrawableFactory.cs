@@ -1,11 +1,15 @@
 ﻿using Svg.Model.Drawables.Elements;
-using Svg.Model.Primitives;
+#if USE_SKIASHARP
+using SkiaSharp;
+#else
+using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model.Drawables
 {
     public static class DrawableFactory
     {
-        public static DrawableBase? Create(SvgElement svgElement, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static DrawableBase? Create(SvgElement svgElement, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             return svgElement switch
             {

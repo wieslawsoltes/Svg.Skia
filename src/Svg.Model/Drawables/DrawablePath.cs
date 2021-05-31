@@ -1,11 +1,15 @@
 ﻿using System.Collections.Generic;
-using Svg.Model.Primitives;
+#if USE_SKIASHARP
+using SkiaSharp;
+#else
+using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model.Drawables
 {
     public abstract class DrawablePath : DrawableBase, IMarkerHost
     {
-        public Path? Path { get; set; }
+        public SKPath? Path { get; set; }
         public List<DrawableBase>? MarkerDrawables { get; set; }
 
         protected DrawablePath(IAssetLoader assetLoader)
@@ -19,7 +23,7 @@ namespace Svg.Model.Drawables
             MarkerDrawables.Add(drawable);
         }
 
-        public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
+        public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)
         {
             if (until is { } && this == until)
             {
@@ -45,7 +49,7 @@ namespace Svg.Model.Drawables
             }
         }
 
-        public override void PostProcess(Rect? viewport)
+        public override void PostProcess(SKRect? viewport)
         {
             base.PostProcess(viewport);
 

@@ -1,22 +1,21 @@
 ﻿using System.Collections.Generic;
-using SkiaSharp;
 using Svg.Skia.TypefaceProviders;
 
 namespace Svg.Skia
 {
     public static class SKSvgSettings
     {
-        public static SKAlphaType s_alphaType = SKAlphaType.Unpremul;
+        public static SkiaSharp.SKAlphaType s_alphaType = SkiaSharp.SKAlphaType.Unpremul;
 
-        public static SKColorType s_colorType = SKImageInfo.PlatformColorType;
+        public static SkiaSharp.SKColorType s_colorType = SkiaSharp.SKImageInfo.PlatformColorType;
 
-        public static readonly SKColorSpace s_srgbLinear = SKColorSpace.CreateRgb(SKColorSpaceTransferFn.Linear, SKColorSpaceXyz.Srgb); // SKColorSpace.CreateSrgbLinear();
+        public static readonly SkiaSharp.SKColorSpace s_srgbLinear = SkiaSharp.SKColorSpace.CreateRgb(SkiaSharp.SKColorSpaceTransferFn.Linear, SkiaSharp.SKColorSpaceXyz.Srgb); // SkiaSharp.SKColorSpace.CreateSrgbLinear();
 
-        public static readonly SKColorSpace s_srgb = SKColorSpace.CreateRgb(SKColorSpaceTransferFn.Srgb, SKColorSpaceXyz.Srgb); // SKColorSpace.CreateSrgb();
+        public static readonly SkiaSharp.SKColorSpace s_srgb = SkiaSharp.SKColorSpace.CreateRgb(SkiaSharp.SKColorSpaceTransferFn.Srgb, SkiaSharp.SKColorSpaceXyz.Srgb); // SkiaSharp.SKColorSpace.CreateSrgb();
 
         public static readonly IList<ITypefaceProvider>? s_typefaceProviders = new List<ITypefaceProvider>
         {
-            new FontManagerTypefacerovider(),
+            new FontManagerTypefaceProvider(),
             new DefaultTypefaceProvider()
         };
     }

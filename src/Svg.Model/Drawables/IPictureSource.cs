@@ -1,10 +1,14 @@
-﻿using Svg.Model.Primitives;
+﻿#if USE_SKIASHARP
+using SkiaSharp;
+#else
+using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model.Drawables
 {
     internal interface IPictureSource
     {
-        void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until);
-        void Draw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until, bool enableTransform);
+        void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until);
+        void Draw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until, bool enableTransform);
     }
 }

@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using Svg.Document_Structure;
-using Svg.Model.Primitives;
+#if USE_SKIASHARP
+using SkiaSharp;
+#else
+using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model.Drawables.Elements
 {
@@ -18,7 +22,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static UseDrawable Create(SvgUse svgUse, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static UseDrawable Create(SvgUse svgUse, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new UseDrawable(assetLoader)
             {
@@ -34,13 +38,13 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            if (SvgModelExtensions.HasRecursiveReference(svgUse, (e) => e.ReferencedElement, new HashSet<Uri>()))
+            if (SvgExtensions.HasRecursiveReference(svgUse, (e) => e.ReferencedElement, new HashSet<Uri>()))
             {
                 drawable.IsDrawable = false;
                 return drawable;
             }
 
-            var svgReferencedElement = SvgModelExtensions.GetReference<SvgElement>(svgUse, svgUse.ReferencedElement);
+            var svgReferencedElement = SvgExtensions.GetReference<SvgElement>(svgUse, svgUse.ReferencedElement);
             if (svgReferencedElement is null)
             {
                 drawable.IsDrawable = false;
@@ -97,21 +101,20 @@ namespace Svg.Model.Drawables.Elements
                 }
             }
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgUse);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgUse);
 
-            drawable.GeometryBounds = drawable.ReferencedDrawable.TransformedBounds;
+            // TODO: use drawable.ReferencedDrawable.GeometryBounds
+            drawable.GeometryBounds = drawable.ReferencedDrawable.GeometryBounds;
 
-            drawable.TransformedBounds = drawable.GeometryBounds;
-
-            drawable.Transform = SvgModelExtensions.ToMatrix(svgUse.Transforms);
+            drawable.Transform = SvgExtensions.ToMatrix(svgUse.Transforms);
             if (!(svgReferencedElement is SvgSymbol))
             {
-                var skMatrixTranslateXY = Matrix.CreateTranslation(x, y);
+                var skMatrixTranslateXY = SKMatrix.CreateTranslation(x, y);
                 drawable.Transform = drawable.Transform.PreConcat(skMatrixTranslateXY);
             }
 
             // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
 
             drawable.Fill = null;
             drawable.Stroke = null;
@@ -132,7 +135,7 @@ namespace Svg.Model.Drawables.Elements
             return drawable;
         }
 
-        public override void OnDraw(Canvas canvas, Attributes ignoreAttributes, DrawableBase? until)
+        public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)
         {
             if (until is { } && this == until)
             {
@@ -142,7 +145,7 @@ namespace Svg.Model.Drawables.Elements
             ReferencedDrawable?.Draw(canvas, ignoreAttributes, until, true);
         }
 
-        public override void PostProcess(Rect? viewport)
+        public override void PostProcess(SKRect? viewport)
         {
             base.PostProcess(viewport);
             // TODO: Fix PostProcess() using correct ReferencedElement Parent.

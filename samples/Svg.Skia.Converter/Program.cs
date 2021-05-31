@@ -7,7 +7,6 @@ using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using SkiaSharp;
 using Svg.Model;
 
 namespace Svg.Skia.Converter
@@ -127,7 +126,7 @@ namespace Svg.Skia.Converter
 
             if (string.Compare(format, "pdf", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                if (SKColor.TryParse(background, out var skBackgroundColor))
+                if (SkiaSharp.SKColor.TryParse(background, out var skBackgroundColor))
                 {
                     if (scale != 1f)
                     {
@@ -145,7 +144,7 @@ namespace Svg.Skia.Converter
             }
             else if (string.Compare(format, "xps", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                if (SKColor.TryParse(background, out var skBackgroundColor))
+                if (SkiaSharp.SKColor.TryParse(background, out var skBackgroundColor))
                 {
                     if (scale != 1f)
                     {
@@ -163,9 +162,9 @@ namespace Svg.Skia.Converter
             }
             else
             {
-                if (Enum.TryParse<SKEncodedImageFormat>(format, true, out var skEncodedImageFormat))
+                if (Enum.TryParse<SkiaSharp.SKEncodedImageFormat>(format, true, out var skEncodedImageFormat))
                 {
-                    if (SKColor.TryParse(background, out var skBackgroundColor))
+                    if (SkiaSharp.SKColor.TryParse(background, out var skBackgroundColor))
                     {
                         if (scale != 1f)
                         {
@@ -241,7 +240,7 @@ namespace Svg.Skia.Converter
 
             if (settings.SystemLanguage is { })
             {
-                SvgModelExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture(settings.SystemLanguage);
+                SvgExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture(settings.SystemLanguage);
             }
 
             var sw = Stopwatch.StartNew();
@@ -295,7 +294,7 @@ namespace Svg.Skia.Converter
 
             if (settings.SystemLanguage is { })
             {
-                SvgModelExtensions.s_systemLanguageOverride = null;
+                SvgExtensions.s_systemLanguageOverride = null;
             }
 
             if (paths.Count > 0)

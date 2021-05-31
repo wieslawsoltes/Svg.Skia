@@ -1,10 +1,14 @@
 ﻿using System.IO;
-using Svg.Model.Primitives;
+#if USE_SKIASHARP
+using SkiaSharp;
+#else
+using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model
 {
     public interface IAssetLoader
     {
-        Image LoadImage(Stream stream);
+        SKImage LoadImage(Stream stream);
     }
 }

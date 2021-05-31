@@ -4,8 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Logging;
 using Avalonia.Media;
 using Avalonia.Metadata;
-using SkiaSharp;
-using Svg.Model.Primitives;
+using ShimSkiaSharp.Primitives;
 using Svg.Skia;
 
 namespace Avalonia.Svg.Skia
@@ -91,12 +90,12 @@ namespace Avalonia.Svg.Skia
         /// <summary>
         /// Gets svg model.
         /// </summary>
-        public Picture? Model => _svg?.Model;
+        public SKPicture? Model => _svg?.Model;
 
         /// <summary>
         /// Gets svg picture.
         /// </summary>
-        public SKPicture? Picture => _svg?.Picture;
+        public SkiaSharp.SKPicture? Picture => _svg?.Picture;
 
         static Svg()
         {

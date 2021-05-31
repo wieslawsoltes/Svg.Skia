@@ -1,5 +1,9 @@
 ﻿using Svg.Document_Structure;
-using Svg.Model.Primitives;
+#if USE_SKIASHARP
+using SkiaSharp;
+#else
+using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model.Drawables.Elements
 {
@@ -10,7 +14,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static SymbolDrawable Create(SvgSymbol svgSymbol, float x, float y, float width, float height, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes)
+        public static SymbolDrawable Create(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes)
         {
             var drawable = new SymbolDrawable(assetLoader)
             {
@@ -59,26 +63,24 @@ namespace Svg.Model.Drawables.Elements
                     break;
 
                 default:
-                    drawable.Overflow = Rect.Create(x, y, width, height);
+                    drawable.Overflow = SKRect.Create(x, y, width, height);
                     break;
             }
 
             drawable.CreateChildren(svgSymbol, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgSymbol);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgSymbol);
 
-            drawable.GeometryBounds = Rect.Empty;
+            drawable.GeometryBounds = SKRect.Empty;
 
             drawable.CreateGeometryBounds();
 
-            drawable.TransformedBounds = drawable.GeometryBounds;
-
-            drawable.Transform = SvgModelExtensions.ToMatrix(svgSymbol.Transforms);
-            var skMatrixViewBox = SvgModelExtensions.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
+            drawable.Transform = SvgExtensions.ToMatrix(svgSymbol.Transforms);
+            var skMatrixViewBox = SvgExtensions.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
             drawable.Transform = drawable.Transform.PreConcat(skMatrixViewBox);
 
             // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
 
             drawable.Fill = null;
             drawable.Stroke = null;

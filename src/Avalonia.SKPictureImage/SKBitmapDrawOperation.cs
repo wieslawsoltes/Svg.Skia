@@ -1,16 +1,15 @@
 ﻿using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
-using SkiaSharp;
 
 namespace Avalonia.SKPictureImage
 {
     public class SKBitmapDrawOperation : ICustomDrawOperation
     {
-        private readonly SKBitmap? _bitmap;
+        private readonly SkiaSharp.SKBitmap? _bitmap;
         private readonly Rect _bounds;
 
-        public SKBitmapDrawOperation(Rect bounds, SKBitmap? bitmap)
+        public SKBitmapDrawOperation(Rect bounds, SkiaSharp.SKBitmap? bitmap)
         {
             _bitmap = bitmap;
             _bounds = bounds;
@@ -33,8 +32,8 @@ namespace Avalonia.SKPictureImage
             {
                 canvas.DrawBitmap(
                     _bitmap,
-                    SKRect.Create(0, 0, _bitmap.Width, _bitmap.Height),
-                    SKRect.Create((float)_bounds.Left, (float)_bounds.Top, (float)_bounds.Width, (float)_bounds.Height),
+                    SkiaSharp.SKRect.Create(0, 0, _bitmap.Width, _bitmap.Height),
+                    SkiaSharp.SKRect.Create((float)_bounds.Left, (float)_bounds.Top, (float)_bounds.Width, (float)_bounds.Height),
                     null);
             }
         }

@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Svg.Model.Primitives;
+#if USE_SKIASHARP
+using SkiaSharp;
+#else
+using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model.Drawables.Elements
 {
@@ -11,7 +15,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static MaskDrawable Create(SvgMask svgMask, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static MaskDrawable Create(SvgMask svgMask, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new MaskDrawable(assetLoader)
             {
@@ -34,21 +38,21 @@ namespace Svg.Model.Drawables.Elements
             var heightUnit = svgMask.Height;
 
             // TODO: Pass correct skViewport
-            var skRectTransformed = SvgModelExtensions.CalculateRect(xUnit, yUnit, widthUnit, heightUnit, maskUnits, skOwnerBounds, skOwnerBounds, svgMask);
+            var skRectTransformed = SvgExtensions.CalculateRect(xUnit, yUnit, widthUnit, heightUnit, maskUnits, skOwnerBounds, skOwnerBounds, svgMask);
             if (skRectTransformed is null)
             {
                 drawable.IsDrawable = false;
                 return drawable;
             }
    
-            var skMatrix = Matrix.CreateIdentity();
+            var skMatrix = SKMatrix.CreateIdentity();
 
             if (maskContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
-                var skBoundsTranslateTransform = Matrix.CreateTranslation(skOwnerBounds.Left, skOwnerBounds.Top);
+                var skBoundsTranslateTransform = SKMatrix.CreateTranslation(skOwnerBounds.Left, skOwnerBounds.Top);
                 skMatrix = skMatrix.PreConcat(skBoundsTranslateTransform);
 
-                var skBoundsScaleTransform = Matrix.CreateScale(skOwnerBounds.Width, skOwnerBounds.Height);
+                var skBoundsScaleTransform = SKMatrix.CreateScale(skOwnerBounds.Width, skOwnerBounds.Height);
                 skMatrix = skMatrix.PreConcat(skBoundsScaleTransform);
             }
 
@@ -56,16 +60,14 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.Overflow = skRectTransformed;
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgMask);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgMask);
 
             drawable.GeometryBounds = skRectTransformed.Value;
-
-            drawable.TransformedBounds = drawable.GeometryBounds;
 
             drawable.Transform = skMatrix;
 
             // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
 
             drawable.Fill = null;
             drawable.Stroke = null;
@@ -73,7 +75,7 @@ namespace Svg.Model.Drawables.Elements
             return drawable;
         }
 
-        public override void PostProcess(Rect? viewport)
+        public override void PostProcess(SKRect? viewport)
         {
             var element = Element;
             if (element is null)
@@ -81,13 +83,13 @@ namespace Svg.Model.Drawables.Elements
                 return;
             }
 
-            var enableMask = !IgnoreAttributes.HasFlag(Attributes.Mask);
+            var enableMask = !IgnoreAttributes.HasFlag(DrawAttributes.Mask);
 
             ClipPath = null;
 
             if (enableMask)
             {
-                MaskDrawable = SvgModelExtensions.GetSvgElementMask(element, TransformedBounds, new HashSet<Uri>(), AssetLoader);
+                MaskDrawable = SvgExtensions.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader);
                 if (MaskDrawable is { })
                 {
                     CreateMaskPaints();

@@ -1,4 +1,8 @@
-﻿using Svg.Model.Primitives;
+﻿#if USE_SKIASHARP
+using SkiaSharp;
+#else
+using ShimSkiaSharp.Primitives;
+#endif
 
 namespace Svg.Model.Drawables.Elements
 {
@@ -9,7 +13,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static AnchorDrawable Create(SvgAnchor svgAnchor, Rect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, Attributes ignoreAttributes = Attributes.None)
+        public static AnchorDrawable Create(SvgAnchor svgAnchor, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new AnchorDrawable(assetLoader)
             {
@@ -21,31 +25,29 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.CreateChildren(svgAnchor, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
 
-            drawable.IsAntialias = SvgModelExtensions.IsAntialias(svgAnchor);
+            drawable.IsAntialias = SvgExtensions.IsAntialias(svgAnchor);
 
-            drawable.GeometryBounds = Rect.Empty;
+            drawable.GeometryBounds = SKRect.Empty;
             
             drawable.CreateGeometryBounds();
 
-            drawable.TransformedBounds = drawable.GeometryBounds;
-
             // TODO: Transform _skBounds using _skMatrix.
-            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.TransformedBounds);
+            drawable.TransformedBounds = drawable.Transform.MapRect(drawable.GeometryBounds);
 
-            drawable.Transform = SvgModelExtensions.ToMatrix(svgAnchor.Transforms);
+            drawable.Transform = SvgExtensions.ToMatrix(svgAnchor.Transforms);
 
             drawable.Fill = null;
             drawable.Stroke = null;
 
             drawable.ClipPath = null;
             drawable.MaskDrawable = null;
-            drawable.Opacity = drawable.IgnoreAttributes.HasFlag(Attributes.Opacity) ? null : SvgModelExtensions.GetOpacityPaint(svgAnchor);
+            drawable.Opacity = drawable.IgnoreAttributes.HasFlag(DrawAttributes.Opacity) ? null : SvgExtensions.GetOpacityPaint(svgAnchor);
             drawable.Filter = null;
 
             return drawable;
         }
 
-        public override void PostProcess(Rect? viewport)
+        public override void PostProcess(SKRect? viewport)
         {
             var element = Element;
             if (element is null)
@@ -53,11 +55,11 @@ namespace Svg.Model.Drawables.Elements
                 return;
             }
 
-            var enableOpacity = !IgnoreAttributes.HasFlag(Attributes.Opacity);
+            var enableOpacity = !IgnoreAttributes.HasFlag(DrawAttributes.Opacity);
 
             ClipPath = null;
             MaskDrawable = null;
-            Opacity = enableOpacity ? SvgModelExtensions.GetOpacityPaint(element) : null;
+            Opacity = enableOpacity ? SvgExtensions.GetOpacityPaint(element) : null;
             Filter = null;
 
             foreach (var child in ChildrenDrawables)
