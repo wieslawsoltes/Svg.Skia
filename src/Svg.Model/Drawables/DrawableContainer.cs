@@ -73,5 +73,16 @@ namespace Svg.Model.Drawables
                 child.PostProcess(viewport, TotalTransform);
             }
         }
+#if USE_DEBUG_DRAW_BOUNDS
+        public override void DebugDrawBounds(SKCanvas canvas)
+        {
+            base.DebugDraw(canvas);
+
+            foreach (var child in ChildrenDrawables)
+            {
+                child.DebugDraw(canvas);
+            }
+        }
+#endif
     }
 }

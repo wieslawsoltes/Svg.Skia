@@ -44,6 +44,9 @@ namespace Svg.Model.Drawables
         protected override void OnDraw(SKCanvas canvas)
         {
             Draw(canvas, IgnoreAttributes, null, true);
+#if USE_DEBUG_DRAW_BOUNDS
+            DebugDrawBounds(canvas);
+#endif
         }
 
         protected override SKRect OnGetBounds()
@@ -307,7 +310,19 @@ namespace Svg.Model.Drawables
                 Filter = null;
             }
         }
-
+#if USE_DEBUG_DRAW_BOUNDS
+        public virtual void DebugDrawBounds(SKCanvas canvas)
+        {
+            Debug.WriteLine($"DebugDraw {this} {TransformedBounds}");
+            var path = new SKPath();
+            path.AddRect(TransformedBounds);
+            var clipPaint = new SKPaint
+            {
+                IsAntialias = true, Style = SKPaintStyle.Stroke, Color = new SKColor(0, 255, 255, 255)
+            };
+            canvas.DrawPath(path, clipPaint);
+        }
+#endif
         public DrawableBase? FindContainerParentBackground(DrawableBase? drawable, out SKRect skClipRect)
         {
             skClipRect = SKRect.Empty;

@@ -16,6 +16,10 @@
     <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;model</PackageTags>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!--<DefineConstants>$(DefineConstants);USE_DEBUG_DRAW_BOUNDS</DefineConstants>-->
+  </PropertyGroup>
+
   <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
