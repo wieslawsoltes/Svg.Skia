@@ -114,7 +114,8 @@ namespace SvgToPng.ViewModels
                 {
                     var stopwatchToPicture = Stopwatch.StartNew();
 
-                    item.Drawable = SvgExtensions.ToDrawable(item.Document, new SkiaAssetLoader(), out var bounds);
+                    var references = new HashSet<Uri> {item.Document.BaseUri};
+                    item.Drawable = SvgExtensions.ToDrawable(item.Document, new SkiaAssetLoader(), references, out var bounds);
                     if (item.Drawable is { } && bounds is { })
                     {
                         item.Picture = item.Drawable.Snapshot(bounds.Value);
