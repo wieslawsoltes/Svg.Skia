@@ -25,26 +25,36 @@ namespace Svg.Model
             SvgDocument.PointsPerInch = 96;
         }
 
+        internal static Uri GetImageUri(string uriString, SvgDocument svgOwnerDocument)
+        {
+            // Uri MaxLength is 65519 (https://msdn.microsoft.com/en-us/library/z6c2z492.aspx)
+            // if using data URI scheme, very long URI may happen.
+            var safeUriString = uriString.Length > 65519 ? uriString.Substring(0, 65519) : uriString;
+            var uri = new Uri(safeUriString, UriKind.RelativeOrAbsolute);
+
+            // handle data/uri embedded images (http://en.wikipedia.org/wiki/Data_URI_scheme)
+            if (uri.IsAbsoluteUri && uri.Scheme == "data")
+            {
+                return uri;
+            }
+
+            if (!uri.IsAbsoluteUri)
+            {
+                uri = new Uri(svgOwnerDocument.BaseUri, uri);
+            }
+
+            return uri;
+        }
+        
         internal static object? GetImage(string uriString, SvgDocument svgOwnerDocument, IAssetLoader assetLoader)
         {
             try
             {
-                // Uri MaxLength is 65519 (https://msdn.microsoft.com/en-us/library/z6c2z492.aspx)
-                // if using data URI scheme, very long URI may happen.
-                var safeUriString = uriString.Length > 65519 ? uriString.Substring(0, 65519) : uriString;
-                var uri = new Uri(safeUriString, UriKind.RelativeOrAbsolute);
-
-                // handle data/uri embedded images (http://en.wikipedia.org/wiki/Data_URI_scheme)
+                var uri = GetImageUri(uriString, svgOwnerDocument);
                 if (uri.IsAbsoluteUri && uri.Scheme == "data")
                 {
                     return GetImageFromDataUri(uriString, svgOwnerDocument, assetLoader);
                 }
-
-                if (!uri.IsAbsoluteUri)
-                {
-                    uri = new Uri(svgOwnerDocument.BaseUri, uri);
-                }
-
                 return GetImageFromWeb(uri, assetLoader);
             }
             catch (Exception ex)
