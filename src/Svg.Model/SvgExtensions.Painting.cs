@@ -104,7 +104,7 @@ namespace Svg.Model
             {
                 svgPatternServers.Add(currentPatternServer);
                 currentPatternServer = SvgDeferredPaintServer.TryGet<SvgPatternServer>(currentPatternServer.InheritGradient, svgVisualElement);
-            } while (currentPatternServer is { });
+            } while (currentPatternServer is { } && currentPatternServer != svgPatternServer);
             return svgPatternServers;
         }
 
@@ -116,7 +116,7 @@ namespace Svg.Model
             {
                 svgGradientServers.Add(currentGradientServer);
                 currentGradientServer = SvgDeferredPaintServer.TryGet<SvgGradientServer>(currentGradientServer.InheritGradient, svgVisualElement);
-            } while (currentGradientServer is { });
+            } while (currentGradientServer is { } && currentGradientServer != svgGradientServer);
             return svgGradientServers;
         }
 
