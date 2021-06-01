@@ -49,6 +49,8 @@ namespace TestApp.ViewModels
 
         public ICommand ClearConfigurationCommand { get; }
         
+        public ICommand AddItemCommand { get; }
+
         public MainWindowViewModel()
         {
             _items = new ObservableCollection<FileItemViewModel>();
@@ -108,6 +110,22 @@ namespace TestApp.ViewModels
                 SelectedItem = null;
                 _items?.Clear();
             });
+
+            AddItemCommand = ReactiveCommand.CreateFromTask(async () =>
+            {
+                var dlg = new OpenFileDialog {AllowMultiple = true};
+                dlg.Filters.Add(new FileDialogFilter() { Name = "Svg Files (*.svg;*.svgz)", Extensions = new List<string> {"svg", "svgz"} });
+                dlg.Filters.Add(new FileDialogFilter() { Name = "All Files (*.*)", Extensions = new List<string> {"*"} });
+                var result = await dlg.ShowAsync((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow);
+                if (result is { })
+                {
+                    var paths = result.ToList();
+                    foreach (var path in paths)
+                    {
+                        AddItem(path);
+                    }
+                }
+            });
         }
 
         private Func<FileItemViewModel, bool> ItemQueryFilter(string? searchQuery)
@@ -132,12 +150,21 @@ namespace TestApp.ViewModels
                 {
                     case ".svg":
                     case ".svgz":
-                        _items?.Add(new FileItemViewModel(Path.GetFileName(path), path));
+                        AddItem(path);
                         break;
                     case ".json":
                         LoadConfiguration(path);
                         break;
                 }
+            }
+        }
+
+        private void AddItem(string path)
+        {
+            if (_items is { })
+            {
+                var item = new FileItemViewModel(Path.GetFileName(path), path, x => _items.Remove(x));
+                _items.Add(item);
             }
         }
 
@@ -158,7 +185,7 @@ namespace TestApp.ViewModels
 
                 foreach (var path in configuration.Paths)
                 {
-                    _items?.Add(new FileItemViewModel(Path.GetFileName(path), path));
+                    AddItem(path);
                 }
             }
 

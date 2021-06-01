@@ -41,25 +41,34 @@
             </ListBox.Styles>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding Name}"
-                               ToolTip.Tip="{Binding Path}"
-                               Background="Transparent"
-                               Padding="12"
-                               DoubleTapped="FileItem_OnDoubleTapped">
-                        <TextBlock.ContextFlyout>
+                    <Panel Background="Transparent" 
+                           VerticalAlignment="Stretch" 
+                           HorizontalAlignment="Stretch"
+                           ToolTip.Tip="{Binding Path}"
+                           Focusable="True"
+                           DoubleTapped="FileItem_OnDoubleTapped">
+                        <Panel.KeyBindings>
+                            <KeyBinding Gesture="Delete" Command="{Binding RemoveCommand}"/>
+                        </Panel.KeyBindings>
+                        <Panel.ContextFlyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuItem Header="Open in Explorer" Command="{Binding OpenInExplorerCommand}"/>
                                 <MenuItem Header="Open in Notepad" Command="{Binding OpenInNotepadCommand}"/>
+                                <MenuItem Header="Remove" Command="{Binding RemoveCommand}"/>
                             </MenuFlyout>
-                        </TextBlock.ContextFlyout>
-                    </TextBlock>
+                        </Panel.ContextFlyout>
+                        <TextBlock Text="{Binding Name}"
+                                   Padding="12"
+                                   IsHitTestVisible="False">
+                        </TextBlock>
+                    </Panel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
         
         <UniformGrid Grid.Column="0"
                      Grid.Row="2"
-                     Columns="3">
+                     Columns="4">
             <Button Content="Clear" 
                     Margin="6" 
                     HorizontalContentAlignment="Center" 
@@ -75,6 +84,11 @@
                     HorizontalContentAlignment="Center" 
                     HorizontalAlignment="Stretch" 
                     Command="{Binding LoadConfigurationCommand}"/>
+            <Button Content="+" 
+                    Margin="6" 
+                    HorizontalContentAlignment="Center" 
+                    HorizontalAlignment="Stretch" 
+                    Command="{Binding AddItemCommand}"/>
         </UniformGrid>
 
         <GridSplitter Grid.Column="1"
