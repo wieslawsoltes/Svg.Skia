@@ -32,6 +32,15 @@
     <IlcDisableUnhandledExceptionExperience>true</IlcDisableUnhandledExceptionExperience>
   </PropertyGroup>
 
+  <!-- https://github.com/dotnet/runtimelab/blob/feature/NativeAOT/docs/using-nativeaot/troubleshooting.md -->
+  <PropertyGroup>
+    <IlcGenerateMetadataLog>true</IlcGenerateMetadataLog>
+    <IlcGenerateDgmlFile>true</IlcGenerateDgmlFile>
+    <IlcGenerateMapFile>true</IlcGenerateMapFile>
+    <IlcSingleThreaded>true</IlcSingleThreaded>
+    <IlcDumpGeneratedIL>true</IlcDumpGeneratedIL>
+  </PropertyGroup>
+
   <ItemGroup Condition="$(RuntimeIdentifier.StartsWith('win'))">
     <NativeLibrary Include="WindowsApp.lib" />
   </ItemGroup>
