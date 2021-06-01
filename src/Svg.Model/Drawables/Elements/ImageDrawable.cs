@@ -51,12 +51,12 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            // TODO: Check for image recursive references.
-            //if (HasRecursiveReference(svgImage, (e) => e.Href))
-            //{
-            //    _canDraw = false;
-            //    return;
-            //}
+            var uri = SvgExtensions.GetImageUri(svgImage.Href, svgImage.OwnerDocument);
+            if (references is { } && references.Contains(uri))
+            {
+                drawable.IsDrawable = false;
+                return drawable;
+            }
 
             var image = SvgExtensions.GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
             var skImage = image as SKImage;
