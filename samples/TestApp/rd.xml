@@ -1,0 +1,54 @@
+﻿<Directives>
+  <Application>
+
+    <Assembly Name="TestApp" Dynamic="Required All"></Assembly>
+
+    <Assembly Name="ShimSkiaSharp" Dynamic="Required All"></Assembly>
+    <Assembly Name="Svg.Model" Dynamic="Required All"></Assembly>
+    <Assembly Name="Svg.Skia" Dynamic="Required All"></Assembly>
+    <Assembly Name="Svg.CodeGen.Skia" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Svg.Skia" Dynamic="Required All"></Assembly>
+
+    <Assembly Name="System.Drawing.Common" Dynamic="Required All"></Assembly>
+    <Assembly Name="Svg.Custom" Dynamic="Required All"></Assembly>
+    <Assembly Name="Fizzler" Dynamic="Required All"></Assembly>
+
+    <Assembly Name="ReactiveUI" Dynamic="Required All"></Assembly>
+    <Assembly Name="DynamicData" Dynamic="Required All"></Assembly>
+    <Assembly Name="System.Reactive" Dynamic="Required All"></Assembly>
+
+    <Assembly Name="SkiaSharp" Dynamic="Required All"></Assembly>
+    <Assembly Name="HarfBuzzSharp" Dynamic="Required All"></Assembly>
+
+    <Assembly Name="Avalonia" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Animation" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Base" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Controls" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Controls.DataGrid" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.DesignerSupport" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Desktop" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.DesktopRuntime" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Diagnostics" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Dialogs" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.FreeDesktop" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Input" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Interactivity" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Layout" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Markup" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Markup.Xaml" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.MicroCom" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Native" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.OpenGL" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.ReactiveUI" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Remote.Protocol" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Skia" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Styling" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Themes.Default" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Themes.Fluent" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Visuals" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.Win32" Dynamic="Required All"></Assembly>
+    <Assembly Name="Avalonia.X11" Dynamic="Required All"></Assembly>
+    <Assembly Name="Splat" Dynamic="Required All"></Assembly>
+
+  </Application>
+</Directives>
