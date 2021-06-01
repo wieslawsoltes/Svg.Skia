@@ -10,14 +10,14 @@ namespace Svg.Model.Drawables.Elements
 {
     public sealed class FragmentDrawable : DrawableContainer
     {
-        private FragmentDrawable(IAssetLoader assetLoader)
-            : base(assetLoader)
+        private FragmentDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+            : base(assetLoader, references)
         {
         }
 
-        public static FragmentDrawable Create(SvgFragment svgFragment, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static FragmentDrawable Create(SvgFragment svgFragment, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
-            var drawable = new FragmentDrawable(assetLoader)
+            var drawable = new FragmentDrawable(assetLoader, references)
             {
                 Element = svgFragment,
                 Parent = parent,
@@ -43,7 +43,7 @@ namespace Svg.Model.Drawables.Elements
                 skOwnerBounds = SKRect.Create(x, y, skSize.Width, skSize.Height);
             }
 
-            drawable.CreateChildren(svgFragment, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
+            drawable.CreateChildren(svgFragment, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
 
             drawable.IsAntialias = SvgExtensions.IsAntialias(svgFragment);
 

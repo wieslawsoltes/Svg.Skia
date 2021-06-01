@@ -1,4 +1,6 @@
-﻿#if USE_SKIASHARP
+﻿using System;
+using System.Collections.Generic;
+#if USE_SKIASHARP
 using SkiaSharp;
 #else
 using ShimSkiaSharp.Primitives;
@@ -8,14 +10,14 @@ namespace Svg.Model.Drawables.Elements
 {
     public sealed class RectangleDrawable : DrawablePath
     {
-        private RectangleDrawable(IAssetLoader assetLoader)
-            : base(assetLoader)
+        private RectangleDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+            : base(assetLoader, references)
         {
         }
 
-        public static RectangleDrawable Create(SvgRectangle svgRectangle, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static RectangleDrawable Create(SvgRectangle svgRectangle, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
-            var drawable = new RectangleDrawable(assetLoader)
+            var drawable = new RectangleDrawable(assetLoader, references)
             {
                 Element = svgRectangle,
                 Parent = parent,
@@ -47,7 +49,7 @@ namespace Svg.Model.Drawables.Elements
 
             if (SvgExtensions.IsValidFill(svgRectangle))
             {
-                drawable.Fill = SvgExtensions.GetFillPaint(svgRectangle, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Fill = SvgExtensions.GetFillPaint(svgRectangle, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
@@ -56,7 +58,7 @@ namespace Svg.Model.Drawables.Elements
 
             if (SvgExtensions.IsValidStroke(svgRectangle, drawable.GeometryBounds))
             {
-                drawable.Stroke = SvgExtensions.GetStrokePaint(svgRectangle, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Stroke = SvgExtensions.GetStrokePaint(svgRectangle, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;

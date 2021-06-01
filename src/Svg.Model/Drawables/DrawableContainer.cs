@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 #if USE_SKIASHARP
 using SkiaSharp;
 #else
@@ -11,17 +12,17 @@ namespace Svg.Model.Drawables
     {
         public List<DrawableBase> ChildrenDrawables { get; }
 
-        protected DrawableContainer(IAssetLoader assetLoader)
-            : base(assetLoader)
+        protected DrawableContainer(IAssetLoader assetLoader, HashSet<Uri>? references)
+            : base(assetLoader, references)
         {
             ChildrenDrawables = new List<DrawableBase>();
         }
 
-        protected void CreateChildren(SvgElement svgElement, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes)
+        protected void CreateChildren(SvgElement svgElement, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
         {
             foreach (var child in svgElement.Children)
             {
-                var drawable = DrawableFactory.Create(child, skOwnerBounds, parent, assetLoader, ignoreAttributes);
+                var drawable = DrawableFactory.Create(child, skOwnerBounds, parent, assetLoader, references, ignoreAttributes);
                 if (drawable is { })
                 {
                     ChildrenDrawables.Add(drawable);

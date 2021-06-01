@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 #if USE_SKIASHARP
 using SkiaSharp;
 #else
@@ -12,8 +13,8 @@ namespace Svg.Model.Drawables
         public SKPath? Path { get; set; }
         public List<DrawableBase>? MarkerDrawables { get; set; }
 
-        protected DrawablePath(IAssetLoader assetLoader)
-            : base(assetLoader)
+        protected DrawablePath(IAssetLoader assetLoader, HashSet<Uri>? references)
+            : base(assetLoader, references)
         {
         }
 

@@ -579,8 +579,14 @@ namespace Svg.Model
             return SKImageFilter.CreateBlur(sigmaX, sigmaY, input, cropRect);
         }
 
-        private static SKImageFilter? CreateImage(FilterEffects.SvgImage svgImage, SKRect skBounds, IAssetLoader assetLoader, SKImageFilter.CropRect? cropRect = default)
+        private static SKImageFilter? CreateImage(FilterEffects.SvgImage svgImage, SKRect skBounds, IAssetLoader assetLoader, HashSet<Uri>? references, SKImageFilter.CropRect? cropRect = default)
         {
+            var uri = SvgExtensions.GetImageUri(svgImage.Href, svgImage.OwnerDocument);
+            if (references is { } && references.Contains(uri))
+            {
+                return default;
+            }
+
             var image = GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
             var skImage = image as SKImage;
             var svgFragment = image as SvgFragment;
@@ -624,7 +630,7 @@ namespace Svg.Model
                 fragmentTransform = fragmentTransform.PreConcat(skScaleMatrix);
                 // TODO: fragmentTransform
 
-                var fragmentDrawable = FragmentDrawable.Create(svgFragment, destRect, null, assetLoader, DrawAttributes.None);
+                var fragmentDrawable = FragmentDrawable.Create(svgFragment, destRect, null, assetLoader, references, DrawAttributes.None);
                 // TODO: fragmentDrawable.Snapshot()
                 var skPicture = fragmentDrawable.Snapshot();
 

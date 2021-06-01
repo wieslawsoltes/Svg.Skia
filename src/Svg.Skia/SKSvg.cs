@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Svg.Model;
 using Svg.Model.Drawables;
 using ShimSkiaSharp.Primitives;
@@ -17,9 +18,10 @@ namespace Svg.Skia
 
         public static void Draw(SkiaSharp.SKCanvas skCanvas, SvgFragment svgFragment)
         {
+            var references = new HashSet<Uri> {svgFragment.OwnerDocument.BaseUri};
             var size = SvgExtensions.GetDimensions(svgFragment);
             var bounds = SKRect.Create(size);
-            var drawable = DrawableFactory.Create(svgFragment, bounds, null, s_assetLoader);
+            var drawable = DrawableFactory.Create(svgFragment, bounds, null, s_assetLoader, references);
             if (drawable is { })
             {
                 drawable.PostProcess(bounds, SKMatrix.Identity);

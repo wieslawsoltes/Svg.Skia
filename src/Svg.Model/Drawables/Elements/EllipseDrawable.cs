@@ -1,4 +1,6 @@
-﻿#if USE_SKIASHARP
+﻿using System;
+using System.Collections.Generic;
+#if USE_SKIASHARP
 using SkiaSharp;
 #else
 using ShimSkiaSharp.Primitives;
@@ -8,14 +10,14 @@ namespace Svg.Model.Drawables.Elements
 {
     public sealed class EllipseDrawable : DrawablePath
     {
-        private EllipseDrawable(IAssetLoader assetLoader)
-            : base(assetLoader)
+        private EllipseDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+            : base(assetLoader, references)
         {
         }
 
-        public static EllipseDrawable Create(SvgEllipse svgEllipse, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static EllipseDrawable Create(SvgEllipse svgEllipse, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
-            var drawable = new EllipseDrawable(assetLoader)
+            var drawable = new EllipseDrawable(assetLoader, references)
             {
                 Element = svgEllipse,
                 Parent = parent,
@@ -46,7 +48,7 @@ namespace Svg.Model.Drawables.Elements
 
             if (SvgExtensions.IsValidFill(svgEllipse))
             {
-                drawable.Fill = SvgExtensions.GetFillPaint(svgEllipse, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Fill = SvgExtensions.GetFillPaint(svgEllipse, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
@@ -55,7 +57,7 @@ namespace Svg.Model.Drawables.Elements
 
             if (SvgExtensions.IsValidStroke(svgEllipse, drawable.GeometryBounds))
             {
-                drawable.Stroke = SvgExtensions.GetStrokePaint(svgEllipse, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Stroke = SvgExtensions.GetStrokePaint(svgEllipse, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;

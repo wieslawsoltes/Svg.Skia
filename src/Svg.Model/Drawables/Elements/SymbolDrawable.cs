@@ -1,4 +1,5 @@
-﻿using Svg.Document_Structure;
+﻿using System;
+using System.Collections.Generic;
 #if USE_SKIASHARP
 using SkiaSharp;
 #else
@@ -9,14 +10,14 @@ namespace Svg.Model.Drawables.Elements
 {
     public sealed class SymbolDrawable : DrawableContainer
     {
-        private SymbolDrawable(IAssetLoader assetLoader)
-            : base(assetLoader)
+        private SymbolDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+            : base(assetLoader, references)
         {
         }
 
-        public static SymbolDrawable Create(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes)
+        public static SymbolDrawable Create(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
         {
-            var drawable = new SymbolDrawable(assetLoader)
+            var drawable = new SymbolDrawable(assetLoader, references)
             {
                 Element = svgSymbol,
                 Parent = parent,
@@ -67,7 +68,7 @@ namespace Svg.Model.Drawables.Elements
                     break;
             }
 
-            drawable.CreateChildren(svgSymbol, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
+            drawable.CreateChildren(svgSymbol, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
 
             drawable.IsAntialias = SvgExtensions.IsAntialias(svgSymbol);
 

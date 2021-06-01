@@ -1,4 +1,6 @@
-﻿#if USE_SKIASHARP
+﻿using System;
+using System.Collections.Generic;
+#if USE_SKIASHARP
 using SkiaSharp;
 #else
 using ShimSkiaSharp.Primitives;
@@ -10,14 +12,14 @@ namespace Svg.Model.Drawables.Elements
     {
         public DrawableBase? FirstChild { get; set; }
 
-        private SwitchDrawable(IAssetLoader assetLoader)
-            : base(assetLoader)
+        private SwitchDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+            : base(assetLoader, references)
         {
         }
 
-        public static SwitchDrawable Create(SvgSwitch svgSwitch, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static SwitchDrawable Create(SvgSwitch svgSwitch, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
-            var drawable = new SwitchDrawable(assetLoader)
+            var drawable = new SwitchDrawable(assetLoader, references)
             {
                 Element = svgSwitch,
                 Parent = parent,
@@ -44,7 +46,7 @@ namespace Svg.Model.Drawables.Elements
 
                 if (hasRequiredFeatures && hasRequiredExtensions && hasSystemLanguage)
                 {
-                    var childDrawable = DrawableFactory.Create(child, skOwnerBounds, parent, assetLoader, ignoreAttributes);
+                    var childDrawable = DrawableFactory.Create(child, skOwnerBounds, parent, assetLoader, references, ignoreAttributes);
                     if (childDrawable is { })
                     {
                         drawable.FirstChild = childDrawable;

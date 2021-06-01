@@ -17,14 +17,14 @@ namespace Svg.Model.Drawables.Elements
 
         public DrawableBase? ReferencedDrawable { get; set; }
 
-        private UseDrawable(IAssetLoader assetLoader)
-            : base(assetLoader)
+        private UseDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+            : base(assetLoader, references)
         {
         }
 
-        public static UseDrawable Create(SvgUse svgUse, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static UseDrawable Create(SvgUse svgUse, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
-            var drawable = new UseDrawable(assetLoader)
+            var drawable = new UseDrawable(assetLoader, references)
             {
                 Element = svgUse,
                 Parent = parent,
@@ -85,11 +85,11 @@ namespace Svg.Model.Drawables.Elements
 
             if (svgReferencedElement is SvgSymbol svgSymbol)
             {
-                drawable.ReferencedDrawable = SymbolDrawable.Create(svgSymbol, x, y, width, height, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
+                drawable.ReferencedDrawable = SymbolDrawable.Create(svgSymbol, x, y, width, height, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
             }
             else
             {
-                var referencedDrawable = DrawableFactory.Create(svgReferencedElement, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
+                var referencedDrawable = DrawableFactory.Create(svgReferencedElement, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
                 if (referencedDrawable is { })
                 {
                     drawable.ReferencedDrawable = referencedDrawable;

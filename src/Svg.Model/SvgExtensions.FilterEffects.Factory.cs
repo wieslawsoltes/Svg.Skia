@@ -13,7 +13,7 @@ namespace Svg.Model
 {
     public static partial class SvgExtensions
     {
-        internal static SKPaint? GetFilterPaint(SvgVisualElement svgVisualElement, SKRect skBounds, SKRect skViewport, IFilterSource filterSource, IAssetLoader assetLoader, out bool isValid, out SKRect? filterClip)
+        internal static SKPaint? GetFilterPaint(SvgVisualElement svgVisualElement, SKRect skBounds, SKRect skViewport, IFilterSource filterSource, IAssetLoader assetLoader, HashSet<Uri>? references, out bool isValid, out SKRect? filterClip)
         {
             var filter = svgVisualElement.Filter;
             if (filter is null || IsNone(filter))
@@ -365,7 +365,7 @@ namespace Svg.Model
                     case FilterEffects.SvgImage svgImage:
                         {
                             var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
-                            var skImageFilter = CreateImage(svgImage, skFilterPrimitiveRegion, assetLoader, skCropRect);
+                            var skImageFilter = CreateImage(svgImage, skFilterPrimitiveRegion, assetLoader, references, skCropRect);
                             lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, results);
                             if (skImageFilter is { })
                             {

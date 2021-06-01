@@ -15,6 +15,7 @@ namespace Svg.Model.Drawables
     public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
     {
         public IAssetLoader AssetLoader { get; }
+        public HashSet<Uri>? References { get; }
         public SvgElement? Element { get; set; }
         public DrawableBase? Parent { get; set; }
         public bool IsDrawable { get; set; }
@@ -36,9 +37,10 @@ namespace Svg.Model.Drawables
         public SKPaint? Fill { get; set; }
         public SKPaint? Stroke { get; set; }
 
-        protected DrawableBase(IAssetLoader assetLoader)
+        protected DrawableBase(IAssetLoader assetLoader, HashSet<Uri>? references)
         {
             AssetLoader = assetLoader;
+            References = references;
         }
 
         protected override void OnDraw(SKCanvas canvas)
@@ -256,7 +258,7 @@ namespace Svg.Model.Drawables
 
             if (enableMask)
             {
-                MaskDrawable = SvgExtensions.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader);
+                MaskDrawable = SvgExtensions.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader, References);
                 if (MaskDrawable is { })
                 {
                     CreateMaskPaints();
@@ -271,7 +273,7 @@ namespace Svg.Model.Drawables
 
             if (visualElement is { } && enableFilter)
             {
-                Filter = SvgExtensions.GetFilterPaint(visualElement, GeometryBounds, viewport ?? GeometryBounds, this, AssetLoader, out var isValid, out var filterClip);
+                Filter = SvgExtensions.GetFilterPaint(visualElement, GeometryBounds, viewport ?? GeometryBounds, this, AssetLoader, References, out var isValid, out var filterClip);
                 FilterClip = filterClip;
                 if (isValid == false)
                 {

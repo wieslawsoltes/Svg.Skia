@@ -562,7 +562,7 @@ namespace Svg.Model
             }
         }
 
-        internal static SKPicture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity, IAssetLoader assetLoader, DrawAttributes ignoreAttributes)
+        internal static SKPicture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
         {
             var skSize = new SKSize(width, height);
             var skBounds = SKRect.Create(skSize);
@@ -581,7 +581,7 @@ namespace Svg.Model
             
             foreach (var svgElement in svgElementCollection)
             {
-                var drawable = DrawableFactory.Create(svgElement, skBounds, null, assetLoader, ignoreAttributes);
+                var drawable = DrawableFactory.Create(svgElement, skBounds, null, assetLoader, references, ignoreAttributes);
                 if (drawable is { })
                 {
                     drawables.Add(drawable);
@@ -608,7 +608,7 @@ namespace Svg.Model
             return skPictureRecorder.EndRecording();
         }
 
-        internal static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, IAssetLoader assetLoader, DrawAttributes ignoreAttributes)
+        internal static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
         {
             var svgReferencedPatternServers = GetLinkedPatternServer(svgPatternServer, svgVisualElement);
 
@@ -743,12 +743,12 @@ namespace Svg.Model
                 }
             }
 
-            var skPicture = RecordPicture(firstChildren.Children, skRectTransformed.Value.Width, skRectTransformed.Value.Height, skPictureTransform, opacity, assetLoader, ignoreAttributes);
+            var skPicture = RecordPicture(firstChildren.Children, skRectTransformed.Value.Width, skRectTransformed.Value.Height, skPictureTransform, opacity, assetLoader, references, ignoreAttributes);
 
             return SKShader.CreatePicture(skPicture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, skMatrix, skPicture.CullRect);
         }
 
-        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, SKRect skBounds, SKPaint skPaint, bool forStroke, IAssetLoader assetLoader, DrawAttributes ignoreAttributes)
+        internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, SKRect skBounds, SKPaint skPaint, bool forStroke, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
         {
             var fallbackServer = SvgPaintServer.None;
             if (server is SvgDeferredPaintServer deferredServer)
@@ -793,7 +793,7 @@ namespace Svg.Model
                         var skColorSpace = isLinearRgb ? SKColorSpace.SrgbLinear : SKColorSpace.Srgb;
 #endif
                         // TODO: Use skColorSpace in CreatePicture
-                        var skPatternShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, assetLoader, ignoreAttributes);
+                        var skPatternShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, assetLoader, references, ignoreAttributes);
                         if (skPatternShader is { })
                         {
                             skPaint.Shader = skPatternShader;
@@ -911,7 +911,7 @@ namespace Svg.Model
                     break;
 
                 case SvgDeferredPaintServer svgDeferredPaintServer:
-                    return SetColorOrShader(svgVisualElement, svgDeferredPaintServer, opacity, skBounds, skPaint, forStroke, assetLoader, ignoreAttributes);
+                    return SetColorOrShader(svgVisualElement, svgDeferredPaintServer, opacity, skBounds, skPaint, forStroke, assetLoader, references, ignoreAttributes);
 
                 default:
                     // Do not draw element.
@@ -958,7 +958,7 @@ namespace Svg.Model
                 && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
         }
 
-        internal static SKPaint? GetFillPaint(SvgVisualElement svgVisualElement, SKRect skBounds, IAssetLoader assetLoader, DrawAttributes ignoreAttributes)
+        internal static SKPaint? GetFillPaint(SvgVisualElement svgVisualElement, SKRect skBounds, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
         {
             var skPaint = new SKPaint
             {
@@ -968,7 +968,7 @@ namespace Svg.Model
 
             var server = svgVisualElement.Fill;
             var opacity = AdjustSvgOpacity(svgVisualElement.FillOpacity);
-            if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: false, assetLoader: assetLoader, ignoreAttributes: ignoreAttributes) == false)
+            if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: false, assetLoader: assetLoader, references, ignoreAttributes: ignoreAttributes) == false)
             {
                 return default;
             }
@@ -976,7 +976,7 @@ namespace Svg.Model
             return skPaint;
         }
 
-        internal static SKPaint? GetStrokePaint(SvgVisualElement svgVisualElement, SKRect skBounds, IAssetLoader assetLoader, DrawAttributes ignoreAttributes)
+        internal static SKPaint? GetStrokePaint(SvgVisualElement svgVisualElement, SKRect skBounds, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
         {
             var skPaint = new SKPaint
             {
@@ -986,7 +986,7 @@ namespace Svg.Model
 
             var server = svgVisualElement.Stroke;
             var opacity = AdjustSvgOpacity(svgVisualElement.StrokeOpacity);
-            if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: true, assetLoader: assetLoader, ignoreAttributes: ignoreAttributes) == false)
+            if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: true, assetLoader: assetLoader, references, ignoreAttributes: ignoreAttributes) == false)
             {
                 return default;
             }

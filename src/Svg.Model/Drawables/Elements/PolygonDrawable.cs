@@ -1,4 +1,6 @@
-﻿#if USE_SKIASHARP
+﻿using System;
+using System.Collections.Generic;
+#if USE_SKIASHARP
 using SkiaSharp;
 #else
 using ShimSkiaSharp.Primitives;
@@ -8,14 +10,14 @@ namespace Svg.Model.Drawables.Elements
 {
     public sealed class PolygonDrawable : DrawablePath
     {
-        private PolygonDrawable(IAssetLoader assetLoader)
-            : base(assetLoader)
+        private PolygonDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+            : base(assetLoader, references)
         {
         }
 
-        public static PolygonDrawable Create(SvgPolygon svgPolygon, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static PolygonDrawable Create(SvgPolygon svgPolygon, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
-            var drawable = new PolygonDrawable(assetLoader)
+            var drawable = new PolygonDrawable(assetLoader, references)
             {
                 Element = svgPolygon,
                 Parent = parent,
@@ -47,7 +49,7 @@ namespace Svg.Model.Drawables.Elements
 
             if (SvgExtensions.IsValidFill(svgPolygon))
             {
-                drawable.Fill = SvgExtensions.GetFillPaint(svgPolygon, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Fill = SvgExtensions.GetFillPaint(svgPolygon, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
                 if (drawable.Fill is null)
                 {
                     canDrawFill = false;
@@ -56,7 +58,7 @@ namespace Svg.Model.Drawables.Elements
 
             if (SvgExtensions.IsValidStroke(svgPolygon, drawable.GeometryBounds))
             {
-                drawable.Stroke = SvgExtensions.GetStrokePaint(svgPolygon, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Stroke = SvgExtensions.GetStrokePaint(svgPolygon, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
                 if (drawable.Stroke is null)
                 {
                     canDrawStroke = false;
@@ -69,7 +71,7 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            SvgExtensions.CreateMarkers(svgPolygon, drawable.Path, skOwnerBounds, drawable, assetLoader);
+            SvgExtensions.CreateMarkers(svgPolygon, drawable.Path, skOwnerBounds, drawable, assetLoader, references);
 
             return drawable;
         }

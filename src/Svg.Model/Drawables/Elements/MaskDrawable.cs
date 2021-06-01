@@ -10,14 +10,14 @@ namespace Svg.Model.Drawables.Elements
 {
     public sealed class MaskDrawable : DrawableContainer
     {
-        private MaskDrawable(IAssetLoader assetLoader)
-            : base(assetLoader)
+        private MaskDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+            : base(assetLoader, references)
         {
         }
 
-        public static MaskDrawable Create(SvgMask svgMask, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static MaskDrawable Create(SvgMask svgMask, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
-            var drawable = new MaskDrawable(assetLoader)
+            var drawable = new MaskDrawable(assetLoader, references)
             {
                 Element = svgMask,
                 Parent = parent,
@@ -56,7 +56,7 @@ namespace Svg.Model.Drawables.Elements
                 skMatrix = skMatrix.PreConcat(skBoundsScaleTransform);
             }
 
-            drawable.CreateChildren(svgMask, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
+            drawable.CreateChildren(svgMask, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
 
             drawable.Overflow = skRectTransformed;
 
@@ -86,7 +86,7 @@ namespace Svg.Model.Drawables.Elements
 
             if (enableMask)
             {
-                MaskDrawable = SvgExtensions.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader);
+                MaskDrawable = SvgExtensions.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader, References);
                 if (MaskDrawable is { })
                 {
                     CreateMaskPaints();

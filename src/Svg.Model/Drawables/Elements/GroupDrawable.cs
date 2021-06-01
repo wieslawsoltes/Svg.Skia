@@ -1,4 +1,6 @@
-﻿#if USE_SKIASHARP
+﻿using System;
+using System.Collections.Generic;
+#if USE_SKIASHARP
 using SkiaSharp;
 #else
 using ShimSkiaSharp.Primitives;
@@ -7,14 +9,14 @@ namespace Svg.Model.Drawables.Elements
 {
     public sealed class GroupDrawable : DrawableContainer
     {
-        private GroupDrawable(IAssetLoader assetLoader)
-            : base(assetLoader)
+        private GroupDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+            : base(assetLoader, references)
         {
         }
 
-        public static GroupDrawable Create(SvgGroup svgGroup, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static GroupDrawable Create(SvgGroup svgGroup, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
-            var drawable = new GroupDrawable(assetLoader)
+            var drawable = new GroupDrawable(assetLoader, references)
             {
                 Element = svgGroup,
                 Parent = parent,
@@ -26,7 +28,7 @@ namespace Svg.Model.Drawables.Elements
             // NOTE: Call AddMarkers only once.
             SvgExtensions.AddMarkers(svgGroup);
 
-            drawable.CreateChildren(svgGroup, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
+            drawable.CreateChildren(svgGroup, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
 
             // TODO: Check if children are explicitly set to be visible.
             //foreach (var child in drawable.ChildrenDrawables)
@@ -53,12 +55,12 @@ namespace Svg.Model.Drawables.Elements
 
             if (SvgExtensions.IsValidFill(svgGroup))
             {
-                drawable.Fill = SvgExtensions.GetFillPaint(svgGroup, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Fill = SvgExtensions.GetFillPaint(svgGroup, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
             }
 
             if (SvgExtensions.IsValidStroke(svgGroup, drawable.GeometryBounds))
             {
-                drawable.Stroke = SvgExtensions.GetStrokePaint(svgGroup, drawable.GeometryBounds, assetLoader, ignoreAttributes);
+                drawable.Stroke = SvgExtensions.GetStrokePaint(svgGroup, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
             }
 
             return drawable;

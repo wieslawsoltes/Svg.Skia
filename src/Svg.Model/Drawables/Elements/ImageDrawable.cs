@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 #if USE_SKIASHARP
 using SkiaSharp;
 #else
@@ -16,14 +18,14 @@ namespace Svg.Model.Drawables.Elements
         public SKRect DestRect { get; set; }
         public SKMatrix FragmentTransform { get; set; }
 
-        private ImageDrawable(IAssetLoader assetLoader)
-            : base(assetLoader)
+        private ImageDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+            : base(assetLoader, references)
         {
         }
 
-        public static ImageDrawable Create(SvgImage svgImage, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static ImageDrawable Create(SvgImage svgImage, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
-            var drawable = new ImageDrawable(assetLoader)
+            var drawable = new ImageDrawable(assetLoader, references)
             {
                 Element = svgImage,
                 Parent = parent,
@@ -95,7 +97,7 @@ namespace Svg.Model.Drawables.Elements
 
             if (svgFragment is { })
             {
-                drawable.FragmentDrawable = FragmentDrawable.Create(svgFragment, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
+                drawable.FragmentDrawable = FragmentDrawable.Create(svgFragment, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
             }
 
             drawable.IsAntialias = SvgExtensions.IsAntialias(svgImage);

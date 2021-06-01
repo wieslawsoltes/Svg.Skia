@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Svg.DataTypes;
 #if USE_SKIASHARP
 using SkiaSharp;
@@ -14,14 +15,14 @@ namespace Svg.Model.Drawables.Elements
         public DrawableBase? MarkerElementDrawable { get; set; }
         public SKRect? MarkerClipRect { get; set; }
 
-        private MarkerDrawable(IAssetLoader assetLoader)
-            : base(assetLoader)
+        private MarkerDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+            : base(assetLoader, references)
         {
         }
 
-        public static MarkerDrawable Create(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static MarkerDrawable Create(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
-            var drawable = new MarkerDrawable(assetLoader)
+            var drawable = new MarkerDrawable(assetLoader, references)
             {
                 Element = svgMarker,
                 Parent = parent,
@@ -106,7 +107,7 @@ namespace Svg.Model.Drawables.Elements
                     break;
             }
 
-            var markerElementDrawable = DrawableFactory.Create(markerElement, skOwnerBounds, drawable, assetLoader, DrawAttributes.Display);
+            var markerElementDrawable = DrawableFactory.Create(markerElement, skOwnerBounds, drawable, assetLoader, references, DrawAttributes.Display);
             if (markerElementDrawable is { })
             {
                 drawable.MarkerElementDrawable = markerElementDrawable;

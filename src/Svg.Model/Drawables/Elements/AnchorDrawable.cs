@@ -1,4 +1,6 @@
-﻿#if USE_SKIASHARP
+﻿using System;
+using System.Collections.Generic;
+#if USE_SKIASHARP
 using SkiaSharp;
 #else
 using ShimSkiaSharp.Primitives;
@@ -8,14 +10,14 @@ namespace Svg.Model.Drawables.Elements
 {
     public sealed class AnchorDrawable : DrawableContainer
     {
-        private AnchorDrawable(IAssetLoader assetLoader)
-            : base(assetLoader)
+        private AnchorDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+            : base(assetLoader, references)
         {
         }
 
-        public static AnchorDrawable Create(SvgAnchor svgAnchor, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static AnchorDrawable Create(SvgAnchor svgAnchor, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
-            var drawable = new AnchorDrawable(assetLoader)
+            var drawable = new AnchorDrawable(assetLoader, references)
             {
                 Element = svgAnchor,
                 Parent = parent,
@@ -23,7 +25,7 @@ namespace Svg.Model.Drawables.Elements
                 IsDrawable = true
             };
 
-            drawable.CreateChildren(svgAnchor, skOwnerBounds, drawable, assetLoader, ignoreAttributes);
+            drawable.CreateChildren(svgAnchor, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
 
             drawable.IsAntialias = SvgExtensions.IsAntialias(svgAnchor);
 
