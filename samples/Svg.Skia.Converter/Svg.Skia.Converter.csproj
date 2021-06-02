@@ -26,10 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Svg.Skia.Converter.rd.xml" />
     <Content Include="SvgToPng.ico" />
   </ItemGroup>
 
+  <Import Project="..\..\build\NativeAOT.props" />
   <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
@@ -38,34 +38,6 @@
   <Import Project="..\..\build\HarfBuzzSharp.NativeAssets.Linux.props" />
   <Import Project="..\..\build\Newtonsoft.Json.props" />
   <Import Project="..\..\build\System.CommandLine.props" />
-
-  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' or '$(RuntimeIdentifier)' == 'linux-x64' or '$(RuntimeIdentifier)' == 'osx-x64'">
-    <CoreRT>True</CoreRT>
-  </PropertyGroup>
-
-  <!-- https://github.com/dotnet/corert -->
-  <ItemGroup Condition="'$(CoreRT)' == 'True'">
-    <RdXmlFile Include="Svg.Skia.Converter.rd.xml" />
-    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="1.0.0-alpha-*" />
-  </ItemGroup>
-
-  <!-- https://github.com/dotnet/corert/blob/master/Documentation/using-corert/optimizing-corert.md -->
-  <PropertyGroup Condition="'$(CoreRT)' == 'True'">
-    <RootAllApplicationAssemblies>False</RootAllApplicationAssemblies>
-    <IlcGenerateCompleteTypeMetadata>False</IlcGenerateCompleteTypeMetadata>
-    <IlcGenerateStackTraceData>False</IlcGenerateStackTraceData>
-  </PropertyGroup>
-
-  <!-- https://github.com/dotnet/corert/issues/5496 -->
-  <Target Name="CopyClrCompressionDll" AfterTargets="Publish" Condition="'$(CoreRT)' == 'True' and '$(RuntimeIdentifier)' == 'win-x64'">
-    <Copy SourceFiles="$(IlcPath)\framework\clrcompression.dll" DestinationFolder="$(PublishDir)" />
-  </Target>
-
-  <PropertyGroup Condition="'$(CoreRT)' != 'True'">
-    <PublishTrimmed>False</PublishTrimmed>
-    <PublishSingleFile>False</PublishSingleFile>
-    <PublishReadyToRun>False</PublishReadyToRun>
-  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Svg.Skia\Svg.Skia.csproj" />

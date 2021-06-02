@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' or '$(RuntimeIdentifier)' == 'linux-x64' or '$(RuntimeIdentifier)' == 'osx-x64'">
+    <NativeAOT>True</NativeAOT>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(NativeAOT)' != 'True'">
+    <PublishTrimmed>False</PublishTrimmed>
+    <PublishSingleFile>False</PublishSingleFile>
+    <PublishReadyToRun>True</PublishReadyToRun>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(NativeAOT)' == 'True'">
+    <TrimMode>link</TrimMode>
+    <RootAllApplicationAssemblies>False</RootAllApplicationAssemblies>
+    <IlcGenerateCompleteTypeMetadata>false</IlcGenerateCompleteTypeMetadata>
+    <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
+    <IlcDisableUnhandledExceptionExperience>true</IlcDisableUnhandledExceptionExperience>
+    <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
+    <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(NativeAOT)' == 'True' and $(RuntimeIdentifier.StartsWith('win'))">
+    <NativeLibrary Include="WindowsApp.lib" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(NativeAOT)' == 'True'">
+    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="6.0.0-*" />
+  </ItemGroup>
+
+  <Target Name="CopyClrCompressionDll" AfterTargets="Publish" Condition="'$(NativeAOT)' == 'True' and '$(RuntimeIdentifier)' == 'win-x64'">
+    <Copy SourceFiles="$(IlcPath)\framework\clrcompression.dll" DestinationFolder="$(PublishDir)" />
+  </Target>
+
+  <ItemGroup Condition="'$(NativeAOT)' == 'True'">
+    <RdXmlFile Include="$(AssemblyName).rd.xml" />
+  </ItemGroup>
+
+</Project>
