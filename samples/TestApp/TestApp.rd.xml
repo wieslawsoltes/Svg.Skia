@@ -1,24 +1,53 @@
 ﻿<Directives>
   <Application>
 
+    <!-- App -->
+
     <Assembly Name="TestApp" Dynamic="Required All"></Assembly>
 
+    <!-- Svg -->
+
+    <Assembly Name="System.Drawing.Common" Dynamic="Required All"></Assembly>
+    <Assembly Name="Fizzler" Dynamic="Required All"></Assembly>
+    <Assembly Name="Svg.Custom" Dynamic="Required All"></Assembly>
     <Assembly Name="ShimSkiaSharp" Dynamic="Required All"></Assembly>
     <Assembly Name="Svg.Model" Dynamic="Required All"></Assembly>
     <Assembly Name="Svg.Skia" Dynamic="Required All"></Assembly>
     <Assembly Name="Svg.CodeGen.Skia" Dynamic="Required All"></Assembly>
     <Assembly Name="Avalonia.Svg.Skia" Dynamic="Required All"></Assembly>
 
-    <Assembly Name="System.Drawing.Common" Dynamic="Required All"></Assembly>
-    <Assembly Name="Svg.Custom" Dynamic="Required All"></Assembly>
-    <Assembly Name="Fizzler" Dynamic="Required All"></Assembly>
+    <!-- Newtonsoft.Json -->
+
+    <Assembly Name="Newtonsoft.Json" Dynamic="Required All" >
+      <Type Name="Newtonsoft.Json.Serialization.ObjectConstructor`1[[System.Object,System.Private.CoreLib]]" Dynamic="Required All" />
+    </Assembly>
+
+    <!-- ReactiveUI -->
 
     <Assembly Name="ReactiveUI" Dynamic="Required All"></Assembly>
     <Assembly Name="DynamicData" Dynamic="Required All"></Assembly>
     <Assembly Name="System.Reactive" Dynamic="Required All"></Assembly>
 
-    <Assembly Name="SkiaSharp" Dynamic="Required All"></Assembly>
+    <!-- SkiaSharp -->
+
+    <Assembly Name="SkiaSharp">
+      <Type Name="SkiaSharp.SKData" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKImage" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKTypeface" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKString" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKSurface" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKCanvas" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKShader" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKPicture" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKPictureRecorder" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKColorFilter" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKImageFilter" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKPathEffect" Dynamic="Required All" />
+      <Type Name="SkiaSharp.SKCodec" Dynamic="Required All" />
+    </Assembly>
     <Assembly Name="HarfBuzzSharp" Dynamic="Required All"></Assembly>
+
+    <!-- Avalonia -->
 
     <Assembly Name="Avalonia" Dynamic="Required All"></Assembly>
     <Assembly Name="Avalonia.Animation" Dynamic="Required All"></Assembly>

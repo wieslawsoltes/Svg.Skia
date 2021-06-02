@@ -3,16 +3,18 @@
 
     <!-- App -->
 
-    <Assembly Name="Svg.Skia" Dynamic="Required All" />
     <Assembly Name="Svg.Skia.Converter" Dynamic="Required All" />
 
     <!-- Svg -->
 
     <Assembly Name="System.Drawing.Common" Dynamic="Required All" />
     <Assembly Name="Fizzler" Dynamic="Required All" />
-    <Assembly Name="Svg.Custom" Dynamic="Required All" />
+    <Assembly Name="Svg.Custom" Dynamic="Required All"></Assembly>
+    <Assembly Name="ShimSkiaSharp" Dynamic="Required All"></Assembly>
+    <Assembly Name="Svg.Model" Dynamic="Required All"></Assembly>
+    <Assembly Name="Svg.Skia" Dynamic="Required All"></Assembly>
 
-    <!-- Newtonsoft.Json" -->
+    <!-- Newtonsoft.Json -->
 
     <Assembly Name="Newtonsoft.Json" Dynamic="Required All" >
       <Type Name="Newtonsoft.Json.Serialization.ObjectConstructor`1[[System.Object,System.Private.CoreLib]]" Dynamic="Required All" />
@@ -34,7 +36,6 @@
       <Type Name="SkiaSharp.SKImageFilter" Dynamic="Required All" />
       <Type Name="SkiaSharp.SKPathEffect" Dynamic="Required All" />
       <Type Name="SkiaSharp.SKCodec" Dynamic="Required All" />
-
     </Assembly>
 
     <!-- .NET Core -->

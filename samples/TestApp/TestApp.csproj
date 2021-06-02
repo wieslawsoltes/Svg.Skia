@@ -11,6 +11,7 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
+  <Import Project="..\..\build\NativeAOT.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <Import Project="..\..\build\Avalonia.props" />
   <Import Project="..\..\build\Avalonia.Desktop.props" />
@@ -23,36 +24,6 @@
     <ProjectReference Include="..\..\src\Avalonia.Svg.Skia\Avalonia.Svg.Skia.csproj" />
     <ProjectReference Include="..\..\src\Svg.CodeGen.Skia\Svg.CodeGen.Skia.csproj" />
     <ProjectReference Include="..\..\src\Svg.Skia\Svg.Skia.csproj" />
-  </ItemGroup>
-
-  <PropertyGroup>
-    <TrimMode>link</TrimMode>
-    <IlcGenerateCompleteTypeMetadata>false</IlcGenerateCompleteTypeMetadata>
-    <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
-    <IlcDisableUnhandledExceptionExperience>true</IlcDisableUnhandledExceptionExperience>
-    <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
-    <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
-  </PropertyGroup>
-
-  <!-- https://github.com/dotnet/runtimelab/blob/feature/NativeAOT/docs/using-nativeaot/troubleshooting.md -->
-  <!--<PropertyGroup>
-    <IlcGenerateMetadataLog>true</IlcGenerateMetadataLog>
-    <IlcGenerateDgmlFile>true</IlcGenerateDgmlFile>
-    <IlcGenerateMapFile>true</IlcGenerateMapFile>
-    <IlcSingleThreaded>true</IlcSingleThreaded>
-    <IlcDumpGeneratedIL>true</IlcDumpGeneratedIL>
-  </PropertyGroup>-->
-
-  <ItemGroup Condition="$(RuntimeIdentifier.StartsWith('win'))">
-    <NativeLibrary Include="WindowsApp.lib" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <RdXmlFile Include="rd.xml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="6.0.0-*" />
   </ItemGroup>
 
 </Project>
