@@ -1,3 +1,7 @@
+# NativeAOT
+
+https://github.com/dotnet/runtimelab/tree/feature/NativeAOT
+
 # win-x64
 
 dotnet publish TestApp.csproj -r win-x64 -c Release -o ./TestApp-win-x64
