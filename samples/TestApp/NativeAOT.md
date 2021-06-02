@@ -1,6 +1,7 @@
 # NativeAOT
 
 https://github.com/dotnet/runtimelab/tree/feature/NativeAOT
+https://github.com/dotnet/runtimelab/blob/feature/NativeAOT/docs/using-nativeaot/prerequisites.md
 
 # win-x64
 
