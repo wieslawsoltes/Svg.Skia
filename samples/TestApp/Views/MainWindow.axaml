@@ -138,7 +138,10 @@
                 <ToggleSwitch IsChecked="{Binding #Svg.EnableCache}"
                               OnContent="Cache Enabled"
                               OffContent="Cache Disabled"
-                              Margin="6,0,0,0"/>
+                              Margin="6,0,6,0"/>
+                <Button Content="Copy as C#" 
+                        Command="{Binding CopyAsCSharpCommand}" 
+                        CommandParameter="{Binding #Svg}"/>
             </StackPanel>
             <ScrollViewer HorizontalScrollBarVisibility="{Binding #HorizontalScrollBarVisibility.SelectedItem.Content}" 
                           VerticalScrollBarVisibility="{Binding #VerticalScrollBarVisibility.SelectedItem.Content}">
