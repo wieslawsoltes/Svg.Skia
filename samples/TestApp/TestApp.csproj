@@ -30,16 +30,18 @@
     <IlcGenerateCompleteTypeMetadata>false</IlcGenerateCompleteTypeMetadata>
     <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
     <IlcDisableUnhandledExceptionExperience>true</IlcDisableUnhandledExceptionExperience>
+    <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
+    <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
   </PropertyGroup>
 
   <!-- https://github.com/dotnet/runtimelab/blob/feature/NativeAOT/docs/using-nativeaot/troubleshooting.md -->
-  <PropertyGroup>
+  <!--<PropertyGroup>
     <IlcGenerateMetadataLog>true</IlcGenerateMetadataLog>
     <IlcGenerateDgmlFile>true</IlcGenerateDgmlFile>
     <IlcGenerateMapFile>true</IlcGenerateMapFile>
     <IlcSingleThreaded>true</IlcSingleThreaded>
     <IlcDumpGeneratedIL>true</IlcDumpGeneratedIL>
-  </PropertyGroup>
+  </PropertyGroup>-->
 
   <ItemGroup Condition="$(RuntimeIdentifier.StartsWith('win'))">
     <NativeLibrary Include="WindowsApp.lib" />
