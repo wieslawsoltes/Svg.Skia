@@ -9,9 +9,11 @@ using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using Svg.CodeGen.Skia;
 using TestApp.Models;
 
 namespace TestApp.ViewModels
@@ -50,6 +52,8 @@ namespace TestApp.ViewModels
         public ICommand ClearConfigurationCommand { get; }
         
         public ICommand AddItemCommand { get; }
+
+        public ICommand CopyAsCSharpCommand { get; }
 
         public MainWindowViewModel()
         {
@@ -124,6 +128,35 @@ namespace TestApp.ViewModels
                     {
                         AddItem(path);
                     }
+                }
+            });
+
+            CopyAsCSharpCommand = ReactiveCommand.CreateFromTask<Avalonia.Svg.Skia.Svg>(async svg =>
+            {
+                if (_selectedItem is null || svg?.Model is null)
+                {
+                    return;
+                }
+
+                var code = SkiaCodeGen.Generate(svg.Model, "Svg", CreateClassName(_selectedItem.Path));
+
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    try
+                    {
+                        Application.Current.Clipboard.SetTextAsync(code);
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
+                });
+
+                static string CreateClassName(string filename)
+                {
+                    string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(filename);
+                    string className = fileNameWithoutExtension.Replace("-", "_");
+                    return $"Svg_{className}";
                 }
             });
         }
@@ -203,6 +236,5 @@ namespace TestApp.ViewModels
             var json = JsonSerializer.Serialize(configuration);
             File.WriteAllText(configurationPath, json);
         }
-
     }
 }
