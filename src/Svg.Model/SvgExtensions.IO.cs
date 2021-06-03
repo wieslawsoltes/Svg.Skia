@@ -227,7 +227,7 @@ namespace Svg.Model
             }
             drawable.PostProcess(fragmentBounds, SKMatrix.Identity);
 
-            if (fragmentBounds.IsEmpty)
+            if (fragmentBounds.IsEmpty || fragmentBounds.Width <= 0 || fragmentBounds.Height <= 0)
             {
                 var drawableBounds = drawable.Bounds;
                 fragmentBounds = SKRect.Create(
