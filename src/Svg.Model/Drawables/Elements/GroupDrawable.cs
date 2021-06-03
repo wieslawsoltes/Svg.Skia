@@ -45,25 +45,35 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgGroup);
+            drawable.Initialize(references);
 
-            drawable.GeometryBounds = SKRect.Empty;
+            return drawable;
+        }
 
-            drawable.CreateGeometryBounds();
+        private void Initialize(HashSet<Uri>? references)
+        {
+            if (Element is not SvgGroup svgGroup)
+            {
+                return;;
+            }
 
-            drawable.Transform = SvgExtensions.ToMatrix(svgGroup.Transforms);
+            IsAntialias = SvgExtensions.IsAntialias(svgGroup);
+
+            GeometryBounds = SKRect.Empty;
+
+            CreateGeometryBounds();
+
+            Transform = SvgExtensions.ToMatrix(svgGroup.Transforms);
 
             if (SvgExtensions.IsValidFill(svgGroup))
             {
-                drawable.Fill = SvgExtensions.GetFillPaint(svgGroup, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
+                Fill = SvgExtensions.GetFillPaint(svgGroup, GeometryBounds, AssetLoader, references, IgnoreAttributes);
             }
 
-            if (SvgExtensions.IsValidStroke(svgGroup, drawable.GeometryBounds))
+            if (SvgExtensions.IsValidStroke(svgGroup, GeometryBounds))
             {
-                drawable.Stroke = SvgExtensions.GetStrokePaint(svgGroup, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
+                Stroke = SvgExtensions.GetStrokePaint(svgGroup, GeometryBounds, AssetLoader, references, IgnoreAttributes);
             }
-
-            return drawable;
         }
     }
 }

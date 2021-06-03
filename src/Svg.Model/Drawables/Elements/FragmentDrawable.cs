@@ -45,15 +45,27 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.CreateChildren(svgFragment, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgFragment);
+            drawable.Initialize(skOwnerBounds, x, y, skSize);
 
-            drawable.GeometryBounds = skOwnerBounds;
+            return drawable;
+        }
 
-            drawable.CreateGeometryBounds();
+        private void Initialize(SKRect skOwnerBounds, float x, float y, SKSize skSize)
+        {
+            if (Element is not SvgFragment svgFragment)
+            {
+                return;;
+            }
 
-            drawable.Transform = SvgExtensions.ToMatrix(svgFragment.Transforms);
+            IsAntialias = SvgExtensions.IsAntialias(svgFragment);
+
+            GeometryBounds = skOwnerBounds;
+
+            CreateGeometryBounds();
+
+            Transform = SvgExtensions.ToMatrix(svgFragment.Transforms);
             var skMatrixViewBox = SvgExtensions.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
-            drawable.Transform = drawable.Transform.PreConcat(skMatrixViewBox);
+            Transform = Transform.PreConcat(skMatrixViewBox);
 
             switch (svgFragment.Overflow)
             {
@@ -65,16 +77,17 @@ namespace Svg.Model.Drawables.Elements
                 default:
                     if (skSize.IsEmpty)
                     {
-                        drawable.Overflow = SKRect.Create(
+                        Overflow = SKRect.Create(
                             x,
                             y,
-                            Math.Abs(drawable.GeometryBounds.Left) + drawable.GeometryBounds.Width,
-                            Math.Abs(drawable.GeometryBounds.Top) + drawable.GeometryBounds.Height);
+                            Math.Abs(GeometryBounds.Left) + GeometryBounds.Width,
+                            Math.Abs(GeometryBounds.Top) + GeometryBounds.Height);
                     }
                     else
                     {
-                        drawable.Overflow = SKRect.Create(x, y, skSize.Width, skSize.Height);
+                        Overflow = SKRect.Create(x, y, skSize.Width, skSize.Height);
                     }
+
                     break;
             }
 
@@ -87,24 +100,22 @@ namespace Svg.Model.Drawables.Elements
                     Clip = new ClipPath()
                 };
                 SvgExtensions.GetClipPath(svgClipPath, skOwnerBounds, clipPathUris, clipPath);
-                if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !drawable.IgnoreAttributes.HasFlag(DrawAttributes.ClipPath))
+                if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !IgnoreAttributes.HasFlag(DrawAttributes.ClipPath))
                 {
-                    drawable.ClipPath = clipPath;
+                    ClipPath = clipPath;
                 }
                 else
                 {
-                    drawable.ClipPath = null;
+                    ClipPath = null;
                 }
             }
             else
             {
-                drawable.ClipPath = null;
+                ClipPath = null;
             }
 
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
-            return drawable;
+            Fill = null;
+            Stroke = null;
         }
 
         public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)

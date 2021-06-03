@@ -61,19 +61,29 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgSwitch);
-
-            // TODO: use drawable.FirstChild.GeometryBounds
-            drawable.GeometryBounds = drawable.FirstChild.GeometryBounds;
-
-            drawable.Transform = SvgExtensions.ToMatrix(svgSwitch.Transforms);
-
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
+            drawable.Initialize();
+            
             return drawable;
         }
 
+        private void Initialize()
+        {
+            if (Element is not SvgSwitch svgSwitch || FirstChild is null)
+            {
+                return;
+            }
+            
+            IsAntialias = SvgExtensions.IsAntialias(svgSwitch);
+
+            // TODO: use drawable.FirstChild.GeometryBounds
+            GeometryBounds = FirstChild.GeometryBounds;
+
+            Transform = SvgExtensions.ToMatrix(svgSwitch.Transforms);
+
+            Fill = null;
+            Stroke = null;
+        }
+        
         public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)
         {
             if (until is { } && this == until)

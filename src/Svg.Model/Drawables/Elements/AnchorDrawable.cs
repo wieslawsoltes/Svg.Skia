@@ -27,23 +27,35 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.CreateChildren(svgAnchor, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgAnchor);
-
-            drawable.GeometryBounds = SKRect.Empty;
-            
-            drawable.CreateGeometryBounds();
-
-            drawable.Transform = SvgExtensions.ToMatrix(svgAnchor.Transforms);
-
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
-            drawable.ClipPath = null;
-            drawable.MaskDrawable = null;
-            drawable.Opacity = drawable.IgnoreAttributes.HasFlag(DrawAttributes.Opacity) ? null : SvgExtensions.GetOpacityPaint(svgAnchor);
-            drawable.Filter = null;
+            drawable.Initialize();
 
             return drawable;
+        }
+
+        private void Initialize()
+        {
+            if (Element is not SvgAnchor svgAnchor)
+            {
+                return;;
+            }
+
+            IsAntialias = SvgExtensions.IsAntialias(svgAnchor);
+
+            GeometryBounds = SKRect.Empty;
+
+            CreateGeometryBounds();
+
+            Transform = SvgExtensions.ToMatrix(svgAnchor.Transforms);
+
+            Fill = null;
+            Stroke = null;
+
+            ClipPath = null;
+            MaskDrawable = null;
+            Opacity = IgnoreAttributes.HasFlag(DrawAttributes.Opacity)
+                ? null
+                : SvgExtensions.GetOpacityPaint(svgAnchor);
+            Filter = null;
         }
 
         public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)

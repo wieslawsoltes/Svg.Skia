@@ -118,19 +118,29 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgMarker);
-
-            drawable.GeometryBounds = drawable.MarkerElementDrawable.GeometryBounds;
-
-            drawable.Transform = SvgExtensions.ToMatrix(svgMarker.Transforms);
-            drawable.Transform = drawable.Transform.PreConcat(skMarkerMatrix);
-
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
+            drawable.Initialize(skMarkerMatrix);
+            
             return drawable;
         }
 
+        private void Initialize(SKMatrix skMarkerMatrix)
+        {
+            if (Element is not SvgMarker svgMarker || MarkerElementDrawable is null)
+            {
+                return;
+            }
+
+            IsAntialias = SvgExtensions.IsAntialias(svgMarker);
+
+            GeometryBounds = MarkerElementDrawable.GeometryBounds;
+
+            Transform = SvgExtensions.ToMatrix(svgMarker.Transforms);
+            Transform = Transform.PreConcat(skMarkerMatrix);
+
+            Fill = null;
+            Stroke = null;
+        }
+        
         internal SvgVisualElement? GetMarkerElement(SvgMarker svgMarker)
         {
             SvgVisualElement? markerElement = null;

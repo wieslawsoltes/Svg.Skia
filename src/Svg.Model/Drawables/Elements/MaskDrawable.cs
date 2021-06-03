@@ -58,20 +58,30 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.CreateChildren(svgMask, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
 
-            drawable.Overflow = skRectTransformed;
-
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgMask);
-
-            drawable.GeometryBounds = skRectTransformed.Value;
-
-            drawable.Transform = skMatrix;
-
-            drawable.Fill = null;
-            drawable.Stroke = null;
+            drawable.Initialize(skRectTransformed.Value, skMatrix);
 
             return drawable;
         }
 
+        private void Initialize(SKRect skRectTransformed, SKMatrix skMatrix)
+        {
+            if (Element is not SvgMask svgMask)
+            {
+                return;
+            }
+
+            Overflow = skRectTransformed;
+
+            IsAntialias = SvgExtensions.IsAntialias(svgMask);
+
+            GeometryBounds = skRectTransformed;
+
+            Transform = skMatrix;
+
+            Fill = null;
+            Stroke = null;
+        }
+        
         public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
         {
             var element = Element;

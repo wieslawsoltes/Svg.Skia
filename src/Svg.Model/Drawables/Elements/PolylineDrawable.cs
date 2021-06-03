@@ -38,28 +38,40 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgPolyline);
+            drawable.Initialize(skOwnerBounds, references);
+            
+            return drawable;
+        }
 
-            drawable.GeometryBounds = drawable.Path.Bounds;
+        private void Initialize(SKRect skOwnerBounds, HashSet<Uri>? references)
+        {
+            if (Element is not SvgPolyline svgPolyline || Path is null)
+            {
+                return;
+            }
 
-            drawable.Transform = SvgExtensions.ToMatrix(svgPolyline.Transforms);
+            IsAntialias = SvgExtensions.IsAntialias(svgPolyline);
+
+            GeometryBounds = Path.Bounds;
+
+            Transform = SvgExtensions.ToMatrix(svgPolyline.Transforms);
 
             var canDrawFill = true;
             var canDrawStroke = true;
 
             if (SvgExtensions.IsValidFill(svgPolyline))
             {
-                drawable.Fill = SvgExtensions.GetFillPaint(svgPolyline, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
-                if (drawable.Fill is null)
+                Fill = SvgExtensions.GetFillPaint(svgPolyline, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+                if (Fill is null)
                 {
                     canDrawFill = false;
                 }
             }
 
-            if (SvgExtensions.IsValidStroke(svgPolyline, drawable.GeometryBounds))
+            if (SvgExtensions.IsValidStroke(svgPolyline, GeometryBounds))
             {
-                drawable.Stroke = SvgExtensions.GetStrokePaint(svgPolyline, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
-                if (drawable.Stroke is null)
+                Stroke = SvgExtensions.GetStrokePaint(svgPolyline, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+                if (Stroke is null)
                 {
                     canDrawStroke = false;
                 }
@@ -67,13 +79,11 @@ namespace Svg.Model.Drawables.Elements
 
             if (canDrawFill && !canDrawStroke)
             {
-                drawable.IsDrawable = false;
-                return drawable;
+                IsDrawable = false;
+                return;
             }
 
-            SvgExtensions.CreateMarkers(svgPolyline, drawable.Path, skOwnerBounds, drawable, assetLoader, references);
-
-            return drawable;
+            SvgExtensions.CreateMarkers(svgPolyline, Path, skOwnerBounds, this, AssetLoader, references);
         }
     }
 }

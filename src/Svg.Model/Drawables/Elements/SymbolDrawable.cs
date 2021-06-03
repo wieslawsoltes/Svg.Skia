@@ -70,20 +70,30 @@ namespace Svg.Model.Drawables.Elements
 
             drawable.CreateChildren(svgSymbol, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgSymbol);
-
-            drawable.GeometryBounds = SKRect.Empty;
-
-            drawable.CreateGeometryBounds();
-
-            drawable.Transform = SvgExtensions.ToMatrix(svgSymbol.Transforms);
-            var skMatrixViewBox = SvgExtensions.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
-            drawable.Transform = drawable.Transform.PreConcat(skMatrixViewBox);
-
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
+            drawable.Initialize(x, y, width, height);
+            
             return drawable;
+        }
+
+        private void Initialize(float x, float y, float width, float height)
+        {
+            if (Element is not SvgSymbol svgSymbol)
+            {
+                return;
+            }
+   
+            IsAntialias = SvgExtensions.IsAntialias(svgSymbol);
+
+            GeometryBounds = SKRect.Empty;
+
+            CreateGeometryBounds();
+
+            Transform = SvgExtensions.ToMatrix(svgSymbol.Transforms);
+            var skMatrixViewBox = SvgExtensions.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
+            Transform = Transform.PreConcat(skMatrixViewBox);
+
+            Fill = null;
+            Stroke = null;
         }
     }
 }

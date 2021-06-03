@@ -129,9 +129,16 @@ namespace Svg.Model.Drawables.Elements
                 Debug.WriteLine(ex.StackTrace);
             }
 
+            drawable.Initialize();
+
             return drawable;
         }
 
+        private void Initialize()
+        {
+            // TODO: Initialize
+        }
+        
         public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)
         {
             if (until is { } && this == until)

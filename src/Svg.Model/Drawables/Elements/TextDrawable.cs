@@ -27,7 +27,7 @@ namespace Svg.Model.Drawables.Elements
 
         public static TextDrawable Create(SvgText svgText, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
-            return new(assetLoader, references)
+            var drawable = new TextDrawable(assetLoader, references)
             {
                 Element = svgText,
                 Parent = parent,
@@ -35,6 +35,15 @@ namespace Svg.Model.Drawables.Elements
                 OwnerBounds = skOwnerBounds,
                 IgnoreAttributes = ignoreAttributes
             };
+
+            drawable.Initialize();
+
+            return drawable;
+        }
+
+        private void Initialize()
+        {
+            // TODO: Initialize
         }
 
         internal void GetPositionsX(SvgTextBase svgTextBase, SKRect skBounds, List<float> xs)
