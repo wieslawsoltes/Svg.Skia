@@ -124,7 +124,8 @@ namespace Svg.Model
                 charset = string.Empty;
             }
 
-            if (headers.Count > 0 && headers[headers.Count - 1].Trim().Equals("base64", StringComparison.OrdinalIgnoreCase))
+            if (headers.Count > 0 &&
+                headers[headers.Count - 1].Trim().Equals("base64", StringComparison.OrdinalIgnoreCase))
             {
                 base64 = true;
                 headers.RemoveAt(headers.Count - 1);
@@ -253,6 +254,7 @@ namespace Svg.Model
             {
                 return default;
             }
+
             var picture = drawable.Snapshot(bounds.Value);
             return picture;
         }
