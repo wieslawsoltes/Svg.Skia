@@ -15,7 +15,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static FragmentDrawable Create(SvgFragment svgFragment, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static FragmentDrawable Create(SvgFragment svgFragment, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new FragmentDrawable(assetLoader, references)
             {
@@ -33,24 +33,24 @@ namespace Svg.Model.Drawables.Elements
 
             var svgFragmentParent = svgFragment.Parent;
 
-            var x = svgFragmentParent is null ? 0f : svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skOwnerBounds);
-            var y = svgFragmentParent is null ? 0f : svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skOwnerBounds);
+            var x = svgFragmentParent is null ? 0f : svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skViewport);
+            var y = svgFragmentParent is null ? 0f : svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skViewport);
 
             var skSize = SvgExtensions.GetDimensions(svgFragment);
 
-            if (skOwnerBounds.IsEmpty)
+            if (skViewport.IsEmpty)
             {
-                skOwnerBounds = SKRect.Create(x, y, skSize.Width, skSize.Height);
+                skViewport = SKRect.Create(x, y, skSize.Width, skSize.Height);
             }
 
-            drawable.CreateChildren(svgFragment, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
+            drawable.CreateChildren(svgFragment, skViewport, drawable, assetLoader, references, ignoreAttributes);
 
-            drawable.Initialize(skOwnerBounds, x, y, skSize);
+            drawable.Initialize(skViewport, x, y, skSize);
 
             return drawable;
         }
 
-        private void Initialize(SKRect skOwnerBounds, float x, float y, SKSize skSize)
+        private void Initialize(SKRect skViewport, float x, float y, SKSize skSize)
         {
             if (Element is not SvgFragment svgFragment)
             {
@@ -59,7 +59,7 @@ namespace Svg.Model.Drawables.Elements
 
             IsAntialias = SvgExtensions.IsAntialias(svgFragment);
 
-            GeometryBounds = skOwnerBounds;
+            GeometryBounds = skViewport;
 
             CreateGeometryBounds();
 
@@ -99,7 +99,7 @@ namespace Svg.Model.Drawables.Elements
                 {
                     Clip = new ClipPath()
                 };
-                SvgExtensions.GetClipPath(svgClipPath, skOwnerBounds, clipPathUris, clipPath);
+                SvgExtensions.GetClipPath(svgClipPath, skViewport, clipPathUris, clipPath);
                 if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !IgnoreAttributes.HasFlag(DrawAttributes.ClipPath))
                 {
                     ClipPath = clipPath;

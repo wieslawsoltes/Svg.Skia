@@ -15,7 +15,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static AnchorDrawable Create(SvgAnchor svgAnchor, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static AnchorDrawable Create(SvgAnchor svgAnchor, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new AnchorDrawable(assetLoader, references)
             {
@@ -25,7 +25,7 @@ namespace Svg.Model.Drawables.Elements
                 IsDrawable = true
             };
 
-            drawable.CreateChildren(svgAnchor, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
+            drawable.CreateChildren(svgAnchor, skViewport, drawable, assetLoader, references, ignoreAttributes);
 
             drawable.Initialize();
 

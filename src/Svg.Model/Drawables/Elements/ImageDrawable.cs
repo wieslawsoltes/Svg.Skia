@@ -23,7 +23,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static ImageDrawable Create(SvgImage svgImage, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static ImageDrawable Create(SvgImage svgImage, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new ImageDrawable(assetLoader, references)
             {
@@ -39,10 +39,10 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            var width = svgImage.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, skOwnerBounds);
-            var height = svgImage.Height.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skOwnerBounds);
-            var x = svgImage.Location.X.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, skOwnerBounds);
-            var y = svgImage.Location.Y.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skOwnerBounds);
+            var width = svgImage.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, skViewport);
+            var height = svgImage.Height.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skViewport);
+            var x = svgImage.Location.X.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, skViewport);
+            var y = svgImage.Location.Y.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skViewport);
             var location = new SKPoint(x, y);
 
             if (width <= 0f || height <= 0f || svgImage.Href is null)
@@ -97,7 +97,7 @@ namespace Svg.Model.Drawables.Elements
 
             if (svgFragment is { })
             {
-                drawable.FragmentDrawable = FragmentDrawable.Create(svgFragment, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
+                drawable.FragmentDrawable = FragmentDrawable.Create(svgFragment, skViewport, drawable, assetLoader, references, ignoreAttributes);
             }
 
             drawable.Initialize();

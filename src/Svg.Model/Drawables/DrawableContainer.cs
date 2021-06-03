@@ -18,11 +18,11 @@ namespace Svg.Model.Drawables
             ChildrenDrawables = new List<DrawableBase>();
         }
 
-        protected void CreateChildren(SvgElement svgElement, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
+        protected void CreateChildren(SvgElement svgElement, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
         {
             foreach (var child in svgElement.Children)
             {
-                var drawable = DrawableFactory.Create(child, skOwnerBounds, parent, assetLoader, references, ignoreAttributes);
+                var drawable = DrawableFactory.Create(child, skViewport, parent, assetLoader, references, ignoreAttributes);
                 if (drawable is { })
                 {
                     ChildrenDrawables.Add(drawable);

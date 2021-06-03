@@ -17,7 +17,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static SwitchDrawable Create(SvgSwitch svgSwitch, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static SwitchDrawable Create(SvgSwitch svgSwitch, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new SwitchDrawable(assetLoader, references)
             {
@@ -46,7 +46,7 @@ namespace Svg.Model.Drawables.Elements
 
                 if (hasRequiredFeatures && hasRequiredExtensions && hasSystemLanguage)
                 {
-                    var childDrawable = DrawableFactory.Create(child, skOwnerBounds, parent, assetLoader, references, ignoreAttributes);
+                    var childDrawable = DrawableFactory.Create(child, skViewport, parent, assetLoader, references, ignoreAttributes);
                     if (childDrawable is { })
                     {
                         drawable.FirstChild = childDrawable;

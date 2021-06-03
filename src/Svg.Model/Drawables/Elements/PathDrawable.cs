@@ -15,7 +15,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static PathDrawable Create(SvgPath svgPath, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static PathDrawable Create(SvgPath svgPath, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new PathDrawable(assetLoader, references)
             {
@@ -38,12 +38,12 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.Initialize(skOwnerBounds, references);
+            drawable.Initialize(skViewport, references);
 
             return drawable;
         }
 
-        private void Initialize(SKRect skOwnerBounds, HashSet<Uri>? references)
+        private void Initialize(SKRect skViewport, HashSet<Uri>? references)
         {
             if (Element is not SvgPath svgPath || Path is null)
             {
@@ -83,7 +83,7 @@ namespace Svg.Model.Drawables.Elements
                 return;
             }
             
-            SvgExtensions.CreateMarkers(svgPath, Path, skOwnerBounds, this, AssetLoader, references);
+            SvgExtensions.CreateMarkers(svgPath, Path, skViewport, this, AssetLoader, references);
         }
     }
 }

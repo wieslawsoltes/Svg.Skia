@@ -14,7 +14,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static GroupDrawable Create(SvgGroup svgGroup, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static GroupDrawable Create(SvgGroup svgGroup, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new GroupDrawable(assetLoader, references)
             {
@@ -28,7 +28,7 @@ namespace Svg.Model.Drawables.Elements
             // NOTE: Call AddMarkers only once.
             SvgExtensions.AddMarkers(svgGroup);
 
-            drawable.CreateChildren(svgGroup, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
+            drawable.CreateChildren(svgGroup, skViewport, drawable, assetLoader, references, ignoreAttributes);
 
             // TODO: Check if children are explicitly set to be visible.
             //foreach (var child in drawable.ChildrenDrawables)

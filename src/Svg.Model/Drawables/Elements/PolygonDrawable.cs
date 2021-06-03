@@ -15,7 +15,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static PolygonDrawable Create(SvgPolygon svgPolygon, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static PolygonDrawable Create(SvgPolygon svgPolygon, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new PolygonDrawable(assetLoader, references)
             {
@@ -31,19 +31,19 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.Path = svgPolygon.Points?.ToPath(svgPolygon.FillRule, true, skOwnerBounds);
+            drawable.Path = svgPolygon.Points?.ToPath(svgPolygon.FillRule, true, skViewport);
             if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;
                 return drawable;
             }
 
-            drawable.Initialize(skOwnerBounds, references);
+            drawable.Initialize(skViewport, references);
 
             return drawable;
         }
 
-        private void Initialize(SKRect skOwnerBounds, HashSet<Uri>? references)
+        private void Initialize(SKRect skViewport, HashSet<Uri>? references)
         {
             if (Element is not SvgPolygon svgPolygon || Path is null)
             {
@@ -83,7 +83,7 @@ namespace Svg.Model.Drawables.Elements
                 return;
             }
 
-            SvgExtensions.CreateMarkers(svgPolygon, Path, skOwnerBounds, this, AssetLoader, references);
+            SvgExtensions.CreateMarkers(svgPolygon, Path, skViewport, this, AssetLoader, references);
         }
     }
 }

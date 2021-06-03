@@ -22,7 +22,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static UseDrawable Create(SvgUse svgUse, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static UseDrawable Create(SvgUse svgUse, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new UseDrawable(assetLoader, references)
             {
@@ -51,19 +51,19 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            var x = svgUse.X.ToDeviceValue(UnitRenderingType.Horizontal, svgUse, skOwnerBounds);
-            var y = svgUse.Y.ToDeviceValue(UnitRenderingType.Vertical, svgUse, skOwnerBounds);
-            var width = svgUse.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgUse, skOwnerBounds);
-            var height = svgUse.Height.ToDeviceValue(UnitRenderingType.Vertical, svgUse, skOwnerBounds);
+            var x = svgUse.X.ToDeviceValue(UnitRenderingType.Horizontal, svgUse, skViewport);
+            var y = svgUse.Y.ToDeviceValue(UnitRenderingType.Vertical, svgUse, skViewport);
+            var width = svgUse.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgUse, skViewport);
+            var height = svgUse.Height.ToDeviceValue(UnitRenderingType.Vertical, svgUse, skViewport);
 
             if (width <= 0f)
             {
-                width = new SvgUnit(SvgUnitType.Percentage, 100f).ToDeviceValue(UnitRenderingType.Horizontal, svgUse, skOwnerBounds);
+                width = new SvgUnit(SvgUnitType.Percentage, 100f).ToDeviceValue(UnitRenderingType.Horizontal, svgUse, skViewport);
             }
 
             if (height <= 0f)
             {
-                height = new SvgUnit(SvgUnitType.Percentage, 100f).ToDeviceValue(UnitRenderingType.Vertical, svgUse, skOwnerBounds);
+                height = new SvgUnit(SvgUnitType.Percentage, 100f).ToDeviceValue(UnitRenderingType.Vertical, svgUse, skViewport);
             }
 
             var originalReferencedElementParent = svgReferencedElement.Parent;
@@ -85,11 +85,11 @@ namespace Svg.Model.Drawables.Elements
 
             if (svgReferencedElement is SvgSymbol svgSymbol)
             {
-                drawable.ReferencedDrawable = SymbolDrawable.Create(svgSymbol, x, y, width, height, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
+                drawable.ReferencedDrawable = SymbolDrawable.Create(svgSymbol, x, y, width, height, skViewport, drawable, assetLoader, references, ignoreAttributes);
             }
             else
             {
-                var referencedDrawable = DrawableFactory.Create(svgReferencedElement, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
+                var referencedDrawable = DrawableFactory.Create(svgReferencedElement, skViewport, drawable, assetLoader, references, ignoreAttributes);
                 if (referencedDrawable is { })
                 {
                     drawable.ReferencedDrawable = referencedDrawable;

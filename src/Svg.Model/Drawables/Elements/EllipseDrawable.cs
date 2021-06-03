@@ -15,7 +15,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static EllipseDrawable Create(SvgEllipse svgEllipse, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static EllipseDrawable Create(SvgEllipse svgEllipse, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new EllipseDrawable(assetLoader, references)
             {
@@ -31,7 +31,7 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.Path = svgEllipse.ToPath(svgEllipse.FillRule, skOwnerBounds);
+            drawable.Path = svgEllipse.ToPath(svgEllipse.FillRule, skViewport);
             if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;

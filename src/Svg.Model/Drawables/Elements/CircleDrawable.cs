@@ -15,7 +15,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static CircleDrawable Create(SvgCircle svgCircle, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static CircleDrawable Create(SvgCircle svgCircle, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new CircleDrawable(assetLoader, references)
             {
@@ -31,7 +31,7 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.Path = svgCircle.ToPath(svgCircle.FillRule, skOwnerBounds);
+            drawable.Path = svgCircle.ToPath(svgCircle.FillRule, skViewport);
             if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;

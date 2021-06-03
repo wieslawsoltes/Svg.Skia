@@ -15,7 +15,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static LineDrawable Create(SvgLine svgLine, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static LineDrawable Create(SvgLine svgLine, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new LineDrawable(assetLoader, references)
             {
@@ -31,19 +31,19 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.Path = svgLine.ToPath(svgLine.FillRule, skOwnerBounds);
+            drawable.Path = svgLine.ToPath(svgLine.FillRule, skViewport);
             if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;
                 return drawable;
             }
 
-            drawable.Initialize(skOwnerBounds, references);
+            drawable.Initialize(skViewport, references);
 
             return drawable;
         }
 
-        private void Initialize(SKRect skOwnerBounds,HashSet<Uri>? references)
+        private void Initialize(SKRect skViewport,HashSet<Uri>? references)
         {
             if (Element is not SvgLine svgLine || Path is null)
             {
@@ -83,7 +83,7 @@ namespace Svg.Model.Drawables.Elements
                 return;
             }
 
-            SvgExtensions.CreateMarkers(svgLine, Path, skOwnerBounds, this, AssetLoader, references);
+            SvgExtensions.CreateMarkers(svgLine, Path, skViewport, this, AssetLoader, references);
         }
     }
 }

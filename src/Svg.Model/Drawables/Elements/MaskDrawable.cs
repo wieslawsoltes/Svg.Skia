@@ -15,7 +15,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static MaskDrawable Create(SvgMask svgMask, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static MaskDrawable Create(SvgMask svgMask, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new MaskDrawable(assetLoader, references)
             {
@@ -38,7 +38,7 @@ namespace Svg.Model.Drawables.Elements
             var heightUnit = svgMask.Height;
 
             // TODO: Pass correct skViewport
-            var skRectTransformed = SvgExtensions.CalculateRect(xUnit, yUnit, widthUnit, heightUnit, maskUnits, skOwnerBounds, skOwnerBounds, svgMask);
+            var skRectTransformed = SvgExtensions.CalculateRect(xUnit, yUnit, widthUnit, heightUnit, maskUnits, skViewport, skViewport, svgMask);
             if (skRectTransformed is null)
             {
                 drawable.IsDrawable = false;
@@ -49,14 +49,14 @@ namespace Svg.Model.Drawables.Elements
 
             if (maskContentUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
-                var skBoundsTranslateTransform = SKMatrix.CreateTranslation(skOwnerBounds.Left, skOwnerBounds.Top);
+                var skBoundsTranslateTransform = SKMatrix.CreateTranslation(skViewport.Left, skViewport.Top);
                 skMatrix = skMatrix.PreConcat(skBoundsTranslateTransform);
 
-                var skBoundsScaleTransform = SKMatrix.CreateScale(skOwnerBounds.Width, skOwnerBounds.Height);
+                var skBoundsScaleTransform = SKMatrix.CreateScale(skViewport.Width, skViewport.Height);
                 skMatrix = skMatrix.PreConcat(skBoundsScaleTransform);
             }
 
-            drawable.CreateChildren(svgMask, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
+            drawable.CreateChildren(svgMask, skViewport, drawable, assetLoader, references, ignoreAttributes);
 
             drawable.Initialize(skRectTransformed.Value, skMatrix);
 
