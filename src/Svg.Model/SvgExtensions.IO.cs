@@ -55,6 +55,7 @@ namespace Svg.Model
                 {
                     return GetImageFromDataUri(uriString, svgOwnerDocument, assetLoader);
                 }
+
                 return GetImageFromWeb(uri, assetLoader);
             }
             catch (Exception ex)
@@ -161,9 +162,11 @@ namespace Svg.Model
                             return LoadSvgz(bytesStream, svgOwnerDocument.BaseUri);
                         }
                     }
+
                     var encoding = string.IsNullOrEmpty(charset) ? Encoding.UTF8 : Encoding.GetEncoding(charset);
                     data = encoding.GetString(bytes);
                 }
+
                 var buffer = Encoding.Default.GetBytes(data);
                 using var stream = new System.IO.MemoryStream(buffer);
                 return LoadSvg(stream, svgOwnerDocument.BaseUri);
@@ -184,6 +187,7 @@ namespace Svg.Model
                             return LoadSvgz(bytesStream, svgOwnerDocument.BaseUri);
                         }
                     }
+
                     using var stream = new System.IO.MemoryStream(bytes);
                     return assetLoader.LoadImage(stream);
                 }
