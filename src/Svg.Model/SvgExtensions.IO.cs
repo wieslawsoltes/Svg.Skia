@@ -169,7 +169,8 @@ namespace Svg.Model
                 return LoadSvg(stream, svgOwnerDocument.BaseUri);
             }
 
-            if (mimeType.StartsWith("image/", StringComparison.Ordinal) || mimeType.StartsWith("img/", StringComparison.Ordinal))
+            if (mimeType.StartsWith("image/", StringComparison.Ordinal) ||
+                mimeType.StartsWith("img/", StringComparison.Ordinal))
             {
                 if (base64)
                 {
@@ -230,9 +231,6 @@ namespace Svg.Model
             if (fragmentBounds.IsEmpty || fragmentBounds.Width <= 0 || fragmentBounds.Height <= 0)
             {
                 var drawableBounds = drawable.Bounds;
-                fragmentBounds = SKRect.Create(
-                    0f,
-                    0f,
                     Math.Abs(drawableBounds.Left) + drawableBounds.Width,
                     Math.Abs(drawableBounds.Top) + drawableBounds.Height);
             }
