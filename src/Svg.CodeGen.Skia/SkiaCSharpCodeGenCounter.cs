@@ -2,34 +2,62 @@
 {
     public class SkiaCSharpCodeGenCounter
     {
-        public int Picture = -1;
-        public int PictureRecorder = -1;
-        public int Canvas = -1;
-        public int Paint = -1;
-        public int Typeface = -1;
-        public int TextBlob = -1;
-        public int Font = -1;
-        public int ColorFilter = -1;
-        public int ImageFilter = -1;
-        public int PathEffect = -1;
-        public int Shader = -1;
-        public int Path = -1;
-        public int Image = -1;
-        public string PictureVarName = "skPicture";
-        public string PictureRecorderVarName = "skPictureRecorder";
-        public string CanvasVarName = "skCanvas";
-        public string PaintVarName = "skPaint";
-        public string TypefaceVarName = "skTypeface";
-        public string TextBlobVarName = "skTextBlob";
-        public string FontVarName = "skFont";
-        public string ColorFilterVarName = "skColorFilter";
-        public string ImageFilterVarName = "skImageFilter";
-        public string PathEffectVarName = "skPathEffect";
-        public string ShaderVarName = "skShader";
-        public string PathVarName = "skPath";
-        public string ImageVarName = "skImage";
-        public string FontManagerVarName = "skFontManager";
-        public string FontStyleVarName = "skFontStyle";
-        public string FontStyleSetVarName = "skFontStyleSet";
+        public int Picture { get; set; } = -1;
+
+        public int PictureRecorder { get; set; } = -1;
+
+        public int Canvas { get; set; } = -1;
+
+        public int Paint { get; set; } = -1;
+
+        public int Typeface { get; set; } = -1;
+
+        public int TextBlob { get; set; } = -1;
+
+        public int Font { get; set; } = -1;
+
+        public int ColorFilter { get; set; } = -1;
+
+        public int ImageFilter { get; set; } = -1;
+
+        public int PathEffect { get; set; } = -1;
+
+        public int Shader { get; set; } = -1;
+
+        public int Path { get; set; } = -1;
+
+        public int Image { get; set; } = -1;
+
+        public string PictureVarName { get; set; } = "skPicture";
+
+        public string PictureRecorderVarName { get; set; } = "skPictureRecorder";
+
+        public string CanvasVarName { get; set; } = "skCanvas";
+
+        public string PaintVarName { get; set; } = "skPaint";
+
+        public string TypefaceVarName { get; set; } = "skTypeface";
+
+        public string TextBlobVarName { get; set; } = "skTextBlob";
+
+        public string FontVarName { get; set; } = "skFont";
+
+        public string ColorFilterVarName { get; set; } = "skColorFilter";
+
+        public string ImageFilterVarName { get; set; } = "skImageFilter";
+
+        public string PathEffectVarName { get; set; } = "skPathEffect";
+
+        public string ShaderVarName { get; set; } = "skShader";
+
+        public string PathVarName { get; set; } = "skPath";
+
+        public string ImageVarName { get; set; } = "skImage";
+
+        public string FontManagerVarName { get; set; } = "skFontManager";
+
+        public string FontStyleVarName { get; set; } = "skFontStyle";
+
+        public string FontStyleSetVarName { get; set; } = "skFontStyleSet";
     }
 }
