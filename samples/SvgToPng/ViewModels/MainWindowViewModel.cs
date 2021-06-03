@@ -124,7 +124,7 @@ namespace SvgToPng.ViewModels
 
                         if (item.Picture?.Commands is { })
                         {
-                            item.Code = SkiaCodeGen.Generate(item.Picture, "Svg", CreateClassName(item.SvgPath));
+                            item.Code = SkiaCSharpCodeGen.Generate(item.Picture, "Svg", CreateClassName(item.SvgPath));
 
                             string CreateClassName(string path)
                             {

@@ -138,7 +138,7 @@ namespace TestApp.ViewModels
                     return;
                 }
 
-                var code = SkiaCodeGen.Generate(svg.Model, "Svg", CreateClassName(_selectedItem.Path));
+                var code = SkiaCSharpCodeGen.Generate(svg.Model, "Svg", CreateClassName(_selectedItem.Path));
 
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {

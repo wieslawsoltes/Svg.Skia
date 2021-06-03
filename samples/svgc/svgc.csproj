@@ -38,8 +38,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\src\Svg.CodeGen.Skia\SkiaCodeGen.cs">
-      <Link>SkiaCodeGen.cs</Link>
+    <Compile Include="..\..\src\Svg.CodeGen.Skia\SkiaCSharpCodeGen.cs">
+      <Link>CodeGen\SkiaCSharpCodeGen.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\Svg.CodeGen.Skia\SkiaCSharpModelExtensions.cs">
+      <Link>CodeGen\SkiaCSharpModelExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\Svg.CodeGen.Skia\SkiaCSharpCodeGenCounter.cs">
+      <Link>CodeGen\SkiaCSharpCodeGenCounter.cs</Link>
     </Compile>
   </ItemGroup>
 
