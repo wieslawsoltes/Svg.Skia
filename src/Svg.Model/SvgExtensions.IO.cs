@@ -17,7 +17,7 @@ namespace Svg.Model
     {
         private const string MimeTypeSvg = "image/svg+xml";
 
-        private static byte[] GZipMagicHeaderBytes => new byte[] { 0x1f, 0x8b };
+        private static byte[] GZipMagicHeaderBytes => new byte[] {0x1f, 0x8b};
 
         static SvgExtensions()
         {
