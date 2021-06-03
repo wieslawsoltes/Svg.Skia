@@ -235,8 +235,16 @@ namespace Svg.Model
             if (fragmentBounds.IsEmpty || fragmentBounds.Width <= 0 || fragmentBounds.Height <= 0)
             {
                 var drawableBounds = drawable.Bounds;
-                    Math.Abs(drawableBounds.Left) + drawableBounds.Width,
-                    Math.Abs(drawableBounds.Top) + drawableBounds.Height);
+
+                var width = fragmentBounds.Width <= 0
+                    ? Math.Abs(drawableBounds.Left) + drawableBounds.Width
+                    : fragmentBounds.Width;
+
+                var height = fragmentBounds.Height <= 0
+                    ? Math.Abs(drawableBounds.Top) + drawableBounds.Height
+                    : fragmentBounds.Height;
+
+                fragmentBounds = SKRect.Create(0f, 0f, width, height);
             }
 
             drawable.PostProcess(fragmentBounds, SKMatrix.Identity);
