@@ -45,7 +45,7 @@ namespace Svg.Model
 
             return uri;
         }
-        
+
         internal static object? GetImage(string uriString, SvgDocument svgOwnerDocument, IAssetLoader assetLoader)
         {
             try
