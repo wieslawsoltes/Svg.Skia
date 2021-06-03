@@ -225,7 +225,6 @@ namespace Svg.Model
                 bounds = default;
                 return default;
             }
-            drawable.PostProcess(fragmentBounds, SKMatrix.Identity);
 
             if (fragmentBounds.IsEmpty || fragmentBounds.Width <= 0 || fragmentBounds.Height <= 0)
             {
@@ -236,6 +235,8 @@ namespace Svg.Model
                     Math.Abs(drawableBounds.Left) + drawableBounds.Width,
                     Math.Abs(drawableBounds.Top) + drawableBounds.Height);
             }
+
+            drawable.PostProcess(fragmentBounds, SKMatrix.Identity);
 
             bounds = fragmentBounds;
             return drawable;
