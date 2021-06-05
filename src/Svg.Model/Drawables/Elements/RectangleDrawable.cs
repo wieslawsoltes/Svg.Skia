@@ -15,7 +15,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static RectangleDrawable Create(SvgRectangle svgRectangle, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static RectangleDrawable Create(SvgRectangle svgRectangle, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new RectangleDrawable(assetLoader, references)
             {
@@ -31,35 +31,47 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.Path = svgRectangle.ToPath(svgRectangle.FillRule, skOwnerBounds);
+            drawable.Path = svgRectangle.ToPath(svgRectangle.FillRule, skViewport);
             if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgRectangle);
+            drawable.Initialize(references);
+            
+            return drawable;
+        }
+        
+        private void Initialize(HashSet<Uri>? references)
+        {
+            if (Element is not SvgRectangle svgRectangle || Path is null)
+            {
+                return;
+            }
+            
+            IsAntialias = SvgExtensions.IsAntialias(svgRectangle);
 
-            drawable.GeometryBounds = drawable.Path.Bounds;
+            GeometryBounds = Path.Bounds;
 
-            drawable.Transform = SvgExtensions.ToMatrix(svgRectangle.Transforms);
+            Transform = SvgExtensions.ToMatrix(svgRectangle.Transforms);
 
             var canDrawFill = true;
             var canDrawStroke = true;
 
             if (SvgExtensions.IsValidFill(svgRectangle))
             {
-                drawable.Fill = SvgExtensions.GetFillPaint(svgRectangle, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
-                if (drawable.Fill is null)
+                Fill = SvgExtensions.GetFillPaint(svgRectangle, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+                if (Fill is null)
                 {
                     canDrawFill = false;
                 }
             }
 
-            if (SvgExtensions.IsValidStroke(svgRectangle, drawable.GeometryBounds))
+            if (SvgExtensions.IsValidStroke(svgRectangle, GeometryBounds))
             {
-                drawable.Stroke = SvgExtensions.GetStrokePaint(svgRectangle, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
-                if (drawable.Stroke is null)
+                Stroke = SvgExtensions.GetStrokePaint(svgRectangle, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+                if (Stroke is null)
                 {
                     canDrawStroke = false;
                 }
@@ -67,11 +79,8 @@ namespace Svg.Model.Drawables.Elements
 
             if (canDrawFill && !canDrawStroke)
             {
-                drawable.IsDrawable = false;
-                return drawable;
+                IsDrawable = false;
             }
-
-            return drawable;
         }
     }
 }

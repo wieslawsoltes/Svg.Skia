@@ -15,7 +15,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static PolygonDrawable Create(SvgPolygon svgPolygon, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static PolygonDrawable Create(SvgPolygon svgPolygon, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new PolygonDrawable(assetLoader, references)
             {
@@ -31,35 +31,47 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.Path = svgPolygon.Points?.ToPath(svgPolygon.FillRule, true, skOwnerBounds);
+            drawable.Path = svgPolygon.Points?.ToPath(svgPolygon.FillRule, true, skViewport);
             if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgPolygon);
+            drawable.Initialize(skViewport, references);
 
-            drawable.GeometryBounds = drawable.Path.Bounds;
+            return drawable;
+        }
 
-            drawable.Transform = SvgExtensions.ToMatrix(svgPolygon.Transforms);
+        private void Initialize(SKRect skViewport, HashSet<Uri>? references)
+        {
+            if (Element is not SvgPolygon svgPolygon || Path is null)
+            {
+                return;
+            }
+            
+            IsAntialias = SvgExtensions.IsAntialias(svgPolygon);
+
+            GeometryBounds = Path.Bounds;
+
+            Transform = SvgExtensions.ToMatrix(svgPolygon.Transforms);
 
             var canDrawFill = true;
             var canDrawStroke = true;
 
             if (SvgExtensions.IsValidFill(svgPolygon))
             {
-                drawable.Fill = SvgExtensions.GetFillPaint(svgPolygon, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
-                if (drawable.Fill is null)
+                Fill = SvgExtensions.GetFillPaint(svgPolygon, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+                if (Fill is null)
                 {
                     canDrawFill = false;
                 }
             }
 
-            if (SvgExtensions.IsValidStroke(svgPolygon, drawable.GeometryBounds))
+            if (SvgExtensions.IsValidStroke(svgPolygon, GeometryBounds))
             {
-                drawable.Stroke = SvgExtensions.GetStrokePaint(svgPolygon, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
-                if (drawable.Stroke is null)
+                Stroke = SvgExtensions.GetStrokePaint(svgPolygon, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+                if (Stroke is null)
                 {
                     canDrawStroke = false;
                 }
@@ -67,13 +79,11 @@ namespace Svg.Model.Drawables.Elements
 
             if (canDrawFill && !canDrawStroke)
             {
-                drawable.IsDrawable = false;
-                return drawable;
+                IsDrawable = false;
+                return;
             }
 
-            SvgExtensions.CreateMarkers(svgPolygon, drawable.Path, skOwnerBounds, drawable, assetLoader, references);
-
-            return drawable;
+            SvgExtensions.CreateMarkers(svgPolygon, Path, skViewport, this, AssetLoader, references);
         }
     }
 }

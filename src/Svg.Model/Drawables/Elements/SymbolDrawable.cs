@@ -15,7 +15,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static SymbolDrawable Create(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
+        public static SymbolDrawable Create(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
         {
             var drawable = new SymbolDrawable(assetLoader, references)
             {
@@ -35,7 +35,7 @@ namespace Svg.Model.Drawables.Elements
             {
                 if (new SvgUnitConverter().ConvertFromString(_widthString) is SvgUnit _width)
                 {
-                    width = _width.ToDeviceValue(UnitRenderingType.Horizontal, svgSymbol, skOwnerBounds);
+                    width = _width.ToDeviceValue(UnitRenderingType.Horizontal, svgSymbol, skViewport);
                 }
             }
 
@@ -43,7 +43,7 @@ namespace Svg.Model.Drawables.Elements
             {
                 if (new SvgUnitConverter().ConvertFromString(heightString) is SvgUnit _height)
                 {
-                    height = _height.ToDeviceValue(UnitRenderingType.Vertical, svgSymbol, skOwnerBounds);
+                    height = _height.ToDeviceValue(UnitRenderingType.Vertical, svgSymbol, skViewport);
                 }
             }
 
@@ -68,22 +68,32 @@ namespace Svg.Model.Drawables.Elements
                     break;
             }
 
-            drawable.CreateChildren(svgSymbol, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
+            drawable.CreateChildren(svgSymbol, skViewport, drawable, assetLoader, references, ignoreAttributes);
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgSymbol);
-
-            drawable.GeometryBounds = SKRect.Empty;
-
-            drawable.CreateGeometryBounds();
-
-            drawable.Transform = SvgExtensions.ToMatrix(svgSymbol.Transforms);
-            var skMatrixViewBox = SvgExtensions.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
-            drawable.Transform = drawable.Transform.PreConcat(skMatrixViewBox);
-
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
+            drawable.Initialize(x, y, width, height);
+            
             return drawable;
+        }
+
+        private void Initialize(float x, float y, float width, float height)
+        {
+            if (Element is not SvgSymbol svgSymbol)
+            {
+                return;
+            }
+   
+            IsAntialias = SvgExtensions.IsAntialias(svgSymbol);
+
+            GeometryBounds = SKRect.Empty;
+
+            CreateGeometryBounds();
+
+            Transform = SvgExtensions.ToMatrix(svgSymbol.Transforms);
+            var skMatrixViewBox = SvgExtensions.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
+            Transform = Transform.PreConcat(skMatrixViewBox);
+
+            Fill = null;
+            Stroke = null;
         }
     }
 }

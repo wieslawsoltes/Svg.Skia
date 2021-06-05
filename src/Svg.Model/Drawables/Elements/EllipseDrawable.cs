@@ -15,7 +15,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static EllipseDrawable Create(SvgEllipse svgEllipse, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static EllipseDrawable Create(SvgEllipse svgEllipse, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new EllipseDrawable(assetLoader, references)
             {
@@ -31,34 +31,46 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.Path = svgEllipse.ToPath(svgEllipse.FillRule, skOwnerBounds);
+            drawable.Path = svgEllipse.ToPath(svgEllipse.FillRule, skViewport);
             if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgEllipse);
-            drawable.Transform = SvgExtensions.ToMatrix(svgEllipse.Transforms);
+            drawable.Initialize(references);
 
-            drawable.GeometryBounds = drawable.Path.Bounds;
+            return drawable;
+        }
+
+        private void Initialize(HashSet<Uri>? references)
+        {
+            if (Element is not SvgEllipse svgEllipse || Path is null)
+            {
+                return;
+            }
+            
+            IsAntialias = SvgExtensions.IsAntialias(svgEllipse);
+            Transform = SvgExtensions.ToMatrix(svgEllipse.Transforms);
+
+            GeometryBounds = Path.Bounds;
 
             var canDrawFill = true;
             var canDrawStroke = true;
 
             if (SvgExtensions.IsValidFill(svgEllipse))
             {
-                drawable.Fill = SvgExtensions.GetFillPaint(svgEllipse, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
-                if (drawable.Fill is null)
+                Fill = SvgExtensions.GetFillPaint(svgEllipse, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+                if (Fill is null)
                 {
                     canDrawFill = false;
                 }
             }
 
-            if (SvgExtensions.IsValidStroke(svgEllipse, drawable.GeometryBounds))
+            if (SvgExtensions.IsValidStroke(svgEllipse, GeometryBounds))
             {
-                drawable.Stroke = SvgExtensions.GetStrokePaint(svgEllipse, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
-                if (drawable.Stroke is null)
+                Stroke = SvgExtensions.GetStrokePaint(svgEllipse, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+                if (Stroke is null)
                 {
                     canDrawStroke = false;
                 }
@@ -66,11 +78,8 @@ namespace Svg.Model.Drawables.Elements
 
             if (canDrawFill && !canDrawStroke)
             {
-                drawable.IsDrawable = false;
-                return drawable;
+                IsDrawable = false;
             }
-
-            return drawable;
         }
     }
 }

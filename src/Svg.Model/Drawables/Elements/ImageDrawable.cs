@@ -23,7 +23,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static ImageDrawable Create(SvgImage svgImage, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static ImageDrawable Create(SvgImage svgImage, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new ImageDrawable(assetLoader, references)
             {
@@ -39,10 +39,10 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            var width = svgImage.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, skOwnerBounds);
-            var height = svgImage.Height.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skOwnerBounds);
-            var x = svgImage.Location.X.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, skOwnerBounds);
-            var y = svgImage.Location.Y.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skOwnerBounds);
+            var width = svgImage.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, skViewport);
+            var height = svgImage.Height.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skViewport);
+            var x = svgImage.Location.X.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, skViewport);
+            var y = svgImage.Location.Y.ToDeviceValue(UnitRenderingType.Vertical, svgImage, skViewport);
             var location = new SKPoint(x, y);
 
             if (width <= 0f || height <= 0f || svgImage.Href is null)
@@ -97,43 +97,53 @@ namespace Svg.Model.Drawables.Elements
 
             if (svgFragment is { })
             {
-                drawable.FragmentDrawable = FragmentDrawable.Create(svgFragment, skOwnerBounds, drawable, assetLoader, references, ignoreAttributes);
+                drawable.FragmentDrawable = FragmentDrawable.Create(svgFragment, skViewport, drawable, assetLoader, references, ignoreAttributes);
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgImage);
+            drawable.Initialize();
 
-            drawable.GeometryBounds = default(SKRect);
+            return drawable;
+        }
 
-            if (drawable.Image is { })
+        private void Initialize()
+        {
+            if (Element is not SvgImage svgImage)
             {
-                drawable.GeometryBounds = drawable.DestRect;
+                return;
+            }
+            
+            IsAntialias = SvgExtensions.IsAntialias(svgImage);
+
+            GeometryBounds = default(SKRect);
+
+            if (Image is { })
+            {
+                GeometryBounds = DestRect;
             }
 
-            if (drawable.FragmentDrawable is { })
+            if (FragmentDrawable is { })
             {
-                drawable.GeometryBounds = drawable.DestRect;
+                GeometryBounds = DestRect;
             }
 
-            drawable.Transform = SvgExtensions.ToMatrix(svgImage.Transforms);
-            drawable.FragmentTransform = SKMatrix.CreateIdentity();
+            Transform = SvgExtensions.ToMatrix(svgImage.Transforms);
+            FragmentTransform = SKMatrix.CreateIdentity();
 
-            if (drawable.FragmentDrawable is { })
+            if (FragmentDrawable is { })
             {
-                var dx = drawable.DestRect.Left;
-                var dy = drawable.DestRect.Top;
-                var sx = drawable.DestRect.Width / drawable.SrcRect.Width;
-                var sy = drawable.DestRect.Height / drawable.SrcRect.Height;
+                var dx = DestRect.Left;
+                var dy = DestRect.Top;
+                var sx = DestRect.Width / SrcRect.Width;
+                var sy = DestRect.Height / SrcRect.Height;
                 var skTranslationMatrix = SKMatrix.CreateTranslation(dx, dy);
                 var skScaleMatrix = SKMatrix.CreateScale(sx, sy);
-                drawable.FragmentTransform = drawable.FragmentTransform.PreConcat(skTranslationMatrix);
-                drawable.FragmentTransform = drawable.FragmentTransform.PreConcat(skScaleMatrix);
+                FragmentTransform = FragmentTransform.PreConcat(skTranslationMatrix);
+                FragmentTransform = FragmentTransform.PreConcat(skScaleMatrix);
                 // TODO: FragmentTransform
             }
 
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
-            return drawable;
+            Fill = null;
+            Stroke = null;
         }
 
         public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)

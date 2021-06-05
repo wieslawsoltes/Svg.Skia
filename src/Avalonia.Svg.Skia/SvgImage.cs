@@ -47,6 +47,11 @@ namespace Avalonia.Svg.Skia
                 return;
             }
 
+            if (Size.Width <= 0 || Size.Height <= 0)
+            {
+                return;
+            }
+
             var bounds = source.Picture.CullRect;
             var scaleMatrix = Matrix.CreateScale(
                 destRect.Width / sourceRect.Width,

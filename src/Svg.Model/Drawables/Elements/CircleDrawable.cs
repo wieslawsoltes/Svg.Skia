@@ -15,7 +15,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static CircleDrawable Create(SvgCircle svgCircle, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static CircleDrawable Create(SvgCircle svgCircle, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new CircleDrawable(assetLoader, references)
             {
@@ -31,35 +31,47 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.Path = svgCircle.ToPath(svgCircle.FillRule, skOwnerBounds);
+            drawable.Path = svgCircle.ToPath(svgCircle.FillRule, skViewport);
             if (drawable.Path is null || drawable.Path.IsEmpty)
             {
                 drawable.IsDrawable = false;
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgCircle);
+            drawable.Initialize(references);
 
-            drawable.GeometryBounds = drawable.Path.Bounds;
+            return drawable;
+        }
 
-            drawable.Transform = SvgExtensions.ToMatrix(svgCircle.Transforms);
+        private void Initialize(HashSet<Uri>? references)
+        {
+            if (Element is not SvgCircle svgCircle || Path is null)
+            {
+                return;;
+            }
+
+            IsAntialias = SvgExtensions.IsAntialias(svgCircle);
+
+            GeometryBounds = Path.Bounds;
+
+            Transform = SvgExtensions.ToMatrix(svgCircle.Transforms);
 
             var canDrawFill = true;
             var canDrawStroke = true;
 
             if (SvgExtensions.IsValidFill(svgCircle))
             {
-                drawable.Fill = SvgExtensions.GetFillPaint(svgCircle, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
-                if (drawable.Fill is null)
+                Fill = SvgExtensions.GetFillPaint(svgCircle, GeometryBounds ,AssetLoader, references, IgnoreAttributes);
+                if (Fill is null)
                 {
                     canDrawFill = false;
                 }
             }
 
-            if (SvgExtensions.IsValidStroke(svgCircle, drawable.GeometryBounds))
+            if (SvgExtensions.IsValidStroke(svgCircle, GeometryBounds))
             {
-                drawable.Stroke = SvgExtensions.GetStrokePaint(svgCircle, drawable.GeometryBounds, assetLoader, references, ignoreAttributes);
-                if (drawable.Stroke is null)
+                Stroke = SvgExtensions.GetStrokePaint(svgCircle, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+                if (Stroke is null)
                 {
                     canDrawStroke = false;
                 }
@@ -67,11 +79,8 @@ namespace Svg.Model.Drawables.Elements
 
             if (canDrawFill && !canDrawStroke)
             {
-                drawable.IsDrawable = false;
-                return drawable;
+                IsDrawable = false;
             }
-
-            return drawable;
         }
     }
 }

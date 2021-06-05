@@ -134,6 +134,10 @@ namespace Avalonia.Svg
 
             var viewPort = new Rect(Bounds.Size);
             var sourceSize = new Size(_picture.CullRect.Width, _picture.CullRect.Height);
+            if (sourceSize.Width <= 0 || sourceSize.Height <= 0)
+            {
+                return;
+            }
 
             var scale = Stretch.CalculateScaling(Bounds.Size, sourceSize, StretchDirection);
             var scaledSize = sourceSize * scale;

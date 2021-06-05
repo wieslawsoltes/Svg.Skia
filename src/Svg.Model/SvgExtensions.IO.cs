@@ -17,7 +17,7 @@ namespace Svg.Model
     {
         private const string MimeTypeSvg = "image/svg+xml";
 
-        private static byte[] GZipMagicHeaderBytes => new byte[] { 0x1f, 0x8b };
+        private static byte[] GZipMagicHeaderBytes => new byte[] {0x1f, 0x8b};
 
         static SvgExtensions()
         {
@@ -45,7 +45,7 @@ namespace Svg.Model
 
             return uri;
         }
-        
+
         internal static object? GetImage(string uriString, SvgDocument svgOwnerDocument, IAssetLoader assetLoader)
         {
             try
@@ -55,6 +55,7 @@ namespace Svg.Model
                 {
                     return GetImageFromDataUri(uriString, svgOwnerDocument, assetLoader);
                 }
+
                 return GetImageFromWeb(uri, assetLoader);
             }
             catch (Exception ex)
@@ -124,7 +125,8 @@ namespace Svg.Model
                 charset = string.Empty;
             }
 
-            if (headers.Count > 0 && headers[headers.Count - 1].Trim().Equals("base64", StringComparison.OrdinalIgnoreCase))
+            if (headers.Count > 0 &&
+                headers[headers.Count - 1].Trim().Equals("base64", StringComparison.OrdinalIgnoreCase))
             {
                 base64 = true;
                 headers.RemoveAt(headers.Count - 1);
@@ -160,15 +162,18 @@ namespace Svg.Model
                             return LoadSvgz(bytesStream, svgOwnerDocument.BaseUri);
                         }
                     }
+
                     var encoding = string.IsNullOrEmpty(charset) ? Encoding.UTF8 : Encoding.GetEncoding(charset);
                     data = encoding.GetString(bytes);
                 }
+
                 var buffer = Encoding.Default.GetBytes(data);
                 using var stream = new System.IO.MemoryStream(buffer);
                 return LoadSvg(stream, svgOwnerDocument.BaseUri);
             }
 
-            if (mimeType.StartsWith("image/", StringComparison.Ordinal) || mimeType.StartsWith("img/", StringComparison.Ordinal))
+            if (mimeType.StartsWith("image/", StringComparison.Ordinal) ||
+                mimeType.StartsWith("img/", StringComparison.Ordinal))
             {
                 if (base64)
                 {
@@ -182,6 +187,7 @@ namespace Svg.Model
                             return LoadSvgz(bytesStream, svgOwnerDocument.BaseUri);
                         }
                     }
+
                     using var stream = new System.IO.MemoryStream(bytes);
                     return assetLoader.LoadImage(stream);
                 }
@@ -225,17 +231,23 @@ namespace Svg.Model
                 bounds = default;
                 return default;
             }
-            drawable.PostProcess(fragmentBounds, SKMatrix.Identity);
 
-            if (fragmentBounds.IsEmpty)
+            if (fragmentBounds.IsEmpty || fragmentBounds.Width <= 0 || fragmentBounds.Height <= 0)
             {
                 var drawableBounds = drawable.Bounds;
-                fragmentBounds = SKRect.Create(
-                    0f,
-                    0f,
-                    Math.Abs(drawableBounds.Left) + drawableBounds.Width,
-                    Math.Abs(drawableBounds.Top) + drawableBounds.Height);
+
+                var width = fragmentBounds.Width <= 0
+                    ? Math.Abs(drawableBounds.Left) + drawableBounds.Width
+                    : fragmentBounds.Width;
+
+                var height = fragmentBounds.Height <= 0
+                    ? Math.Abs(drawableBounds.Top) + drawableBounds.Height
+                    : fragmentBounds.Height;
+
+                fragmentBounds = SKRect.Create(0f, 0f, width, height);
             }
+
+            drawable.PostProcess(fragmentBounds, SKMatrix.Identity);
 
             bounds = fragmentBounds;
             return drawable;
@@ -252,6 +264,7 @@ namespace Svg.Model
             {
                 return default;
             }
+
             var picture = drawable.Snapshot(bounds.Value);
             return picture;
         }

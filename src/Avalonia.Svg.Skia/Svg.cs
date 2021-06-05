@@ -160,6 +160,10 @@ namespace Avalonia.Svg.Skia
 
             var viewPort = new Rect(Bounds.Size);
             var sourceSize = new Size(source.Picture.CullRect.Width, source.Picture.CullRect.Height);
+            if (sourceSize.Width <= 0 || sourceSize.Height <= 0)
+            {
+                return;
+            }
 
             var scale = Stretch.CalculateScaling(Bounds.Size, sourceSize, StretchDirection);
             var scaledSize = sourceSize * scale;

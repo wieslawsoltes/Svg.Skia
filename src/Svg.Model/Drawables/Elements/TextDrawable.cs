@@ -25,16 +25,25 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static TextDrawable Create(SvgText svgText, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static TextDrawable Create(SvgText svgText, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
-            return new(assetLoader, references)
+            var drawable = new TextDrawable(assetLoader, references)
             {
                 Element = svgText,
                 Parent = parent,
                 Text = svgText,
-                OwnerBounds = skOwnerBounds,
+                OwnerBounds = skViewport,
                 IgnoreAttributes = ignoreAttributes
             };
+
+            drawable.Initialize();
+
+            return drawable;
+        }
+
+        private void Initialize()
+        {
+            // TODO: Initialize
         }
 
         internal void GetPositionsX(SvgTextBase svgTextBase, SKRect skBounds, List<float> xs)
@@ -247,10 +256,10 @@ namespace Svg.Model.Drawables.Elements
             skCanvas.Restore();
         }
 
-        internal void DrawTextString(SvgTextBase svgTextBase, string text, float x, float y, SKRect skOwnerBounds, DrawAttributes ignoreAttributes, SKCanvas skCanvas, DrawableBase? until)
+        internal void DrawTextString(SvgTextBase svgTextBase, string text, float x, float y, SKRect skViewport, DrawAttributes ignoreAttributes, SKCanvas skCanvas, DrawableBase? until)
         {
             // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
+            var skBounds = skViewport;
 
             if (SvgExtensions.IsValidFill(svgTextBase))
             {
@@ -291,11 +300,11 @@ namespace Svg.Model.Drawables.Elements
             }
         }
 
-        internal void DrawTextBase(SvgTextBase svgTextBase, string? text, float currentX, float currentY, SKRect skOwnerBounds, DrawAttributes ignoreAttributes, SKCanvas skCanvas, DrawableBase? until)
+        internal void DrawTextBase(SvgTextBase svgTextBase, string? text, float currentX, float currentY, SKRect skViewport, DrawAttributes ignoreAttributes, SKCanvas skCanvas, DrawableBase? until)
         {
             // TODO: Fix SvgTextBase rendering.
             var isValidFill = SvgExtensions.IsValidFill(svgTextBase);
-            var isValidStroke = SvgExtensions.IsValidStroke(svgTextBase, skOwnerBounds);
+            var isValidStroke = SvgExtensions.IsValidStroke(svgTextBase, skViewport);
 
             if (!isValidFill && !isValidStroke || text is null || string.IsNullOrEmpty(text))
             {
@@ -307,10 +316,10 @@ namespace Svg.Model.Drawables.Elements
             var dxs = new List<float>();
             var dys = new List<float>();
 
-            GetPositionsX(svgTextBase, skOwnerBounds, xs);
-            GetPositionsY(svgTextBase, skOwnerBounds, ys);
-            GetPositionsDX(svgTextBase, skOwnerBounds, dxs);
-            GetPositionsDY(svgTextBase, skOwnerBounds, dys);
+            GetPositionsX(svgTextBase, skViewport, xs);
+            GetPositionsY(svgTextBase, skViewport, ys);
+            GetPositionsDX(svgTextBase, skViewport, dxs);
+            GetPositionsDY(svgTextBase, skViewport, dys);
 
             if (xs.Count >= 1 && ys.Count >= 1 && xs.Count == ys.Count && xs.Count == text.Length)
             {
@@ -335,7 +344,7 @@ namespace Svg.Model.Drawables.Elements
                 }
 
                 // TODO: Calculate correct bounds.
-                var skBounds = skOwnerBounds;
+                var skBounds = skViewport;
 
                 if (SvgExtensions.IsValidFill(svgTextBase))
                 {
@@ -374,11 +383,11 @@ namespace Svg.Model.Drawables.Elements
                 var dx = dxs.Count >= 1 ? dxs[0] : 0f;
                 var dy = dys.Count >= 1 ? dys[0] : 0f;
 
-                DrawTextString(svgTextBase, text, x + dx, y + dy, skOwnerBounds, ignoreAttributes, skCanvas, until);
+                DrawTextString(svgTextBase, text, x + dx, y + dy, skViewport, ignoreAttributes, skCanvas, until);
             }
         }
 
-        internal void DrawTextPath(SvgTextPath svgTextPath, float currentX, float currentY, SKRect skOwnerBounds, DrawAttributes ignoreAttributes, bool enableTransform, SKCanvas skCanvas, DrawableBase? until)
+        internal void DrawTextPath(SvgTextPath svgTextPath, float currentX, float currentY, SKRect skViewport, DrawAttributes ignoreAttributes, bool enableTransform, SKCanvas skCanvas, DrawableBase? until)
         {
             if (!CanDraw(svgTextPath, ignoreAttributes) || !HasFeatures(svgTextPath, ignoreAttributes))
             {
@@ -407,13 +416,13 @@ namespace Svg.Model.Drawables.Elements
             // skPath.Transform(skMatrixPath);
 
             // TODO: Implement StartOffset
-            var startOffset = svgTextPath.StartOffset.ToDeviceValue(UnitRenderingType.Other, svgTextPath, skOwnerBounds);
+            var startOffset = svgTextPath.StartOffset.ToDeviceValue(UnitRenderingType.Other, svgTextPath, skViewport);
 
             var hOffset = currentX + startOffset;
             var vOffset = currentY;
 
             // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
+            var skBounds = skViewport;
 
             BeginDraw(svgTextPath, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
@@ -452,7 +461,7 @@ namespace Svg.Model.Drawables.Elements
             EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, skFilterClip, until);
         }
 
-        internal void DrawTextRef(SvgTextRef svgTextRef, float currentX, float currentY, SKRect skOwnerBounds, DrawAttributes ignoreAttributes, bool enableTransform, SKCanvas skCanvas, DrawableBase? until)
+        internal void DrawTextRef(SvgTextRef svgTextRef, float currentX, float currentY, SKRect skViewport, DrawAttributes ignoreAttributes, bool enableTransform, SKCanvas skCanvas, DrawableBase? until)
         {
             if (!CanDraw(svgTextRef, ignoreAttributes) || !HasFeatures(svgTextRef, ignoreAttributes))
             {
@@ -471,7 +480,7 @@ namespace Svg.Model.Drawables.Elements
             }
 
             // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
+            var skBounds = skViewport;
 
             BeginDraw(svgTextRef, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
@@ -479,13 +488,13 @@ namespace Svg.Model.Drawables.Elements
             if (!string.IsNullOrEmpty(svgReferencedText.Text))
             {
                 var text = PrepareText(svgReferencedText, svgReferencedText.Text);
-                DrawTextBase(svgReferencedText, svgReferencedText.Text, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas, until);
+                DrawTextBase(svgReferencedText, svgReferencedText.Text, currentX, currentY, skViewport, ignoreAttributes, skCanvas, until);
             }
 
             EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, skFilterClip, until);
         }
 
-        internal void DrawTextSpan(SvgTextSpan svgTextSpan, float currentX, float currentY, SKRect skOwnerBounds, DrawAttributes ignoreAttributes, bool enableTransform, SKCanvas skCanvas, DrawableBase? until)
+        internal void DrawTextSpan(SvgTextSpan svgTextSpan, float currentX, float currentY, SKRect skViewport, DrawAttributes ignoreAttributes, bool enableTransform, SKCanvas skCanvas, DrawableBase? until)
         {
             if (!CanDraw(svgTextSpan, ignoreAttributes) || !HasFeatures(svgTextSpan, ignoreAttributes))
             {
@@ -493,7 +502,7 @@ namespace Svg.Model.Drawables.Elements
             }
 
             // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
+            var skBounds = skViewport;
 
             BeginDraw(svgTextSpan, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
@@ -501,13 +510,13 @@ namespace Svg.Model.Drawables.Elements
             if (!string.IsNullOrEmpty(svgTextSpan.Text))
             {
                 var text = PrepareText(svgTextSpan, svgTextSpan.Text);
-                DrawTextBase(svgTextSpan, text, currentX, currentY, skOwnerBounds, ignoreAttributes, skCanvas, until);
+                DrawTextBase(svgTextSpan, text, currentX, currentY, skViewport, ignoreAttributes, skCanvas, until);
             }
 
             EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, skFilterClip, until);
         }
 
-        internal void DrawText(SvgText svgText, SKRect skOwnerBounds, DrawAttributes ignoreAttributes, SKCanvas skCanvas, DrawableBase? until, bool enableTransform)
+        internal void DrawText(SvgText svgText, SKRect skViewport, DrawAttributes ignoreAttributes, SKCanvas skCanvas, DrawableBase? until, bool enableTransform)
         {
             if (!CanDraw(svgText, ignoreAttributes) || !HasFeatures(svgText, ignoreAttributes))
             {
@@ -515,7 +524,7 @@ namespace Svg.Model.Drawables.Elements
             }
 
             // TODO: Calculate correct bounds.
-            var skBounds = skOwnerBounds;
+            var skBounds = skViewport;
 
             BeginDraw(svgText, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
@@ -523,10 +532,10 @@ namespace Svg.Model.Drawables.Elements
             var ys = new List<float>();
             var dxs = new List<float>();
             var dys = new List<float>();
-            GetPositionsX(svgText, skOwnerBounds, xs);
-            GetPositionsY(svgText, skOwnerBounds, ys);
-            GetPositionsDX(svgText, skOwnerBounds, dxs);
-            GetPositionsDY(svgText, skOwnerBounds, dys);
+            GetPositionsX(svgText, skViewport, xs);
+            GetPositionsY(svgText, skViewport, ys);
+            GetPositionsDX(svgText, skViewport, dxs);
+            GetPositionsDY(svgText, skViewport, dys);
 
             var x = xs.Count >= 1 ? xs[0] : 0f;
             var y = ys.Count >= 1 ? ys[0] : 0f;
@@ -543,7 +552,7 @@ namespace Svg.Model.Drawables.Elements
                     if (!string.IsNullOrEmpty(node.Content))
                     {
                         var text = PrepareText(svgText, node.Content);
-                        DrawTextBase(svgText, text, 0f, 0f, skOwnerBounds, ignoreAttributes, skCanvas, until);
+                        DrawTextBase(svgText, text, 0f, 0f, skViewport, ignoreAttributes, skCanvas, until);
                     }
                 }
                 else
@@ -551,15 +560,15 @@ namespace Svg.Model.Drawables.Elements
                     switch (textNode)
                     {
                         case SvgTextPath svgTextPath:
-                            DrawTextPath(svgTextPath, currentX, currentY, skOwnerBounds, ignoreAttributes, true, skCanvas, until);
+                            DrawTextPath(svgTextPath, currentX, currentY, skViewport, ignoreAttributes, true, skCanvas, until);
                             break;
 
                         case SvgTextRef svgTextRef:
-                            DrawTextRef(svgTextRef, currentX, currentY, skOwnerBounds, ignoreAttributes, true, skCanvas, until);
+                            DrawTextRef(svgTextRef, currentX, currentY, skViewport, ignoreAttributes, true, skCanvas, until);
                             break;
 
                         case SvgTextSpan svgTextSpan:
-                            DrawTextSpan(svgTextSpan, currentX, currentY, skOwnerBounds, ignoreAttributes, true, skCanvas, until);
+                            DrawTextSpan(svgTextSpan, currentX, currentY, skViewport, ignoreAttributes, true, skCanvas, until);
                             break;
                     }
                 }

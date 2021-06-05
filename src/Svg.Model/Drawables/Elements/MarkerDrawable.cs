@@ -20,7 +20,7 @@ namespace Svg.Model.Drawables.Elements
         {
         }
 
-        public static MarkerDrawable Create(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skOwnerBounds, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+        public static MarkerDrawable Create(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var drawable = new MarkerDrawable(assetLoader, references)
             {
@@ -50,12 +50,12 @@ namespace Svg.Model.Drawables.Elements
             var skMatrixAngle = SKMatrix.CreateRotationDegrees(svgMarker.Orient.IsAuto ? fAngle : svgMarker.Orient.Angle);
             skMarkerMatrix = skMarkerMatrix.PreConcat(skMatrixAngle);
 
-            var strokeWidth = pOwner.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
+            var strokeWidth = pOwner.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skViewport);
 
-            var refX = svgMarker.RefX.ToDeviceValue(UnitRenderingType.Horizontal, svgMarker, skOwnerBounds);
-            var refY = svgMarker.RefY.ToDeviceValue(UnitRenderingType.Vertical, svgMarker, skOwnerBounds);
-            var markerWidth = svgMarker.MarkerWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
-            var markerHeight = svgMarker.MarkerHeight.ToDeviceValue(UnitRenderingType.Other, svgMarker, skOwnerBounds);
+            var refX = svgMarker.RefX.ToDeviceValue(UnitRenderingType.Horizontal, svgMarker, skViewport);
+            var refY = svgMarker.RefY.ToDeviceValue(UnitRenderingType.Vertical, svgMarker, skViewport);
+            var markerWidth = svgMarker.MarkerWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, skViewport);
+            var markerHeight = svgMarker.MarkerHeight.ToDeviceValue(UnitRenderingType.Other, svgMarker, skViewport);
             var viewBoxToMarkerUnitsScaleX = 1f;
             var viewBoxToMarkerUnitsScaleY = 1f;
 
@@ -107,7 +107,7 @@ namespace Svg.Model.Drawables.Elements
                     break;
             }
 
-            var markerElementDrawable = DrawableFactory.Create(markerElement, skOwnerBounds, drawable, assetLoader, references, DrawAttributes.Display);
+            var markerElementDrawable = DrawableFactory.Create(markerElement, skViewport, drawable, assetLoader, references, DrawAttributes.Display);
             if (markerElementDrawable is { })
             {
                 drawable.MarkerElementDrawable = markerElementDrawable;
@@ -118,19 +118,29 @@ namespace Svg.Model.Drawables.Elements
                 return drawable;
             }
 
-            drawable.IsAntialias = SvgExtensions.IsAntialias(svgMarker);
-
-            drawable.GeometryBounds = drawable.MarkerElementDrawable.GeometryBounds;
-
-            drawable.Transform = SvgExtensions.ToMatrix(svgMarker.Transforms);
-            drawable.Transform = drawable.Transform.PreConcat(skMarkerMatrix);
-
-            drawable.Fill = null;
-            drawable.Stroke = null;
-
+            drawable.Initialize(skMarkerMatrix);
+            
             return drawable;
         }
 
+        private void Initialize(SKMatrix skMarkerMatrix)
+        {
+            if (Element is not SvgMarker svgMarker || MarkerElementDrawable is null)
+            {
+                return;
+            }
+
+            IsAntialias = SvgExtensions.IsAntialias(svgMarker);
+
+            GeometryBounds = MarkerElementDrawable.GeometryBounds;
+
+            Transform = SvgExtensions.ToMatrix(svgMarker.Transforms);
+            Transform = Transform.PreConcat(skMarkerMatrix);
+
+            Fill = null;
+            Stroke = null;
+        }
+        
         internal SvgVisualElement? GetMarkerElement(SvgMarker svgMarker)
         {
             SvgVisualElement? markerElement = null;
