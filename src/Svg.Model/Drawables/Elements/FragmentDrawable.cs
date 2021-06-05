@@ -64,8 +64,8 @@ namespace Svg.Model.Drawables.Elements
             CreateGeometryBounds();
 
             Transform = SvgExtensions.ToMatrix(svgFragment.Transforms);
-            var skMatrixViewBox = SvgExtensions.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
-            Transform = Transform.PreConcat(skMatrixViewBox);
+            var skViewBoxMatrix = SvgExtensions.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
+            Transform = Transform.PreConcat(skViewBoxMatrix);
 
             switch (svgFragment.Overflow)
             {
