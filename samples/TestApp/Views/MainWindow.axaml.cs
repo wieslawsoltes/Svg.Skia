@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -46,7 +47,14 @@ namespace TestApp.Views
                 {
                     if (DataContext is MainWindowViewModel vm)
                     {
-                        vm.Drop(paths);
+                        try
+                        {
+                            vm.Drop(paths);
+                        }
+                        catch (Exception)
+                        {
+                            // ignored
+                        }
                     }
                 }
             }
