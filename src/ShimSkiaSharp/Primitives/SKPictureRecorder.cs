@@ -17,11 +17,7 @@
 
         public SKPicture EndRecording()
         {
-            var picture = new SKPicture
-            {
-                CullRect = CullRect,
-                Commands = RecordingCanvas?.Commands
-            };
+            var picture = new SKPicture(CullRect, RecordingCanvas?.Commands);
 
             CullRect = SKRect.Empty;
             RecordingCanvas = null;
