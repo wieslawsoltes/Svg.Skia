@@ -4,7 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Logging;
 using Avalonia.Media;
 using Avalonia.Metadata;
-using ShimSkiaSharp.Primitives;
+using ShimSkiaSharp;
 using Svg.Skia;
 
 namespace Avalonia.Svg.Skia

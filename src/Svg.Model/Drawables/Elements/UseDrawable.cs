@@ -6,7 +6,7 @@ using Svg.Document_Structure;
 #if USE_SKIASHARP
 using SkiaSharp;
 #else
-using ShimSkiaSharp.Primitives;
+using ShimSkiaSharp;
 #endif
 
 namespace Svg.Model.Drawables.Elements

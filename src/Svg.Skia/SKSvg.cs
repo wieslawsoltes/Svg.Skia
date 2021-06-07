@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Svg.Model;
 using Svg.Model.Drawables;
-using ShimSkiaSharp.Primitives;
+using ShimSkiaSharp;
 
 namespace Svg.Skia
 {

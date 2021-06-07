@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using ShimSkiaSharp.Painting;
-using ShimSkiaSharp.Primitives;
+using ShimSkiaSharp;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AMI = Avalonia.Media.Imaging;

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
-using ShimSkiaSharp.Painting;
-using ShimSkiaSharp.Primitives;
+using ShimSkiaSharp;
 
 namespace Svg.Skia
 {

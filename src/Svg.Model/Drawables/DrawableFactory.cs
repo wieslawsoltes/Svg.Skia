@@ -4,7 +4,7 @@ using Svg.Model.Drawables.Elements;
 #if USE_SKIASHARP
 using SkiaSharp;
 #else
-using ShimSkiaSharp.Primitives;
+using ShimSkiaSharp;
 #endif
 
 namespace Svg.Model.Drawables

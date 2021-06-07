@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Avalonia.Svg.Commands;
-using ShimSkiaSharp.Primitives;
+using ShimSkiaSharp;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AP = Avalonia.Platform;
