@@ -3,6 +3,7 @@
     public sealed class SKPictureRecorder
     {
         public SKRect CullRect { get; set; }
+
         public SKCanvas? RecordingCanvas { get; set; }
 
         public SKCanvas BeginRecording(SKRect cullRect)

@@ -11,9 +11,7 @@ namespace ShimSkiaSharp.Painting
         {
         }
 
-        public static SKTextBlob CreatePositioned(string? text, SKPoint[]? points)
-        {
-            return new SKTextBlob() {Text = text, Points = points};
-        }
+        public static SKTextBlob CreatePositioned(string? text, SKPoint[]? points) 
+            => new() {Text = text, Points = points};
     }
 }

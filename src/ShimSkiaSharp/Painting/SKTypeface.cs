@@ -17,7 +17,7 @@
             SKFontStyleWidth width,
             SKFontStyleSlant slant)
         {
-            return new SKTypeface()
+            return new()
             {
                 FamilyName = familyName,
                 FontWeight = weight,

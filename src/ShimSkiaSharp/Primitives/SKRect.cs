@@ -5,13 +5,20 @@ namespace ShimSkiaSharp.Primitives
     public struct SKRect
     {
         public float Left { get; set; }
+
         public float Top { get; set; }
+
         public float Right { get; set; }
+
         public float Bottom { get; set; }
-        public SKPoint TopLeft => new SKPoint(Left, Top);
-        public SKPoint TopRight => new SKPoint(Right, Top);
-        public SKPoint BottomLeft => new SKPoint(Left, Bottom);
-        public SKPoint BottomRight => new SKPoint(Right, Bottom);
+
+        public SKPoint TopLeft => new(Left, Top);
+
+        public SKPoint TopRight => new(Right, Top);
+
+        public SKPoint BottomLeft => new(Left, Bottom);
+
+        public SKPoint BottomRight => new(Right, Bottom);
 
         public static readonly SKRect Empty = default;
 
@@ -69,9 +76,7 @@ namespace ShimSkiaSharp.Primitives
                 Math.Max(a.Bottom, b.Bottom));
         }
 
-        public override string ToString()
-        {
-            return FormattableString.Invariant($"{Left}, {Top}, {Width}, {Height}");
-        }
+        public override string ToString() 
+            => FormattableString.Invariant($"{Left}, {Top}, {Width}, {Height}");
     }
 }

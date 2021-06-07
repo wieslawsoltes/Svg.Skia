@@ -5,6 +5,7 @@ namespace ShimSkiaSharp.Primitives
     public readonly struct SKSize
     {
         public float Width { get; }
+
         public float Height { get; }
 
         public static readonly SKSize Empty;
@@ -17,9 +18,7 @@ namespace ShimSkiaSharp.Primitives
             Height = height;
         }
 
-        public override string ToString()
-        {
-            return FormattableString.Invariant($"{Width}, {Height}");
-        }
+        public override string ToString() 
+            => FormattableString.Invariant($"{Width}, {Height}");
     }
 }

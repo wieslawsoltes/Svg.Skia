@@ -5,8 +5,11 @@ namespace ShimSkiaSharp.Painting
     public readonly struct SKColor
     {
         public byte Red { get; }
+        
         public byte Green { get; }
+        
         public byte Blue { get; }
+        
         public byte Alpha { get; }
 
         public static readonly SKColor Empty = default;
@@ -28,9 +31,7 @@ namespace ShimSkiaSharp.Painting
                 color.Alpha * (1 / 255.0f));
         }
 
-        public override string ToString()
-        {
-            return FormattableString.Invariant($"{Red}, {Green}, {Blue}, {Alpha}");
-        }
+        public override string ToString() 
+            => FormattableString.Invariant($"{Red}, {Green}, {Blue}, {Alpha}");
     }
 }

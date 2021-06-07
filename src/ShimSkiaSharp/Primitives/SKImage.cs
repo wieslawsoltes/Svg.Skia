@@ -5,7 +5,9 @@ namespace ShimSkiaSharp.Primitives
     public class SKImage
     {
         public byte[]? Data { get; set; }
+
         public float Width { get; set; }
+
         public float Height { get; set; }
 
         public static byte[] FromStream(Stream sourceStream)

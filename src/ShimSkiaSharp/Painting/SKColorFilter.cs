@@ -19,7 +19,7 @@
 
     public record ColorMatrixColorFilter(float[]? Matrix) : SKColorFilter;
 
-    public record LumaColorColorFilter() : SKColorFilter;
+    public record LumaColorColorFilter : SKColorFilter;
 
     public record TableColorFilter(byte[]? TableA, byte[]? TableR, byte[]? TableG, byte[]? TableB) : SKColorFilter;
 }

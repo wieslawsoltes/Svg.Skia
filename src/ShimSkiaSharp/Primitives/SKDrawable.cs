@@ -4,10 +4,7 @@
     {
         public SKRect Bounds => OnGetBounds();
 
-        public SKPicture Snapshot()
-        {
-            return Snapshot(OnGetBounds());
-        }
+        public SKPicture Snapshot() => Snapshot(OnGetBounds());
 
         public SKPicture Snapshot(SKRect bounds)
         {
@@ -21,9 +18,6 @@
         {
         }
 
-        protected virtual SKRect OnGetBounds()
-        {
-            return SKRect.Empty;
-        }
+        protected virtual SKRect OnGetBounds() => SKRect.Empty;
     }
 }

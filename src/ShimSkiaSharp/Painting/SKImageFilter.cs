@@ -7,7 +7,8 @@ namespace ShimSkiaSharp.Painting
     {
         public record CropRect(SKRect Rect)
         {
-            public override string ToString() => FormattableString.Invariant($"{Rect}");
+            public override string ToString() 
+                => FormattableString.Invariant($"{Rect}");
         }
 
         public static SKImageFilter CreateArithmetic(float k1, float k2, float k3, float k4, bool enforcePMColor, SKImageFilter background, SKImageFilter? foreground = null, CropRect? cropRect = null) 

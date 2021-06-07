@@ -5,7 +5,9 @@ namespace ShimSkiaSharp.Primitives
     public readonly struct SKPoint3
     {
         public float X { get; }
+
         public float Y { get; }
+
         public float Z { get; }
 
         public static readonly SKPoint3 Empty;
@@ -19,9 +21,7 @@ namespace ShimSkiaSharp.Primitives
             Z = z;
         }
 
-        public override string ToString()
-        {
-            return FormattableString.Invariant($"{X}, {Y}, {Z}");
-        }
+        public override string ToString() 
+            => FormattableString.Invariant($"{X}, {Y}, {Z}");
     }
 }

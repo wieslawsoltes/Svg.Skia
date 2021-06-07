@@ -5,6 +5,7 @@ namespace ShimSkiaSharp.Primitives
     public readonly struct SKPointI
     {
         public int X { get; }
+
         public int Y { get; }
 
         public static readonly SKPointI Empty;
@@ -17,9 +18,7 @@ namespace ShimSkiaSharp.Primitives
             Y = y;
         }
 
-        public override string ToString()
-        {
-            return FormattableString.Invariant($"{X}, {Y}");
-        }
+        public override string ToString() 
+            => FormattableString.Invariant($"{X}, {Y}");
     }
 }

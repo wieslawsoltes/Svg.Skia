@@ -28,9 +28,7 @@ namespace ShimSkiaSharp.Painting
                 (byte)(color.Alpha * 255.0f));
         }
 
-        public override string ToString()
-        {
-            return FormattableString.Invariant($"{Red}, {Green}, {Blue}, {Alpha}");
-        }
+        public override string ToString() 
+            => FormattableString.Invariant($"{Red}, {Green}, {Blue}, {Alpha}");
     }
 }
