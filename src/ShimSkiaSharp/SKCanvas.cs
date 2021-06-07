@@ -36,10 +36,10 @@ namespace ShimSkiaSharp
 
         public SKMatrix TotalMatrix { get; private set; }
 
-        public SKCanvas()
+        internal SKCanvas(IList<CanvasCommand> commands, SKMatrix totalMatrix)
         {
-            Commands = new List<CanvasCommand>();
-            TotalMatrix = SKMatrix.Identity;
+            Commands = commands;
+            TotalMatrix = totalMatrix;
         }
 
         public void ClipPath(ClipPath clipPath, SKClipOperation operation = SKClipOperation.Intersect, bool antialias = false)

@@ -1,4 +1,6 @@
-﻿namespace ShimSkiaSharp
+﻿using System.Collections.Generic;
+
+namespace ShimSkiaSharp
 {
     public sealed class SKPictureRecorder
     {
@@ -10,7 +12,7 @@
         {
             CullRect = cullRect;
 
-            RecordingCanvas = new SKCanvas();
+            RecordingCanvas = new SKCanvas(new List<CanvasCommand>(), SKMatrix.Identity);
 
             return RecordingCanvas;
         }
