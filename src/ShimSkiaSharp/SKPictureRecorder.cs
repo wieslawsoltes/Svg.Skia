@@ -4,9 +4,9 @@ namespace ShimSkiaSharp
 {
     public sealed class SKPictureRecorder
     {
-        public SKRect CullRect { get; set; }
+        public SKRect CullRect { get; private set; }
 
-        public SKCanvas? RecordingCanvas { get; set; }
+        public SKCanvas? RecordingCanvas { get; private set; }
 
         public SKCanvas BeginRecording(SKRect cullRect)
         {
