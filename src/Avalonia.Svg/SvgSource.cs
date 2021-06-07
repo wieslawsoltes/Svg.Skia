@@ -31,7 +31,7 @@ namespace Avalonia.Svg
                 var document = SM.SvgExtensions.Open(uri.LocalPath);
                 if (document is { })
                 {
-                    return SM.SvgExtensions.ToModel(document, s_assetLoader);
+                    return SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _);
                 }
                 return default;
             }
@@ -42,7 +42,7 @@ namespace Avalonia.Svg
                 var document = SM.SvgExtensions.Open(stream);
                 if (document is { })
                 {
-                    return SM.SvgExtensions.ToModel(document, s_assetLoader);
+                    return SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _);
                 }
                 return default;
             }

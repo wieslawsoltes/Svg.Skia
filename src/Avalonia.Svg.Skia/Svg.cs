@@ -88,6 +88,11 @@ namespace Avalonia.Svg.Skia
         }
 
         /// <summary>
+        /// Gets svg drawable.
+        /// </summary>
+        public SKDrawable? Drawable => _svg?.Drawable;
+
+        /// <summary>
         /// Gets svg model.
         /// </summary>
         public SKPicture? Model => _svg?.Model;

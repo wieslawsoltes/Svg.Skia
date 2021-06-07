@@ -69,7 +69,7 @@ namespace svgc
             var svgDocument = SM.SvgExtensions.FromSvg(svg);
             if (svgDocument is { })
             {
-                var picture = SM.SvgExtensions.ToModel(svgDocument, AssetLoader);
+                var picture = SM.SvgExtensions.ToModel(svgDocument, AssetLoader, out _, out _);
                 if (picture is { } && picture.Commands is { })
                 {
                     var text = SkiaCSharpCodeGen.Generate(picture, namespaceName, className);

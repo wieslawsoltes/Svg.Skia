@@ -253,7 +253,7 @@ namespace Svg.Model
             return drawable;
         }
 #if !USE_SKIASHARP
-        public static SKPicture? ToModel(SvgFragment svgFragment, IAssetLoader assetLoader)
+        public static SKPicture? ToModel(SvgFragment svgFragment, IAssetLoader assetLoader, out SKDrawable? skDrawable, out SKRect? skBounds)
         {
             var references = new HashSet<Uri>
             {
@@ -262,10 +262,14 @@ namespace Svg.Model
             var drawable = ToDrawable(svgFragment, assetLoader, references, out var bounds);
             if (drawable is null || bounds is null)
             {
+                skDrawable = default;
+                skBounds = default;
                 return default;
             }
 
             var picture = drawable.Snapshot(bounds.Value);
+            skDrawable = drawable;
+            skBounds = bounds;
             return picture;
         }
 #endif
