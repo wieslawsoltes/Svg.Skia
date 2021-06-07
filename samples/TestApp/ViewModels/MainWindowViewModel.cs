@@ -14,6 +14,7 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using Svg.CodeGen.Skia;
+using Svg.Skia;
 using TestApp.Models;
 
 namespace TestApp.ViewModels
@@ -54,6 +55,8 @@ namespace TestApp.ViewModels
         public ICommand AddItemCommand { get; }
 
         public ICommand CopyAsCSharpCommand { get; }
+
+        public ICommand ExportCommand { get; }
 
         public MainWindowViewModel()
         {
@@ -151,12 +154,27 @@ namespace TestApp.ViewModels
                         // ignored
                     }
                 });
+            });
 
-                static string CreateClassName(string filename)
+            ExportCommand = ReactiveCommand.CreateFromTask<Avalonia.Svg.Skia.Svg>(async svg =>
+            {
+                if (_selectedItem is null || svg?.Model is null)
                 {
-                    string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(filename);
-                    string className = fileNameWithoutExtension.Replace("-", "_");
-                    return $"Svg_{className}";
+                    return;
+                }
+
+                var dlg = new SaveFileDialog();
+                dlg.Filters.Add(new FileDialogFilter() { Name = "Png Files (*.png)", Extensions = new List<string> {"png"} });
+                dlg.Filters.Add(new FileDialogFilter() { Name = "Jpeg Files (*.jpeg)", Extensions = new List<string> {"jpeg"} });
+                dlg.Filters.Add(new FileDialogFilter() { Name = "C# Files (*.cs)", Extensions = new List<string> {"cs"} });
+                dlg.Filters.Add(new FileDialogFilter() { Name = "Pdf Files (*.pdf)", Extensions = new List<string> {"pdf"} });
+                dlg.Filters.Add(new FileDialogFilter() { Name = "Xps Files (*.xps)", Extensions = new List<string> {"xps"} });
+                dlg.Filters.Add(new FileDialogFilter() { Name = "All Files (*.*)", Extensions = new List<string> {"*"} });
+                dlg.InitialFileName = Path.GetFileNameWithoutExtension(_selectedItem.Path);
+                var result = await dlg.ShowAsync((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow);
+                if (result is { })
+                {
+                    Export(result, svg, "#00FFFFFF", 1f, 1f);
                 }
             });
         }
@@ -244,6 +262,60 @@ namespace TestApp.ViewModels
 
             var json = JsonSerializer.Serialize(configuration);
             File.WriteAllText(configurationPath, json);
+        }
+
+        public void Export(string path, Avalonia.Svg.Skia.Svg? svg, string backgroundColor, float scaleX, float scaleY)
+        {
+            if (svg?.Model is null || svg?.Picture is null)
+            {
+                return;
+            }
+
+            if (!SkiaSharp.SKColor.TryParse(backgroundColor, out var skBackgroundColor))
+            {
+                return;
+            }
+
+            var extension = Path.GetExtension(path);
+            switch (extension.ToLower())
+            {
+                case ".png":
+                {
+                    using var stream = File.OpenWrite(path);
+                    svg.Picture?.ToImage(stream, skBackgroundColor, SkiaSharp.SKEncodedImageFormat.Png, 100, scaleX, scaleY, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul, SKSvgSettings.s_srgb);
+                }
+                    break;
+                case ".jpg":
+                case ".jpeg":
+                {
+                    using var stream = File.OpenWrite(path);
+                    svg.Picture?.ToImage(stream, skBackgroundColor, SkiaSharp.SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul, SKSvgSettings.s_srgb);
+                }
+                    break;
+                case ".pdf":
+                {
+                    svg.Picture?.ToPdf(path, skBackgroundColor, scaleX, scaleY);
+                }
+                    break;
+                case ".xps":
+                {
+                    svg.Picture?.ToXps(path, skBackgroundColor, scaleX, scaleY);
+                }
+                    break;
+                case ".cs":
+                {
+                    var code = SkiaCSharpCodeGen.Generate(svg.Model, "Svg", CreateClassName(path));
+                    File.WriteAllText(path, code);
+                }
+                    break;
+            }
+        }
+
+        private static string CreateClassName(string filename)
+        {
+            string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(filename);
+            string className = fileNameWithoutExtension.Replace("-", "_");
+            return $"Svg_{className}";
         }
     }
 }
