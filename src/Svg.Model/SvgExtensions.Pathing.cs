@@ -5,7 +5,6 @@ using System.Diagnostics;
 using SkiaSharp;
 #else
 using ShimSkiaSharp.Primitives;
-using ShimSkiaSharp.Primitives.PathCommands;
 #endif
 using Svg.Pathing;
 

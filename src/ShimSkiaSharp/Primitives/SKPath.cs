@@ -1,9 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using ShimSkiaSharp.Primitives.PathCommands;
 
 namespace ShimSkiaSharp.Primitives
 {
+    public abstract record PathCommand;
+    public record AddCirclePathCommand(float X, float Y, float Radius) : PathCommand;
+    public record AddOvalPathCommand(SKRect Rect) : PathCommand;
+    public record AddPolyPathCommand(IList<SKPoint> Points, bool Close) : PathCommand;
+    public record AddRectPathCommand(SKRect Rect) : PathCommand;
+    public record AddRoundRectPathCommand(SKRect Rect, float Rx, float Ry) : PathCommand;
+    public record ArcToPathCommand(float Rx, float Ry, float XAxisRotate, SKPathArcSize LargeArc, SKPathDirection Sweep, float X, float Y) : PathCommand;
+    public record ClosePathCommand() : PathCommand;
+    public record CubicToPathCommand(float X0, float Y0, float X1, float Y1, float X2, float Y2) : PathCommand;
+    public record LineToPathCommand(float X, float Y) : PathCommand;
+    public record MoveToPathCommand(float X, float Y) : PathCommand;
+    public record QuadToPathCommand(float X0, float Y0, float X1, float Y1) : PathCommand;
+
     public class SKPath
     {
         public SKPathFillType FillType { get; set; }

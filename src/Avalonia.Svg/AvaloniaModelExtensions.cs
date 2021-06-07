@@ -4,7 +4,6 @@ using ShimSkiaSharp.Painting;
 using ShimSkiaSharp.Painting.PathEffects;
 using ShimSkiaSharp.Painting.Shaders;
 using ShimSkiaSharp.Primitives;
-using ShimSkiaSharp.Primitives.PathCommands;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AMI = Avalonia.Media.Imaging;

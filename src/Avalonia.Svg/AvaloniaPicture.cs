@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using Avalonia.Svg.Commands;
 using ShimSkiaSharp.Primitives;
-using ShimSkiaSharp.Primitives.CanvasCommands;
-using ShimSkiaSharp.Primitives.PathCommands;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AP = Avalonia.Platform;

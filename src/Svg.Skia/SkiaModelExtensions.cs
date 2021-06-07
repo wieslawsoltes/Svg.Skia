@@ -5,8 +5,6 @@ using ShimSkiaSharp.Painting.ImageFilters;
 using ShimSkiaSharp.Painting.PathEffects;
 using ShimSkiaSharp.Painting.Shaders;
 using ShimSkiaSharp.Primitives;
-using ShimSkiaSharp.Primitives.CanvasCommands;
-using ShimSkiaSharp.Primitives.PathCommands;
 
 namespace Svg.Skia
 {
