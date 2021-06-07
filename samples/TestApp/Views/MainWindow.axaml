@@ -141,7 +141,12 @@
                               Margin="6,0,6,0"/>
                 <Button Content="Copy as C#" 
                         Command="{Binding CopyAsCSharpCommand}" 
-                        CommandParameter="{Binding #Svg}"/>
+                        CommandParameter="{Binding #Svg}"
+                        Margin="0,0,6,0"/>
+                <Button Content="Export" 
+                        Command="{Binding ExportCommand}" 
+                        CommandParameter="{Binding #Svg}"
+                        Margin="0,0,0,0"/>
             </StackPanel>
             <ScrollViewer HorizontalScrollBarVisibility="{Binding #HorizontalScrollBarVisibility.SelectedItem.Content}" 
                           VerticalScrollBarVisibility="{Binding #VerticalScrollBarVisibility.SelectedItem.Content}">
@@ -149,6 +154,9 @@
                     <MenuFlyout Placement="Bottom">
                         <MenuItem Header="Copy as C#" 
                                   Command="{Binding CopyAsCSharpCommand}" 
+                                  CommandParameter="{Binding #Svg}"/>
+                        <MenuItem Header="Export" 
+                                  Command="{Binding ExportCommand}" 
                                   CommandParameter="{Binding #Svg}"/>
                     </MenuFlyout>
                 </ScrollViewer.ContextFlyout>
