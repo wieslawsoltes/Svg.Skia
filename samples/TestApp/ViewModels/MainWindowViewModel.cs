@@ -178,6 +178,15 @@ namespace TestApp.ViewModels
         {
             foreach (var path in paths)
             {
+                if (File.GetAttributes(path).HasFlag(FileAttributes.Directory))
+                {
+                    var svgPaths = Directory.EnumerateFiles(path, "*.svg", new EnumerationOptions {RecurseSubdirectories = true});
+                    var svgzPaths = Directory.EnumerateFiles(path, "*.svgz", new EnumerationOptions {RecurseSubdirectories = true});
+                    Drop(svgPaths);
+                    Drop(svgzPaths);
+                    continue;
+                }
+
                 var extension = Path.GetExtension(path);
                 switch (extension.ToLower())
                 {
