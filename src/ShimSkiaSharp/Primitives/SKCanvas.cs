@@ -5,25 +5,37 @@ using ShimSkiaSharp.Painting;
 namespace ShimSkiaSharp.Primitives
 {
     public abstract record CanvasCommand;
+
     public record ClipPathCanvasCommand(ClipPath ClipPath, SKClipOperation Operation, bool Antialias) : CanvasCommand;
+
     public record ClipRectCanvasCommand(SKRect Rect, SKClipOperation Operation, bool Antialias) : CanvasCommand;
+
     public record DrawImageCanvasCommand(SKImage Image, SKRect Source, SKRect Dest, SKPaint? Paint = null) : CanvasCommand;
+
     public record DrawPathCanvasCommand(SKPath Path, SKPaint Paint) : CanvasCommand;
+
     public record DrawTextBlobCanvasCommand(SKTextBlob TextBlob, float X, float Y, SKPaint Paint) : CanvasCommand;
+
     public record DrawTextCanvasCommand(string Text, float X, float Y, SKPaint Paint) : CanvasCommand;
+
     public record DrawTextOnPathCanvasCommand(string Text, SKPath Path, float HOffset, float VOffset, SKPaint Paint) : CanvasCommand;
+
     public record RestoreCanvasCommand(int Count) : CanvasCommand;
+
     public record SaveCanvasCommand(int Count) : CanvasCommand;
+
     public record SaveLayerCanvasCommand(int Count, SKPaint? Paint = null) : CanvasCommand;
+
     public record SetMatrixCanvasCommand(SKMatrix Matrix) : CanvasCommand;
 
     public class SKCanvas
     {
-        private int _saveCount = 0;
+        private int _saveCount;
         private readonly Stack<SKMatrix> _totalMatrices = new();
 
-        public IList<CanvasCommand>? Commands { get; set; }
-        public SKMatrix TotalMatrix { get; set; }
+        public IList<CanvasCommand>? Commands { get; }
+
+        public SKMatrix TotalMatrix { get; private set; }
 
         public SKCanvas()
         {

@@ -1,9 +1,5 @@
 ﻿using System.Collections.Generic;
 using ShimSkiaSharp.Painting;
-using ShimSkiaSharp.Painting.ColorFilters;
-using ShimSkiaSharp.Painting.ImageFilters;
-using ShimSkiaSharp.Painting.PathEffects;
-using ShimSkiaSharp.Painting.Shaders;
 using ShimSkiaSharp.Primitives;
 
 namespace Svg.Skia

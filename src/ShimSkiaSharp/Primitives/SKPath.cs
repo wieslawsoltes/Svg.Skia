@@ -4,22 +4,34 @@ using System.Collections.Generic;
 namespace ShimSkiaSharp.Primitives
 {
     public abstract record PathCommand;
+
     public record AddCirclePathCommand(float X, float Y, float Radius) : PathCommand;
+
     public record AddOvalPathCommand(SKRect Rect) : PathCommand;
-    public record AddPolyPathCommand(IList<SKPoint> Points, bool Close) : PathCommand;
+
+    public record AddPolyPathCommand(IList<SKPoint>? Points, bool Close) : PathCommand;
+
     public record AddRectPathCommand(SKRect Rect) : PathCommand;
+
     public record AddRoundRectPathCommand(SKRect Rect, float Rx, float Ry) : PathCommand;
+
     public record ArcToPathCommand(float Rx, float Ry, float XAxisRotate, SKPathArcSize LargeArc, SKPathDirection Sweep, float X, float Y) : PathCommand;
-    public record ClosePathCommand() : PathCommand;
+
+    public record ClosePathCommand : PathCommand;
+
     public record CubicToPathCommand(float X0, float Y0, float X1, float Y1, float X2, float Y2) : PathCommand;
+
     public record LineToPathCommand(float X, float Y) : PathCommand;
+
     public record MoveToPathCommand(float X, float Y) : PathCommand;
+
     public record QuadToPathCommand(float X0, float Y0, float X1, float Y1) : PathCommand;
 
     public class SKPath
     {
         public SKPathFillType FillType { get; set; }
-        public IList<PathCommand>? Commands { get; set; }
+
+        public IList<PathCommand>? Commands { get; private set; }
 
         public bool IsEmpty => Commands is null || Commands.Count == 0;
 
@@ -145,59 +157,37 @@ namespace ShimSkiaSharp.Primitives
             return bounds;
         }
 
-        public void MoveTo(float x, float y)
-        {
-            Commands?.Add(new MoveToPathCommand(x, y));
-        }
+        public void MoveTo(float x, float y) 
+            => Commands?.Add(new MoveToPathCommand(x, y));
 
-        public void LineTo(float x, float y)
-        {
-            Commands?.Add(new LineToPathCommand(x, y));
-        }
+        public void LineTo(float x, float y) 
+            => Commands?.Add(new LineToPathCommand(x, y));
 
-        public void ArcTo(float rx, float ry, float xAxisRotate, SKPathArcSize largeArc, SKPathDirection sweep, float x, float y)
-        {
-            Commands?.Add(new ArcToPathCommand(rx, ry, xAxisRotate, largeArc, sweep, x, y));
-        }
+        public void ArcTo(float rx, float ry, float xAxisRotate, SKPathArcSize largeArc, SKPathDirection sweep, float x, float y) 
+            => Commands?.Add(new ArcToPathCommand(rx, ry, xAxisRotate, largeArc, sweep, x, y));
 
-        public void QuadTo(float x0, float y0, float x1, float y1)
-        {
-            Commands?.Add(new QuadToPathCommand(x0, y0, x1, y1));
-        }
+        public void QuadTo(float x0, float y0, float x1, float y1) 
+            => Commands?.Add(new QuadToPathCommand(x0, y0, x1, y1));
 
-        public void CubicTo(float x0, float y0, float x1, float y1, float x2, float y2)
-        {
-            Commands?.Add(new CubicToPathCommand(x0, y0, x1, y1, x2, y2));
-        }
+        public void CubicTo(float x0, float y0, float x1, float y1, float x2, float y2) 
+            => Commands?.Add(new CubicToPathCommand(x0, y0, x1, y1, x2, y2));
 
-        public void Close()
-        {
-            Commands?.Add(new ClosePathCommand());
-        }
+        public void Close() 
+            => Commands?.Add(new ClosePathCommand());
 
-        public void AddRect(SKRect rect)
-        {
-            Commands?.Add(new AddRectPathCommand(rect));
-        }
+        public void AddRect(SKRect rect) 
+            => Commands?.Add(new AddRectPathCommand(rect));
 
-        public void AddRoundRect(SKRect rect, float rx, float ry)
-        {
-            Commands?.Add(new AddRoundRectPathCommand(rect, rx, ry));
-        }
+        public void AddRoundRect(SKRect rect, float rx, float ry) 
+            => Commands?.Add(new AddRoundRectPathCommand(rect, rx, ry));
 
-        public void AddOval(SKRect rect)
-        {
-            Commands?.Add(new AddOvalPathCommand(rect));
-        }
+        public void AddOval(SKRect rect) 
+            => Commands?.Add(new AddOvalPathCommand(rect));
 
-        public void AddCircle(float x, float y, float radius)
-        {
-            Commands?.Add(new AddCirclePathCommand(x, y, radius));
-        }
+        public void AddCircle(float x, float y, float radius) 
+            => Commands?.Add(new AddCirclePathCommand(x, y, radius));
 
-        public void AddPoly(SKPoint[] points, bool close = true)
-        {
-            Commands?.Add(new AddPolyPathCommand(points, close));
-        }
+        public void AddPoly(SKPoint[] points, bool close = true) 
+            => Commands?.Add(new AddPolyPathCommand(points, close));
     }
 }

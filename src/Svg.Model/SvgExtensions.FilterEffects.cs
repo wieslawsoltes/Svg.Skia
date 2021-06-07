@@ -8,8 +8,6 @@ using Svg.Model.Drawables.Elements;
 using SkiaSharp;
 #else
 using ShimSkiaSharp.Painting;
-using ShimSkiaSharp.Painting.ImageFilters;
-using ShimSkiaSharp.Painting.Shaders;
 using ShimSkiaSharp.Primitives;
 #endif
 

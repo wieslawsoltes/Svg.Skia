@@ -6,7 +6,6 @@ using Svg.Model.Drawables;
 using SkiaSharp;
 #else
 using ShimSkiaSharp.Painting;
-using ShimSkiaSharp.Painting.Shaders;
 using ShimSkiaSharp.Primitives;
 #endif
 

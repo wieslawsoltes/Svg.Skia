@@ -1,4 +1,4 @@
-﻿namespace ShimSkiaSharp.Painting.ImageFilters
+﻿namespace ShimSkiaSharp.Painting
 {
     public enum SKColorChannel
     {

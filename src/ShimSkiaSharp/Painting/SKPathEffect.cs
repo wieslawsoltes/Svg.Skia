@@ -1,16 +1,10 @@
-﻿using ShimSkiaSharp.Painting.PathEffects;
-
-namespace ShimSkiaSharp.Painting
+﻿namespace ShimSkiaSharp.Painting
 {
-    public abstract class SKPathEffect
+    public abstract record SKPathEffect
     {
-        public static SKPathEffect CreateDash(float[] intervals, float phase)
-        {
-            return new DashPathEffect
-            {
-                Intervals = intervals,
-                Phase = phase
-            };
-        }
+        public static SKPathEffect CreateDash(float[] intervals, float phase) 
+            => new DashPathEffect(intervals, phase);
     }
+
+    public record DashPathEffect(float[]? Intervals, float Phase) : SKPathEffect;
 }

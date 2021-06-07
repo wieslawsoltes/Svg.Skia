@@ -1,42 +1,25 @@
-﻿using ShimSkiaSharp.Painting.ColorFilters;
-
-namespace ShimSkiaSharp.Painting
+﻿namespace ShimSkiaSharp.Painting
 {
-    public abstract class SKColorFilter
+    public abstract record SKColorFilter
     {
-        public static SKColorFilter CreateColorMatrix(float[] matrix)
-        {
-            return new ColorMatrixColorFilter
-            {
-                Matrix = matrix
-            };
-        }
+        public static SKColorFilter CreateColorMatrix(float[] matrix) 
+            => new ColorMatrixColorFilter(matrix);
 
-        public static SKColorFilter CreateTable(byte[]? tableA, byte[]? tableR, byte[]? tableG, byte[]? tableB)
-        {
-            return new TableColorFilter
-            {
-                TableA = tableA,
-                TableB = tableB,
-                TableG = tableG,
-                TableR = tableR
-            };
-        }
+        public static SKColorFilter CreateTable(byte[]? tableA, byte[]? tableR, byte[]? tableG, byte[]? tableB) 
+            => new TableColorFilter(tableA, tableB, tableG, tableR);
 
-        public static SKColorFilter CreateBlendMode(SKColor c, SKBlendMode mode)
-        {
-            return new BlendModeColorFilter
-            {
-                Color = c,
-                Mode = mode
-            };
-        }
+        public static SKColorFilter CreateBlendMode(SKColor c, SKBlendMode mode) 
+            => new BlendModeColorFilter(c, mode);
 
-        public static SKColorFilter CreateLumaColor()
-        {
-            return new LumaColorColorFilter
-            {
-            };
-        }
+        public static SKColorFilter CreateLumaColor() 
+            => new LumaColorColorFilter();
     }
+
+    public record BlendModeColorFilter(SKColor Color, SKBlendMode Mode) : SKColorFilter;
+
+    public record ColorMatrixColorFilter(float[]? Matrix) : SKColorFilter;
+
+    public record LumaColorColorFilter() : SKColorFilter;
+
+    public record TableColorFilter(byte[]? TableA, byte[]? TableR, byte[]? TableG, byte[]? TableB) : SKColorFilter;
 }

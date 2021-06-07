@@ -4,10 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using ShimSkiaSharp.Painting;
-using ShimSkiaSharp.Painting.ColorFilters;
-using ShimSkiaSharp.Painting.ImageFilters;
-using ShimSkiaSharp.Painting.PathEffects;
-using ShimSkiaSharp.Painting.Shaders;
 using ShimSkiaSharp.Primitives;
 
 namespace Svg.CodeGen.Skia

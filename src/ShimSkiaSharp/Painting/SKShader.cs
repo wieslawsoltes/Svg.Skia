@@ -1,111 +1,43 @@
-﻿using ShimSkiaSharp.Painting.Shaders;
-using ShimSkiaSharp.Primitives;
+﻿using ShimSkiaSharp.Primitives;
 
 namespace ShimSkiaSharp.Painting
 {
-    public abstract class SKShader
+    public abstract record SKShader
     {
-        public static SKShader CreateColor(SKColor color, SKColorSpace colorSpace)
-        {
-            return new ColorShader
-            {
-                Color = color,
-                ColorSpace = colorSpace
-            };
-        }
+        public static SKShader CreateColor(SKColor color, SKColorSpace colorSpace) 
+            => new ColorShader(color, colorSpace);
 
-        public static SKShader CreateLinearGradient(SKPoint start, SKPoint end, SKColorF[] colors, SKColorSpace colorSpace, float[] colorPos, SKShaderTileMode mode)
-        {
-            return new LinearGradientShader
-            {
-                Start = start,
-                End = end,
-                Colors = colors,
-                ColorSpace = colorSpace,
-                ColorPos = colorPos,
-                Mode = mode
-            };
-        }
+        public static SKShader CreateLinearGradient(SKPoint start, SKPoint end, SKColorF[] colors, SKColorSpace colorSpace, float[] colorPos, SKShaderTileMode mode) 
+            => new LinearGradientShader(start, end, colors, colorSpace, colorPos, mode, null);
 
-        public static SKShader CreateLinearGradient(SKPoint start, SKPoint end, SKColorF[] colors, SKColorSpace colorSpace, float[] colorPos, SKShaderTileMode mode, SKMatrix localMatrix)
-        {
-            return new LinearGradientShader
-            {
-                Start = start,
-                End = end,
-                Colors = colors,
-                ColorSpace = colorSpace,
-                ColorPos = colorPos,
-                Mode = mode,
-                LocalMatrix = localMatrix
-            };
-        }
+        public static SKShader CreateLinearGradient(SKPoint start, SKPoint end, SKColorF[] colors, SKColorSpace colorSpace, float[] colorPos, SKShaderTileMode mode, SKMatrix localMatrix) 
+            => new LinearGradientShader(start, end, colors, colorSpace, colorPos, mode, localMatrix);
 
-        public static SKShader CreatePerlinNoiseFractalNoise(float baseFrequencyX, float baseFrequencyY, int numOctaves, float seed, SKPointI tileSize)
-        {
-            return new PerlinNoiseFractalNoiseShader
-            {
-                BaseFrequencyX = baseFrequencyX,
-                BaseFrequencyY = baseFrequencyY,
-                NumOctaves = numOctaves,
-                Seed = seed,
-                TileSize = tileSize
-            };
-        }
+        public static SKShader CreatePerlinNoiseFractalNoise(float baseFrequencyX, float baseFrequencyY, int numOctaves, float seed, SKPointI tileSize) 
+            => new PerlinNoiseFractalNoiseShader(baseFrequencyX, baseFrequencyY, numOctaves, seed, tileSize);
 
-        public static SKShader CreatePerlinNoiseTurbulence(float baseFrequencyX, float baseFrequencyY, int numOctaves, float seed, SKPointI tileSize)
-        {
-            return new PerlinNoiseTurbulenceShader
-            {
-                BaseFrequencyX = baseFrequencyX,
-                BaseFrequencyY = baseFrequencyY,
-                NumOctaves = numOctaves,
-                Seed = seed,
-                TileSize = tileSize
-            };
-        }
+        public static SKShader CreatePerlinNoiseTurbulence(float baseFrequencyX, float baseFrequencyY, int numOctaves, float seed, SKPointI tileSize) 
+            => new PerlinNoiseTurbulenceShader(baseFrequencyX, baseFrequencyY, numOctaves, seed, tileSize);
 
-        public static SKShader CreatePicture(SKPicture src, SKShaderTileMode tmx, SKShaderTileMode tmy, SKMatrix localMatrix, SKRect tile)
-        {
-            return new PictureShader
-            {
-                Src = src,
-                TmX = tmx,
-                TmY = tmy,
-                LocalMatrix = localMatrix,
-                Tile = tile
-            };
-        }
+        public static SKShader CreatePicture(SKPicture src, SKShaderTileMode tmx, SKShaderTileMode tmy, SKMatrix localMatrix, SKRect tile) 
+            => new PictureShader(src, tmx, tmy, localMatrix, tile);
 
-        public static SKShader CreateTwoPointConicalGradient(SKPoint start, float startRadius, SKPoint end, float endRadius, SKColorF[] colors, SKColorSpace colorSpace, float[] colorPos, SKShaderTileMode mode)
-        {
-            return new TwoPointConicalGradientShader
-            {
-                Start = start,
-                StartRadius = startRadius,
-                End = end,
-                EndRadius = endRadius,
-                Colors = colors,
-                ColorSpace = colorSpace,
-                ColorPos = colorPos,
-                Mode = mode
-            };
-        }
+        public static SKShader CreateTwoPointConicalGradient(SKPoint start, float startRadius, SKPoint end, float endRadius, SKColorF[] colors, SKColorSpace colorSpace, float[] colorPos, SKShaderTileMode mode) 
+            => new TwoPointConicalGradientShader(start, startRadius, end, endRadius, colors, colorSpace, colorPos, mode, null);
 
-        public static SKShader CreateTwoPointConicalGradient(SKPoint start, float startRadius, SKPoint end, float endRadius, SKColorF[] colors, SKColorSpace colorSpace, float[] colorPos, SKShaderTileMode mode, SKMatrix localMatrix)
-        {
-            return new TwoPointConicalGradientShader
-            {
-                Start = start,
-                StartRadius = startRadius,
-                End = end,
-                EndRadius = endRadius,
-                Colors = colors,
-                ColorSpace = colorSpace,
-                ColorPos = colorPos,
-                Mode = mode,
-                LocalMatrix = localMatrix
-            };
-        }
+        public static SKShader CreateTwoPointConicalGradient(SKPoint start, float startRadius, SKPoint end, float endRadius, SKColorF[] colors, SKColorSpace colorSpace, float[] colorPos, SKShaderTileMode mode, SKMatrix localMatrix) 
+            => new TwoPointConicalGradientShader(start, startRadius, end, endRadius, colors, colorSpace, colorPos, mode, localMatrix);
     }
+
+    public record ColorShader(SKColor Color, SKColorSpace ColorSpace) : SKShader;
+
+    public record LinearGradientShader(SKPoint Start, SKPoint End, SKColorF[]? Colors, SKColorSpace ColorSpace, float[]? ColorPos, SKShaderTileMode Mode, SKMatrix? LocalMatrix) : SKShader;
+
+    public record PerlinNoiseFractalNoiseShader(float BaseFrequencyX, float BaseFrequencyY, int NumOctaves, float Seed, SKPointI TileSize) : SKShader;
+
+    public record PerlinNoiseTurbulenceShader(float BaseFrequencyX, float BaseFrequencyY, int NumOctaves, float Seed, SKPointI TileSize) : SKShader;
+
+    public record PictureShader(SKPicture? Src, SKShaderTileMode TmX, SKShaderTileMode TmY, SKMatrix LocalMatrix, SKRect Tile) : SKShader;
+
+    public record TwoPointConicalGradientShader(SKPoint Start, float StartRadius, SKPoint End, float EndRadius, SKColorF[]? Colors, SKColorSpace ColorSpace, float[]? ColorPos, SKShaderTileMode Mode, SKMatrix? LocalMatrix) : SKShader;
 }

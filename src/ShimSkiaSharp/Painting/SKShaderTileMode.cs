@@ -1,4 +1,4 @@
-﻿namespace ShimSkiaSharp.Painting.Shaders
+﻿namespace ShimSkiaSharp.Painting
 {
     public enum SKShaderTileMode
     {
