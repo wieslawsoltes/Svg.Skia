@@ -39,11 +39,11 @@
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />
     <Compile Include="..\Svg.Model\**\*.cs" Exclude="..\Svg.Model\obj\**" />
-    <Compile Include="..\ShimSkiaSharp\Primitives\ClipPath.cs">
-      <Link>ShimSkiaSharp\Primitives\ClipPath.cs</Link>
+    <Compile Include="..\ShimSkiaSharp\ClipPath.cs">
+      <Link>ShimSkiaSharp\ClipPath.cs</Link>
     </Compile>
-    <Compile Include="..\ShimSkiaSharp\Primitives\PathClip.cs">
-      <Link>ShimSkiaSharp\Primitives\PathClip.cs</Link>
+    <Compile Include="..\ShimSkiaSharp\PathClip.cs">
+      <Link>ShimSkiaSharp\PathClip.cs</Link>
     </Compile>
   </ItemGroup>
 

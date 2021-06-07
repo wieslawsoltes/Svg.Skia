@@ -2,7 +2,7 @@
 #if USE_SKIASHARP
 using SkiaSharp;
 #else
-using ShimSkiaSharp.Primitives;
+using ShimSkiaSharp;
 #endif
 using Svg.Transforms;
 

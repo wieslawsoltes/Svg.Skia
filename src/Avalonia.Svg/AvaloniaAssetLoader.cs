@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using ShimSkiaSharp.Primitives;
+using ShimSkiaSharp;
 using AMI = Avalonia.Media.Imaging;
 using SM = Svg.Model;
 

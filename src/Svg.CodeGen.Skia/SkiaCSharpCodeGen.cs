@@ -1,6 +1,6 @@
 ﻿#nullable enable
 using System.Text;
-using ShimSkiaSharp.Primitives;
+using ShimSkiaSharp;
 
 namespace Svg.CodeGen.Skia
 {

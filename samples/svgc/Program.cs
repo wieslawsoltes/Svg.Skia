@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Svg.CodeGen.Skia;
 using SLIS = SixLabors.ImageSharp;
 using SM = Svg.Model;
-using SMP = ShimSkiaSharp.Primitives;
+using SMP = ShimSkiaSharp;
 
 namespace svgc
 {

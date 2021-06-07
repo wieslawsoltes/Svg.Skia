@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using ShimSkiaSharp.Painting;
-using ShimSkiaSharp.Painting.PathEffects;
-using ShimSkiaSharp.Painting.Shaders;
-using ShimSkiaSharp.Primitives;
-using ShimSkiaSharp.Primitives.PathCommands;
+using ShimSkiaSharp;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AMI = Avalonia.Media.Imaging;
