@@ -14,7 +14,7 @@
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
-    <Grid ColumnDefinitions="250,8,*" RowDefinitions="Auto,*,Auto">
+    <Grid ColumnDefinitions="300,8,*" RowDefinitions="Auto,*,Auto">
 
         <TextBox Grid.Column="0"
                  Grid.Row="0"
