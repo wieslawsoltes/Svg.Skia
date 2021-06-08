@@ -18,8 +18,8 @@
                     <ComboBoxItem>Uniform</ComboBoxItem>
                     <ComboBoxItem>UniformToFill</ComboBoxItem>
                 </ComboBox>
-                <SKPictureControl Stretch="{Binding #SvgPictureStretch.SelectedItem.Content}"
-                                  Picture="{x:Static local:Tiger.Picture}" />
+                <SKPictureControl Picture="{x:Static local:Tiger.Picture}" 
+                                  Stretch="{Binding #SvgPictureStretch.SelectedItem.Content}"/>
             </DockPanel>
         </TabItem>
 
