@@ -3,15 +3,42 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AvaloniaSKPictureImageSample;assembly=AvaloniaSKPictureImageSample"
-        xmlns:skp="clr-namespace:Avalonia.SKPictureImage;assembly=Avalonia.SKPictureImage"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         Width="900" Height="650" WindowStartupLocation="CenterScreen"
         x:Class="AvaloniaSKPictureImageSample.MainWindow"
         Title="Avalonia SKPictureImage Sample">
-    <Window.Resources>
-        <skp:SKPictureImage x:Key="TigerImage" Source="{x:Static local:Tiger.Picture}" />
-    </Window.Resources>
-    <Grid>
-        <Image Source="{StaticResource TigerImage}" />
-    </Grid>
+    
+    <TabControl>
+
+        <TabItem Header="Control">
+            <DockPanel Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                <ComboBox Name="SvgPictureStretch" DockPanel.Dock="Top" SelectedIndex="2">
+                    <ComboBoxItem>None</ComboBoxItem>
+                    <ComboBoxItem>Fill</ComboBoxItem>
+                    <ComboBoxItem>Uniform</ComboBoxItem>
+                    <ComboBoxItem>UniformToFill</ComboBoxItem>
+                </ComboBox>
+                <SKPictureControl Stretch="{Binding #SvgPictureStretch.SelectedItem.Content}"
+                                  Picture="{x:Static local:Tiger.Picture}" />
+            </DockPanel>
+        </TabItem>
+
+        <TabItem Header="Image">
+            <DockPanel Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                <DockPanel.Resources>
+                    <SKPictureImage x:Key="CameraImage" Source="{x:Static local:Camera.Picture}" />
+                </DockPanel.Resources>
+                <ComboBox Name="SvgImageStretch" DockPanel.Dock="Top" SelectedIndex="2">
+                    <ComboBoxItem>None</ComboBoxItem>
+                    <ComboBoxItem>Fill</ComboBoxItem>
+                    <ComboBoxItem>Uniform</ComboBoxItem>
+                    <ComboBoxItem>UniformToFill</ComboBoxItem>
+                </ComboBox>
+                <Image Source="{StaticResource CameraImage}" 
+                       Stretch="{Binding #SvgImageStretch.SelectedItem.Content}" />
+            </DockPanel>
+        </TabItem>
+
+    </TabControl>
+
 </Window>
