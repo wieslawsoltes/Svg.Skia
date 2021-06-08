@@ -26,10 +26,6 @@
     <ProjectReference Include="..\..\src\Svg.SourceGenerator.Skia\Svg.SourceGenerator.Skia.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="False"/>
   </ItemGroup>
 
-  <ItemGroup>
-    <AvaloniaResource Include="Assets\__AJ_Digital_Camera.svg"/>
-  </ItemGroup>
-
   <Import Project="..\..\src\Svg.SourceGenerator.Skia\Svg.SourceGenerator.Skia.props"/>
 
 </Project>
