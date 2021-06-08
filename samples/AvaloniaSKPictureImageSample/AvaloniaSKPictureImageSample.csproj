@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
@@ -7,24 +7,28 @@
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
-  
+
   <ItemGroup>
-    <PublishReadyToRunExclude Include="Microsoft.CodeAnalysis.dll" />
+    <PublishReadyToRunExclude Include="Microsoft.CodeAnalysis.dll"/>
   </ItemGroup>
-  
-  <Import Project="..\..\build\Avalonia.props" />
-  <Import Project="..\..\build\Avalonia.Desktop.props" />
-  <Import Project="..\..\build\Avalonia.Diagnostics.props" />
-  
+
+  <Import Project="..\..\build\Avalonia.props"/>
+  <Import Project="..\..\build\Avalonia.Desktop.props"/>
+  <Import Project="..\..\build\Avalonia.Diagnostics.props"/>
+
   <ItemGroup>
-    <AdditionalFiles Include="Assets/__tiger.svg" NamespaceName="AvaloniaSKPictureImageSample" ClassName="Tiger" />
+    <AdditionalFiles Include="Assets/__tiger.svg" NamespaceName="AvaloniaSKPictureImageSample" ClassName="Tiger"/>
   </ItemGroup>
-  
+
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Avalonia.SKPictureImage\Avalonia.SKPictureImage.csproj" />
-    <ProjectReference Include="..\..\src\Svg.SourceGenerator.Skia\Svg.SourceGenerator.Skia.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="False" />
+    <ProjectReference Include="..\..\src\Avalonia.SKPictureImage\Avalonia.SKPictureImage.csproj"/>
+    <ProjectReference Include="..\..\src\Svg.SourceGenerator.Skia\Svg.SourceGenerator.Skia.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="False"/>
   </ItemGroup>
-  
-  <Import Project="..\..\src\Svg.SourceGenerator.Skia\Svg.SourceGenerator.Skia.props" />
-  
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\__AJ_Digital_Camera.svg"/>
+  </ItemGroup>
+
+  <Import Project="..\..\src\Svg.SourceGenerator.Skia\Svg.SourceGenerator.Skia.props"/>
+
 </Project>
