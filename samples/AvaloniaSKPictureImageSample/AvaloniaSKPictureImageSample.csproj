@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <AdditionalFiles Include="Assets/__tiger.svg" NamespaceName="AvaloniaSKPictureImageSample" ClassName="Tiger"/>
+    <AdditionalFiles Include="Assets/__AJ_Digital_Camera.svg" NamespaceName="AvaloniaSKPictureImageSample" ClassName="Camera"/>
   </ItemGroup>
 
   <ItemGroup>
