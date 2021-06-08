@@ -1,4 +1,6 @@
-﻿using Avalonia;
+﻿using System;
+using Avalonia;
+using Avalonia.SKPictureImage;
 
 namespace AvaloniaSKPictureImageSample
 {
@@ -8,12 +10,14 @@ namespace AvaloniaSKPictureImageSample
             .StartWithClassicDesktopLifetime(args);
 
         public static AppBuilder BuildAvaloniaApp()
-            => AppBuilder.Configure<App>()
+        {
+            GC.KeepAlive(typeof(SKPictureImage).Assembly);
+            GC.KeepAlive(typeof(SKPictureControl).Assembly);
+            return AppBuilder.Configure<App>()
                 .UsePlatformDetect()
-                .With(new X11PlatformOptions
-                {
-                })
+                .With(new X11PlatformOptions { })
                 .UseSkia()
                 .LogToTrace();
+        }
     }
 }
