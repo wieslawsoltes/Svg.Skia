@@ -27,10 +27,14 @@ namespace Avalonia.SKPictureImage
         public void Render(IDrawingContextImpl context)
         {
             var canvas = (context as ISkiaDrawingContextImpl)?.SkCanvas;
-            if (canvas is { } && _picture is { })
+            if (canvas is null || _picture is null)
             {
-                canvas.DrawPicture(_picture);
+                return;
             }
+
+            canvas.Save();
+            canvas.DrawPicture(_picture);
+            canvas.Restore();
         }
     }
 }
