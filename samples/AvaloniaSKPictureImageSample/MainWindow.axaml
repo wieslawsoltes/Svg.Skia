@@ -3,11 +3,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AvaloniaSKPictureImageSample;assembly=AvaloniaSKPictureImageSample"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
         Width="900" Height="650" WindowStartupLocation="CenterScreen"
         x:Class="AvaloniaSKPictureImageSample.MainWindow"
         Title="Avalonia SKPictureImage Sample">
-    
+
     <TabControl>
 
         <TabItem Header="Control">
@@ -20,6 +20,44 @@
                 </ComboBox>
                 <SKPictureControl Picture="{x:Static local:Tiger.Picture}" 
                                   Stretch="{Binding #SvgPictureStretch.SelectedItem.Content}"/>
+            </DockPanel>
+        </TabItem>
+
+        <TabItem Header="Animation">
+            <DockPanel Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                <DockPanel.Styles>
+                    <Style Selector=":is(Control).rotate">
+                        <Style.Animations>
+                            <Animation Duration="0:0:5" IterationCount="Infinite">
+                                <KeyFrame Cue="0%" KeySpline="0.4,0,0.6,1">
+                                    <Setter Property="(RotateTransform.Angle)" Value="0" />
+                                </KeyFrame>
+                                <KeyFrame Cue="100%" KeySpline="0.4,0,0.6,1">
+                                    <Setter Property="(RotateTransform.Angle)" Value="360" />
+                                </KeyFrame>
+                            </Animation>
+                        </Style.Animations>
+                    </Style>
+                    <Style Selector=":is(Control).bounce">
+                        <Style.Animations>
+                            <Animation Duration="0:0:3" Easing="BounceEaseInOut" IterationCount="Infinite">
+                                <KeyFrame Cue="48%">
+                                    <Setter Property="TranslateTransform.Y" Value="-100"/>
+                                </KeyFrame>
+                            </Animation>
+                        </Style.Animations>
+                    </Style>
+                </DockPanel.Styles>
+                <ComboBox Name="SvgAnimationPictureStretch" DockPanel.Dock="Top" SelectedIndex="2">
+                    <ComboBoxItem>None</ComboBoxItem>
+                    <ComboBoxItem>Fill</ComboBoxItem>
+                    <ComboBoxItem>Uniform</ComboBoxItem>
+                    <ComboBoxItem>UniformToFill</ComboBoxItem>
+                </ComboBox>
+                <SKPictureControl Picture="{x:Static local:Logo.Picture}"
+                                  Stretch="{Binding #SvgAnimationPictureStretch.SelectedItem.Content}"
+                                  Margin="100"
+                                  Classes="bounce rotate"/>
             </DockPanel>
         </TabItem>
 
