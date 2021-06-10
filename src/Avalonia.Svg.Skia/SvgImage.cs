@@ -65,7 +65,8 @@ namespace Avalonia.Svg.Skia
                 context.Custom(
                     new SvgCustomDrawOperation(
                         new Rect(0, 0, bounds.Width, bounds.Height),
-                        source));
+                        source,
+                        1.0));
             }
         }
 

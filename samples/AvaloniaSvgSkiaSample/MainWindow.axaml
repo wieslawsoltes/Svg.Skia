@@ -19,7 +19,25 @@
                     <ComboBoxItem>Uniform</ComboBoxItem>
                     <ComboBoxItem>UniformToFill</ComboBoxItem>
                 </ComboBox>
-                    <Svg Name="svgSvg" Path="/Assets/__tiger.svg"/>
+                    <Svg Name="svgSvg" Path="/Assets/__tiger.svg" Classes="opacityAnimation">
+                        <Svg.Styles>
+                            <Style Selector=":is(Control).opacityAnimation">
+                                <Style.Animations>
+                                    <Animation Duration="0:0:5" IterationCount="Infinite">
+                                        <KeyFrame Cue="0%" KeySpline="0.4,0,0.6,1">
+                                            <Setter Property="Opacity" Value="1" />
+                                        </KeyFrame>
+                                        <KeyFrame Cue="50%" KeySpline="0.4,0,0.6,1">
+                                            <Setter Property="Opacity" Value="0" />
+                                        </KeyFrame>
+                                        <KeyFrame Cue="100%" KeySpline="0.4,0,0.6,1">
+                                            <Setter Property="Opacity" Value="1" />
+                                        </KeyFrame>
+                                    </Animation>
+                                </Style.Animations>
+                            </Style>
+                        </Svg.Styles>
+                    </Svg>
             </DockPanel>
         </TabItem>
 

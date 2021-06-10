@@ -186,13 +186,15 @@ namespace Avalonia.Svg.Skia
                 -sourceRect.X + destRect.X - bounds.Top,
                 -sourceRect.Y + destRect.Y - bounds.Left);
 
+            var opacity = Opacity;
             using (context.PushClip(destRect))
             using (context.PushPreTransform(translateMatrix * scaleMatrix))
             {
                 context.Custom(
                     new SvgCustomDrawOperation(
                         new Rect(0, 0, bounds.Width, bounds.Height),
-                        source));
+                        source,
+                        opacity));
             }
         }
 
