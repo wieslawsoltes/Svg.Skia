@@ -8,13 +8,14 @@
     <NoWarn>CS1591</NoWarn>
     <IsPackable>True</IsPackable>
     <Nullable>enable</Nullable>
+    <RootNamespace>Avalonia.Controls.Skia</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Description>An SKPictureImage image control for Avalonia.</Description>
-    <PackageId>Avalonia.SKPictureImage</PackageId>
+    <Description>A SkiaSharp based controls for Avalonia.</Description>
+    <PackageId>Avalonia.Controls.Skia</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;control;avalonia;avaloniaui</PackageTags>
+    <PackageTags>vector graphics;rendering;2d;graphics;picture;bitamp;geometry;shapes;skiasharp;skia;control;avalonia;avaloniaui</PackageTags>
   </PropertyGroup>
 
   <Import Project="..\..\build\Base.props" />

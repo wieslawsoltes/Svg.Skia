@@ -1,26 +1,28 @@
 ﻿using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
+using SkiaSharp;
 
-namespace Avalonia.SKPictureImage
+namespace Avalonia.Controls.Skia
 {
     public class SKPictureDrawOperation : ICustomDrawOperation
     {
-        private readonly SkiaSharp.SKPicture? _picture;
+        private readonly SKPicture? _picture;
+        private readonly Rect _bounds;
 
-        public SKPictureDrawOperation(Rect bounds, SkiaSharp.SKPicture? picture)
+        public SKPictureDrawOperation(Rect bounds, SKPicture? picture)
         {
             _picture = picture;
-            Bounds = bounds;
+            _bounds = bounds;
         }
 
         public void Dispose()
         {
         }
 
-        public Rect Bounds { get; }
+        public Rect Bounds => _bounds;
 
-        public bool HitTest(Point p) => false;
+        public bool HitTest(Point p) => _bounds.Contains(p);
 
         public bool Equals(ICustomDrawOperation? other) => false;
 

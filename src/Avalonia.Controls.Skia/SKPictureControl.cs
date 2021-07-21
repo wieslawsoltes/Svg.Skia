@@ -1,9 +1,9 @@
 ﻿using System;
-using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Metadata;
+using SkiaSharp;
 
-namespace Avalonia.SKPictureImage
+namespace Avalonia.Controls.Skia
 {
     /// <summary>
     /// SKPicture control.
@@ -13,8 +13,8 @@ namespace Avalonia.SKPictureImage
         /// <summary>
         /// Defines the <see cref="Picture"/> property.
         /// </summary>
-        public static readonly StyledProperty<SkiaSharp.SKPicture?> PictureProperty =
-            AvaloniaProperty.Register<SKPictureControl, SkiaSharp.SKPicture?>(nameof(Picture));
+        public static readonly StyledProperty<SKPicture?> PictureProperty =
+            AvaloniaProperty.Register<SKPictureControl, SKPicture?>(nameof(Picture));
 
         /// <summary>
         /// Defines the <see cref="Stretch"/> property.
@@ -26,18 +26,16 @@ namespace Avalonia.SKPictureImage
         /// Defines the <see cref="StretchDirection"/> property.
         /// </summary>
         public static readonly StyledProperty<StretchDirection> StretchDirectionProperty =
-            AvaloniaProperty.Register<SKPictureControl, StretchDirection>(
-                nameof(StretchDirection),
-                StretchDirection.Both);
+            AvaloniaProperty.Register<SKPictureControl, StretchDirection>(nameof(StretchDirection), StretchDirection.Both);
 
         /// <inheritdoc/>
         public event EventHandler? Invalidated;
 
         /// <summary>
-        /// Gets or sets the <see cref="SkiaSharp.SKPicture"/> picture.
+        /// Gets or sets the <see cref="SKPicture"/> picture.
         /// </summary>
         [Content]
-        public SkiaSharp.SKPicture? Picture
+        public SKPicture? Picture
         {
             get => GetValue(PictureProperty);
             set => SetValue(PictureProperty, value);
@@ -121,6 +119,11 @@ namespace Avalonia.SKPictureImage
             var translateMatrix = Matrix.CreateTranslation(
                 -sourceRect.X + destRect.X - bounds.Top,
                 -sourceRect.Y + destRect.Y - bounds.Left);
+
+            if (bounds.IsEmpty || destRect.IsEmpty)
+            {
+                return;
+            }
 
             using (context.PushClip(destRect))
             using (context.PushPreTransform(translateMatrix * scaleMatrix))

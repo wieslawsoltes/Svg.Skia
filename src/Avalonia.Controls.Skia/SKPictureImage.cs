@@ -1,36 +1,36 @@
-﻿#nullable disable
-using System;
+﻿using System;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Visuals.Media.Imaging;
+using SkiaSharp;
 
-namespace Avalonia.SKPictureImage
+namespace Avalonia.Controls.Skia
 {
     /// <summary>
-    /// An <see cref="IImage"/> that uses a <see cref="SKBitmapImage"/> for content.
+    /// An <see cref="IImage"/> that uses a <see cref="SKPicture"/> for content.
     /// </summary>
-    public class SKBitmapImage : AvaloniaObject, IImage, IAffectsRender
+    public class SKPictureImage : AvaloniaObject, IImage, IAffectsRender
     {
         /// <summary>
         /// Defines the <see cref="Source"/> property.
         /// </summary>
-        public static readonly StyledProperty<SkiaSharp.SKBitmap> SourceProperty =
-            AvaloniaProperty.Register<SKBitmapImage, SkiaSharp.SKBitmap>(nameof(Source));
+        public static readonly StyledProperty<SKPicture?> SourceProperty =
+            AvaloniaProperty.Register<SKPictureImage, SKPicture?>(nameof(Source));
 
-        public event EventHandler Invalidated;
+        public event EventHandler? Invalidated;
 
         /// <summary>
-        /// Gets or sets the <see cref="SKBitmap"/> content.
+        /// Gets or sets the <see cref="SKPicture"/> content.
         /// </summary>
         [Content]
-        public SkiaSharp.SKBitmap Source
+        public SKPicture? Source
         {
             get => GetValue(SourceProperty);
             set => SetValue(SourceProperty, value);
         }
 
         /// <inheritdoc/>
-        public Size Size => Source is { } ? new Size(Source.Width, Source.Height) : default;
+        public Size Size => Source is { } ? new Size(Source.CullRect.Width, Source.CullRect.Height) : default;
 
         /// <inheritdoc/>
         void IImage.Draw(DrawingContext context, Rect sourceRect, Rect destRect, BitmapInterpolationMode bitmapInterpolationMode)
@@ -40,13 +40,17 @@ namespace Avalonia.SKPictureImage
             {
                 return;
             }
-            var bounds = SkiaSharp.SKRect.Create(0, 0, source.Width, source.Height);
+            var bounds = source.CullRect;
+            if (bounds.Width <= 0 || bounds.Height <= 0)
+            {
+                return;
+            }
             var scaleMatrix = Matrix.CreateScale(destRect.Width / sourceRect.Width, destRect.Height / sourceRect.Height);
             var translateMatrix = Matrix.CreateTranslation(-sourceRect.X + destRect.X - bounds.Top, -sourceRect.Y + destRect.Y - bounds.Left);
             using (context.PushClip(destRect))
             using (context.PushPreTransform(translateMatrix * scaleMatrix))
             {
-                context.Custom(new SKBitmapDrawOperation(new Rect(0, 0, bounds.Width, bounds.Height), source));
+                context.Custom(new SKPictureDrawOperation(new Rect(0, 0, bounds.Width, bounds.Height), source));
             }
         }
 

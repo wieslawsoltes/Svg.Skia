@@ -286,7 +286,7 @@ public void Draw(SKCanvas canvas)
 ```xml
 <ItemGroup>
   <PackageReference Include="Svg.SourceGenerator.Skia" Version="0.5.0" />
-  <PackageReference Include="Avalonia.SKPictureImage" Version="0.5.0" />
+  <PackageReference Include="Avalonia.Controls.Skia" Version="0.5.0" />
 </ItemGroup>
 ```
 
@@ -297,7 +297,7 @@ public void Draw(SKCanvas canvas)
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AvaloniaSample;assembly=AvaloniaSample"
-        xmlns:skp="clr-namespace:Avalonia.SKPictureImage;assembly=Avalonia.SKPictureImage"
+        xmlns:skp="clr-namespace:Avalonia.Controls.Skia;assembly=Avalonia.Controls.Skia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         Width="900" Height="650" WindowStartupLocation="CenterScreen"
         x:Class="AvaloniaSample.MainWindow"

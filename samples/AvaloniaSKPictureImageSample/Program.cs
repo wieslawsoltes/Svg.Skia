@@ -1,6 +1,6 @@
 ﻿using System;
 using Avalonia;
-using Avalonia.SKPictureImage;
+using Avalonia.Controls.Skia;
 
 namespace AvaloniaSKPictureImageSample
 {

@@ -1,36 +1,51 @@
-﻿#nullable disable
-using System;
+﻿using System;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Visuals.Media.Imaging;
+using SkiaSharp;
 
-namespace Avalonia.SKPictureImage
+namespace Avalonia.Controls.Skia
 {
     /// <summary>
-    /// An <see cref="IImage"/> that uses a <see cref="SkiaSharp.SKPicture"/> for content.
+    /// An <see cref="IImage"/> that uses a <see cref="SKPath"/> for content.
     /// </summary>
-    public class SKPictureImage : AvaloniaObject, IImage, IAffectsRender
+    public class SKPathImage : AvaloniaObject, IImage, IAffectsRender
     {
         /// <summary>
         /// Defines the <see cref="Source"/> property.
         /// </summary>
-        public static readonly StyledProperty<SkiaSharp.SKPicture> SourceProperty =
-            AvaloniaProperty.Register<SKPictureImage, SkiaSharp.SKPicture>(nameof(Source));
-
-        public event EventHandler Invalidated;
+        public static readonly StyledProperty<SKPath?> SourceProperty =
+            AvaloniaProperty.Register<SKPathImage, SKPath?>(nameof(Source));
 
         /// <summary>
-        /// Gets or sets the <see cref="SkiaSharp.SKPicture"/> content.
+        /// Defines the <see cref="Paint"/> property.
+        /// </summary>
+        public static readonly StyledProperty<SKPaint?> PaintProperty =
+            AvaloniaProperty.Register<SKPathImage, SKPaint?>(nameof(Paint));
+
+        public event EventHandler? Invalidated;
+
+        /// <summary>
+        /// Gets or sets the <see cref="SKPath"/> content.
         /// </summary>
         [Content]
-        public SkiaSharp.SKPicture Source
+        public SKPath? Source
         {
             get => GetValue(SourceProperty);
             set => SetValue(SourceProperty, value);
         }
 
+        /// <summary>
+        /// Gets or sets the <see cref="SKPaint"/> paint.
+        /// </summary>
+        public SKPaint? Paint
+        {
+            get => GetValue(PaintProperty);
+            set => SetValue(PaintProperty, value);
+        }
+
         /// <inheritdoc/>
-        public Size Size => Source is { } ? new Size(Source.CullRect.Width, Source.CullRect.Height) : default;
+        public Size Size => Source is { } ? new Size(Source.Bounds.Width, Source.Bounds.Height) : default;
 
         /// <inheritdoc/>
         void IImage.Draw(DrawingContext context, Rect sourceRect, Rect destRect, BitmapInterpolationMode bitmapInterpolationMode)
@@ -40,13 +55,22 @@ namespace Avalonia.SKPictureImage
             {
                 return;
             }
-            var bounds = source.CullRect;
+            var bounds = source.Bounds;
+            if (bounds.Width <= 0 || bounds.Height <= 0)
+            {
+                return;
+            }
+            var paint = Paint;
+            if (paint is null)
+            {
+                return;
+            }
             var scaleMatrix = Matrix.CreateScale(destRect.Width / sourceRect.Width, destRect.Height / sourceRect.Height);
             var translateMatrix = Matrix.CreateTranslation(-sourceRect.X + destRect.X - bounds.Top, -sourceRect.Y + destRect.Y - bounds.Left);
             using (context.PushClip(destRect))
             using (context.PushPreTransform(translateMatrix * scaleMatrix))
             {
-                context.Custom(new SKPictureDrawOperation(new Rect(0, 0, bounds.Width, bounds.Height), source));
+                context.Custom(new SKPathDrawOperation(new Rect(0, 0, bounds.Width, bounds.Height), source, paint));
             }
         }
 

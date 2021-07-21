@@ -91,7 +91,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.SourceGenerator.Skia.Sa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Svg", "src\Avalonia.Svg\Avalonia.Svg.csproj", "{8B0407E4-0A8A-4F46-A218-B9FE500091A4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.SKPictureImage", "src\Avalonia.SKPictureImage\Avalonia.SKPictureImage.csproj", "{223B7A5A-E263-4D40-9A6E-FE31EAE92F45}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Controls.Skia", "src\Avalonia.Controls.Skia\Avalonia.Controls.Skia.csproj", "{223B7A5A-E263-4D40-9A6E-FE31EAE92F45}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Svg.Generators", "externals\SVG\Generators\Svg.Generators.csproj", "{AF8AEF5B-0664-4106-9BD3-389758F39B12}"
 EndProject
