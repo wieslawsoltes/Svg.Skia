@@ -257,6 +257,28 @@ namespace Svg.Skia
                             linearGradientShader.ColorPos,
                             linearGradientShader.Mode.ToSKShaderTileMode());
                     }
+                case RadialGradientShader radialGradientShader:
+                {
+                    if (radialGradientShader.Colors is null || radialGradientShader.ColorPos is null) return null;
+
+                    if (radialGradientShader.LocalMatrix is { })
+                        return SkiaSharp.SKShader.CreateRadialGradient(
+                            radialGradientShader.Center.ToSKPoint(),
+                            radialGradientShader.Radius,
+                            radialGradientShader.Colors.ToSKColors(),
+                            radialGradientShader.ColorSpace == SKColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear,
+                            radialGradientShader.ColorPos,
+                            radialGradientShader.Mode.ToSKShaderTileMode(),
+                            radialGradientShader.LocalMatrix.Value.ToSKMatrix());
+
+                    return SkiaSharp.SKShader.CreateRadialGradient(
+                        radialGradientShader.Center.ToSKPoint(),
+                        radialGradientShader.Radius,
+                        radialGradientShader.Colors.ToSKColors(),
+                        radialGradientShader.ColorSpace == SKColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear,
+                        radialGradientShader.ColorPos,
+                        radialGradientShader.Mode.ToSKShaderTileMode());
+                }
                 case TwoPointConicalGradientShader twoPointConicalGradientShader:
                     {
                         if (twoPointConicalGradientShader.Colors is null || twoPointConicalGradientShader.ColorPos is null) return null;

@@ -305,6 +305,47 @@ namespace Avalonia.Svg
                 endPoint);
         }
 
+        public static AM.IBrush? ToRadialGradientBrush(this RadialGradientShader radialGradientShader)
+        {
+            if (radialGradientShader.Colors is null || radialGradientShader.ColorPos is null)
+            {
+                return null;
+            }
+
+            var spreadMethod = radialGradientShader.Mode.ToGradientSpreadMethod();
+            var center = radialGradientShader.Center.ToPoint();
+            var gradientOrigin = center;
+
+            if (radialGradientShader.LocalMatrix is { })
+            {
+                // TODO: radialGradientBrush.LocalMatrix
+                var localMatrix = radialGradientShader.LocalMatrix.Value.ToMatrix();
+                gradientOrigin = localMatrix.Transform(gradientOrigin);
+                center = localMatrix.Transform(center);
+            }
+
+            var gradientOriginPoint = new A.RelativePoint(gradientOrigin, A.RelativeUnit.Absolute);
+            var centerPoint = new A.RelativePoint(center, A.RelativeUnit.Absolute);
+            var radius = radialGradientShader.Radius;
+
+            var gradientStops = new List<AMII.ImmutableGradientStop>();
+            for (int i = 0; i < radialGradientShader.Colors.Length; i++)
+            {
+                var color = radialGradientShader.Colors[i].ToColor();
+                var offset = radialGradientShader.ColorPos[i];
+                var gradientStop = new AMII.ImmutableGradientStop(offset, color);
+                gradientStops.Add(gradientStop);
+            }
+
+            return new AMII.ImmutableRadialGradientBrush(
+                gradientStops,
+                1,
+                spreadMethod,
+                centerPoint,
+                gradientOriginPoint,
+                radius);
+        }
+
         public static AM.IBrush? ToRadialGradientBrush(this TwoPointConicalGradientShader twoPointConicalGradientShader)
         {
             if (twoPointConicalGradientShader.Colors is null || twoPointConicalGradientShader.ColorPos is null)
@@ -362,6 +403,9 @@ namespace Avalonia.Svg
 
                 case LinearGradientShader linearGradientShader:
                     return ToLinearGradientBrush(linearGradientShader);
+
+                case RadialGradientShader radialGradientShader:
+                    return ToRadialGradientBrush(radialGradientShader);
 
                 case TwoPointConicalGradientShader twoPointConicalGradientShader:
                     return ToRadialGradientBrush(twoPointConicalGradientShader);

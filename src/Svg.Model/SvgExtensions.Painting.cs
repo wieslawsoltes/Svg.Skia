@@ -507,6 +507,15 @@ namespace Svg.Model
                 return SKShader.CreateColor(skColors[0], skColorSpace);
             }
 
+            if (endRadius == 0.0)
+            {
+                return SKShader.CreateColor(
+                    skColors.Length > 0 ? skColors[skColors.Length - 1] : new SKColor(0x00, 0x00, 0x00, 0xFF), 
+                    skColorSpace);
+            }
+
+            var isRadialGradient = skStart.X == skEnd.X && skStart.Y == skEnd.Y;
+            
             if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
                 var skBoundingBoxTransform = new SKMatrix
@@ -529,12 +538,24 @@ namespace Svg.Model
                 }
 
                 var skColorsF = ToSkColorF(skColors);
-                return SKShader.CreateTwoPointConicalGradient(
-                    skStart, startRadius,
-                    skEnd, endRadius,
-                    skColorsF, skColorSpace, skColorPos,
-                    shaderTileMode,
-                    skBoundingBoxTransform);
+
+                if (isRadialGradient)
+                {
+                    return SKShader.CreateRadialGradient(
+                        skStart, endRadius,
+                        skColorsF, skColorSpace, skColorPos,
+                        shaderTileMode,
+                        skBoundingBoxTransform);
+                }
+                else
+                {
+                    return SKShader.CreateTwoPointConicalGradient(
+                        skStart, startRadius,
+                        skEnd, endRadius,
+                        skColorsF, skColorSpace, skColorPos,
+                        shaderTileMode,
+                        skBoundingBoxTransform);
+                }
             }
             else
             {
@@ -542,20 +563,41 @@ namespace Svg.Model
                 {
                     var gradientTransform = ToMatrix(svgGradientTransform);
                     var skColorsF = ToSkColorF(skColors);
-                    return SKShader.CreateTwoPointConicalGradient(
-                        skStart, startRadius,
-                        skEnd, endRadius,
-                        skColorsF, skColorSpace, skColorPos,
-                        shaderTileMode, gradientTransform);
+                    if (isRadialGradient)
+                    {
+                        return SKShader.CreateRadialGradient(
+                            skStart, endRadius,
+                            skColorsF, skColorSpace, skColorPos,
+                            shaderTileMode,
+                            gradientTransform);
+                    }
+                    else
+                    {
+                        return SKShader.CreateTwoPointConicalGradient(
+                            skStart, startRadius,
+                            skEnd, endRadius,
+                            skColorsF, skColorSpace, skColorPos,
+                            shaderTileMode, gradientTransform);
+                    }
                 }
                 else
                 {
                     var skColorsF = ToSkColorF(skColors);
-                    return SKShader.CreateTwoPointConicalGradient(
-                        skStart, startRadius,
-                        skEnd, endRadius,
-                        skColorsF, skColorSpace, skColorPos,
-                        shaderTileMode);
+                    if (isRadialGradient)
+                    {
+                        return SKShader.CreateRadialGradient(
+                            skStart, endRadius,
+                            skColorsF, skColorSpace, skColorPos,
+                            shaderTileMode);
+                    }
+                    else
+                    {
+                        return SKShader.CreateTwoPointConicalGradient(
+                            skStart, startRadius,
+                            skEnd, endRadius,
+                            skColorsF, skColorSpace, skColorPos,
+                            shaderTileMode);
+                    }
                 }
             }
         }
