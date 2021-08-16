@@ -474,14 +474,13 @@ namespace Svg.Model
             var centerX = normalizedCenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
             var centerY = normalizedCenterY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
 
-            var startRadius = 0f;
-            var endRadius = normalizedRadius.ToDeviceValue(UnitRenderingType.Other, svgRadialGradientServer, skBounds);
+            var radius = normalizedRadius.ToDeviceValue(UnitRenderingType.Other, svgRadialGradientServer, skBounds);
 
             var focalX = normalizedFocalX.ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
             var focalY = normalizedFocalY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
 
-            var skStart = new SKPoint(centerX, centerY);
-            var skEnd = new SKPoint(focalX, focalY);
+            var skCenter = new SKPoint(centerX, centerY);
+            var skFocal = new SKPoint(focalX, focalY);
 
             var colors = new List<SKColor>();
             var colorPos = new List<float>();
@@ -507,14 +506,14 @@ namespace Svg.Model
                 return SKShader.CreateColor(skColors[0], skColorSpace);
             }
 
-            if (endRadius == 0.0)
+            if (radius == 0.0)
             {
                 return SKShader.CreateColor(
                     skColors.Length > 0 ? skColors[skColors.Length - 1] : new SKColor(0x00, 0x00, 0x00, 0xFF), 
                     skColorSpace);
             }
 
-            var isRadialGradient = skStart.X == skEnd.X && skStart.Y == skEnd.Y;
+            var isRadialGradient = skCenter.X == skFocal.X && skCenter.Y == skFocal.Y;
             
             if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
             {
@@ -542,7 +541,7 @@ namespace Svg.Model
                 if (isRadialGradient)
                 {
                     return SKShader.CreateRadialGradient(
-                        skStart, endRadius,
+                        skCenter, radius,
                         skColorsF, skColorSpace, skColorPos,
                         shaderTileMode,
                         skBoundingBoxTransform);
@@ -550,8 +549,8 @@ namespace Svg.Model
                 else
                 {
                     return SKShader.CreateTwoPointConicalGradient(
-                        skStart, startRadius,
-                        skEnd, endRadius,
+                        skFocal, 0,
+                        skCenter, radius,
                         skColorsF, skColorSpace, skColorPos,
                         shaderTileMode,
                         skBoundingBoxTransform);
@@ -566,7 +565,7 @@ namespace Svg.Model
                     if (isRadialGradient)
                     {
                         return SKShader.CreateRadialGradient(
-                            skStart, endRadius,
+                            skCenter, radius,
                             skColorsF, skColorSpace, skColorPos,
                             shaderTileMode,
                             gradientTransform);
@@ -574,8 +573,8 @@ namespace Svg.Model
                     else
                     {
                         return SKShader.CreateTwoPointConicalGradient(
-                            skStart, startRadius,
-                            skEnd, endRadius,
+                            skFocal, 0,
+                            skCenter, radius,
                             skColorsF, skColorSpace, skColorPos,
                             shaderTileMode, gradientTransform);
                     }
@@ -586,15 +585,15 @@ namespace Svg.Model
                     if (isRadialGradient)
                     {
                         return SKShader.CreateRadialGradient(
-                            skStart, endRadius,
+                            skCenter, radius,
                             skColorsF, skColorSpace, skColorPos,
                             shaderTileMode);
                     }
                     else
                     {
                         return SKShader.CreateTwoPointConicalGradient(
-                            skStart, startRadius,
-                            skEnd, endRadius,
+                            skFocal, 0,
+                            skCenter, radius,
                             skColorsF, skColorSpace, skColorPos,
                             shaderTileMode);
                     }
