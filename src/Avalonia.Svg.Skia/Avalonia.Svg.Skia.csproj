@@ -18,6 +18,7 @@
   </PropertyGroup>
 
   <Import Project="..\..\build\Base.props" />
+  <Import Project="..\..\build\SourceLink.props" />
   <!--<Import Project="..\..\build\SignAssembly.props" />-->
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <Import Project="..\..\build\SkiaSharp.props" />
