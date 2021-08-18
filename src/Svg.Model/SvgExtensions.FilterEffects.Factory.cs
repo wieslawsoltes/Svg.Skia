@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Svg.DataTypes;
 using Svg.FilterEffects;
 using Svg.Model.Drawables;
 #if USE_SKIASHARP
@@ -112,6 +113,28 @@ namespace Svg.Model
                 var svgFilterPrimitive = kvp.Key;
                 var skFilterPrimitiveRegion = kvp.Value;
                 var isFirst = i == 0;
+
+                var colorInterpolationFilters = GetColorInterpolationFilters(svgFilterPrimitive);
+
+                SKImageFilter ConvertFilterColorspace(SKImageFilter input, SvgColourInterpolation src, SvgColourInterpolation dst)
+                {
+                    if (src == dst)
+                    {
+                        return input;
+                    }
+                    else if (src == SvgColourInterpolation.SRGB && dst == SvgColourInterpolation.LinearRGB)
+                    {
+                        return SKImageFilter.CreateColorFilter(ColorspaceUtil.SRGBToLinearGamma(), input);
+                    }
+                    else if (src == SvgColourInterpolation.LinearRGB && dst == SvgColourInterpolation.SRGB)
+                    {
+                        return SKImageFilter.CreateColorFilter(ColorspaceUtil.LinearToSRGBGamma(), input);
+                    }
+                    else
+                    {
+                        throw new Exception("Invalid colour interpolation.");
+                    }
+                }
 
                 switch (svgFilterPrimitive)
                 {
