@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Svg.DataTypes;
 using Svg.FilterEffects;
 using Svg.Model.Drawables;
 using Svg.Model.Drawables.Elements;
@@ -637,7 +638,7 @@ namespace Svg.Model
             return default;
         }
 
-        private static SKImageFilter? CreateMerge(SvgMerge svgMerge, Dictionary<string, SKImageFilter> results, (string key, SKImageFilter filter)? lastResult, IFilterSource filterSource, SKImageFilter.CropRect? cropRect = default)
+        private static SKImageFilter? CreateMerge(SvgMerge svgMerge, Dictionary<string, (SKImageFilter, SvgColourInterpolation)> results, (string key, SKImageFilter filter, SvgColourInterpolation colorSpace)? lastResult, SvgColourInterpolation colorInterpolationFilters, IFilterSource filterSource, SKImageFilter.CropRect? cropRect = default)
         {
             var children = new List<SvgMergeNode>();
 
@@ -655,7 +656,7 @@ namespace Svg.Model
             {
                 var child = children[i];
                 var inputKey = child.Input;
-                var inputFilter = GetInputFilter(inputKey, results, lastResult, filterSource, false);
+                var inputFilter = GetInputFilter(inputKey, results, lastResult, colorInterpolationFilters, filterSource, false);
                 if (inputFilter is { })
                 {
                     filters[i] = inputFilter.Value.filter;
@@ -889,7 +890,13 @@ namespace Svg.Model
             return skImageFilter;
         }
 
-        private static (string key, SKImageFilter filter)? GetInputFilter(string inputKey, Dictionary<string, SKImageFilter> results, (string key, SKImageFilter filter)? lastResult, IFilterSource filterSource, bool isFirst)
+        private static (string key, SKImageFilter filter, SvgColourInterpolation colorSpace)? GetInputFilter(
+            string inputKey, 
+            Dictionary<string, (SKImageFilter Filter, SvgColourInterpolation ColorSpace)> results, 
+            (string key, SKImageFilter filter, SvgColourInterpolation colorSpace)? lastResult,
+            SvgColourInterpolation dstColorSpace,
+            IFilterSource filterSource, 
+            bool isFirst)
         {
             if (string.IsNullOrWhiteSpace(inputKey))
             {
@@ -900,7 +907,7 @@ namespace Svg.Model
 
                 if (results.ContainsKey(SourceGraphic))
                 {
-                    return (SourceGraphic, results[SourceGraphic]);
+                    return (SourceGraphic, results[SourceGraphic].Filter, results[SourceGraphic].ColorSpace);
                 }
 
                 var skPicture = filterSource.SourceGraphic();
@@ -909,8 +916,9 @@ namespace Svg.Model
                     var skImageFilter = GetGraphic(skPicture);
                     if (skImageFilter is { })
                     {
-                        results[SourceGraphic] = skImageFilter;
-                        return (SourceGraphic, skImageFilter);
+                        var srcColorSpace = SvgColourInterpolation.SRGB;
+                        results[SourceGraphic] = (skImageFilter, srcColorSpace);
+                        return (SourceGraphic, skImageFilter, srcColorSpace);
                     }
                 }
                 return default;
@@ -918,7 +926,7 @@ namespace Svg.Model
 
             if (results.ContainsKey(inputKey))
             {
-                return (inputKey, results[inputKey]);
+                return (inputKey, results[inputKey].Filter, results[inputKey].ColorSpace);
             }
 
             switch (inputKey)
@@ -931,8 +939,9 @@ namespace Svg.Model
                             var skImageFilter = GetGraphic(skPicture);
                             if (skImageFilter is { })
                             {
-                                results[SourceGraphic] = skImageFilter;
-                                return (SourceGraphic, skImageFilter);
+                                var srcColorSpace = SvgColourInterpolation.SRGB;
+                                results[SourceGraphic] = (skImageFilter, srcColorSpace);
+                                return (SourceGraphic, skImageFilter, srcColorSpace);
                             }
                         }
                     }
@@ -946,8 +955,9 @@ namespace Svg.Model
                             var skImageFilter = GetAlpha(skPicture);
                             if (skImageFilter is { })
                             {
-                                results[SourceAlpha] = skImageFilter;
-                                return (SourceAlpha, skImageFilter);
+                                var srcColorSpace = SvgColourInterpolation.SRGB;
+                                results[SourceAlpha] = (skImageFilter, srcColorSpace);
+                                return (SourceAlpha, skImageFilter, srcColorSpace);
                             }
                         }
                     }
@@ -961,15 +971,17 @@ namespace Svg.Model
                             var skImageFilter = GetGraphic(skPicture);
                             if (skImageFilter is { })
                             {
-                                results[BackgroundImage] = skImageFilter;
-                                return (BackgroundImage, skImageFilter);
+                                var srcColorSpace = SvgColourInterpolation.SRGB;
+                                results[BackgroundImage] = (skImageFilter, srcColorSpace);
+                                return (BackgroundImage, skImageFilter, SvgColourInterpolation.SRGB);
                             }
                         }
                         else
                         {
                             var skImageFilter = GetTransparentBlackImage();
-                            results[BackgroundImage] = skImageFilter;
-                            return (BackgroundImage, skImageFilter);
+                            var srcColorSpace = SvgColourInterpolation.SRGB;
+                            results[BackgroundImage] = (skImageFilter, srcColorSpace);
+                            return (BackgroundImage, skImageFilter, srcColorSpace);
                         }
                     }
                     break;
@@ -982,15 +994,17 @@ namespace Svg.Model
                             var skImageFilter = GetAlpha(skPicture);
                             if (skImageFilter is { })
                             {
-                                results[BackgroundAlpha] = skImageFilter;
-                                return (BackgroundAlpha, skImageFilter);
+                                var srcColorSpace = SvgColourInterpolation.SRGB;
+                                results[BackgroundAlpha] = (skImageFilter, srcColorSpace);
+                                return (BackgroundAlpha, skImageFilter, srcColorSpace);
                             }
                         }
                         else
                         {
                             var skImageFilter = GetTransparentBlackAlpha();
-                            results[BackgroundImage] = skImageFilter;
-                            return (BackgroundImage, skImageFilter);
+                            var srcColorSpace = SvgColourInterpolation.SRGB;
+                            results[BackgroundImage] = (skImageFilter, srcColorSpace);
+                            return (BackgroundImage, skImageFilter, srcColorSpace);
                         }
                     }
                     break;
@@ -1003,8 +1017,9 @@ namespace Svg.Model
                             var skImageFilter = GetPaint(skPaint);
                             if (skImageFilter is { })
                             {
-                                results[FillPaint] = skImageFilter;
-                                return (FillPaint, skImageFilter);
+                                var srcColorSpace = SvgColourInterpolation.SRGB;
+                                results[FillPaint] = (skImageFilter, srcColorSpace);
+                                return (FillPaint, skImageFilter, srcColorSpace);
                             }
                         }
                     }
@@ -1018,8 +1033,9 @@ namespace Svg.Model
                             var skImageFilter = GetPaint(skPaint);
                             if (skImageFilter is { })
                             {
-                                results[StrokePaint] = skImageFilter;
-                                return (StrokePaint, skImageFilter);
+                                var srcColorSpace = SvgColourInterpolation.SRGB;
+                                results[StrokePaint] = (skImageFilter, srcColorSpace);
+                                return (StrokePaint, skImageFilter, srcColorSpace);
                             }
                         }
                     }
@@ -1029,16 +1045,16 @@ namespace Svg.Model
             return default;
         }
 
-        private static (string key, SKImageFilter filter)? GetFilterResult(SvgFilterPrimitive svgFilterPrimitive, SKImageFilter? skImageFilter, Dictionary<string, SKImageFilter> results)
+        private static (string key, SKImageFilter filter, SvgColourInterpolation ColorSpace)? GetFilterResult(SvgFilterPrimitive svgFilterPrimitive, SKImageFilter? skImageFilter, SvgColourInterpolation colorSpace, Dictionary<string, (SKImageFilter, SvgColourInterpolation)> results)
         {
             if (skImageFilter is { })
             {
                 var key = svgFilterPrimitive.Result;
                 if (!string.IsNullOrWhiteSpace(key))
                 {
-                    results[key] = skImageFilter;
+                    results[key] = (skImageFilter, colorSpace);
                 }
-                return (key, skImageFilter);
+                return (key, skImageFilter, colorSpace);
             }
             return default;
         }
