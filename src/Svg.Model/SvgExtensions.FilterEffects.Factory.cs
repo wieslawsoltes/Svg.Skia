@@ -116,26 +116,6 @@ namespace Svg.Model
 
                 var colorInterpolationFilters = GetColorInterpolationFilters(svgFilterPrimitive);
 
-                SKImageFilter ConvertFilterColorspace(SKImageFilter input, SvgColourInterpolation src, SvgColourInterpolation dst)
-                {
-                    if (src == dst)
-                    {
-                        return input;
-                    }
-                    else if (src == SvgColourInterpolation.SRGB && dst == SvgColourInterpolation.LinearRGB)
-                    {
-                        return SKImageFilter.CreateColorFilter(ColorspaceUtil.SRGBToLinearGamma(), input);
-                    }
-                    else if (src == SvgColourInterpolation.LinearRGB && dst == SvgColourInterpolation.SRGB)
-                    {
-                        return SKImageFilter.CreateColorFilter(ColorspaceUtil.LinearToSRGBGamma(), input);
-                    }
-                    else
-                    {
-                        throw new Exception("Invalid colour interpolation.");
-                    }
-                }
-
                 switch (svgFilterPrimitive)
                 {
                     case SvgBlend svgBlend:
