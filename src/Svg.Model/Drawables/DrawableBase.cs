@@ -353,7 +353,6 @@ namespace Svg.Model.Drawables
 
         public SKPicture? RecordGraphic(DrawableBase? drawable, DrawAttributes ignoreAttributes)
         {
-            // TODO: Record using ColorSpace.CreateSrgbLinear because .color-interpolation-filters. is by default linearRGB.
             if (drawable is null)
             {
                 return null;
@@ -380,7 +379,6 @@ namespace Svg.Model.Drawables
 
         public SKPicture? RecordBackground(DrawableBase? drawable, DrawAttributes ignoreAttributes)
         {
-            // TODO: Record using ColorSpace.CreateSrgbLinear because 'color-interpolation-filters' is by default linearRGB.
             if (drawable is null)
             {
                 return null;
