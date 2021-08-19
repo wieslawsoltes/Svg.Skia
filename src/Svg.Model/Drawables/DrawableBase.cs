@@ -272,9 +272,10 @@ namespace Svg.Model.Drawables
 
             if (visualElement is { } && enableFilter)
             {
-                Filter = SvgExtensions.GetFilterPaint(visualElement, GeometryBounds, viewport ?? GeometryBounds, this, AssetLoader, References, out var isValid, out var filterClip);
-                FilterClip = filterClip;
-                if (isValid == false)
+                var filterContext = new SvgFilterContext(visualElement, GeometryBounds, viewport ?? GeometryBounds, this, AssetLoader, References);
+                Filter = filterContext.FilterPaint;
+                FilterClip = filterContext.FilterClip;
+                if (filterContext.IsValid == false)
                 {
                     IsDrawable = false;
                 }
