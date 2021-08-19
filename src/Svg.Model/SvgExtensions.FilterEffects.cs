@@ -83,13 +83,13 @@ namespace Svg.Model
 
             _primitives = new Dictionary<SvgFilterPrimitive, SKRect>();
 
-            if (InitProperties())
+            if (Initialize())
             {
                 FilterPaint = CreateFilterPaint();
             }
         }
 
-        private bool InitProperties()
+        private bool Initialize()
         {
             var filter = _svgVisualElement.Filter;
             if (filter is null || SvgExtensions.IsNone(filter))
