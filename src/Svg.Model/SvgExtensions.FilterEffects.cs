@@ -352,11 +352,8 @@ namespace Svg.Model
                 }
                 else
                 {
-                    if (!primitiveUseBoundingBox)
-                    {
-                        // TODO: Handle missing x attribute
-                        // xChild = skBounds.Left;
-                    }
+                    var xChildUnit = new SvgUnit(SvgUnitType.Percentage, 0);
+                    xChild = xChildUnit.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilterPrimitive, _skFilterRegion);
                 }
 
                 if (SvgExtensions.TryGetAttribute(svgFilterPrimitive, "y", out var yChildString))
@@ -381,11 +378,8 @@ namespace Svg.Model
                 }
                 else
                 {
-                    if (!primitiveUseBoundingBox)
-                    {
-                        // TODO: Handle missing y attribute
-                        // yChild = skBounds.Top;
-                    }
+                    var yChildUnit = new SvgUnit(SvgUnitType.Percentage, 0);
+                    yChild = yChildUnit.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilterPrimitive, _skFilterRegion);
                 }
 
                 if (SvgExtensions.TryGetAttribute(svgFilterPrimitive, "width", out var widthChildString))
@@ -408,11 +402,8 @@ namespace Svg.Model
                 }
                 else
                 {
-                    if (!primitiveUseBoundingBox)
-                    {
-                        // TODO: Handle missing width attribute
-                        // widthChild = skBounds.Width;
-                    }
+                    var widthUnitChild = new SvgUnit(SvgUnitType.Percentage, 100);
+                    widthChild = widthUnitChild.ToDeviceValue(UnitRenderingType.Horizontal, svgFilterPrimitive, _skFilterRegion);
                 }
 
                 if (SvgExtensions.TryGetAttribute(svgFilterPrimitive, "height", out var heightChildString))
@@ -435,11 +426,8 @@ namespace Svg.Model
                 }
                 else
                 {
-                    if (!primitiveUseBoundingBox)
-                    {
-                        // TODO: Handle missing height attribute
-                        // heightChild = skBounds.Height;
-                    }
+                    var heightUnitChild = new SvgUnit(SvgUnitType.Percentage, 100);
+                    heightChild = heightUnitChild.ToDeviceValue(UnitRenderingType.Vertical, svgFilterPrimitive, _skFilterRegion);
                 }
 
                 if (widthChild <= 0 || heightChild <= 0)
