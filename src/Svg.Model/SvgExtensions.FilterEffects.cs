@@ -803,6 +803,17 @@ namespace Svg.Model
             return skFilterPrimitiveRegion;
         }
 
+        internal static SvgColourInterpolation GetColorInterpolationFilters(SvgElement svgElement)
+        {
+            return svgElement.ColorInterpolationFilters switch
+            {
+                SvgColourInterpolation.Auto => SvgColourInterpolation.LinearRGB,
+                SvgColourInterpolation.SRGB => SvgColourInterpolation.SRGB,
+                SvgColourInterpolation.LinearRGB => SvgColourInterpolation.LinearRGB,
+                _ => SvgColourInterpolation.LinearRGB,
+            };
+        }
+
         private static SvgColourInterpolation GetColorInterpolationFilters(SvgFilterPrimitive svgFilterPrimitive)
         {
             var colorInterpolationFilters = SvgExtensions.GetColorInterpolationFilters(svgFilterPrimitive);

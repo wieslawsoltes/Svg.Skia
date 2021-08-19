@@ -202,17 +202,6 @@ namespace Svg.Model
             };
         }
 
-        internal static SvgColourInterpolation GetColorInterpolationFilters(SvgElement svgElement)
-        {
-            return svgElement.ColorInterpolationFilters switch
-            {
-                SvgColourInterpolation.Auto => SvgColourInterpolation.LinearRGB,
-                SvgColourInterpolation.SRGB => SvgColourInterpolation.SRGB,
-                SvgColourInterpolation.LinearRGB => SvgColourInterpolation.LinearRGB,
-                _ => SvgColourInterpolation.LinearRGB,
-            };
-        }
-
         internal static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, DrawAttributes ignoreAttributes, SKColorSpace skColorSpace)
         {
             var svgReferencedGradientServers = GetLinkedGradientServer(svgLinearGradientServer, svgVisualElement);
