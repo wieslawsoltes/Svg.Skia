@@ -1689,7 +1689,7 @@ namespace Svg.Model
                 var inputFilter = GetInputFilter(inputKey, colorInterpolationFilters, false);
                 if (inputFilter is { })
                 {
-                    filters[i] = inputFilter.Filter;
+                    filters[i] = GetFilter(inputFilter, colorInterpolationFilters)!;
                 }
                 else
                 {
