@@ -151,6 +151,34 @@ namespace Svg.Model
         }
     }
 
+    internal class SvgFilterPrimitiveContext
+    {
+        public SvgFilterPrimitiveContext(SvgFilterPrimitive svgFilterPrimitive)
+        {
+            FilterPrimitive = svgFilterPrimitive;
+        }
+
+        public SvgFilterPrimitive FilterPrimitive { get; }
+
+        public SKRect Boundaries { get; set; }
+
+        public bool IsXValid { get; set; }
+
+        public bool IsYValid { get; set; }
+
+        public bool IsWidthValid { get; set; }
+
+        public bool IsHeightValid { get; set; }
+
+        public SvgUnit X { get; set; }
+
+        public SvgUnit Y { get; set; }
+
+        public SvgUnit Width { get; set; }
+
+        public SvgUnit Height { get; set; }
+    }
+
     internal class SvgFilterContext
     {
         private static readonly char[] s_colorMatrixSplitChars = { ' ', '\t', '\n', '\r', ',' };
@@ -199,7 +227,7 @@ namespace Svg.Model
         private readonly HashSet<Uri>? _references;
         private SKRect _skFilterRegion;
         private SvgCoordinateUnits _primitiveUnits;
-        private readonly Dictionary<SvgFilterPrimitive, SKRect> _primitives;
+        private readonly List<SvgFilterPrimitiveContext> _primitives;
         private readonly Dictionary<string, SvgFilterResult> _results;
         private SvgFilterResult? _lastResult;
         private readonly Dictionary<SKImageFilter, SKRect> _regions;
@@ -219,7 +247,7 @@ namespace Svg.Model
             _assetLoader = assetLoader;
             _references = references;
 
-            _primitives = new Dictionary<SvgFilterPrimitive, SKRect>();
+            _primitives = new();
             _results = new();
             _regions = new();
 
@@ -323,121 +351,82 @@ namespace Svg.Model
                     continue;
                 }
 
-                var xChild = _skFilterRegion.Left;
-                var yChild = _skFilterRegion.Top;
-                var widthChild = _skFilterRegion.Width;
-                var heightChild = _skFilterRegion.Height;
-
-                var primitiveUseBoundingBox = _primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox;
+                var primitiveContext = new SvgFilterPrimitiveContext(svgFilterPrimitive);
 
                 if (SvgExtensions.TryGetAttribute(svgFilterPrimitive, "x", out var xChildString))
                 {
-                    if (new SvgUnitConverter().ConvertFromString(xChildString) is SvgUnit xChildUnit)
+                    primitiveContext.IsXValid = true;
+
+                    if (new SvgUnitConverter().ConvertFromString(xChildString) is SvgUnit x)
                     {
-                        xChild = xChildUnit.ToDeviceValue(
-                            primitiveUseBoundingBox ? UnitRenderingType.Horizontal : UnitRenderingType.HorizontalOffset,
-                            svgFilterPrimitive,
-                            primitiveUseBoundingBox ? _skBounds : _skViewport);
-
-                        if (primitiveUseBoundingBox)
-                        {
-                            if (xChildUnit.Type != SvgUnitType.Percentage)
-                            {
-                                xChild *= _skBounds.Width;
-                            }
-
-                            xChild += _skBounds.Left;
-                        }
+                        primitiveContext.X = x;
                     }
                 }
                 else
                 {
-                    var xChildUnit = new SvgUnit(SvgUnitType.Percentage, 0);
-                    xChild = xChildUnit.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgFilterPrimitive, _skFilterRegion);
+                    primitiveContext.X = new SvgUnit(SvgUnitType.Percentage, 0);
                 }
 
                 if (SvgExtensions.TryGetAttribute(svgFilterPrimitive, "y", out var yChildString))
                 {
-                    if (new SvgUnitConverter().ConvertFromString(yChildString) is SvgUnit yUnitChild)
+                    primitiveContext.IsYValid = true;
+
+                    if (new SvgUnitConverter().ConvertFromString(yChildString) is SvgUnit y)
                     {
-                        yChild = yUnitChild.ToDeviceValue(
-                            primitiveUseBoundingBox ? UnitRenderingType.Vertical : UnitRenderingType.VerticalOffset,
-                            svgFilterPrimitive,
-                            primitiveUseBoundingBox ? _skBounds : _skViewport);
-
-                        if (primitiveUseBoundingBox)
-                        {
-                            if (yUnitChild.Type != SvgUnitType.Percentage)
-                            {
-                                yChild *= _skBounds.Height;
-                            }
-
-                            yChild += _skBounds.Top;
-                        }
+                        primitiveContext.Y = y;
                     }
                 }
                 else
                 {
-                    var yChildUnit = new SvgUnit(SvgUnitType.Percentage, 0);
-                    yChild = yChildUnit.ToDeviceValue(UnitRenderingType.VerticalOffset, svgFilterPrimitive, _skFilterRegion);
+                    primitiveContext.Y = new SvgUnit(SvgUnitType.Percentage, 0);
                 }
 
                 if (SvgExtensions.TryGetAttribute(svgFilterPrimitive, "width", out var widthChildString))
                 {
-                    if (new SvgUnitConverter().ConvertFromString(widthChildString) is SvgUnit widthUnitChild)
-                    {
-                        widthChild = widthUnitChild.ToDeviceValue(
-                            UnitRenderingType.Horizontal,
-                            svgFilterPrimitive,
-                            primitiveUseBoundingBox ? _skBounds : _skViewport);
+                    primitiveContext.IsWidthValid = true;
 
-                        if (primitiveUseBoundingBox)
-                        {
-                            if (widthUnitChild.Type != SvgUnitType.Percentage)
-                            {
-                                widthChild *= _skBounds.Width;
-                            }
-                        }
+                    if (new SvgUnitConverter().ConvertFromString(widthChildString) is SvgUnit width)
+                    {
+                        primitiveContext.Width = width;
                     }
                 }
                 else
                 {
-                    var widthUnitChild = new SvgUnit(SvgUnitType.Percentage, 100);
-                    widthChild = widthUnitChild.ToDeviceValue(UnitRenderingType.Horizontal, svgFilterPrimitive, _skFilterRegion);
+                    primitiveContext.Width = new SvgUnit(SvgUnitType.Percentage, 100);
                 }
 
                 if (SvgExtensions.TryGetAttribute(svgFilterPrimitive, "height", out var heightChildString))
                 {
-                    if (new SvgUnitConverter().ConvertFromString(heightChildString) is SvgUnit heightUnitChild)
-                    {
-                        heightChild = heightUnitChild.ToDeviceValue(
-                            UnitRenderingType.Vertical,
-                            svgFilterPrimitive,
-                            primitiveUseBoundingBox ? _skBounds : _skViewport);
+                    primitiveContext.IsHeightValid = true;
 
-                        if (primitiveUseBoundingBox)
-                        {
-                            if (heightUnitChild.Type != SvgUnitType.Percentage)
-                            {
-                                heightChild *= _skBounds.Height;
-                            }
-                        }
+                    if (new SvgUnitConverter().ConvertFromString(heightChildString) is SvgUnit height)
+                    {
+                        primitiveContext.Height = height;
                     }
                 }
                 else
                 {
-                    var heightUnitChild = new SvgUnit(SvgUnitType.Percentage, 100);
-                    heightChild = heightUnitChild.ToDeviceValue(UnitRenderingType.Vertical, svgFilterPrimitive, _skFilterRegion);
+                    primitiveContext.Height = new SvgUnit(SvgUnitType.Percentage, 100);
                 }
 
-                if (widthChild <= 0 || heightChild <= 0)
+                var boundaries = SvgExtensions.CalculateRect(
+                    primitiveContext.X,
+                    primitiveContext.Y,
+                    primitiveContext.Width,
+                    primitiveContext.Height,
+                    _primitiveUnits,
+                    _skBounds,
+                    _skViewport,
+                    primitiveContext.FilterPrimitive);
+
+                if (boundaries is null)
                 {
                     continue;
                 }
+   
+                primitiveContext.Boundaries = boundaries.Value;
 
-                var skFilterPrimitiveRegion = SKRect.Create(xChild, yChild, widthChild, heightChild);
-
-                _primitives[svgFilterPrimitive] = skFilterPrimitiveRegion;
+                _primitives.Add(primitiveContext);
             }
 
             return true;
@@ -447,9 +436,9 @@ namespace Svg.Model
         {
             var i = 0;
 
-            foreach (var kvp in _primitives)
+            foreach (var primitive in _primitives)
             {
-                CreateFilterPrimitiveFilter(kvp.Key, kvp.Value, i == 0);
+                CreateFilterPrimitiveFilter(primitive, i == 0);
                 i++;
             }
 
@@ -476,8 +465,9 @@ namespace Svg.Model
             return default;
         }
 
-        private void CreateFilterPrimitiveFilter(SvgFilterPrimitive svgFilterPrimitive, SKRect skFilterPrimitiveRegion, bool isFirst)
-        {
+        private void CreateFilterPrimitiveFilter(SvgFilterPrimitiveContext primitiveContext, bool isFirst)
+        {;
+            var svgFilterPrimitive = primitiveContext.FilterPrimitive;
             var colorInterpolationFilters = GetColorInterpolationFilters(svgFilterPrimitive);
 
             switch (svgFilterPrimitive)
@@ -493,20 +483,7 @@ namespace Svg.Model
                         break;
                     }
 
-                    if (input1FilterResult is null || IsStandardInput(input1FilterResult?.Key) || IsStandardInput(input2FilterResult.Key))
-                    {
-                        skFilterPrimitiveRegion = _skFilterRegion;
-                    }
-                    else
-                    {
-                        if (input1FilterResult is { } && !string.IsNullOrWhiteSpace(input1Key) && !string.IsNullOrWhiteSpace(input2Key))
-                        {
-                            skFilterPrimitiveRegion = SKRect.Union(
-                                skFilterPrimitiveRegion,
-                                SKRect.Union(_regions[input1FilterResult.Filter], _regions[input2FilterResult.Filter]));
-                        }
-                    }
-
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, input1FilterResult, input2FilterResult, input1Key, input2Key);
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
                     var background = GetFilter(input2FilterResult, colorInterpolationFilters)!;
                     var foreground = GetFilter(input1FilterResult, colorInterpolationFilters);
@@ -523,21 +500,7 @@ namespace Svg.Model
                 {
                     var inputKey = svgColourMatrix.Input;
                     var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, isFirst);
-
-                    if (inputFilterResult is null || IsStandardInput(inputFilterResult?.Key))
-                    {
-                        skFilterPrimitiveRegion = _skFilterRegion;
-                    }
-                    else
-                    {
-                        if (inputFilterResult is { })
-                        {
-                            skFilterPrimitiveRegion = SKRect.Union(
-                                skFilterPrimitiveRegion,
-                                _regions[inputFilterResult.Filter]);
-                        }
-                    }
-
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
                     var input = GetFilter(inputFilterResult, colorInterpolationFilters);
                     var skImageFilter = CreateColorMatrix(svgColourMatrix, input, skCropRect);
@@ -553,21 +516,7 @@ namespace Svg.Model
                 {
                     var inputKey = svgComponentTransfer.Input;
                     var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, isFirst);
-
-                    if (inputFilterResult is null || IsStandardInput(inputFilterResult?.Key))
-                    {
-                        skFilterPrimitiveRegion = _skFilterRegion;
-                    }
-                    else
-                    {
-                        if (inputFilterResult is { })
-                        {
-                            skFilterPrimitiveRegion = SKRect.Union(
-                                skFilterPrimitiveRegion,
-                                _regions[inputFilterResult.Filter]);
-                        }
-                    }
-
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
                     var input = GetFilter(inputFilterResult, colorInterpolationFilters);
                     var skImageFilter = CreateComponentTransfer(svgComponentTransfer, input, skCropRect);
@@ -589,21 +538,8 @@ namespace Svg.Model
                     {
                         break;
                     }
-
-                    if (input1FilterResult is null || IsStandardInput(input1FilterResult?.Key) || IsStandardInput(input2FilterResult.Key))
-                    {
-                        skFilterPrimitiveRegion = _skFilterRegion;
-                    }
-                    else
-                    {
-                        if (input1FilterResult is { } && !string.IsNullOrWhiteSpace(input1Key) && !string.IsNullOrWhiteSpace(input2Key))
-                        {
-                            skFilterPrimitiveRegion = SKRect.Union(
-                                skFilterPrimitiveRegion,
-                                SKRect.Union(_regions[input1FilterResult.Filter], _regions[input2FilterResult.Filter]));
-                        }
-                    }
-
+                    
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, input1FilterResult, input2FilterResult, input1Key, input2Key);
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
                     var background = GetFilter(input2FilterResult, colorInterpolationFilters)!;
                     var foreground = GetFilter(input1FilterResult, colorInterpolationFilters);
@@ -620,21 +556,7 @@ namespace Svg.Model
                 {
                     var inputKey = svgConvolveMatrix.Input;
                     var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, isFirst);
-
-                    if (inputFilterResult is null || IsStandardInput(inputFilterResult?.Key))
-                    {
-                        skFilterPrimitiveRegion = _skFilterRegion;
-                    }
-                    else
-                    {
-                        if (inputFilterResult is { })
-                        {
-                            skFilterPrimitiveRegion = SKRect.Union(
-                                skFilterPrimitiveRegion,
-                                _regions[inputFilterResult.Filter]);
-                        }
-                    }
-
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
                     var input = GetFilter(inputFilterResult, colorInterpolationFilters);
                     var skImageFilter = CreateConvolveMatrix(svgConvolveMatrix, input, skCropRect);
@@ -650,21 +572,7 @@ namespace Svg.Model
                 {
                     var inputKey = svgDiffuseLighting.Input;
                     var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, isFirst);
-
-                    if (inputFilterResult is null || IsStandardInput(inputFilterResult?.Key))
-                    {
-                        skFilterPrimitiveRegion = _skFilterRegion;
-                    }
-                    else
-                    {
-                        if (inputFilterResult is { })
-                        {
-                            skFilterPrimitiveRegion = SKRect.Union(
-                                skFilterPrimitiveRegion,
-                                _regions[inputFilterResult.Filter]);
-                        }
-                    }
-
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
                     var input = GetFilter(inputFilterResult, colorInterpolationFilters);
                     var skImageFilter = CreateDiffuseLighting(svgDiffuseLighting, _svgVisualElement, input, skCropRect);
@@ -687,22 +595,9 @@ namespace Svg.Model
                         break;
                     }
 
-                    if (input1FilterResult is null || IsStandardInput(input1FilterResult?.Key) || IsStandardInput(input2FilterResult.Key))
-                    {
-                        skFilterPrimitiveRegion = _skFilterRegion;
-                    }
-                    else
-                    {
-                        if (input1FilterResult is { } && !string.IsNullOrWhiteSpace(input1Key) && !string.IsNullOrWhiteSpace(input2Key))
-                        {
-                            skFilterPrimitiveRegion = SKRect.Union(
-                                skFilterPrimitiveRegion,
-                                SKRect.Union(_regions[input1FilterResult.Filter], _regions[input2FilterResult.Filter]));
-                        }
-                    }
-
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, input1FilterResult, input2FilterResult, input1Key, input2Key);
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
-                    var displacement = GetFilter(input2FilterResult, colorInterpolationFilters)!;
+                    var displacement = GetFilter(input2FilterResult, input2FilterResult.ColorSpace)!;
                     var input = GetFilter(input1FilterResult, colorInterpolationFilters);
                     var skImageFilter = CreateDisplacementMap(svgDisplacementMap, displacement, input, skCropRect);
                     _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
@@ -714,7 +609,8 @@ namespace Svg.Model
                     break;
                 }
                 case SvgFlood svgFlood:
-                {
+                {  
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
                     var skImageFilter = CreateFlood(svgFlood, _svgVisualElement, null, skCropRect);
                     _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, SvgColourInterpolation.SRGB);
@@ -729,21 +625,7 @@ namespace Svg.Model
                 {
                     var inputKey = svgGaussianBlur.Input;
                     var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, isFirst);
-
-                    if (inputFilterResult is null || IsStandardInput(inputFilterResult?.Key))
-                    {
-                        skFilterPrimitiveRegion = _skFilterRegion;
-                    }
-                    else
-                    {
-                        if (inputFilterResult is { })
-                        {
-                            skFilterPrimitiveRegion = SKRect.Union(
-                                skFilterPrimitiveRegion,
-                                _regions[inputFilterResult.Filter]);
-                        }
-                    }
-
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
                     var input = GetFilter(inputFilterResult, colorInterpolationFilters);
                     var skImageFilter = CreateBlur(svgGaussianBlur, input, skCropRect);
@@ -757,6 +639,7 @@ namespace Svg.Model
                 }
                 case FilterEffects.SvgImage svgImage:
                 {
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
                     var skImageFilter = CreateImage(svgImage, _assetLoader, _references, skFilterPrimitiveRegion, skCropRect);
                     _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, SvgColourInterpolation.SRGB);
@@ -769,6 +652,7 @@ namespace Svg.Model
                 }
                 case SvgMerge svgMerge:
                 {
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
                     var skImageFilter = CreateMerge(svgMerge, colorInterpolationFilters, skCropRect);
                     _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
@@ -783,21 +667,7 @@ namespace Svg.Model
                 {
                     var inputKey = svgMorphology.Input;
                     var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, isFirst);
-
-                    if (inputFilterResult is null || IsStandardInput(inputFilterResult?.Key))
-                    {
-                        skFilterPrimitiveRegion = _skFilterRegion;
-                    }
-                    else
-                    {
-                        if (inputFilterResult is { })
-                        {
-                            skFilterPrimitiveRegion = SKRect.Union(
-                                skFilterPrimitiveRegion,
-                                _regions[inputFilterResult.Filter]);
-                        }
-                    }
-
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
                     var input = GetFilter(inputFilterResult, colorInterpolationFilters);
                     var skImageFilter = CreateMorphology(svgMorphology, input, skCropRect);
@@ -813,26 +683,11 @@ namespace Svg.Model
                 {
                     var inputKey = svgOffset.Input;
                     var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, isFirst);
-
-                    if (inputFilterResult is null || IsStandardInput(inputFilterResult?.Key))
-                    {
-                        skFilterPrimitiveRegion = _skFilterRegion;
-                    }
-#if false
-                    else
-                    {
-                        if (inputFilterResult is { })
-                        {
-                            skFilterPrimitiveRegion = SKRect.Union(
-                                skFilterPrimitiveRegion, 
-                                _regions[inputFilterResult.Filter]);
-                        }
-                    }
-#endif
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
                     var input = inputFilterResult?.Filter;
                     var skImageFilter = CreateOffset(svgOffset, input, skCropRect);
-                    _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
+                    _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, inputFilterResult?.ColorSpace ?? colorInterpolationFilters);
                     if (skImageFilter is { })
                     {
                         _regions[skImageFilter] = skFilterPrimitiveRegion;
@@ -844,21 +699,7 @@ namespace Svg.Model
                 {
                     var inputKey = svgSpecularLighting.Input;
                     var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, isFirst);
-
-                    if (inputFilterResult is null || IsStandardInput(inputFilterResult?.Key))
-                    {
-                        skFilterPrimitiveRegion = _skFilterRegion;
-                    }
-                    else
-                    {
-                        if (inputFilterResult is { })
-                        {
-                            skFilterPrimitiveRegion = SKRect.Union(
-                                skFilterPrimitiveRegion,
-                                _regions[inputFilterResult.Filter]);
-                        }
-                    }
-
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
                     var input = GetFilter(inputFilterResult, colorInterpolationFilters);
                     var skImageFilter = CreateSpecularLighting(svgSpecularLighting, _svgVisualElement, input, skCropRect);
@@ -880,15 +721,13 @@ namespace Svg.Model
                         break;
                     }
 
-                    skFilterPrimitiveRegion = _skFilterRegion;
-
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
                     var tileBounds = _regions[inputFilterResult.Filter];
                     var cropBounds = skFilterPrimitiveRegion;
-
                     var skCropRect = new SKImageFilter.CropRect(cropBounds);
                     var input = inputFilterResult.Filter;
                     var skImageFilter = CreateTile(svgTile, tileBounds, skFilterPrimitiveRegion, input, skCropRect);
-                    _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
+                    _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, inputFilterResult?.ColorSpace ?? colorInterpolationFilters);
                     if (skImageFilter is { })
                     {
                         _regions[skImageFilter] = skFilterPrimitiveRegion;
@@ -898,6 +737,7 @@ namespace Svg.Model
                 }
                 case SvgTurbulence svgTurbulence:
                 {
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
                     var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
                     var skImageFilter = CreateTurbulence(svgTurbulence, skCropRect);
                     _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
@@ -909,6 +749,58 @@ namespace Svg.Model
                     break;
                 }
             }
+        }
+
+        private SKRect GetFilterPrimitiveRegion(SvgFilterPrimitiveContext primitiveContext, SvgFilterResult? inputFilterResult)
+        {
+            var defaultSubregion = SKRect.Empty;
+
+            if (inputFilterResult is null || IsStandardInput(inputFilterResult?.Key))
+            {
+                defaultSubregion = _skFilterRegion;
+            }
+            else
+            {
+                if (inputFilterResult is { })
+                {
+                    defaultSubregion = _regions[inputFilterResult.Filter];
+                }
+            }
+
+            var skFilterPrimitiveRegion = SKRect.Create(
+                primitiveContext.IsXValid ? primitiveContext.Boundaries.Left : defaultSubregion.Left,
+                primitiveContext.IsYValid ? primitiveContext.Boundaries.Top : defaultSubregion.Top,
+                primitiveContext.IsWidthValid ? primitiveContext.Boundaries.Width : defaultSubregion.Width,
+                primitiveContext.IsHeightValid ? primitiveContext.Boundaries.Height : defaultSubregion.Height);
+
+            return skFilterPrimitiveRegion;
+        }
+
+        private SKRect GetFilterPrimitiveRegion(SvgFilterPrimitiveContext primitiveContext, SvgFilterResult? input1FilterResult, SvgFilterResult input2FilterResult, string input1Key, string input2Key)
+        {
+            var defaultSubregion = SKRect.Empty;
+
+            if (input1FilterResult is null || IsStandardInput(input1FilterResult?.Key) || IsStandardInput(input2FilterResult.Key))
+            {
+                defaultSubregion = _skFilterRegion;
+            }
+            else
+            {
+                if (input1FilterResult is { } && !string.IsNullOrWhiteSpace(input1Key) && !string.IsNullOrWhiteSpace(input2Key))
+                {
+                    defaultSubregion = SKRect.Union(
+                        _regions[input1FilterResult.Filter],
+                        _regions[input2FilterResult.Filter]);
+                }
+            }
+
+            var skFilterPrimitiveRegion = SKRect.Create(
+                primitiveContext.IsXValid ? primitiveContext.Boundaries.Left : defaultSubregion.Left,
+                primitiveContext.IsYValid ? primitiveContext.Boundaries.Top : defaultSubregion.Top,
+                primitiveContext.IsWidthValid ? primitiveContext.Boundaries.Width : defaultSubregion.Width,
+                primitiveContext.IsHeightValid ? primitiveContext.Boundaries.Height : defaultSubregion.Height);
+
+            return skFilterPrimitiveRegion;
         }
 
         private static SvgColourInterpolation GetColorInterpolationFilters(SvgFilterPrimitive svgFilterPrimitive)
