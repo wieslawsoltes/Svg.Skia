@@ -1528,7 +1528,7 @@ namespace Svg.Model
                 var inputFilter = GetInputFilter(inputKey, colorInterpolationFilters, false);
                 if (inputFilter is { })
                 {
-                    filters[i] = GetFilter(inputFilter, colorInterpolationFilters)!;
+                    filters[i] = ApplyColourInterpolation(inputFilter, colorInterpolationFilters)!;
                 }
                 else
                 {
