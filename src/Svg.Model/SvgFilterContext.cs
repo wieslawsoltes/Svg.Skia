@@ -589,16 +589,13 @@ namespace Svg.Model
         {
             var defaultSubregion = SKRect.Empty;
 
-            if (inputFilterResult is null || IsStandardInput(inputFilterResult?.Key))
+            if (inputFilterResult is null || IsStandardInput(inputFilterResult))
             {
                 defaultSubregion = _skFilterRegion;
             }
             else
             {
-                if (inputFilterResult is { })
-                {
-                    defaultSubregion = _regions[inputFilterResult.Filter];
-                }
+                defaultSubregion = _regions[inputFilterResult.Filter];
             }
 
             var skFilterPrimitiveRegion = SKRect.Create(
@@ -614,18 +611,15 @@ namespace Svg.Model
         {
             var defaultSubregion = SKRect.Empty;
 
-            if (input1FilterResult is null || IsStandardInput(input1FilterResult?.Key) || IsStandardInput(input2FilterResult.Key))
+            if (IsStandardInput(input1FilterResult) || IsStandardInput(input2FilterResult))
             {
                 defaultSubregion = _skFilterRegion;
             }
             else
             {
-                if (input1FilterResult is { } && !string.IsNullOrWhiteSpace(input1Key) && !string.IsNullOrWhiteSpace(input2Key))
-                {
-                    defaultSubregion = SKRect.Union(
-                        _regions[input1FilterResult.Filter],
-                        _regions[input2FilterResult.Filter]);
-                }
+                defaultSubregion = SKRect.Union(
+                    input1FilterResult is null ? SKRect.Empty : _regions[input1FilterResult.Filter],
+                    _regions[input2FilterResult.Filter]);
             }
 
             var skFilterPrimitiveRegion = SKRect.Create(
@@ -712,7 +706,7 @@ namespace Svg.Model
             return skImageFilter;
         }
 
-        private SvgFilterResult? GetInputFilter(string inputKey, SvgColourInterpolation dstColorSpace, bool isFirst)
+        private SvgFilterResult? GetInputFilter(string? inputKey, SvgColourInterpolation dstColorSpace, bool isFirst)
         {
             if (string.IsNullOrWhiteSpace(inputKey))
             {
@@ -740,9 +734,9 @@ namespace Svg.Model
                 return default;
             }
 
-            if (_results.ContainsKey(inputKey))
+            if (_results.ContainsKey(inputKey!))
             {
-                return _results[inputKey];
+                return _results[inputKey!];
             }
 
             switch (inputKey)
@@ -929,9 +923,9 @@ namespace Svg.Model
             return null;
         }
 
-        private static bool IsStandardInput(string? key)
+        private static bool IsStandardInput(SvgFilterResult? filterResult)
         {
-            return key switch
+            return filterResult?.Key switch
             {
                 SourceGraphic => true,
                 SourceAlpha => true,
