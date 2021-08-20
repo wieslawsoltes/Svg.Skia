@@ -1087,7 +1087,7 @@ namespace Svg.Model
             }
             for (var i = 0; i < 256; i++)
             {
-                var c = i / 255.0;
+                var c = (double)i / 255.0;
                 var k = (byte)(c * (n - 1));
                 double v1 = tableValues[k];
                 double v2 = tableValues[Math.Min(k + 1, n - 1)];
@@ -1109,7 +1109,8 @@ namespace Svg.Model
 
             for (var i = 0; i < 256; i++)
             {
-                var k = (byte)(i * n / 255.0);
+                var c = (double)i / 255.0;
+                var k = (byte)(c * (double)n);
                 k = (byte)Math.Min(k, n - 1);
                 double val = 255 * tableValues[k];
                 val = Math.Max(0.0, Math.Min(255.0, val));
@@ -1124,7 +1125,7 @@ namespace Svg.Model
 
             for (var i = 0; i < 256; i++)
             {
-                double val = slope * i + 255.0 * intercept;
+                double val = slope * i + 255 * intercept;
                 val = Math.Max(0.0, Math.Min(255.0, val));
                 values[i] = (byte)val;
             }
@@ -1138,7 +1139,8 @@ namespace Svg.Model
 
             for (var i = 0; i < 256; i++)
             {
-                var val = 255.0 * (amplitude * Math.Pow(i / 255.0, exponent) + offset);
+                var c = (double)i / 255.0;
+                var val = 255.0 * (amplitude * Math.Pow(c, exponent) + offset);
                 val = Math.Max(0.0, Math.Min(255.0, val));
                 values[i] = (byte)val;
             }
