@@ -318,5 +318,15 @@ namespace Svg.Model
                 _ => false
             };
         }
+
+        internal static double DegreeToRadian(this double degrees)
+        {
+            return Math.PI * degrees / 180.0;
+        }
+
+        internal static double RadianToDegree(this double radians)
+        {
+            return radians * (180.0 / Math.PI);
+        }
     }
 }

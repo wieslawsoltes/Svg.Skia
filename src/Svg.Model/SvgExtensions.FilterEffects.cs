@@ -17,16 +17,6 @@ namespace Svg.Model
     {
         internal static SKColor s_transparentBlack = new(0, 0, 0, 255);
 
-        internal static double DegreeToRadian(this double degrees)
-        {
-            return Math.PI * degrees / 180.0;
-        }
-
-        internal static double RadianToDegree(this double radians)
-        {
-            return radians * (180.0 / Math.PI);
-        }
-
         internal static bool IsNone(this Uri uri)
         {
             return string.Equals(uri.ToString(), "none", StringComparison.OrdinalIgnoreCase);
