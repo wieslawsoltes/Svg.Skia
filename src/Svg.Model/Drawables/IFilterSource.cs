@@ -8,8 +8,8 @@ namespace Svg.Model.Drawables
 {
     internal interface IFilterSource
     {
-        SKPicture? SourceGraphic();
-        SKPicture? BackgroundImage();
+        SKPicture? SourceGraphic(SKRect? clip);
+        SKPicture? BackgroundImage(SKRect? clip);
         SKPaint? FillPaint();
         SKPaint? StrokePaint();
     }

@@ -352,7 +352,7 @@ namespace Svg.Model.Drawables
             return null;
         }
 
-        public SKPicture? RecordGraphic(DrawableBase? drawable, DrawAttributes ignoreAttributes)
+        public SKPicture? RecordGraphic(DrawableBase? drawable, SKRect? clip, DrawAttributes ignoreAttributes)
         {
             if (drawable is null)
             {
@@ -365,7 +365,7 @@ namespace Svg.Model.Drawables
                 return null;
             }
 
-            var cullRect = SKRect.Create(
+            var cullRect = clip ?? SKRect.Create(
                 0, 
                 0, 
                 Math.Abs(skBounds.Left) + skBounds.Width, 
@@ -378,7 +378,7 @@ namespace Svg.Model.Drawables
             return skPictureRecorder.EndRecording();
         }
 
-        public SKPicture? RecordBackground(DrawableBase? drawable, DrawAttributes ignoreAttributes)
+        public SKPicture? RecordBackground(DrawableBase? drawable, SKRect? clip, DrawAttributes ignoreAttributes)
         {
             if (drawable is null)
             {
@@ -392,7 +392,7 @@ namespace Svg.Model.Drawables
             }
 
             var skBounds = drawable.GeometryBounds;
-            var cullRect = SKRect.Create(
+            var cullRect = clip ?? SKRect.Create(
                 0, 
                 0, 
                 Math.Abs(skBounds.Left) + skBounds.Width, 
@@ -412,9 +412,9 @@ namespace Svg.Model.Drawables
 
         private const DrawAttributes FilterInput = DrawAttributes.ClipPath | DrawAttributes.Mask | DrawAttributes.Opacity | DrawAttributes.Filter;
 
-        SKPicture? IFilterSource.SourceGraphic() => RecordGraphic(this, FilterInput);
+        SKPicture? IFilterSource.SourceGraphic(SKRect? clip) => RecordGraphic(this, clip, FilterInput);
 
-        SKPicture? IFilterSource.BackgroundImage() => RecordBackground(this, FilterInput);
+        SKPicture? IFilterSource.BackgroundImage(SKRect? clip) => RecordBackground(this, clip, FilterInput);
 
         SKPaint? IFilterSource.FillPaint() => Fill;
 
