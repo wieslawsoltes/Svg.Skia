@@ -167,7 +167,7 @@ namespace Svg.Model.Drawables
                 canvas.Restore();
 
                 // DEBUG: Filter Region - FilterClip
-#if false
+#if USE_DEBUG_DRAW_FILTER_BOUNDS
                 if (FilterClip is not null)
                 {
                     Debug.WriteLine($"FilterClip {FilterClip}");
@@ -183,7 +183,7 @@ namespace Svg.Model.Drawables
                 }
 #endif
                 // DEBUG: Filter Region - GeometryBounds
-#if false
+#if USE_DEBUG_DRAW_FILTER_BOUNDS
                 if (FilterClip is not null)
                 {
                     Debug.WriteLine($"GeometryBounds {GeometryBounds}");
