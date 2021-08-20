@@ -937,6 +937,38 @@ namespace Svg.Model
             };
         }
 
+        private float CalculateHorizontal(SvgOffset svgElement, SvgUnit unit)
+        {
+            var useBoundingBox = _primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox;
+            var type = useBoundingBox ? UnitRenderingType.Horizontal : UnitRenderingType.HorizontalOffset;
+            var value = unit.ToDeviceValue(type, svgElement, useBoundingBox ? _skBounds : _skViewport);
+            if (useBoundingBox)
+            {
+                if (unit.Type != SvgUnitType.Percentage)
+                {
+                    value *= _skBounds.Width;
+                }
+            }
+
+            return value;
+        }
+
+        private float CalculateVertical(SvgElement svgElement, SvgUnit unit)
+        {
+            var useBoundingBox = _primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox;
+            var type = useBoundingBox ? UnitRenderingType.Vertical : UnitRenderingType.VerticalOffset;
+            var value = unit.ToDeviceValue(type, svgElement, useBoundingBox ? _skBounds : _skViewport);
+            if (useBoundingBox)
+            {
+                if (unit.Type != SvgUnitType.Percentage)
+                {
+                    value *= _skBounds.Height;
+                }
+            }
+
+            return value;
+        }
+
         private SKBlendMode GetBlendMode(SvgBlendMode svgBlendMode)
         {
             return svgBlendMode switch
@@ -1561,28 +1593,8 @@ namespace Svg.Model
         {
             var dxUnit = svgOffset.Dx;
             var dyUnit = svgOffset.Dy;
-            
-            var useBoundingBox = _primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox;
-
-            var xRenderType  = useBoundingBox ? UnitRenderingType.Horizontal : UnitRenderingType.HorizontalOffset;
-            var dx = dxUnit.ToDeviceValue(xRenderType, svgOffset, useBoundingBox ? _skBounds : _skViewport);
-
-            var yRenderType  = useBoundingBox ? UnitRenderingType.Vertical : UnitRenderingType.VerticalOffset;
-            var dy = dyUnit.ToDeviceValue(yRenderType, svgOffset, useBoundingBox ? _skBounds : _skViewport);
-
-            if (useBoundingBox)
-            {
-                if (dxUnit.Type != SvgUnitType.Percentage)
-                {
-                    dx *= _skBounds.Width;
-                }
-
-                if (dyUnit.Type != SvgUnitType.Percentage)
-                {
-                    dy *= _skBounds.Height;
-                }
-            }
-
+            var dx = CalculateHorizontal(svgOffset, dxUnit);
+            var dy = CalculateVertical(svgOffset, dyUnit);
             return SKImageFilter.CreateOffset(dx, dy, input, cropRect);
         }
 
