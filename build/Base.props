@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <VersionPrefix>0.5.7</VersionPrefix>
+    <VersionPrefix>0.5.7.1</VersionPrefix>
     <VersionSuffix></VersionSuffix>
-    <AvaloniaVersionPrefix>0.10.7</AvaloniaVersionPrefix>
+    <AvaloniaVersionPrefix>0.10.7.1</AvaloniaVersionPrefix>
     <AvaloniaVersionSuffix>$(VersionSuffix)</AvaloniaVersionSuffix>
     <Authors>Wiesław Šoltés</Authors>
     <Company>Wiesław Šoltés</Company>
