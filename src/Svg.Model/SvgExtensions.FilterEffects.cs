@@ -803,31 +803,15 @@ namespace Svg.Model
             return skFilterPrimitiveRegion;
         }
 
-        internal static SvgColourInterpolation GetColorInterpolationFilters(SvgElement svgElement)
+        private static SvgColourInterpolation GetColorInterpolationFilters(SvgFilterPrimitive svgFilterPrimitive)
         {
-            return svgElement.ColorInterpolationFilters switch
+            return svgFilterPrimitive.ColorInterpolationFilters switch
             {
                 SvgColourInterpolation.Auto => SvgColourInterpolation.LinearRGB,
                 SvgColourInterpolation.SRGB => SvgColourInterpolation.SRGB,
                 SvgColourInterpolation.LinearRGB => SvgColourInterpolation.LinearRGB,
                 _ => SvgColourInterpolation.LinearRGB,
             };
-        }
-
-        private static SvgColourInterpolation GetColorInterpolationFilters(SvgFilterPrimitive svgFilterPrimitive)
-        {
-            var colorInterpolationFilters = SvgExtensions.GetColorInterpolationFilters(svgFilterPrimitive);
-
-            if (colorInterpolationFilters == SvgColourInterpolation.Auto)
-            {
-                colorInterpolationFilters = SvgColourInterpolation.SRGB;
-            }
-            else if (colorInterpolationFilters == SvgColourInterpolation.Inherit)
-            {
-                colorInterpolationFilters = SvgColourInterpolation.LinearRGB;
-            }
-
-            return colorInterpolationFilters;
         }
 
         private SKImageFilter? GetGraphic(SKPicture skPicture)
