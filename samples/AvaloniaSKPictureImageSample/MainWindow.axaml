@@ -19,7 +19,7 @@
                     <ComboBoxItem>UniformToFill</ComboBoxItem>
                 </ComboBox>
                 <SKPictureControl Picture="{x:Static local:Tiger.Picture}" 
-                                  Stretch="{Binding #SvgPictureStretch.SelectedItem.Content}"/>
+                                  Stretch="{Binding #SvgPictureStretch.SelectedItem.Content, FallbackValue=None}"/>
             </DockPanel>
         </TabItem>
 
@@ -55,7 +55,7 @@
                     <ComboBoxItem>UniformToFill</ComboBoxItem>
                 </ComboBox>
                 <SKPictureControl Picture="{x:Static local:Logo.Picture}"
-                                  Stretch="{Binding #SvgAnimationPictureStretch.SelectedItem.Content}"
+                                  Stretch="{Binding #SvgAnimationPictureStretch.SelectedItem.Content, FallbackValue=None}"
                                   Margin="100"
                                   Classes="bounce rotate"/>
             </DockPanel>
@@ -73,7 +73,7 @@
                     <ComboBoxItem>UniformToFill</ComboBoxItem>
                 </ComboBox>
                 <Image Source="{StaticResource CameraImage}" 
-                       Stretch="{Binding #SvgImageStretch.SelectedItem.Content}" />
+                       Stretch="{Binding #SvgImageStretch.SelectedItem.Content, FallbackValue=None}" />
             </DockPanel>
         </TabItem>
 
