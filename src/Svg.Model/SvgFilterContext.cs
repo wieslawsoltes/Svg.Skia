@@ -1100,11 +1100,13 @@ namespace Svg.Model
         private void Discrete(byte[] values, SvgComponentTransferFunction transferFunction)
         {
             var tableValues = transferFunction.TableValues;
+
             var n = tableValues.Count;
             if (n < 1)
             {
                 return;
             }
+
             for (var i = 0; i < 256; i++)
             {
                 var k = (byte)(i * n / 255.0);
@@ -1117,9 +1119,12 @@ namespace Svg.Model
 
         private void Linear(byte[] values, SvgComponentTransferFunction transferFunction)
         {
+            var slope = transferFunction.Slope;
+            var intercept = transferFunction.Intercept;
+
             for (var i = 0; i < 256; i++)
             {
-                double val = transferFunction.Slope * i + 255 * transferFunction.Intercept;
+                double val = slope * i + 255.0 * intercept;
                 val = Math.Max(0.0, Math.Min(255.0, val));
                 values[i] = (byte)val;
             }
@@ -1127,10 +1132,13 @@ namespace Svg.Model
 
         private void Gamma(byte[] values, SvgComponentTransferFunction transferFunction)
         {
+            var amplitude = transferFunction.Amplitude;
+            var offset = transferFunction.Offset;
+            var exponent = transferFunction.Exponent;
+
             for (var i = 0; i < 256; i++)
             {
-                double exponent = transferFunction.Exponent;
-                var val = 255.0 * (transferFunction.Amplitude * Math.Pow(i / 255.0, exponent) + transferFunction.Offset);
+                var val = 255.0 * (amplitude * Math.Pow(i / 255.0, exponent) + offset);
                 val = Math.Max(0.0, Math.Min(255.0, val));
                 values[i] = (byte)val;
             }
