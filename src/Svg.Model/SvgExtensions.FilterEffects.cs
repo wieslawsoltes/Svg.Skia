@@ -807,7 +807,7 @@ namespace Svg.Model
         {
             return svgFilterPrimitive.ColorInterpolationFilters switch
             {
-                SvgColourInterpolation.Auto => SvgColourInterpolation.LinearRGB,
+                SvgColourInterpolation.Auto => SvgColourInterpolation.SRGB,
                 SvgColourInterpolation.SRGB => SvgColourInterpolation.SRGB,
                 SvgColourInterpolation.LinearRGB => SvgColourInterpolation.LinearRGB,
                 _ => SvgColourInterpolation.LinearRGB,
