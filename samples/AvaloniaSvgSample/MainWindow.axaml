@@ -56,7 +56,7 @@
                 <DockPanel.Resources>
                     <svg:SvgImage x:Key="__tiger" Source="/Assets/__tiger.svg" />
                 </DockPanel.Resources>
-                <ComboBox Name="svgReourceStretch" DockPanel.Dock="Top" SelectedIndex="2" SelectionChanged="SvgResourceStretchChanged">
+                <ComboBox Name="svgResourceStretch" DockPanel.Dock="Top" SelectedIndex="2" SelectionChanged="SvgResourceStretchChanged">
                     <ComboBoxItem>None</ComboBoxItem>
                     <ComboBoxItem>Fill</ComboBoxItem>
                     <ComboBoxItem>Uniform</ComboBoxItem>
