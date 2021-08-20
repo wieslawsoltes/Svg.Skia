@@ -1567,11 +1567,16 @@ namespace Svg.Model
         {
             var dxUnit = svgOffset.Dx;
             var dyUnit = svgOffset.Dy;
+            
+            var useBoundingBox = _primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox;
 
-            var dx = dxUnit.ToDeviceValue(UnitRenderingType.HorizontalOffset, svgOffset, _skBounds);
-            var dy = dyUnit.ToDeviceValue(UnitRenderingType.VerticalOffset, svgOffset, _skBounds);
+            var xRenderType  = useBoundingBox ? UnitRenderingType.Horizontal : UnitRenderingType.HorizontalOffset;
+            var dx = dxUnit.ToDeviceValue(xRenderType, svgOffset, useBoundingBox ? _skBounds : _skViewport);
 
-            if (_primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
+            var yRenderType  = useBoundingBox ? UnitRenderingType.Vertical : UnitRenderingType.VerticalOffset;
+            var dy = dyUnit.ToDeviceValue(yRenderType, svgOffset, useBoundingBox ? _skBounds : _skViewport);
+
+            if (useBoundingBox)
             {
                 if (dxUnit.Type != SvgUnitType.Percentage)
                 {
