@@ -209,8 +209,9 @@ namespace Svg.Model.Drawables.Elements
             if (enableFilter)
             {
                 // TODO: skViewport
-                skPaintFilter = SvgExtensions.GetFilterPaint(svgTextBase, skBounds, skBounds, this, AssetLoader, References, out var isValid, out var filterClip);
-                skFilterClip = filterClip;
+                var filterContext = new SvgFilterContext(svgTextBase, skBounds, skBounds, this, AssetLoader, References);
+                skPaintFilter = filterContext.FilterPaint;
+                skFilterClip = filterContext.FilterClip;
                 if (skPaintFilter is { } && !IgnoreAttributes.HasFlag(DrawAttributes.Filter))
                 {
                     if (skFilterClip is not null)
