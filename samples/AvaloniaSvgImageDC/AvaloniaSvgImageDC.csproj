@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <IsPackable>False</IsPackable>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  
+  <Import Project="..\..\build\Avalonia.props" />
+  <Import Project="..\..\build\Avalonia.Desktop.props" />
+  <Import Project="..\..\build\Avalonia.Diagnostics.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Avalonia.Svg\Avalonia.Svg.csproj" />
+  </ItemGroup>
+  
+</Project>

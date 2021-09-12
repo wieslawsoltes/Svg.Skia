@@ -106,6 +106,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShimSkiaSharp", "src\ShimSk
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Svg.Model.SkiaSharp", "src\Svg.Model.SkiaSharp\Svg.Model.SkiaSharp.csproj", "{3F724469-5A06-42BD-9BEA-9A8DAA0F38AD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaSvgImageDC", "samples\AvaloniaSvgImageDC\AvaloniaSvgImageDC.csproj", "{25579D03-7B76-4CB0-99EC-2E72010355D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -198,6 +200,10 @@ Global
 		{3F724469-5A06-42BD-9BEA-9A8DAA0F38AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F724469-5A06-42BD-9BEA-9A8DAA0F38AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3F724469-5A06-42BD-9BEA-9A8DAA0F38AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25579D03-7B76-4CB0-99EC-2E72010355D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25579D03-7B76-4CB0-99EC-2E72010355D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25579D03-7B76-4CB0-99EC-2E72010355D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25579D03-7B76-4CB0-99EC-2E72010355D8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -228,6 +234,7 @@ Global
 		{AF8AEF5B-0664-4106-9BD3-389758F39B12} = {C5FFCF4B-86DC-453E-8006-44EE9EEFEE39}
 		{6D2786A1-F110-4448-9CBF-D3CC9D803F31} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
 		{3F724469-5A06-42BD-9BEA-9A8DAA0F38AD} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
+		{25579D03-7B76-4CB0-99EC-2E72010355D8} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12D5E557-A27B-4FB2-83A3-4AC75B04B22C}
