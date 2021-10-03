@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nuke.Common" Version="5.3.0" />
+    <PackageReference Include="Nuke.Common" Version="0.24.2" />
   </ItemGroup>
 
   <ItemGroup>
