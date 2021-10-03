@@ -221,11 +221,11 @@ namespace Svg.Model
             return svgDocument;
         }
 
-        public static SKDrawable? ToDrawable(SvgFragment svgFragment, IAssetLoader assetLoader, HashSet<Uri>? references, out SKRect? bounds)
+        public static SKDrawable? ToDrawable(SvgFragment svgFragment, IAssetLoader assetLoader, HashSet<Uri>? references, out SKRect? bounds, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var size = GetDimensions(svgFragment);
             var fragmentBounds = SKRect.Create(size);
-            var drawable = DrawableFactory.Create(svgFragment, fragmentBounds, null, assetLoader, references);
+            var drawable = DrawableFactory.Create(svgFragment, fragmentBounds, null, assetLoader, references, ignoreAttributes);
             if (drawable is null)
             {
                 bounds = default;
@@ -253,13 +253,13 @@ namespace Svg.Model
             return drawable;
         }
 #if !USE_SKIASHARP
-        public static SKPicture? ToModel(SvgFragment svgFragment, IAssetLoader assetLoader, out SKDrawable? skDrawable, out SKRect? skBounds)
+        public static SKPicture? ToModel(SvgFragment svgFragment, IAssetLoader assetLoader, out SKDrawable? skDrawable, out SKRect? skBounds, DrawAttributes ignoreAttributes = DrawAttributes.None)
         {
             var references = new HashSet<Uri>
             {
                 svgFragment is SvgDocument svgDocument ? svgDocument.BaseUri : svgFragment.OwnerDocument.BaseUri
             };
-            var drawable = ToDrawable(svgFragment, assetLoader, references, out var bounds);
+            var drawable = ToDrawable(svgFragment, assetLoader, references, out var bounds, ignoreAttributes);
             if (drawable is null || bounds is null)
             {
                 skDrawable = default;
