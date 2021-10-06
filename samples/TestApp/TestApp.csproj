@@ -5,6 +5,7 @@
     <IsPackable>False</IsPackable>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationIcon>Assets\Icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
