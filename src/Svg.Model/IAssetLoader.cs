@@ -5,10 +5,9 @@ using SkiaSharp;
 using ShimSkiaSharp;
 #endif
 
-namespace Svg.Model
+namespace Svg.Model;
+
+public interface IAssetLoader
 {
-    public interface IAssetLoader
-    {
-        SKImage LoadImage(Stream stream);
-    }
+    SKImage LoadImage(Stream stream);
 }

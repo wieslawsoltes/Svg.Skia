@@ -1,19 +1,18 @@
 ﻿using System;
 
-namespace Svg.Model
+namespace Svg.Model;
+
+[Flags]
+public enum DrawAttributes
 {
-    [Flags]
-    public enum DrawAttributes
-    {
-        None = 0,
-        Display = 1,
-        Visibility = 2,
-        Opacity = 4,
-        Filter = 8,
-        ClipPath = 16,
-        Mask = 32,
-        RequiredFeatures = 64,
-        RequiredExtensions = 128,
-        SystemLanguage = 256
-    }
+    None = 0,
+    Display = 1,
+    Visibility = 2,
+    Opacity = 4,
+    Filter = 8,
+    ClipPath = 16,
+    Mask = 32,
+    RequiredFeatures = 64,
+    RequiredExtensions = 128,
+    SystemLanguage = 256
 }
