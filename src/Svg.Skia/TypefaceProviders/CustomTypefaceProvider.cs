@@ -2,62 +2,61 @@
 using System.IO;
 using System.Linq;
 
-namespace Svg.Skia.TypefaceProviders
+namespace Svg.Skia.TypefaceProviders;
+
+public sealed class CustomTypefaceProvider : ITypefaceProvider, IDisposable
 {
-    public sealed class CustomTypefaceProvider : ITypefaceProvider, IDisposable
+    public static readonly char[] s_fontFamilyTrim = { '\'' };
+
+    public SkiaSharp.SKTypeface? Typeface { get; set; }
+
+    public string FamilyName { get; set; }
+
+    public CustomTypefaceProvider(Stream stream, int index = 0)
     {
-        public static readonly char[] s_fontFamilyTrim = { '\'' };
+        Typeface = SkiaSharp.SKTypeface.FromStream(stream, index);
+        FamilyName = Typeface.FamilyName;
+    }
 
-        public SkiaSharp.SKTypeface? Typeface { get; set; }
+    public CustomTypefaceProvider(SkiaSharp.SKStreamAsset stream, int index = 0)
+    {
+        Typeface = SkiaSharp.SKTypeface.FromStream(stream, index);
+        FamilyName = Typeface.FamilyName;
+    }
 
-        public string FamilyName { get; set; }
+    public CustomTypefaceProvider(string path, int index = 0)
+    {
+        Typeface = SkiaSharp.SKTypeface.FromFile(path, index);
+        FamilyName = Typeface.FamilyName;
+    }
 
-        public CustomTypefaceProvider(Stream stream, int index = 0)
+    public CustomTypefaceProvider(SkiaSharp.SKData data, int index = 0)
+    {
+        Typeface = SkiaSharp.SKTypeface.FromData(data, index);
+        FamilyName = Typeface.FamilyName;
+    }
+
+    public SkiaSharp.SKTypeface? FromFamilyName(string fontFamily, SkiaSharp.SKFontStyleWeight fontWeight, SkiaSharp.SKFontStyleWidth fontWidth, SkiaSharp.SKFontStyleSlant fontStyle)
+    {
+        var skTypeface = default(SkiaSharp.SKTypeface);
+        var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
+        if (fontFamilyNames is { } && fontFamilyNames.Length > 0)
         {
-            Typeface = SkiaSharp.SKTypeface.FromStream(stream, index);
-            FamilyName = Typeface.FamilyName;
-        }
-
-        public CustomTypefaceProvider(SkiaSharp.SKStreamAsset stream, int index = 0)
-        {
-            Typeface = SkiaSharp.SKTypeface.FromStream(stream, index);
-            FamilyName = Typeface.FamilyName;
-        }
-
-        public CustomTypefaceProvider(string path, int index = 0)
-        {
-            Typeface = SkiaSharp.SKTypeface.FromFile(path, index);
-            FamilyName = Typeface.FamilyName;
-        }
-
-        public CustomTypefaceProvider(SkiaSharp.SKData data, int index = 0)
-        {
-            Typeface = SkiaSharp.SKTypeface.FromData(data, index);
-            FamilyName = Typeface.FamilyName;
-        }
-
-        public SkiaSharp.SKTypeface? FromFamilyName(string fontFamily, SkiaSharp.SKFontStyleWeight fontWeight, SkiaSharp.SKFontStyleWidth fontWidth, SkiaSharp.SKFontStyleSlant fontStyle)
-        {
-            var skTypeface = default(SkiaSharp.SKTypeface);
-            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
-            if (fontFamilyNames is { } && fontFamilyNames.Length > 0)
+            foreach (var fontFamilyName in fontFamilyNames)
             {
-                foreach (var fontFamilyName in fontFamilyNames)
+                if (fontFamily == FamilyName)
                 {
-                    if (fontFamily == FamilyName)
-                    {
-                        skTypeface = Typeface;
-                        break;
-                    }
+                    skTypeface = Typeface;
+                    break;
                 }
             }
-            return skTypeface;
         }
+        return skTypeface;
+    }
 
-        public void Dispose()
-        {
-            Typeface?.Dispose();
-            Typeface = null;
-        }
+    public void Dispose()
+    {
+        Typeface?.Dispose();
+        Typeface = null;
     }
 }
