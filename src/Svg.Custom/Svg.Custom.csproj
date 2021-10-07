@@ -83,7 +83,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net6.0'">
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0-rc.1.21451.13" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.0" />
     <PackageReference Include="System.ObjectModel" Version="4.3.0" />
   </ItemGroup>
 
