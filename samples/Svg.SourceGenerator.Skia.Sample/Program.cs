@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using Svg.Generated;
-using Svg.Sample;
 using Svg.Skia;
 
 namespace Svg.SourceGenerator.Skia.Sample;
