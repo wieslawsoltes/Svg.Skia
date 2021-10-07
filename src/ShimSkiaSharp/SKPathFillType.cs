@@ -1,8 +1,7 @@
-﻿namespace ShimSkiaSharp
+﻿namespace ShimSkiaSharp;
+
+public enum SKPathFillType
 {
-    public enum SKPathFillType
-    {
-        Winding = 0,
-        EvenOdd = 1
-    }
+    Winding = 0,
+    EvenOdd = 1
 }

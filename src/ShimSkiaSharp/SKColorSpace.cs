@@ -1,8 +1,7 @@
-﻿namespace ShimSkiaSharp
+﻿namespace ShimSkiaSharp;
+
+public enum SKColorSpace
 {
-    public enum SKColorSpace
-    {
-        Srgb = 0,
-        SrgbLinear = 1
-    }
+    Srgb = 0,
+    SrgbLinear = 1
 }

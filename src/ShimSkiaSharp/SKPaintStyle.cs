@@ -1,9 +1,8 @@
-﻿namespace ShimSkiaSharp
+﻿namespace ShimSkiaSharp;
+
+public enum SKPaintStyle
 {
-    public enum SKPaintStyle
-    {
-        Fill = 0,
-        Stroke = 1,
-        StrokeAndFill = 2
-    }
+    Fill = 0,
+    Stroke = 1,
+    StrokeAndFill = 2
 }
