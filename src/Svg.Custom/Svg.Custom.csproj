@@ -6,7 +6,7 @@
     <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     <EnableDefaultItems>False</EnableDefaultItems>
     <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-    <NoWarn>CS1591</NoWarn>
+    <NoWarn>CS1591;SYSLIB0014</NoWarn>
     <IsPackable>True</IsPackable>
     <Nullable>disable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
