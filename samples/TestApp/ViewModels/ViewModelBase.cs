@@ -1,8 +1,7 @@
 ﻿using ReactiveUI;
 
-namespace TestApp.ViewModels
+namespace TestApp.ViewModels;
+
+public class ViewModelBase : ReactiveObject
 {
-    public class ViewModelBase : ReactiveObject
-    {
-    }
 }

@@ -13,544 +13,543 @@ using System.Windows.Input;
 using Svg.Model;
 using SvgToPng.ViewModels;
 
-namespace SvgToPng
-{
-    public partial class MainWindow : Window
-    {
-        public MainWindowViewModel VM { get; set; }
+namespace SvgToPng;
 
-        public MainWindow()
-        {
-            InitializeComponent();
+public partial class MainWindow : Window
+{
+    public MainWindowViewModel VM { get; set; }
+
+    public MainWindow()
+    {
+        InitializeComponent();
 #if DEBUG
-            SvgExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture("en-US");
+        SvgExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture("en-US");
 #endif
-            var vm = MainWindowViewModel.Load<MainWindowViewModel>("VM.json");
-            if (vm is { })
+        var vm = MainWindowViewModel.Load<MainWindowViewModel>("VM.json");
+        if (vm is { })
+        {
+            VM = vm;
+            VM.ItemsViewFilter = ItemsViewFilter;
+            VM.CreateItemsView();
+        }
+        else
+        {
+            VM = new MainWindowViewModel
             {
-                VM = vm;
-                VM.ItemsViewFilter = ItemsViewFilter;
-                VM.CreateItemsView();
-            }
-            else
-            {
-                VM = new MainWindowViewModel
-                {
-                    Items = new ObservableCollection<Item>(),
-                    ReferencePaths = new ObservableCollection<string>(),
-                    ItemsViewFilter = ItemsViewFilter,
-                    ShowFailed = true,
-                    ShowPassed = true
-                };
-                VM.CreateItemsView();
+                Items = new ObservableCollection<Item>(),
+                ReferencePaths = new ObservableCollection<string>(),
+                ItemsViewFilter = ItemsViewFilter,
+                ShowFailed = true,
+                ShowPassed = true
+            };
+            VM.CreateItemsView();
 #if DEBUG
-                VM.ReferencePaths = new ObservableCollection<string>(new string[]
-                {
+            VM.ReferencePaths = new ObservableCollection<string>(new string[]
+            {
                 @"c:\DOWNLOADS\GitHub\Svg.Skia\externals\SVG\Tests\W3CTestSuite\png\",
                 @"c:\DOWNLOADS\GitHub-Forks\resvg-test-suite\png\",
                 @"e:\Dropbox\Draw2D\SVG\vs2017-png\",
                 @"e:\Dropbox\Draw2D\SVG\W3CTestSuite-png\"
-                });
-                VM.ReferencePath = VM.ReferencePaths[0];
-                VM.OutputPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "png");
-#endif
-            }
-
-            Loaded += MainWindow_Loaded;
-            Closing += MainWindow_Closing;
-            TextItemsFilter.TextChanged += TextItemsFilter_TextChanged;
-            CheckShowPassed.Click += CheckShowPassed_Click;
-            CheckShowFailed.Click += CheckShowFailed_Click;
-
-            items.SelectionChanged += Items_SelectionChanged;
-            items.MouseDoubleClick += Items_MouseDoubleClick;
-            items.KeyDown += Items_KeyDown;
-
-            skElementSvg.PaintSurface += OnPaintCanvasSvg;
-            skElementPng.PaintSurface += OnPaintCanvasPng;
-            skElementDiff.PaintSurface += OnPaintCanvasDiff;
-
-            DataContext = this.VM;
-        }
-
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            VM.ItemsView.Refresh();
-        }
-
-        private bool ItemsViewFilter(object obj)
-        {
-            var name = TextItemsFilter.Text;
-            var showPassed = CheckShowPassed.IsChecked == true;
-            var showFailed = CheckShowFailed.IsChecked == true;
-            var isEmpty = string.IsNullOrWhiteSpace(name);
-            if (obj is Item item)
-            {
-                if (showPassed == false)
-                {
-                    if (item.Passed == true)
-                    {
-                        return false;
-                    }
-                }
-                if (showFailed == false)
-                {
-                    if (item.Passed == false)
-                    {
-                        return false;
-                    }
-                }
-                if (!isEmpty)
-                {
-                    var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
-                    return compareInfo.IndexOf(item.Name, name, CompareOptions.IgnoreCase) >= 0;
-                }
-            }
-            return true;
-        }
-
-        private void MainWindow_Closing(object sender, CancelEventArgs e)
-        {
-            MainWindowViewModel.Save("VM.json", VM);
-            VM.ClearItems();
-        }
-
-        private void TextItemsFilter_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            VM.ItemsView.Refresh();
-        }
-
-        private void CheckShowFailed_Click(object sender, RoutedEventArgs e)
-        {
-            VM.ItemsView.Refresh();
-        }
-
-        private void CheckShowPassed_Click(object sender, RoutedEventArgs e)
-        {
-            VM.ItemsView.Refresh();
-        }
-
-        private void Items_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (items.SelectedItem is Item item)
-            {
-                Update(item);
-            }
-            Invalidate();
-        }
-
-        private void Items_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if (items.SelectedItem is Item item)
-            {
-                if (e.LeftButton == MouseButtonState.Pressed)
-                {
-                    Process.Start("notepad", item.SvgPath);
-                }
-                if (e.RightButton == MouseButtonState.Pressed)
-                {
-                    Process.Start("explorer", item.SvgPath);
-                }
-            }
-        }
-
-        private void Items_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (items.SelectedItem is Item item)
-            {
-                if (e.Key == Key.Delete)
-                {
-                    VM.RemoveItem(item);
-                    Invalidate();
-                }
-                else if (e.Key == Key.Insert)
-                {
-                    VM.ResetItem(item);
-                    Update(item);
-                    Invalidate();
-                }
-            }
-        }
-
-        private void HandleDrop(string[] paths, string referencePath, string outputPath)
-        {
-            var inputFiles = MainWindowViewModel.GetFilesDrop(paths).ToList();
-            if (inputFiles.Count > 0)
-            {
-                VM.AddItems(inputFiles, VM.Items, referencePath, outputPath);
-            }
-        }
-
-        private void Window_Drop(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                string[] paths = (string[])e.Data.GetData(DataFormats.FileDrop);
-                if (paths is { } && paths.Length > 0)
-                {
-                    HandleDrop(paths, TextReferencePath.Text, TextOutputPath.Text);
-                }
-            }
-        }
-
-        private void ButtonOutputPath_Click(object sender, RoutedEventArgs e)
-        {
-            var dlg = new System.Windows.Forms.FolderBrowserDialog
-            {
-                SelectedPath = TextOutputPath.Text
-            };
-            var result = dlg.ShowDialog();
-            if (result == System.Windows.Forms.DialogResult.OK)
-            {
-                var path = dlg.SelectedPath;
-                if (path is { })
-                {
-                    VM.OutputPath = path;
-                    TextOutputPath.GetBindingExpression(TextBox.TextProperty).UpdateTarget();
-                }
-            }
-        }
-
-        private void ButtonReferencePath_Click(object sender, RoutedEventArgs e)
-        {
-            var dlg = new System.Windows.Forms.FolderBrowserDialog
-            {
-                SelectedPath = TextReferencePath.Text
-            };
-            var result = dlg.ShowDialog();
-            if (result == System.Windows.Forms.DialogResult.OK)
-            {
-                var path = dlg.SelectedPath;
-                if (path is { })
-                {
-                    VM.ReferencePaths.Add(path);
-                    VM.ReferencePath = path;
-                    TextReferencePath.GetBindingExpression(ComboBox.SelectedItemProperty).UpdateTarget();
-                }
-            }
-        }
-
-        private void ButtonClearFilter_Click(object sender, RoutedEventArgs e)
-        {
-            VM.ItemsFilter = "";
-            TextItemsFilter.GetBindingExpression(TextBox.TextProperty).UpdateTarget();
-        }
-
-        private void ButtonClear_Click(object sender, RoutedEventArgs e)
-        {
-            VM.ClearItems();
-            Invalidate();
-        }
-
-        private void ButtonAdd_Click(object sender, RoutedEventArgs e)
-        {
-            var dlg = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Supported Files (*.svg;*.svgz)" +
-                         "|*.svg;*.svgz|Svg Files (*.svg)|*.svg;" +
-                         "|Svgz Files (*.svgz)|*.svgz" +
-                         "|All Files (*.*)|*.*",
-                Multiselect = true,
-                FilterIndex = 0
-            };
-            if (dlg.ShowDialog() == true)
-            {
-                var paths = dlg.FileNames;
-                if (paths is { } && paths.Length > 0)
-                {
-                    HandleDrop(paths, TextReferencePath.Text, TextOutputPath.Text);
-                }
-            }
-        }
-
-        private async void ButtonExport_Click(object sender, RoutedEventArgs e)
-        {
-            string outputPath = TextOutputPath.Text;
-            var outputFormats = new List<string>();
-
-            if (CheckFormatPng.IsChecked == true)
-            {
-                outputFormats.Add("png");
-            }
-
-            if (CheckFormatJpg.IsChecked == true)
-            {
-                outputFormats.Add("jpg");
-            }
-
-            if (CheckFormatWebp.IsChecked == true)
-            {
-                outputFormats.Add("webp");
-            }
-
-            if (CheckFormatPdf.IsChecked == true)
-            {
-                outputFormats.Add("pdf");
-            }
-
-            if (CheckFormatXps.IsChecked == true)
-            {
-                outputFormats.Add("xps");
-            }
-
-            if (outputFormats.Count <= 0)
-            {
-                return;
-            }
-
-            var textBackground = TextOutputBackground.Text;
-            var textScaleX = TextOutputScaleX.Text;
-            var textScaleY = TextOutputScaleY.Text;
-
-            if (SkiaSharp.SKColor.TryParse(textBackground, out var skBackgroundColor) == false)
-            {
-                return;
-            }
-
-            if (float.TryParse(textScaleX, out var scaleX) == false)
-            {
-                return;
-            }
-
-            if (float.TryParse(textScaleY, out var scaleY) == false)
-            {
-                return;
-            }
-
-            var items = new List<Item>();
-
-            foreach (var obj in VM.ItemsView)
-            {
-                if (obj is Item item)
-                {
-                    items.Add(item);
-                }
-            }
-
-            if (items.Count <= 0)
-            {
-                return;
-            }
-
-            await Task.Factory.StartNew(() =>
-            {
-                VM.ExportItems(items, outputPath, outputFormats, skBackgroundColor, scaleX, scaleY);
             });
+            VM.ReferencePath = VM.ReferencePaths[0];
+            VM.OutputPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "png");
+#endif
         }
 
-        private void ButtonLoad_Click(object sender, RoutedEventArgs e)
+        Loaded += MainWindow_Loaded;
+        Closing += MainWindow_Closing;
+        TextItemsFilter.TextChanged += TextItemsFilter_TextChanged;
+        CheckShowPassed.Click += CheckShowPassed_Click;
+        CheckShowFailed.Click += CheckShowFailed_Click;
+
+        items.SelectionChanged += Items_SelectionChanged;
+        items.MouseDoubleClick += Items_MouseDoubleClick;
+        items.KeyDown += Items_KeyDown;
+
+        skElementSvg.PaintSurface += OnPaintCanvasSvg;
+        skElementPng.PaintSurface += OnPaintCanvasPng;
+        skElementDiff.PaintSurface += OnPaintCanvasDiff;
+
+        DataContext = this.VM;
+    }
+
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        VM.ItemsView.Refresh();
+    }
+
+    private bool ItemsViewFilter(object obj)
+    {
+        var name = TextItemsFilter.Text;
+        var showPassed = CheckShowPassed.IsChecked == true;
+        var showFailed = CheckShowFailed.IsChecked == true;
+        var isEmpty = string.IsNullOrWhiteSpace(name);
+        if (obj is Item item)
         {
-            var dlg = new Microsoft.Win32.OpenFileDialog
+            if (showPassed == false)
             {
-                Filter = "Items Files (*.json)|*.json;|" +
-                         "All Files (*.*)|*.*",
-                DefaultExt = "json",
-                FilterIndex = 0
-            };
-            if (dlg.ShowDialog() == true)
-            {
-                var path = dlg.FileName;
-                if (path is { })
+                if (item.Passed == true)
                 {
-                    VM.ClearItems();
-                    VM.LoadItems(path);
-                    VM.CreateItemsView();
-                    DataContext = null;
-                    DataContext = VM;
+                    return false;
                 }
             }
-        }
-
-        private void ButtonSave_Click(object sender, RoutedEventArgs e)
-        {
-            var dlg = new Microsoft.Win32.SaveFileDialog
+            if (showFailed == false)
             {
-                Filter = "Items Files (*.json)|*.json;" +
-                         "|All Files (*.*)|*.*",
-                FileName = "Items",
-                DefaultExt = "json",
-                FilterIndex = 0
-            };
-            if (dlg.ShowDialog() == true)
-            {
-                var path = dlg.FileName;
-                if (path is { })
+                if (item.Passed == false)
                 {
-                    VM.SaveItems(path);
+                    return false;
                 }
             }
-        }
-
-        private void ItemExport_Click(object sender, RoutedEventArgs e)
-        {
-            if (items.SelectedIndex >= 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
+            if (!isEmpty)
             {
-                var dlg = new Microsoft.Win32.SaveFileDialog
-                {
-                    Filter = "Png Files (*.png)|*.png;" +
-                             "|Jpg Files (*.jpg)|*.jpg;" +
-                             "|Jpeg Files (*.jpeg)|*.jpeg;" +
-                             "|Webp Files (*.webp)|*.webp;" +
-                             "|Pdf Files (*.pdf)|*.pdf;" +
-                             "|Xps Files (*.xps)|*.xps;" +
-                             "|Svg Files (*.svg)|*.svg;" +
-                             "|All Files (*.*)|*.*",
-                    FileName = item.Name,
-                    DefaultExt = "png",
-                    FilterIndex = 0
-                };
-                if (dlg.ShowDialog() == true && dlg.FileName is { })
-                {
-                    var textBackground = TextOutputBackground.Text;
-                    var textScaleX = TextOutputScaleX.Text;
-                    var textScaleY = TextOutputScaleY.Text;
-
-                    if (SkiaSharp.SKColor.TryParse(textBackground, out var skBackgroundColor) == false)
-                    {
-                        return;
-                    }
-
-                    if (float.TryParse(textScaleX, out var scaleX) == false)
-                    {
-                        return;
-                    }
-
-                    if (float.TryParse(textScaleY, out var scaleY) == false)
-                    {
-                        return;
-                    }
-
-                    VM.ExportItem(item.SvgPath, dlg.FileName, skBackgroundColor, scaleX, scaleY);
-                }
+                var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
+                return compareInfo.IndexOf(item.Name, name, CompareOptions.IgnoreCase) >= 0;
             }
         }
+        return true;
+    }
 
-        private void ItemReload_Click(object sender, RoutedEventArgs e)
+    private void MainWindow_Closing(object sender, CancelEventArgs e)
+    {
+        MainWindowViewModel.Save("VM.json", VM);
+        VM.ClearItems();
+    }
+
+    private void TextItemsFilter_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        VM.ItemsView.Refresh();
+    }
+
+    private void CheckShowFailed_Click(object sender, RoutedEventArgs e)
+    {
+        VM.ItemsView.Refresh();
+    }
+
+    private void CheckShowPassed_Click(object sender, RoutedEventArgs e)
+    {
+        VM.ItemsView.Refresh();
+    }
+
+    private void Items_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (items.SelectedItem is Item item)
         {
-            if (items.SelectedIndex >= 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
+            Update(item);
+        }
+        Invalidate();
+    }
+
+    private void Items_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (items.SelectedItem is Item item)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                Process.Start("notepad", item.SvgPath);
+            }
+            if (e.RightButton == MouseButtonState.Pressed)
+            {
+                Process.Start("explorer", item.SvgPath);
+            }
+        }
+    }
+
+    private void Items_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (items.SelectedItem is Item item)
+        {
+            if (e.Key == Key.Delete)
+            {
+                VM.RemoveItem(item);
+                Invalidate();
+            }
+            else if (e.Key == Key.Insert)
             {
                 VM.ResetItem(item);
                 Update(item);
                 Invalidate();
             }
         }
+    }
 
-        private void Item_Delete_Click(object sender, RoutedEventArgs e)
+    private void HandleDrop(string[] paths, string referencePath, string outputPath)
+    {
+        var inputFiles = MainWindowViewModel.GetFilesDrop(paths).ToList();
+        if (inputFiles.Count > 0)
         {
-            if (items.SelectedIndex >= 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
+            VM.AddItems(inputFiles, VM.Items, referencePath, outputPath);
+        }
+    }
+
+    private void Window_Drop(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            string[] paths = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (paths is { } && paths.Length > 0)
             {
-                VM.RemoveItem(item);
-                Invalidate();
+                HandleDrop(paths, TextReferencePath.Text, TextOutputPath.Text);
+            }
+        }
+    }
+
+    private void ButtonOutputPath_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new System.Windows.Forms.FolderBrowserDialog
+        {
+            SelectedPath = TextOutputPath.Text
+        };
+        var result = dlg.ShowDialog();
+        if (result == System.Windows.Forms.DialogResult.OK)
+        {
+            var path = dlg.SelectedPath;
+            if (path is { })
+            {
+                VM.OutputPath = path;
+                TextOutputPath.GetBindingExpression(TextBox.TextProperty).UpdateTarget();
+            }
+        }
+    }
+
+    private void ButtonReferencePath_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new System.Windows.Forms.FolderBrowserDialog
+        {
+            SelectedPath = TextReferencePath.Text
+        };
+        var result = dlg.ShowDialog();
+        if (result == System.Windows.Forms.DialogResult.OK)
+        {
+            var path = dlg.SelectedPath;
+            if (path is { })
+            {
+                VM.ReferencePaths.Add(path);
+                VM.ReferencePath = path;
+                TextReferencePath.GetBindingExpression(ComboBox.SelectedItemProperty).UpdateTarget();
+            }
+        }
+    }
+
+    private void ButtonClearFilter_Click(object sender, RoutedEventArgs e)
+    {
+        VM.ItemsFilter = "";
+        TextItemsFilter.GetBindingExpression(TextBox.TextProperty).UpdateTarget();
+    }
+
+    private void ButtonClear_Click(object sender, RoutedEventArgs e)
+    {
+        VM.ClearItems();
+        Invalidate();
+    }
+
+    private void ButtonAdd_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = "Supported Files (*.svg;*.svgz)" +
+                     "|*.svg;*.svgz|Svg Files (*.svg)|*.svg;" +
+                     "|Svgz Files (*.svgz)|*.svgz" +
+                     "|All Files (*.*)|*.*",
+            Multiselect = true,
+            FilterIndex = 0
+        };
+        if (dlg.ShowDialog() == true)
+        {
+            var paths = dlg.FileNames;
+            if (paths is { } && paths.Length > 0)
+            {
+                HandleDrop(paths, TextReferencePath.Text, TextOutputPath.Text);
+            }
+        }
+    }
+
+    private async void ButtonExport_Click(object sender, RoutedEventArgs e)
+    {
+        string outputPath = TextOutputPath.Text;
+        var outputFormats = new List<string>();
+
+        if (CheckFormatPng.IsChecked == true)
+        {
+            outputFormats.Add("png");
+        }
+
+        if (CheckFormatJpg.IsChecked == true)
+        {
+            outputFormats.Add("jpg");
+        }
+
+        if (CheckFormatWebp.IsChecked == true)
+        {
+            outputFormats.Add("webp");
+        }
+
+        if (CheckFormatPdf.IsChecked == true)
+        {
+            outputFormats.Add("pdf");
+        }
+
+        if (CheckFormatXps.IsChecked == true)
+        {
+            outputFormats.Add("xps");
+        }
+
+        if (outputFormats.Count <= 0)
+        {
+            return;
+        }
+
+        var textBackground = TextOutputBackground.Text;
+        var textScaleX = TextOutputScaleX.Text;
+        var textScaleY = TextOutputScaleY.Text;
+
+        if (SkiaSharp.SKColor.TryParse(textBackground, out var skBackgroundColor) == false)
+        {
+            return;
+        }
+
+        if (float.TryParse(textScaleX, out var scaleX) == false)
+        {
+            return;
+        }
+
+        if (float.TryParse(textScaleY, out var scaleY) == false)
+        {
+            return;
+        }
+
+        var items = new List<Item>();
+
+        foreach (var obj in VM.ItemsView)
+        {
+            if (obj is Item item)
+            {
+                items.Add(item);
             }
         }
 
-        private void ItemOpenNotepad_Click(object sender, RoutedEventArgs e)
+        if (items.Count <= 0)
         {
-            if (items.SelectedIndex >= 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
+            return;
+        }
+
+        await Task.Factory.StartNew(() =>
+        {
+            VM.ExportItems(items, outputPath, outputFormats, skBackgroundColor, scaleX, scaleY);
+        });
+    }
+
+    private void ButtonLoad_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = "Items Files (*.json)|*.json;|" +
+                     "All Files (*.*)|*.*",
+            DefaultExt = "json",
+            FilterIndex = 0
+        };
+        if (dlg.ShowDialog() == true)
+        {
+            var path = dlg.FileName;
+            if (path is { })
             {
-                Process.Start("notepad", item.SvgPath);
+                VM.ClearItems();
+                VM.LoadItems(path);
+                VM.CreateItemsView();
+                DataContext = null;
+                DataContext = VM;
             }
         }
+    }
 
-        private void ItemOpenExplorer_Click(object sender, RoutedEventArgs e)
+    private void ButtonSave_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.SaveFileDialog
         {
-            if (items.SelectedIndex >= 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
+            Filter = "Items Files (*.json)|*.json;" +
+                     "|All Files (*.*)|*.*",
+            FileName = "Items",
+            DefaultExt = "json",
+            FilterIndex = 0
+        };
+        if (dlg.ShowDialog() == true)
+        {
+            var path = dlg.FileName;
+            if (path is { })
             {
-                Process.Start("explorer", item.SvgPath);
+                VM.SaveItems(path);
             }
         }
+    }
 
-        private void Update(Item item)
+    private void ItemExport_Click(object sender, RoutedEventArgs e)
+    {
+        if (items.SelectedIndex >= 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
         {
-            TextOpenTime.Text = "";
-            TextToPictureTime.Text = "";
-            TextDrawTime.Text = "";
-            VM.UpdateItem(item, (text) => TextOpenTime.Text = text, (text) => TextToPictureTime.Text = text);
-        }
-
-        private void Invalidate()
-        {
-            skElementSvg.InvalidateVisual();
-            skElementPng.InvalidateVisual();
-            skElementDiff.InvalidateVisual();
-        }
-
-        private void OnPaintCanvasSvg(object sender, SKPaintSurfaceEventArgs e)
-        {
-            OnPaintSurfaceSvg(e.Surface.Canvas, e.Info.Width, e.Info.Height);
-        }
-
-        private void OnPaintCanvasPng(object sender, SKPaintSurfaceEventArgs e)
-        {
-            OnPaintSurfacePng(e.Surface.Canvas, e.Info.Width, e.Info.Height);
-        }
-
-        private void OnPaintCanvasDiff(object sender, SKPaintSurfaceEventArgs e)
-        {
-            OnPaintSurfaceDiff(e.Surface.Canvas, e.Info.Width, e.Info.Height);
-        }
-
-        private void OnPaintSurfaceSvg(SkiaSharp.SKCanvas canvas, int width, int height)
-        {
-            if (items.SelectedItem is Item item)
+            var dlg = new Microsoft.Win32.SaveFileDialog
             {
-                var stopwatch = Stopwatch.StartNew();
+                Filter = "Png Files (*.png)|*.png;" +
+                         "|Jpg Files (*.jpg)|*.jpg;" +
+                         "|Jpeg Files (*.jpeg)|*.jpeg;" +
+                         "|Webp Files (*.webp)|*.webp;" +
+                         "|Pdf Files (*.pdf)|*.pdf;" +
+                         "|Xps Files (*.xps)|*.xps;" +
+                         "|Svg Files (*.svg)|*.svg;" +
+                         "|All Files (*.*)|*.*",
+                FileName = item.Name,
+                DefaultExt = "png",
+                FilterIndex = 0
+            };
+            if (dlg.ShowDialog() == true && dlg.FileName is { })
+            {
+                var textBackground = TextOutputBackground.Text;
+                var textScaleX = TextOutputScaleX.Text;
+                var textScaleY = TextOutputScaleY.Text;
 
-                canvas.Clear(SkiaSharp.SKColors.White);
-
-                if (item.SkiaPicture is { })
+                if (SkiaSharp.SKColor.TryParse(textBackground, out var skBackgroundColor) == false)
                 {
-                    float pwidth = item.SkiaPicture.CullRect.Width;
-                    float pheight = item.SkiaPicture.CullRect.Height;
-                    if (pwidth > 0f && pheight > 0f)
-                    {
-                        skElementSvg.Width = pwidth;
-                        skElementSvg.Height = pheight;
-                        canvas.DrawPicture(item.SkiaPicture);
-                    }
+                    return;
                 }
 
-                stopwatch.Stop();
-                TextDrawTime.Text = $"{Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3)}ms";
-                Debug.WriteLine($"Draw: {Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3)}ms");
-            }
-            else
-            {
-                canvas.Clear(SkiaSharp.SKColors.White);
+                if (float.TryParse(textScaleX, out var scaleX) == false)
+                {
+                    return;
+                }
+
+                if (float.TryParse(textScaleY, out var scaleY) == false)
+                {
+                    return;
+                }
+
+                VM.ExportItem(item.SvgPath, dlg.FileName, skBackgroundColor, scaleX, scaleY);
             }
         }
+    }
 
-        private void OnPaintSurfacePng(SkiaSharp.SKCanvas canvas, int width, int height)
+    private void ItemReload_Click(object sender, RoutedEventArgs e)
+    {
+        if (items.SelectedIndex >= 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
         {
+            VM.ResetItem(item);
+            Update(item);
+            Invalidate();
+        }
+    }
+
+    private void Item_Delete_Click(object sender, RoutedEventArgs e)
+    {
+        if (items.SelectedIndex >= 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
+        {
+            VM.RemoveItem(item);
+            Invalidate();
+        }
+    }
+
+    private void ItemOpenNotepad_Click(object sender, RoutedEventArgs e)
+    {
+        if (items.SelectedIndex >= 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
+        {
+            Process.Start("notepad", item.SvgPath);
+        }
+    }
+
+    private void ItemOpenExplorer_Click(object sender, RoutedEventArgs e)
+    {
+        if (items.SelectedIndex >= 0 && items.Items.GetItemAt(items.SelectedIndex) is Item item)
+        {
+            Process.Start("explorer", item.SvgPath);
+        }
+    }
+
+    private void Update(Item item)
+    {
+        TextOpenTime.Text = "";
+        TextToPictureTime.Text = "";
+        TextDrawTime.Text = "";
+        VM.UpdateItem(item, (text) => TextOpenTime.Text = text, (text) => TextToPictureTime.Text = text);
+    }
+
+    private void Invalidate()
+    {
+        skElementSvg.InvalidateVisual();
+        skElementPng.InvalidateVisual();
+        skElementDiff.InvalidateVisual();
+    }
+
+    private void OnPaintCanvasSvg(object sender, SKPaintSurfaceEventArgs e)
+    {
+        OnPaintSurfaceSvg(e.Surface.Canvas, e.Info.Width, e.Info.Height);
+    }
+
+    private void OnPaintCanvasPng(object sender, SKPaintSurfaceEventArgs e)
+    {
+        OnPaintSurfacePng(e.Surface.Canvas, e.Info.Width, e.Info.Height);
+    }
+
+    private void OnPaintCanvasDiff(object sender, SKPaintSurfaceEventArgs e)
+    {
+        OnPaintSurfaceDiff(e.Surface.Canvas, e.Info.Width, e.Info.Height);
+    }
+
+    private void OnPaintSurfaceSvg(SkiaSharp.SKCanvas canvas, int width, int height)
+    {
+        if (items.SelectedItem is Item item)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
             canvas.Clear(SkiaSharp.SKColors.White);
 
-            if (items.SelectedItem is Item item && item.ReferencePng is { } && CheckDrawReference.IsChecked == true)
+            if (item.SkiaPicture is { })
             {
-                float pwidth = item.ReferencePng.Width;
-                float pheight = item.ReferencePng.Height;
+                float pwidth = item.SkiaPicture.CullRect.Width;
+                float pheight = item.SkiaPicture.CullRect.Height;
                 if (pwidth > 0f && pheight > 0f)
                 {
-                    skElementPng.Width = pwidth;
-                    skElementPng.Height = pheight;
-                    canvas.DrawBitmap(item.ReferencePng, 0f, 0f);
+                    skElementSvg.Width = pwidth;
+                    skElementSvg.Height = pheight;
+                    canvas.DrawPicture(item.SkiaPicture);
                 }
             }
-        }
 
-        private void OnPaintSurfaceDiff(SkiaSharp.SKCanvas canvas, int width, int height)
+            stopwatch.Stop();
+            TextDrawTime.Text = $"{Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3)}ms";
+            Debug.WriteLine($"Draw: {Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3)}ms");
+        }
+        else
         {
             canvas.Clear(SkiaSharp.SKColors.White);
+        }
+    }
 
-            if (items.SelectedItem is Item item && item.PixelDiff is { } && CheckDrawDiff.IsChecked == true)
+    private void OnPaintSurfacePng(SkiaSharp.SKCanvas canvas, int width, int height)
+    {
+        canvas.Clear(SkiaSharp.SKColors.White);
+
+        if (items.SelectedItem is Item item && item.ReferencePng is { } && CheckDrawReference.IsChecked == true)
+        {
+            float pwidth = item.ReferencePng.Width;
+            float pheight = item.ReferencePng.Height;
+            if (pwidth > 0f && pheight > 0f)
             {
-                float pwidth = item.PixelDiff.Width;
-                float pheight = item.PixelDiff.Height;
-                if (pwidth > 0f && pheight > 0f)
-                {
-                    skElementDiff.Width = pwidth;
-                    skElementDiff.Height = pheight;
-                    canvas.DrawBitmap(item.PixelDiff, 0f, 0f);
-                }
+                skElementPng.Width = pwidth;
+                skElementPng.Height = pheight;
+                canvas.DrawBitmap(item.ReferencePng, 0f, 0f);
+            }
+        }
+    }
+
+    private void OnPaintSurfaceDiff(SkiaSharp.SKCanvas canvas, int width, int height)
+    {
+        canvas.Clear(SkiaSharp.SKColors.White);
+
+        if (items.SelectedItem is Item item && item.PixelDiff is { } && CheckDrawDiff.IsChecked == true)
+        {
+            float pwidth = item.PixelDiff.Width;
+            float pheight = item.PixelDiff.Height;
+            if (pwidth > 0f && pheight > 0f)
+            {
+                skElementDiff.Width = pwidth;
+                skElementDiff.Height = pheight;
+                canvas.DrawBitmap(item.PixelDiff, 0f, 0f);
             }
         }
     }

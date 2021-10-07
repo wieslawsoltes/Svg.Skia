@@ -3,50 +3,49 @@ using System.Diagnostics;
 using System.Windows.Input;
 using ReactiveUI;
 
-namespace TestApp.ViewModels
+namespace TestApp.ViewModels;
+
+public class FileItemViewModel : ViewModelBase
 {
-    public class FileItemViewModel : ViewModelBase
+    private string _name;
+    private string _path;
+
+    public string Name
     {
-        private string _name;
-        private string _path;
+        get => _name;
+        set => this.RaiseAndSetIfChanged(ref _name, value);
+    }
 
-        public string Name
+    public string Path
+    {
+        get => _path;
+        set => this.RaiseAndSetIfChanged(ref _path, value);
+    }
+
+    public ICommand RemoveCommand { get; }
+
+    public ICommand OpenInExplorerCommand { get; }
+
+    public ICommand OpenInNotepadCommand { get; }
+
+    public FileItemViewModel(string name, string path, Action<FileItemViewModel> remove)
+    {
+        _name = name;
+        _path = path;
+
+        OpenInExplorerCommand = ReactiveCommand.Create(() =>
         {
-            get => _name;
-            set => this.RaiseAndSetIfChanged(ref _name, value);
-        }
+            Process.Start("explorer", _path);
+        });
 
-        public string Path
+        OpenInNotepadCommand = ReactiveCommand.Create(() =>
         {
-            get => _path;
-            set => this.RaiseAndSetIfChanged(ref _path, value);
-        }
+            Process.Start("notepad", _path);
+        });
 
-        public ICommand RemoveCommand { get; }
-
-        public ICommand OpenInExplorerCommand { get; }
-
-        public ICommand OpenInNotepadCommand { get; }
-
-        public FileItemViewModel(string name, string path, Action<FileItemViewModel> remove)
+        RemoveCommand = ReactiveCommand.Create(() =>
         {
-            _name = name;
-            _path = path;
-
-            OpenInExplorerCommand = ReactiveCommand.Create(() =>
-            {
-                Process.Start("explorer", _path);
-            });
-
-            OpenInNotepadCommand = ReactiveCommand.Create(() =>
-            {
-                Process.Start("notepad", _path);
-            });
-
-            RemoveCommand = ReactiveCommand.Create(() =>
-            {
-                remove(this);
-            });
-        }
+            remove(this);
+        });
     }
 }

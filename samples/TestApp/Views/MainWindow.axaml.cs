@@ -9,63 +9,62 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using TestApp.ViewModels;
 
-namespace TestApp.Views
+namespace TestApp.Views;
+
+public class MainWindow : Window
 {
-    public class MainWindow : Window
+    public MainWindow()
     {
-        public MainWindow()
-        {
-            InitializeComponent();
+        InitializeComponent();
 #if DEBUG
-            this.AttachDevTools();
+        this.AttachDevTools();
 #endif
-            AddHandler(DragDrop.DropEvent, Drop);
-            AddHandler(DragDrop.DragOverEvent, DragOver);
-        }
+        AddHandler(DragDrop.DropEvent, Drop);
+        AddHandler(DragDrop.DragOverEvent, DragOver);
+    }
 
-        private void InitializeComponent()
+    private void InitializeComponent()
+    {
+        AvaloniaXamlLoader.Load(this);
+    }
+
+    private void DragOver(object? sender, DragEventArgs e)
+    {
+        e.DragEffects = e.DragEffects & (DragDropEffects.Copy | DragDropEffects.Link);
+
+        if (!e.Data.Contains(DataFormats.FileNames))
         {
-            AvaloniaXamlLoader.Load(this);
+            e.DragEffects = DragDropEffects.None;
         }
+    }
 
-        private void DragOver(object? sender, DragEventArgs e)
+    private void Drop(object? sender, DragEventArgs e)
+    {
+        if (e.Data.Contains(DataFormats.FileNames))
         {
-            e.DragEffects = e.DragEffects & (DragDropEffects.Copy | DragDropEffects.Link);
-
-            if (!e.Data.Contains(DataFormats.FileNames))
+            var paths = e.Data.GetFileNames();
+            if (paths is { })
             {
-                e.DragEffects = DragDropEffects.None;
-            }
-        }
-
-        private void Drop(object? sender, DragEventArgs e)
-        {
-            if (e.Data.Contains(DataFormats.FileNames))
-            {
-                var paths = e.Data.GetFileNames();
-                if (paths is { })
+                if (DataContext is MainWindowViewModel vm)
                 {
-                    if (DataContext is MainWindowViewModel vm)
+                    try
                     {
-                        try
-                        {
-                            vm.Drop(paths);
-                        }
-                        catch (Exception)
-                        {
-                            // ignored
-                        }
+                        vm.Drop(paths);
+                    }
+                    catch (Exception)
+                    {
+                        // ignored
                     }
                 }
             }
         }
+    }
 
-        private void FileItem_OnDoubleTapped(object? sender, RoutedEventArgs e)
+    private void FileItem_OnDoubleTapped(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control control && control.DataContext is FileItemViewModel fileItemViewModel)
         {
-            if (sender is Control control && control.DataContext is FileItemViewModel fileItemViewModel)
-            {
-                Process.Start("explorer", fileItemViewModel.Path);
-            }
+            Process.Start("explorer", fileItemViewModel.Path);
         }
     }
 }

@@ -10,154 +10,153 @@ using SLIS = SixLabors.ImageSharp;
 using SM = Svg.Model;
 using SMP = ShimSkiaSharp;
 
-namespace svgc
+namespace svgc;
+
+class Settings
 {
-    class Settings
-    {
-        public System.IO.FileInfo? InputFile { get; set; }
-        public System.IO.FileInfo? OutputFile { get; set; }
-        public System.IO.FileInfo? JsonFile { get; set; }
-        public string Namespace { get; set; } = "Svg";
-        public string Class { get; set; } = "Generated";
-    }
+    public System.IO.FileInfo? InputFile { get; set; }
+    public System.IO.FileInfo? OutputFile { get; set; }
+    public System.IO.FileInfo? JsonFile { get; set; }
+    public string Namespace { get; set; } = "Svg";
+    public string Class { get; set; } = "Generated";
+}
 
-    class Item
-    {
-        public string? InputFile { get; set; }
-        public string? OutputFile { get; set; }
-        public string? Namespace { get; set; }
-        public string? Class { get; set; }
-    }
+class Item
+{
+    public string? InputFile { get; set; }
+    public string? OutputFile { get; set; }
+    public string? Namespace { get; set; }
+    public string? Class { get; set; }
+}
 
-    class ImageSharpAssetLoader : SM.IAssetLoader
+class ImageSharpAssetLoader : SM.IAssetLoader
+{
+    public SMP.SKImage LoadImage(Stream stream)
     {
-        public SMP.SKImage LoadImage(Stream stream)
+        var data = SMP.SKImage.FromStream(stream);
+        using var image = SLIS.Image.Load(data);
+        return new SMP.SKImage
         {
-            var data = SMP.SKImage.FromStream(stream);
-            using var image = SLIS.Image.Load(data);
-            return new SMP.SKImage
-            {
-                Data = data,
-                Width = image.Width,
-                Height = image.Height
-            };
+            Data = data,
+            Width = image.Width,
+            Height = image.Height
+        };
+    }
+}
+
+class Program
+{
+    private static readonly SM.IAssetLoader AssetLoader = new ImageSharpAssetLoader();
+
+    static void Log(string message)
+    {
+        Console.WriteLine(message);
+    }
+
+    static void Error(Exception ex)
+    {
+        Log($"{ex.Message}");
+        Log($"{ex.StackTrace}");
+        if (ex.InnerException is { })
+        {
+            Error(ex.InnerException);
         }
     }
 
-    class Program
+    static void Generate(string inputPath, string outputPath, string namespaceName = "Svg", string className = "Generated")
     {
-        private static readonly SM.IAssetLoader AssetLoader = new ImageSharpAssetLoader();
-
-        static void Log(string message)
+        var svg = System.IO.File.ReadAllText(inputPath);
+        var svgDocument = SM.SvgExtensions.FromSvg(svg);
+        if (svgDocument is { })
         {
-            Console.WriteLine(message);
-        }
-
-        static void Error(Exception ex)
-        {
-            Log($"{ex.Message}");
-            Log($"{ex.StackTrace}");
-            if (ex.InnerException is { })
+            var picture = SM.SvgExtensions.ToModel(svgDocument, AssetLoader, out _, out _);
+            if (picture is { } && picture.Commands is { })
             {
-                Error(ex.InnerException);
+                var text = SkiaCSharpCodeGen.Generate(picture, namespaceName, className);
+                System.IO.File.WriteAllText(outputPath, text);
             }
         }
+    }
 
-        static void Generate(string inputPath, string outputPath, string namespaceName = "Svg", string className = "Generated")
+    static async Task<int> Main(string[] args)
+    {
+        var rootCommand = new RootCommand
         {
-            var svg = System.IO.File.ReadAllText(inputPath);
-            var svgDocument = SM.SvgExtensions.FromSvg(svg);
-            if (svgDocument is { })
-            {
-                var picture = SM.SvgExtensions.ToModel(svgDocument, AssetLoader, out _, out _);
-                if (picture is { } && picture.Commands is { })
-                {
-                    var text = SkiaCSharpCodeGen.Generate(picture, namespaceName, className);
-                    System.IO.File.WriteAllText(outputPath, text);
-                }
-            }
-        }
+            Description = "Converts a svg file to a C# code."
+        };
 
-        static async Task<int> Main(string[] args)
+        var optionInputFile = new Option(new[] { "--inputFile", "-i" }, "The relative or absolute path to the input file")
         {
-            var rootCommand = new RootCommand
-            {
-                Description = "Converts a svg file to a C# code."
-            };
+            IsRequired = false,
+            Argument = new Argument<System.IO.FileInfo?>(getDefaultValue: () => null)
+        };
+        rootCommand.AddOption(optionInputFile);
 
-            var optionInputFile = new Option(new[] { "--inputFile", "-i" }, "The relative or absolute path to the input file")
-            {
-                IsRequired = false,
-                Argument = new Argument<System.IO.FileInfo?>(getDefaultValue: () => null)
-            };
-            rootCommand.AddOption(optionInputFile);
+        var optionOutputFile = new Option(new[] { "--outputFile", "-o" }, "The relative or absolute path to the output file")
+        {
+            IsRequired = false,
+            Argument = new Argument<System.IO.FileInfo?>(getDefaultValue: () => null)
+        };
+        rootCommand.AddOption(optionOutputFile);
 
-            var optionOutputFile = new Option(new[] { "--outputFile", "-o" }, "The relative or absolute path to the output file")
-            {
-                IsRequired = false,
-                Argument = new Argument<System.IO.FileInfo?>(getDefaultValue: () => null)
-            };
-            rootCommand.AddOption(optionOutputFile);
+        var optionJsonFile = new Option(new[] { "--jsonFile", "-j" }, "The relative or absolute path to the json file")
+        {
+            IsRequired = false,
+            Argument = new Argument<System.IO.FileInfo?>(getDefaultValue: () => null)
+        };
+        rootCommand.AddOption(optionJsonFile);
 
-            var optionJsonFile = new Option(new[] { "--jsonFile", "-j" }, "The relative or absolute path to the json file")
-            {
-                IsRequired = false,
-                Argument = new Argument<System.IO.FileInfo?>(getDefaultValue: () => null)
-            };
-            rootCommand.AddOption(optionJsonFile);
+        var optionNamespace = new Option(new[] { "--namespace", "-n" }, "The generated C# namespace name")
+        {
+            IsRequired = false,
+            Argument = new Argument<string>(getDefaultValue: () => "Svg")
+        };
+        rootCommand.AddOption(optionNamespace);
 
-            var optionNamespace = new Option(new[] { "--namespace", "-n" }, "The generated C# namespace name")
-            {
-                IsRequired = false,
-                Argument = new Argument<string>(getDefaultValue: () => "Svg")
-            };
-            rootCommand.AddOption(optionNamespace);
+        var optionClass = new Option(new[] { "--class", "-c" }, "The generated C# class name")
+        {
+            IsRequired = false,
+            Argument = new Argument<string>(getDefaultValue: () => "Generated")
+        };
+        rootCommand.AddOption(optionClass);
 
-            var optionClass = new Option(new[] { "--class", "-c" }, "The generated C# class name")
+        rootCommand.Handler = CommandHandler.Create((Settings settings) =>
+        {
+            try
             {
-                IsRequired = false,
-                Argument = new Argument<string>(getDefaultValue: () => "Generated")
-            };
-            rootCommand.AddOption(optionClass);
-
-            rootCommand.Handler = CommandHandler.Create((Settings settings) =>
-            {
-                try
+                if (settings.JsonFile is { })
                 {
-                    if (settings.JsonFile is { })
+                    var json = System.IO.File.ReadAllText(settings.JsonFile.FullName);
+                    var options = new JsonSerializerOptions
                     {
-                        var json = System.IO.File.ReadAllText(settings.JsonFile.FullName);
-                        var options = new JsonSerializerOptions
+                        ReadCommentHandling = JsonCommentHandling.Skip
+                    };
+                    var items = JsonSerializer.Deserialize<Item[]>(json, options);
+                    if (items is { })
+                    {
+                        foreach (var item in items)
                         {
-                            ReadCommentHandling = JsonCommentHandling.Skip
-                        };
-                        var items = JsonSerializer.Deserialize<Item[]>(json, options);
-                        if (items is { })
-                        {
-                            foreach (var item in items)
+                            if (item.InputFile is { } && item.OutputFile is { })
                             {
-                                if (item.InputFile is { } && item.OutputFile is { })
-                                {
-                                    Log($"Generating: {item.OutputFile}");
-                                    Generate(item.InputFile, item.OutputFile, item.Namespace ?? settings.Namespace, item.Class ?? settings.Class);
-                                }
+                                Log($"Generating: {item.OutputFile}");
+                                Generate(item.InputFile, item.OutputFile, item.Namespace ?? settings.Namespace, item.Class ?? settings.Class);
                             }
                         }
                     }
-
-                    if (settings.InputFile is { } && settings.OutputFile is { })
-                    {
-                        Log($"Generating: {settings.OutputFile.FullName}");
-                        Generate(settings.InputFile.FullName, settings.OutputFile.FullName, settings.Namespace, settings.Class);
-                    }
                 }
-                catch (Exception ex)
+
+                if (settings.InputFile is { } && settings.OutputFile is { })
                 {
-                    Error(ex);
+                    Log($"Generating: {settings.OutputFile.FullName}");
+                    Generate(settings.InputFile.FullName, settings.OutputFile.FullName, settings.Namespace, settings.Class);
                 }
-            });
+            }
+            catch (Exception ex)
+            {
+                Error(ex);
+            }
+        });
 
-            return await rootCommand.InvokeAsync(args);
-        }
+        return await rootCommand.InvokeAsync(args);
     }
 }
