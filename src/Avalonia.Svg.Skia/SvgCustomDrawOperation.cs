@@ -3,44 +3,43 @@ using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Svg.Skia;
 
-namespace Avalonia.Svg.Skia
+namespace Avalonia.Svg.Skia;
+
+public class SvgCustomDrawOperation : ICustomDrawOperation
 {
-    public class SvgCustomDrawOperation : ICustomDrawOperation
+    private readonly SKSvg? _svg;
+
+    public SvgCustomDrawOperation(Rect bounds, SKSvg? svg)
     {
-        private readonly SKSvg? _svg;
+        _svg = svg;
+        Bounds = bounds;
+    }
 
-        public SvgCustomDrawOperation(Rect bounds, SKSvg? svg)
+    public void Dispose()
+    {
+    }
+
+    public Rect Bounds { get; }
+
+    public bool HitTest(Point p) => false;
+
+    public bool Equals(ICustomDrawOperation? other) => false;
+
+    public void Render(IDrawingContextImpl context)
+    {
+        if (_svg?.Picture is null)
         {
-            _svg = svg;
-            Bounds = bounds;
+            return;
         }
 
-        public void Dispose()
+        var canvas = (context as ISkiaDrawingContextImpl)?.SkCanvas;
+        if (canvas is null)
         {
+            return;
         }
 
-        public Rect Bounds { get; }
-
-        public bool HitTest(Point p) => false;
-
-        public bool Equals(ICustomDrawOperation? other) => false;
-
-        public void Render(IDrawingContextImpl context)
-        {
-            if (_svg?.Picture is null)
-            {
-                return;
-            }
-
-            var canvas = (context as ISkiaDrawingContextImpl)?.SkCanvas;
-            if (canvas is null)
-            {
-                return;
-            }
-
-            canvas.Save();
-            canvas.DrawPicture(_svg.Picture);
-            canvas.Restore();
-        }
+        canvas.Save();
+        canvas.DrawPicture(_svg.Picture);
+        canvas.Restore();
     }
 }
