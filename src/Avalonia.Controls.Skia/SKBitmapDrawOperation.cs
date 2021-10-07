@@ -3,39 +3,38 @@ using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using SkiaSharp;
 
-namespace Avalonia.Controls.Skia
+namespace Avalonia.Controls.Skia;
+
+public class SKBitmapDrawOperation : ICustomDrawOperation
 {
-    public class SKBitmapDrawOperation : ICustomDrawOperation
+    private readonly SKBitmap? _bitmap;
+    private readonly Rect _bounds;
+
+    public SKBitmapDrawOperation(Rect bounds, SKBitmap? bitmap)
     {
-        private readonly SKBitmap? _bitmap;
-        private readonly Rect _bounds;
+        _bitmap = bitmap;
+        _bounds = bounds;
+    }
 
-        public SKBitmapDrawOperation(Rect bounds, SKBitmap? bitmap)
+    public void Dispose()
+    {
+    }
+
+    public Rect Bounds => _bounds;
+
+    public bool HitTest(Point p) => _bounds.Contains(p);
+
+    public bool Equals(ICustomDrawOperation? other) => false;
+
+    public void Render(IDrawingContextImpl context)
+    {
+        var canvas = (context as ISkiaDrawingContextImpl)?.SkCanvas;
+        if (canvas is { } && _bitmap is { })
         {
-            _bitmap = bitmap;
-            _bounds = bounds;
-        }
-
-        public void Dispose()
-        {
-        }
-
-        public Rect Bounds => _bounds;
-
-        public bool HitTest(Point p) => _bounds.Contains(p);
-
-        public bool Equals(ICustomDrawOperation? other) => false;
-
-        public void Render(IDrawingContextImpl context)
-        {
-            var canvas = (context as ISkiaDrawingContextImpl)?.SkCanvas;
-            if (canvas is { } && _bitmap is { })
-            {
-                canvas.DrawBitmap(
-                    _bitmap,
-                    SKRect.Create(0, 0, _bitmap.Width, _bitmap.Height),
-                    SKRect.Create((float)_bounds.Left, (float)_bounds.Top, (float)_bounds.Width, (float)_bounds.Height));
-            }
+            canvas.DrawBitmap(
+                _bitmap,
+                SKRect.Create(0, 0, _bitmap.Width, _bitmap.Height),
+                SKRect.Create((float)_bounds.Left, (float)_bounds.Top, (float)_bounds.Width, (float)_bounds.Height));
         }
     }
 }
