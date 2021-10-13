@@ -1,6 +1,5 @@
-﻿namespace Svg.Skia.UnitTests
+﻿namespace Svg.Skia.UnitTests;
+
+public class SKSvgTests
 {
-    public class SKSvgTests
-    {
-    }
 }

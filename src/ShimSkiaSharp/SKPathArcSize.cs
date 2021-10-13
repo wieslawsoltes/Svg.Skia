@@ -1,8 +1,7 @@
-﻿namespace ShimSkiaSharp
+﻿namespace ShimSkiaSharp;
+
+public enum SKPathArcSize
 {
-    public enum SKPathArcSize
-    {
-        Small = 0,
-        Large = 1
-    }
+    Small = 0,
+    Large = 1
 }

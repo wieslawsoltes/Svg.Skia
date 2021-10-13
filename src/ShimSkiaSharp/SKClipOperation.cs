@@ -1,8 +1,7 @@
-﻿namespace ShimSkiaSharp
+﻿namespace ShimSkiaSharp;
+
+public enum SKClipOperation
 {
-    public enum SKClipOperation
-    {
-        Difference = 0,
-        Intersect = 1
-    }
+    Difference = 0,
+    Intersect = 1
 }

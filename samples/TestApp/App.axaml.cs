@@ -4,34 +4,33 @@ using Avalonia.Markup.Xaml;
 using TestApp.ViewModels;
 using TestApp.Views;
 
-namespace TestApp
+namespace TestApp;
+
+public class App : Application
 {
-    public class App : Application
+    private const string ConfigurationPath = "TestApp.json";
+
+    public override void Initialize()
     {
-        private const string ConfigurationPath = "TestApp.json";
+        AvaloniaXamlLoader.Load(this);
+    }
 
-        public override void Initialize()
+    public override void OnFrameworkInitializationCompleted()
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            AvaloniaXamlLoader.Load(this);
-        }
+            var mainWindowViewModel = new MainWindowViewModel();
 
-        public override void OnFrameworkInitializationCompleted()
-        {
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            mainWindowViewModel.LoadConfiguration(ConfigurationPath);
+
+            desktop.MainWindow = new MainWindow {DataContext = mainWindowViewModel};
+
+            desktop.Exit += (_, _) =>
             {
-                var mainWindowViewModel = new MainWindowViewModel();
-
-                mainWindowViewModel.LoadConfiguration(ConfigurationPath);
-
-                desktop.MainWindow = new MainWindow {DataContext = mainWindowViewModel};
-
-                desktop.Exit += (_, _) =>
-                {
-                    mainWindowViewModel.SaveConfiguration(ConfigurationPath);
-                };
-            }
-
-            base.OnFrameworkInitializationCompleted();
+                mainWindowViewModel.SaveConfiguration(ConfigurationPath);
+            };
         }
+
+        base.OnFrameworkInitializationCompleted();
     }
 }

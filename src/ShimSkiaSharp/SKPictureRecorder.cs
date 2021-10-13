@@ -1,30 +1,29 @@
 ﻿using System.Collections.Generic;
 
-namespace ShimSkiaSharp
+namespace ShimSkiaSharp;
+
+public sealed class SKPictureRecorder
 {
-    public sealed class SKPictureRecorder
+    public SKRect CullRect { get; private set; }
+
+    public SKCanvas? RecordingCanvas { get; private set; }
+
+    public SKCanvas BeginRecording(SKRect cullRect)
     {
-        public SKRect CullRect { get; private set; }
+        CullRect = cullRect;
 
-        public SKCanvas? RecordingCanvas { get; private set; }
+        RecordingCanvas = new SKCanvas(new List<CanvasCommand>(), SKMatrix.Identity);
 
-        public SKCanvas BeginRecording(SKRect cullRect)
-        {
-            CullRect = cullRect;
+        return RecordingCanvas;
+    }
 
-            RecordingCanvas = new SKCanvas(new List<CanvasCommand>(), SKMatrix.Identity);
+    public SKPicture EndRecording()
+    {
+        var picture = new SKPicture(CullRect, RecordingCanvas?.Commands);
 
-            return RecordingCanvas;
-        }
+        CullRect = SKRect.Empty;
+        RecordingCanvas = null;
 
-        public SKPicture EndRecording()
-        {
-            var picture = new SKPicture(CullRect, RecordingCanvas?.Commands);
-
-            CullRect = SKRect.Empty;
-            RecordingCanvas = null;
-
-            return picture;
-        }
+        return picture;
     }
 }

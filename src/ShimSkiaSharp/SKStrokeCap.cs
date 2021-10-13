@@ -1,9 +1,8 @@
-﻿namespace ShimSkiaSharp
+﻿namespace ShimSkiaSharp;
+
+public enum SKStrokeCap
 {
-    public enum SKStrokeCap
-    {
-        Butt = 0,
-        Round = 1,
-        Square = 2
-    }
+    Butt = 0,
+    Round = 1,
+    Square = 2
 }

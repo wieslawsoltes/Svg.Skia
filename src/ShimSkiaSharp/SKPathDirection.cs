@@ -1,8 +1,7 @@
-﻿namespace ShimSkiaSharp
+﻿namespace ShimSkiaSharp;
+
+public enum SKPathDirection
 {
-    public enum SKPathDirection
-    {
-        Clockwise = 0,
-        CounterClockwise = 1
-    }
+    Clockwise = 0,
+    CounterClockwise = 1
 }

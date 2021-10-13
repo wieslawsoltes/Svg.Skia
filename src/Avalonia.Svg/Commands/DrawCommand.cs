@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace Avalonia.Svg.Commands
+namespace Avalonia.Svg.Commands;
+
+public abstract class DrawCommand : IDisposable
 {
-    public abstract class DrawCommand : IDisposable
+    public virtual void Dispose()
     {
-        public virtual void Dispose()
-        {
-        }
     }
 }

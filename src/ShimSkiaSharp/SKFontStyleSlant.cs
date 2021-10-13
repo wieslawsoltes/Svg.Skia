@@ -1,9 +1,8 @@
-﻿namespace ShimSkiaSharp
+﻿namespace ShimSkiaSharp;
+
+public enum SKFontStyleSlant
 {
-    public enum SKFontStyleSlant
-    {
-        Upright = 0,
-        Italic = 1,
-        Oblique = 2
-    }
+    Upright = 0,
+    Italic = 1,
+    Oblique = 2
 }

@@ -1,9 +1,8 @@
-﻿namespace Avalonia.Svg.Commands
+﻿namespace Avalonia.Svg.Commands;
+
+public sealed class SaveDrawCommand : DrawCommand
 {
-    public sealed class SaveDrawCommand : DrawCommand
+    public SaveDrawCommand()
     {
-        public SaveDrawCommand()
-        {
-        }
     }
 }

@@ -4,13 +4,12 @@ using SkiaSharp;
 using ShimSkiaSharp;
 #endif
 
-namespace Svg.Model.Drawables
+namespace Svg.Model.Drawables;
+
+internal interface IFilterSource
 {
-    internal interface IFilterSource
-    {
-        SKPicture? SourceGraphic(SKRect? clip);
-        SKPicture? BackgroundImage(SKRect? clip);
-        SKPaint? FillPaint();
-        SKPaint? StrokePaint();
-    }
+    SKPicture? SourceGraphic(SKRect? clip);
+    SKPicture? BackgroundImage(SKRect? clip);
+    SKPaint? FillPaint();
+    SKPaint? StrokePaint();
 }

@@ -1,8 +1,7 @@
 ﻿using System.Windows;
 
-namespace SvgToPng
+namespace SvgToPng;
+
+public partial class App : Application
 {
-    public partial class App : Application
-    {
-    }
 }

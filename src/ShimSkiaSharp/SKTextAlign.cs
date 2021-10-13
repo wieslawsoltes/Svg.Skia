@@ -1,9 +1,8 @@
-﻿namespace ShimSkiaSharp
+﻿namespace ShimSkiaSharp;
+
+public enum SKTextAlign
 {
-    public enum SKTextAlign
-    {
-        Left = 0,
-        Center = 1,
-        Right = 2
-    }
+    Left = 0,
+    Center = 1,
+    Right = 2
 }

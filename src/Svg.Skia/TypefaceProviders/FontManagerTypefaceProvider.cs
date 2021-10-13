@@ -2,70 +2,69 @@
 using System.IO;
 using System.Linq;
 
-namespace Svg.Skia.TypefaceProviders
+namespace Svg.Skia.TypefaceProviders;
+
+public sealed class FontManagerTypefaceProvider : ITypefaceProvider
 {
-    public sealed class FontManagerTypefaceProvider : ITypefaceProvider
+    public static readonly char[] s_fontFamilyTrim = { '\'' };
+
+    public SkiaSharp.SKFontManager FontManager { get; set; }
+
+    public FontManagerTypefaceProvider()
     {
-        public static readonly char[] s_fontFamilyTrim = { '\'' };
+        FontManager = SkiaSharp.SKFontManager.Default;
+    }
 
-        public SkiaSharp.SKFontManager FontManager { get; set; }
+    public SkiaSharp.SKTypeface CreateTypeface(Stream stream, int index = 0)
+    {
+        return FontManager.CreateTypeface(stream, index);
+    }
 
-        public FontManagerTypefaceProvider()
+    public SkiaSharp.SKTypeface CreateTypeface(SkiaSharp.SKStreamAsset stream, int index = 0)
+    {
+        return FontManager.CreateTypeface(stream, index);
+    }
+
+    public SkiaSharp.SKTypeface CreateTypeface(string path, int index = 0)
+    {
+        return FontManager.CreateTypeface(path, index);
+    }
+
+    public SkiaSharp.SKTypeface CreateTypeface(SkiaSharp.SKData data, int index = 0)
+    {
+        return FontManager.CreateTypeface(data, index);
+    }
+
+    public SkiaSharp.SKTypeface? FromFamilyName(string fontFamily, SkiaSharp.SKFontStyleWeight fontWeight, SkiaSharp.SKFontStyleWidth fontWidth, SkiaSharp.SKFontStyleSlant fontStyle)
+    {
+        var skTypeface = default(SkiaSharp.SKTypeface);
+        var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
+        if (fontFamilyNames is { } && fontFamilyNames.Length > 0)
         {
-            FontManager = SkiaSharp.SKFontManager.Default;
-        }
+            var defaultName = SkiaSharp.SKTypeface.Default.FamilyName;
+            var skFontManager = FontManager;
+            var skFontStyle = new SkiaSharp.SKFontStyle(fontWeight, fontWidth, fontStyle);
 
-        public SkiaSharp.SKTypeface CreateTypeface(Stream stream, int index = 0)
-        {
-            return FontManager.CreateTypeface(stream, index);
-        }
-
-        public SkiaSharp.SKTypeface CreateTypeface(SkiaSharp.SKStreamAsset stream, int index = 0)
-        {
-            return FontManager.CreateTypeface(stream, index);
-        }
-
-        public SkiaSharp.SKTypeface CreateTypeface(string path, int index = 0)
-        {
-            return FontManager.CreateTypeface(path, index);
-        }
-
-        public SkiaSharp.SKTypeface CreateTypeface(SkiaSharp.SKData data, int index = 0)
-        {
-            return FontManager.CreateTypeface(data, index);
-        }
-
-        public SkiaSharp.SKTypeface? FromFamilyName(string fontFamily, SkiaSharp.SKFontStyleWeight fontWeight, SkiaSharp.SKFontStyleWidth fontWidth, SkiaSharp.SKFontStyleSlant fontStyle)
-        {
-            var skTypeface = default(SkiaSharp.SKTypeface);
-            var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
-            if (fontFamilyNames is { } && fontFamilyNames.Length > 0)
+            foreach (var fontFamilyName in fontFamilyNames)
             {
-                var defaultName = SkiaSharp.SKTypeface.Default.FamilyName;
-                var skFontManager = FontManager;
-                var skFontStyle = new SkiaSharp.SKFontStyle(fontWeight, fontWidth, fontStyle);
-
-                foreach (var fontFamilyName in fontFamilyNames)
+                var skFontStyleSet = skFontManager.GetFontStyles(fontFamilyName);
+                if (skFontStyleSet.Count > 0)
                 {
-                    var skFontStyleSet = skFontManager.GetFontStyles(fontFamilyName);
-                    if (skFontStyleSet.Count > 0)
+                    skTypeface = skFontManager.MatchFamily(fontFamilyName, skFontStyle);
+                    if (skTypeface is { })
                     {
-                        skTypeface = skFontManager.MatchFamily(fontFamilyName, skFontStyle);
-                        if (skTypeface is { })
+                        if (!defaultName.Equals(fontFamilyName, StringComparison.Ordinal)
+                            && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
                         {
-                            if (!defaultName.Equals(fontFamilyName, StringComparison.Ordinal)
-                                && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
-                            {
-                                skTypeface.Dispose();
-                                skTypeface = null;
-                                continue;
-                            }
-                            break;
+                            skTypeface.Dispose();
+                            skTypeface = null;
+                            continue;
                         }
+                        break;
                     }
                 }
             }
-            return skTypeface;
         }
+        return skTypeface;
     }
 }

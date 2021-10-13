@@ -1,7 +1,6 @@
-﻿namespace Svg.Model.Drawables
+﻿namespace Svg.Model.Drawables;
+
+public interface IMarkerHost
 {
-    public interface IMarkerHost
-    {
-        void AddMarker(DrawableBase drawable);
-    }
+    void AddMarker(DrawableBase drawable);
 }

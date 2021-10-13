@@ -6,60 +6,59 @@ using SkiaSharp;
 using ShimSkiaSharp;
 #endif
 
-namespace Svg.Model.Drawables
+namespace Svg.Model.Drawables;
+
+public abstract class DrawablePath : DrawableBase, IMarkerHost
 {
-    public abstract class DrawablePath : DrawableBase, IMarkerHost
+    public SKPath? Path { get; set; }
+    public List<DrawableBase>? MarkerDrawables { get; set; }
+
+    protected DrawablePath(IAssetLoader assetLoader, HashSet<Uri>? references)
+        : base(assetLoader, references)
     {
-        public SKPath? Path { get; set; }
-        public List<DrawableBase>? MarkerDrawables { get; set; }
+    }
 
-        protected DrawablePath(IAssetLoader assetLoader, HashSet<Uri>? references)
-            : base(assetLoader, references)
+    void IMarkerHost.AddMarker(DrawableBase drawable)
+    {
+        MarkerDrawables ??= new List<DrawableBase>();
+        MarkerDrawables.Add(drawable);
+    }
+
+    public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)
+    {
+        if (until is { } && this == until)
         {
+            return;
         }
 
-        void IMarkerHost.AddMarker(DrawableBase drawable)
+        if (Fill is { } && Path is { })
         {
-            MarkerDrawables ??= new List<DrawableBase>();
-            MarkerDrawables.Add(drawable);
+            canvas.DrawPath(Path, Fill);
         }
 
-        public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)
+        if (Stroke is { } && Path is { })
         {
-            if (until is { } && this == until)
-            {
-                return;
-            }
-
-            if (Fill is { } && Path is { })
-            {
-                canvas.DrawPath(Path, Fill);
-            }
-
-            if (Stroke is { } && Path is { })
-            {
-                canvas.DrawPath(Path, Stroke);
-            }
-
-            if (MarkerDrawables is { })
-            {
-                foreach (var drawable in MarkerDrawables)
-                {
-                    drawable.Draw(canvas, ignoreAttributes, until, true);
-                }
-            }
+            canvas.DrawPath(Path, Stroke);
         }
 
-        public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
+        if (MarkerDrawables is { })
         {
-            base.PostProcess(viewport, totalMatrix);
-
-            if (MarkerDrawables is { })
+            foreach (var drawable in MarkerDrawables)
             {
-                foreach (var drawable in MarkerDrawables)
-                {
-                    drawable.PostProcess(viewport, TotalTransform);
-                }
+                drawable.Draw(canvas, ignoreAttributes, until, true);
+            }
+        }
+    }
+
+    public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
+    {
+        base.PostProcess(viewport, totalMatrix);
+
+        if (MarkerDrawables is { })
+        {
+            foreach (var drawable in MarkerDrawables)
+            {
+                drawable.PostProcess(viewport, TotalTransform);
             }
         }
     }
