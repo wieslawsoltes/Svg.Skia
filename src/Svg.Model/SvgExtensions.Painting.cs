@@ -783,6 +783,15 @@ public static partial class SvgExtensions
         {
             server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(deferredServer, svgVisualElement);
             fallbackServer = deferredServer.FallbackServer;
+            if (server is null)
+            {
+                server = fallbackServer;
+                if (server is null)
+                {
+                    server = SvgPaintServer.NotSet;
+                    fallbackServer = null;
+                }
+            }
         }
 
         if (server == SvgPaintServer.None)
