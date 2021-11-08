@@ -10,7 +10,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{32B4A27D-6FC0-498C-9AD8-5510ACF2C4A1}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		.nuke = .nuke
 		build.ps1 = build.ps1
 		build.sh = build.sh
 		global.json = global.json
