@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using Nuke.Common;
 using Nuke.Common.Git;
-using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tools.DotNet;
+using Nuke.Common.IO;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
@@ -32,6 +32,9 @@ class Build : NukeBuild
 
     [Parameter("publish-project")]
     public string PublishProject { get; set; }
+
+    [Parameter("publish-self-contained")]
+    public bool PublishSelfContained { get; set; } = true;
 
     AbsolutePath SourceDirectory => RootDirectory / "src";
 
@@ -87,7 +90,7 @@ class Build : NukeBuild
             DotNetTest(s => s
                 .SetProjectFile(Solution)
                 .SetConfiguration(Configuration)
-                .SetLogger("trx")
+                .SetLoggers("trx")
                 .SetResultsDirectory(ArtifactsDirectory / "TestResults")
                 .EnableNoBuild()
                 .EnableNoRestore());
@@ -119,6 +122,7 @@ class Build : NukeBuild
                 .SetVersionSuffix(VersionSuffix)
                 .SetFramework(PublishFramework)
                 .SetRuntime(PublishRuntime)
+                .SetSelfContained(PublishSelfContained)
                 .SetOutput(ArtifactsDirectory / "Publish" / PublishProject + "-" + PublishFramework + "-" + PublishRuntime));
         });
 }

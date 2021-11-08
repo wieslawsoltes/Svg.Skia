@@ -85,10 +85,15 @@ public class MainWindowViewModel : ViewModelBase
 
         LoadConfigurationCommand = ReactiveCommand.CreateFromTask(async () =>
         {
+            var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (window is null)
+            {
+                return;
+            }
             var dlg = new OpenFileDialog();
             dlg.Filters.Add(new FileDialogFilter() { Name = "Configuration (*.json)", Extensions = new List<string> {"json"} });
             dlg.Filters.Add(new FileDialogFilter() { Name = "All Files (*.*)", Extensions = new List<string> {"*"} });
-            var result = await dlg.ShowAsync((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow);
+            var result = await dlg.ShowAsync(window);
             if (result is { })
             {
                 var path = result.FirstOrDefault();
@@ -101,10 +106,15 @@ public class MainWindowViewModel : ViewModelBase
 
         SaveConfigurationCommand = ReactiveCommand.CreateFromTask(async () =>
         {
+            var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (window is null)
+            {
+                return;
+            }
             var dlg = new SaveFileDialog();
             dlg.Filters.Add(new FileDialogFilter() { Name = "Configuration (*.json)", Extensions = new List<string> {"json"} });
             dlg.Filters.Add(new FileDialogFilter() { Name = "All Files (*.*)", Extensions = new List<string> {"*"} });
-            var result = await dlg.ShowAsync((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow);
+            var result = await dlg.ShowAsync(window);
             if (result is { })
             {
                 SaveConfiguration(result);
@@ -120,10 +130,15 @@ public class MainWindowViewModel : ViewModelBase
 
         AddItemCommand = ReactiveCommand.CreateFromTask(async () =>
         {
+            var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (window is null)
+            {
+                return;
+            }
             var dlg = new OpenFileDialog {AllowMultiple = true};
             dlg.Filters.Add(new FileDialogFilter() { Name = "Svg Files (*.svg;*.svgz)", Extensions = new List<string> {"svg", "svgz"} });
             dlg.Filters.Add(new FileDialogFilter() { Name = "All Files (*.*)", Extensions = new List<string> {"*"} });
-            var result = await dlg.ShowAsync((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow);
+            var result = await dlg.ShowAsync(window);
             if (result is { })
             {
                 var paths = result.ToList();
@@ -158,6 +173,12 @@ public class MainWindowViewModel : ViewModelBase
 
         ExportCommand = ReactiveCommand.CreateFromTask<Avalonia.Svg.Skia.Svg>(async svg =>
         {
+            var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (window is null)
+            {
+                return;
+            }
+
             if (_selectedItem is null || svg?.Model is null)
             {
                 return;
@@ -171,7 +192,7 @@ public class MainWindowViewModel : ViewModelBase
             dlg.Filters.Add(new FileDialogFilter() { Name = "Xps Files (*.xps)", Extensions = new List<string> {"xps"} });
             dlg.Filters.Add(new FileDialogFilter() { Name = "All Files (*.*)", Extensions = new List<string> {"*"} });
             dlg.InitialFileName = Path.GetFileNameWithoutExtension(_selectedItem.Path);
-            var result = await dlg.ShowAsync((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow);
+            var result = await dlg.ShowAsync(window);
             if (result is { })
             {
                 Export(result, svg, "#00FFFFFF", 1f, 1f);

@@ -68,10 +68,13 @@ public static partial class SvgExtensions
 
     internal static object? GetImageFromWeb(Uri uri, IAssetLoader assetLoader)
     {
+#pragma warning disable 618, SYSLIB0014
         var request = WebRequest.Create(uri);
+#pragma warning restore 618, SYSLIB0014
         using var response = request.GetResponse();
         using var stream = response.GetResponseStream();
 
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         if (stream is null)
         {
             return default;

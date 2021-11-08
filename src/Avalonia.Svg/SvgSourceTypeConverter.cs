@@ -11,16 +11,16 @@ namespace Avalonia.Svg;
 public class SvgSourceTypeConverter : TypeConverter
 {
     /// <inheritdoc/>
-    public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+    public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
     {
         return sourceType == typeof(string);
     }
 
     /// <inheritdoc/>
-    public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
+    public override object ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
     {
         var path = (string)value;
-        var baseUri = context.GetContextBaseUri();
+        var baseUri = context?.GetContextBaseUri();
         return SvgSource.Load(path, baseUri);
     }
 }
