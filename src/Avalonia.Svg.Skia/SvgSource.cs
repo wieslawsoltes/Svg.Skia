@@ -17,7 +17,7 @@ public class SvgSource : SKSvg
     /// <param name="path">The path to file or resource.</param>
     /// <param name="baseUri">The base uri.</param>
     /// <returns>The svg source.</returns>
-    public static T Load<T>(string path, Uri? baseUri) where T : SKSvg, new()
+    public static T? Load<T>(string path, Uri? baseUri) where T : SKSvg, new()
     {
         var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
         if (uri.IsAbsoluteUri && uri.IsFile)
@@ -29,7 +29,11 @@ public class SvgSource : SKSvg
         else
         {
             var loader = AvaloniaLocator.Current.GetService<IAssetLoader>();
-            var stream = loader.Open(uri, baseUri);
+            var stream = loader?.Open(uri, baseUri);
+            if (stream is null)
+            {
+                return default;
+            }
             var source = new T();
             source.Load(stream);
             return source;

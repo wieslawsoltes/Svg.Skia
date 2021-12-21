@@ -12,7 +12,7 @@ namespace Avalonia.Svg;
 
 public sealed class AvaloniaPicture : IDisposable
 {
-    private static AP.IPlatformRenderInterface Factory => A.AvaloniaLocator.Current.GetService<AP.IPlatformRenderInterface>();
+    private static AP.IPlatformRenderInterface? Factory => A.AvaloniaLocator.Current?.GetService<AP.IPlatformRenderInterface>();
 
     private readonly List<DrawCommand>? _commands;
 
@@ -23,9 +23,9 @@ public sealed class AvaloniaPicture : IDisposable
         _commands = new List<DrawCommand>();
     }
 
-    private static void Record(CanvasCommand canvasCommand, AvaloniaPicture avaloniaPicture)
+    private static void Record(CanvasCommand canvasCommand, AvaloniaPicture? avaloniaPicture)
     {
-        if (avaloniaPicture is null || avaloniaPicture._commands is null)
+        if (avaloniaPicture?._commands is null)
         {
             return;
         }
@@ -131,7 +131,7 @@ public sealed class AvaloniaPicture : IDisposable
                             case AddOvalPathCommand addOvalPathCommand:
                             {
                                 var rect = addOvalPathCommand.Rect.ToRect();
-                                var ellipseGeometry = Factory.CreateEllipseGeometry(rect);
+                                var ellipseGeometry = Factory?.CreateEllipseGeometry(rect);
                                 avaloniaPicture._commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
                                 success = true;
                             }
@@ -143,7 +143,7 @@ public sealed class AvaloniaPicture : IDisposable
                                 var y = addCirclePathCommand.Y;
                                 var radius = addCirclePathCommand.Radius;
                                 var rect = new A.Rect(x - radius, y - radius, radius + radius, radius + radius);
-                                var ellipseGeometry = Factory.CreateEllipseGeometry(rect);
+                                var ellipseGeometry = Factory?.CreateEllipseGeometry(rect);
                                 avaloniaPicture._commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
                                 success = true;
                             }

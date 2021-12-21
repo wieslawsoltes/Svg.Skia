@@ -85,7 +85,7 @@ public class MainWindowViewModel : ViewModelBase
 
         LoadConfigurationCommand = ReactiveCommand.CreateFromTask(async () =>
         {
-            var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            var window = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
             if (window is null)
             {
                 return;
@@ -106,7 +106,7 @@ public class MainWindowViewModel : ViewModelBase
 
         SaveConfigurationCommand = ReactiveCommand.CreateFromTask(async () =>
         {
-            var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            var window = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
             if (window is null)
             {
                 return;
@@ -130,7 +130,7 @@ public class MainWindowViewModel : ViewModelBase
 
         AddItemCommand = ReactiveCommand.CreateFromTask(async () =>
         {
-            var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            var window = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
             if (window is null)
             {
                 return;
@@ -162,7 +162,7 @@ public class MainWindowViewModel : ViewModelBase
             {
                 try
                 {
-                    Application.Current.Clipboard.SetTextAsync(code);
+                    Application.Current?.Clipboard?.SetTextAsync(code);
                 }
                 catch
                 {
@@ -173,7 +173,7 @@ public class MainWindowViewModel : ViewModelBase
 
         ExportCommand = ReactiveCommand.CreateFromTask<Avalonia.Svg.Skia.Svg>(async svg =>
         {
-            var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            var window = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
             if (window is null)
             {
                 return;

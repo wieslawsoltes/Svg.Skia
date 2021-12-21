@@ -12,7 +12,7 @@ namespace Avalonia.Svg;
 
 public static class AvaloniaModelExtensions
 {
-    private static AP.IPlatformRenderInterface Factory => A.AvaloniaLocator.Current.GetService<AP.IPlatformRenderInterface>();
+    private static AP.IPlatformRenderInterface? Factory => A.AvaloniaLocator.Current?.GetService<AP.IPlatformRenderInterface>();
 
     public static Point Transform(this Matrix m, Point point)
     {
@@ -522,7 +522,11 @@ public static class AvaloniaModelExtensions
 
     public static AP.IGeometryImpl? ToGeometry(this IList<SKPoint> points, bool isFilled)
     {
-        var geometry = Factory.CreateStreamGeometry();
+        var geometry = Factory?.CreateStreamGeometry();
+        if (geometry is null)
+        {
+            return null;
+        }
 
         using var context = geometry.Open();
 
@@ -548,7 +552,11 @@ public static class AvaloniaModelExtensions
             return null;
         }
 
-        var streamGeometry = Factory.CreateStreamGeometry();
+        var streamGeometry = Factory?.CreateStreamGeometry();
+        if (streamGeometry is null)
+        {
+            return null;
+        }
 
         using var streamGeometryContext = streamGeometry.Open();
 

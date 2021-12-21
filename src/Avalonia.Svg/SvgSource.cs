@@ -38,7 +38,11 @@ public class SvgSource
         else
         {
             var loader = AvaloniaLocator.Current.GetService<IAssetLoader>();
-            var stream = loader.Open(uri, baseUri);
+            var stream = loader?.Open(uri, baseUri);
+            if (stream is null)
+            {
+                return default;
+            }
             var document = SM.SvgExtensions.Open(stream);
             if (document is { })
             {

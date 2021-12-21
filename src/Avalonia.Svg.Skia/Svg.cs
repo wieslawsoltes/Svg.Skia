@@ -248,7 +248,7 @@ public class Svg : Control, IAffectsRender
         {
             _svg = SvgSource.Load<SvgSource>(path, _baseUri);
 
-            if (_enableCache && _cache is { })
+            if (_enableCache && _cache is { } && _svg is { })
             {
                 _cache[path] = _svg;
             }

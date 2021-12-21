@@ -17,7 +17,7 @@ public class SvgSourceTypeConverter : TypeConverter
     }
 
     /// <inheritdoc/>
-    public override object ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+    public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
     {
         var path = (string)value;
         var baseUri = context?.GetContextBaseUri();
