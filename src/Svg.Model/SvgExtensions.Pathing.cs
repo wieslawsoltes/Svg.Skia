@@ -125,6 +125,29 @@ public static partial class SvgExtensions
         return pathTypes;
     }
 #endif
+    internal static System.Drawing.PointF ToAbsolute(System.Drawing.PointF point, bool isRelative, System.Drawing.PointF start)
+    {
+        if (float.IsNaN(point.X))
+        {
+            point.X = start.X;
+        }
+        else if (isRelative)
+        {
+            point.X += start.X;
+        }
+
+        if (float.IsNaN(point.Y))
+        {
+            point.Y = start.Y;
+        }
+        else if (isRelative)
+        {
+            point.Y += start.Y;
+        }
+
+        return point;
+    }
+
     internal static SKPath? ToPath(this SvgPathSegmentList? svgPathSegmentList, SvgFillRule svgFillRule)
     {
         if (svgPathSegmentList is null || svgPathSegmentList.Count <= 0)
@@ -140,6 +163,7 @@ public static partial class SvgExtensions
 
         var isEndFigure = false;
         var haveFigure = false;
+        var start = System.Drawing.PointF.Empty;
 
         for (var i = 0; i < svgPathSegmentList.Count; i++)
         {
@@ -173,9 +197,9 @@ public static partial class SvgExtensions
                     }
                     isEndFigure = true;
                     haveFigure = false;
-                    var x = svgMoveToSegment.End.X;
-                    var y = svgMoveToSegment.End.Y;
-                    skPath.MoveTo(x, y);
+                    var end = ToAbsolute(svgMoveToSegment.End, svgMoveToSegment.IsRelative, start);
+                    skPath.MoveTo(end.X, end.Y);
+                    start = end;
                 }
                     break;
 
@@ -186,9 +210,9 @@ public static partial class SvgExtensions
                         return default;
                     }
                     haveFigure = true;
-                    var x = svgLineSegment.End.X;
-                    var y = svgLineSegment.End.Y;
-                    skPath.LineTo(x, y);
+                    var end = ToAbsolute(svgLineSegment.End, svgLineSegment.IsRelative, start);
+                    skPath.LineTo(end.X, end.Y);
+                    start = end;
                 }
                     break;
 
@@ -199,13 +223,11 @@ public static partial class SvgExtensions
                         return default;
                     }
                     haveFigure = true;
-                    var x0 = svgCubicCurveSegment.FirstControlPoint.X;
-                    var y0 = svgCubicCurveSegment.FirstControlPoint.Y;
-                    var x1 = svgCubicCurveSegment.SecondControlPoint.X;
-                    var y1 = svgCubicCurveSegment.SecondControlPoint.Y;
-                    var x2 = svgCubicCurveSegment.End.X;
-                    var y2 = svgCubicCurveSegment.End.Y;
-                    skPath.CubicTo(x0, y0, x1, y1, x2, y2);
+                    var first = ToAbsolute(svgCubicCurveSegment.FirstControlPoint, svgCubicCurveSegment.IsRelative, start);
+                    var second = ToAbsolute(svgCubicCurveSegment.SecondControlPoint, svgCubicCurveSegment.IsRelative, start);
+                    var end = ToAbsolute(svgCubicCurveSegment.End, svgCubicCurveSegment.IsRelative, start);
+                    skPath.CubicTo(first.X, first.Y, second.X, second.Y, end.X, end.Y);
+                    start = end;
                 }
                     break;
 
@@ -216,11 +238,10 @@ public static partial class SvgExtensions
                         return default;
                     }
                     haveFigure = true;
-                    var x0 = svgQuadraticCurveSegment.ControlPoint.X;
-                    var y0 = svgQuadraticCurveSegment.ControlPoint.Y;
-                    var x1 = svgQuadraticCurveSegment.End.X;
-                    var y1 = svgQuadraticCurveSegment.End.Y;
-                    skPath.QuadTo(x0, y0, x1, y1);
+                    var first = ToAbsolute(svgQuadraticCurveSegment.ControlPoint, svgQuadraticCurveSegment.IsRelative, start);
+                    var end = ToAbsolute(svgQuadraticCurveSegment.End, svgQuadraticCurveSegment.IsRelative, start);
+                    skPath.QuadTo(first.X, first.Y, end.X, end.Y);
+                    start = end;
                 }
                     break;
 
@@ -236,9 +257,9 @@ public static partial class SvgExtensions
                     var xAxisRotate = svgArcSegment.Angle;
                     var largeArc = svgArcSegment.Size == SvgArcSize.Small ? SKPathArcSize.Small : SKPathArcSize.Large;
                     var sweep = svgArcSegment.Sweep == SvgArcSweep.Negative ? SKPathDirection.CounterClockwise : SKPathDirection.Clockwise;
-                    var x = svgArcSegment.End.X;
-                    var y = svgArcSegment.End.Y;
-                    skPath.ArcTo(rx, ry, xAxisRotate, largeArc, sweep, x, y);
+                    var end = ToAbsolute(svgArcSegment.End, svgArcSegment.IsRelative, start);
+                    skPath.ArcTo(rx, ry, xAxisRotate, largeArc, sweep, end.X, end.Y);
+                    start = end;
                 }
                     break;
 
@@ -255,7 +276,7 @@ public static partial class SvgExtensions
                     isEndFigure = false;
                     haveFigure = false;
                     skPath.Close();
-                }
+                } 
                     break;
             }
         }
