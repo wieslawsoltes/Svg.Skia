@@ -7,7 +7,6 @@
 
     <!-- Svg -->
 
-    <Assembly Name="System.Drawing.Common" Dynamic="Required All"></Assembly>
     <Assembly Name="Fizzler" Dynamic="Required All"></Assembly>
     <Assembly Name="Svg.Custom" Dynamic="Required All"></Assembly>
     <Assembly Name="ShimSkiaSharp" Dynamic="Required All"></Assembly>
