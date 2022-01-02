@@ -173,8 +173,8 @@ public static partial class SvgExtensions
                     }
                     isEndFigure = true;
                     haveFigure = false;
-                    var x = svgMoveToSegment.Start.X;
-                    var y = svgMoveToSegment.Start.Y;
+                    var x = svgMoveToSegment.End.X;
+                    var y = svgMoveToSegment.End.Y;
                     skPath.MoveTo(x, y);
                 }
                     break;
