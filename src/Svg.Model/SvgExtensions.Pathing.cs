@@ -305,22 +305,6 @@ public static partial class SvgExtensions
                     points.Add(controlPoint);
                     points.Add(end);
                     start = end;
-                    
-                    static System.Drawing.PointF CalculateFirstControlPoint(System.Drawing.PointF start, System.Drawing.PointF controlPoint)
-                    {
-                        var x1 = start.X + (controlPoint.X - start.X) * 2 / 3;
-                        var y1 = start.Y + (controlPoint.Y - start.Y) * 2 / 3;
-
-                        return new System.Drawing.PointF(x1, y1);
-                    }
-
-                    static System.Drawing.PointF CalculateSecondControlPoint(System.Drawing.PointF controlPoint, System.Drawing.PointF end)
-                    {
-                        var x2 = controlPoint.X + (end.X - controlPoint.X) / 3;
-                        var y2 = controlPoint.Y + (end.Y - controlPoint.Y) / 3;
-
-                        return new System.Drawing.PointF(x2, y2);
-                    }
                 }
                     break;
 
