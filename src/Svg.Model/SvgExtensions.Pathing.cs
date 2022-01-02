@@ -175,7 +175,6 @@ public static partial class SvgExtensions
         var isEndFigure = false;
         var haveFigure = false;
         var start = System.Drawing.PointF.Empty;
-
         var points = new List<System.Drawing.PointF>();
 
         for (var i = 0; i < svgPathSegmentList.Count; i++)
@@ -212,7 +211,6 @@ public static partial class SvgExtensions
                     haveFigure = false;
                     var end = ToAbsolute(svgMoveToSegment.End, svgMoveToSegment.IsRelative, start);
                     skPath.MoveTo(end.X, end.Y);
-                    points.Add(end);
                     start = end;
                 }
                     break;
@@ -226,6 +224,7 @@ public static partial class SvgExtensions
                     haveFigure = true;
                     var end = ToAbsolute(svgLineSegment.End, svgLineSegment.IsRelative, start);
                     skPath.LineTo(end.X, end.Y);
+                    points.Add(start);
                     points.Add(end);
                     start = end;
                 }
@@ -262,6 +261,7 @@ public static partial class SvgExtensions
                     var first = firstControlPoint;
                     var second = ToAbsolute(svgCubicCurveSegment.SecondControlPoint, svgCubicCurveSegment.IsRelative, start);
                     skPath.CubicTo(first.X, first.Y, second.X, second.Y, end.X, end.Y);
+                    points.Add(start);
                     points.Add(first);
                     points.Add(second);
                     points.Add(end);
@@ -276,8 +276,7 @@ public static partial class SvgExtensions
                         return default;
                     }
                     haveFigure = true;
-                    
-                    
+
                     var controlPoint = svgQuadraticCurveSegment.ControlPoint;
                     if (float.IsNaN(controlPoint.X) || float.IsNaN(controlPoint.Y))
                     {
@@ -303,6 +302,7 @@ public static partial class SvgExtensions
                     var second = CalculateSecondControlPoint(controlPoint, end);
 
                     skPath.CubicTo(first.X, first.Y, second.X, second.Y, end.X, end.Y);
+                    points.Add(start);
                     points.Add(first);
                     points.Add(second);
                     points.Add(end);
@@ -340,6 +340,7 @@ public static partial class SvgExtensions
                     var sweep = svgArcSegment.Sweep == SvgArcSweep.Negative ? SKPathDirection.CounterClockwise : SKPathDirection.Clockwise;
                     var end = ToAbsolute(svgArcSegment.End, svgArcSegment.IsRelative, start);
                     skPath.ArcTo(rx, ry, xAxisRotate, largeArc, sweep, end.X, end.Y);
+                    points.Add(start);
                     points.Add(end);
                     start = end;
                 }
