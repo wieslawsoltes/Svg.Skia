@@ -283,11 +283,10 @@ public static partial class SvgExtensions
                     if (float.IsNaN(controlPoint.X) || float.IsNaN(controlPoint.Y))
                     {
                         var prev = svgPathSegmentList.IndexOf(svgQuadraticCurveSegment) - 1;
-                        if (prev >= 0 && svgPathSegmentList[prev] is SvgQuadraticCurveSegment prevSegment)
+                        if (prev >= 0 && svgPathSegmentList[prev] is SvgQuadraticCurveSegment)
                         {
-                            var prevStart = points[points.Count - 4];
-                            var prevControlPoint = ToAbsolute(prevSegment.ControlPoint, prevSegment.IsRelative, new System.Drawing.PointF(prevStart.X, prevStart.Y));
-                            controlPoint = Reflect(prevControlPoint, start);
+                            var prevControlPoint = points[points.Count - 2];
+                            controlPoint = Reflect(new System.Drawing.PointF(prevControlPoint.X, prevControlPoint.Y), start);
                         }
                         else
                         {
@@ -300,13 +299,10 @@ public static partial class SvgExtensions
                     }
 
                     var end = ToAbsolute(svgQuadraticCurveSegment.End, svgQuadraticCurveSegment.IsRelative, start);
-                    var first = CalculateFirstControlPoint(start, controlPoint);
-                    var second = CalculateSecondControlPoint(controlPoint, end);
 
-                    skPath.CubicTo(first.X, first.Y, second.X, second.Y, end.X, end.Y);
+                    skPath.QuadTo(controlPoint.X, controlPoint.Y, end.X, end.Y);
                     points.Add(start);
-                    points.Add(first);
-                    points.Add(second);
+                    points.Add(controlPoint);
                     points.Add(end);
                     start = end;
                     
