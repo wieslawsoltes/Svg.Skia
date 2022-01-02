@@ -175,6 +175,7 @@ public static partial class SvgExtensions
         var isEndFigure = false;
         var haveFigure = false;
         var start = System.Drawing.PointF.Empty;
+        var prevMove = start;
         var points = new List<System.Drawing.PointF>();
 
         for (var i = 0; i < svgPathSegmentList.Count; i++)
@@ -212,6 +213,7 @@ public static partial class SvgExtensions
                     var end = ToAbsolute(svgMoveToSegment.End, svgMoveToSegment.IsRelative, start);
                     skPath.MoveTo(end.X, end.Y);
                     start = end;
+                    prevMove = end;
                 }
                     break;
 
@@ -359,6 +361,7 @@ public static partial class SvgExtensions
                     isEndFigure = false;
                     haveFigure = false;
                     skPath.Close();
+                    start = prevMove;
                 } 
                     break;
             }
