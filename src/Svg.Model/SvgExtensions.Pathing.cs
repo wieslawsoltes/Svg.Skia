@@ -125,6 +125,17 @@ public static partial class SvgExtensions
         return pathTypes;
     }
 #endif
+    internal static System.Drawing.PointF Reflect(System.Drawing.PointF point, System.Drawing.PointF mirror)
+    {
+        var dx = Math.Abs(mirror.X - point.X);
+        var dy = Math.Abs(mirror.Y - point.Y);
+
+        var x = mirror.X + (mirror.X >= point.X ? dx : -dx);
+        var y = mirror.Y + (mirror.Y >= point.Y ? dy : -dy);
+
+        return new System.Drawing.PointF(x, y);
+    }
+
     internal static System.Drawing.PointF ToAbsolute(System.Drawing.PointF point, bool isRelative, System.Drawing.PointF start)
     {
         if (float.IsNaN(point.X))
@@ -165,6 +176,8 @@ public static partial class SvgExtensions
         var haveFigure = false;
         var start = System.Drawing.PointF.Empty;
 
+        var points = new List<System.Drawing.PointF>();
+
         for (var i = 0; i < svgPathSegmentList.Count; i++)
         {
             var svgSegment = svgPathSegmentList[i];
@@ -199,6 +212,7 @@ public static partial class SvgExtensions
                     haveFigure = false;
                     var end = ToAbsolute(svgMoveToSegment.End, svgMoveToSegment.IsRelative, start);
                     skPath.MoveTo(end.X, end.Y);
+                    points.Add(end);
                     start = end;
                 }
                     break;
@@ -212,6 +226,7 @@ public static partial class SvgExtensions
                     haveFigure = true;
                     var end = ToAbsolute(svgLineSegment.End, svgLineSegment.IsRelative, start);
                     skPath.LineTo(end.X, end.Y);
+                    points.Add(end);
                     start = end;
                 }
                     break;
@@ -223,10 +238,33 @@ public static partial class SvgExtensions
                         return default;
                     }
                     haveFigure = true;
-                    var first = ToAbsolute(svgCubicCurveSegment.FirstControlPoint, svgCubicCurveSegment.IsRelative, start);
-                    var second = ToAbsolute(svgCubicCurveSegment.SecondControlPoint, svgCubicCurveSegment.IsRelative, start);
+
+                    var firstControlPoint = svgCubicCurveSegment.FirstControlPoint;
+                    if (float.IsNaN(firstControlPoint.X) || float.IsNaN(firstControlPoint.Y))
+                    {
+                        var prev = svgPathSegmentList.IndexOf(svgCubicCurveSegment) - 1;
+                        if (prev >= 0 && svgPathSegmentList[prev] is SvgCubicCurveSegment)
+                        {
+                            var prevSecondControlPoint = points[points.Count - 2];
+                            firstControlPoint = Reflect(new System.Drawing.PointF(prevSecondControlPoint.X, prevSecondControlPoint.Y), start);
+                        }
+                        else
+                        {
+                            firstControlPoint = start;
+                        }
+                    }
+                    else
+                    {
+                        firstControlPoint = ToAbsolute(firstControlPoint, svgCubicCurveSegment.IsRelative, start);
+                    }
+
                     var end = ToAbsolute(svgCubicCurveSegment.End, svgCubicCurveSegment.IsRelative, start);
+                    var first = firstControlPoint;
+                    var second = ToAbsolute(svgCubicCurveSegment.SecondControlPoint, svgCubicCurveSegment.IsRelative, start);
                     skPath.CubicTo(first.X, first.Y, second.X, second.Y, end.X, end.Y);
+                    points.Add(first);
+                    points.Add(second);
+                    points.Add(end);
                     start = end;
                 }
                     break;
@@ -238,10 +276,53 @@ public static partial class SvgExtensions
                         return default;
                     }
                     haveFigure = true;
-                    var first = ToAbsolute(svgQuadraticCurveSegment.ControlPoint, svgQuadraticCurveSegment.IsRelative, start);
+                    
+                    
+                    var controlPoint = svgQuadraticCurveSegment.ControlPoint;
+                    if (float.IsNaN(controlPoint.X) || float.IsNaN(controlPoint.Y))
+                    {
+                        var prev = svgPathSegmentList.IndexOf(svgQuadraticCurveSegment) - 1;
+                        if (prev >= 0 && svgPathSegmentList[prev] is SvgQuadraticCurveSegment prevSegment)
+                        {
+                            var prevStart = points[points.Count - 4];
+                            var prevControlPoint = ToAbsolute(prevSegment.ControlPoint, prevSegment.IsRelative, new System.Drawing.PointF(prevStart.X, prevStart.Y));
+                            controlPoint = Reflect(prevControlPoint, start);
+                        }
+                        else
+                        {
+                            controlPoint = start;
+                        }
+                    }
+                    else
+                    {
+                        controlPoint = ToAbsolute(controlPoint, svgQuadraticCurveSegment.IsRelative, start);
+                    }
+
                     var end = ToAbsolute(svgQuadraticCurveSegment.End, svgQuadraticCurveSegment.IsRelative, start);
-                    skPath.QuadTo(first.X, first.Y, end.X, end.Y);
+                    var first = CalculateFirstControlPoint(start, controlPoint);
+                    var second = CalculateSecondControlPoint(controlPoint, end);
+
+                    skPath.CubicTo(first.X, first.Y, second.X, second.Y, end.X, end.Y);
+                    points.Add(first);
+                    points.Add(second);
+                    points.Add(end);
                     start = end;
+                    
+                    static System.Drawing.PointF CalculateFirstControlPoint(System.Drawing.PointF start, System.Drawing.PointF controlPoint)
+                    {
+                        var x1 = start.X + (controlPoint.X - start.X) * 2 / 3;
+                        var y1 = start.Y + (controlPoint.Y - start.Y) * 2 / 3;
+
+                        return new System.Drawing.PointF(x1, y1);
+                    }
+
+                    static System.Drawing.PointF CalculateSecondControlPoint(System.Drawing.PointF controlPoint, System.Drawing.PointF end)
+                    {
+                        var x2 = controlPoint.X + (end.X - controlPoint.X) / 3;
+                        var y2 = controlPoint.Y + (end.Y - controlPoint.Y) / 3;
+
+                        return new System.Drawing.PointF(x2, y2);
+                    }
                 }
                     break;
 
@@ -259,6 +340,7 @@ public static partial class SvgExtensions
                     var sweep = svgArcSegment.Sweep == SvgArcSweep.Negative ? SKPathDirection.CounterClockwise : SKPathDirection.Clockwise;
                     var end = ToAbsolute(svgArcSegment.End, svgArcSegment.IsRelative, start);
                     skPath.ArcTo(rx, ry, xAxisRotate, largeArc, sweep, end.X, end.Y);
+                    points.Add(end);
                     start = end;
                 }
                     break;
