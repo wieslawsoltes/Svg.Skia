@@ -21,7 +21,7 @@ public static partial class SvgExtensions
 
     static SvgExtensions()
     {
-        SvgDocument.SkipGdiPlusCapabilityCheck = true;
+        // SvgDocument.SkipGdiPlusCapabilityCheck = true;
         SvgDocument.PointsPerInch = 96;
     }
 
