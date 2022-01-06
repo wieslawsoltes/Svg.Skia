@@ -28,6 +28,7 @@
 
   <PropertyGroup>
     <SvgSourcesBasePath>..\..\externals\SVG</SvgSourcesBasePath>
+    <!--<SvgSourcesBasePath>..\..\..\SVG</SvgSourcesBasePath>-->
   </PropertyGroup>
   
   <ItemGroup>
