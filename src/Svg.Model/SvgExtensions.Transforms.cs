@@ -18,7 +18,7 @@ public static partial class SvgExtensions
         var value = svgUnit.Value;
         float? _deviceValue;
         float points;
-        float? ownerFontSize = owner?.FontSize;
+        float? ownerFontSize = owner?.FontSize.ToDeviceValue(UnitRenderingType.Other, null, SKRect.Empty);
 
         switch (type)
         {
