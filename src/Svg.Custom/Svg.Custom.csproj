@@ -26,9 +26,13 @@
   <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
 
+  <PropertyGroup>
+    <SvgSourcesBasePath>..\..\externals\SVG</SvgSourcesBasePath>
+  </PropertyGroup>
+  
   <ItemGroup>
     <!-- https://github.com/vvvv/SVG/blob/master/Source/SvgDtdResolver.cs#L32 -->
-    <EmbeddedResource Include="..\..\externals\SVG\Source\Resources\svg11.dtd">
+    <EmbeddedResource Include="$(SvgSourcesBasePath)\Source\Resources\svg11.dtd">
       <Link>Resources\svg11.dtd</Link>
       <LogicalName>Svg.Resources.svg11.dtd</LogicalName>
     </EmbeddedResource>
@@ -36,11 +40,11 @@
 
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="bin\**;obj\**" />
-    <Compile Include="..\..\externals\SVG\Source\**\*.cs" Exclude="..\..\externals\SVG\Source\obj\**" />
-    <Compile Remove="..\..\externals\SVG\Source\Properties\AssemblyInfo.cs" />
-    <Compile Remove="..\..\externals\SVG\Source\External\ExCSS\Parser.generated.cs" />
-    <Compile Remove="..\..\externals\SVG\Source\External\ExCSS\ParserX.cs" />
-    <Compile Remove="..\..\externals\SVG\Source\Resources\svg11.dtd" />
+    <Compile Include="$(SvgSourcesBasePath)\Source\**\*.cs" Exclude="$(SvgSourcesBasePath)\Source\obj\**" />
+    <Compile Remove="$(SvgSourcesBasePath)\Source\Properties\AssemblyInfo.cs" />
+    <Compile Remove="$(SvgSourcesBasePath)\Source\External\ExCSS\Parser.generated.cs" />
+    <Compile Remove="$(SvgSourcesBasePath)\Source\External\ExCSS\ParserX.cs" />
+    <Compile Remove="$(SvgSourcesBasePath)\Source\Resources\svg11.dtd" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
@@ -70,7 +74,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\externals\SVG\Generators\Svg.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="$(SvgSourcesBasePath)\Generators\Svg.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>
