@@ -1,24 +1,18 @@
+﻿using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using TestApp.ViewModels;
 
 namespace TestApp.Views;
 
-public class MainWindow : Window
+public class MainView : UserControl
 {
-    public MainWindow()
+    public MainView()
     {
         InitializeComponent();
-#if DEBUG
-        this.AttachDevTools();
-#endif
         AddHandler(DragDrop.DropEvent, Drop);
         AddHandler(DragDrop.DragOverEvent, DragOver);
     }
@@ -68,3 +62,4 @@ public class MainWindow : Window
         }
     }
 }
+

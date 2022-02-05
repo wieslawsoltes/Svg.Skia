@@ -3,7 +3,7 @@ using Avalonia;
 using Avalonia.ReactiveUI;
 using Avalonia.Svg.Skia;
 
-namespace TestApp;
+namespace TestApp.Desktop;
 
 class Program
 {
@@ -26,9 +26,7 @@ class Program
         GC.KeepAlive(typeof(Avalonia.Svg.Skia.Svg).Assembly);
         return AppBuilder.Configure<App>()
             .UsePlatformDetect()
-            .With(new X11PlatformOptions
-            {
-            })
+            .With(new X11PlatformOptions { })
             .LogToTrace()
             .UseSkia()
             .UseReactiveUI();

@@ -1,14 +1,11 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:TestApp.ViewModels"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="TestApp.Views.MainWindow"
-        Icon="/Assets/Icon.ico"
-        Title="TestApp"
-        WindowStartupLocation="CenterScreen"
-        DragDrop.AllowDrop="True">
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:TestApp.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="TestApp.Views.MainView"
+             DragDrop.AllowDrop="True">
 
     <Design.DataContext>
         <vm:MainWindowViewModel />
@@ -112,28 +109,28 @@
                        Margin="6,0,6,0"
                        VerticalAlignment="Center"/>
                 <ComboBox Name="HorizontalScrollBarVisibility" SelectedIndex="0">
-                    <ComboBoxItem>Disabled</ComboBoxItem>
-                    <ComboBoxItem>Auto</ComboBoxItem>
-                    <ComboBoxItem>Hidden</ComboBoxItem>
-                    <ComboBoxItem>Visible</ComboBoxItem>
+                    <ScrollBarVisibility>Disabled</ScrollBarVisibility>
+                    <ScrollBarVisibility>Auto</ScrollBarVisibility>
+                    <ScrollBarVisibility>Hidden</ScrollBarVisibility>
+                    <ScrollBarVisibility>Visible</ScrollBarVisibility>
                 </ComboBox>
                 <Label Content="V:"
                        Margin="6,0,6,0"
                        VerticalAlignment="Center"/>
                 <ComboBox Name="VerticalScrollBarVisibility" SelectedIndex="0">
-                    <ComboBoxItem>Disabled</ComboBoxItem>
-                    <ComboBoxItem>Auto</ComboBoxItem>
-                    <ComboBoxItem>Hidden</ComboBoxItem>
-                    <ComboBoxItem>Visible</ComboBoxItem>
+                    <ScrollBarVisibility>Disabled</ScrollBarVisibility>
+                    <ScrollBarVisibility>Auto</ScrollBarVisibility>
+                    <ScrollBarVisibility>Hidden</ScrollBarVisibility>
+                    <ScrollBarVisibility>Visible</ScrollBarVisibility>
                 </ComboBox>
                 <Label Content="Stretch:"
                        Margin="6,0,6,0"
                        VerticalAlignment="Center"/>
                 <ComboBox Name="SvgStretch" SelectedIndex="0">
-                    <ComboBoxItem>None</ComboBoxItem>
-                    <ComboBoxItem>Fill</ComboBoxItem>
-                    <ComboBoxItem>Uniform</ComboBoxItem>
-                    <ComboBoxItem>UniformToFill</ComboBoxItem>
+                    <Stretch>None</Stretch>
+                    <Stretch>Fill</Stretch>
+                    <Stretch>Uniform</Stretch>
+                    <Stretch>UniformToFill</Stretch>
                 </ComboBox>
                 <ToggleSwitch IsChecked="{Binding #Svg.EnableCache}"
                               OnContent="Cache Enabled"
@@ -148,8 +145,8 @@
                         CommandParameter="{Binding #Svg}"
                         Margin="0,0,0,0"/>
             </StackPanel>
-            <ScrollViewer HorizontalScrollBarVisibility="{Binding #HorizontalScrollBarVisibility.SelectedItem.Content}" 
-                          VerticalScrollBarVisibility="{Binding #VerticalScrollBarVisibility.SelectedItem.Content}">
+            <ScrollViewer HorizontalScrollBarVisibility="{Binding #HorizontalScrollBarVisibility.SelectedItem}" 
+                          VerticalScrollBarVisibility="{Binding #VerticalScrollBarVisibility.SelectedItem}">
                 <ScrollViewer.ContextFlyout>
                     <MenuFlyout Placement="Bottom">
                         <MenuItem Header="Copy as C#" 
@@ -161,12 +158,13 @@
                     </MenuFlyout>
                 </ScrollViewer.ContextFlyout>
                 <Svg Name="Svg"
-                     Stretch="{Binding #SvgStretch.SelectedItem.Content}"
-                     Path="{Binding SelectedItem.Path}"
+                     Stretch="{Binding #SvgStretch.SelectedItem}"
+                     Path="{Binding SelectedItem.Path, FallbackValue=''}"
                      EnableCache="True"/>
             </ScrollViewer>
         </DockPanel>
 
     </Grid>
 
-</Window>
+</UserControl>
+

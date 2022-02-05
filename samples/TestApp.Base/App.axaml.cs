@@ -8,7 +8,7 @@ namespace TestApp;
 
 public class App : Application
 {
-    private const string ConfigurationPath = "TestApp.json";
+    private const string ConfigurationPath = "TestApp.Base.json";
 
     public override void Initialize()
     {
@@ -17,18 +17,35 @@ public class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        var mainWindowViewModel = new MainWindowViewModel();
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var mainWindowViewModel = new MainWindowViewModel();
-
             mainWindowViewModel.LoadConfiguration(ConfigurationPath);
 
-            desktop.MainWindow = new MainWindow {DataContext = mainWindowViewModel};
+            desktop.MainWindow = new MainWindow
+            {
+                DataContext = mainWindowViewModel
+            };
 
             desktop.Exit += (_, _) =>
             {
                 mainWindowViewModel.SaveConfiguration(ConfigurationPath);
             };
+        }
+        else if (ApplicationLifetime is ISingleViewApplicationLifetime single)
+        {
+            mainWindowViewModel.LoadConfiguration(ConfigurationPath);
+
+            single.MainView = new MainView
+            {
+                DataContext = mainWindowViewModel
+            };
+
+            single.MainView.DetachedFromVisualTree += (_, _) =>
+            {
+                mainWindowViewModel.SaveConfiguration(ConfigurationPath);
+            }; 
         }
 
         base.OnFrameworkInitializationCompleted();

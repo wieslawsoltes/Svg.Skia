@@ -98,13 +98,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Svg.Generators", "externals
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaSvgSample", "samples\AvaloniaSvgSample\AvaloniaSvgSample.csproj", "{E4A42678-C73F-4D71-95B9-254849B0084A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "samples\TestApp\TestApp.csproj", "{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp.Base", "samples\TestApp.Base\TestApp.Base.csproj", "{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "externals", "externals", "{C5FFCF4B-86DC-453E-8006-44EE9EEFEE39}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShimSkiaSharp", "src\ShimSkiaSharp\ShimSkiaSharp.csproj", "{6D2786A1-F110-4448-9CBF-D3CC9D803F31}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Svg.Model.SkiaSharp", "src\Svg.Model.SkiaSharp\Svg.Model.SkiaSharp.csproj", "{3F724469-5A06-42BD-9BEA-9A8DAA0F38AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp.Desktop", "samples\TestApp.Desktop\TestApp.Desktop.csproj", "{31657391-E681-47B6-8B90-33B61B5A95C0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -198,6 +200,10 @@ Global
 		{3F724469-5A06-42BD-9BEA-9A8DAA0F38AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F724469-5A06-42BD-9BEA-9A8DAA0F38AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3F724469-5A06-42BD-9BEA-9A8DAA0F38AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31657391-E681-47B6-8B90-33B61B5A95C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31657391-E681-47B6-8B90-33B61B5A95C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31657391-E681-47B6-8B90-33B61B5A95C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31657391-E681-47B6-8B90-33B61B5A95C0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -228,6 +234,7 @@ Global
 		{AF8AEF5B-0664-4106-9BD3-389758F39B12} = {C5FFCF4B-86DC-453E-8006-44EE9EEFEE39}
 		{6D2786A1-F110-4448-9CBF-D3CC9D803F31} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
 		{3F724469-5A06-42BD-9BEA-9A8DAA0F38AD} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
+		{31657391-E681-47B6-8B90-33B61B5A95C0} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12D5E557-A27B-4FB2-83A3-4AC75B04B22C}
