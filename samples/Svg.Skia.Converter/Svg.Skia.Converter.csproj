@@ -29,7 +29,6 @@
     <Content Include="SvgToPng.ico" />
   </ItemGroup>
 
-  <Import Project="..\..\build\NativeAOT.props" />
   <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
