@@ -38,7 +38,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.0-4.final" PrivateAssets="all" />
     <PackageReference Include="Fizzler" Version="1.2.0" GeneratePathProperty="true" PrivateAssets="all" />
-    <PackageReference Include="SkiaSharp" Version="2.88.0-preview.178" GeneratePathProperty="true" />
+    <PackageReference Include="SkiaSharp" Version="2.88.0" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
