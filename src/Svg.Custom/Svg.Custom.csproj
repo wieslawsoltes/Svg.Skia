@@ -43,8 +43,6 @@
     <Compile Include="**\*.cs" Exclude="bin\**;obj\**" />
     <Compile Include="$(SvgSourcesBasePath)\Source\**\*.cs" Exclude="$(SvgSourcesBasePath)\Source\obj\**" />
     <Compile Remove="$(SvgSourcesBasePath)\Source\Properties\AssemblyInfo.cs" />
-    <Compile Remove="$(SvgSourcesBasePath)\Source\External\ExCSS\Parser.generated.cs" />
-    <Compile Remove="$(SvgSourcesBasePath)\Source\External\ExCSS\ParserX.cs" />
     <Compile Remove="$(SvgSourcesBasePath)\Source\Resources\svg11.dtd" />
   </ItemGroup>
 
@@ -66,8 +64,9 @@
 
   <ItemGroup>
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-    <PackageReference Include="System.Memory" Version="4.5.3" />
-    <PackageReference Include="Fizzler" Version="1.2.0" />
+    <PackageReference Include="System.Memory" Version="4.5.4" />
+    <PackageReference Include="Fizzler" Version="1.2.1" />
+    <PackageReference Include="ExCSS" Version="4.1.4" />
   </ItemGroup>
 
   <PropertyGroup>
