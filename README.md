@@ -194,6 +194,28 @@ Install-Package Avalonia.Svg.Skia
 <Image Source="{SvgImage /Assets/__AJ_Digital_Camera.svg}"/>
 ```
 
+#### Avalonia Previewer
+
+To make controls work with `Avalonia Previewer` please add the following lines to `BuildAvaloniaApp()` method:
+```C#
+GC.KeepAlive(typeof(SvgImageExtension).Assembly);
+GC.KeepAlive(typeof(Avalonia.Svg.Skia.Svg).Assembly);
+```
+
+The `BuildAvaloniaApp()` should look similar to this:
+```C#
+public static AppBuilder BuildAvaloniaApp()
+{
+    GC.KeepAlive(typeof(SvgImageExtension).Assembly);
+    GC.KeepAlive(typeof(Avalonia.Svg.Skia.Svg).Assembly);
+    return AppBuilder.Configure<App>()
+        .UsePlatformDetect()
+        .LogToTrace();
+}
+```
+
+This is know issue as previewer not always loads all dependencies, especially custom controls in Avalonia xmlns, other solution would be to add xmlns prefix to control with provided assembly path.
+
 ### Tool
 
 ```
