@@ -90,9 +90,14 @@ public class MainWindowViewModel : ViewModelBase
             {
                 return;
             }
-            var dlg = new OpenFileDialog();
-            dlg.Filters.Add(new FileDialogFilter() { Name = "Configuration (*.json)", Extensions = new List<string> {"json"} });
-            dlg.Filters.Add(new FileDialogFilter() { Name = "All Files (*.*)", Extensions = new List<string> {"*"} });
+            var dlg = new OpenFileDialog 
+            { 
+                Filters = new List<FileDialogFilter>
+                {
+                    new() { Name = "Configuration (*.json)", Extensions = new List<string> { "json" } },
+                    new() { Name = "All Files (*.*)", Extensions = new List<string> { "*" } }
+                }
+            };
             var result = await dlg.ShowAsync(window);
             if (result is { })
             {
@@ -111,9 +116,14 @@ public class MainWindowViewModel : ViewModelBase
             {
                 return;
             }
-            var dlg = new SaveFileDialog();
-            dlg.Filters.Add(new FileDialogFilter() { Name = "Configuration (*.json)", Extensions = new List<string> {"json"} });
-            dlg.Filters.Add(new FileDialogFilter() { Name = "All Files (*.*)", Extensions = new List<string> {"*"} });
+            var dlg = new SaveFileDialog 
+            { 
+                Filters = new List<FileDialogFilter>
+                {
+                    new () { Name = "Configuration (*.json)", Extensions = new List<string> { "json" } },
+                    new () { Name = "All Files (*.*)", Extensions = new List<string> { "*" } }
+                }
+            };
             var result = await dlg.ShowAsync(window);
             if (result is { })
             {
@@ -135,9 +145,15 @@ public class MainWindowViewModel : ViewModelBase
             {
                 return;
             }
-            var dlg = new OpenFileDialog {AllowMultiple = true};
-            dlg.Filters.Add(new FileDialogFilter() { Name = "Svg Files (*.svg;*.svgz)", Extensions = new List<string> {"svg", "svgz"} });
-            dlg.Filters.Add(new FileDialogFilter() { Name = "All Files (*.*)", Extensions = new List<string> {"*"} });
+            var dlg = new OpenFileDialog
+            {
+                AllowMultiple = true, 
+                Filters = new List<FileDialogFilter>
+                {
+                    new () { Name = "Svg Files (*.svg;*.svgz)", Extensions = new List<string> { "svg", "svgz" } },
+                    new () { Name = "All Files (*.*)", Extensions = new List<string> { "*" } }
+                }
+            };
             var result = await dlg.ShowAsync(window);
             if (result is { })
             {
@@ -184,14 +200,19 @@ public class MainWindowViewModel : ViewModelBase
                 return;
             }
 
-            var dlg = new SaveFileDialog();
-            dlg.Filters.Add(new FileDialogFilter() { Name = "Png Files (*.png)", Extensions = new List<string> {"png"} });
-            dlg.Filters.Add(new FileDialogFilter() { Name = "Jpeg Files (*.jpeg)", Extensions = new List<string> {"jpeg"} });
-            dlg.Filters.Add(new FileDialogFilter() { Name = "C# Files (*.cs)", Extensions = new List<string> {"cs"} });
-            dlg.Filters.Add(new FileDialogFilter() { Name = "Pdf Files (*.pdf)", Extensions = new List<string> {"pdf"} });
-            dlg.Filters.Add(new FileDialogFilter() { Name = "Xps Files (*.xps)", Extensions = new List<string> {"xps"} });
-            dlg.Filters.Add(new FileDialogFilter() { Name = "All Files (*.*)", Extensions = new List<string> {"*"} });
-            dlg.InitialFileName = Path.GetFileNameWithoutExtension(_selectedItem.Path);
+            var dlg = new SaveFileDialog 
+            {
+                Filters = new List<FileDialogFilter>
+                {
+                    new () { Name = "Png Files (*.png)", Extensions = new List<string> { "png" } },
+                    new () { Name = "Jpeg Files (*.jpeg)", Extensions = new List<string> { "jpeg" } },
+                    new () { Name = "C# Files (*.cs)", Extensions = new List<string> {"cs"} },
+                    new () { Name = "Pdf Files (*.pdf)", Extensions = new List<string> {"pdf"} },
+                    new () { Name = "Xps Files (*.xps)", Extensions = new List<string> {"xps"} },
+                    new () { Name = "All Files (*.*)", Extensions = new List<string> {"*"} }
+                },
+                InitialFileName = Path.GetFileNameWithoutExtension(_selectedItem.Path)
+            };
             var result = await dlg.ShowAsync(window);
             if (result is { })
             {
