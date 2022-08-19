@@ -197,20 +197,20 @@ public class Svg : Control, IAffectsRender
     }
 
     /// <inheritdoc/>
-    protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
 
         if (change.Property == PathProperty)
         {
-            var path = change.NewValue.GetValueOrDefault<string?>();
+            var path = change.GetNewValue<string?>();
             Load(path);
             RaiseInvalidated(EventArgs.Empty);
         }
 
         if (change.Property == EnableCacheProperty)
         {
-            var enableCache = change.NewValue.GetValueOrDefault<bool>();
+            var enableCache = change.GetNewValue<bool>();
             if (enableCache == false)
             {
                 DisposeCache();

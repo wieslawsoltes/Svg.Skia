@@ -5,7 +5,7 @@ using ShimSkiaSharp;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AP = Avalonia.Platform;
-using AVMI = Avalonia.Visuals.Media.Imaging;
+using AVMI = Avalonia.Media.Imaging;
 using SP = Svg.Model;
 
 namespace Avalonia.Svg;
@@ -202,11 +202,11 @@ public sealed class AvaloniaPicture : IDisposable
                 if (drawTextCanvasCommand.Paint is { })
                 {
                     (var brush, _) = drawTextCanvasCommand.Paint.ToBrushAndPen();
-                    var text = drawTextCanvasCommand.Paint.ToFormattedText(drawTextCanvasCommand.Text);
+                    var text = drawTextCanvasCommand.Paint.ToFormattedText(drawTextCanvasCommand.Text, brush);
                     var x = drawTextCanvasCommand.X;
                     var y = drawTextCanvasCommand.Y;
                     var origin = new A.Point(x, y - drawTextCanvasCommand.Paint.TextSize);
-                    avaloniaPicture._commands.Add(new TextDrawCommand(brush, origin, text));
+                    avaloniaPicture._commands.Add(new TextDrawCommand(origin, text));
                 }
             }
                 break;
@@ -331,10 +331,12 @@ public sealed class AvaloniaPicture : IDisposable
 
             case TextDrawCommand textDrawCommand:
             {
-                context.DrawText(
-                    textDrawCommand.Brush,
-                    textDrawCommand.Origin,
-                    textDrawCommand.FormattedText);
+                if (textDrawCommand.FormattedText is { })
+                {
+                    context.DrawText(
+                        textDrawCommand.FormattedText,
+                        textDrawCommand.Origin);
+                }
             }
                 break;
         }

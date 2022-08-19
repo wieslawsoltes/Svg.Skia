@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Runtime.InteropServices;
 using Avalonia.Platform;
 using Svg.Skia;
 

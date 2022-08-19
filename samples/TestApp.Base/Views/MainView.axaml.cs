@@ -54,7 +54,7 @@ public class MainView : UserControl
         }
     }
 
-    private void FileItem_OnDoubleTapped(object? sender, RoutedEventArgs e)
+    private void FileItem_OnDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (sender is Control control && control.DataContext is FileItemViewModel fileItemViewModel)
         {

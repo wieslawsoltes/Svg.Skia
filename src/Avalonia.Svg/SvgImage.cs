@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Metadata;
-using Avalonia.Visuals.Media.Imaging;
 using ShimSkiaSharp;
 using SP = Svg.Model;
 
@@ -93,7 +93,7 @@ public class SvgImage : AvaloniaObject, IImage, IAffectsRender
     }
 
     /// <inheritdoc/>
-    protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
         if (change.Property == SourceProperty)

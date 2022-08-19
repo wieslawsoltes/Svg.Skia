@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using ShimSkiaSharp;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AMI = Avalonia.Media.Imaging;
 using AMII = Avalonia.Media.Immutable;
 using AP = Avalonia.Platform;
-using AVMI = Avalonia.Visuals.Media.Imaging;
+using AVMI = Avalonia.Media.Imaging;
 
 namespace Avalonia.Svg;
 
@@ -300,6 +301,8 @@ public static class AvaloniaModelExtensions
         return new AMII.ImmutableLinearGradientBrush(
             gradientStops,
             1,
+            null,
+            null,
             spreadMethod,
             startPoint,
             endPoint);
@@ -340,6 +343,8 @@ public static class AvaloniaModelExtensions
         return new AMII.ImmutableRadialGradientBrush(
             gradientStops,
             1,
+            null,
+            null,
             spreadMethod,
             centerPoint,
             gradientOriginPoint,
@@ -388,6 +393,8 @@ public static class AvaloniaModelExtensions
         return new AMII.ImmutableRadialGradientBrush(
             gradientStops,
             1,
+            null,
+            null,
             spreadMethod,
             centerPoint,
             gradientOriginPoint,
@@ -473,7 +480,7 @@ public static class AvaloniaModelExtensions
         return (brush, pen);
     }
 
-    public static AM.FormattedText ToFormattedText(this SKPaint paint, string text)
+    public static AM.FormattedText ToFormattedText(this SKPaint paint, string text, AM.IBrush? brush)
     {
         var typeface = paint.Typeface?.ToTypeface();
         var textAlignment = paint.TextAlign.ToTextAlignment();
@@ -483,13 +490,17 @@ public static class AvaloniaModelExtensions
         // TODO: paint.SubpixelText
 
         var ft = new AM.FormattedText
-        {
-            Text = text,
-            Typeface = typeface ?? AM.Typeface.Default,
-            FontSize = fontSize,
-            TextAlignment = textAlignment,
-            TextWrapping = AM.TextWrapping.NoWrap
-        };
+        (
+            text,
+            CultureInfo.CurrentCulture,
+            AM.FlowDirection.LeftToRight,
+            typeface ?? AM.Typeface.Default,
+            fontSize,
+            brush
+        );
+
+        ft.TextAlignment = textAlignment;
+        // TODO; ft.TextWrapping = AM.TextWrapping.NoWrap;
 
         return ft;
     }

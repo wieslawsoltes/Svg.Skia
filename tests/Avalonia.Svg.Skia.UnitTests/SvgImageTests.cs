@@ -1,8 +1,5 @@
 ﻿using System;
-using Avalonia;
 using Avalonia.Platform;
-using Avalonia.Shared.PlatformSupport;
-using Avalonia.Svg.Skia;
 using Xunit;
 
 namespace Avalonia.Svg.Skia.UnitTests;

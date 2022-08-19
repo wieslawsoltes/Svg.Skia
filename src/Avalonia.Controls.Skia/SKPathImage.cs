@@ -1,7 +1,7 @@
 ﻿using System;
 using Avalonia.Media;
 using Avalonia.Metadata;
-using Avalonia.Visuals.Media.Imaging;
+using Avalonia.Media.Imaging;
 using SkiaSharp;
 
 namespace Avalonia.Controls.Skia;
@@ -75,7 +75,7 @@ public class SKPathImage : AvaloniaObject, IImage, IAffectsRender
     }
 
     /// <inheritdoc/>
-    protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
         if (change.Property == SourceProperty)

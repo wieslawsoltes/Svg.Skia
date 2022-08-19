@@ -31,8 +31,14 @@ public class SvgCustomDrawOperation : ICustomDrawOperation
         {
             return;
         }
-
-        var canvas = (context as ISkiaDrawingContextImpl)?.SkCanvas;
+        
+        var leaseFeature = context.GetFeature<ISkiaSharpApiLeaseFeature>();
+        if (leaseFeature is null)
+        {
+            return;
+        }
+        using var lease = leaseFeature.Lease();
+        var canvas = lease?.SkCanvas;
         if (canvas is null)
         {
             return;

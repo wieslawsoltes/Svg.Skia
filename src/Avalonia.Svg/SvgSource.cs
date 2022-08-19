@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Runtime.InteropServices;
 using Avalonia.Platform;
 using ShimSkiaSharp;
 using SM = Svg.Model;
