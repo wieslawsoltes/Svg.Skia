@@ -10,4 +10,5 @@ namespace Svg.Model;
 public interface IAssetLoader
 {
     SKImage LoadImage(Stream stream);
+    float MeasureText(SKPaint paint, string text);
 }

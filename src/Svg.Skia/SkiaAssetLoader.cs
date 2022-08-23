@@ -28,4 +28,9 @@ public class SkiaAssetLoader : IAssetLoader
         };
     }
 #endif
+    public float MeasureText(SKPaint paint, string text)
+    {
+        using var skPaint = paint.ToSKPaint();
+        return skPaint.MeasureText(text);
+    }
 }

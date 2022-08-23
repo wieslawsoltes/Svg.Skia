@@ -1004,7 +1004,8 @@ public static partial class SvgExtensions
         };
 
         var server = svgVisualElement.Fill;
-        var opacity = AdjustSvgOpacity(svgVisualElement.FillOpacity);
+        var opacity = AdjustSvgOpacity(svgVisualElement.Opacity);
+        opacity *= AdjustSvgOpacity(svgVisualElement.FillOpacity);
         if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: false, assetLoader: assetLoader, references, ignoreAttributes: ignoreAttributes) == false)
         {
             return default;
@@ -1022,7 +1023,8 @@ public static partial class SvgExtensions
         };
 
         var server = svgVisualElement.Stroke;
-        var opacity = AdjustSvgOpacity(svgVisualElement.StrokeOpacity);
+        var opacity = AdjustSvgOpacity(svgVisualElement.Opacity);
+        opacity *= AdjustSvgOpacity(svgVisualElement.StrokeOpacity);
         if (SetColorOrShader(svgVisualElement, server, opacity, skBounds, skPaint, forStroke: true, assetLoader: assetLoader, references, ignoreAttributes: ignoreAttributes) == false)
         {
             return default;
