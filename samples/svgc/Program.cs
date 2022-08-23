@@ -5,6 +5,7 @@ using System.CommandLine.Invocation;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using ShimSkiaSharp;
 using Svg.CodeGen.Skia;
 using SLIS = SixLabors.ImageSharp;
 using SM = Svg.Model;
@@ -41,6 +42,12 @@ class ImageSharpAssetLoader : SM.IAssetLoader
             Width = image.Width,
             Height = image.Height
         };
+    }
+
+    public float MeasureText(SKPaint paint, string text)
+    {
+        // TODO: Make this more precise
+        return text.Length * paint.TextSize;
     }
 }
 
