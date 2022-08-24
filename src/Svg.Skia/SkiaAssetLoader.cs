@@ -1,24 +1,19 @@
 ﻿using System.Collections.Generic;
 using SkiaSharp;
 using static SkiaSharp.HarfBuzz.SKShaper;
+#if USE_SKIASHARP
+using ShimSkiaSharp = SkiaSharp;
+#endif
 
 namespace Svg.Skia;
 
 public class SkiaAssetLoader : Svg.Model.IAssetLoader
 {
-#if USE_SKIASHARP
-    public SkiaSharp.SKImage LoadImage(System.IO.Stream stream)
-    {
-        return SkiaSharp.SKImage.FromEncodedData(stream);
-    }
-
-    public float MeasureText(SkiaSharp.SKPaint paint, string text)
-    {
-        return paint.MeasureText(text);
-    }
-#else
     public ShimSkiaSharp.SKImage LoadImage(System.IO.Stream stream)
     {
+#if USE_SKIASHARP
+        return SkiaSharp.SKImage.FromEncodedData(stream);
+#else
         var data = ShimSkiaSharp.SKImage.FromStream(stream);
         using var image = SkiaSharp.SKImage.FromEncodedData(data);
         return new ShimSkiaSharp.SKImage
@@ -27,6 +22,7 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
             Width = image.Width,
             Height = image.Height
         };
+#endif
     }
 
     public List<(string text, float advance, ShimSkiaSharp.SKTypeface? typeface)>
@@ -36,13 +32,23 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
         System.Func<int, SKTypeface?> matchCharacter;
         if (paintPreferredTypeface.Typeface is { } preferredTypeface)
         {
+#if USE_SKIASHARP
+            var weight = preferredTypeface.FontWeight;
+            var width = preferredTypeface.FontWidth;
+            var slant = preferredTypeface.Style;
+#else
             var weight = preferredTypeface.FontWeight.ToSKFontStyleWeight();
             var width = preferredTypeface.FontWidth.ToSKFontStyleWidth();
             var slant = preferredTypeface.Style.ToSKFontStyleSlant();
+#endif
             matchCharacter = codepoint => SKFontManager.Default.MatchCharacter(
                 preferredTypeface.FamilyName, weight, width, slant, null, codepoint);
         } else matchCharacter = codepoint => SKFontManager.Default.MatchCharacter(codepoint);
+#if USE_SKIASHARP
+        using var runningPaint = paintPreferredTypeface.Clone();
+#else
         using var runningPaint = paintPreferredTypeface.ToSKPaint();
+#endif
         var currentTypefaceStartIndex = 0;
         var i = 0;
         void YieldCurrentTypefaceText()
@@ -83,5 +89,4 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
         YieldCurrentTypefaceText();
         return ret;
     }
-#endif
 }
