@@ -76,6 +76,11 @@
                        Stretch="{Binding #SvgImageStretch.SelectedItem.Content, FallbackValue=None}" />
             </DockPanel>
         </TabItem>
+      
+      <TabItem Header="Pattern">
+        <SKPictureControl Picture="{x:Static local:Pattern.Picture}" 
+                          Stretch="Uniform"/>
+      </TabItem>
 
     </TabControl>
 
