@@ -46,7 +46,7 @@ class ImageSharpAssetLoader : SM.IAssetLoader
 
     public float MeasureText(SKPaint paint, string text)
     {
-        // TODO: Make this more precise
+        // TODO: Make this more precise.
         return text.Length * paint.TextSize;
     }
 }
