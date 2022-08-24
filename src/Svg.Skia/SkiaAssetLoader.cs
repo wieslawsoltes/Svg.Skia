@@ -1,36 +1,34 @@
-﻿using System.IO;
-using Svg.Model;
-#if USE_SKIASHARP
-using SkiaSharp;
-#else
-using ShimSkiaSharp;
-#endif
+﻿namespace Svg.Skia;
 
-namespace Svg.Skia;
-
-public class SkiaAssetLoader : IAssetLoader
+public class SkiaAssetLoader : Svg.Model.IAssetLoader
 {
 #if USE_SKIASHARP
-    public SKImage LoadImage(Stream stream)
+    public SkiaSharp.SKImage LoadImage(System.IO.Stream stream)
     {
-        return SKImage.FromEncodedData(stream);
+        return SkiaSharp.SKImage.FromEncodedData(stream);
+    }
+
+    public float MeasureText(SkiaSharp.SKPaint paint, string text)
+    {
+        return paint.MeasureText(text);
     }
 #else
-    public SKImage LoadImage(Stream stream)
+    public ShimSkiaSharp.SKImage LoadImage(System.IO.Stream stream)
     {
-        var data = SKImage.FromStream(stream);
+        var data = ShimSkiaSharp.SKImage.FromStream(stream);
         using var image = SkiaSharp.SKImage.FromEncodedData(data);
-        return new SKImage
+        return new ShimSkiaSharp.SKImage
         {
             Data = data,
             Width = image.Width,
             Height = image.Height
         };
     }
-#endif
-    public float MeasureText(SKPaint paint, string text)
+
+    public float MeasureText(ShimSkiaSharp.SKPaint paint, string text)
     {
         using var skPaint = paint.ToSKPaint();
         return skPaint.MeasureText(text);
     }
+#endif
 }
