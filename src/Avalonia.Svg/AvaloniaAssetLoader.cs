@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System;
-using System.IO;
+﻿using System.IO;
 using ShimSkiaSharp;
 using AMI = Avalonia.Media.Imaging;
 using SM = Svg.Model;
