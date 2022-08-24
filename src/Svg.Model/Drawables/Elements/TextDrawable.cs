@@ -270,8 +270,7 @@ public sealed class TextDrawable : DrawableBase
             {
                 SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
 
-                // ToList otherwise assigning the typeface below will affect FindTypefaces itself
-                foreach (var typefaceRegion in System.Linq.Enumerable.ToList(AssetLoader.FindTypefaces(text, skPaint)))
+                foreach (var typefaceRegion in AssetLoader.FindTypefaces(text, skPaint))
                 {
                     skPaint.Typeface = typefaceRegion.typeface;
 #if USE_TEXT_SHAPER
@@ -294,8 +293,7 @@ public sealed class TextDrawable : DrawableBase
             if (skPaint is { })
             {
                 SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
-                // ToList otherwise assigning the typeface below will affect FindTypefaces itself
-                foreach (var typefaceRegion in System.Linq.Enumerable.ToList(AssetLoader.FindTypefaces(text, skPaint)))
+                foreach (var typefaceRegion in AssetLoader.FindTypefaces(text, skPaint))
                 {
                     skPaint.Typeface = typefaceRegion.typeface;
 #if USE_TEXT_SHAPER
@@ -377,8 +375,7 @@ public sealed class TextDrawable : DrawableBase
                             {
                                 SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
                                 int offset = 0;
-                                // ToList otherwise assigning the typeface below will affect FindTypefaces itself
-                                foreach (var typefaceRegion in System.Linq.Enumerable.ToList(AssetLoader.FindTypefaces(text, skPaint)))
+                                foreach (var typefaceRegion in AssetLoader.FindTypefaces(text, skPaint))
                                 {
                                     skPaint.Typeface = typefaceRegion.typeface;
 #if USE_SKIASHARP
@@ -401,8 +398,7 @@ public sealed class TextDrawable : DrawableBase
                             {
                                 SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
                                 int offset = 0;
-                                // ToList otherwise assigning the typeface below will affect FindTypefaces itself
-                                foreach (var typefaceRegion in System.Linq.Enumerable.ToList(AssetLoader.FindTypefaces(text, skPaint)))
+                                foreach (var typefaceRegion in AssetLoader.FindTypefaces(text, skPaint))
                                 {
                                     skPaint.Typeface = typefaceRegion.typeface;
 #if USE_SKIASHARP

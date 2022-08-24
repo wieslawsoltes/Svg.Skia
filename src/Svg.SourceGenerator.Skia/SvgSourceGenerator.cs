@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -22,10 +23,12 @@ public class SkiaGeneratorAssetLoader : Svg.Model.IAssetLoader
         };
     }
 
-    public float MeasureText(ShimSkiaSharp.SKPaint paint, string text)
+    public List<(string text, float advance, ShimSkiaSharp.SKTypeface? typeface)>
+        FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
-        // TODO: Make this more precise.
-        return text.Length * paint.TextSize;
+        // TODO: How can font fallback be done in a code generator?
+        return new List<(string text, float advance, ShimSkiaSharp.SKTypeface? typeface)>
+        { (text, text.Length * paintPreferredTypeface.TextSize, paintPreferredTypeface.Typeface) };
     }
 }
 

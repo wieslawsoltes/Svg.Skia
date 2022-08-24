@@ -29,9 +29,10 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
         };
     }
 
-    public IEnumerable<(string text, float advance, ShimSkiaSharp.SKTypeface? typeface)>
+    public List<(string text, float advance, ShimSkiaSharp.SKTypeface? typeface)>
         FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
+        var ret = new List<(string text, float advance, ShimSkiaSharp.SKTypeface? typeface)>();
         System.Func<int, SKTypeface?> matchCharacter;
         if (paintPreferredTypeface.Typeface is { } preferredTypeface)
         {
@@ -44,10 +45,10 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
         using var runningPaint = paintPreferredTypeface.ToSKPaint();
         var currentTypefaceStartIndex = 0;
         var i = 0;
-        (string text, float advance, ShimSkiaSharp.SKTypeface? typeface) YieldCurrentTypefaceText()
+        void YieldCurrentTypefaceText()
         {
             var currentTypefaceText = text.Substring(currentTypefaceStartIndex, i - currentTypefaceStartIndex);
-            return (currentTypefaceText, runningPaint.MeasureText(currentTypefaceText),
+            ret.Add((currentTypefaceText, runningPaint.MeasureText(currentTypefaceText),
                 runningPaint.Typeface is null ? null :
                 ShimSkiaSharp.SKTypeface.FromFamilyName(
                     runningPaint.Typeface.FamilyName,
@@ -56,7 +57,7 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
                     (ShimSkiaSharp.SKFontStyleWeight)runningPaint.Typeface.FontWeight,
                     (ShimSkiaSharp.SKFontStyleWidth)runningPaint.Typeface.FontWidth,
                     (ShimSkiaSharp.SKFontStyleSlant)runningPaint.Typeface.FontSlant
-                ));
+                )));
         }
         for (; i < text.Length; i++)
         {
@@ -69,7 +70,7 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
                    && (l.FamilyName, l.FontWeight, l.FontWidth, l.FontSlant)
                    != (r.FamilyName, r.FontWeight, r.FontWidth, r.FontSlant))
             {
-                yield return YieldCurrentTypefaceText();
+                YieldCurrentTypefaceText();
                 currentTypefaceStartIndex = i;
                 runningPaint.Typeface = typeface;
             }
@@ -79,7 +80,8 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
                 i++;
             }
         }
-        yield return YieldCurrentTypefaceText();
+        YieldCurrentTypefaceText();
+        return ret;
     }
 #endif
 }

@@ -11,6 +11,6 @@ namespace Svg.Model;
 public interface IAssetLoader
 {
     SKImage LoadImage(Stream stream);
-    IEnumerable<(string text, float advance, SKTypeface? typeface)>
+    List<(string text, float advance, SKTypeface? typeface)>
         FindTypefaces(string text, SKPaint paintPreferredTypeface);
 }

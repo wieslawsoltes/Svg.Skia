@@ -21,9 +21,10 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
         };
     }
 
-    public IEnumerable<(string text, float advance, ShimSkiaSharp.SKTypeface? typeface)>
+    public List<(string text, float advance, ShimSkiaSharp.SKTypeface? typeface)>
     FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
+        var ret = new List<(string text, float advance, ShimSkiaSharp.SKTypeface? typeface)>();
         System.Func<int, Typeface?> matchCharacter;
         if (paintPreferredTypeface.Typeface is { } preferredTypeface)
         {
@@ -51,17 +52,17 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
         var runningAdvance = 0f;
         var currentTypefaceStartIndex = 0;
         var i = 0;
-        (string text, float advance, ShimSkiaSharp.SKTypeface? typeface) YieldCurrentTypefaceText()
+        void YieldCurrentTypefaceText()
         {
             var currentTypefaceText = text.Substring(currentTypefaceStartIndex, i - currentTypefaceStartIndex);
-            return (currentTypefaceText, runningAdvance * paintPreferredTypeface.TextSize,
+            ret.Add((currentTypefaceText, runningAdvance * paintPreferredTypeface.TextSize,
                 runningTypeface is not { } typeface ? null :
                 ShimSkiaSharp.SKTypeface.FromFamilyName(
                     typeface.FontFamily.Name,
                     typeface.Weight.ToSKFontWeight(),
                     typeface.Stretch.ToSKFontStretch(),
                     typeface.Style.ToSKFontStyle()
-                ));
+                )));
         }
         for (; i < text.Length; i++)
         {
@@ -73,7 +74,7 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
                 || runningTypeface is { } && typeface is null
                 || runningTypeface != typeface)
             {
-                yield return YieldCurrentTypefaceText();
+                YieldCurrentTypefaceText();
                 runningAdvance = 0;
                 currentTypefaceStartIndex = i;
                 runningTypeface = typeface;
@@ -86,6 +87,7 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
                 i++;
             }
         }
-        yield return YieldCurrentTypefaceText();
+        YieldCurrentTypefaceText();
+        return ret;
     }
 }

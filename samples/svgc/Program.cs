@@ -6,7 +6,6 @@ using System.CommandLine.Invocation;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using ShimSkiaSharp;
 using Svg.CodeGen.Skia;
 using SLIS = SixLabors.ImageSharp;
 using SM = Svg.Model;
@@ -45,11 +44,12 @@ class ImageSharpAssetLoader : SM.IAssetLoader
         };
     }
 
-    public IEnumerable<(string text, float advance, ShimSkiaSharp.SKTypeface? typeface)>
-        FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
+    public List<(string text, float advance, SMP.SKTypeface? typeface)>
+        FindTypefaces(string text, SMP.SKPaint paintPreferredTypeface)
     {
         // TODO: How can font fallback be done in a code generator?
-        yield return (text, text.Length * paintPreferredTypeface.TextSize, paintPreferredTypeface.Typeface);
+        return new List<(string text, float advance, SMP.SKTypeface? typeface)>
+        { (text, text.Length * paintPreferredTypeface.TextSize, paintPreferredTypeface.Typeface) };
     }
 }
 
