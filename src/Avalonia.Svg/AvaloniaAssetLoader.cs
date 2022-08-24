@@ -24,12 +24,19 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
     {
         var result = 0f;
         var typeface = (paint.Typeface.ToTypeface() ?? Typeface.Default).GlyphTypeface;
-        for (int i = 0; i < text.Length; i++)
+
+        for (var i = 0; i < text.Length; i++)
         {
-            result += typeface.GetGlyphAdvance(typeface.GetGlyph((uint)char.ConvertToUtf32(text, i))) * paint.TextSize;
+            var glyph = typeface.GetGlyph((uint)char.ConvertToUtf32(text, i));
+
+            result += typeface.GetGlyphAdvance(glyph) * paint.TextSize;
+
             if (char.IsHighSurrogate(text[i]))
+            {
                 i++;
+            }
         }
+
         return result;
     }
 }
