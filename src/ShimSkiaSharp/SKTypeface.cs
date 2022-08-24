@@ -1,6 +1,6 @@
 ﻿namespace ShimSkiaSharp;
 
-public class SKTypeface
+public record class SKTypeface
 {
     public string? FamilyName { get; private set; }
     public SKFontStyleWeight FontWeight { get; private set; }
@@ -10,7 +10,7 @@ public class SKTypeface
     private SKTypeface()
     {
     }
-
+    
     public static SKTypeface FromFamilyName(
         string familyName,
         SKFontStyleWeight weight,

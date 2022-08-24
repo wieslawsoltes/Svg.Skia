@@ -1,20 +1,33 @@
 ﻿namespace Svg.Skia.UnitTests;
-using System.IO;
+using ShimSkiaSharp;
 using Xunit;
 public class SKSvgTests
 {
     [Fact]
-    public void Sign_in()
+    public void Typeface_Splitting()
     {
-        static string CaseFile(string name) =>
-            Path.Combine("..", "..", "..", "Test cases", name);
-        var svg = new SKSvg();
-        using var _ = svg.Load(CaseFile("Sign in.svg"));
-        svg.Save(CaseFile("Sign in (Actual).png"), SkiaSharp.SKColors.Transparent);
-
-        using var expected = SkiaSharp.SKBitmap.Decode(CaseFile("Sign in.png"));
-        using var actual = SkiaSharp.SKBitmap.Decode(CaseFile("Sign in (Actual).png"));
-        Assert.Equal(expected.Info, actual.Info);
-        Assert.Equal(expected.Bytes, actual.Bytes);
+        var text = "123一二三ຫນຶ່ງ​ສອງ​ສາມABC😊😃😄123😈4🚀";
+        var typefaceRegions = new SkiaAssetLoader().FindTypefaces(text, new());
+        Assert.All(typefaceRegions, region => {
+            Assert.NotNull(region.typeface);
+            Assert.Equal(SKFontStyleWeight.Normal, region.typeface!.FontWeight);
+            Assert.Equal(SKFontStyleWidth.Normal, region.typeface.FontWidth);
+            Assert.Equal(SKFontStyleSlant.Upright, region.typeface.Style);
+        });
+        Assert.Equal(new[] {
+            "123",
+            "一二三",
+            "ຫນຶ່ງ",
+            "​", // U+200B 	ZERO WIDTH SPACE
+            "ສອງ",
+            "​", // U+200B 	ZERO WIDTH SPACE
+            "ສາມ",
+            "ABC",
+            "😊😃😄",
+            "123",
+            "😈",
+            "4",
+            "🚀"
+        }, System.Linq.Enumerable.Select(typefaceRegions, region => region.text));
     }
 }

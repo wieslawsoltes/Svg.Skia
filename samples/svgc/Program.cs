@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
@@ -44,10 +45,11 @@ class ImageSharpAssetLoader : SM.IAssetLoader
         };
     }
 
-    public float MeasureText(SKPaint paint, string text)
+    public IEnumerable<(string text, float advance, ShimSkiaSharp.SKTypeface? typeface)>
+        FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
-        // TODO: Make this more precise.
-        return text.Length * paint.TextSize;
+        // TODO: How can font fallback be done in a code generator?
+        yield return (text, text.Length * paintPreferredTypeface.TextSize, paintPreferredTypeface.Typeface);
     }
 }
 

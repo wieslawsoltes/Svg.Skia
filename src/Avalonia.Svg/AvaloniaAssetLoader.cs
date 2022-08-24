@@ -3,6 +3,7 @@ using ShimSkiaSharp;
 using AMI = Avalonia.Media.Imaging;
 using SM = Svg.Model;
 using Avalonia.Media;
+using System.Collections.Generic;
 
 namespace Avalonia.Svg;
 
@@ -20,23 +21,71 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
         };
     }
 
-    public float MeasureText(SKPaint paint, string text)
+    public IEnumerable<(string text, float advance, ShimSkiaSharp.SKTypeface? typeface)>
+    FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
-        var result = 0f;
-        var typeface = (paint.Typeface.ToTypeface() ?? Typeface.Default).GlyphTypeface;
-
-        for (var i = 0; i < text.Length; i++)
+        System.Func<int, Typeface?> matchCharacter;
+        if (paintPreferredTypeface.Typeface is { } preferredTypeface)
         {
-            var glyph = typeface.GetGlyph((uint)char.ConvertToUtf32(text, i));
-
-            result += typeface.GetGlyphAdvance(glyph) * paint.TextSize;
+            var weight = preferredTypeface.FontWeight.ToFontWeight();
+            var width = preferredTypeface.FontWidth.ToFontStretch();
+            var slant = preferredTypeface.Style.ToFontStyle();
+            matchCharacter = codepoint =>
+            {
+                FontManager.Current.TryMatchCharacter(codepoint, slant, weight, width,
+                    preferredTypeface.FamilyName is { } n ? FontFamily.Parse(n) : null,
+                    null, out var typeface);
+                return typeface;
+            };
+        }
+        else
+            matchCharacter = codepoint =>
+            {
+                FontManager.Current.TryMatchCharacter(
+                    codepoint, FontStyle.Normal, FontWeight.Normal, FontStretch.Normal,
+                    null, null, out var typeface
+                );
+                return typeface;
+            };
+        var runningTypeface = paintPreferredTypeface.Typeface.ToTypeface();
+        var runningAdvance = 0f;
+        var currentTypefaceStartIndex = 0;
+        var i = 0;
+        (string text, float advance, ShimSkiaSharp.SKTypeface? typeface) YieldCurrentTypefaceText()
+        {
+            var currentTypefaceText = text.Substring(currentTypefaceStartIndex, i - currentTypefaceStartIndex);
+            return (currentTypefaceText, runningAdvance * paintPreferredTypeface.TextSize,
+                runningTypeface is not { } typeface ? null :
+                ShimSkiaSharp.SKTypeface.FromFamilyName(
+                    typeface.FontFamily.Name,
+                    typeface.Weight.ToSKFontWeight(),
+                    typeface.Stretch.ToSKFontStretch(),
+                    typeface.Style.ToSKFontStyle()
+                ));
+        }
+        for (; i < text.Length; i++)
+        {
+            var codepoint = char.ConvertToUtf32(text, i);
+            var typeface = matchCharacter(codepoint);
+            if (i == 0)
+                runningTypeface = typeface;
+            else if (runningTypeface is null && typeface is { }
+                || runningTypeface is { } && typeface is null
+                || runningTypeface != typeface)
+            {
+                yield return YieldCurrentTypefaceText();
+                runningAdvance = 0;
+                currentTypefaceStartIndex = i;
+                runningTypeface = typeface;
+            }
+            var glyphTypeface = (typeface ?? Typeface.Default).GlyphTypeface;
+            runningAdvance += glyphTypeface.GetGlyphAdvance(glyphTypeface.GetGlyph((uint)codepoint));
 
             if (char.IsHighSurrogate(text[i]))
             {
                 i++;
             }
         }
-
-        return result;
+        yield return YieldCurrentTypefaceText();
     }
 }

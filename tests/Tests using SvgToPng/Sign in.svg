@@ -92,9 +92,9 @@
     <g transform="matrix(1, 0, 0, 1, 0, 0)" filter="url(#Rectangle_19)">
       <rect id="Rectangle_19-2" data-name="Rectangle 19" width="284" height="39" rx="19.5" transform="translate(53 520)" fill="#fff"/>
     </g>
-    <text id="Email" transform="translate(80 485)" font-size="12" font-family="AppleGothic" opacity="0.294"><tspan x="0" y="0">Email</tspan></text>
-    <text id="School_ID" data-name="School ID" transform="translate(80 428)" font-size="12" font-family="AppleGothic" opacity="0.294"><tspan x="0" y="0">School ID</tspan></text>
-    <text id="Password" transform="translate(80 544)" font-size="12" font-family="AppleGothic" opacity="0.294"><tspan x="0" y="0">Password</tspan></text>
+    <text id="Email" transform="translate(80 485)" font-size="12" font-family="AppleGothic" opacity="0.294"><tspan x="0" y="0">📧Email</tspan></text>
+    <text id="School_ID" data-name="School ID" transform="translate(80 428)" font-size="12" font-family="AppleGothic" opacity="0.294"><tspan x="0" y="0">School ID （學校ID）🏫</tspan></text>
+    <text id="Password" transform="translate(80 544)" font-size="12" font-family="AppleGothic" opacity="0.294"><tspan x="0" y="0">🤫Password🤫</tspan></text>
     <g id="Group_18" data-name="Group 18" transform="translate(85.128 190.488)" opacity="0.136">
       <path id="Path_17" data-name="Path 17" d="M206.568,360.967s13.352-13.432,27.128,0C233.7,360.967,219.5,375.742,206.568,360.967Z" transform="translate(-1.985 -11.253)" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="1.5"/>
       <circle id="Ellipse_1" data-name="Ellipse 1" cx="5.559" cy="5.559" r="5.559" transform="translate(212.588 344.453)" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="1.5"/>
@@ -115,7 +115,7 @@
       </g>
     </g>
     <g id="Group_37" data-name="Group 37">
-      <text id="HR4" transform="translate(149 229)" fill="#4da1f5" font-size="38" font-family="HiraginoSans-W7, Hiragino Sans" letter-spacing="0.03em"><tspan x="0" y="0">H</tspan><tspan y="0" fill="#454545">R4</tspan></text>
+      <text id="HR4" transform="translate(149 229)" fill="#4da1f5" font-size="38" font-family="HiraginoSans-W7, Hiragino Sans" letter-spacing="0.03em"><tspan x="0" y="0">H</tspan><tspan y="0" fill="#454545">Rの4</tspan></text>
       <text id="_5G_Timing_Gate_Teacher" data-name="5G Timing Gate                Teacher" transform="translate(143 244)" fill="#f00" font-size="11" font-family="HiraginoSans-W2, Hiragino Sans" letter-spacing="0.03em"><tspan x="0" y="0">5</tspan>G <tspan y="0" fill="#2e2e2e">Timing Gat</tspan><tspan fill="#2e2e2e">e <tspan x="0" y="11" xml:space="preserve">               Te</tspan>a<tspan>c</tspan>h</tspan><tspan><tspan y="11" fill="#2e2e2e">er</tspan></tspan></text>
     </g>
     <g id="Mask_Group_1" data-name="Mask Group 1" clip-path="url(#clip-path)">

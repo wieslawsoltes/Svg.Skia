@@ -1,6 +1,6 @@
 ﻿namespace ShimSkiaSharp;
 
-public sealed class SKPaint
+public sealed record class SKPaint
 {
     public SKPaintStyle Style { get; set; }
 

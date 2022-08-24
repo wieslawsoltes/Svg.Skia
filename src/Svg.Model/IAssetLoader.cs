@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 #if USE_SKIASHARP
 using SkiaSharp;
 #else
@@ -10,5 +11,6 @@ namespace Svg.Model;
 public interface IAssetLoader
 {
     SKImage LoadImage(Stream stream);
-    float MeasureText(SKPaint paint, string text);
+    IEnumerable<(string text, float advance, SKTypeface? typeface)>
+        FindTypefaces(string text, SKPaint paintPreferredTypeface);
 }
