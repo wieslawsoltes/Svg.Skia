@@ -6,7 +6,7 @@ public class SKSvgTests
     [Fact]
     public void Typeface_Splitting()
     {
-        var text = "123一二三456😊😃😄ABC😈4🚀";
+        var text = "123一二三456";
         var typefaceRegions = new SkiaAssetLoader().FindTypefaces(text, new());
         Assert.All(typefaceRegions, region => {
             if (region.typeface is null)
@@ -18,12 +18,7 @@ public class SKSvgTests
         Assert.Equal(new[] {
             "123",
             "一二三",
-            "456",
-            "😊😃😄",
-            "ABC",
-            "😈",
-            "4",
-            "🚀"
+            "456"
         }, System.Linq.Enumerable.Select(typefaceRegions, region => region.text));
     }
 }

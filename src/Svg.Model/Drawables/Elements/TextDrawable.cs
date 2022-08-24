@@ -282,6 +282,9 @@ public sealed class TextDrawable : DrawableBase
 #else
                     skCanvas.DrawText(typefaceRegion.text, x + fillAdvance, y, skPaint);
 #endif
+#if !USE_SKIASHARP
+                    skPaint = skPaint with { }; // Don't modify stored skPaint objects
+#endif
                     fillAdvance += typefaceRegion.advance;
                 }
             }
