@@ -62,26 +62,30 @@ public sealed class SKPaint
         BlendMode = SKBlendMode.SrcOver;
         FilterQuality = SKFilterQuality.None;
     }
-    public SKPaint Clone() => new() // Method exists in SkiaSharp
+
+    public SKPaint Clone()
     {
-        Style = Style,
-        IsAntialias = IsAntialias,
-        StrokeWidth = StrokeWidth,
-        StrokeCap = StrokeCap,
-        StrokeJoin = StrokeJoin,
-        StrokeMiter = StrokeMiter,
-        Typeface = Typeface,
-        TextSize = TextSize,
-        TextAlign = TextAlign,
-        LcdRenderText = LcdRenderText,
-        SubpixelText = SubpixelText,
-        TextEncoding = TextEncoding,
-        Color = Color,
-        Shader = Shader,
-        ColorFilter = ColorFilter,
-        ImageFilter = ImageFilter,
-        PathEffect = PathEffect,
-        BlendMode = BlendMode,
-        FilterQuality = FilterQuality
-    };
+        return new SKPaint
+        {
+            Style = Style,
+            IsAntialias = IsAntialias,
+            StrokeWidth = StrokeWidth,
+            StrokeCap = StrokeCap,
+            StrokeJoin = StrokeJoin,
+            StrokeMiter = StrokeMiter,
+            Typeface = Typeface,
+            TextSize = TextSize,
+            TextAlign = TextAlign,
+            LcdRenderText = LcdRenderText,
+            SubpixelText = SubpixelText,
+            TextEncoding = TextEncoding,
+            Color = Color,
+            Shader = Shader,
+            ColorFilter = ColorFilter,
+            ImageFilter = ImageFilter,
+            PathEffect = PathEffect,
+            BlendMode = BlendMode,
+            FilterQuality = FilterQuality
+        };
+    }
 }
