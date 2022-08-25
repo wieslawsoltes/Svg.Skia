@@ -1,57 +1,13 @@
 ﻿#nullable enable
 using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Svg.CodeGen.Skia;
-using SLIS = SixLabors.ImageSharp;
 using SM = Svg.Model;
-using SMP = ShimSkiaSharp;
 
 namespace svgc;
-
-class Settings
-{
-    public System.IO.FileInfo? InputFile { get; set; }
-    public System.IO.FileInfo? OutputFile { get; set; }
-    public System.IO.FileInfo? JsonFile { get; set; }
-    public string Namespace { get; set; } = "Svg";
-    public string Class { get; set; } = "Generated";
-}
-
-class Item
-{
-    public string? InputFile { get; set; }
-    public string? OutputFile { get; set; }
-    public string? Namespace { get; set; }
-    public string? Class { get; set; }
-}
-
-class ImageSharpAssetLoader : SM.IAssetLoader
-{
-    public SMP.SKImage LoadImage(Stream stream)
-    {
-        var data = SMP.SKImage.FromStream(stream);
-        using var image = SLIS.Image.Load(data);
-        return new SMP.SKImage
-        {
-            Data = data,
-            Width = image.Width,
-            Height = image.Height
-        };
-    }
-
-    public List<SM.TypefaceSpan> FindTypefaces(string text, SMP.SKPaint paintPreferredTypeface)
-    {
-        // TODO: Font fallback and text advancing code should be generated along with canvas commands instead.
-        // Otherwise, some package reference hacking may be needed.
-        return new List<SM.TypefaceSpan>
-        { new (text, text.Length * paintPreferredTypeface.TextSize, paintPreferredTypeface.Typeface) };
-    }
-}
 
 class Program
 {
