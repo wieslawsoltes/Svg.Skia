@@ -10,6 +10,7 @@
   <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <Import Project="..\..\build\XUnit.props" />
+  <Import Project="..\..\build\ImageSharp.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Svg.Skia\Svg.Skia.csproj" />

@@ -2,51 +2,15 @@
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Svg.CodeGen.Skia;
-using SLIS = SixLabors.ImageSharp;
-using SM = Svg.Model;
-using SMP = ShimSkiaSharp;
 
 namespace svgc;
 
-class Settings
-{
-    public System.IO.FileInfo? InputFile { get; set; }
-    public System.IO.FileInfo? OutputFile { get; set; }
-    public System.IO.FileInfo? JsonFile { get; set; }
-    public string Namespace { get; set; } = "Svg";
-    public string Class { get; set; } = "Generated";
-}
-
-class Item
-{
-    public string? InputFile { get; set; }
-    public string? OutputFile { get; set; }
-    public string? Namespace { get; set; }
-    public string? Class { get; set; }
-}
-
-class ImageSharpAssetLoader : SM.IAssetLoader
-{
-    public SMP.SKImage LoadImage(Stream stream)
-    {
-        var data = SMP.SKImage.FromStream(stream);
-        using var image = SLIS.Image.Load(data);
-        return new SMP.SKImage
-        {
-            Data = data,
-            Width = image.Width,
-            Height = image.Height
-        };
-    }
-}
-
 class Program
 {
-    private static readonly SM.IAssetLoader AssetLoader = new ImageSharpAssetLoader();
+    private static readonly Svg.Model.IAssetLoader AssetLoader = new ImageSharpAssetLoader();
 
     static void Log(string message)
     {
@@ -66,10 +30,10 @@ class Program
     static void Generate(string inputPath, string outputPath, string namespaceName = "Svg", string className = "Generated")
     {
         var svg = System.IO.File.ReadAllText(inputPath);
-        var svgDocument = SM.SvgExtensions.FromSvg(svg);
+        var svgDocument = Svg.Model.SvgExtensions.FromSvg(svg);
         if (svgDocument is { })
         {
-            var picture = SM.SvgExtensions.ToModel(svgDocument, AssetLoader, out _, out _);
+            var picture = Svg.Model.SvgExtensions.ToModel(svgDocument, AssetLoader, out _, out _);
             if (picture is { } && picture.Commands is { })
             {
                 var text = SkiaCSharpCodeGen.Generate(picture, namespaceName, className);

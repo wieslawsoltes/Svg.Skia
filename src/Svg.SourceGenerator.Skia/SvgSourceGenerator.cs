@@ -5,19 +5,17 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Svg.CodeGen.Skia;
-using Svg.Model;
-using Svg.Skia;
 
 namespace Svg.SourceGenerator.Skia;
 
 [Generator]
 public class SvgSourceGenerator : ISourceGenerator
 {
-    private static readonly IAssetLoader _assetLoader = new SkiaAssetLoader();
+    private static readonly Model.IAssetLoader s_assetLoader = new SkiaGeneratorAssetLoader();
 
-    private static readonly DiagnosticDescriptor s_errorDescriptor = new DiagnosticDescriptor(
+    private static readonly DiagnosticDescriptor s_errorDescriptor = new(
 #pragma warning disable RS2008 // Enable analyzer release tracking
-        "SV0000",
+        "SVG0001",
 #pragma warning restore RS2008 // Enable analyzer release tracking
         $"Error in the {nameof(SvgSourceGenerator)} generator",
         $"Error in the {nameof(SvgSourceGenerator)} generator: " + "{0}",
@@ -86,10 +84,10 @@ public class SvgSourceGenerator : ISourceGenerator
                     return;
                 }
 
-                var svgDocument = SvgExtensions.FromSvg(svg!);
+                var svgDocument =  Svg.Model.SvgExtensions.FromSvg(svg!);
                 if (svgDocument is { })
                 {
-                    var picture = SvgExtensions.ToModel(svgDocument, _assetLoader, out _, out _);
+                    var picture =  Svg.Model.SvgExtensions.ToModel(svgDocument, s_assetLoader, out _, out _);
                     if (picture is { } && picture.Commands is { })
                     {
                         var code = SkiaCSharpCodeGen.Generate(picture, namespaceName!, className!);
@@ -111,7 +109,7 @@ public class SvgSourceGenerator : ISourceGenerator
         }
         catch (Exception e)
         {
-            context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, e.ToString()));
+            context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, e.Message + " " + e.StackTrace));
         }
     }
 

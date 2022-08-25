@@ -157,20 +157,63 @@ public static class AvaloniaModelExtensions
         }
     }
 
+    public static SKFontStyleWeight ToSKFontWeight(this AM.FontWeight fontStyleWeight)
+    {
+        return (SKFontStyleWeight)fontStyleWeight;
+    }
+
+    public static AM.FontStretch ToFontStretch(this SKFontStyleWidth fontStyleWidth)
+    {
+        return fontStyleWidth switch
+        {
+            SKFontStyleWidth.UltraCondensed => AM.FontStretch.UltraCondensed,
+            SKFontStyleWidth.ExtraCondensed => AM.FontStretch.ExtraCondensed,
+            SKFontStyleWidth.Condensed => AM.FontStretch.Condensed,
+            SKFontStyleWidth.SemiCondensed => AM.FontStretch.SemiCondensed,
+            SKFontStyleWidth.Normal => AM.FontStretch.Normal,
+            SKFontStyleWidth.SemiExpanded => AM.FontStretch.SemiExpanded,
+            SKFontStyleWidth.Expanded => AM.FontStretch.Expanded,
+            SKFontStyleWidth.ExtraExpanded => AM.FontStretch.ExtraExpanded,
+            SKFontStyleWidth.UltraExpanded => AM.FontStretch.UltraExpanded,
+            _ => AM.FontStretch.Normal
+        };
+    }
+
+    public static SKFontStyleWidth ToSKFontStretch(this AM.FontStretch fontStyleWidth)
+    {
+        return fontStyleWidth switch
+        {
+            AM.FontStretch.UltraCondensed => SKFontStyleWidth.UltraCondensed,
+            AM.FontStretch.ExtraCondensed => SKFontStyleWidth.ExtraCondensed,
+            AM.FontStretch.Condensed => SKFontStyleWidth.Condensed,
+            AM.FontStretch.SemiCondensed => SKFontStyleWidth.SemiCondensed,
+            AM.FontStretch.Normal => SKFontStyleWidth.Normal,
+            AM.FontStretch.SemiExpanded => SKFontStyleWidth.SemiExpanded,
+            AM.FontStretch.Expanded => SKFontStyleWidth.Expanded,
+            AM.FontStretch.ExtraExpanded => SKFontStyleWidth.ExtraExpanded,
+            AM.FontStretch.UltraExpanded => SKFontStyleWidth.UltraExpanded,
+            _ => SKFontStyleWidth.Normal
+        };
+    }
+
     public static AM.FontStyle ToFontStyle(this SKFontStyleSlant fontStyleSlant)
     {
-        switch (fontStyleSlant)
+        return fontStyleSlant switch
         {
-            default:
-            case SKFontStyleSlant.Upright:
-                // TODO: FontStyleSlant.Upright
-                return AM.FontStyle.Normal;
-            case SKFontStyleSlant.Italic:
-                return AM.FontStyle.Italic;
+            SKFontStyleSlant.Italic => AM.FontStyle.Italic,
+            SKFontStyleSlant.Oblique => AM.FontStyle.Oblique,
+            _ => AM.FontStyle.Normal
+        };
+    }
 
-            case SKFontStyleSlant.Oblique:
-                return AM.FontStyle.Oblique;
-        }
+    public static SKFontStyleSlant ToSKFontStyle(this AM.FontStyle fontStyleSlant)
+    {
+        return fontStyleSlant switch
+        {
+            AM.FontStyle.Italic => SKFontStyleSlant.Italic,
+            AM.FontStyle.Oblique => SKFontStyleSlant.Oblique,
+            _ => SKFontStyleSlant.Upright
+        };
     }
 
     public static AM.Typeface? ToTypeface(this SKTypeface? typeface)
@@ -180,12 +223,11 @@ public static class AvaloniaModelExtensions
             return null;
         }
 
-        var familyName = typeface.FamilyName;
+        var familyName = typeface.FamilyName ?? AM.Typeface.Default.FontFamily.Name;
         var weight = typeface.FontWeight.ToFontWeight();
-        // TODO: typeface.FontWidth
+        var stretch = typeface.FontWidth.ToFontStretch();
         var slant = typeface.Style.ToFontStyle();
-
-        return new AM.Typeface(familyName, slant, weight);
+        return new AM.Typeface(familyName, slant, weight, stretch);
     }
 
     public static AM.Color ToColor(this SKColor color)
