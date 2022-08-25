@@ -325,8 +325,12 @@ public sealed class TextDrawable : DrawableBase
             switch (node)
             {
                 case not SvgTextBase:
+                {
                     if (string.IsNullOrEmpty(node.Content))
-                    { break; }
+                    {
+                        break;
+                    }
+
                     var text = PrepareText(svgTextBase, node.Content);
                     // TODO: Fix SvgTextBase rendering.
                     var isValidFill = SvgExtensions.IsValidFill(svgTextBase);
@@ -362,16 +366,19 @@ public sealed class TextDrawable : DrawableBase
                             {
                                 dx = dxs[i];
                             }
+
                             if (dys.Count >= 1 && ys.Count >= dys.Count)
                             {
                                 dy = dys[i];
                             }
+
                             points[i] = new SKPoint(x + dx, y + dy);
                         }
 
                         // TODO: Calculate correct bounds.
                         var skBounds = skViewport;
                         var fillAdvance = 0f;
+
                         if (SvgExtensions.IsValidFill(svgTextBase))
                         {
                             var skPaint = SvgExtensions.GetFillPaint(svgTextBase, skBounds, AssetLoader, References, ignoreAttributes);
@@ -379,6 +386,7 @@ public sealed class TextDrawable : DrawableBase
                             {
                                 SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
                                 int offset = 0;
+
                                 foreach (var typefaceSpan in AssetLoader.FindTypefaces(text, skPaint))
                                 {
                                     skPaint.Typeface = typefaceSpan.Typeface;
@@ -394,10 +402,13 @@ public sealed class TextDrawable : DrawableBase
                                 }
                             }
                         }
+
                         var strokeAdvance = 0f;
+
                         if (SvgExtensions.IsValidStroke(svgTextBase, skBounds))
                         {
-                            var skPaint = SvgExtensions.GetStrokePaint(svgTextBase, skBounds, AssetLoader, References, ignoreAttributes);
+                            var skPaint = SvgExtensions.GetStrokePaint(svgTextBase, skBounds, AssetLoader, References,
+                                ignoreAttributes);
                             if (skPaint is { })
                             {
                                 SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
@@ -406,7 +417,8 @@ public sealed class TextDrawable : DrawableBase
                                 {
                                     skPaint.Typeface = typefaceSpan.Typeface;
 #if USE_SKIASHARP
-                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.Text, skPaint.ToFont(), points.AsSpan(offset, typefaceSpan.Text.Length));
+                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.Text, skPaint.ToFont(),
+                                        points.AsSpan(offset, typefaceSpan.Text.Length));
 #else
                                     var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.Text, points.AsMemory(offset, typefaceSpan.Text.Length).ToArray());
                                     skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
@@ -417,6 +429,7 @@ public sealed class TextDrawable : DrawableBase
                                 }
                             }
                         }
+
                         currentX += Math.Max(fillAdvance, strokeAdvance);
                         currentY = points[points.Length - 1].Y;
                     }
@@ -430,16 +443,24 @@ public sealed class TextDrawable : DrawableBase
                         currentY = y + dy;
                         DrawTextString(svgTextBase, text, ref currentX, ref currentY, skViewport, ignoreAttributes, skCanvas, until);
                     }
+
                     break;
+                }
                 case SvgTextPath svgTextPath:
+                {
                     DrawTextPath(svgTextPath, ref currentX, ref currentY, skViewport, ignoreAttributes, true, skCanvas, until);
                     break;
+                }
                 case SvgTextRef svgTextRef:
+                {
                     DrawTextRef(svgTextRef, ref currentX, ref currentY, skViewport, ignoreAttributes, true, skCanvas, until);
                     break;
+                }
                 case SvgTextSpan svgTextSpan:
+                {
                     DrawTextSpan(svgTextSpan, ref currentX, ref currentY, skViewport, ignoreAttributes, true, skCanvas, until);
                     break;
+                }
             }
         }
     }
