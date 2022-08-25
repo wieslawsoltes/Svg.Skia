@@ -1,6 +1,6 @@
 ﻿namespace ShimSkiaSharp;
 
-public sealed record class SKPaint
+public sealed class SKPaint
 {
     public SKPaintStyle Style { get; set; }
 
@@ -62,4 +62,26 @@ public sealed record class SKPaint
         BlendMode = SKBlendMode.SrcOver;
         FilterQuality = SKFilterQuality.None;
     }
+    public SKPaint Clone() => new() // Method exists in SkiaSharp
+    {
+        Style = Style,
+        IsAntialias = IsAntialias,
+        StrokeWidth = StrokeWidth,
+        StrokeCap = StrokeCap,
+        StrokeJoin = StrokeJoin,
+        StrokeMiter = StrokeMiter,
+        Typeface = Typeface,
+        TextSize = TextSize,
+        TextAlign = TextAlign,
+        LcdRenderText = LcdRenderText,
+        SubpixelText = SubpixelText,
+        TextEncoding = TextEncoding,
+        Color = Color,
+        Shader = Shader,
+        ColorFilter = ColorFilter,
+        ImageFilter = ImageFilter,
+        PathEffect = PathEffect,
+        BlendMode = BlendMode,
+        FilterQuality = FilterQuality
+    };
 }

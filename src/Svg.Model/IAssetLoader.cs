@@ -7,10 +7,9 @@ using ShimSkiaSharp;
 #endif
 
 namespace Svg.Model;
-
+public record struct TypefaceSpan(string text, float advance, SKTypeface? typeface);
 public interface IAssetLoader
 {
     SKImage LoadImage(Stream stream);
-    List<(string text, float advance, SKTypeface? typeface)>
-        FindTypefaces(string text, SKPaint paintPreferredTypeface);
+    List<TypefaceSpan> FindTypefaces(string text, SKPaint paintPreferredTypeface);
 }

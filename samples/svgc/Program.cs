@@ -44,12 +44,12 @@ class ImageSharpAssetLoader : SM.IAssetLoader
         };
     }
 
-    public List<(string text, float advance, SMP.SKTypeface? typeface)>
-        FindTypefaces(string text, SMP.SKPaint paintPreferredTypeface)
+    public List<SM.TypefaceSpan> FindTypefaces(string text, SMP.SKPaint paintPreferredTypeface)
     {
-        // TODO: How can font fallback be done in a code generator?
-        return new List<(string text, float advance, SMP.SKTypeface? typeface)>
-        { (text, text.Length * paintPreferredTypeface.TextSize, paintPreferredTypeface.Typeface) };
+        // TODO: Font fallback and text advancing code should be generated along with canvas commands instead.
+        // Figure out how to somehow lay down information here. Otherwise, some package reference hacking may be needed.
+        return new List<SM.TypefaceSpan>
+        { new (text, text.Length * paintPreferredTypeface.TextSize, paintPreferredTypeface.Typeface) };
     }
 }
 

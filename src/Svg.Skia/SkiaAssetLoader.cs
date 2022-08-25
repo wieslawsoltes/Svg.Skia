@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using SkiaSharp;
 using static SkiaSharp.HarfBuzz.SKShaper;
-#if USE_SKIASHARP
-using ShimSkiaSharp = SkiaSharp;
-#endif
 
 namespace Svg.Skia;
 
@@ -25,10 +22,9 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
 #endif
     }
 
-    public List<(string text, float advance, ShimSkiaSharp.SKTypeface? typeface)>
-        FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
+    public List<Model.TypefaceSpan> FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
-        var ret = new List<(string text, float advance, ShimSkiaSharp.SKTypeface? typeface)>();
+        var ret = new List<Model.TypefaceSpan>();
         System.Func<int, SKTypeface?> matchCharacter;
         if (paintPreferredTypeface.Typeface is { } preferredTypeface)
         {
@@ -43,18 +39,22 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
 #endif
             matchCharacter = codepoint => SKFontManager.Default.MatchCharacter(
                 preferredTypeface.FamilyName, weight, width, slant, null, codepoint);
-        } else matchCharacter = codepoint => SKFontManager.Default.MatchCharacter(codepoint);
+        } else { matchCharacter = codepoint => SKFontManager.Default.MatchCharacter(codepoint); }
+        using var runningPaint = paintPreferredTypeface
 #if USE_SKIASHARP
-        using var runningPaint = paintPreferredTypeface.Clone();
+            .Clone();
 #else
-        using var runningPaint = paintPreferredTypeface.ToSKPaint();
+            .ToSKPaint();
 #endif
         var currentTypefaceStartIndex = 0;
         var i = 0;
         void YieldCurrentTypefaceText()
         {
             var currentTypefaceText = text.Substring(currentTypefaceStartIndex, i - currentTypefaceStartIndex);
-            ret.Add((currentTypefaceText, runningPaint.MeasureText(currentTypefaceText),
+            ret.Add(new (currentTypefaceText, runningPaint.MeasureText(currentTypefaceText),
+#if USE_SKIASHARP
+                runningPaint.Typeface
+#else
                 runningPaint.Typeface is null ? null :
                 ShimSkiaSharp.SKTypeface.FromFamilyName(
                     runningPaint.Typeface.FamilyName,
@@ -63,13 +63,15 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
                     (ShimSkiaSharp.SKFontStyleWeight)runningPaint.Typeface.FontWeight,
                     (ShimSkiaSharp.SKFontStyleWidth)runningPaint.Typeface.FontWidth,
                     (ShimSkiaSharp.SKFontStyleSlant)runningPaint.Typeface.FontSlant
-                )));
+                )
+#endif
+                ));
         }
         for (; i < text.Length; i++)
         {
             var typeface = matchCharacter(char.ConvertToUtf32(text, i));
             if (i == 0)
-                runningPaint.Typeface = typeface;
+            { runningPaint.Typeface = typeface; }
             else if (runningPaint.Typeface is null && typeface is { }
                 || runningPaint.Typeface is { } && typeface is null
                 || runningPaint.Typeface is { } l && typeface is { } r

@@ -4,6 +4,7 @@ using AMI = Avalonia.Media.Imaging;
 using SM = Svg.Model;
 using Avalonia.Media;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Avalonia.Svg;
 
@@ -21,10 +22,9 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
         };
     }
 
-    public List<(string text, float advance, ShimSkiaSharp.SKTypeface? typeface)>
-    FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
+    public List<SM.TypefaceSpan> FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
-        var ret = new List<(string text, float advance, ShimSkiaSharp.SKTypeface? typeface)>();
+        var ret = new List<SM.TypefaceSpan>();
         System.Func<int, Typeface?> matchCharacter;
         if (paintPreferredTypeface.Typeface is { } preferredTypeface)
         {
@@ -55,7 +55,7 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
         void YieldCurrentTypefaceText()
         {
             var currentTypefaceText = text.Substring(currentTypefaceStartIndex, i - currentTypefaceStartIndex);
-            ret.Add((currentTypefaceText, runningAdvance * paintPreferredTypeface.TextSize,
+            ret.Add(new (currentTypefaceText, runningAdvance * paintPreferredTypeface.TextSize,
                 runningTypeface is not { } typeface ? null :
                 ShimSkiaSharp.SKTypeface.FromFamilyName(
                     typeface.FontFamily.Name,
@@ -69,7 +69,9 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
             var codepoint = char.ConvertToUtf32(text, i);
             var typeface = matchCharacter(codepoint);
             if (i == 0)
+            {
                 runningTypeface = typeface;
+            }
             else if (runningTypeface is null && typeface is { }
                 || runningTypeface is { } && typeface is null
                 || runningTypeface != typeface)

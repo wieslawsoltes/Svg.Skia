@@ -87,7 +87,7 @@
       <rect id="Rectangle_46-2" data-name="Rectangle 46" width="284" height="39" rx="19.5" transform="translate(53 405)" fill="#fff"/>
     </g>
     <g transform="matrix(1, 0, 0, 1, 0, 0)" filter="url(#Path_129)">
-      <path id="Path_129-2" data-name="Path 129" d="M17.5,0h249a17.5,17.5,0,0,1,0,35H17.5a17.5,17.5,0,0,1,0-35Z" transform="translate(53 605)" fill="#444984" opacity="0.282"/>
+      <path id="Path_129-2" data-name="Path 129" d="M17.5,0h249a17.5,17.5,0,0,1,0,35H17.5a17.5,17.5,0,0,1,0-35Z" transform="translate(53 605)" fill="#454984" opacity="0.282"/>
     </g>
     <g transform="matrix(1, 0, 0, 1, 0, 0)" filter="url(#Rectangle_19)">
       <rect id="Rectangle_19-2" data-name="Rectangle 19" width="284" height="39" rx="19.5" transform="translate(53 520)" fill="#fff"/>
@@ -99,8 +99,8 @@
       <path id="Path_17" data-name="Path 17" d="M206.568,360.967s13.352-13.432,27.128,0C233.7,360.967,219.5,375.742,206.568,360.967Z" transform="translate(-1.985 -11.253)" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="1.5"/>
       <circle id="Ellipse_1" data-name="Ellipse 1" cx="5.559" cy="5.559" r="5.559" transform="translate(212.588 344.453)" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="1.5"/>
     </g>
-    <text id="Log_in" data-name="Log in" transform="translate(173 627)" fill="#fff" font-size="16" font-family="AppleGothic" letter-spacing="0.05em" opacity="0.4"><tspan>   Log   </tspan><tspan>in</tspan><tspan y="6">in</tspan><tspan>in</tspan><tspan dy="-15">in<tspan>in</tspan></tspan><tspan y="2" dx="11">in<tspan>in</tspan></tspan><tspan x="80" dy="7">in<tspan>in</tspan></tspan></text>
-    <g id="Group_35" data-name="Group 35" transform="translate(-10.518 -5.361)" opacity="0.79">
+    <text id="Log_in" data-name="Log in" transform="translate(173 627)" fill="#fff" font-size="16" font-family="AppleGothic" letter-spacing="0.05em" opacity="0.4"><tspan>   Log   </tspan><tspan>in</tspan><tspan fill="red" y="6">in</tspan><tspan>in</tspan><tspan dy="-15">in<tspan fill="lime">in</tspan></tspan><tspan y="2" dx="11" fill="pink" stroke="yellow" font-size="32">in<tspan>in</tspan></tspan><tspan x="80" dy="7">in<tspan>in</tspan></tspan></text>
+    <g id="Group_35" data-name="Group 35" transform="translate(-10.518 -5.361)" opacity="0.24">
       <g transform="matrix(1, 0, 0, 1, 10.52, 5.36)" filter="url(#Path_24)">
         <path id="Path_24-2" data-name="Path 24" d="M418.436,8525.288s-77.944-20.355-134.531,21.688,29.371,124.176-30.954,159.6-273.986-29.624-273.986-29.624" transform="translate(10.52 -8446.36)" fill="none" stroke="#ee81ad" stroke-width="11"/>
       </g>

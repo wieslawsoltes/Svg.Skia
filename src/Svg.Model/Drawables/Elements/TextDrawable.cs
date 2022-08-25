@@ -270,22 +270,22 @@ public sealed class TextDrawable : DrawableBase
             {
                 SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
 
-                foreach (var typefaceRegion in AssetLoader.FindTypefaces(text, skPaint))
+                foreach (var typefaceSpan in AssetLoader.FindTypefaces(text, skPaint))
                 {
-                    skPaint.Typeface = typefaceRegion.typeface;
+                    skPaint.Typeface = typefaceSpan.typeface;
 #if USE_TEXT_SHAPER
                     if (skPaint.Typeface is { } typeface)
                     {
                         using var skShaper = new SKShaper(skPaint.Typeface);
-                        skCanvas.DrawShapedText(skShaper, typefaceRegion.text, x + fillAdvance, y, skPaint);
+                        skCanvas.DrawShapedText(skShaper, typefaceSpan.text, x + fillAdvance, y, skPaint);
                     }
 #else
-                    skCanvas.DrawText(typefaceRegion.text, x + fillAdvance, y, skPaint);
+                    skCanvas.DrawText(typefaceSpan.text, x + fillAdvance, y, skPaint);
 #endif
 #if !USE_SKIASHARP
-                    skPaint = skPaint with { }; // Don't modify stored skPaint objects
+                    skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
 #endif
-                    fillAdvance += typefaceRegion.advance;
+                    fillAdvance += typefaceSpan.advance;
                 }
             }
         }
@@ -296,22 +296,22 @@ public sealed class TextDrawable : DrawableBase
             if (skPaint is { })
             {
                 SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
-                foreach (var typefaceRegion in AssetLoader.FindTypefaces(text, skPaint))
+                foreach (var typefaceSpan in AssetLoader.FindTypefaces(text, skPaint))
                 {
-                    skPaint.Typeface = typefaceRegion.typeface;
+                    skPaint.Typeface = typefaceSpan.typeface;
 #if USE_TEXT_SHAPER
                     if (skPaint.Typeface is { } typeface)
                     {
                         using var skShaper = new SKShaper(skPaint.Typeface);
-                        skCanvas.DrawShapedText(skShaper, typefaceRegion.text, x + strokeAdvance, y, skPaint);
+                        skCanvas.DrawShapedText(skShaper, typefaceSpan.text, x + strokeAdvance, y, skPaint);
                     }
 #else
-                    skCanvas.DrawText(typefaceRegion.text, x + strokeAdvance, y, skPaint);
+                    skCanvas.DrawText(typefaceSpan.text, x + strokeAdvance, y, skPaint);
 #endif
 #if !USE_SKIASHARP
-                    skPaint = skPaint with { }; // Don't modify stored skPaint objects
+                    skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
 #endif
-                    strokeAdvance += typefaceRegion.advance;
+                    strokeAdvance += typefaceSpan.advance;
                 }
             }
         }
@@ -321,6 +321,7 @@ public sealed class TextDrawable : DrawableBase
     internal void DrawTextBase(SvgTextBase svgTextBase, ref float currentX, ref float currentY, SKRect skViewport, DrawAttributes ignoreAttributes, SKCanvas skCanvas, DrawableBase? until)
     {
         foreach (var node in GetContentNodes(svgTextBase))
+        {
             switch (node)
             {
                 case not SvgTextBase:
@@ -378,18 +379,18 @@ public sealed class TextDrawable : DrawableBase
                             {
                                 SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
                                 int offset = 0;
-                                foreach (var typefaceRegion in AssetLoader.FindTypefaces(text, skPaint))
+                                foreach (var typefaceSpan in AssetLoader.FindTypefaces(text, skPaint))
                                 {
-                                    skPaint.Typeface = typefaceRegion.typeface;
+                                    skPaint.Typeface = typefaceSpan.typeface;
 #if USE_SKIASHARP
-                                    var textBlob = SKTextBlob.CreatePositioned(typefaceRegion.text, skPaint.ToFont(), points.AsSpan(offset, typefaceRegion.text.Length));
+                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.text, skPaint.ToFont(), points.AsSpan(offset, typefaceSpan.text.Length));
 #else
-                                    var textBlob = SKTextBlob.CreatePositioned(typefaceRegion.text, points.AsMemory(offset, typefaceRegion.text.Length).ToArray());
-                                    skPaint = skPaint with { }; // Don't modify stored skPaint objects
+                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.text, points.AsMemory(offset, typefaceSpan.text.Length).ToArray());
+                                    skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
 #endif
                                     skCanvas.DrawText(textBlob, 0, 0, skPaint);
-                                    fillAdvance += typefaceRegion.advance;
-                                    offset += typefaceRegion.text.Length;
+                                    fillAdvance += typefaceSpan.advance;
+                                    offset += typefaceSpan.text.Length;
                                 }
                             }
                         }
@@ -401,18 +402,18 @@ public sealed class TextDrawable : DrawableBase
                             {
                                 SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
                                 int offset = 0;
-                                foreach (var typefaceRegion in AssetLoader.FindTypefaces(text, skPaint))
+                                foreach (var typefaceSpan in AssetLoader.FindTypefaces(text, skPaint))
                                 {
-                                    skPaint.Typeface = typefaceRegion.typeface;
+                                    skPaint.Typeface = typefaceSpan.typeface;
 #if USE_SKIASHARP
-                                    var textBlob = SKTextBlob.CreatePositioned(typefaceRegion.text, skPaint.ToFont(), points.AsSpan(offset, typefaceRegion.text.Length));
+                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.text, skPaint.ToFont(), points.AsSpan(offset, typefaceSpan.text.Length));
 #else
-                                    var textBlob = SKTextBlob.CreatePositioned(typefaceRegion.text, points.AsMemory(offset, typefaceRegion.text.Length).ToArray());
-                                    skPaint = skPaint with { }; // Don't modify stored skPaint objects
+                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.text, points.AsMemory(offset, typefaceSpan.text.Length).ToArray());
+                                    skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
 #endif
                                     skCanvas.DrawText(textBlob, 0, 0, skPaint);
-                                    strokeAdvance += typefaceRegion.advance;
-                                    offset += typefaceRegion.text.Length;
+                                    strokeAdvance += typefaceSpan.advance;
+                                    offset += typefaceSpan.text.Length;
                                 }
                             }
                         }
@@ -440,6 +441,7 @@ public sealed class TextDrawable : DrawableBase
                     DrawTextSpan(svgTextSpan, ref currentX, ref currentY, skViewport, ignoreAttributes, true, skCanvas, until);
                     break;
             }
+        }
     }
 
     internal void DrawTextPath(SvgTextPath svgTextPath, ref float currentX, ref float currentY, SKRect skViewport, DrawAttributes ignoreAttributes, bool enableTransform, SKCanvas skCanvas, DrawableBase? until)
