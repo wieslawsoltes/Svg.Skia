@@ -410,11 +410,23 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
         return skPictureRecorder.EndRecording();
     }
 
-    private const DrawAttributes FilterInput = DrawAttributes.ClipPath | DrawAttributes.Mask | DrawAttributes.Opacity | DrawAttributes.Filter;
+    private const DrawAttributes FilterBackgroundInput =
+        DrawAttributes.ClipPath
+        | DrawAttributes.Mask
+        | DrawAttributes.Opacity
+        | DrawAttributes.Filter;
 
-    SKPicture? IFilterSource.SourceGraphic(SKRect? clip) => RecordGraphic(this, clip, FilterInput);
+    protected virtual void PostProcessChildren(SKRect? clip, SKMatrix totalMatrix)
+    {
+    }
 
-    SKPicture? IFilterSource.BackgroundImage(SKRect? clip) => RecordBackground(this, clip, FilterInput);
+    SKPicture? IFilterSource.SourceGraphic(SKRect? clip)
+    {
+        PostProcessChildren(clip, SKMatrix.Identity);
+        return RecordGraphic(this, clip, DrawAttributes.None);
+    }
+
+    SKPicture? IFilterSource.BackgroundImage(SKRect? clip) => RecordBackground(this, clip, FilterBackgroundInput);
 
     SKPaint? IFilterSource.FillPaint() => Fill;
 
