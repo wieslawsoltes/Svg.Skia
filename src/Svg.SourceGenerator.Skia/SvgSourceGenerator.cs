@@ -1,6 +1,5 @@
 #nullable enable
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -9,33 +8,10 @@ using Svg.CodeGen.Skia;
 
 namespace Svg.SourceGenerator.Skia;
 
-public class SkiaGeneratorAssetLoader : Svg.Model.IAssetLoader
-{
-    public ShimSkiaSharp.SKImage LoadImage(System.IO.Stream stream)
-    {
-        var data = ShimSkiaSharp.SKImage.FromStream(stream);
-        using var image = SkiaSharp.SKImage.FromEncodedData(data);
-        return new ShimSkiaSharp.SKImage
-        {
-            Data = data,
-            Width = image.Width,
-            Height = image.Height
-        };
-    }
-
-    public List<Model.TypefaceSpan> FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
-    {
-        // TODO: Font fallback and text advancing code should be generated along with canvas commands instead.
-        // Otherwise, some package reference hacking may be needed.
-        return new List<Model.TypefaceSpan>
-        { new (text, text.Length * paintPreferredTypeface.TextSize, paintPreferredTypeface.Typeface) };
-    }
-}
-
 [Generator]
 public class SvgSourceGenerator : ISourceGenerator
 {
-    private static readonly  Svg.Model.IAssetLoader s_assetLoader = new SkiaGeneratorAssetLoader();
+    private static readonly Model.IAssetLoader s_assetLoader = new SkiaGeneratorAssetLoader();
 
     private static readonly DiagnosticDescriptor s_errorDescriptor = new(
 #pragma warning disable RS2008 // Enable analyzer release tracking
