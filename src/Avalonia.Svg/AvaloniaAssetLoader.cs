@@ -19,12 +19,15 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
     public List<SM.TypefaceSpan> FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
         var ret = new List<SM.TypefaceSpan>();
+
         System.Func<int, Typeface?> matchCharacter;
+
         if (paintPreferredTypeface.Typeface is { } preferredTypeface)
         {
             var weight = preferredTypeface.FontWeight.ToFontWeight();
             var width = preferredTypeface.FontWidth.ToFontStretch();
             var slant = preferredTypeface.Style.ToFontStyle();
+
             matchCharacter = codepoint =>
             {
                 FontManager.Current.TryMatchCharacter(
@@ -32,7 +35,9 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
                     slant,
                     weight,
                     width,
-                    preferredTypeface.FamilyName is { } n ? FontFamily.Parse(n) : null,
+                    preferredTypeface.FamilyName is { } n 
+                        ? FontFamily.Parse(n) 
+                        : null,
                     null, out var typeface);
 
                 return typeface;
@@ -64,6 +69,7 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
         void YieldCurrentTypefaceText()
         {
             var currentTypefaceText = text.Substring(currentTypefaceStartIndex, i - currentTypefaceStartIndex);
+
             ret.Add(
                 new(
                     currentTypefaceText,
