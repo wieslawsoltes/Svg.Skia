@@ -272,7 +272,7 @@ public sealed class TextDrawable : DrawableBase
 
                 foreach (var typefaceSpan in AssetLoader.FindTypefaces(text, skPaint))
                 {
-                    skPaint.Typeface = typefaceSpan.typeface;
+                    skPaint.Typeface = typefaceSpan.Typeface;
 #if USE_TEXT_SHAPER
                     if (skPaint.Typeface is { } typeface)
                     {
@@ -280,12 +280,12 @@ public sealed class TextDrawable : DrawableBase
                         skCanvas.DrawShapedText(skShaper, typefaceSpan.text, x + fillAdvance, y, skPaint);
                     }
 #else
-                    skCanvas.DrawText(typefaceSpan.text, x + fillAdvance, y, skPaint);
+                    skCanvas.DrawText(typefaceSpan.Text, x + fillAdvance, y, skPaint);
 #endif
 #if !USE_SKIASHARP
                     skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
 #endif
-                    fillAdvance += typefaceSpan.advance;
+                    fillAdvance += typefaceSpan.Advance;
                 }
             }
         }
@@ -298,7 +298,7 @@ public sealed class TextDrawable : DrawableBase
                 SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
                 foreach (var typefaceSpan in AssetLoader.FindTypefaces(text, skPaint))
                 {
-                    skPaint.Typeface = typefaceSpan.typeface;
+                    skPaint.Typeface = typefaceSpan.Typeface;
 #if USE_TEXT_SHAPER
                     if (skPaint.Typeface is { } typeface)
                     {
@@ -306,12 +306,12 @@ public sealed class TextDrawable : DrawableBase
                         skCanvas.DrawShapedText(skShaper, typefaceSpan.text, x + strokeAdvance, y, skPaint);
                     }
 #else
-                    skCanvas.DrawText(typefaceSpan.text, x + strokeAdvance, y, skPaint);
+                    skCanvas.DrawText(typefaceSpan.Text, x + strokeAdvance, y, skPaint);
 #endif
 #if !USE_SKIASHARP
                     skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
 #endif
-                    strokeAdvance += typefaceSpan.advance;
+                    strokeAdvance += typefaceSpan.Advance;
                 }
             }
         }
@@ -381,16 +381,16 @@ public sealed class TextDrawable : DrawableBase
                                 int offset = 0;
                                 foreach (var typefaceSpan in AssetLoader.FindTypefaces(text, skPaint))
                                 {
-                                    skPaint.Typeface = typefaceSpan.typeface;
+                                    skPaint.Typeface = typefaceSpan.Typeface;
 #if USE_SKIASHARP
                                     var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.text, skPaint.ToFont(), points.AsSpan(offset, typefaceSpan.text.Length));
 #else
-                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.text, points.AsMemory(offset, typefaceSpan.text.Length).ToArray());
+                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.Text, points.AsMemory(offset, typefaceSpan.Text.Length).ToArray());
                                     skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
 #endif
                                     skCanvas.DrawText(textBlob, 0, 0, skPaint);
-                                    fillAdvance += typefaceSpan.advance;
-                                    offset += typefaceSpan.text.Length;
+                                    fillAdvance += typefaceSpan.Advance;
+                                    offset += typefaceSpan.Text.Length;
                                 }
                             }
                         }
@@ -404,16 +404,16 @@ public sealed class TextDrawable : DrawableBase
                                 int offset = 0;
                                 foreach (var typefaceSpan in AssetLoader.FindTypefaces(text, skPaint))
                                 {
-                                    skPaint.Typeface = typefaceSpan.typeface;
+                                    skPaint.Typeface = typefaceSpan.Typeface;
 #if USE_SKIASHARP
                                     var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.text, skPaint.ToFont(), points.AsSpan(offset, typefaceSpan.text.Length));
 #else
-                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.text, points.AsMemory(offset, typefaceSpan.text.Length).ToArray());
+                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.Text, points.AsMemory(offset, typefaceSpan.Text.Length).ToArray());
                                     skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
 #endif
                                     skCanvas.DrawText(textBlob, 0, 0, skPaint);
-                                    strokeAdvance += typefaceSpan.advance;
-                                    offset += typefaceSpan.text.Length;
+                                    strokeAdvance += typefaceSpan.Advance;
+                                    offset += typefaceSpan.Text.Length;
                                 }
                             }
                         }

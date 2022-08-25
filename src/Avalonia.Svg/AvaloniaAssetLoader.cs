@@ -13,12 +13,7 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
     {
         var data = SKImage.FromStream(stream);
         using var image = new AMI.Bitmap(stream);
-        return new SKImage
-        {
-            Data = data,
-            Width = (float)image.Size.Width,
-            Height = (float)image.Size.Height
-        };
+        return new SKImage {Data = data, Width = (float)image.Size.Width, Height = (float)image.Size.Height};
     }
 
     public List<SM.TypefaceSpan> FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
@@ -32,37 +27,57 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
             var slant = preferredTypeface.Style.ToFontStyle();
             matchCharacter = codepoint =>
             {
-                FontManager.Current.TryMatchCharacter(codepoint, slant, weight, width,
+                FontManager.Current.TryMatchCharacter(
+                    codepoint,
+                    slant,
+                    weight,
+                    width,
                     preferredTypeface.FamilyName is { } n ? FontFamily.Parse(n) : null,
                     null, out var typeface);
+
                 return typeface;
             };
         }
         else
+        {
             matchCharacter = codepoint =>
             {
                 FontManager.Current.TryMatchCharacter(
-                    codepoint, FontStyle.Normal, FontWeight.Normal, FontStretch.Normal,
-                    null, null, out var typeface
+                    codepoint,
+                    FontStyle.Normal,
+                    FontWeight.Normal,
+                    FontStretch.Normal,
+                    null,
+                    null,
+                    out var typeface
                 );
+
                 return typeface;
             };
+        }
+
         var runningTypeface = paintPreferredTypeface.Typeface.ToTypeface();
         var runningAdvance = 0f;
         var currentTypefaceStartIndex = 0;
         var i = 0;
+
         void YieldCurrentTypefaceText()
         {
             var currentTypefaceText = text.Substring(currentTypefaceStartIndex, i - currentTypefaceStartIndex);
-            ret.Add(new (currentTypefaceText, runningAdvance * paintPreferredTypeface.TextSize,
-                runningTypeface is not { } typeface ? null :
-                ShimSkiaSharp.SKTypeface.FromFamilyName(
-                    typeface.FontFamily.Name,
-                    typeface.Weight.ToSKFontWeight(),
-                    typeface.Stretch.ToSKFontStretch(),
-                    typeface.Style.ToSKFontStyle()
-                )));
+            ret.Add(
+                new(
+                    currentTypefaceText,
+                    runningAdvance * paintPreferredTypeface.TextSize,
+                    runningTypeface is not { } typeface
+                        ? null
+                        : ShimSkiaSharp.SKTypeface.FromFamilyName(
+                            typeface.FontFamily.Name,
+                            typeface.Weight.ToSKFontWeight(),
+                            typeface.Stretch.ToSKFontStretch(),
+                            typeface.Style.ToSKFontStyle()
+                        )));
         }
+
         for (; i < text.Length; i++)
         {
             var codepoint = char.ConvertToUtf32(text, i);
@@ -71,15 +86,18 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
             {
                 runningTypeface = typeface;
             }
-            else if (runningTypeface is null && typeface is { }
-                || runningTypeface is { } && typeface is null
-                || runningTypeface != typeface)
+            else if (runningTypeface is null
+                     && typeface is { }
+                     || runningTypeface is { }
+                     && typeface is null
+                     || runningTypeface != typeface)
             {
                 YieldCurrentTypefaceText();
                 runningAdvance = 0;
                 currentTypefaceStartIndex = i;
                 runningTypeface = typeface;
             }
+
             var glyphTypeface = (typeface ?? Typeface.Default).GlyphTypeface;
             runningAdvance += glyphTypeface.GetGlyphAdvance(glyphTypeface.GetGlyph((uint)codepoint));
 
@@ -88,7 +106,9 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
                 i++;
             }
         }
+
         YieldCurrentTypefaceText();
+
         return ret;
     }
 }
