@@ -20,7 +20,9 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
     public List<Model.TypefaceSpan> FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
         var ret = new List<Model.TypefaceSpan>();
+
         System.Func<int, SKTypeface?> matchCharacter;
+
         if (paintPreferredTypeface.Typeface is { } preferredTypeface)
         {
 #if USE_SKIASHARP
@@ -33,14 +35,17 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
             var slant = preferredTypeface.Style.ToSKFontStyleSlant();
 #endif
             matchCharacter = codepoint => SKFontManager.Default.MatchCharacter(
-                preferredTypeface.FamilyName, 
-                weight, 
-                width, 
-                slant, 
-                null, 
+                preferredTypeface.FamilyName,
+                weight,
+                width,
+                slant,
+                null,
                 codepoint);
         }
-        else { matchCharacter = codepoint => SKFontManager.Default.MatchCharacter(codepoint); }
+        else
+        {
+            matchCharacter = codepoint => SKFontManager.Default.MatchCharacter(codepoint);
+        }
 
         using var runningPaint = paintPreferredTypeface
 #if USE_SKIASHARP
@@ -80,14 +85,11 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
             {
                 runningPaint.Typeface = typeface;
             }
-            else if (runningPaint.Typeface is null 
-                     && typeface is { }
-                     || runningPaint.Typeface is { } 
-                     && typeface is null
-                     || runningPaint.Typeface is { } l 
+            else if (runningPaint.Typeface is null
+                     && typeface is { } || runningPaint.Typeface is { }
+                     && typeface is null || runningPaint.Typeface is { } l
                      && typeface is { } r
-                     && (l.FamilyName, l.FontWeight, l.FontWidth, l.FontSlant)
-                     != (r.FamilyName, r.FontWeight, r.FontWidth, r.FontSlant))
+                     && (l.FamilyName, l.FontWeight, l.FontWidth, l.FontSlant) != (r.FamilyName, r.FontWeight, r.FontWidth, r.FontSlant))
             {
                 YieldCurrentTypefaceText();
 
