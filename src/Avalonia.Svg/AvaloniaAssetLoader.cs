@@ -92,10 +92,8 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
             {
                 runningTypeface = typeface;
             }
-            else if (runningTypeface is null
-                     && typeface is { }
-                     || runningTypeface is { }
-                     && typeface is null
+            else if (runningTypeface is null && typeface is { } 
+                     || runningTypeface is { } && typeface is null 
                      || runningTypeface != typeface)
             {
                 YieldCurrentTypefaceText();
