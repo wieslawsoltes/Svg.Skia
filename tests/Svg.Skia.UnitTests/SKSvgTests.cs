@@ -14,7 +14,7 @@ public class SKSvgTests
 
     private string GetPath(string name) => Path.Combine("..", "..", "..", "..", "Tests", name);
 
-    private void CompareImages(string name, string actualPath, string expectedPath)
+    private void CompareImages(string name, string actualPath, string expectedPath, double errorThreshold)
     {
         using var expected = Image.Load<Rgba32>(expectedPath);
         using var actual = Image.Load<Rgba32>(actualPath);
@@ -22,7 +22,7 @@ public class SKSvgTests
 
         _output.WriteLine($"[{name}] {immediateError}");
 
-        if (immediateError > 0.028) // 0.022
+        if (immediateError > errorThreshold)
         {
             Assert.True(false, name + ": Error = " + immediateError);
         }
@@ -75,13 +75,15 @@ public class SKSvgTests
     {
         _output = output;
     }
-    
+
+    public record TestFile(string Name, double ErrorThreshold);
+
     [WindowsTheory]
-    [InlineData("Sign in")]
-    [InlineData("__AJ_Digital_Camera")]
-    [InlineData("__Telefunken_FuBK_test_pattern")]
-    [InlineData("__tiger")]
-    public void Test(string name)
+    [InlineData("Sign in", 0.022)]
+    [InlineData("__AJ_Digital_Camera", 0.027)]
+    [InlineData("__Telefunken_FuBK_test_pattern", 0.022)]
+    [InlineData("__tiger", 0.055)]
+    public void Test(string name, double errorThreshold)
     {
         var inSvgPath = GetPath($"{name}.svg");
         var expectedPng = GetPath($"{name}.png");
@@ -91,7 +93,7 @@ public class SKSvgTests
         using var _ = svg.Load(inSvgPath);
         svg.Save(actualPng, SkiaSharp.SKColors.Transparent);
 
-        CompareImages(name, actualPng, expectedPng);
+        CompareImages(name, actualPng, expectedPng, errorThreshold);
 
         File.Delete(actualPng);
     }
