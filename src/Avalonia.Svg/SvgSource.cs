@@ -1,6 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Runtime.InteropServices;
+using System.IO;
 using Avalonia.Platform;
 using ShimSkiaSharp;
 using SM = Svg.Model;
@@ -26,6 +26,16 @@ public class SvgSource
     /// <returns>The svg picture.</returns>
     public static SKPicture? LoadPicture(string path, Uri? baseUri)
     {
+        if (File.Exists(path))
+        {
+            var document = SM.SvgExtensions.Open(path);
+            if (document is { })
+            {
+                return SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _);
+            }
+            return default;
+        }
+
         var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
         if (uri.IsAbsoluteUri && uri.IsFile)
         {
