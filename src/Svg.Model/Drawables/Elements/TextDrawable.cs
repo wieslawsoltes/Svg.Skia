@@ -383,7 +383,7 @@ public sealed class TextDrawable : DrawableBase
                                 {
                                     skPaint.Typeface = typefaceSpan.Typeface;
 #if USE_SKIASHARP
-                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.text, skPaint.ToFont(), points.AsSpan(offset, typefaceSpan.text.Length));
+                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.Text, skPaint.ToFont(), points.AsSpan(offset, typefaceSpan.Text.Length));
 #else
                                     var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.Text, points.AsMemory(offset, typefaceSpan.Text.Length).ToArray());
                                     skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
@@ -406,7 +406,7 @@ public sealed class TextDrawable : DrawableBase
                                 {
                                     skPaint.Typeface = typefaceSpan.Typeface;
 #if USE_SKIASHARP
-                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.text, skPaint.ToFont(), points.AsSpan(offset, typefaceSpan.text.Length));
+                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.Text, skPaint.ToFont(), points.AsSpan(offset, typefaceSpan.Text.Length));
 #else
                                     var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.Text, points.AsMemory(offset, typefaceSpan.Text.Length).ToArray());
                                     skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
