@@ -69,11 +69,19 @@ public abstract class DrawableContainer : DrawableBase
     {
         base.PostProcess(viewport, totalMatrix);
 
+        PostProcessChildren(viewport, TotalTransform);
+    }
+
+    protected override void PostProcessChildren(SKRect? clip, SKMatrix totalMatrix)
+    {
+        base.PostProcessChildren(clip, totalMatrix);
+
         foreach (var child in ChildrenDrawables)
         {
-            child.PostProcess(viewport, TotalTransform);
+            child.PostProcess(clip, SKMatrix.Identity);
         }
     }
+
 #if USE_DEBUG_DRAW_BOUNDS
     public override void DebugDrawBounds(SKCanvas canvas)
     {
