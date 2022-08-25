@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.IO;
 using Avalonia.Platform;
 using Svg.Skia;
 
@@ -19,6 +20,13 @@ public class SvgSource : SKSvg
     /// <returns>The svg source.</returns>
     public static T? Load<T>(string path, Uri? baseUri) where T : SKSvg, new()
     {
+        if (File.Exists(path))
+        {
+            var source = new T();
+            source.Load(path);
+            return source;
+        }
+
         var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
         if (uri.IsAbsoluteUri && uri.IsFile)
         {
