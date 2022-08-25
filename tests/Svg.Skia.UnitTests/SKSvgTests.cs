@@ -10,6 +10,8 @@ namespace Svg.Skia.UnitTests;
 
 public class SKSvgTests
 {
+    private readonly ITestOutputHelper _output;
+
     private string GetPath(string name) => Path.Combine("..", "..", "..", "..", "Tests", name);
 
     private void CompareImages(string name, string actualPath, string expectedPath)
@@ -22,7 +24,7 @@ public class SKSvgTests
 
         if (immediateError > 0.028) // 0.022
         {
-            Assert.True(false, actualPath + ": Error = " + immediateError);
+            Assert.True(false, name + ": Error = " + immediateError);
         }
     }
 
@@ -69,14 +71,12 @@ public class SKSvgTests
         return Math.Sqrt(meanSquaresError);
     }
 
-    private readonly ITestOutputHelper _output;
-
     public SKSvgTests(ITestOutputHelper output)
     {
         _output = output;
     }
     
-    [Theory]
+    [WindowsTheory]
     [InlineData("Sign in")]
     [InlineData("__AJ_Digital_Camera")]
     public void Test(string name)
