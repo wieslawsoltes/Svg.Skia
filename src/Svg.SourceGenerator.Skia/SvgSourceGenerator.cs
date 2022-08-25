@@ -26,7 +26,7 @@ public class SkiaGeneratorAssetLoader : Svg.Model.IAssetLoader
     public List<Model.TypefaceSpan> FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
         // TODO: Font fallback and text advancing code should be generated along with canvas commands instead.
-        // Figure out how to somehow lay down information here. Otherwise, some package reference hacking may be needed.
+        // Otherwise, some package reference hacking may be needed.
         return new List<Model.TypefaceSpan>
         { new (text, text.Length * paintPreferredTypeface.TextSize, paintPreferredTypeface.Typeface) };
     }

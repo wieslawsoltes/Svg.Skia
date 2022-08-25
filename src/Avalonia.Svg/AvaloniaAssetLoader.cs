@@ -4,7 +4,6 @@ using AMI = Avalonia.Media.Imaging;
 using SM = Svg.Model;
 using Avalonia.Media;
 using System.Collections.Generic;
-using System.Reflection;
 
 namespace Avalonia.Svg;
 
