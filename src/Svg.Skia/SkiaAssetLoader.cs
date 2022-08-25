@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
-using SkiaSharp;
-using static SkiaSharp.HarfBuzz.SKShaper;
 
 namespace Svg.Skia;
 
-public class SkiaAssetLoader : Svg.Model.IAssetLoader
+public class SkiaAssetLoader : Model.IAssetLoader
 {
     public ShimSkiaSharp.SKImage LoadImage(System.IO.Stream stream)
     {
@@ -21,7 +19,7 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
     {
         var ret = new List<Model.TypefaceSpan>();
 
-        System.Func<int, SKTypeface?> matchCharacter;
+        System.Func<int, SkiaSharp.SKTypeface?> matchCharacter;
 
         if (paintPreferredTypeface.Typeface is { } preferredTypeface)
         {
@@ -34,7 +32,7 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
             var width = preferredTypeface.FontWidth.ToSKFontStyleWidth();
             var slant = preferredTypeface.Style.ToSKFontStyleSlant();
 #endif
-            matchCharacter = codepoint => SKFontManager.Default.MatchCharacter(
+            matchCharacter = codepoint => SkiaSharp.SKFontManager.Default.MatchCharacter(
                 preferredTypeface.FamilyName,
                 weight,
                 width,
@@ -44,7 +42,7 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
         }
         else
         {
-            matchCharacter = codepoint => SKFontManager.Default.MatchCharacter(codepoint);
+            matchCharacter = codepoint => SkiaSharp.SKFontManager.Default.MatchCharacter(codepoint);
         }
 
         using var runningPaint = paintPreferredTypeface
