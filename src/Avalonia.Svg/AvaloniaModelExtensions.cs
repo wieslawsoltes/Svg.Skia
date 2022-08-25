@@ -117,50 +117,104 @@ public static class AvaloniaModelExtensions
         }
     }
 
-    public static AM.FontWeight ToFontWeight(this SKFontStyleWeight fontStyleWeight) =>
-        // The numeric values in these two enumerations have the same scale.
-        // Casting is even encouraged in AM.FontWeight XML documentation.
-        (AM.FontWeight)fontStyleWeight;
-    public static SKFontStyleWeight ToSKFontWeight(this AM.FontWeight fontStyleWeight) =>
-        (SKFontStyleWeight)fontStyleWeight;
-
-    public static AM.FontStretch ToFontStretch(this SKFontStyleWidth fontStyleWidth) => fontStyleWidth switch {
-        SKFontStyleWidth.UltraCondensed => AM.FontStretch.UltraCondensed,
-        SKFontStyleWidth.ExtraCondensed => AM.FontStretch.ExtraCondensed,
-        SKFontStyleWidth.Condensed => AM.FontStretch.Condensed,
-        SKFontStyleWidth.SemiCondensed => AM.FontStretch.SemiCondensed,
-        SKFontStyleWidth.Normal => AM.FontStretch.Normal,
-        SKFontStyleWidth.SemiExpanded => AM.FontStretch.SemiExpanded,
-        SKFontStyleWidth.Expanded => AM.FontStretch.Expanded,
-        SKFontStyleWidth.ExtraExpanded => AM.FontStretch.ExtraExpanded,
-        SKFontStyleWidth.UltraExpanded => AM.FontStretch.UltraExpanded,
-        _ => AM.FontStretch.Normal
-    };
-    public static SKFontStyleWidth ToSKFontStretch(this AM.FontStretch fontStyleWidth) => fontStyleWidth switch {
-        AM.FontStretch.UltraCondensed => SKFontStyleWidth.UltraCondensed,
-        AM.FontStretch.ExtraCondensed => SKFontStyleWidth.ExtraCondensed,
-        AM.FontStretch.Condensed => SKFontStyleWidth.Condensed,
-        AM.FontStretch.SemiCondensed => SKFontStyleWidth.SemiCondensed,
-        AM.FontStretch.Normal => SKFontStyleWidth.Normal,
-        AM.FontStretch.SemiExpanded => SKFontStyleWidth.SemiExpanded,
-        AM.FontStretch.Expanded => SKFontStyleWidth.Expanded,
-        AM.FontStretch.ExtraExpanded => SKFontStyleWidth.ExtraExpanded,
-        AM.FontStretch.UltraExpanded => SKFontStyleWidth.UltraExpanded,
-        _ => SKFontStyleWidth.Normal
-    };
-
-    public static AM.FontStyle ToFontStyle(this SKFontStyleSlant fontStyleSlant) => fontStyleSlant switch
+    public static AM.FontWeight ToFontWeight(this SKFontStyleWeight fontStyleWeight)
     {
-        SKFontStyleSlant.Italic => AM.FontStyle.Italic,
-        SKFontStyleSlant.Oblique => AM.FontStyle.Oblique,
-        _ => AM.FontStyle.Normal
-    };
-    public static SKFontStyleSlant ToSKFontStyle(this AM.FontStyle fontStyleSlant) => fontStyleSlant switch
+        switch (fontStyleWeight)
+        {
+            default:
+            case SKFontStyleWeight.Invisible:
+                // TODO: FontStyleWeight.Invisible
+                throw new NotSupportedException();
+            case SKFontStyleWeight.Thin:
+                return AM.FontWeight.Thin;
+
+            case SKFontStyleWeight.ExtraLight:
+                return AM.FontWeight.ExtraLight;
+
+            case SKFontStyleWeight.Light:
+                return AM.FontWeight.Light;
+
+            case SKFontStyleWeight.Normal:
+                return AM.FontWeight.Normal;
+
+            case SKFontStyleWeight.Medium:
+                return AM.FontWeight.Medium;
+
+            case SKFontStyleWeight.SemiBold:
+                return AM.FontWeight.SemiBold;
+
+            case SKFontStyleWeight.Bold:
+                return AM.FontWeight.Bold;
+
+            case SKFontStyleWeight.ExtraBold:
+                return AM.FontWeight.ExtraBold;
+
+            case SKFontStyleWeight.Black:
+                return AM.FontWeight.Black;
+
+            case SKFontStyleWeight.ExtraBlack:
+                return AM.FontWeight.ExtraBlack;
+        }
+    }
+
+    public static SKFontStyleWeight ToSKFontWeight(this AM.FontWeight fontStyleWeight)
     {
-        AM.FontStyle.Italic => SKFontStyleSlant.Italic,
-        AM.FontStyle.Oblique => SKFontStyleSlant.Oblique,
-        _ => SKFontStyleSlant.Upright
-    };
+        return (SKFontStyleWeight)fontStyleWeight;
+    }
+
+    public static AM.FontStretch ToFontStretch(this SKFontStyleWidth fontStyleWidth)
+    {
+        return fontStyleWidth switch
+        {
+            SKFontStyleWidth.UltraCondensed => AM.FontStretch.UltraCondensed,
+            SKFontStyleWidth.ExtraCondensed => AM.FontStretch.ExtraCondensed,
+            SKFontStyleWidth.Condensed => AM.FontStretch.Condensed,
+            SKFontStyleWidth.SemiCondensed => AM.FontStretch.SemiCondensed,
+            SKFontStyleWidth.Normal => AM.FontStretch.Normal,
+            SKFontStyleWidth.SemiExpanded => AM.FontStretch.SemiExpanded,
+            SKFontStyleWidth.Expanded => AM.FontStretch.Expanded,
+            SKFontStyleWidth.ExtraExpanded => AM.FontStretch.ExtraExpanded,
+            SKFontStyleWidth.UltraExpanded => AM.FontStretch.UltraExpanded,
+            _ => AM.FontStretch.Normal
+        };
+    }
+
+    public static SKFontStyleWidth ToSKFontStretch(this AM.FontStretch fontStyleWidth)
+    {
+        return fontStyleWidth switch
+        {
+            AM.FontStretch.UltraCondensed => SKFontStyleWidth.UltraCondensed,
+            AM.FontStretch.ExtraCondensed => SKFontStyleWidth.ExtraCondensed,
+            AM.FontStretch.Condensed => SKFontStyleWidth.Condensed,
+            AM.FontStretch.SemiCondensed => SKFontStyleWidth.SemiCondensed,
+            AM.FontStretch.Normal => SKFontStyleWidth.Normal,
+            AM.FontStretch.SemiExpanded => SKFontStyleWidth.SemiExpanded,
+            AM.FontStretch.Expanded => SKFontStyleWidth.Expanded,
+            AM.FontStretch.ExtraExpanded => SKFontStyleWidth.ExtraExpanded,
+            AM.FontStretch.UltraExpanded => SKFontStyleWidth.UltraExpanded,
+            _ => SKFontStyleWidth.Normal
+        };
+    }
+
+    public static AM.FontStyle ToFontStyle(this SKFontStyleSlant fontStyleSlant)
+    {
+        return fontStyleSlant switch
+        {
+            SKFontStyleSlant.Italic => AM.FontStyle.Italic,
+            SKFontStyleSlant.Oblique => AM.FontStyle.Oblique,
+            _ => AM.FontStyle.Normal
+        };
+    }
+
+    public static SKFontStyleSlant ToSKFontStyle(this AM.FontStyle fontStyleSlant)
+    {
+        return fontStyleSlant switch
+        {
+            AM.FontStyle.Italic => SKFontStyleSlant.Italic,
+            AM.FontStyle.Oblique => SKFontStyleSlant.Oblique,
+            _ => SKFontStyleSlant.Upright
+        };
+    }
 
     public static AM.Typeface? ToTypeface(this SKTypeface? typeface)
     {
