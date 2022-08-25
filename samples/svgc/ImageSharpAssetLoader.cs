@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
-using Svg.Model;
 
 namespace svgc;
 
-internal class ImageSharpAssetLoader : IAssetLoader
+internal class ImageSharpAssetLoader : Svg.Model.IAssetLoader
 {
     public ShimSkiaSharp.SKImage LoadImage(Stream stream)
     {

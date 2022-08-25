@@ -5,13 +5,12 @@ using System.CommandLine.Invocation;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Svg.CodeGen.Skia;
-using SM = Svg.Model;
 
 namespace svgc;
 
 class Program
 {
-    private static readonly SM.IAssetLoader AssetLoader = new ImageSharpAssetLoader();
+    private static readonly Svg.Model.IAssetLoader AssetLoader = new ImageSharpAssetLoader();
 
     static void Log(string message)
     {
@@ -31,10 +30,10 @@ class Program
     static void Generate(string inputPath, string outputPath, string namespaceName = "Svg", string className = "Generated")
     {
         var svg = System.IO.File.ReadAllText(inputPath);
-        var svgDocument = SM.SvgExtensions.FromSvg(svg);
+        var svgDocument = Svg.Model.SvgExtensions.FromSvg(svg);
         if (svgDocument is { })
         {
-            var picture = SM.SvgExtensions.ToModel(svgDocument, AssetLoader, out _, out _);
+            var picture = Svg.Model.SvgExtensions.ToModel(svgDocument, AssetLoader, out _, out _);
             if (picture is { } && picture.Commands is { })
             {
                 var text = SkiaCSharpCodeGen.Generate(picture, namespaceName, className);
