@@ -415,9 +415,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
         {
             // Assign Opacity brushes etc. to children
             foreach(var child in container.ChildrenDrawables)
-            {
-                child.PostProcess(clip, SKMatrix.Identity);
-            }
+            { child.PostProcess(clip, SKMatrix.Identity); }
         }
         return RecordGraphic(this, clip, DrawAttributes.None);
     }
@@ -425,10 +423,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
     // https://www.w3.org/TR/SVG11/filters.html#AccessingBackgroundImage
     // Ignore selected attributes for the background image
     private const DrawAttributes FilterBackgroundInput = DrawAttributes.ClipPath | DrawAttributes.Mask | DrawAttributes.Opacity | DrawAttributes.Filter;
-    SKPicture? IFilterSource.BackgroundImage(SKRect? clip)
-    {
-        return RecordBackground(this, clip, FilterBackgroundInput);
-    }
+    SKPicture? IFilterSource.BackgroundImage(SKRect? clip) => RecordBackground(this, clip, FilterBackgroundInput);
 
     SKPaint? IFilterSource.FillPaint() => Fill;
 
