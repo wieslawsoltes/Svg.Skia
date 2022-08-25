@@ -54,6 +54,7 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
         void YieldCurrentTypefaceText()
         {
             var currentTypefaceText = text.Substring(currentTypefaceStartIndex, i - currentTypefaceStartIndex);
+
             ret.Add(new(currentTypefaceText, runningPaint.MeasureText(currentTypefaceText),
 #if USE_SKIASHARP
                 runningPaint.Typeface
@@ -66,8 +67,7 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
                         // ShimSkiaSharp defines the same values as SkiaSharp and convert directly
                         (ShimSkiaSharp.SKFontStyleWeight)runningPaint.Typeface.FontWeight,
                         (ShimSkiaSharp.SKFontStyleWidth)runningPaint.Typeface.FontWidth,
-                        (ShimSkiaSharp.SKFontStyleSlant)runningPaint.Typeface.FontSlant
-                    )
+                        (ShimSkiaSharp.SKFontStyleSlant)runningPaint.Typeface.FontSlant)
 #endif
             ));
         }
@@ -75,17 +75,22 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
         for (; i < text.Length; i++)
         {
             var typeface = matchCharacter(char.ConvertToUtf32(text, i));
+
             if (i == 0)
             {
                 runningPaint.Typeface = typeface;
             }
-            else if (runningPaint.Typeface is null && typeface is { }
-                     || runningPaint.Typeface is { } && typeface is null
-                     || runningPaint.Typeface is { } l && typeface is { } r
-                                                       && (l.FamilyName, l.FontWeight, l.FontWidth, l.FontSlant)
-                                                       != (r.FamilyName, r.FontWeight, r.FontWidth, r.FontSlant))
+            else if (runningPaint.Typeface is null 
+                     && typeface is { }
+                     || runningPaint.Typeface is { } 
+                     && typeface is null
+                     || runningPaint.Typeface is { } l 
+                     && typeface is { } r
+                     && (l.FamilyName, l.FontWeight, l.FontWidth, l.FontSlant)
+                     != (r.FamilyName, r.FontWeight, r.FontWidth, r.FontSlant))
             {
                 YieldCurrentTypefaceText();
+
                 currentTypefaceStartIndex = i;
                 runningPaint.Typeface = typeface;
             }
@@ -97,6 +102,7 @@ public class SkiaAssetLoader : Svg.Model.IAssetLoader
         }
 
         YieldCurrentTypefaceText();
+
         return ret;
     }
 }
