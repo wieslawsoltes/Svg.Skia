@@ -38,13 +38,20 @@ public sealed class CustomTypefaceProvider : ITypefaceProvider, IDisposable
 
     public SkiaSharp.SKTypeface? FromFamilyName(string fontFamily, SkiaSharp.SKFontStyleWeight fontWeight, SkiaSharp.SKFontStyleWidth fontWidth, SkiaSharp.SKFontStyleSlant fontStyle)
     {
+        if (Typeface is null)
+        {
+            return null;
+        }
         var skTypeface = default(SkiaSharp.SKTypeface);
         var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
         if (fontFamilyNames is { } && fontFamilyNames.Length > 0)
         {
             foreach (var fontFamilyName in fontFamilyNames)
             {
-                if (fontFamily == FamilyName)
+                if (fontFamilyName == FamilyName 
+                    && Typeface.FontStyle.Width == (int)fontWidth
+                    && Typeface.FontStyle.Weight == (int)fontWeight
+                    && Typeface.FontStyle.Slant == fontStyle)
                 {
                     skTypeface = Typeface;
                     break;
