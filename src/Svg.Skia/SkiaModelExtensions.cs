@@ -19,7 +19,10 @@ public static class SkiaModelExtensions
     {
         var skPoints = new SkiaSharp.SKPoint[points.Count];
 
-        for (var i = 0; i < points.Count; i++) skPoints[i] = points[i].ToSKPoint();
+        for (var i = 0; i < points.Count; i++)
+        {
+            skPoints[i] = points[i].ToSKPoint();
+        }
 
         return skPoints;
     }
@@ -176,11 +179,16 @@ public static class SkiaModelExtensions
         var fontStyle = typeface.Style.ToSKFontStyleSlant();
 
         if (SKSvgSettings.s_typefaceProviders is { } && SKSvgSettings.s_typefaceProviders.Count > 0)
+        {
             foreach (var typefaceProviders in SKSvgSettings.s_typefaceProviders)
             {
                 var skTypeface = typefaceProviders.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
-                if (skTypeface is { }) return skTypeface;
+                if (skTypeface is { })
+                {
+                    return skTypeface;
+                }
             }
+        }
 
         return SkiaSharp.SKTypeface.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
     }
@@ -194,7 +202,10 @@ public static class SkiaModelExtensions
     {
         var skColors = new SkiaSharp.SKColor[colors.Length];
 
-        for (var i = 0; i < colors.Length; i++) skColors[i] = colors[i].ToSKColor();
+        for (var i = 0; i < colors.Length; i++)
+        {
+            skColors[i] = colors[i].ToSKColor();
+        }
 
         return skColors;
     }
@@ -208,7 +219,10 @@ public static class SkiaModelExtensions
     {
         var skColors = new SkiaSharp.SKColorF[colors.Length];
 
-        for (var i = 0; i < colors.Length; i++) skColors[i] = colors[i].ToSKColor();
+        for (var i = 0; i < colors.Length; i++)
+        {
+            skColors[i] = colors[i].ToSKColor();
+        }
 
         return skColors;
     }
@@ -233,67 +247,94 @@ public static class SkiaModelExtensions
             {
                 return SkiaSharp.SKShader.CreateColor(
                     colorShader.Color.ToSKColor(),
-                    colorShader.ColorSpace == SKColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear);
+                    colorShader.ColorSpace == SKColorSpace.Srgb 
+                        ? SKSvgSettings.s_srgb 
+                        : SKSvgSettings.s_srgbLinear);
             }
             case LinearGradientShader linearGradientShader:
             {
-                if (linearGradientShader.Colors is null || linearGradientShader.ColorPos is null) return null;
+                if (linearGradientShader.Colors is null || linearGradientShader.ColorPos is null)
+                {
+                    return null;
+                }
 
                 if (linearGradientShader.LocalMatrix is { })
+                {
                     return SkiaSharp.SKShader.CreateLinearGradient(
                         linearGradientShader.Start.ToSKPoint(),
                         linearGradientShader.End.ToSKPoint(),
                         linearGradientShader.Colors.ToSKColors(),
-                        linearGradientShader.ColorSpace == SKColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear,
+                        linearGradientShader.ColorSpace == SKColorSpace.Srgb
+                            ? SKSvgSettings.s_srgb
+                            : SKSvgSettings.s_srgbLinear,
                         linearGradientShader.ColorPos,
                         linearGradientShader.Mode.ToSKShaderTileMode(),
                         linearGradientShader.LocalMatrix.Value.ToSKMatrix());
+                }
 
                 return SkiaSharp.SKShader.CreateLinearGradient(
                     linearGradientShader.Start.ToSKPoint(),
                     linearGradientShader.End.ToSKPoint(),
                     linearGradientShader.Colors.ToSKColors(),
-                    linearGradientShader.ColorSpace == SKColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear,
+                    linearGradientShader.ColorSpace == SKColorSpace.Srgb 
+                        ? SKSvgSettings.s_srgb 
+                        : SKSvgSettings.s_srgbLinear,
                     linearGradientShader.ColorPos,
                     linearGradientShader.Mode.ToSKShaderTileMode());
             }
             case RadialGradientShader radialGradientShader:
             {
-                if (radialGradientShader.Colors is null || radialGradientShader.ColorPos is null) return null;
+                if (radialGradientShader.Colors is null || radialGradientShader.ColorPos is null)
+                {
+                    return null;
+                }
 
                 if (radialGradientShader.LocalMatrix is { })
+                {
                     return SkiaSharp.SKShader.CreateRadialGradient(
                         radialGradientShader.Center.ToSKPoint(),
                         radialGradientShader.Radius,
                         radialGradientShader.Colors.ToSKColors(),
-                        radialGradientShader.ColorSpace == SKColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear,
+                        radialGradientShader.ColorSpace == SKColorSpace.Srgb
+                            ? SKSvgSettings.s_srgb
+                            : SKSvgSettings.s_srgbLinear,
                         radialGradientShader.ColorPos,
                         radialGradientShader.Mode.ToSKShaderTileMode(),
                         radialGradientShader.LocalMatrix.Value.ToSKMatrix());
+                }
 
                 return SkiaSharp.SKShader.CreateRadialGradient(
                     radialGradientShader.Center.ToSKPoint(),
                     radialGradientShader.Radius,
                     radialGradientShader.Colors.ToSKColors(),
-                    radialGradientShader.ColorSpace == SKColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear,
+                    radialGradientShader.ColorSpace == SKColorSpace.Srgb 
+                        ? SKSvgSettings.s_srgb 
+                        : SKSvgSettings.s_srgbLinear,
                     radialGradientShader.ColorPos,
                     radialGradientShader.Mode.ToSKShaderTileMode());
             }
             case TwoPointConicalGradientShader twoPointConicalGradientShader:
             {
-                if (twoPointConicalGradientShader.Colors is null || twoPointConicalGradientShader.ColorPos is null) return null;
+                if (twoPointConicalGradientShader.Colors is null || twoPointConicalGradientShader.ColorPos is null)
+                {
+                    return null;
+                }
 
                 if (twoPointConicalGradientShader.LocalMatrix is { })
+                {
                     return SkiaSharp.SKShader.CreateTwoPointConicalGradient(
                         twoPointConicalGradientShader.Start.ToSKPoint(),
                         twoPointConicalGradientShader.StartRadius,
                         twoPointConicalGradientShader.End.ToSKPoint(),
                         twoPointConicalGradientShader.EndRadius,
                         twoPointConicalGradientShader.Colors.ToSKColors(),
-                        twoPointConicalGradientShader.ColorSpace == SKColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear,
+                        twoPointConicalGradientShader.ColorSpace == SKColorSpace.Srgb
+                            ? SKSvgSettings.s_srgb
+                            : SKSvgSettings.s_srgbLinear,
                         twoPointConicalGradientShader.ColorPos,
                         twoPointConicalGradientShader.Mode.ToSKShaderTileMode(),
                         twoPointConicalGradientShader.LocalMatrix.Value.ToSKMatrix());
+                }
 
                 return SkiaSharp.SKShader.CreateTwoPointConicalGradient(
                     twoPointConicalGradientShader.Start.ToSKPoint(),
@@ -301,13 +342,18 @@ public static class SkiaModelExtensions
                     twoPointConicalGradientShader.End.ToSKPoint(),
                     twoPointConicalGradientShader.EndRadius,
                     twoPointConicalGradientShader.Colors.ToSKColors(),
-                    twoPointConicalGradientShader.ColorSpace == SKColorSpace.Srgb ? SKSvgSettings.s_srgb : SKSvgSettings.s_srgbLinear,
+                    twoPointConicalGradientShader.ColorSpace == SKColorSpace.Srgb 
+                        ? SKSvgSettings.s_srgb 
+                        : SKSvgSettings.s_srgbLinear,
                     twoPointConicalGradientShader.ColorPos,
                     twoPointConicalGradientShader.Mode.ToSKShaderTileMode());
             }
             case PictureShader pictureShader:
             {
-                if (pictureShader.Src is null) return null;
+                if (pictureShader.Src is null)
+                {
+                    return null;
+                }
 
                 return SkiaSharp.SKShader.CreatePicture(
                     pictureShader.Src.ToSKPicture(),
@@ -351,7 +397,10 @@ public static class SkiaModelExtensions
             }
             case ColorMatrixColorFilter colorMatrixColorFilter:
             {
-                if (colorMatrixColorFilter.Matrix is null) return null;
+                if (colorMatrixColorFilter.Matrix is null)
+                {
+                    return null;
+                }
                 return SkiaSharp.SKColorFilter.CreateColorMatrix(colorMatrixColorFilter.Matrix);
             }
             case LumaColorColorFilter _:
@@ -365,14 +414,18 @@ public static class SkiaModelExtensions
                     || tableColorFilter.TableG is null
                     || tableColorFilter.TableB is null)
                     return null;
-                return SkiaSharp.SKColorFilter.CreateTable(
-                    tableColorFilter.TableA,
-                    tableColorFilter.TableR,
-                    tableColorFilter.TableG,
-                    tableColorFilter.TableB);
+                {
+                    return SkiaSharp.SKColorFilter.CreateTable(
+                        tableColorFilter.TableA,
+                        tableColorFilter.TableR,
+                        tableColorFilter.TableG,
+                        tableColorFilter.TableB);
+                }
             }
             default:
+            {
                 return null;
+            }
         }
     }
 
@@ -399,7 +452,10 @@ public static class SkiaModelExtensions
         {
             case ArithmeticImageFilter arithmeticImageFilter:
             {
-                if (arithmeticImageFilter.Background is null) return null;
+                if (arithmeticImageFilter.Background is null)
+                {
+                    return null;
+                }
 
                 return SkiaSharp.SKImageFilter.CreateArithmetic(
                     arithmeticImageFilter.K1,
@@ -413,7 +469,10 @@ public static class SkiaModelExtensions
             }
             case BlendModeImageFilter blendModeImageFilter:
             {
-                if (blendModeImageFilter.Background is null) return null;
+                if (blendModeImageFilter.Background is null)
+                {
+                    return null;
+                }
 
                 return SkiaSharp.SKImageFilter.CreateBlendMode(
                     blendModeImageFilter.Mode.ToSKBlendMode(),
@@ -431,7 +490,10 @@ public static class SkiaModelExtensions
             }
             case ColorFilterImageFilter colorFilterImageFilter:
             {
-                if (colorFilterImageFilter.ColorFilter is null) return null;
+                if (colorFilterImageFilter.ColorFilter is null)
+                {
+                    return null;
+                }
 
                 return SkiaSharp.SKImageFilter.CreateColorFilter(
                     colorFilterImageFilter.ColorFilter?.ToSKColorFilter(),
@@ -448,7 +510,10 @@ public static class SkiaModelExtensions
             }
             case DisplacementMapEffectImageFilter displacementMapEffectImageFilter:
             {
-                if (displacementMapEffectImageFilter.Displacement is null) return null;
+                if (displacementMapEffectImageFilter.Displacement is null)
+                {
+                    return null;
+                }
 
                 return SkiaSharp.SKImageFilter.CreateDisplacementMapEffect(
                     displacementMapEffectImageFilter.XChannelSelector.ToSKColorChannel(),
@@ -489,7 +554,10 @@ public static class SkiaModelExtensions
             }
             case ImageImageFilter imageImageFilter:
             {
-                if (imageImageFilter.Image is null) return null;
+                if (imageImageFilter.Image is null)
+                {
+                    return null;
+                }
 
                 return SkiaSharp.SKImageFilter.CreateImage(
                     imageImageFilter.Image.ToSKImage(),
@@ -499,7 +567,10 @@ public static class SkiaModelExtensions
             }
             case MatrixConvolutionImageFilter matrixConvolutionImageFilter:
             {
-                if (matrixConvolutionImageFilter.Kernel is null) return null;
+                if (matrixConvolutionImageFilter.Kernel is null)
+                {
+                    return null;
+                }
 
                 return SkiaSharp.SKImageFilter.CreateMatrixConvolution(
                     matrixConvolutionImageFilter.KernelSize.ToSKSizeI(),
@@ -514,7 +585,10 @@ public static class SkiaModelExtensions
             }
             case MergeImageFilter mergeImageFilter:
             {
-                if (mergeImageFilter.Filters is null) return null;
+                if (mergeImageFilter.Filters is null)
+                {
+                    return null;
+                }
 
                 return SkiaSharp.SKImageFilter.CreateMerge(
                     mergeImageFilter.Filters?.ToSKImageFilters(),
@@ -530,7 +604,10 @@ public static class SkiaModelExtensions
             }
             case PaintImageFilter paintImageFilter:
             {
-                if (paintImageFilter.Paint is null) return null;
+                if (paintImageFilter.Paint is null)
+                {
+                    return null;
+                }
 
                 return SkiaSharp.SKImageFilter.CreatePaint(
                     paintImageFilter.Paint.ToSKPaint(),
@@ -538,7 +615,10 @@ public static class SkiaModelExtensions
             }
             case PictureImageFilter pictureImageFilter:
             {
-                if (pictureImageFilter.Picture is null) return null;
+                if (pictureImageFilter.Picture is null)
+                {
+                    return null;
+                }
 
                 return SkiaSharp.SKImageFilter.CreatePicture(
                     pictureImageFilter.Picture.ToSKPicture(),
@@ -600,13 +680,18 @@ public static class SkiaModelExtensions
                     tileImageFilter.Input?.ToSKImageFilter());
             }
             default:
+            {
                 return null;
+            }
         }
     }
 
     public static SkiaSharp.SKImageFilter[]? ToSKImageFilters(this SKImageFilter[]? imageFilters)
     {
-        if (imageFilters is null) return null;
+        if (imageFilters is null)
+        {
+            return null;
+        }
 
         var skImageFilters = new SkiaSharp.SKImageFilter[imageFilters.Length];
 
@@ -614,7 +699,10 @@ public static class SkiaModelExtensions
         {
             var imageFilter = imageFilters[i];
             var skImageFilter = imageFilter.ToSKImageFilter();
-            if (skImageFilter is { }) skImageFilters[i] = skImageFilter;
+            if (skImageFilter is { })
+            {
+                skImageFilters[i] = skImageFilter;
+            }
         }
 
         return skImageFilters;
@@ -631,7 +719,9 @@ public static class SkiaModelExtensions
                     dashPathEffect.Phase);
             }
             default:
+            {
                 return null;
+            }
         }
     }
 
@@ -692,13 +782,16 @@ public static class SkiaModelExtensions
         var textAlign = paint.TextAlign.ToSKTextAlign();
         var typeface = paint.Typeface?.ToSKTypeface();
         var textEncoding = paint.TextEncoding.ToSKTextEncoding();
-        var color = paint.Color is null ? SkiaSharp.SKColor.Empty : ToSKColor(paint.Color.Value);
+        var color = paint.Color is null 
+            ? SkiaSharp.SKColor.Empty : 
+            ToSKColor(paint.Color.Value);
         var shader = paint.Shader?.ToSKShader();
         var colorFilter = paint.ColorFilter?.ToSKColorFilter();
         var imageFilter = paint.ImageFilter?.ToSKImageFilter();
         var pathEffect = paint.PathEffect?.ToSKPathEffect();
         var blendMode = paint.BlendMode.ToSKBlendMode();
         var filterQuality = paint.FilterQuality.ToSKFilterQuality();
+
         return new SkiaSharp.SKPaint
         {
             Style = style,
@@ -772,15 +865,15 @@ public static class SkiaModelExtensions
                 var x = moveToPathCommand.X;
                 var y = moveToPathCommand.Y;
                 skPath.MoveTo(x, y);
-            }
                 break;
+            }
             case LineToPathCommand lineToPathCommand:
             {
                 var x = lineToPathCommand.X;
                 var y = lineToPathCommand.Y;
                 skPath.LineTo(x, y);
-            }
                 break;
+            }
             case ArcToPathCommand arcToPathCommand:
             {
                 var rx = arcToPathCommand.Rx;
@@ -791,8 +884,8 @@ public static class SkiaModelExtensions
                 var x = arcToPathCommand.X;
                 var y = arcToPathCommand.Y;
                 skPath.ArcTo(rx, ry, xAxisRotate, largeArc, sweep, x, y);
-            }
                 break;
+            }
             case QuadToPathCommand quadToPathCommand:
             {
                 var x0 = quadToPathCommand.X0;
@@ -800,8 +893,8 @@ public static class SkiaModelExtensions
                 var x1 = quadToPathCommand.X1;
                 var y1 = quadToPathCommand.Y1;
                 skPath.QuadTo(x0, y0, x1, y1);
-            }
                 break;
+            }
             case CubicToPathCommand cubicToPathCommand:
             {
                 var x0 = cubicToPathCommand.X0;
@@ -811,41 +904,41 @@ public static class SkiaModelExtensions
                 var x2 = cubicToPathCommand.X2;
                 var y2 = cubicToPathCommand.Y2;
                 skPath.CubicTo(x0, y0, x1, y1, x2, y2);
-            }
                 break;
+            }
             case ClosePathCommand _:
             {
                 skPath.Close();
-            }
                 break;
+            }
             case AddRectPathCommand addRectPathCommand:
             {
                 var rect = addRectPathCommand.Rect.ToSKRect();
                 skPath.AddRect(rect);
-            }
                 break;
+            }
             case AddRoundRectPathCommand addRoundRectPathCommand:
             {
                 var rect = addRoundRectPathCommand.Rect.ToSKRect();
                 var rx = addRoundRectPathCommand.Rx;
                 var ry = addRoundRectPathCommand.Ry;
                 skPath.AddRoundRect(rect, rx, ry);
-            }
                 break;
+            }
             case AddOvalPathCommand addOvalPathCommand:
             {
                 var rect = addOvalPathCommand.Rect.ToSKRect();
                 skPath.AddOval(rect);
-            }
                 break;
+            }
             case AddCirclePathCommand addCirclePathCommand:
             {
                 var x = addCirclePathCommand.X;
                 var y = addCirclePathCommand.Y;
                 var radius = addCirclePathCommand.Radius;
                 skPath.AddCircle(x, y, radius);
-            }
                 break;
+            }
             case AddPolyPathCommand addPolyPathCommand:
             {
                 if (addPolyPathCommand.Points is { })
@@ -854,8 +947,8 @@ public static class SkiaModelExtensions
                     var close = addPolyPathCommand.Close;
                     skPath.AddPoly(points, close);
                 }
-            }
                 break;
+            }
         }
     }
 
@@ -866,22 +959,34 @@ public static class SkiaModelExtensions
             FillType = path.FillType.ToSKPathFillType()
         };
 
-        if (path.Commands is null) return skPath;
+        if (path.Commands is null)
+        {
+            return skPath;
+        }
 
-        foreach (var pathCommand in path.Commands) pathCommand.ToSKPath(skPath);
+        foreach (var pathCommand in path.Commands)
+        {
+            pathCommand.ToSKPath(skPath);
+        }
 
         return skPath;
     }
 
     public static SkiaSharp.SKPath? ToSKPath(this ClipPath clipPath)
     {
-        if (clipPath.Clips is null) return null;
+        if (clipPath.Clips is null)
+        {
+            return null;
+        }
 
         var skPathResult = default(SkiaSharp.SKPath);
 
         foreach (var clip in clipPath.Clips)
         {
-            if (clip.Path is null) return null;
+            if (clip.Path is null)
+            {
+                return null;
+            }
 
             var skPath = clip.Path.ToSKPath();
             var skPathClip = clip.Clip?.ToSKPath();
@@ -924,7 +1029,10 @@ public static class SkiaModelExtensions
 
     public static SkiaSharp.SKPicture? ToSKPicture(this SKPicture? picture)
     {
-        if (picture is null) return null;
+        if (picture is null)
+        {
+            return null;
+        }
 
         var skRect = picture.CullRect.ToSKRect();
         using var skPictureRecorder = new SkiaSharp.SKPictureRecorder();
@@ -941,36 +1049,39 @@ public static class SkiaModelExtensions
         {
             case ClipPathCanvasCommand clipPathCanvasCommand:
             {
-                var path = clipPathCanvasCommand.ClipPath.ToSKPath();
-                var operation = clipPathCanvasCommand.Operation.ToSKClipOperation();
-                var antialias = clipPathCanvasCommand.Antialias;
-                skCanvas.ClipPath(path, operation, antialias);
-            }
+                if (clipPathCanvasCommand.ClipPath is { })
+                {
+                    var path = clipPathCanvasCommand.ClipPath.ToSKPath();
+                    var operation = clipPathCanvasCommand.Operation.ToSKClipOperation();
+                    var antialias = clipPathCanvasCommand.Antialias;
+                    skCanvas.ClipPath(path, operation, antialias);
+                }
                 break;
+            }
             case ClipRectCanvasCommand clipRectCanvasCommand:
             {
                 var rect = clipRectCanvasCommand.Rect.ToSKRect();
                 var operation = clipRectCanvasCommand.Operation.ToSKClipOperation();
                 var antialias = clipRectCanvasCommand.Antialias;
                 skCanvas.ClipRect(rect, operation, antialias);
-            }
                 break;
+            }
             case SaveCanvasCommand _:
             {
                 skCanvas.Save();
-            }
                 break;
+            }
             case RestoreCanvasCommand _:
             {
                 skCanvas.Restore();
-            }
                 break;
+            }
             case SetMatrixCanvasCommand setMatrixCanvasCommand:
             {
                 var matrix = setMatrixCanvasCommand.Matrix.ToSKMatrix();
                 skCanvas.SetMatrix(matrix);
-            }
                 break;
+            }
             case SaveLayerCanvasCommand saveLayerCanvasCommand:
             {
                 if (saveLayerCanvasCommand.Paint is { })
@@ -982,8 +1093,8 @@ public static class SkiaModelExtensions
                 {
                     skCanvas.SaveLayer();
                 }
-            }
                 break;
+            }
             case DrawImageCanvasCommand drawImageCanvasCommand:
             {
                 if (drawImageCanvasCommand.Image is { })
@@ -994,8 +1105,8 @@ public static class SkiaModelExtensions
                     var paint = drawImageCanvasCommand.Paint?.ToSKPaint();
                     skCanvas.DrawImage(image, source, dest, paint);
                 }
-            }
                 break;
+            }
             case DrawPathCanvasCommand drawPathCanvasCommand:
             {
                 if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })
@@ -1004,8 +1115,8 @@ public static class SkiaModelExtensions
                     var paint = drawPathCanvasCommand.Paint.ToSKPaint();
                     skCanvas.DrawPath(path, paint);
                 }
-            }
                 break;
+            }
             case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:
             {
                 if (drawPositionedTextCanvasCommand.TextBlob?.Points is { } && drawPositionedTextCanvasCommand.Paint is { })
@@ -1017,8 +1128,8 @@ public static class SkiaModelExtensions
                     var textBlob = SkiaSharp.SKTextBlob.CreatePositioned(text, font, points);
                     skCanvas.DrawText(textBlob, 0, 0, paint);
                 }
-            }
                 break;
+            }
             case DrawTextCanvasCommand drawTextCanvasCommand:
             {
                 if (drawTextCanvasCommand.Paint is { })
@@ -1029,8 +1140,8 @@ public static class SkiaModelExtensions
                     var paint = drawTextCanvasCommand.Paint.ToSKPaint();
                     skCanvas.DrawText(text, x, y, paint);
                 }
-            }
                 break;
+            }
             case DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand:
             {
                 if (drawTextOnPathCanvasCommand.Path is { } && drawTextOnPathCanvasCommand.Paint is { })
@@ -1042,15 +1153,21 @@ public static class SkiaModelExtensions
                     var paint = drawTextOnPathCanvasCommand.Paint.ToSKPaint();
                     skCanvas.DrawTextOnPath(text, path, hOffset, vOffset, paint);
                 }
-            }
                 break;
+            }
         }
     }
 
     public static void Draw(this SKPicture picture, SkiaSharp.SKCanvas skCanvas)
     {
-        if (picture.Commands is null) return;
+        if (picture.Commands is null)
+        {
+            return;
+        }
 
-        foreach (var canvasCommand in picture.Commands) canvasCommand.Draw(skCanvas);
+        foreach (var canvasCommand in picture.Commands)
+        {
+            canvasCommand.Draw(skCanvas);
+        }
     }
 }
