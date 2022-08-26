@@ -15,11 +15,14 @@ public class SkiaAssetLoader : Model.IAssetLoader
 #endif
     }
 
-    public List<Model.TypefaceSpan> FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
+    public List<Model.TypefaceSpan> FindTypefaces(string? text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
         var ret = new List<Model.TypefaceSpan>();
-        if (string.IsNullOrEmpty(text))
-        { return ret; }
+
+        if (text is null || string.IsNullOrEmpty(text))
+        {
+            return ret;
+        }
 
         System.Func<int, SkiaSharp.SKTypeface?> matchCharacter;
 
