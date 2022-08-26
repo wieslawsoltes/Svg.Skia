@@ -266,7 +266,7 @@ Add NuGet package reference to your `csproj`.
 ```xml
 <PropertyGroup>
   <OutputType>Exe</OutputType>
-  <TargetFramework>net5.0</TargetFramework>
+  <TargetFramework>net6.0</TargetFramework>
   <LangVersion>latest</LangVersion>
 </PropertyGroup>
 ```
@@ -382,54 +382,49 @@ dotnet build -c Release
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet publish -c Release -f net5.0 -r win7-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_net5.0_win7-x64
+dotnet publish -c Release -f net6.0 -r win7-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_net6.0_win7-x64
 ```
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet publish -c Release -f net5.0 -r ubuntu.14.04-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_net5.0_ubuntu.14.04-x64
+dotnet publish -c Release -f net6.0 -r ubuntu.14.04-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_net6.0_ubuntu.14.04-x64
 ```
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet publish -c Release -f net5.0 -r osx.10.12-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_net5.0_osx.10.12-x64
+dotnet publish -c Release -f net6.0 -r osx.10.12-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_net6.0_osx.10.12-x64
 ```
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet publish -c Release -f net5.0 -r debian.8-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_net5.0_debian.8-x64
+dotnet publish -c Release -f net6.0 -r debian.8-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_net6.0_debian.8-x64
 ```
 
 ```
 cd ./src/SvgToPng
-dotnet publish -c Release -f net5.0 -r win7-x64 -o SvgToPng_net5.0_win7-x64
-```
-
-```
-cd ./src/SvgToPng
-dotnet publish -c Release -f net461 -r win7-x64 -o SvgToPng_net461_win7-x64
+dotnet publish -c Release -f net6.0 -r win7-x64 -o SvgToPng_net6.0_win7-x64
 ```
 
 ```
 cd ./src/SvgXml.Diagnostics
-dotnet publish -c Release -f net5.0 -r win7-x64 -o SvgXml.Diagnostics_net5.0_win7-x64
+dotnet publish -c Release -f net6.0 -r win7-x64 -o SvgXml.Diagnostics_net6.0_win7-x64
 ```
 
 ### Publish Native
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet publish -c Release -f net5.0 -r win-x64 -o Svg.Skia.Converter_net5.0_win-x64
+dotnet publish -c Release -f net6.0 -r win-x64 -o Svg.Skia.Converter_net6.0_win-x64
 ```
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet publish -c Release -f net5.0 -r linux-x64 -o Svg.Skia.Converter_net5.0_linux-x64
+dotnet publish -c Release -f net6.0 -r linux-x64 -o Svg.Skia.Converter_net6.0_linux-x64
 ```
 
 ```
 cd ./src/Svg.Skia.Converter
-dotnet publish -c Release -f net5.0 -r osx-x64 -o Svg.Skia.Converter_net5.0_osx-x64
+dotnet publish -c Release -f net6.0 -r osx-x64 -o Svg.Skia.Converter_net6.0_osx-x64
 ```
 
 ## Externals
