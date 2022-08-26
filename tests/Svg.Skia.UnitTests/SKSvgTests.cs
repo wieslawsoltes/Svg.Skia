@@ -76,8 +76,6 @@ public class SKSvgTests
         _output = output;
     }
 
-    public record TestFile(string Name, double ErrorThreshold);
-
     [WindowsTheory]
     [InlineData("Sign in", 0.022)]
     [InlineData("__AJ_Digital_Camera", 0.027)]
