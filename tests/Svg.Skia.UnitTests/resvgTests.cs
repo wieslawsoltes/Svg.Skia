@@ -60,27 +60,27 @@ public class resvgTests
     [InlineData("a-baseline-shift-021", 0.022)]
     [InlineData("a-baseline-shift-022", 0.022)]
     public void a_baseline_shift(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory]
     // TODO: [InlineData("a-clip-001", 0.022)]
     [InlineData("a-clip-path-001", 0.022)]
     [InlineData("a-clip-rule-001", 0.022)]
     public void a_clip_rule(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory]
     [InlineData("a-color-001", 0.022)]
     [InlineData("a-color-002", 0.022)]
     public void a_color(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory]
     [InlineData("a-color-interpolation-filters-001", 0.022)]
     public void a_color_interpolation_filters(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory]
     [InlineData("a-direction-001", 0.022)]
     // TODO: [InlineData("a-direction-002", 0.022)]
     public void a_direction(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory]
     [InlineData("a-display-001", 0.022)]
     [InlineData("a-display-002", 0.022)]
@@ -92,7 +92,7 @@ public class resvgTests
     [InlineData("a-display-008", 0.022)]
     // TODO: [InlineData("a-display-009", 0.022)]
     public void a_display(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory]
     // TODO: [InlineData("a-dominant-baseline-001", 0.022)]
     [InlineData("a-enable-background-001", 0.022)]
@@ -117,7 +117,7 @@ public class resvgTests
     // TODO: [InlineData("a-enable-background-020", 0.022)]
     [InlineData("a-enable-background-021", 0.022)]
     public void a_enable_background(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory]
     [InlineData("a-fill-001", 0.022)]
     [InlineData("a-fill-002", 0.022)]
@@ -179,7 +179,7 @@ public class resvgTests
     // TODO: [InlineData("a-fill-058", 0.022)]
     // TODO: [InlineData("a-fill-059", 0.022)]
     public void a_fill(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory]
     [InlineData("a-fill-opacity-001", 0.022)]
     [InlineData("a-fill-opacity-002", 0.022)]
@@ -188,12 +188,12 @@ public class resvgTests
     [InlineData("a-fill-opacity-005", 0.022)]
     // TODO: [InlineData("a-fill-opacity-006", 0.022)]
     public void a_fill_opacity(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory]
     [InlineData("a-fill-rule-001", 0.022)]
     [InlineData("a-fill-rule-002", 0.022)]
     public void a_fill_rule(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory]
     [InlineData("a-filter-001", 0.022)]
     // TODO: [InlineData("a-filter-002", 0.022)]
@@ -239,7 +239,7 @@ public class resvgTests
     // TODO: [InlineData("a-filter-042", 0.022)]
     // TODO: [InlineData("a-filter-043", 0.022)]
     public void a_filter(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory]
     [InlineData("a-flood-color-001", 0.022)]
     [InlineData("a-flood-color-002", 0.022)]
@@ -249,11 +249,11 @@ public class resvgTests
     [InlineData("a-flood-color-006", 0.022)]
     // TODO: [InlineData("a-flood-color-007", 0.022)]
     public void a_flood_color(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory]
     [InlineData("a-flood-opacity-001", 0.022)]
     public void a_flood_opacity(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory]
     [InlineData("a-font-001", 0.022)]
     public void a_font(string name, double errorThreshold) => TestImpl(name, errorThreshold);
@@ -271,7 +271,7 @@ public class resvgTests
     [InlineData("a-font-family-010", 0.022)]
     [InlineData("a-font-family-011", 0.022)]
     public void a_font_family(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory]
     // TODO: [InlineData("a-font-size-001", 0.022)]
     // TODO: [InlineData("a-font-size-002", 0.022)]
@@ -344,7 +344,7 @@ public class resvgTests
     [InlineData("a-image-rendering-002", 0.022)]
     [InlineData("a-image-rendering-003", 0.022)]
     public void a_image_rendering(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory]
     [InlineData("a-isolation-001", 0.022)]
     [InlineData("a-isolation-002", 0.022)]
