@@ -101,7 +101,7 @@ public sealed class AvaloniaPicture : IDisposable
             {
                 if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })
                 {
-                    (var brush, var pen) = drawPathCanvasCommand.Paint.ToBrushAndPen();
+                    (var brush, var pen) = drawPathCanvasCommand.Paint.ToBrushAndPen(drawPathCanvasCommand.Path.Bounds);
 
                     if (drawPathCanvasCommand.Path.Commands?.Count == 1)
                     {
@@ -201,7 +201,9 @@ public sealed class AvaloniaPicture : IDisposable
             {
                 if (drawTextCanvasCommand.Paint is { })
                 {
-                    (var brush, _) = drawTextCanvasCommand.Paint.ToBrushAndPen();
+                    // TOD: Calculate text bounds.
+                    var bounds = new SKRect(0f, 0f, 0f, 0f);
+                    (var brush, _) = drawTextCanvasCommand.Paint.ToBrushAndPen(bounds);
                     var text = drawTextCanvasCommand.Paint.ToFormattedText(drawTextCanvasCommand.Text, brush);
                     var x = drawTextCanvasCommand.X;
                     var y = drawTextCanvasCommand.Y;
