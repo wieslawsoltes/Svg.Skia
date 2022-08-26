@@ -13,5 +13,5 @@ public record struct TypefaceSpan(string Text, float Advance, SKTypeface? Typefa
 public interface IAssetLoader
 {
     SKImage LoadImage(Stream stream);
-    List<TypefaceSpan> FindTypefaces(string text, SKPaint paintPreferredTypeface);
+    List<TypefaceSpan> FindTypefaces(string? text, SKPaint paintPreferredTypeface);
 }

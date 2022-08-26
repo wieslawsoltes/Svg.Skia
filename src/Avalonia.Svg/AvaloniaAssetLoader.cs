@@ -16,9 +16,14 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
         return new SKImage {Data = data, Width = (float)image.Size.Width, Height = (float)image.Size.Height};
     }
 
-    public List<SM.TypefaceSpan> FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
+    public List<SM.TypefaceSpan> FindTypefaces(string? text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
         var ret = new List<SM.TypefaceSpan>();
+
+        if (text is null || string.IsNullOrEmpty(text))
+        {
+            return ret;
+        }
 
         System.Func<int, Typeface?> matchCharacter;
 

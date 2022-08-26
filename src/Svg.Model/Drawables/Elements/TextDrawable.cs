@@ -107,15 +107,19 @@ public sealed class TextDrawable : DrawableBase
         }
     }
 
-    internal string PrepareText(SvgTextBase svgTextBase, string value)
+    internal string? PrepareText(SvgTextBase svgTextBase, string? value)
     {
         value = ApplyTransformation(svgTextBase, value);
         value = new StringBuilder(value).Replace("\r\n", " ").Replace('\r', ' ').Replace('\n', ' ').Replace('\t', ' ').ToString();
         return svgTextBase.SpaceHandling == XmlSpaceHandling.Preserve ? value : s_multipleSpaces.Replace(value.TrimStart(), " ");
     }
 
-    internal string ApplyTransformation(SvgTextBase svgTextBase, string value)
+    internal string? ApplyTransformation(SvgTextBase svgTextBase, string? value)
     {
+        if (value is null)
+        {
+            return value;
+        }
         return svgTextBase.TextTransformation switch
         {
             SvgTextTransformation.Capitalize => value.ToUpper(),
@@ -262,6 +266,7 @@ public sealed class TextDrawable : DrawableBase
         // TODO: Calculate correct bounds.
         var skBounds = skViewport;
         var fillAdvance = 0f;
+
         if (SvgExtensions.IsValidFill(svgTextBase))
         {
             var skPaint = SvgExtensions.GetFillPaint(svgTextBase, skBounds, AssetLoader, References, ignoreAttributes);
@@ -289,13 +294,16 @@ public sealed class TextDrawable : DrawableBase
                 }
             }
         }
+
         var strokeAdvance = 0f;
+
         if (SvgExtensions.IsValidStroke(svgTextBase, skBounds))
         {
             var skPaint = SvgExtensions.GetStrokePaint(svgTextBase, skBounds, AssetLoader, References, ignoreAttributes);
             if (skPaint is { })
             {
                 SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
+
                 foreach (var typefaceSpan in AssetLoader.FindTypefaces(text, skPaint))
                 {
                     skPaint.Typeface = typefaceSpan.Typeface;
@@ -315,6 +323,7 @@ public sealed class TextDrawable : DrawableBase
                 }
             }
         }
+
         x += Math.Max(strokeAdvance, fillAdvance);
     }
 
@@ -351,7 +360,12 @@ public sealed class TextDrawable : DrawableBase
                     GetPositionsDX(svgTextBase, skViewport, dxs);
                     GetPositionsDY(svgTextBase, skViewport, dys);
 
-                    if (xs.Count >= 1 && ys.Count >= 1 && xs.Count == ys.Count && xs.Count == text.Length)
+                    static int Codepoints(string text)
+                    {
+                        return text.Length - System.Linq.Enumerable.Count(text, char.IsLowSurrogate);
+                    }
+
+                    if (xs.Count >= 1 && ys.Count >= 1 && xs.Count == ys.Count && xs.Count == Codepoints(text))
                     {
                         // TODO: Fix text position rendering.
                         var points = new SKPoint[xs.Count];
@@ -377,60 +391,64 @@ public sealed class TextDrawable : DrawableBase
 
                         // TODO: Calculate correct bounds.
                         var skBounds = skViewport;
+                        int endingCodepointStart = text.Length - (char.IsLowSurrogate(text[text.Length - 1]) ? 2 : 1);
+
+                        float DrawTextLocal(SKPaint? skPaint)
+                        {
+                            if (skPaint is null)
+                            {
+                                return 0;
+                            }
+
+                            SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
+
+                            int offset = 0;
+                            foreach (var typefaceSpan in AssetLoader.FindTypefaces(text.Substring(0, endingCodepointStart), skPaint))
+                            {
+                                skPaint.Typeface = typefaceSpan.Typeface;
+                                var codepoints = Codepoints(typefaceSpan.Text);
+#if USE_SKIASHARP
+                                var textBlob = SKTextBlob.CreatePositioned(
+                                    typefaceSpan.Text, 
+                                    skPaint.ToFont(), 
+                                    points.AsSpan(offset, codepoints));
+#else
+                                var textBlob = SKTextBlob.CreatePositioned(
+                                    typefaceSpan.Text,
+                                    points.AsMemory(offset, codepoints).ToArray());
+                                skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
+#endif
+                                skCanvas.DrawText(textBlob, 0, 0, skPaint);
+                                offset += codepoints;
+                            }
+
+                            foreach (var typefaceSpan in AssetLoader.FindTypefaces(text.Substring(endingCodepointStart), skPaint))
+                            {
+                                skPaint.Typeface = typefaceSpan.Typeface;
+                                skCanvas.DrawText(typefaceSpan.Text, points[points.Length - 1].X, points[points.Length - 1].Y, skPaint);
+                                return typefaceSpan.Advance;
+                            }
+
+                            throw new ApplicationException("Code expected to be unreachable");
+                        }
+
                         var fillAdvance = 0f;
 
                         if (SvgExtensions.IsValidFill(svgTextBase))
                         {
                             var skPaint = SvgExtensions.GetFillPaint(svgTextBase, skBounds, AssetLoader, References, ignoreAttributes);
-                            if (skPaint is { })
-                            {
-                                SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
-                                int offset = 0;
-
-                                foreach (var typefaceSpan in AssetLoader.FindTypefaces(text, skPaint))
-                                {
-                                    skPaint.Typeface = typefaceSpan.Typeface;
-#if USE_SKIASHARP
-                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.Text, skPaint.ToFont(), points.AsSpan(offset, typefaceSpan.Text.Length));
-#else
-                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.Text, points.AsMemory(offset, typefaceSpan.Text.Length).ToArray());
-                                    skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
-#endif
-                                    skCanvas.DrawText(textBlob, 0, 0, skPaint);
-                                    fillAdvance += typefaceSpan.Advance;
-                                    offset += typefaceSpan.Text.Length;
-                                }
-                            }
+                            fillAdvance = DrawTextLocal(skPaint);
                         }
 
                         var strokeAdvance = 0f;
 
                         if (SvgExtensions.IsValidStroke(svgTextBase, skBounds))
                         {
-                            var skPaint = SvgExtensions.GetStrokePaint(svgTextBase, skBounds, AssetLoader, References,
-                                ignoreAttributes);
-                            if (skPaint is { })
-                            {
-                                SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
-                                int offset = 0;
-                                foreach (var typefaceSpan in AssetLoader.FindTypefaces(text, skPaint))
-                                {
-                                    skPaint.Typeface = typefaceSpan.Typeface;
-#if USE_SKIASHARP
-                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.Text, skPaint.ToFont(),
-                                        points.AsSpan(offset, typefaceSpan.Text.Length));
-#else
-                                    var textBlob = SKTextBlob.CreatePositioned(typefaceSpan.Text, points.AsMemory(offset, typefaceSpan.Text.Length).ToArray());
-                                    skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
-#endif
-                                    skCanvas.DrawText(textBlob, 0, 0, skPaint);
-                                    strokeAdvance += typefaceSpan.Advance;
-                                    offset += typefaceSpan.Text.Length;
-                                }
-                            }
+                            var skPaint = SvgExtensions.GetStrokePaint(svgTextBase, skBounds, AssetLoader, References, ignoreAttributes);
+                            strokeAdvance = DrawTextLocal(skPaint);
                         }
 
-                        currentX += Math.Max(fillAdvance, strokeAdvance);
+                        currentX = points[points.Length - 1].X + Math.Max(fillAdvance, strokeAdvance);
                         currentY = points[points.Length - 1].Y;
                     }
                     else
