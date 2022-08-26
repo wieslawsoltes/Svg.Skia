@@ -19,6 +19,8 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
     public List<SM.TypefaceSpan> FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
         var ret = new List<SM.TypefaceSpan>();
+        if (string.IsNullOrEmpty(text))
+        { return ret; }
 
         System.Func<int, Typeface?> matchCharacter;
 
