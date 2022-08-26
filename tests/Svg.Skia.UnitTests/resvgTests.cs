@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using SkiaSharp;
+using Svg.Skia.TypefaceProviders;
 using Xunit;
 
 namespace Svg.Skia.UnitTests;
@@ -26,7 +27,7 @@ public class resvgTests
 
         var svg = new SKSvg();
         using var _ = svg.Load(svgPath);
-        svg.Save(actualPng, SkiaSharp.SKColors.Transparent, scaleX: 1.5f, scaleY: 1.5f);
+        svg.Save(actualPng, SKColors.Transparent, scaleX: 1.5f, scaleY: 1.5f);
 
         ImageHelper.CompareImages(name, actualPng, expectedPng, errorThreshold);
 
@@ -38,23 +39,68 @@ public class resvgTests
 
     public resvgTests()
     {
-        var fontManager = SKFontManager.Default;
-        fontManager.CreateTypeface(GetFontsPath("Amiri-Regular.ttf"));
-        fontManager.CreateTypeface(GetFontsPath("MPLUS1p-Regular.ttf"));
-        fontManager.CreateTypeface(GetFontsPath("NotoEmoji-Regular.ttf"));
-        fontManager.CreateTypeface(GetFontsPath("NotoMono-Regular.ttf"));
-        fontManager.CreateTypeface(GetFontsPath("NotoSans-Black.ttf"));
-        fontManager.CreateTypeface(GetFontsPath("NotoSans-Bold.ttf"));
-        fontManager.CreateTypeface(GetFontsPath("NotoSans-Italic.ttf"));
-        fontManager.CreateTypeface(GetFontsPath("NotoSans-Light.ttf"));
-        fontManager.CreateTypeface(GetFontsPath("NotoSans-Regular.ttf"));
-        fontManager.CreateTypeface(GetFontsPath("NotoSans-Thin.ttf"));
-        fontManager.CreateTypeface(GetFontsPath("NotoSerif-Regular.ttf"));
-        fontManager.CreateTypeface(GetFontsPath("SedgwickAveDisplay-Regular.ttf"));
-        fontManager.CreateTypeface(GetFontsPath("SourceSansPro-Regular.ttf"));
-        fontManager.CreateTypeface(GetFontsPath("Yellowtail-Regular.ttf"));
+        if (SKSvgSettings.s_typefaceProviders is { })
+        {
+            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("Amiri-Regular.ttf")));
+            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("MPLUS1p-Regular.ttf")));
+            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoEmoji-Regular.ttf")));
+            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoMono-Regular.ttf")));
+            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoSans-Black.ttf")));
+            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoSans-Bold.ttf")));
+            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoSans-Italic.ttf")));
+            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoSans-Light.ttf")));
+            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoSans-Regular.ttf")));
+            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoSans-Thin.ttf")));
+            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoSerif-Regular.ttf")));
+            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("SedgwickAveDisplay-Regular.ttf")));
+            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("SourceSansPro-Regular.ttf")));
+            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("Yellowtail-Regular.ttf")));
+        }
     }
-    
+
+    [Theory]
+    [InlineData("Amiri", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
+    [InlineData("Mplus 1p", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
+    [InlineData("Noto Emoji", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
+    [InlineData("Noto Mono", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
+    [InlineData("Noto Sans", SKFontStyleWeight.Black, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
+    [InlineData("Noto Sans", SKFontStyleWeight.Bold, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
+    [InlineData("Noto Sans", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Italic)]
+    [InlineData("Noto Sans", SKFontStyleWeight.Light, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
+    [InlineData("Noto Sans", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
+    // TODO: [InlineData("Noto Sans", SKFontStyleWeight.Thin, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
+    [InlineData("Noto Serif", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
+    [InlineData("Sedgwick Ave Display", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
+    [InlineData("Source Sans Pro", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
+    [InlineData("Yellowtail", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
+    public void Fonts(string fontFamily, SKFontStyleWeight fontWeight, SKFontStyleWidth fontWidth, SKFontStyleSlant fontStyle)
+    {
+        var expectedTypeface = default(SKTypeface);
+
+        if (SKSvgSettings.s_typefaceProviders is { } && SKSvgSettings.s_typefaceProviders.Count > 0)
+        {
+            foreach (var typefaceProviders in SKSvgSettings.s_typefaceProviders)
+            {
+                var skTypeface = typefaceProviders.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
+                if (skTypeface is { })
+                {
+                    expectedTypeface = skTypeface;
+                    break;
+                }
+            }
+        }
+
+        Assert.NotNull(expectedTypeface);
+
+        if (expectedTypeface is { })
+        {
+            Assert.Equal(fontFamily, expectedTypeface.FamilyName);
+            Assert.Equal((int)fontWeight, expectedTypeface.FontWeight);
+            Assert.Equal((int)fontWidth, expectedTypeface.FontWidth);
+            Assert.Equal(fontStyle, expectedTypeface.FontSlant);
+        }
+    }
+
     [Theory(Skip = "TODO")]
     [InlineData("a-alignment-baseline-001", 0.022)]
     public void a_alignment_baseline(string name, double errorThreshold) => TestImpl(name, errorThreshold);
