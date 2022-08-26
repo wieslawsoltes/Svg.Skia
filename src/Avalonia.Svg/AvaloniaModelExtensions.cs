@@ -309,7 +309,7 @@ public static class AvaloniaModelExtensions
         }
     }
 
-    public static AM.IBrush? ToLinearGradientBrush(this LinearGradientShader linearGradientShader)
+    public static AM.IBrush? ToLinearGradientBrush(this LinearGradientShader linearGradientShader, SKRect bounds)
     {
         if (linearGradientShader.Colors is null || linearGradientShader.ColorPos is null)
         {
@@ -320,12 +320,10 @@ public static class AvaloniaModelExtensions
         var start = linearGradientShader.Start.ToPoint();
         var end = linearGradientShader.End.ToPoint();
 
+        var transform = default(AMII.ImmutableTransform);
         if (linearGradientShader.LocalMatrix is { })
         {
-            // TODO: linearGradientShader.LocalMatrix
-            var localMatrix = linearGradientShader.LocalMatrix.Value.ToMatrix();
-            start = localMatrix.Transform(start);
-            end = localMatrix.Transform(end);
+            transform = new AMII.ImmutableTransform(linearGradientShader.LocalMatrix.Value.ToMatrix());
         }
 
         var startPoint = new A.RelativePoint(start, A.RelativeUnit.Absolute);
@@ -343,14 +341,14 @@ public static class AvaloniaModelExtensions
         return new AMII.ImmutableLinearGradientBrush(
             gradientStops,
             1,
-            null,
+            transform,
             null,
             spreadMethod,
             startPoint,
             endPoint);
     }
 
-    public static AM.IBrush? ToRadialGradientBrush(this RadialGradientShader radialGradientShader)
+    public static AM.IBrush? ToRadialGradientBrush(this RadialGradientShader radialGradientShader, SKRect bounds)
     {
         if (radialGradientShader.Colors is null || radialGradientShader.ColorPos is null)
         {
@@ -361,17 +359,15 @@ public static class AvaloniaModelExtensions
         var center = radialGradientShader.Center.ToPoint();
         var gradientOrigin = center;
 
+        var transform = default(AMII.ImmutableTransform);
         if (radialGradientShader.LocalMatrix is { })
         {
-            // TODO: radialGradientBrush.LocalMatrix
-            var localMatrix = radialGradientShader.LocalMatrix.Value.ToMatrix();
-            gradientOrigin = localMatrix.Transform(gradientOrigin);
-            center = localMatrix.Transform(center);
+            transform = new AMII.ImmutableTransform(radialGradientShader.LocalMatrix.Value.ToMatrix());
         }
 
         var gradientOriginPoint = new A.RelativePoint(gradientOrigin, A.RelativeUnit.Absolute);
         var centerPoint = new A.RelativePoint(center, A.RelativeUnit.Absolute);
-        var radius = radialGradientShader.Radius;
+        var radius = radialGradientShader.Radius / bounds.Width;
 
         var gradientStops = new List<AMII.ImmutableGradientStop>();
         for (int i = 0; i < radialGradientShader.Colors.Length; i++)
@@ -385,7 +381,7 @@ public static class AvaloniaModelExtensions
         return new AMII.ImmutableRadialGradientBrush(
             gradientStops,
             1,
-            null,
+            transform,
             null,
             spreadMethod,
             centerPoint,
@@ -393,7 +389,7 @@ public static class AvaloniaModelExtensions
             radius);
     }
 
-    public static AM.IBrush? ToRadialGradientBrush(this TwoPointConicalGradientShader twoPointConicalGradientShader)
+    public static AM.IBrush? ToRadialGradientBrush(this TwoPointConicalGradientShader twoPointConicalGradientShader, SKRect bounds)
     {
         if (twoPointConicalGradientShader.Colors is null || twoPointConicalGradientShader.ColorPos is null)
         {
@@ -401,15 +397,13 @@ public static class AvaloniaModelExtensions
         }
 
         var spreadMethod = twoPointConicalGradientShader.Mode.ToGradientSpreadMethod();
-        var center = twoPointConicalGradientShader.Start.ToPoint();
-        var gradientOrigin = twoPointConicalGradientShader.End.ToPoint();
+        var center = twoPointConicalGradientShader.End.ToPoint();
+        var gradientOrigin = twoPointConicalGradientShader.Start.ToPoint();
 
+        var transform = default(AMII.ImmutableTransform);
         if (twoPointConicalGradientShader.LocalMatrix is { })
         {
-            // TODO: radialGradientBrush.LocalMatrix
-            var localMatrix = twoPointConicalGradientShader.LocalMatrix.Value.ToMatrix();
-            gradientOrigin = localMatrix.Transform(gradientOrigin);
-            center = localMatrix.Transform(center);
+            transform = new AMII.ImmutableTransform(twoPointConicalGradientShader.LocalMatrix.Value.ToMatrix());
         }
 
         var gradientOriginPoint = new A.RelativePoint(gradientOrigin, A.RelativeUnit.Absolute);
@@ -420,7 +414,7 @@ public static class AvaloniaModelExtensions
 
         // TODO: Avalonia is passing 'radius' to 'SKShader.CreateTwoPointConicalGradient' as 'startRadius'
         // TODO: but we need to pass it as 'endRadius' to 'SKShader.CreateTwoPointConicalGradient'
-        var endRadius = twoPointConicalGradientShader.EndRadius;
+        var endRadius = twoPointConicalGradientShader.EndRadius / bounds.Width;
         var radius = 0.5; // endRadius
 
         var gradientStops = new List<AMII.ImmutableGradientStop>();
@@ -435,7 +429,7 @@ public static class AvaloniaModelExtensions
         return new AMII.ImmutableRadialGradientBrush(
             gradientStops,
             1,
-            null,
+            transform,
             null,
             spreadMethod,
             centerPoint,
@@ -443,7 +437,19 @@ public static class AvaloniaModelExtensions
             radius);
     }
 
-    public static AM.IBrush? ToBrush(this SKShader? shader)
+    public static AM.IBrush? ToVisualBrush(this PictureShader pictureShader, SKRect bounds)
+    {
+        if (pictureShader.Src is null)
+        {
+            return null;
+        }
+
+        // TODO: pictureShader
+
+        return null;
+    }
+
+    public static AM.IBrush? ToBrush(this SKShader? shader, SKRect bounds)
     {
         switch (shader)
         {
@@ -451,26 +457,25 @@ public static class AvaloniaModelExtensions
                 return ToSolidColorBrush(colorShader);
 
             case LinearGradientShader linearGradientShader:
-                return ToLinearGradientBrush(linearGradientShader);
+                return ToLinearGradientBrush(linearGradientShader, bounds);
 
             case RadialGradientShader radialGradientShader:
-                return ToRadialGradientBrush(radialGradientShader);
+                return ToRadialGradientBrush(radialGradientShader, bounds);
 
             case TwoPointConicalGradientShader twoPointConicalGradientShader:
-                return ToRadialGradientBrush(twoPointConicalGradientShader);
+                return ToRadialGradientBrush(twoPointConicalGradientShader, bounds);
 
             case PictureShader pictureShader:
-                // TODO: pictureShader
-                return null;
+                return ToVisualBrush(pictureShader, bounds);
 
             default:
                 return null;
         }
     }
 
-    private static AM.IPen ToPen(this SKPaint paint)
+    private static AM.IPen ToPen(this SKPaint paint, SKRect bounds)
     {
-        var brush = ToBrush(paint.Shader);
+        var brush = ToBrush(paint.Shader, bounds);
         var lineCap = paint.StrokeCap.ToPenLineCap();
         var lineJoin = paint.StrokeJoin.ToPenLineJoin();
 
@@ -496,19 +501,19 @@ public static class AvaloniaModelExtensions
         );
     }
 
-    public static (AM.IBrush? brush, AM.IPen? pen) ToBrushAndPen(this SKPaint paint)
+    public static (AM.IBrush? brush, AM.IPen? pen) ToBrushAndPen(this SKPaint paint, SKRect bounds)
     {
         AM.IBrush? brush = null;
         AM.IPen? pen = null;
 
         if (paint.Style == SKPaintStyle.Fill || paint.Style == SKPaintStyle.StrokeAndFill)
         {
-            brush = ToBrush(paint.Shader);
+            brush = ToBrush(paint.Shader, bounds);
         }
 
         if (paint.Style == SKPaintStyle.Stroke || paint.Style == SKPaintStyle.StrokeAndFill)
         {
-            pen = ToPen(paint);
+            pen = ToPen(paint, bounds);
         }
 
         // TODO: paint.IsAntialias
