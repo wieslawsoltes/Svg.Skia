@@ -1742,39 +1742,43 @@ public static class SkiaCSharpModelExtensions
             {
                 case ClipPathCanvasCommand clipPathCanvasCommand:
                 {
-                    var counterPath = ++counter.Path;
-                    clipPathCanvasCommand.ClipPath.ToSKPath(counter, sb, indent, out var isDefault);
-                    if (!isDefault)
+                    if (clipPathCanvasCommand.ClipPath is { })
                     {
-                        var operation = clipPathCanvasCommand.Operation.ToSKClipOperation();
-                        var antialias = clipPathCanvasCommand.Antialias.ToBoolString();
-                        sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.ClipPath({counter.PathVarName}{counterPath}, {operation}, {antialias});");
+                        var counterPath = ++counter.Path;
+                        clipPathCanvasCommand.ClipPath.ToSKPath(counter, sb, indent, out var isDefault);
+                        if (!isDefault)
+                        {
+                            var operation = clipPathCanvasCommand.Operation.ToSKClipOperation();
+                            var antialias = clipPathCanvasCommand.Antialias.ToBoolString();
+                            sb.AppendLine(
+                                $"{indent}{counter.CanvasVarName}{counterCanvas}.ClipPath({counter.PathVarName}{counterPath}, {operation}, {antialias});");
+                        }
                     }
-                }
                     break;
+                }
                 case ClipRectCanvasCommand clipRectCanvasCommand:
                 {
                     var rect = clipRectCanvasCommand.Rect.ToSKRect();
                     var operation = clipRectCanvasCommand.Operation.ToSKClipOperation();
                     var antialias = clipRectCanvasCommand.Antialias.ToBoolString();
                     sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.ClipRect({rect}, {operation}, {antialias});");
-                }
                     break;
+                }
                 case SaveCanvasCommand _:
                 {
                     sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.Save();");
-                }
                     break;
+                }
                 case RestoreCanvasCommand _:
                 {
                     sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.Restore();");
-                }
                     break;
+                }
                 case SetMatrixCanvasCommand setMatrixCanvasCommand:
                 {
                     sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SetMatrix({setMatrixCanvasCommand.Matrix.ToSKMatrix()});");
-                }
                     break;
+                }
                 case SaveLayerCanvasCommand saveLayerCanvasCommand:
                 {
                     if (saveLayerCanvasCommand.Paint is { })
@@ -1785,13 +1789,13 @@ public static class SkiaCSharpModelExtensions
 
                         // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
-                                if (saveLayerCanvasCommand.Paint.Typeface is { })
-                                {
-                                    sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
-                                    sb.AppendLine($"{indent}{{");
-                                    sb.AppendLine($"{indent}    {counter.PaintVarName}{counterPaint}.Typeface?.Dispose();");
-                                    sb.AppendLine($"{indent}}}");
-                                } 
+                        if (saveLayerCanvasCommand.Paint.Typeface is { })
+                        {
+                            sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
+                            sb.AppendLine($"{indent}{{");
+                            sb.AppendLine($"{indent}    {counter.PaintVarName}{counterPaint}.Typeface?.Dispose();");
+                            sb.AppendLine($"{indent}}}");
+                        } 
 #endif
                         if (saveLayerCanvasCommand.Paint.Shader is { })
                         {
@@ -1816,8 +1820,8 @@ public static class SkiaCSharpModelExtensions
                     {
                         sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SaveLayer();");
                     }
-                }
                     break;
+                }
                 case DrawImageCanvasCommand drawImageCanvasCommand:
                 {
                     if (drawImageCanvasCommand.Image is { })
@@ -1833,13 +1837,13 @@ public static class SkiaCSharpModelExtensions
 
                         // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
-                                if (drawImageCanvasCommand.Paint?.Typeface is { })
-                                {
-                                    sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
-                                    sb.AppendLine($"{indent}{{");
-                                    sb.AppendLine($"{indent}    {counter.PaintVarName}{counterPaint}.Typeface?.Dispose();");
-                                    sb.AppendLine($"{indent}}}");
-                                } 
+                        if (drawImageCanvasCommand.Paint?.Typeface is { })
+                        {
+                            sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
+                            sb.AppendLine($"{indent}{{");
+                            sb.AppendLine($"{indent}    {counter.PaintVarName}{counterPaint}.Typeface?.Dispose();");
+                            sb.AppendLine($"{indent}}}");
+                        } 
 #endif
                         if (drawImageCanvasCommand.Paint?.Shader is { })
                         {
@@ -1860,8 +1864,8 @@ public static class SkiaCSharpModelExtensions
 
                         sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
                     }
-                }
                     break;
+                }
                 case DrawPathCanvasCommand drawPathCanvasCommand:
                 {
                     if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })
@@ -1874,13 +1878,13 @@ public static class SkiaCSharpModelExtensions
 
                         // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
-                                if (drawPathCanvasCommand.Paint.Typeface is { })
-                                {
-                                    sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
-                                    sb.AppendLine($"{indent}{{");
-                                    sb.AppendLine($"{indent}    {counter.PaintVarName}{counterPaint}.Typeface?.Dispose();");
-                                    sb.AppendLine($"{indent}}}");
-                                } 
+                        if (drawPathCanvasCommand.Paint.Typeface is { })
+                        {
+                            sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
+                            sb.AppendLine($"{indent}{{");
+                            sb.AppendLine($"{indent}    {counter.PaintVarName}{counterPaint}.Typeface?.Dispose();");
+                            sb.AppendLine($"{indent}}}");
+                        } 
 #endif
                         if (drawPathCanvasCommand.Paint.Shader is { })
                         {
@@ -1902,8 +1906,8 @@ public static class SkiaCSharpModelExtensions
                         sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
                         sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}?.Dispose();");
                     }
-                }
                     break;
+                }
                 case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:
                 {
                     if (drawPositionedTextCanvasCommand.TextBlob is { } && drawPositionedTextCanvasCommand.TextBlob.Points is { } && drawPositionedTextCanvasCommand.Paint is { })
@@ -1922,13 +1926,13 @@ public static class SkiaCSharpModelExtensions
 
                         // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
-                                if (drawPositionedTextCanvasCommand.Paint.Typeface is { })
-                                {
-                                    sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
-                                    sb.AppendLine($"{indent}{{");
-                                    sb.AppendLine($"{indent}    {counter.PaintVarName}{counterPaint}.Typeface?.Dispose();");
-                                    sb.AppendLine($"{indent}}}");
-                                } 
+                        if (drawPositionedTextCanvasCommand.Paint.Typeface is { })
+                        {
+                            sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
+                            sb.AppendLine($"{indent}{{");
+                            sb.AppendLine($"{indent}    {counter.PaintVarName}{counterPaint}.Typeface?.Dispose();");
+                            sb.AppendLine($"{indent}}}");
+                        } 
 #endif
                         if (drawPositionedTextCanvasCommand.Paint.Shader is { })
                         {
@@ -1949,8 +1953,8 @@ public static class SkiaCSharpModelExtensions
 
                         sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
                     }
-                }
                     break;
+                }
                 case DrawTextCanvasCommand drawTextCanvasCommand:
                 {
                     if (drawTextCanvasCommand.Paint is { })
@@ -1964,13 +1968,13 @@ public static class SkiaCSharpModelExtensions
 
                         // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
-                                if (drawTextCanvasCommand.Paint.Typeface is { })
-                                {
-                                    sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
-                                    sb.AppendLine($"{indent}{{");
-                                    sb.AppendLine($"{indent}    {counter.PaintVarName}{counterPaint}.Typeface?.Dispose();");
-                                    sb.AppendLine($"{indent}}}");
-                                } 
+                        if (drawTextCanvasCommand.Paint.Typeface is { })
+                        {
+                            sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
+                            sb.AppendLine($"{indent}{{");
+                            sb.AppendLine($"{indent}    {counter.PaintVarName}{counterPaint}.Typeface?.Dispose();");
+                            sb.AppendLine($"{indent}}}");
+                        } 
 #endif
                         if (drawTextCanvasCommand.Paint.Shader is { })
                         {
@@ -1991,8 +1995,8 @@ public static class SkiaCSharpModelExtensions
 
                         sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
                     }
-                }
                     break;
+                }
                 case DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand:
                 {
                     if (drawTextOnPathCanvasCommand.Path is { } && drawTextOnPathCanvasCommand.Paint is { })
@@ -2008,13 +2012,13 @@ public static class SkiaCSharpModelExtensions
 
                         // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
-                                if (drawTextOnPathCanvasCommand.Paint.Typeface is { })
-                                {
-                                    sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
-                                    sb.AppendLine($"{indent}{{");
-                                    sb.AppendLine($"{indent}    {counter.PaintVarName}{counterPaint}.Typeface?.Dispose();");
-                                    sb.AppendLine($"{indent}}}");
-                                }
+                        if (drawTextOnPathCanvasCommand.Paint.Typeface is { })
+                        {
+                            sb.AppendLine($"{indent}if ({counter.PaintVarName}{counterPaint}.Typeface != SKTypeface.Default)");
+                            sb.AppendLine($"{indent}{{");
+                            sb.AppendLine($"{indent}    {counter.PaintVarName}{counterPaint}.Typeface?.Dispose();");
+                            sb.AppendLine($"{indent}}}");
+                        }
 #endif
                         if (drawTextOnPathCanvasCommand.Paint.Shader is { })
                         {
@@ -2036,10 +2040,12 @@ public static class SkiaCSharpModelExtensions
                         sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
                         sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}?.Dispose();");
                     }
+                    break;
                 }
-                    break;
                 default:
+                {
                     break;
+                }
             }
         }
 
