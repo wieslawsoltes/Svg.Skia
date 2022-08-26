@@ -14,73 +14,156 @@ public sealed class AvaloniaPicture : IDisposable
 {
     private static AP.IPlatformRenderInterface? Factory => A.AvaloniaLocator.Current?.GetService<AP.IPlatformRenderInterface>();
 
-    private readonly List<DrawCommand>? _commands;
+    private readonly List<DrawCommand> _commands;
 
-    public IReadOnlyList<DrawCommand>? Commands => _commands;
+    public IReadOnlyList<DrawCommand> Commands => _commands;
 
     private AvaloniaPicture()
     {
         _commands = new List<DrawCommand>();
     }
 
-    private static void Record(CanvasCommand canvasCommand, AvaloniaPicture? avaloniaPicture)
+    private static void RecordPathCommand(DrawPathCanvasCommand drawPathCanvasCommand, List<DrawCommand> commands)
     {
-        if (avaloniaPicture?._commands is null)
+        if (drawPathCanvasCommand.Path is null || drawPathCanvasCommand.Paint is null)
         {
             return;
         }
 
+        var (brush, pen) = drawPathCanvasCommand.Paint.ToBrushAndPen(drawPathCanvasCommand.Path.Bounds);
+
+        if (drawPathCanvasCommand.Path.Commands?.Count == 1)
+        {
+            var pathCommand = drawPathCanvasCommand.Path.Commands[0];
+            var success = false;
+
+            switch (pathCommand)
+            {
+                case AddRectPathCommand addRectPathCommand:
+                {
+                    var rect = addRectPathCommand.Rect.ToRect();
+                    commands.Add(new RectangleDrawCommand(brush, pen, rect, 0, 0));
+                    success = true;
+                    break;
+                }
+                case AddRoundRectPathCommand addRoundRectPathCommand:
+                {
+                    var rect = addRoundRectPathCommand.Rect.ToRect();
+                    var rx = addRoundRectPathCommand.Rx;
+                    var ry = addRoundRectPathCommand.Ry;
+                    commands.Add(new RectangleDrawCommand(brush, pen, rect, rx, ry));
+                    success = true;
+                    break;
+                }
+                case AddOvalPathCommand addOvalPathCommand:
+                {
+                    var rect = addOvalPathCommand.Rect.ToRect();
+                    var ellipseGeometry = Factory?.CreateEllipseGeometry(rect);
+                    commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
+                    success = true;
+                    break;
+                }
+                case AddCirclePathCommand addCirclePathCommand:
+                {
+                    var x = addCirclePathCommand.X;
+                    var y = addCirclePathCommand.Y;
+                    var radius = addCirclePathCommand.Radius;
+                    var rect = new A.Rect(x - radius, y - radius, radius + radius, radius + radius);
+                    var ellipseGeometry = Factory?.CreateEllipseGeometry(rect);
+                    commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
+                    success = true;
+                    break;
+                }
+                case AddPolyPathCommand addPolyPathCommand:
+                {
+                    if (addPolyPathCommand.Points is { })
+                    {
+                        var close = addPolyPathCommand.Close;
+                        var polylineGeometry = addPolyPathCommand.Points.ToGeometry(close);
+                        commands.Add(new GeometryDrawCommand(brush, pen, polylineGeometry));
+                        success = true;
+                    }
+                    break;
+                }
+            }
+
+            if (success)
+            {
+                return;
+            }
+        }
+
+        if (drawPathCanvasCommand.Path.Commands?.Count == 2)
+        {
+            var pathCommand1 = drawPathCanvasCommand.Path.Commands[0];
+            var pathCommand2 = drawPathCanvasCommand.Path.Commands[1];
+
+            if (pathCommand1 is MoveToPathCommand moveTo && pathCommand2 is LineToPathCommand lineTo)
+            {
+                var p1 = new A.Point(moveTo.X, moveTo.Y);
+                var p2 = new A.Point(lineTo.X, lineTo.Y);
+                commands.Add(new LineDrawCommand(pen, p1, p2));
+                return;
+            }
+        }
+
+        var geometry = drawPathCanvasCommand.Path.ToGeometry(brush is { });
+        if (geometry is { })
+        {
+            commands.Add(new GeometryDrawCommand(brush, pen, geometry));
+        }
+    }
+
+    private static void RecordCommand(CanvasCommand canvasCommand, List<DrawCommand> commands)
+    {
         switch (canvasCommand)
         {
             case ClipPathCanvasCommand clipPathCanvasCommand:
             {
-                var path = clipPathCanvasCommand.ClipPath.ToGeometry(false);
-                if (path is { })
+                if (clipPathCanvasCommand.ClipPath is { })
                 {
-                    // TODO: clipPathCanvasCommand.Operation;
-                    // TODO: clipPathCanvasCommand.Antialias;
-                    avaloniaPicture._commands.Add(new GeometryClipDrawCommand(path));
+                    var path = clipPathCanvasCommand.ClipPath.ToGeometry(false);
+                    if (path is { })
+                    {
+                        // TODO: clipPathCanvasCommand.Operation;
+                        // TODO: clipPathCanvasCommand.Antialias;
+                        commands.Add(new GeometryClipDrawCommand(path));
+                    }
                 }
-            }
                 break;
-
+            }
             case ClipRectCanvasCommand clipRectCanvasCommand:
             {
                 var rect = clipRectCanvasCommand.Rect.ToRect();
                 // TODO: clipRectCanvasCommand.Operation;
                 // TODO: clipRectCanvasCommand.Antialias;
-                avaloniaPicture._commands.Add(new ClipDrawCommand(rect));
-            }
+                commands.Add(new ClipDrawCommand(rect));
                 break;
-
+            }
             case SaveCanvasCommand _:
             {
                 // TODO: SaveCanvasCommand
-                avaloniaPicture._commands.Add(new SaveDrawCommand());
-            }
+                commands.Add(new SaveDrawCommand());
                 break;
-
+            }
             case RestoreCanvasCommand _:
             {
                 // TODO: RestoreCanvasCommand
-                avaloniaPicture._commands.Add(new RestoreDrawCommand());
-            }
+                commands.Add(new RestoreDrawCommand());
                 break;
-
+            }
             case SetMatrixCanvasCommand setMatrixCanvasCommand:
             {
                 var matrix = setMatrixCanvasCommand.Matrix.ToMatrix();
-                avaloniaPicture._commands.Add(new SetTransformDrawCommand(matrix));
-            }
+                commands.Add(new SetTransformDrawCommand(matrix));
                 break;
-
+            }
             case SaveLayerCanvasCommand saveLayerCanvasCommand:
             {
                 // TODO: SaveLayerCanvasCommand
-                avaloniaPicture._commands.Add(new SaveLayerDrawCommand());
-            }
+                commands.Add(new SaveLayerDrawCommand());
                 break;
-
+            }
             case DrawImageCanvasCommand drawImageCanvasCommand:
             {
                 if (drawImageCanvasCommand.Image is { })
@@ -91,136 +174,45 @@ public sealed class AvaloniaPicture : IDisposable
                         var source = drawImageCanvasCommand.Source.ToRect();
                         var dest = drawImageCanvasCommand.Dest.ToRect();
                         var bitmapInterpolationMode = drawImageCanvasCommand.Paint?.FilterQuality.ToBitmapInterpolationMode() ?? AVMI.BitmapInterpolationMode.Default;
-                        avaloniaPicture._commands.Add(new ImageDrawCommand(image, source, dest, bitmapInterpolationMode));
+                        commands.Add(new ImageDrawCommand(image, source, dest, bitmapInterpolationMode));
                     }
                 }
-            }
                 break;
-
+            }
             case DrawPathCanvasCommand drawPathCanvasCommand:
             {
-                if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })
-                {
-                    (var brush, var pen) = drawPathCanvasCommand.Paint.ToBrushAndPen(drawPathCanvasCommand.Path.Bounds);
-
-                    if (drawPathCanvasCommand.Path.Commands?.Count == 1)
-                    {
-                        var pathCommand = drawPathCanvasCommand.Path.Commands[0];
-                        var success = false;
-
-                        switch (pathCommand)
-                        {
-                            case AddRectPathCommand addRectPathCommand:
-                            {
-                                var rect = addRectPathCommand.Rect.ToRect();
-                                avaloniaPicture._commands.Add(new RectangleDrawCommand(brush, pen, rect, 0, 0));
-                                success = true;
-                            }
-                                break;
-
-                            case AddRoundRectPathCommand addRoundRectPathCommand:
-                            {
-                                var rect = addRoundRectPathCommand.Rect.ToRect();
-                                var rx = addRoundRectPathCommand.Rx;
-                                var ry = addRoundRectPathCommand.Ry;
-                                avaloniaPicture._commands.Add(new RectangleDrawCommand(brush, pen, rect, rx, ry));
-                                success = true;
-                            }
-                                break;
-
-                            case AddOvalPathCommand addOvalPathCommand:
-                            {
-                                var rect = addOvalPathCommand.Rect.ToRect();
-                                var ellipseGeometry = Factory?.CreateEllipseGeometry(rect);
-                                avaloniaPicture._commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
-                                success = true;
-                            }
-                                break;
-
-                            case AddCirclePathCommand addCirclePathCommand:
-                            {
-                                var x = addCirclePathCommand.X;
-                                var y = addCirclePathCommand.Y;
-                                var radius = addCirclePathCommand.Radius;
-                                var rect = new A.Rect(x - radius, y - radius, radius + radius, radius + radius);
-                                var ellipseGeometry = Factory?.CreateEllipseGeometry(rect);
-                                avaloniaPicture._commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
-                                success = true;
-                            }
-                                break;
-
-                            case AddPolyPathCommand addPolyPathCommand:
-                            {
-                                if (addPolyPathCommand.Points is { })
-                                {
-                                    var close = addPolyPathCommand.Close;
-                                    var polylineGeometry = addPolyPathCommand.Points.ToGeometry(close);
-                                    avaloniaPicture._commands.Add(new GeometryDrawCommand(brush, pen, polylineGeometry));
-                                    success = true;
-                                }
-                            }
-                                break;
-                        }
-
-                        if (success)
-                        {
-                            break;
-                        }
-                    }
-
-                    if (drawPathCanvasCommand.Path.Commands?.Count == 2)
-                    {
-                        var pathCommand1 = drawPathCanvasCommand.Path.Commands[0];
-                        var pathCommand2 = drawPathCanvasCommand.Path.Commands[1];
-
-                        if (pathCommand1 is MoveToPathCommand moveTo && pathCommand2 is LineToPathCommand lineTo)
-                        {
-                            var p1 = new A.Point(moveTo.X, moveTo.Y);
-                            var p2 = new A.Point(lineTo.X, lineTo.Y);
-                            avaloniaPicture._commands.Add(new LineDrawCommand(pen, p1, p2));
-                            break;
-                        }
-                    }
-
-                    var geometry = drawPathCanvasCommand.Path.ToGeometry(brush is { });
-                    if (geometry is { })
-                    {
-                        avaloniaPicture._commands.Add(new GeometryDrawCommand(brush, pen, geometry));
-                    }
-                }
-            }
+                RecordPathCommand(drawPathCanvasCommand, commands);
                 break;
-
+            }
             case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:
             {
                 // TODO: DrawTextBlobCanvasCommand
-            }
                 break;
-
+            }
             case DrawTextCanvasCommand drawTextCanvasCommand:
             {
                 if (drawTextCanvasCommand.Paint is { })
                 {
                     // TOD: Calculate text bounds.
                     var bounds = new SKRect(0f, 0f, 0f, 0f);
-                    (var brush, _) = drawTextCanvasCommand.Paint.ToBrushAndPen(bounds);
+                    var (brush, _) = drawTextCanvasCommand.Paint.ToBrushAndPen(bounds);
                     var text = drawTextCanvasCommand.Paint.ToFormattedText(drawTextCanvasCommand.Text, brush);
                     var x = drawTextCanvasCommand.X;
                     var y = drawTextCanvasCommand.Y;
                     var origin = new A.Point(x, y - drawTextCanvasCommand.Paint.TextSize);
-                    avaloniaPicture._commands.Add(new TextDrawCommand(origin, text));
+                    commands.Add(new TextDrawCommand(origin, text));
                 }
-            }
                 break;
-
+            }
             case DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand:
             {
                 // TODO: DrawTextOnPathCanvasCommand
+                break;
             }
-                break;
-
             default:
+            {
                 break;
+            }
         }
     }
 
@@ -235,7 +227,7 @@ public sealed class AvaloniaPicture : IDisposable
 
         foreach (var canvasCommand in picture.Commands)
         {
-            Record(canvasCommand, avaloniaPicture);
+            RecordCommand(canvasCommand, avaloniaPicture._commands);
         }
 
         return avaloniaPicture;
@@ -247,26 +239,26 @@ public sealed class AvaloniaPicture : IDisposable
         {
             case GeometryClipDrawCommand geometryClipDrawCommand:
             {
-                var geometryPushedState = context.PushGeometryClip(geometryClipDrawCommand.Clip);
-                var currentPushedStates = pushedStates.Peek();
-                currentPushedStates.Push(geometryPushedState);
-            }
+                if (geometryClipDrawCommand.Clip is { })
+                {
+                    var geometryPushedState = context.PushGeometryClip(geometryClipDrawCommand.Clip);
+                    var currentPushedStates = pushedStates.Peek();
+                    currentPushedStates.Push(geometryPushedState);
+                }
                 break;
-
+            }
             case ClipDrawCommand clipDrawCommand:
             {
                 var clipPushedState = context.PushClip(clipDrawCommand.Clip);
                 var currentPushedStates = pushedStates.Peek();
                 currentPushedStates.Push(clipPushedState);
-            }
                 break;
-
+            }
             case SaveDrawCommand _:
             {
                 pushedStates.Push(new Stack<IDisposable>());
-            }
                 break;
-
+            }
             case RestoreDrawCommand _:
             {
                 var currentPushedStates = pushedStates.Pop();
@@ -275,51 +267,54 @@ public sealed class AvaloniaPicture : IDisposable
                     var pushedState = currentPushedStates.Pop();
                     pushedState.Dispose();
                 }
-            }
                 break;
-
+            }
             case SetTransformDrawCommand setTransformDrawCommand:
             {
                 var transformPreTransform = context.PushSetTransform(setTransformDrawCommand.Matrix);
                 var currentPushedStates = pushedStates.Peek();
                 currentPushedStates.Push(transformPreTransform);
-            }
                 break;
-
+            }
             case SaveLayerDrawCommand saveLayerDrawCommand:
             {
                 pushedStates.Push(new Stack<IDisposable>());
-            }
                 break;
-
+            }
             case ImageDrawCommand imageDrawCommand:
             {
-                context.DrawImage(
-                    imageDrawCommand.Source,
-                    imageDrawCommand.SourceRect,
-                    imageDrawCommand.DestRect,
-                    imageDrawCommand.BitmapInterpolationMode);
-            }
+                if (imageDrawCommand.Source is { })
+                {
+                    context.DrawImage(
+                        imageDrawCommand.Source,
+                        imageDrawCommand.SourceRect,
+                        imageDrawCommand.DestRect,
+                        imageDrawCommand.BitmapInterpolationMode);
+                }
                 break;
-
+            }
             case GeometryDrawCommand geometryDrawCommand:
             {
-                context.DrawGeometry(
-                    geometryDrawCommand.Brush,
-                    geometryDrawCommand.Pen,
-                    geometryDrawCommand.Geometry);
-            }
+                if (geometryDrawCommand.Geometry is { })
+                {
+                    context.DrawGeometry(
+                        geometryDrawCommand.Brush,
+                        geometryDrawCommand.Pen,
+                        geometryDrawCommand.Geometry);
+                }
                 break;
-
+            }
             case LineDrawCommand lineDrawCommand:
             {
-                context.DrawLine(
-                    lineDrawCommand.Pen,
-                    lineDrawCommand.P1,
-                    lineDrawCommand.P2);
-            }
+                if (lineDrawCommand.Pen is { })
+                {
+                    context.DrawLine(
+                        lineDrawCommand.Pen,
+                        lineDrawCommand.P1,
+                        lineDrawCommand.P2);
+                }
                 break;
-
+            }
             case RectangleDrawCommand rectangleDrawCommand:
             {
                 context.DrawRectangle(
@@ -328,9 +323,8 @@ public sealed class AvaloniaPicture : IDisposable
                     rectangleDrawCommand.Rect,
                     rectangleDrawCommand.RadiusX,
                     rectangleDrawCommand.RadiusY);
-            }
                 break;
-
+            }
             case TextDrawCommand textDrawCommand:
             {
                 if (textDrawCommand.FormattedText is { })
@@ -339,20 +333,14 @@ public sealed class AvaloniaPicture : IDisposable
                         textDrawCommand.FormattedText,
                         textDrawCommand.Origin);
                 }
-            }
                 break;
+            }
         }
     }
 
     public void Draw(AM.DrawingContext context)
     {
-        if (_commands is null)
-        {
-            return;
-        }
-
         using var transformContainerState = context.PushTransformContainer();
-
         var pushedStates = new Stack<Stack<IDisposable>>();
 
         foreach (var command in _commands)
@@ -363,11 +351,6 @@ public sealed class AvaloniaPicture : IDisposable
 
     public void Dispose()
     {
-        if (_commands is null)
-        {
-            return;
-        }
-
         foreach (var command in _commands)
         {
             command.Dispose();
