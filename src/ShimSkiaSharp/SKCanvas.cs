@@ -5,19 +5,19 @@ namespace ShimSkiaSharp;
 
 public abstract record CanvasCommand;
 
-public record ClipPathCanvasCommand(ClipPath ClipPath, SKClipOperation Operation, bool Antialias) : CanvasCommand;
+public record ClipPathCanvasCommand(ClipPath? ClipPath, SKClipOperation Operation, bool Antialias) : CanvasCommand;
 
 public record ClipRectCanvasCommand(SKRect Rect, SKClipOperation Operation, bool Antialias) : CanvasCommand;
 
-public record DrawImageCanvasCommand(SKImage Image, SKRect Source, SKRect Dest, SKPaint? Paint = null) : CanvasCommand;
+public record DrawImageCanvasCommand(SKImage? Image, SKRect Source, SKRect Dest, SKPaint? Paint = null) : CanvasCommand;
 
-public record DrawPathCanvasCommand(SKPath Path, SKPaint Paint) : CanvasCommand;
+public record DrawPathCanvasCommand(SKPath? Path, SKPaint? Paint) : CanvasCommand;
 
-public record DrawTextBlobCanvasCommand(SKTextBlob TextBlob, float X, float Y, SKPaint Paint) : CanvasCommand;
+public record DrawTextBlobCanvasCommand(SKTextBlob? TextBlob, float X, float Y, SKPaint? Paint) : CanvasCommand;
 
-public record DrawTextCanvasCommand(string Text, float X, float Y, SKPaint Paint) : CanvasCommand;
+public record DrawTextCanvasCommand(string Text, float X, float Y, SKPaint? Paint) : CanvasCommand;
 
-public record DrawTextOnPathCanvasCommand(string Text, SKPath Path, float HOffset, float VOffset, SKPaint Paint) : CanvasCommand;
+public record DrawTextOnPathCanvasCommand(string Text, SKPath? Path, float HOffset, float VOffset, SKPaint? Paint) : CanvasCommand;
 
 public record RestoreCanvasCommand(int Count) : CanvasCommand;
 
