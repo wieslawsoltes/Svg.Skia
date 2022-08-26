@@ -714,7 +714,7 @@ public static partial class SvgExtensions
             if (firstAspectRatio is null)
             {
                 var pAspectRatio = p.AspectRatio;
-                if (pAspectRatio is { } && pAspectRatio.Align != SvgPreserveAspectRatio.xMidYMid)
+                if (pAspectRatio is { })
                 {
                     firstAspectRatio = p;
                 }
