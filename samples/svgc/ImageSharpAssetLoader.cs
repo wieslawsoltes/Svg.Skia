@@ -14,6 +14,8 @@ internal class ImageSharpAssetLoader : Svg.Model.IAssetLoader
 
     public List<Svg.Model.TypefaceSpan> FindTypefaces(string text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
+        if (string.IsNullOrEmpty(text))
+        { return new(); }
         // TODO:
         // Font fallback and text advancing code should be generated along with canvas commands instead.
         // Otherwise, some package reference hacking may be needed.
