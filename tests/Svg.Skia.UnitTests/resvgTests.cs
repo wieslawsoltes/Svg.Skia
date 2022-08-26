@@ -1,10 +1,14 @@
 ﻿using System.IO;
+using SkiaSharp;
 using Xunit;
 
 namespace Svg.Skia.UnitTests;
 
 public class resvgTests
 {
+    private string GetFontsPath(string name) 
+        => Path.Combine("..", "..", "..", "..", "..", "externals", "resvg", "tests", "fonts", name);
+
     private string GetSvgPath(string name) 
         => Path.Combine("..", "..", "..", "..", "..", "externals", "resvg", "tests", "svg", name);
 
@@ -32,6 +36,25 @@ public class resvgTests
         }
     }
 
+    public resvgTests()
+    {
+        var fontManager = SKFontManager.Default;
+        fontManager.CreateTypeface(GetFontsPath("Amiri-Regular.ttf"));
+        fontManager.CreateTypeface(GetFontsPath("MPLUS1p-Regular.ttf"));
+        fontManager.CreateTypeface(GetFontsPath("NotoEmoji-Regular.ttf"));
+        fontManager.CreateTypeface(GetFontsPath("NotoMono-Regular.ttf"));
+        fontManager.CreateTypeface(GetFontsPath("NotoSans-Black.ttf"));
+        fontManager.CreateTypeface(GetFontsPath("NotoSans-Bold.ttf"));
+        fontManager.CreateTypeface(GetFontsPath("NotoSans-Italic.ttf"));
+        fontManager.CreateTypeface(GetFontsPath("NotoSans-Light.ttf"));
+        fontManager.CreateTypeface(GetFontsPath("NotoSans-Regular.ttf"));
+        fontManager.CreateTypeface(GetFontsPath("NotoSans-Thin.ttf"));
+        fontManager.CreateTypeface(GetFontsPath("NotoSerif-Regular.ttf"));
+        fontManager.CreateTypeface(GetFontsPath("SedgwickAveDisplay-Regular.ttf"));
+        fontManager.CreateTypeface(GetFontsPath("SourceSansPro-Regular.ttf"));
+        fontManager.CreateTypeface(GetFontsPath("Yellowtail-Regular.ttf"));
+    }
+    
     [Theory(Skip = "TODO")]
     [InlineData("a-alignment-baseline-001", 0.022)]
     public void a_alignment_baseline(string name, double errorThreshold) => TestImpl(name, errorThreshold);
