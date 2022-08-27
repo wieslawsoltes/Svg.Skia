@@ -2,6 +2,7 @@
 using Avalonia.Markup.Xaml;
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using TestApp.ViewModels;
@@ -58,8 +59,18 @@ public class MainView : UserControl
     {
         if (sender is Control control && control.DataContext is FileItemViewModel fileItemViewModel)
         {
-            Process.Start("explorer", fileItemViewModel.Path);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Process.Start("explorer", fileItemViewModel.Path);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start("xdg-open", fileItemViewModel.Path);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", fileItemViewModel.Path); 
+            }
         }
     }
 }
-
