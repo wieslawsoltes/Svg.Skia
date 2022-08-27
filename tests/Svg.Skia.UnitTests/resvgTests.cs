@@ -19,7 +19,7 @@ public class resvgTests
     private string GetActualPngPath(string name)
         => Path.Combine("..", "..", "..", "..", "Tests", name);
 
-    private void TestImpl(string name, double errorThreshold)
+    private void TestImpl(string name, double errorThreshold, float scaleX = 1.5f, float scaleY = 1.5f)
     {
         var svgPath = GetSvgPath($"{name}.svg");
         var expectedPng = GetExpectedPngPath($"{name}.png");
@@ -27,7 +27,7 @@ public class resvgTests
 
         var svg = new SKSvg();
         using var _ = svg.Load(svgPath);
-        svg.Save(actualPng, SKColors.Transparent, scaleX: 1.5f, scaleY: 1.5f);
+        svg.Save(actualPng, SKColors.Transparent, scaleX: scaleX, scaleY: scaleY);
 
         ImageHelper.CompareImages(name, actualPng, expectedPng, errorThreshold);
 
@@ -131,10 +131,10 @@ public class resvgTests
     public void a_baseline_shift(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
     [Theory]
-    [InlineData("a-clip-001", 0.022)]
+    [InlineData("a-clip-001", 0.022, 3.75f, 3.75f, Skip = "TODO")]
     [InlineData("a-clip-path-001", 0.022)]
     [InlineData("a-clip-rule-001", 0.022)]
-    public void a_clip_rule(string name, double errorThreshold) => TestImpl(name, errorThreshold);
+    public void a_clip_rule(string name, double errorThreshold, float scaleX = 1.5f, float scaleY = 1.5f) => TestImpl(name, errorThreshold, scaleX, scaleY);
 
     [Theory]
     [InlineData("a-color-001", 0.022)]
@@ -159,7 +159,7 @@ public class resvgTests
     [InlineData("a-display-006", 0.022, Skip = "TODO")]
     [InlineData("a-display-007", 0.022, Skip = "TODO")]
     [InlineData("a-display-008", 0.022)]
-    [InlineData("a-display-009", 0.022)]
+    [InlineData("a-display-009", 0.022, Skip = "TODO")]
     public void a_display(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
     [Theory]
