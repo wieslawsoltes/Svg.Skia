@@ -19,7 +19,7 @@ public class resvgTests
     private string GetActualPngPath(string name)
         => Path.Combine("..", "..", "..", "..", "Tests", name);
 
-    private void TestImpl(string name, double errorThreshold)
+    private void TestImpl(string name, double errorThreshold, float scaleX = 1.5f, float scaleY = 1.5f)
     {
         var svgPath = GetSvgPath($"{name}.svg");
         var expectedPng = GetExpectedPngPath($"{name}.png");
@@ -27,7 +27,7 @@ public class resvgTests
 
         var svg = new SKSvg();
         using var _ = svg.Load(svgPath);
-        svg.Save(actualPng, SKColors.Transparent, scaleX: 1.5f, scaleY: 1.5f);
+        svg.Save(actualPng, SKColors.Transparent, scaleX: scaleX, scaleY: scaleY);
 
         ImageHelper.CompareImages(name, actualPng, expectedPng, errorThreshold);
 
