@@ -131,10 +131,10 @@ public class resvgTests
     public void a_baseline_shift(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
     [Theory]
-    [InlineData("a-clip-001", 0.022)]
+    [InlineData("a-clip-001", 0.022, 3.75f, 3.75f, Skip = "TODO")]
     [InlineData("a-clip-path-001", 0.022)]
     [InlineData("a-clip-rule-001", 0.022)]
-    public void a_clip_rule(string name, double errorThreshold) => TestImpl(name, errorThreshold);
+    public void a_clip_rule(string name, double errorThreshold, float scaleX = 1.5f, float scaleY = 1.5f) => TestImpl(name, errorThreshold, scaleX, scaleY);
 
     [Theory]
     [InlineData("a-color-001", 0.022)]
