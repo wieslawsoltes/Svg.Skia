@@ -159,7 +159,7 @@ public class resvgTests
     [InlineData("a-display-006", 0.022, Skip = "TODO")]
     [InlineData("a-display-007", 0.022, Skip = "TODO")]
     [InlineData("a-display-008", 0.022)]
-    [InlineData("a-display-009", 0.022)]
+    [InlineData("a-display-009", 0.022, Skip = "TODO")]
     public void a_display(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
     [Theory]
