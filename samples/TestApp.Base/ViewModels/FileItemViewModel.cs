@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows.Input;
 using ReactiveUI;
 
@@ -35,12 +36,34 @@ public class FileItemViewModel : ViewModelBase
 
         OpenInExplorerCommand = ReactiveCommand.Create(() =>
         {
-            Process.Start("explorer", _path);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Process.Start("explorer", _path);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start("xdg-open", _path);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", _path); 
+            }
         });
 
         OpenInNotepadCommand = ReactiveCommand.Create(() =>
         {
-            Process.Start("notepad", _path);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Process.Start("notepad", _path);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start("xdg-open", _path);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", "-t " + _path); 
+            }
         });
 
         RemoveCommand = ReactiveCommand.Create(() =>
