@@ -16,9 +16,6 @@ public class SKSvgTests
 
     [WindowsTheory]
     [InlineData("Sign in", 0.022)]
-    [InlineData("__AJ_Digital_Camera", 0.027)]
-    [InlineData("__Telefunken_FuBK_test_pattern", 0.022)]
-    [InlineData("__tiger", 0.055)]
     public void Test(string name, double errorThreshold)
     {
         var svgPath = GetSvgPath($"{name}.svg");
