@@ -17,10 +17,7 @@ public static class SkiaCSharpModelExtensions
 
     private static readonly char[] s_fontFamilyTrim = { '\'' };
 
-    public static string ToBoolString(this bool value)
-    {
-        return value.ToString(s_ci).ToLower();
-    }
+    public static string ToBoolString(this bool value) => value ? "true" : "false";
 
     public static string ToByteString(this byte value)
     {
@@ -46,61 +43,64 @@ public static class SkiaCSharpModelExtensions
         return text?.Replace("\"", "\\\"");
     }
 
-    public static string ToByteArray(this byte[] array)
+    public static StringBuilder ToByteArray(this byte[] array)
     {
-        var result = $"new byte[{array.Length}] {{ ";
+        var sb = new StringBuilder();
+        sb.Append("new byte[").AppendFormat(s_ci, "{0}", array.Length).Append("] { ");
 
         for (int i = 0; i < array.Length; i++)
         {
-            result += array[i].ToByteString();
+            sb.AppendFormat(s_ci, "{0}", array[i]);
 
             if (array.Length > 0 && i < array.Length - 1)
             {
-                result += $", ";
+                sb.Append(", ");
             }
         }
 
-        result += $" }}";
+        sb.Append(" }");
 
-        return result;
+        return sb;
     }
 
-    public static string ToFloatArray(this float[] array)
+    public static StringBuilder ToFloatArray(this float[] array)
     {
-        var result = $"new float[{array.Length}] {{ ";
+        var sb = new StringBuilder();
+        sb.Append("new float[").AppendFormat(s_ci, "{0}", array.Length).Append("] { ");
 
         for (int i = 0; i < array.Length; i++)
         {
-            result += array[i].ToFloatString();
+            sb.AppendFormat(s_ci, "{0:g}f", array[i]);
 
             if (array.Length > 0 && i < array.Length - 1)
             {
-                result += $", ";
+                sb.Append(", ");
             }
         }
 
-        result += $" }}";
+        sb.Append(" }");
 
-        return result;
+        return sb;
     }
 
-    public static string ToStringArray(this string[] array)
+    public static StringBuilder ToStringArray(this string[] array)
     {
-        var result = $"new string[{array.Length}] {{ ";
+        var sb = new StringBuilder();
+        sb.Append("new string[").AppendFormat(s_ci, "{0}", array.Length).Append("] { ");
 
         for (int i = 0; i < array.Length; i++)
         {
-            result += $"\"{array[i]}\"";
+            sb.AppendFormat(s_ci, "@\"{0}\"", array[i]);
 
             if (array.Length > 0 && i < array.Length - 1)
             {
-                result += $", ";
+                sb.Append(", ");
             }
         }
 
-        result += $" }}";
+        sb.Append(" }");
 
-        return result;
+        return sb;
     }
 
     public static string ToSKPoint(this SKPoint point)
