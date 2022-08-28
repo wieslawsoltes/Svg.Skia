@@ -1,17 +1,18 @@
 ﻿using System.IO;
+using Svg.Skia.UnitTests.Common;
 using Xunit;
 
 namespace Svg.Skia.UnitTests;
 
-public class SKSvgTests
+public class SKSvgTests : SvgUnitTest
 {
-    private string GetSvgPath(string name) 
+    private static string GetSvgPath(string name) 
         => Path.Combine("..", "..", "..", "..", "Tests", name);
 
-    private string GetExpectedPngPath(string name) 
+    private static string GetExpectedPngPath(string name) 
         => Path.Combine("..", "..", "..", "..", "Tests", name);
 
-    private string GetActualPngPath(string name) 
+    private static string GetActualPngPath(string name) 
         => Path.Combine("..", "..", "..", "..", "Tests", name);
 
     [WindowsTheory]

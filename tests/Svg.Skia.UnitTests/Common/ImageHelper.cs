@@ -2,9 +2,8 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Xunit;
-using Xunit.Abstractions;
 
-namespace Svg.Skia.UnitTests;
+namespace Svg.Skia.UnitTests.Common;
 
 public static class ImageHelper
 {
