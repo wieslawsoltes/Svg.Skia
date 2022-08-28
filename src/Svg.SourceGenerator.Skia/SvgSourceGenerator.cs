@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Svg.CodeGen.Skia;
@@ -113,10 +114,24 @@ public class SvgSourceGenerator : ISourceGenerator
         }
     }
 
+    // https://gist.github.com/FabienDehopre/5245476
+    private const string FormattingCharacter = @"\p{Cf}";
+    private const string ConnectingCharacter = @"\p{Pc}";
+    private const string DecimalDigitCharacter = @"\p{Nd}";
+    private const string CombiningCharacter = @"\p{Mn}|\p{Mc}";
+    private const string LetterCharacter = @"\p{Lu}|\p{Ll}|\p{Lt}|\p{Lm}|\p{Lo}|\p{Nl}";
+    private const string IdentifierPartCharacter = LetterCharacter + "|" +
+                                                   DecimalDigitCharacter + "|" +
+                                                   ConnectingCharacter + "|" +
+                                                   CombiningCharacter + "|" +
+                                                   FormattingCharacter;
+    private const string InvalidIdentifierCharacterRegex = "(?!" + IdentifierPartCharacter + ").";
+    private static readonly Regex s_regexReplaceName = new Regex(InvalidIdentifierCharacterRegex, RegexOptions.Compiled);
+    
     private string CreateClassName(string path)
     {
         string name = System.IO.Path.GetFileNameWithoutExtension(path);
-        string className = name.Replace("-", "_");
+        string className = s_regexReplaceName.Replace(name, "_");
         return $"Svg_{className}";
     }
 }
