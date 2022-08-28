@@ -1,22 +1,19 @@
 ﻿using System.IO;
 using SkiaSharp;
-using Svg.Skia.TypefaceProviders;
+using Svg.Skia.UnitTests.Common;
 using Xunit;
 
 namespace Svg.Skia.UnitTests;
 
-public class resvgTests
+public class resvgTests : SvgUnitTest
 {
-    private string GetFontsPath(string name) 
-        => Path.Combine("..", "..", "..", "..", "..", "externals", "resvg", "tests", "fonts", name);
-
-    private string GetSvgPath(string name) 
+    private static string GetSvgPath(string name) 
         => Path.Combine("..", "..", "..", "..", "..", "externals", "resvg", "tests", "svg", name);
 
-    private string GetExpectedPngPath(string name) 
+    private static string GetExpectedPngPath(string name) 
         => Path.Combine("..", "..", "..", "..", "..", "externals", "resvg", "tests", "png", name);
 
-    private string GetActualPngPath(string name)
+    private static string GetActualPngPath(string name)
         => Path.Combine("..", "..", "..", "..", "Tests", name);
 
     private void TestImpl(string name, double errorThreshold, float scaleX = 1.5f, float scaleY = 1.5f)
@@ -34,27 +31,6 @@ public class resvgTests
         if (File.Exists(actualPng))
         {
             File.Delete(actualPng);
-        }
-    }
-
-    public resvgTests()
-    {
-        if (SKSvgSettings.s_typefaceProviders is { })
-        {
-            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("Amiri-Regular.ttf")));
-            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("MPLUS1p-Regular.ttf")));
-            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoEmoji-Regular.ttf")));
-            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoMono-Regular.ttf")));
-            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoSans-Black.ttf")));
-            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoSans-Bold.ttf")));
-            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoSans-Italic.ttf")));
-            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoSans-Light.ttf")));
-            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoSans-Regular.ttf")));
-            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoSans-Thin.ttf")));
-            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("NotoSerif-Regular.ttf")));
-            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("SedgwickAveDisplay-Regular.ttf")));
-            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("SourceSansPro-Regular.ttf")));
-            SKSvgSettings.s_typefaceProviders.Insert(0, new CustomTypefaceProvider(GetFontsPath("Yellowtail-Regular.ttf")));
         }
     }
 
