@@ -45,7 +45,9 @@ public static class SkiaCSharpModelExtensions
 
     public static StringBuilder ToByteArray(this byte[] array)
     {
-        var sb = new StringBuilder("new byte[").AppendFormat(s_ci, "{0}] {{ ", array.Length);
+        // Each byte is 1 to 3 chars. Add trailing comma and space, then 5 char is expected for each byte in the array.
+        // Around the bytes are 15 constant chars, plus an unknown array size - let's do 7 for good measure.
+        var sb = new StringBuilder("new byte[", array.Length * 5 + 22).AppendFormat(s_ci, "{0}] {{ ", array.Length);
 
         for (int i = 0; i < array.Length; i++)
         {
