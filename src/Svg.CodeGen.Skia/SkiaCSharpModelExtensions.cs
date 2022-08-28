@@ -17,10 +17,7 @@ public static class SkiaCSharpModelExtensions
 
     private static readonly char[] s_fontFamilyTrim = { '\'' };
 
-    public static string ToBoolString(this bool value)
-    {
-        return value.ToString(s_ci).ToLower();
-    }
+    public static string ToBoolString(this bool value) => value ? "true" : "false";
 
     public static string ToByteString(this byte value)
     {
@@ -46,61 +43,48 @@ public static class SkiaCSharpModelExtensions
         return text?.Replace("\"", "\\\"");
     }
 
-    public static string ToByteArray(this byte[] array)
+    public static StringBuilder ToByteArray(this byte[] array)
     {
-        var result = $"new byte[{array.Length}] {{ ";
+        // Each byte is 1 to 3 chars. Add trailing comma and space, then 5 char is expected for each byte in the array.
+        // Around the bytes are 15 constant chars, plus an unknown array size - let's do 7 for good measure.
+        var sb = new StringBuilder("new byte[", array.Length * 5 + 22).AppendFormat(s_ci, "{0}] {{ ", array.Length);
 
         for (int i = 0; i < array.Length; i++)
         {
-            result += array[i].ToByteString();
-
-            if (array.Length > 0 && i < array.Length - 1)
-            {
-                result += $", ";
-            }
+            sb.AppendFormat(s_ci, "{0}, ", array[i]); // C# allows trailing , on end element
         }
 
-        result += $" }}";
+        sb.Append(" }");
 
-        return result;
+        return sb;
     }
 
-    public static string ToFloatArray(this float[] array)
+    public static StringBuilder ToFloatArray(this float[] array)
     {
-        var result = $"new float[{array.Length}] {{ ";
+        var sb = new StringBuilder("new float[").AppendFormat(s_ci, "{0}] {{ ", array.Length);
 
         for (int i = 0; i < array.Length; i++)
         {
-            result += array[i].ToFloatString();
-
-            if (array.Length > 0 && i < array.Length - 1)
-            {
-                result += $", ";
-            }
+            sb.AppendFormat(s_ci, "{0:g}f, ", array[i]); // C# allows trailing , on end element
         }
 
-        result += $" }}";
+        sb.Append(" }");
 
-        return result;
+        return sb;
     }
 
-    public static string ToStringArray(this string[] array)
+    public static StringBuilder ToStringArray(this string[] array)
     {
-        var result = $"new string[{array.Length}] {{ ";
+        var sb = new StringBuilder("new string[").AppendFormat(s_ci, "{0}] {{ ", array.Length);
 
         for (int i = 0; i < array.Length; i++)
         {
-            result += $"\"{array[i]}\"";
-
-            if (array.Length > 0 && i < array.Length - 1)
-            {
-                result += $", ";
-            }
+            sb.AppendFormat(s_ci, "@\"{0}\", ", array[i]); // C# allows trailing , on end element
         }
 
-        result += $" }}";
+        sb.Append(" }");
 
-        return result;
+        return sb;
     }
 
     public static string ToSKPoint(this SKPoint point)
