@@ -45,8 +45,7 @@ public static class SkiaCSharpModelExtensions
 
     public static StringBuilder ToByteArray(this byte[] array)
     {
-        var sb = new StringBuilder();
-        sb.Append("new byte[").AppendFormat(s_ci, "{0}", array.Length).Append("] { ");
+        var sb = new StringBuilder("new byte[").AppendFormat(s_ci, "{0}", array.Length).Append("] { ");
 
         for (int i = 0; i < array.Length; i++)
         {
@@ -60,8 +59,7 @@ public static class SkiaCSharpModelExtensions
 
     public static StringBuilder ToFloatArray(this float[] array)
     {
-        var sb = new StringBuilder();
-        sb.Append("new float[").AppendFormat(s_ci, "{0}", array.Length).Append("] { ");
+        var sb = new StringBuilder("new float[").AppendFormat(s_ci, "{0}", array.Length).Append("] { ");
 
         for (int i = 0; i < array.Length; i++)
         {
@@ -75,8 +73,7 @@ public static class SkiaCSharpModelExtensions
 
     public static StringBuilder ToStringArray(this string[] array)
     {
-        var sb = new StringBuilder();
-        sb.Append("new string[").AppendFormat(s_ci, "{0}", array.Length).Append("] { ");
+        var sb = new StringBuilder("new string[").AppendFormat(s_ci, "{0}", array.Length).Append("] { ");
 
         for (int i = 0; i < array.Length; i++)
         {
