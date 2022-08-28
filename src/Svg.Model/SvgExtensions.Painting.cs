@@ -714,7 +714,8 @@ public static partial class SvgExtensions
             if (firstAspectRatio is null)
             {
                 var pAspectRatio = p.AspectRatio;
-                if (pAspectRatio is { } && pAspectRatio.Align != SvgPreserveAspectRatio.xMidYMid)
+                // TODO: We don't reference Defer elsewhere. Probably something to be implemented.
+                if (pAspectRatio.Align != SvgPreserveAspectRatio.xMidYMid || pAspectRatio.Slice || pAspectRatio.Defer)
                 {
                     firstAspectRatio = p;
                 }
