@@ -50,12 +50,7 @@ public static class SkiaCSharpModelExtensions
 
         for (int i = 0; i < array.Length; i++)
         {
-            sb.AppendFormat(s_ci, "{0}", array[i]);
-
-            if (array.Length > 0 && i < array.Length - 1)
-            {
-                sb.Append(", ");
-            }
+            sb.AppendFormat(s_ci, "{0}, ", array[i]); // C# allows trailing , on end element
         }
 
         sb.Append(" }");
@@ -70,12 +65,7 @@ public static class SkiaCSharpModelExtensions
 
         for (int i = 0; i < array.Length; i++)
         {
-            sb.AppendFormat(s_ci, "{0:g}f", array[i]);
-
-            if (array.Length > 0 && i < array.Length - 1)
-            {
-                sb.Append(", ");
-            }
+            sb.AppendFormat(s_ci, "{0:g}f, ", array[i]); // C# allows trailing , on end element
         }
 
         sb.Append(" }");
@@ -90,12 +80,7 @@ public static class SkiaCSharpModelExtensions
 
         for (int i = 0; i < array.Length; i++)
         {
-            sb.AppendFormat(s_ci, "@\"{0}\"", array[i]);
-
-            if (array.Length > 0 && i < array.Length - 1)
-            {
-                sb.Append(", ");
-            }
+            sb.AppendFormat(s_ci, "@\"{0}\", ", array[i]); // C# allows trailing , on end element
         }
 
         sb.Append(" }");
