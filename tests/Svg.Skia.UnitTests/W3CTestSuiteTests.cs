@@ -14,7 +14,7 @@ public class W3CTestSuiteTests
     private string GetActualPngPath(string name)
         => Path.Combine("..", "..", "..", "..", "Tests", name);
 
-    [WindowsTheory]
+    [Theory]
     [InlineData("paths-data-01-t", 0.074)]
     [InlineData("paths-data-02-t", 0.086)]
     [InlineData("paths-data-03-f", 0.076)]
@@ -34,7 +34,26 @@ public class W3CTestSuiteTests
     [InlineData("paths-data-18-f", 0.059)]
     [InlineData("paths-data-19-f", 0.076)]
     [InlineData("paths-data-20-f", 0.063)]
-    public void Test(string name, double errorThreshold)
+    public void paths_data(string name, double errorThreshold)
+    {
+        var svgPath = GetSvgPath($"{name}.svg");
+        var expectedPng = GetExpectedPngPath($"{name}.png");
+        var actualPng = GetActualPngPath($"{name} (Actual).png");
+
+        var svg = new SKSvg();
+        using var _ = svg.Load(svgPath);
+        svg.Save(actualPng, SkiaSharp.SKColors.Transparent);
+
+        ImageHelper.CompareImages(name, actualPng, expectedPng, errorThreshold);
+
+        File.Delete(actualPng);
+    }
+
+    [WindowsTheory]
+    [InlineData("__AJ_Digital_Camera", 0.027)]
+    [InlineData("__Telefunken_FuBK_test_pattern", 0.022)]
+    [InlineData("__tiger", 0.055)]
+    public void Misc(string name, double errorThreshold)
     {
         var svgPath = GetSvgPath($"{name}.svg");
         var expectedPng = GetExpectedPngPath($"{name}.png");
