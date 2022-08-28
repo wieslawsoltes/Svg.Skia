@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Svg.Skia.UnitTests.Common;
 using Xunit;
 
 namespace Svg.Skia.UnitTests;
