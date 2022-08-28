@@ -14,7 +14,7 @@ public class W3CTestSuiteTests
     private string GetActualPngPath(string name)
         => Path.Combine("..", "..", "..", "..", "Tests", name);
 
-    [WindowsTheory]
+    [Theory]
     [InlineData("paths-data-01-t", 0.074)]
     [InlineData("paths-data-02-t", 0.086)]
     [InlineData("paths-data-03-f", 0.076)]
