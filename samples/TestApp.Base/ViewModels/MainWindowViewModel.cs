@@ -324,14 +324,14 @@ public class MainWindowViewModel : ViewModelBase
             case ".png":
             {
                 using var stream = File.OpenWrite(path);
-                svg.Picture?.ToImage(stream, skBackgroundColor, SkiaSharp.SKEncodedImageFormat.Png, 100, scaleX, scaleY, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul, SKSvgSettings.s_srgb);
+                svg.Picture?.ToImage(stream, skBackgroundColor, SkiaSharp.SKEncodedImageFormat.Png, 100, scaleX, scaleY, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul, SkiaSharp.SKColorSpace.CreateSrgb());
             }
                 break;
             case ".jpg":
             case ".jpeg":
             {
                 using var stream = File.OpenWrite(path);
-                svg.Picture?.ToImage(stream, skBackgroundColor, SkiaSharp.SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul, SKSvgSettings.s_srgb);
+                svg.Picture?.ToImage(stream, skBackgroundColor, SkiaSharp.SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul, SkiaSharp.SKColorSpace.CreateSrgb());
             }
                 break;
             case ".pdf":

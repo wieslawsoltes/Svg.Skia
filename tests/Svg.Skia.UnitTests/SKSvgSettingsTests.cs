@@ -25,9 +25,13 @@ public class SKSvgSettingsTests : SvgUnitTest
     {
         var expectedTypeface = default(SKTypeface);
 
-        if (SKSvgSettings.s_typefaceProviders is { } && SKSvgSettings.s_typefaceProviders.Count > 0)
+        var settings = new SKSvgSettings();
+        
+        SetTypefaceProviders(settings);
+
+        if (settings.TypefaceProviders is { } && settings.TypefaceProviders.Count > 0)
         {
-            foreach (var typefaceProviders in SKSvgSettings.s_typefaceProviders)
+            foreach (var typefaceProviders in settings.TypefaceProviders)
             {
                 var skTypeface = typefaceProviders.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
                 if (skTypeface is { })

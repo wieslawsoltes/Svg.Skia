@@ -164,7 +164,7 @@ public class MainWindowViewModel
             }
 
             using var codec = SkiaSharp.SKCodec.Create(new SkiaSharp.SKFileStream(item.ReferencePngPath));
-            var skImageInfo = new SkiaSharp.SKImageInfo(codec.Info.Width, codec.Info.Height, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
+            var skImageInfo = new SkiaSharp.SKImageInfo(codec.Info.Width, codec.Info.Height, SKSvgSettings.ColorType, SKSvgSettings.AlphaType, SKSvgSettings.Srgb);
             var skReferenceBitmap = new SkiaSharp.SKBitmap(skImageInfo);
             codec.GetPixels(skReferenceBitmap.Info, skReferenceBitmap.GetPixels());
             if (skReferenceBitmap == null)
@@ -176,7 +176,7 @@ public class MainWindowViewModel
 
             float scaleX = skReferenceBitmap.Width / item.SkiaPicture.CullRect.Width;
             float scaleY = skReferenceBitmap.Height / item.SkiaPicture.CullRect.Height;
-            using var svgBitmap = item.SkiaPicture.ToBitmap(SkiaSharp.SKColors.Transparent, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
+            using var svgBitmap = item.SkiaPicture.ToBitmap(SkiaSharp.SKColors.Transparent, scaleX, scaleY, SKSvgSettings.ColorType, SKSvgSettings.AlphaType, SKSvgSettings.Srgb);
             if (svgBitmap.Width == skReferenceBitmap.Width && svgBitmap.Height == skReferenceBitmap.Height)
             {
                 var pixelDiff = PixelDiff(skReferenceBitmap, svgBitmap);
@@ -276,7 +276,7 @@ public class MainWindowViewModel
             if (picture is { })
             {
                 using var stream = File.OpenWrite(outputPath);
-                picture.ToImage(stream, background, SkiaSharp.SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
+                picture.ToImage(stream, background, SkiaSharp.SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvgSettings.ColorType, SKSvgSettings.AlphaType, SKSvgSettings.Srgb);
             }
         }
         else if (string.Compare(extension, ".jpg", StringComparison.OrdinalIgnoreCase) == 0)
@@ -286,7 +286,7 @@ public class MainWindowViewModel
             if (picture is { })
             {
                 using var stream = File.OpenWrite(outputPath);
-                picture.ToImage(stream, background, SkiaSharp.SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
+                picture.ToImage(stream, background, SkiaSharp.SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvgSettings.ColorType, SKSvgSettings.AlphaType, SKSvgSettings.Srgb);
             }
         }
         else if (string.Compare(extension, ".png", StringComparison.OrdinalIgnoreCase) == 0)
@@ -296,7 +296,7 @@ public class MainWindowViewModel
             if (picture is { })
             {
                 using var stream = File.OpenWrite(outputPath);
-                picture.ToImage(stream, background, SkiaSharp.SKEncodedImageFormat.Png, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
+                picture.ToImage(stream, background, SkiaSharp.SKEncodedImageFormat.Png, 100, scaleX, scaleY, SKSvgSettings.ColorType, SKSvgSettings.AlphaType, SKSvgSettings.Srgb);
             }
         }
         else if (string.Compare(extension, ".webp", StringComparison.OrdinalIgnoreCase) == 0)
@@ -306,7 +306,7 @@ public class MainWindowViewModel
             if (picture is { })
             {
                 using var stream = File.OpenWrite(outputPath);
-                picture.ToImage(stream, background, SkiaSharp.SKEncodedImageFormat.Webp, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
+                picture.ToImage(stream, background, SkiaSharp.SKEncodedImageFormat.Webp, 100, scaleX, scaleY, SKSvgSettings.ColorType, SKSvgSettings.AlphaType, SKSvgSettings.Srgb);
             }
         }
 
@@ -395,7 +395,7 @@ public class MainWindowViewModel
 
     unsafe public static SkiaSharp.SKBitmap PixelDiff(SkiaSharp.SKBitmap referenceBitmap, SkiaSharp.SKBitmap svgBitmap)
     {
-        var skImageInfo = new SkiaSharp.SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
+        var skImageInfo = new SkiaSharp.SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, SKSvgSettings.ColorType, SKSvgSettings.AlphaType, SKSvgSettings.Srgb);
         var output = new SkiaSharp.SKBitmap(skImageInfo);
         byte* aPtr = (byte*)referenceBitmap.GetPixels().ToPointer();
         byte* bPtr = (byte*)svgBitmap.GetPixels().ToPointer();

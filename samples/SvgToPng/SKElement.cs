@@ -55,7 +55,7 @@ public class SKElement : FrameworkElement
         if (size.Width <= 0 || size.Height <= 0)
             return;
 
-        var info = new SkiaSharp.SKImageInfo(size.Width, size.Height, SkiaSharp.SKImageInfo.PlatformColorType, SkiaSharp.SKAlphaType.Premul, SKSvgSettings.s_srgb);
+        var info = new SkiaSharp.SKImageInfo(size.Width, size.Height, SkiaSharp.SKImageInfo.PlatformColorType, SkiaSharp.SKAlphaType.Premul, SKSvgSettings.Srgb);
         // reset the bitmap if the size has changed
         if (bitmap == null || info.Width != bitmap.PixelWidth || info.Height != bitmap.PixelHeight)
         {
