@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Svg.Skia;
 
 namespace SvgToPng;
 
@@ -55,7 +54,7 @@ public class SKElement : FrameworkElement
         if (size.Width <= 0 || size.Height <= 0)
             return;
 
-        var info = new SkiaSharp.SKImageInfo(size.Width, size.Height, SkiaSharp.SKImageInfo.PlatformColorType, SkiaSharp.SKAlphaType.Premul, SKSvgSettings.Srgb);
+        var info = new SkiaSharp.SKImageInfo(size.Width, size.Height, SkiaSharp.SKImageInfo.PlatformColorType, SkiaSharp.SKAlphaType.Premul, SkiaSharp.SKColorSpace.CreateSrgb());
         // reset the bitmap if the size has changed
         if (bitmap == null || info.Width != bitmap.PixelWidth || info.Height != bitmap.PixelHeight)
         {
