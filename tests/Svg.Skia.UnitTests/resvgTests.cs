@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using SkiaSharp;
+using Svg.Skia.TypefaceProviders;
 using Svg.Skia.UnitTests.Common;
 using Xunit;
 
@@ -23,6 +24,9 @@ public class resvgTests : SvgUnitTest
         var actualPng = GetActualPngPath($"{name} (Actual).png");
 
         var svg = new SKSvg();
+
+        SetTypefaceProviders(svg.Settings);
+
         using var _ = svg.Load(svgPath);
         svg.Save(actualPng, SKColors.Transparent, scaleX: scaleX, scaleY: scaleY);
 

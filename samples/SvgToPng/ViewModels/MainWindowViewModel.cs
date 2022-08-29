@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Windows.Data;
@@ -17,6 +16,10 @@ namespace SvgToPng.ViewModels;
 [DataContract]
 public class MainWindowViewModel
 {
+    private readonly SKSvgSettings _settings;
+    private readonly SkiaModel _skiaModel;
+    private readonly IAssetLoader _assetLoader;
+    
     [DataMember]
     public ObservableCollection<Item> Items { get; set; }
 
@@ -46,6 +49,9 @@ public class MainWindowViewModel
 
     public MainWindowViewModel()
     {
+        _settings = new SKSvgSettings();
+        _skiaModel = new SkiaModel(_settings);
+        _assetLoader = new SkiaAssetLoader(_skiaModel);
     }
 
     public void CreateItemsView()
@@ -93,16 +99,20 @@ public class MainWindowViewModel
 
     private void LoadSvg(Item item, Action<string> statusOpen, Action<string> statusToPicture)
     {
-        var currentDirectory = Directory.GetCurrentDirectory();
+        var currentDirectory = System.IO.Directory.GetCurrentDirectory();
 
         try
         {
-            if (!File.Exists(item.SvgPath))
+            if (!System.IO.File.Exists(item.SvgPath))
             {
                 return;
             }
 
-            Directory.SetCurrentDirectory(System.IO.Path.GetDirectoryName(item.SvgPath));
+            var dir = System.IO.Path.GetDirectoryName(item.SvgPath);
+            if (dir is { })
+            {
+                System.IO.Directory.SetCurrentDirectory(dir);
+            }
 
             var stopwatchOpen = Stopwatch.StartNew();
             item.Document = SvgExtensions.Open(item.SvgPath);
@@ -115,12 +125,12 @@ public class MainWindowViewModel
                 var stopwatchToPicture = Stopwatch.StartNew();
 
                 var references = new HashSet<Uri> {item.Document.BaseUri};
-                item.Drawable = SvgExtensions.ToDrawable(item.Document, new SkiaAssetLoader(), references, out var bounds);
+                item.Drawable = SvgExtensions.ToDrawable(item.Document, _assetLoader, references, out var bounds);
                 if (item.Drawable is { } && bounds is { })
                 {
                     item.Picture = item.Drawable.Snapshot(bounds.Value);
 
-                    item.SkiaPicture = item.Picture?.ToSKPicture();
+                    item.SkiaPicture = _skiaModel.ToSKPicture(item.Picture);
 
                     if (item.Picture?.Commands is { })
                     {
@@ -151,36 +161,35 @@ public class MainWindowViewModel
             Debug.WriteLine(ex.StackTrace);
         }
 
-        Directory.SetCurrentDirectory(currentDirectory);
+        System.IO.Directory.SetCurrentDirectory(currentDirectory);
     }
 
     private void LoadPng(Item item)
     {
         try
         {
-            if (!File.Exists(item.ReferencePngPath))
+            if (!System.IO.File.Exists(item.ReferencePngPath))
             {
                 return;
             }
 
             using var codec = SkiaSharp.SKCodec.Create(new SkiaSharp.SKFileStream(item.ReferencePngPath));
-            var skImageInfo = new SkiaSharp.SKImageInfo(codec.Info.Width, codec.Info.Height, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
+            var skImageInfo = new SkiaSharp.SKImageInfo(codec.Info.Width, codec.Info.Height, _settings.ColorType, _settings.AlphaType, _settings.Srgb);
             var skReferenceBitmap = new SkiaSharp.SKBitmap(skImageInfo);
             codec.GetPixels(skReferenceBitmap.Info, skReferenceBitmap.GetPixels());
-            if (skReferenceBitmap == null)
-            {
-                return;
-            }
 
             item.ReferencePng = skReferenceBitmap;
 
             float scaleX = skReferenceBitmap.Width / item.SkiaPicture.CullRect.Width;
             float scaleY = skReferenceBitmap.Height / item.SkiaPicture.CullRect.Height;
-            using var svgBitmap = item.SkiaPicture.ToBitmap(SkiaSharp.SKColors.Transparent, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
-            if (svgBitmap.Width == skReferenceBitmap.Width && svgBitmap.Height == skReferenceBitmap.Height)
+            using var svgBitmap = item.SkiaPicture.ToBitmap(SkiaSharp.SKColors.Transparent, scaleX, scaleY, _settings.ColorType, _settings.AlphaType, _settings.Srgb);
+            if (svgBitmap is { })
             {
-                var pixelDiff = PixelDiff(skReferenceBitmap, svgBitmap);
-                item.PixelDiff = pixelDiff;
+                if (svgBitmap.Width == skReferenceBitmap.Width && svgBitmap.Height == skReferenceBitmap.Height)
+                {
+                    var pixelDiff = PixelDiff(skReferenceBitmap, svgBitmap, _settings);
+                    item.PixelDiff = pixelDiff;
+                }
             }
         }
         catch (Exception ex)
@@ -231,86 +240,115 @@ public class MainWindowViewModel
 
     public void ExportItem(string svgPath, string outputPath, SkiaSharp.SKColor background, float scaleX, float scaleY)
     {
-        if (!File.Exists(svgPath))
+        if (!System.IO.File.Exists(svgPath))
         {
             return;
         }
 
-        var currentDirectory = Directory.GetCurrentDirectory();
-        Directory.SetCurrentDirectory(System.IO.Path.GetDirectoryName(svgPath));
+        var currentDirectory = System.IO.Directory.GetCurrentDirectory();
+
+        var dir = System.IO.Path.GetDirectoryName(svgPath);
+        if (dir is { })
+        {
+            System.IO.Directory.SetCurrentDirectory(dir);
+        }
 
         var extension = System.IO.Path.GetExtension(outputPath);
 
         if (string.Compare(extension, ".pdf", StringComparison.OrdinalIgnoreCase) == 0)
         {
             var svg = SvgExtensions.Open(svgPath);
-            using var picture = SKSvg.ToPicture(svg);
-            if (picture is { })
+            if (svg is { })
             {
-                picture.ToPdf(outputPath, background, scaleX, scaleY);
+                using var picture = SKSvg.ToPicture(svg, _skiaModel, _assetLoader);
+                if (picture is { })
+                {
+                    picture.ToPdf(outputPath, background, scaleX, scaleY);
+                }
             }
-
         }
         else if (string.Compare(extension, ".xps", StringComparison.OrdinalIgnoreCase) == 0)
         {
             var svg = SvgExtensions.Open(svgPath);
-            using var picture = SKSvg.ToPicture(svg);
-            if (picture is { })
+            if (svg is { })
             {
-                picture.ToXps(outputPath, background, scaleX, scaleY);
+                using var picture = SKSvg.ToPicture(svg, _skiaModel, _assetLoader);
+                if (picture is { })
+                {
+                    picture.ToXps(outputPath, background, scaleX, scaleY);
+                }
             }
         }
         else if (string.Compare(extension, ".svg", StringComparison.OrdinalIgnoreCase) == 0)
         {
             var svg = SvgExtensions.Open(svgPath);
-            using var picture = SKSvg.ToPicture(svg);
-            if (picture is { })
+            if (svg is { })
             {
-                picture.ToSvg(outputPath, background, scaleX, scaleY);
+                using var picture = SKSvg.ToPicture(svg, _skiaModel, _assetLoader);
+                if (picture is { })
+                {
+                    picture.ToSvg(outputPath, background, scaleX, scaleY);
+                }
             }
         }
         else if (string.Compare(extension, ".jpeg", StringComparison.OrdinalIgnoreCase) == 0)
         {
             var svg = SvgExtensions.Open(svgPath);
-            using var picture = SKSvg.ToPicture(svg);
-            if (picture is { })
+            if (svg is { })
             {
-                using var stream = File.OpenWrite(outputPath);
-                picture.ToImage(stream, background, SkiaSharp.SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
+                using var picture = SKSvg.ToPicture(svg, _skiaModel, _assetLoader);
+                if (picture is { })
+                {
+                    using var stream = System.IO.File.OpenWrite(outputPath);
+                    picture.ToImage(stream, background, SkiaSharp.SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY,
+                        _settings.ColorType, _settings.AlphaType, _settings.Srgb);
+                }
             }
         }
         else if (string.Compare(extension, ".jpg", StringComparison.OrdinalIgnoreCase) == 0)
         {
             var svg = SvgExtensions.Open(svgPath);
-            using var picture = SKSvg.ToPicture(svg);
-            if (picture is { })
+            if (svg is { })
             {
-                using var stream = File.OpenWrite(outputPath);
-                picture.ToImage(stream, background, SkiaSharp.SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
+                using var picture = SKSvg.ToPicture(svg, _skiaModel, _assetLoader);
+                if (picture is { })
+                {
+                    using var stream = System.IO.File.OpenWrite(outputPath);
+                    picture.ToImage(stream, background, SkiaSharp.SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY,
+                        _settings.ColorType, _settings.AlphaType, _settings.Srgb);
+                }
             }
         }
         else if (string.Compare(extension, ".png", StringComparison.OrdinalIgnoreCase) == 0)
         {
             var svg = SvgExtensions.Open(svgPath);
-            using var picture = SKSvg.ToPicture(svg);
-            if (picture is { })
+            if (svg is { })
             {
-                using var stream = File.OpenWrite(outputPath);
-                picture.ToImage(stream, background, SkiaSharp.SKEncodedImageFormat.Png, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
+                using var picture = SKSvg.ToPicture(svg, _skiaModel, _assetLoader);
+                if (picture is { })
+                {
+                    using var stream = System.IO.File.OpenWrite(outputPath);
+                    picture.ToImage(stream, background, SkiaSharp.SKEncodedImageFormat.Png, 100, scaleX, scaleY,
+                        _settings.ColorType, _settings.AlphaType, _settings.Srgb);
+                }
             }
         }
         else if (string.Compare(extension, ".webp", StringComparison.OrdinalIgnoreCase) == 0)
         {
             var svg = SvgExtensions.Open(svgPath);
-            using var picture = SKSvg.ToPicture(svg);
-            if (picture is { })
+            if (svg is { })
             {
-                using var stream = File.OpenWrite(outputPath);
-                picture.ToImage(stream, background, SkiaSharp.SKEncodedImageFormat.Webp, 100, scaleX, scaleY, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
+                using var picture = SKSvg.ToPicture(svg, _skiaModel, _assetLoader);
+                if (picture is { })
+                {
+                    using var stream = System.IO.File.OpenWrite(outputPath);
+                    picture.ToImage(stream, background, SkiaSharp.SKEncodedImageFormat.Webp, 100, scaleX, scaleY,
+                        _settings.ColorType, _settings.AlphaType, _settings.Srgb);
+                }
             }
         }
 
-        Directory.SetCurrentDirectory(currentDirectory);
+        System.IO.Directory.SetCurrentDirectory(currentDirectory);
     }
 
     public void ExportItems(IList<Item> items, string outputPath, List<string> outputFormats, SkiaSharp.SKColor background, float scaleX, float scaleY)
@@ -325,7 +363,7 @@ public class MainWindowViewModel
         }
     }
 
-    private static JsonSerializerSettings s_jsonSettings = new JsonSerializerSettings
+    private static readonly JsonSerializerSettings s_jsonSettings = new JsonSerializerSettings
     {
         Formatting = Formatting.Indented,
         NullValueHandling = NullValueHandling.Ignore
@@ -333,9 +371,9 @@ public class MainWindowViewModel
 
     public static T Load<T>(string path)
     {
-        if (File.Exists(path))
+        if (System.IO.File.Exists(path))
         {
-            var json = File.ReadAllText(path);
+            var json = System.IO.File.ReadAllText(path);
             return JsonConvert.DeserializeObject<T>(json, s_jsonSettings);
         }
         return default;
@@ -344,22 +382,22 @@ public class MainWindowViewModel
     public static void Save<T>(string path, T value)
     {
         string json = JsonConvert.SerializeObject(value, s_jsonSettings);
-        File.WriteAllText(path, json);
+        System.IO.File.WriteAllText(path, json);
     }
 
     public static IEnumerable<string> GetFiles(string inputPath)
     {
-        foreach (var file in Directory.EnumerateFiles(inputPath, "*.svg"))
+        foreach (var file in System.IO.Directory.EnumerateFiles(inputPath, "*.svg"))
         {
             yield return file;
         }
 
-        foreach (var file in Directory.EnumerateFiles(inputPath, "*.svgz"))
+        foreach (var file in System.IO.Directory.EnumerateFiles(inputPath, "*.svgz"))
         {
             yield return file;
         }
 
-        foreach (var directory in Directory.EnumerateDirectories(inputPath))
+        foreach (var directory in System.IO.Directory.EnumerateDirectories(inputPath))
         {
             foreach (var file in GetFiles(directory))
             {
@@ -370,11 +408,11 @@ public class MainWindowViewModel
 
     public static IEnumerable<string> GetFilesDrop(string[] paths)
     {
-        if (paths is { } && paths.Length > 0)
+        if (paths is { Length: > 0 })
         {
             foreach (var path in paths)
             {
-                if (File.GetAttributes(path).HasFlag(FileAttributes.Directory))
+                if (System.IO.File.GetAttributes(path).HasFlag(System.IO.FileAttributes.Directory))
                 {
                     foreach (var file in GetFiles(path))
                     {
@@ -393,9 +431,9 @@ public class MainWindowViewModel
         }
     }
 
-    unsafe public static SkiaSharp.SKBitmap PixelDiff(SkiaSharp.SKBitmap referenceBitmap, SkiaSharp.SKBitmap svgBitmap)
+    public static unsafe SkiaSharp.SKBitmap PixelDiff(SkiaSharp.SKBitmap referenceBitmap, SkiaSharp.SKBitmap svgBitmap, SKSvgSettings settings)
     {
-        var skImageInfo = new SkiaSharp.SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, SKSvgSettings.s_colorType, SKSvgSettings.s_alphaType, SKSvgSettings.s_srgb);
+        var skImageInfo = new SkiaSharp.SKImageInfo(referenceBitmap.Width, referenceBitmap.Height, settings.ColorType, settings.AlphaType, settings.Srgb);
         var output = new SkiaSharp.SKBitmap(skImageInfo);
         byte* aPtr = (byte*)referenceBitmap.GetPixels().ToPointer();
         byte* bPtr = (byte*)svgBitmap.GetPixels().ToPointer();

@@ -54,7 +54,7 @@ public static class SKPictureExtensions
             return false;
         }
         using var skFileWStream = new SkiaSharp.SKFileWStream(path);
-        using var skCanvas =SkiaSharp. SKSvgCanvas.Create(SkiaSharp.SKRect.Create(0, 0, width, height), skFileWStream);
+        using var skCanvas = SkiaSharp.SKSvgCanvas.Create(SkiaSharp.SKRect.Create(0, 0, width, height), skFileWStream);
         Draw(skPicture, background, scaleX, scaleY, skCanvas);
         return true;
     }

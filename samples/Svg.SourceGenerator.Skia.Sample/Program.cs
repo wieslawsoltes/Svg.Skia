@@ -34,21 +34,21 @@ internal class Program
         sw.Reset();
         sw.Start();
         using var ellipseStream = File.OpenWrite("e-ellipse-001.png");
-        Ellipse.Picture.ToImage(ellipseStream, SkiaSharp.SKColors.Transparent, SkiaSharp.SKEncodedImageFormat.Png, 100, 1, 1, SkiaSharp.SKImageInfo.PlatformColorType, SkiaSharp.SKAlphaType.Unpremul, SKSvgSettings.s_srgb);
+        Ellipse.Picture.ToImage(ellipseStream, SkiaSharp.SKColors.Transparent, SkiaSharp.SKEncodedImageFormat.Png, 100, 1, 1, SkiaSharp.SKImageInfo.PlatformColorType, SkiaSharp.SKAlphaType.Unpremul, SkiaSharp.SKColorSpace.CreateSrgb());
         sw.Stop();
         Console.WriteLine($"Created e-ellipse-001.png in {sw.Elapsed.TotalMilliseconds}ms");
 
         sw.Reset();
         sw.Start();
         using var rectStream = File.OpenWrite("e-rect-001.png");
-        Rect.Picture.ToImage(rectStream, SkiaSharp.SKColors.Transparent, SkiaSharp.SKEncodedImageFormat.Png, 100, 1, 1, SkiaSharp.SKImageInfo.PlatformColorType, SkiaSharp.SKAlphaType.Unpremul, SKSvgSettings.s_srgb);
+        Rect.Picture.ToImage(rectStream, SkiaSharp.SKColors.Transparent, SkiaSharp.SKEncodedImageFormat.Png, 100, 1, 1, SkiaSharp.SKImageInfo.PlatformColorType, SkiaSharp.SKAlphaType.Unpremul, SkiaSharp.SKColorSpace.CreateSrgb());
         sw.Stop();
         Console.WriteLine($"Created e-rect-001.png in {sw.Elapsed.TotalMilliseconds}ms");
 
         sw.Reset();
         sw.Start();
         using var patternStream = File.OpenWrite("pservers-pattern-01-b.png");
-        Svg_pservers_pattern_01_b.Picture.ToImage(patternStream, SkiaSharp.SKColors.Transparent, SkiaSharp.SKEncodedImageFormat.Png, 100, 1, 1, SkiaSharp.SKImageInfo.PlatformColorType, SkiaSharp.SKAlphaType.Unpremul, SKSvgSettings.s_srgb);
+        Svg_pservers_pattern_01_b.Picture.ToImage(patternStream, SkiaSharp.SKColors.Transparent, SkiaSharp.SKEncodedImageFormat.Png, 100, 1, 1, SkiaSharp.SKImageInfo.PlatformColorType, SkiaSharp.SKAlphaType.Unpremul, SkiaSharp.SKColorSpace.CreateSrgb());
         sw.Stop();
         Console.WriteLine($"Created pservers-pattern-01-b.png in {sw.Elapsed.TotalMilliseconds}ms");
     }
