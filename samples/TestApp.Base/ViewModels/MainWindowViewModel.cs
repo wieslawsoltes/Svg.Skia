@@ -324,32 +324,50 @@ public class MainWindowViewModel : ViewModelBase
             case ".png":
             {
                 using var stream = File.OpenWrite(path);
-                svg.Picture?.ToImage(stream, skBackgroundColor, SkiaSharp.SKEncodedImageFormat.Png, 100, scaleX, scaleY, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul, SkiaSharp.SKColorSpace.CreateSrgb());
-            }
+                svg.Picture?.ToImage(
+                    stream, 
+                    skBackgroundColor, 
+                    SkiaSharp.SKEncodedImageFormat.Png, 
+                    100, 
+                    scaleX, 
+                    scaleY, 
+                    SkiaSharp.SKColorType.Rgba8888, 
+                    SkiaSharp.SKAlphaType.Premul, 
+                    SkiaSharp.SKColorSpace.CreateSrgb());
                 break;
+            }
             case ".jpg":
             case ".jpeg":
             {
                 using var stream = File.OpenWrite(path);
-                svg.Picture?.ToImage(stream, skBackgroundColor, SkiaSharp.SKEncodedImageFormat.Jpeg, 100, scaleX, scaleY, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul, SkiaSharp.SKColorSpace.CreateSrgb());
-            }
+                svg.Picture?.ToImage(
+                    stream, 
+                    skBackgroundColor, 
+                    SkiaSharp.SKEncodedImageFormat.Jpeg, 
+                    100, 
+                    scaleX, 
+                    scaleY, 
+                    SkiaSharp.SKColorType.Rgba8888, 
+                    SkiaSharp.SKAlphaType.Premul, 
+                    SkiaSharp.SKColorSpace.CreateSrgb());
                 break;
+            }
             case ".pdf":
             {
                 svg.Picture?.ToPdf(path, skBackgroundColor, scaleX, scaleY);
-            }
                 break;
+            }
             case ".xps":
             {
                 svg.Picture?.ToXps(path, skBackgroundColor, scaleX, scaleY);
-            }
                 break;
+            }
             case ".cs":
             {
                 var code = SkiaCSharpCodeGen.Generate(svg.Model, "Svg", CreateClassName(path));
                 File.WriteAllText(path, code);
-            }
                 break;
+            }
         }
     }
 
