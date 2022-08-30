@@ -27,8 +27,83 @@ public static partial class SvgExtensions
 #if USE_SKIASHARP
         internal static List<(SKPoint Point, byte Type)> GetPathTypes(this SKPath path)
         {
-            // TODO: GetPathTypes
-            throw new NotImplementedException();
+            // System.Drawing.Drawing2D.GraphicsPath.PathTypes
+            // System.Drawing.Drawing2D.PathPointType
+            // byte -> PathPointType
+            var pathTypes = new List<(SKPoint Point, byte Type)>();
+
+            using var iterator = path.CreateRawIterator();
+            var points = new SKPoint[4];
+            var pathVerb = SKPathVerb.Move;
+
+            (SKPoint Point, byte Type) lastPoint = (default, 0);
+            while ((pathVerb = iterator.Next(points)) != SKPathVerb.Done)
+            {
+                switch (pathVerb)
+                {
+                    case SKPathVerb.Move:
+                    {
+                        var point0 = new SKPoint(points[0].X, points[0].Y);
+                        pathTypes.Add((point0, (byte)PathPointType.Start));
+                        lastPoint = (point0, (byte)PathPointType.Start);
+                        break;
+                    }
+                    case SKPathVerb.Line:
+                    {
+                        var point1 = new SKPoint(points[1].X, points[1].Y);
+                        pathTypes.Add((point1, (byte)PathPointType.Line));
+                        lastPoint = (point1, (byte)PathPointType.Line);
+                        break;
+                    }
+                    case SKPathVerb.Cubic:
+                    {
+                        
+                        var point1 = new SKPoint(points[1].X, points[1].Y);
+                        var point2 = new SKPoint(points[2].X, points[2].Y);
+                        var point3 = new SKPoint(points[3].X, points[3].Y);
+                        pathTypes.Add((point1, (byte)PathPointType.Bezier));
+                        pathTypes.Add((point2, (byte)PathPointType.Bezier));
+                        pathTypes.Add((point3, (byte)PathPointType.Bezier));
+                        lastPoint = (point3, (byte)PathPointType.Bezier);
+                        break;
+                    }
+                    case SKPathVerb.Quad:
+                    {
+                        var point1 = new SKPoint(points[1].X, points[1].Y);
+                        var point2 = new SKPoint(points[2].X, points[2].Y);
+                        pathTypes.Add((point1, (byte)PathPointType.Bezier));
+                        pathTypes.Add((point2, (byte)PathPointType.Bezier));
+                        lastPoint = (point2, (byte)PathPointType.Bezier);
+                        break;
+                    }
+                    case SKPathVerb.Conic:
+                    {
+                        var quads = SKPath.ConvertConicToQuads(points[0], points[1], points[2], iterator.ConicWeight(), 1);
+
+                        var point1 = new SKPoint(quads[1].X, quads[1].Y);
+                        var point2 = new SKPoint(quads[2].X, quads[2].Y);
+                        pathTypes.Add((point1, (byte)PathPointType.Bezier));
+                        pathTypes.Add((point2, (byte)PathPointType.Bezier));
+                        
+                        var point3 = new SKPoint(quads[3].X, quads[3].Y);
+                        var point4 = new SKPoint(quads[4].X, quads[4].Y);
+                        pathTypes.Add((point3, (byte)PathPointType.Bezier));
+                        pathTypes.Add((point4, (byte)PathPointType.Bezier));
+                        
+                        lastPoint = (point4, (byte)PathPointType.Bezier);
+                        
+                        break;
+                    }
+                    case SKPathVerb.Close:
+                    {
+                        lastPoint = (lastPoint.Point, (byte)(lastPoint.Type | (byte)PathPointType.CloseSubpath));
+                        pathTypes[pathTypes.Count - 1] = lastPoint;
+                        break;
+                    }
+                }
+            }
+
+            return pathTypes;
         }
 #else
     internal static List<(SKPoint Point, byte Type)> GetPathTypes(this SKPath path)
