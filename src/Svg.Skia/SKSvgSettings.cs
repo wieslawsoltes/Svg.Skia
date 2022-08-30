@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Svg.Model;
 using Svg.Skia.TypefaceProviders;
 
 namespace Svg.Skia;
