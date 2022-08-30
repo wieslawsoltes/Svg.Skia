@@ -584,4 +584,61 @@ public static partial class SvgExtensions
 
         return skPath;
     }
+
+#if USE_SKIASHARP
+    internal static SkiaSharp.SKPath? ToSKPath(ClipPath? clipPath)
+    {
+        if (clipPath?.Clips is null)
+        {
+            return null;
+        }
+
+        var skPathResult = default(SkiaSharp.SKPath);
+
+        foreach (var clip in clipPath.Clips)
+        {
+            if (clip.Path is null)
+            {
+                return null;
+            }
+
+            var skPath = clip.Path;
+            var skPathClip = ToSKPath(clip.Clip);
+            if (skPathClip is { }) skPath = clip.Path.Op(skPathClip, SkiaSharp.SKPathOp.Intersect);
+
+            if (clip.Transform is { })
+            {
+                var skMatrix = clip.Transform.Value;
+                skPath.Transform(skMatrix);
+            }
+
+            if (skPathResult is null)
+            {
+                skPathResult = skPath;
+            }
+            else
+            {
+                var result = skPathResult.Op(skPath, SkiaSharp.SKPathOp.Union);
+                skPathResult = result;
+            }
+        }
+
+        if (skPathResult is { })
+        {
+            if (clipPath.Clip?.Clips is { })
+            {
+                var skPathClip = ToSKPath(clipPath.Clip);
+                if (skPathClip is { }) skPathResult = skPathResult.Op(skPathClip, SkiaSharp.SKPathOp.Intersect);
+            }
+
+            if (clipPath.Transform is { })
+            {
+                var skMatrix = clipPath.Transform.Value;
+                skPathResult.Transform(skMatrix);
+            }
+        }
+
+        return skPathResult;
+    }
+#endif
 }
