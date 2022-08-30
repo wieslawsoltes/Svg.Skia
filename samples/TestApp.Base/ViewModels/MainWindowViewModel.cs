@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
@@ -16,6 +19,7 @@ using ReactiveUI;
 using Svg.CodeGen.Skia;
 using Svg.Skia;
 using TestApp.Models;
+using TestApp.Services;
 
 namespace TestApp.ViewModels;
 
@@ -58,6 +62,28 @@ public class MainWindowViewModel : ViewModelBase
 
     public ICommand ExportCommand { get; }
 
+    private List<FilePickerFileType> GetConfigurationFileTypes()
+    {
+        return new List<FilePickerFileType>
+        {
+            StorageService.Json,
+            StorageService.All
+        };
+    }
+
+    private static List<FilePickerFileType> GetExportFileTypes()
+    {
+        return new List<FilePickerFileType>
+        {
+            StorageService.ImagePng,
+            StorageService.ImageJpg,
+            StorageService.CSharp,
+            StorageService.Pdf,
+            StorageService.Xps,
+            StorageService.All
+        };
+    }
+
     public MainWindowViewModel()
     {
         _items = new ObservableCollection<FileItemViewModel>();
@@ -79,146 +105,177 @@ public class MainWindowViewModel : ViewModelBase
             .Select(x => !string.IsNullOrWhiteSpace(x))
             .ObserveOn(RxApp.MainThreadScheduler);
 
-        ResetQueryCommand = ReactiveCommand.Create(
-            () => ItemQuery = "", 
-            resetQueryCanExecute);
+        ResetQueryCommand = ReactiveCommand.Create(() => ItemQuery = "", resetQueryCanExecute);
 
-        LoadConfigurationCommand = ReactiveCommand.CreateFromTask(async () =>
+        LoadConfigurationCommand = ReactiveCommand.CreateFromTask(async () => await LoadConfigurationExecute());
+
+        SaveConfigurationCommand = ReactiveCommand.CreateFromTask(async () => await SaveConfigurationExecute());
+
+        ClearConfigurationCommand = ReactiveCommand.Create(ClearConfigurationExecute);
+
+        AddItemCommand = ReactiveCommand.CreateFromTask(async () => await AddItemExecute());
+
+        CopyAsCSharpCommand = ReactiveCommand.CreateFromTask<Avalonia.Svg.Skia.Svg>(async svg => await CopyAsCSharpExecute(svg));
+
+        ExportCommand = ReactiveCommand.CreateFromTask<Avalonia.Svg.Skia.Svg>(async svg => await ExportExecute(svg));
+    }
+
+    private async Task ExportExecute(Avalonia.Svg.Skia.Svg svg)
+    {
+        if (_selectedItem is null || svg.Model is null)
         {
-            var window = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
-            if (window is null)
-            {
-                return;
-            }
-            var dlg = new OpenFileDialog 
-            { 
-                Filters = new List<FileDialogFilter>
-                {
-                    new() { Name = "Configuration (*.json)", Extensions = new List<string> { "json" } },
-                    new() { Name = "All Files (*.*)", Extensions = new List<string> { "*" } }
-                }
-            };
-            var result = await dlg.ShowAsync(window);
-            if (result is { })
-            {
-                var path = result.FirstOrDefault();
-                if (path is { })
-                {
-                    LoadConfiguration(path);
-                }
-            }
+            return;
+        }
+
+        var storageProvider = StorageService.GetStorageProvider();
+        if (storageProvider is null)
+        {
+            return;
+        }
+
+        var file = await storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Export svg",
+            FileTypeChoices = GetExportFileTypes(),
+            SuggestedFileName = Path.GetFileNameWithoutExtension(_selectedItem.Path),
+            DefaultExtension = "png",
+            ShowOverwritePrompt = true
         });
 
-        SaveConfigurationCommand = ReactiveCommand.CreateFromTask(async () =>
+        if (file is not null && file.CanOpenWrite)
         {
-            var window = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
-            if (window is null)
+            try
             {
-                return;
+                await using var stream = await file.OpenWriteAsync();
+                await Export(stream, file.Name, svg, "#00FFFFFF", 1f, 1f);
             }
-            var dlg = new SaveFileDialog 
-            { 
-                Filters = new List<FileDialogFilter>
-                {
-                    new () { Name = "Configuration (*.json)", Extensions = new List<string> { "json" } },
-                    new () { Name = "All Files (*.*)", Extensions = new List<string> { "*" } }
-                }
-            };
-            var result = await dlg.ShowAsync(window);
-            if (result is { })
+            catch (Exception ex)
             {
-                SaveConfiguration(result);
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
+            }
+        }
+    }
+
+    private async Task CopyAsCSharpExecute(Avalonia.Svg.Skia.Svg svg)
+    {
+        if (_selectedItem is null || svg?.Model is null)
+        {
+            return;
+        }
+
+        var code = SkiaCSharpCodeGen.Generate(svg.Model, "Svg", CreateClassName(_selectedItem.Path));
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            try
+            {
+                Application.Current?.Clipboard?.SetTextAsync(code);
+            }
+            catch
+            {
+                // ignored
             }
         });
+    }
 
-        ClearConfigurationCommand = ReactiveCommand.Create(() =>
+    private async Task AddItemExecute()
+    {
+        var window = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+        if (window is null)
         {
-            ItemQuery = null;
-            SelectedItem = null;
-            _items?.Clear();
+            return;
+        }
+
+        var dlg = new OpenFileDialog
+        {
+            AllowMultiple = true,
+            Filters = new List<FileDialogFilter>
+            {
+                new() {Name = "Svg Files (*.svg;*.svgz)", Extensions = new List<string> {"svg", "svgz"}},
+                new() {Name = "All Files (*.*)", Extensions = new List<string> {"*"}}
+            }
+        };
+        var result = await dlg.ShowAsync(window);
+        if (result is { })
+        {
+            var paths = result.ToList();
+            foreach (var path in paths)
+            {
+                AddItem(path);
+            }
+        }
+    }
+
+    private void ClearConfigurationExecute()
+    {
+        ItemQuery = null;
+        SelectedItem = null;
+        _items?.Clear();
+    }
+
+    private async Task SaveConfigurationExecute()
+    {
+        var storageProvider = StorageService.GetStorageProvider();
+        if (storageProvider is null)
+        {
+            return;
+        }
+
+        var file = await storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Save configuration",
+            FileTypeChoices = GetConfigurationFileTypes(),
+            SuggestedFileName = Path.GetFileNameWithoutExtension("TestApp.Base.json"),
+            DefaultExtension = "json",
+            ShowOverwritePrompt = true
         });
 
-        AddItemCommand = ReactiveCommand.CreateFromTask(async () =>
+        if (file is not null && file.CanOpenWrite)
         {
-            var window = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
-            if (window is null)
+            try
             {
-                return;
+                await using var stream = await file.OpenWriteAsync();
+                SaveConfiguration(stream);
             }
-            var dlg = new OpenFileDialog
+            catch (Exception ex)
             {
-                AllowMultiple = true, 
-                Filters = new List<FileDialogFilter>
-                {
-                    new () { Name = "Svg Files (*.svg;*.svgz)", Extensions = new List<string> { "svg", "svgz" } },
-                    new () { Name = "All Files (*.*)", Extensions = new List<string> { "*" } }
-                }
-            };
-            var result = await dlg.ShowAsync(window);
-            if (result is { })
-            {
-                var paths = result.ToList();
-                foreach (var path in paths)
-                {
-                    AddItem(path);
-                }
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
             }
+        }
+    }
+
+    private async Task LoadConfigurationExecute()
+    {
+        var storageProvider = StorageService.GetStorageProvider();
+        if (storageProvider is null)
+        {
+            return;
+        }
+
+        var result = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Open configuration",
+            FileTypeFilter = GetConfigurationFileTypes(),
+            AllowMultiple = false
         });
 
-        CopyAsCSharpCommand = ReactiveCommand.CreateFromTask<Avalonia.Svg.Skia.Svg>(async svg =>
+        var file = result.FirstOrDefault();
+
+        if (file is not null && file.CanOpenRead)
         {
-            if (_selectedItem is null || svg?.Model is null)
+            try
             {
-                return;
+                await using var stream = await file.OpenReadAsync();
+                LoadConfiguration(stream);
             }
-
-            var code = SkiaCSharpCodeGen.Generate(svg.Model, "Svg", CreateClassName(_selectedItem.Path));
-
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            catch (Exception ex)
             {
-                try
-                {
-                    Application.Current?.Clipboard?.SetTextAsync(code);
-                }
-                catch
-                {
-                    // ignored
-                }
-            });
-        });
-
-        ExportCommand = ReactiveCommand.CreateFromTask<Avalonia.Svg.Skia.Svg>(async svg =>
-        {
-            var window = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
-            if (window is null)
-            {
-                return;
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
             }
-
-            if (_selectedItem is null || svg?.Model is null)
-            {
-                return;
-            }
-
-            var dlg = new SaveFileDialog 
-            {
-                Filters = new List<FileDialogFilter>
-                {
-                    new () { Name = "Png Files (*.png)", Extensions = new List<string> { "png" } },
-                    new () { Name = "Jpeg Files (*.jpeg)", Extensions = new List<string> { "jpeg" } },
-                    new () { Name = "C# Files (*.cs)", Extensions = new List<string> {"cs"} },
-                    new () { Name = "Pdf Files (*.pdf)", Extensions = new List<string> {"pdf"} },
-                    new () { Name = "Xps Files (*.xps)", Extensions = new List<string> {"xps"} },
-                    new () { Name = "All Files (*.*)", Extensions = new List<string> {"*"} }
-                },
-                InitialFileName = Path.GetFileNameWithoutExtension(_selectedItem.Path)
-            };
-            var result = await dlg.ShowAsync(window);
-            if (result is { })
-            {
-                Export(result, svg, "#00FFFFFF", 1f, 1f);
-            }
-        });
+        }
     }
 
     private Func<FileItemViewModel, bool> ItemQueryFilter(string? searchQuery)
@@ -252,11 +309,16 @@ public class MainWindowViewModel : ViewModelBase
             {
                 case ".svg":
                 case ".svgz":
+                {
                     AddItem(path);
                     break;
+                }
                 case ".json":
-                    LoadConfiguration(path);
+                {
+                    using var stream = File.OpenRead(path);
+                    LoadConfiguration(stream);
                     break;
+                }
             }
         }
     }
@@ -270,14 +332,10 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public void LoadConfiguration(string configurationPath)
+    public void LoadConfiguration(Stream stream)
     {
-        if (!File.Exists(configurationPath))
-        {
-            return;
-        }
-
-        var json = File.ReadAllText(configurationPath);
+        using var reader = new StreamReader(stream);
+        var json = reader.ReadToEnd();
         var configuration = JsonSerializer.Deserialize<Configuration>(json);
 
         if (configuration?.Paths is { })
@@ -294,21 +352,22 @@ public class MainWindowViewModel : ViewModelBase
         ItemQuery = configuration?.Query;
     }
 
-    public void SaveConfiguration(string configurationPath)
+    public void SaveConfiguration(Stream stream)
     {
-        var configuration = new Configuration()
+        var configuration = new Configuration
         {
             Paths = _items?.Select(x => x.Path).ToList(),
             Query = ItemQuery
         };
 
         var json = JsonSerializer.Serialize(configuration);
-        File.WriteAllText(configurationPath, json);
+        using var writer = new StreamWriter(stream); 
+        writer.Write(json);
     }
 
-    public void Export(string path, Avalonia.Svg.Skia.Svg? svg, string backgroundColor, float scaleX, float scaleY)
+    public async Task Export(Stream stream, string name, Avalonia.Svg.Skia.Svg? svg, string backgroundColor, float scaleX, float scaleY)
     {
-        if (svg?.Model is null || svg?.Picture is null)
+        if (svg?.Model is null || svg.Picture is null)
         {
             return;
         }
@@ -318,12 +377,11 @@ public class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        var extension = Path.GetExtension(path);
+        var extension = Path.GetExtension(name);
         switch (extension.ToLower())
         {
             case ".png":
             {
-                using var stream = File.OpenWrite(path);
                 svg.Picture?.ToImage(
                     stream, 
                     skBackgroundColor, 
@@ -339,7 +397,6 @@ public class MainWindowViewModel : ViewModelBase
             case ".jpg":
             case ".jpeg":
             {
-                using var stream = File.OpenWrite(path);
                 svg.Picture?.ToImage(
                     stream, 
                     skBackgroundColor, 
@@ -354,18 +411,19 @@ public class MainWindowViewModel : ViewModelBase
             }
             case ".pdf":
             {
-                svg.Picture?.ToPdf(path, skBackgroundColor, scaleX, scaleY);
+                svg.Picture?.ToPdf(stream, skBackgroundColor, scaleX, scaleY);
                 break;
             }
             case ".xps":
             {
-                svg.Picture?.ToXps(path, skBackgroundColor, scaleX, scaleY);
+                svg.Picture?.ToXps(stream, skBackgroundColor, scaleX, scaleY);
                 break;
             }
             case ".cs":
             {
-                var code = SkiaCSharpCodeGen.Generate(svg.Model, "Svg", CreateClassName(path));
-                File.WriteAllText(path, code);
+                var code = SkiaCSharpCodeGen.Generate(svg.Model, "Svg", CreateClassName(name));
+                await using var writer = new StreamWriter(stream);
+                await writer.WriteAsync(code);
                 break;
             }
         }
@@ -373,7 +431,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private static string CreateClassName(string filename)
     {
-        string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(filename);
+        string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filename);
         string className = fileNameWithoutExtension.Replace("-", "_");
         return $"Svg_{className}";
     }
