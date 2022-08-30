@@ -52,17 +52,15 @@ public static partial class SvgExtensions
                     var point0 = new SKPoint(moveToPathCommand.X, moveToPathCommand.Y);
                     pathTypes.Add((point0, (byte)PathPointType.Start));
                     lastPoint = (point0, (byte)PathPointType.Start);
-                }
                     break;
-
+                }
                 case LineToPathCommand lineToPathCommand:
                 {
                     var point1 = new SKPoint(lineToPathCommand.X, lineToPathCommand.Y);
                     pathTypes.Add((point1, (byte)PathPointType.Line));
                     lastPoint = (point1, (byte)PathPointType.Line);
-                }
                     break;
-
+                }
                 case CubicToPathCommand cubicToPathCommand:
                 {
                     var point1 = new SKPoint(cubicToPathCommand.X0, cubicToPathCommand.Y0);
@@ -72,9 +70,8 @@ public static partial class SvgExtensions
                     pathTypes.Add((point2, (byte)PathPointType.Bezier));
                     pathTypes.Add((point3, (byte)PathPointType.Bezier));
                     lastPoint = (point3, (byte)PathPointType.Bezier);
-                }
                     break;
-
+                }
                 case QuadToPathCommand quadToPathCommand:
                 {
                     var point1 = new SKPoint(quadToPathCommand.X0, quadToPathCommand.Y0);
@@ -82,24 +79,21 @@ public static partial class SvgExtensions
                     pathTypes.Add((point1, (byte)PathPointType.Bezier));
                     pathTypes.Add((point2, (byte)PathPointType.Bezier));
                     lastPoint = (point2, (byte)PathPointType.Bezier);
-                }
                     break;
-
+                }
                 case ArcToPathCommand arcToPathCommand:
                 {
                     var point1 = new SKPoint(arcToPathCommand.X, arcToPathCommand.Y);
                     pathTypes.Add((point1, (byte)PathPointType.Bezier));
                     lastPoint = (point1, (byte)PathPointType.Bezier);
-                }
                     break;
-
+                }
                 case ClosePathCommand:
                 {
                     lastPoint = (lastPoint.Point, (byte)(lastPoint.Type | (byte)PathPointType.CloseSubpath));
                     pathTypes[pathTypes.Count - 1] = lastPoint;
-                }
                     break;
-
+                }
                 case AddPolyPathCommand addPolyPathCommand:
                 {
                     if (addPolyPathCommand.Points is { } && addPolyPathCommand.Points.Count > 0)
@@ -113,11 +107,9 @@ public static partial class SvgExtensions
                         var point = addPolyPathCommand.Points[addPolyPathCommand.Points.Count - 1];
                         lastPoint = (point, (byte)PathPointType.Line);
                     }
-                }
                     break;
-
+                }
                 default:
-                    Debug.WriteLine($"Not implemented path point for {pathCommand?.GetType()} type.");
                     break;
             }
         }
