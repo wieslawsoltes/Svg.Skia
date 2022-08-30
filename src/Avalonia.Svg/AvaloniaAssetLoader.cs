@@ -31,7 +31,7 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
         {
             var weight = preferredTypeface.FontWeight.ToFontWeight();
             var width = preferredTypeface.FontWidth.ToFontStretch();
-            var slant = preferredTypeface.Style.ToFontStyle();
+            var slant = preferredTypeface.FontSlant.ToFontStyle();
 
             matchCharacter = codepoint =>
             {
