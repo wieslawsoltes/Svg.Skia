@@ -59,6 +59,19 @@ public static class SKPictureExtensions
         return true;
     }
 
+    public static bool ToSvg(this SkiaSharp.SKPicture skPicture, Stream stream, SkiaSharp.SKColor background, float scaleX, float scaleY)
+    {
+        var width = skPicture.CullRect.Width * scaleX;
+        var height = skPicture.CullRect.Height * scaleY;
+        if (width <= 0 || height <= 0)
+        {
+            return false;
+        }
+        using var skCanvas = SkiaSharp.SKSvgCanvas.Create(SkiaSharp.SKRect.Create(0, 0, width, height), stream);
+        Draw(skPicture, background, scaleX, scaleY, skCanvas);
+        return true;
+    }
+
     public static bool ToPdf(this SkiaSharp.SKPicture skPicture, string path, SkiaSharp.SKColor background, float scaleX, float scaleY)
     {
         var width = skPicture.CullRect.Width * scaleX;
@@ -75,6 +88,21 @@ public static class SKPictureExtensions
         return true;
     }
 
+    public static bool ToPdf(this SkiaSharp.SKPicture skPicture, Stream stream, SkiaSharp.SKColor background, float scaleX, float scaleY)
+    {
+        var width = skPicture.CullRect.Width * scaleX;
+        var height = skPicture.CullRect.Height * scaleY;
+        if (width <= 0 || height <= 0)
+        {
+            return false;
+        }
+        using var skDocument = SkiaSharp.SKDocument.CreatePdf(stream, SkiaSharp.SKDocument.DefaultRasterDpi);
+        using var skCanvas = skDocument.BeginPage(width, height);
+        Draw(skPicture, background, scaleX, scaleY, skCanvas);
+        skDocument.Close();
+        return true;
+    }
+
     public static bool ToXps(this SkiaSharp.SKPicture skPicture, string path, SkiaSharp.SKColor background, float scaleX, float scaleY)
     {
         var width = skPicture.CullRect.Width * scaleX;
@@ -85,6 +113,21 @@ public static class SKPictureExtensions
         }
         using var skFileWStream = new SkiaSharp.SKFileWStream(path);
         using var skDocument = SkiaSharp.SKDocument.CreateXps(skFileWStream, SkiaSharp.SKDocument.DefaultRasterDpi);
+        using var skCanvas = skDocument.BeginPage(width, height);
+        Draw(skPicture, background, scaleX, scaleY, skCanvas);
+        skDocument.Close();
+        return true;
+    }
+
+    public static bool ToXps(this SkiaSharp.SKPicture skPicture, Stream stream, SkiaSharp.SKColor background, float scaleX, float scaleY)
+    {
+        var width = skPicture.CullRect.Width * scaleX;
+        var height = skPicture.CullRect.Height * scaleY;
+        if (width <= 0 || height <= 0)
+        {
+            return false;
+        }
+        using var skDocument = SkiaSharp.SKDocument.CreateXps(stream, SkiaSharp.SKDocument.DefaultRasterDpi);
         using var skCanvas = skDocument.BeginPage(width, height);
         Draw(skPicture, background, scaleX, scaleY, skCanvas);
         skDocument.Close();
