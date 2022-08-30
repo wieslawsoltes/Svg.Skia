@@ -4,25 +4,34 @@ namespace Svg.Skia;
 
 public class SkiaAssetLoader : Model.IAssetLoader
 {
+#if !USE_SKIASHARP
     private readonly SkiaModel _skiaModel;
 
     public SkiaAssetLoader(SkiaModel skiaModel)
     {
         _skiaModel = skiaModel;
     }
+#endif
     
+#if USE_SKIASHARP
+    public SkiaSharp.SKImage LoadImage(System.IO.Stream stream)
+    {
+        return SkiaSharp.SKImage.FromEncodedData(stream);
+    }
+#else
     public ShimSkiaSharp.SKImage LoadImage(System.IO.Stream stream)
     {
-#if USE_SKIASHARP
-        return SkiaSharp.SKImage.FromEncodedData(stream);
-#else
         var data = ShimSkiaSharp.SKImage.FromStream(stream);
         using var image = SkiaSharp.SKImage.FromEncodedData(data);
         return new ShimSkiaSharp.SKImage {Data = data, Width = image.Width, Height = image.Height};
-#endif
     }
+#endif
 
+#if USE_SKIASHARP
+    public List<Model.TypefaceSpan> FindTypefaces(string? text, SkiaSharp.SKPaint paintPreferredTypeface)
+#else
     public List<Model.TypefaceSpan> FindTypefaces(string? text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
+#endif
     {
         var ret = new List<Model.TypefaceSpan>();
 
@@ -36,13 +45,13 @@ public class SkiaAssetLoader : Model.IAssetLoader
         if (paintPreferredTypeface.Typeface is { } preferredTypeface)
         {
 #if USE_SKIASHARP
-            var weight = preferredTypeface.FontWeight;
-            var width = preferredTypeface.FontWidth;
-            var slant = preferredTypeface.Style;
+            var weight = (SkiaSharp.SKFontStyleWeight)preferredTypeface.FontWeight;
+            var width = (SkiaSharp.SKFontStyleWidth)preferredTypeface.FontWidth;
+            var slant = (SkiaSharp.SKFontStyleSlant)preferredTypeface.FontSlant;
 #else
             var weight = _skiaModel.ToSKFontStyleWeight(preferredTypeface.FontWeight);
             var width = _skiaModel.ToSKFontStyleWidth(preferredTypeface.FontWidth);
-            var slant = _skiaModel.ToSKFontStyleSlant(preferredTypeface.Style);
+            var slant = _skiaModel.ToSKFontStyleSlant(preferredTypeface.FontSlant);
 #endif
             matchCharacter = codepoint => SkiaSharp.SKFontManager.Default.MatchCharacter(
                 preferredTypeface.FamilyName,

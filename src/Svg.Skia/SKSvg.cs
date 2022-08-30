@@ -1,13 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using Svg.Model;
+#if !USE_SKIASHARP
+using System.Collections.Generic;
 using Svg.Model.Drawables;
 using ShimSkiaSharp;
+#endif
 
 namespace Svg.Skia;
 
 public class SKSvg : IDisposable
 {
+#if USE_SKIASHARP
+    public static SkiaSharp.SKPicture? ToPicture(SvgFragment svgFragment, IAssetLoader assetLoader)
+    {
+        return SvgExtensions.ToPicture(svgFragment, assetLoader, out _, out _);
+    }
+#else
     public static SkiaSharp.SKPicture? ToPicture(SvgFragment svgFragment, SkiaModel skiaModel, IAssetLoader assetLoader)
     {
         var picture = SvgExtensions.ToModel(svgFragment, assetLoader, out _, out _);
@@ -36,24 +44,31 @@ public class SKSvg : IDisposable
             Draw(skCanvas, svgDocument, skiaModel, assetLoader);
         }
     }
+#endif
 
     public SKSvgSettings Settings { get; }
 
-    public SkiaModel SkiaModel { get; }
-
     public IAssetLoader AssetLoader { get; }
+
+#if !USE_SKIASHARP
+    public SkiaModel SkiaModel { get; }
 
     public SKDrawable? Drawable { get; private set; }
 
     public SKPicture? Model { get; private set; }
+#endif
 
     public SkiaSharp.SKPicture? Picture { get; private set; }
 
     public SKSvg()
     {
         Settings = new SKSvgSettings();
+#if USE_SKIASHARP
+        AssetLoader = new SkiaAssetLoader();
+#else
         SkiaModel = new SkiaModel(Settings);
         AssetLoader = new SkiaAssetLoader(SkiaModel);
+#endif
     }
 
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream)
@@ -62,9 +77,13 @@ public class SKSvg : IDisposable
         var svgDocument = SvgExtensions.Open(stream);
         if (svgDocument is { })
         {
+#if USE_SKIASHARP
+            Picture = SvgExtensions.ToPicture(svgDocument, AssetLoader, out var _, out _);
+#else
             Model = SvgExtensions.ToModel(svgDocument, AssetLoader, out var drawable, out _);
             Drawable = drawable;
             Picture = SkiaModel.ToSKPicture(Model);
+#endif
             return Picture;
         }
         return null;
@@ -76,9 +95,13 @@ public class SKSvg : IDisposable
         var svgDocument = SvgExtensions.Open(path);
         if (svgDocument is { })
         {
+#if USE_SKIASHARP
+            Picture = SvgExtensions.ToPicture(svgDocument, AssetLoader, out var _, out _);
+#else
             Model = SvgExtensions.ToModel(svgDocument, AssetLoader, out var drawable, out _);
             Drawable = drawable;
             Picture = SkiaModel.ToSKPicture(Model);
+#endif
             return Picture;
         }
         return null;
@@ -90,9 +113,13 @@ public class SKSvg : IDisposable
         var svgDocument = SvgExtensions.FromSvg(svg);
         if (svgDocument is { })
         {
+#if USE_SKIASHARP
+            Picture = SvgExtensions.ToPicture(svgDocument, AssetLoader, out var _, out _);
+#else
             Model = SvgExtensions.ToModel(svgDocument, AssetLoader, out var drawable, out _);
             Drawable = drawable;
             Picture = SkiaModel.ToSKPicture(Model);
+#endif
             return Picture;
         }
         return null;
@@ -103,9 +130,13 @@ public class SKSvg : IDisposable
         Reset();
         if (svgDocument is { })
         {
+#if USE_SKIASHARP
+            Picture = SvgExtensions.ToPicture(svgDocument, AssetLoader, out var _, out _);
+#else
             Model = SvgExtensions.ToModel(svgDocument, AssetLoader, out var drawable, out _);
             Drawable = drawable;
             Picture = SkiaModel.ToSKPicture(Model);
+#endif
             return Picture;
         }
         return null;
@@ -132,9 +163,10 @@ public class SKSvg : IDisposable
 
     private void Reset()
     {
+#if !USE_SKIASHARP
         Model = null;
         Drawable = null;
-
+#endif
         Picture?.Dispose();
         Picture = null;
     }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#if !USE_SKIASHARP
+using System.Collections.Generic;
 using ShimSkiaSharp;
 
 namespace Svg.Skia;
@@ -183,7 +184,7 @@ public class SkiaModel
         var fontFamily = typeface.FamilyName;
         var fontWeight = ToSKFontStyleWeight(typeface.FontWeight);
         var fontWidth = ToSKFontStyleWidth(typeface.FontWidth);
-        var fontStyle = ToSKFontStyleSlant(typeface.Style);
+        var fontStyle = ToSKFontStyleSlant(typeface.FontSlant);
 
         if (Settings.TypefaceProviders is { } && Settings.TypefaceProviders.Count > 0)
         {
@@ -1183,3 +1184,4 @@ public class SkiaModel
         }
     }
 }
+#endif

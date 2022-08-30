@@ -255,7 +255,27 @@ public static partial class SvgExtensions
         bounds = fragmentBounds;
         return drawable;
     }
-#if !USE_SKIASHARP
+#if USE_SKIASHARP
+    public static SKPicture? ToPicture(SvgFragment svgFragment, IAssetLoader assetLoader, out SKDrawable? skDrawable, out SKRect? skBounds, DrawAttributes ignoreAttributes = DrawAttributes.None)
+    {
+        var references = new HashSet<Uri>
+        {
+            svgFragment is SvgDocument svgDocument ? svgDocument.BaseUri : svgFragment.OwnerDocument.BaseUri
+        };
+        var drawable = ToDrawable(svgFragment, assetLoader, references, out var bounds, ignoreAttributes);
+        if (drawable is null || bounds is null)
+        {
+            skDrawable = default;
+            skBounds = default;
+            return default;
+        }
+
+        var picture = drawable.Snapshot();
+        skDrawable = drawable;
+        skBounds = bounds;
+        return picture;
+    }
+#else
     public static SKPicture? ToModel(SvgFragment svgFragment, IAssetLoader assetLoader, out SKDrawable? skDrawable, out SKRect? skBounds, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
         var references = new HashSet<Uri>

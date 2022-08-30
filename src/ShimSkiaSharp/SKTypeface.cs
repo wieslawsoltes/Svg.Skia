@@ -5,7 +5,7 @@ public class SKTypeface
     public string? FamilyName { get; private set; }
     public SKFontStyleWeight FontWeight { get; private set; }
     public SKFontStyleWidth FontWidth { get; private set; }
-    public SKFontStyleSlant Style { get; private set; }
+    public SKFontStyleSlant FontSlant { get; private set; }
 
     private SKTypeface()
     {
@@ -22,7 +22,7 @@ public class SKTypeface
             FamilyName = familyName,
             FontWeight = weight,
             FontWidth = width,
-            Style = slant
+            FontSlant = slant
         };
     }
 }

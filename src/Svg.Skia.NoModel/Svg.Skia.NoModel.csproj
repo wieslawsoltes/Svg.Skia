@@ -12,9 +12,13 @@
 
   <PropertyGroup>
     <Description>An SVG rendering library.</Description>
-    <PackageId>Svg.Skia</PackageId>
+    <PackageId>Svg.Skia.NoModel</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);USE_SKIASHARP</DefineConstants>
   </PropertyGroup>
 
   <Import Project="..\..\build\Base.props" />
@@ -27,12 +31,13 @@
   <!--<Import Project="..\..\build\Svg.props" />-->
   <ItemGroup>
     <!--<ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />-->
-    <ProjectReference Include="..\Svg.Model\Svg.Model.csproj" />
+    <ProjectReference Include="..\Svg.Model.SkiaSharp\Svg.Model.SkiaSharp.csproj" />
     <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />
+    <Compile Include="..\Svg.Skia\**\*.cs" Exclude="..\Svg.Skia\obj\**" />
   </ItemGroup>
 
 </Project>

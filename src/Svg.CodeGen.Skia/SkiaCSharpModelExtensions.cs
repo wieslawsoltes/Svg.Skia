@@ -310,7 +310,7 @@ public static class SkiaCSharpModelExtensions
         var fontFamily = typeface.FamilyName;
         var fontWeight = typeface.FontWeight.ToSKFontStyleWeight();
         var fontWidth = typeface.FontWidth.ToSKFontStyleWidth();
-        var fontStyle = typeface.Style.ToSKFontStyleSlant();
+        var fontStyle = typeface.FontSlant.ToSKFontStyleSlant();
 
         var fontFamilyNames = fontFamily?.Split(',')?.Select(x => x.Trim().Trim(s_fontFamilyTrim))?.ToArray();
         if (fontFamilyNames is null || fontFamilyNames.Length == 0)

@@ -226,7 +226,7 @@ public static class AvaloniaModelExtensions
         var familyName = typeface.FamilyName ?? AM.Typeface.Default.FontFamily.Name;
         var weight = typeface.FontWeight.ToFontWeight();
         var stretch = typeface.FontWidth.ToFontStretch();
-        var slant = typeface.Style.ToFontStyle();
+        var slant = typeface.FontSlant.ToFontStyle();
         return new AM.Typeface(familyName, slant, weight, stretch);
     }
 
