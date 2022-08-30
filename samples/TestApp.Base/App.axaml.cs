@@ -1,3 +1,4 @@
+using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -21,7 +22,11 @@ public class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            mainWindowViewModel.LoadConfiguration(ConfigurationPath);
+            if (File.Exists(ConfigurationPath))
+            {
+                using var stream = File.OpenRead(ConfigurationPath);
+                mainWindowViewModel.LoadConfiguration(stream);
+            }
 
             desktop.MainWindow = new MainWindow
             {
@@ -30,12 +35,17 @@ public class App : Application
 
             desktop.Exit += (_, _) =>
             {
-                mainWindowViewModel.SaveConfiguration(ConfigurationPath);
+                using var stream = File.OpenWrite(ConfigurationPath);
+                mainWindowViewModel.SaveConfiguration(stream);
             };
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime single)
         {
-            mainWindowViewModel.LoadConfiguration(ConfigurationPath);
+            if (File.Exists(ConfigurationPath))
+            {
+                using var stream = File.OpenRead(ConfigurationPath);
+                mainWindowViewModel.LoadConfiguration(stream);
+            }
 
             single.MainView = new MainView
             {
@@ -44,7 +54,8 @@ public class App : Application
 
             single.MainView.DetachedFromVisualTree += (_, _) =>
             {
-                mainWindowViewModel.SaveConfiguration(ConfigurationPath);
+                using var stream = File.OpenWrite(ConfigurationPath);
+                mainWindowViewModel.SaveConfiguration(stream);
             }; 
         }
 
