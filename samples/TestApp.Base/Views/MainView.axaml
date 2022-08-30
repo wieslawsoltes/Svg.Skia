@@ -7,164 +7,163 @@
              x:Class="TestApp.Views.MainView"
              DragDrop.AllowDrop="True">
 
-    <Design.DataContext>
-        <vm:MainWindowViewModel />
-    </Design.DataContext>
+  <Design.DataContext>
+    <vm:MainWindowViewModel />
+  </Design.DataContext>
 
-    <Grid ColumnDefinitions="300,8,*" RowDefinitions="Auto,*,Auto">
+  <Grid ColumnDefinitions="300,8,*" RowDefinitions="Auto,*,Auto">
 
-        <TextBox Grid.Column="0"
-                 Grid.Row="0"
-                 Margin="6"
-                 Text="{Binding ItemQuery}"
-                 Watermark="Filter...">
-            <TextBox.InnerRightContent>
-                <Button Content="X" 
-                        Command="{Binding ResetQueryCommand}"/>
-            </TextBox.InnerRightContent>
-        </TextBox>
+    <TextBox Grid.Column="0"
+             Grid.Row="0"
+             Margin="6"
+             Text="{Binding ItemQuery}"
+             Watermark="Filter...">
+      <TextBox.InnerRightContent>
+        <Button Content="X"
+                Command="{Binding ResetQueryCommand}" />
+      </TextBox.InnerRightContent>
+    </TextBox>
 
-        <ListBox Grid.Column="0"
-                 Grid.Row="1"
-                 Margin="6,0,6,0"
-                 Items="{Binding FilteredItems}"
-                 SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
-            <ListBox.Styles>
-                <Style Selector="ListBoxItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                    <Setter Property="Margin" Value="0"/>
-                    <Setter Property="Padding" Value="0"/>
-                </Style>
-            </ListBox.Styles>
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Panel Background="Transparent" 
-                           VerticalAlignment="Stretch" 
-                           HorizontalAlignment="Stretch"
-                           ToolTip.Tip="{Binding Path}"
-                           Focusable="True"
-                           DoubleTapped="FileItem_OnDoubleTapped">
-                        <Panel.KeyBindings>
-                            <KeyBinding Gesture="Delete" Command="{Binding RemoveCommand}"/>
-                        </Panel.KeyBindings>
-                        <Panel.ContextFlyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuItem Header="Open in Explorer" Command="{Binding OpenInExplorerCommand}"/>
-                                <MenuItem Header="Open in Notepad" Command="{Binding OpenInNotepadCommand}"/>
-                                <MenuItem Header="Remove" Command="{Binding RemoveCommand}"/>
-                            </MenuFlyout>
-                        </Panel.ContextFlyout>
-                        <TextBlock Text="{Binding Name}"
-                                   Padding="12"
-                                   IsHitTestVisible="False">
-                        </TextBlock>
-                    </Panel>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-        
-        <UniformGrid Grid.Column="0"
-                     Grid.Row="2"
-                     Columns="4">
-            <Button Content="Clear" 
-                    Margin="6,6,3,6" 
-                    HorizontalContentAlignment="Center" 
-                    HorizontalAlignment="Stretch" 
-                    Command="{Binding ClearConfigurationCommand}"/>
-            <Button Content="Save" 
-                    Margin="3,6,3,6"
-                    HorizontalContentAlignment="Center" 
-                    HorizontalAlignment="Stretch" 
-                    Command="{Binding SaveConfigurationCommand}"/>
-            <Button Content="Load" 
-                    Margin="3,6,3,6" 
-                    HorizontalContentAlignment="Center" 
-                    HorizontalAlignment="Stretch" 
-                    Command="{Binding LoadConfigurationCommand}"/>
-            <Button Content="+" 
-                    Margin="3,6,6,6" 
-                    HorizontalContentAlignment="Center" 
-                    HorizontalAlignment="Stretch" 
-                    Command="{Binding AddItemCommand}"/>
-        </UniformGrid>
+    <ListBox Grid.Column="0"
+             Grid.Row="1"
+             Margin="6,0,6,0"
+             Items="{Binding FilteredItems}"
+             SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+      <ListBox.Styles>
+        <Style Selector="ListBoxItem">
+          <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+          <Setter Property="Margin" Value="0" />
+          <Setter Property="Padding" Value="0" />
+        </Style>
+      </ListBox.Styles>
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <Panel Background="Transparent"
+                 VerticalAlignment="Stretch"
+                 HorizontalAlignment="Stretch"
+                 ToolTip.Tip="{Binding Path}"
+                 Focusable="True"
+                 DoubleTapped="FileItem_OnDoubleTapped">
+            <Panel.KeyBindings>
+              <KeyBinding Gesture="Delete" Command="{Binding RemoveCommand}" />
+            </Panel.KeyBindings>
+            <Panel.ContextFlyout>
+              <MenuFlyout Placement="Bottom">
+                <MenuItem Header="Open in Explorer" Command="{Binding OpenInExplorerCommand}" />
+                <MenuItem Header="Open in Notepad" Command="{Binding OpenInNotepadCommand}" />
+                <MenuItem Header="Remove" Command="{Binding RemoveCommand}" />
+              </MenuFlyout>
+            </Panel.ContextFlyout>
+            <TextBlock Text="{Binding Name}"
+                       Padding="12"
+                       IsHitTestVisible="False">
+            </TextBlock>
+          </Panel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
 
-        <GridSplitter Grid.Column="1"
-                      Grid.Row="0"
-                      Grid.RowSpan="3"
-                      Background="Transparent" />
+    <UniformGrid Grid.Column="0"
+                 Grid.Row="2"
+                 Columns="4">
+      <Button Content="Clear"
+              Margin="6,6,3,6"
+              HorizontalContentAlignment="Center"
+              HorizontalAlignment="Stretch"
+              Command="{Binding ClearConfigurationCommand}" />
+      <Button Content="Save"
+              Margin="3,6,3,6"
+              HorizontalContentAlignment="Center"
+              HorizontalAlignment="Stretch"
+              Command="{Binding SaveConfigurationCommand}" />
+      <Button Content="Load"
+              Margin="3,6,3,6"
+              HorizontalContentAlignment="Center"
+              HorizontalAlignment="Stretch"
+              Command="{Binding LoadConfigurationCommand}" />
+      <Button Content="+"
+              Margin="3,6,6,6"
+              HorizontalContentAlignment="Center"
+              HorizontalAlignment="Stretch"
+              Command="{Binding AddItemCommand}" />
+    </UniformGrid>
 
-        <DockPanel Grid.Column="2"
-                   Grid.Row="0"
-                   Grid.RowSpan="3"
-                   Name="DockPanel"
-                   Background="Transparent"
-                   Margin="6"
-                   VerticalAlignment="Stretch"
-                   HorizontalAlignment="Stretch">
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,6">
-                <Label Content="ScrollBar"
-                       Margin="0,0,0,0"
-                       VerticalAlignment="Center"/>
-                <Label Content="H:"
-                       Margin="6,0,6,0"
-                       VerticalAlignment="Center"/>
-                <ComboBox Name="HorizontalScrollBarVisibility" SelectedIndex="0">
-                    <ScrollBarVisibility>Disabled</ScrollBarVisibility>
-                    <ScrollBarVisibility>Auto</ScrollBarVisibility>
-                    <ScrollBarVisibility>Hidden</ScrollBarVisibility>
-                    <ScrollBarVisibility>Visible</ScrollBarVisibility>
-                </ComboBox>
-                <Label Content="V:"
-                       Margin="6,0,6,0"
-                       VerticalAlignment="Center"/>
-                <ComboBox Name="VerticalScrollBarVisibility" SelectedIndex="0">
-                    <ScrollBarVisibility>Disabled</ScrollBarVisibility>
-                    <ScrollBarVisibility>Auto</ScrollBarVisibility>
-                    <ScrollBarVisibility>Hidden</ScrollBarVisibility>
-                    <ScrollBarVisibility>Visible</ScrollBarVisibility>
-                </ComboBox>
-                <Label Content="Stretch:"
-                       Margin="6,0,6,0"
-                       VerticalAlignment="Center"/>
-                <ComboBox Name="SvgStretch" SelectedIndex="0">
-                    <Stretch>None</Stretch>
-                    <Stretch>Fill</Stretch>
-                    <Stretch>Uniform</Stretch>
-                    <Stretch>UniformToFill</Stretch>
-                </ComboBox>
-                <ToggleSwitch IsChecked="{Binding #Svg.EnableCache}"
-                              OnContent="Cache Enabled"
-                              OffContent="Cache Disabled"
-                              Margin="6,0,6,0"/>
-                <Button Content="Copy as C#" 
-                        Command="{Binding CopyAsCSharpCommand}" 
-                        CommandParameter="{Binding #Svg}"
-                        Margin="0,0,6,0"/>
-                <Button Content="Export" 
-                        Command="{Binding ExportCommand}" 
-                        CommandParameter="{Binding #Svg}"
-                        Margin="0,0,0,0"/>
-            </StackPanel>
-            <ScrollViewer HorizontalScrollBarVisibility="{Binding #HorizontalScrollBarVisibility.SelectedItem}" 
-                          VerticalScrollBarVisibility="{Binding #VerticalScrollBarVisibility.SelectedItem}">
-                <ScrollViewer.ContextFlyout>
-                    <MenuFlyout Placement="Bottom">
-                        <MenuItem Header="Copy as C#" 
-                                  Command="{Binding CopyAsCSharpCommand}" 
-                                  CommandParameter="{Binding #Svg}"/>
-                        <MenuItem Header="Export" 
-                                  Command="{Binding ExportCommand}" 
-                                  CommandParameter="{Binding #Svg}"/>
-                    </MenuFlyout>
-                </ScrollViewer.ContextFlyout>
-                <Svg Name="Svg"
-                     Stretch="{Binding #SvgStretch.SelectedItem}"
-                     Path="{Binding SelectedItem.Path, FallbackValue=''}"
-                     EnableCache="True"/>
-            </ScrollViewer>
-        </DockPanel>
+    <GridSplitter Grid.Column="1"
+                  Grid.Row="0"
+                  Grid.RowSpan="3"
+                  Background="Transparent" />
 
-    </Grid>
+    <DockPanel Grid.Column="2"
+               Grid.Row="0"
+               Grid.RowSpan="3"
+               Name="DockPanel"
+               Background="Transparent"
+               Margin="6"
+               VerticalAlignment="Stretch"
+               HorizontalAlignment="Stretch">
+      <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,6">
+        <Label Content="ScrollBar"
+               Margin="0,0,0,0"
+               VerticalAlignment="Center" />
+        <Label Content="H:"
+               Margin="6,0,6,0"
+               VerticalAlignment="Center" />
+        <ComboBox Name="HorizontalScrollBarVisibility" SelectedIndex="0">
+          <ScrollBarVisibility>Disabled</ScrollBarVisibility>
+          <ScrollBarVisibility>Auto</ScrollBarVisibility>
+          <ScrollBarVisibility>Hidden</ScrollBarVisibility>
+          <ScrollBarVisibility>Visible</ScrollBarVisibility>
+        </ComboBox>
+        <Label Content="V:"
+               Margin="6,0,6,0"
+               VerticalAlignment="Center" />
+        <ComboBox Name="VerticalScrollBarVisibility" SelectedIndex="0">
+          <ScrollBarVisibility>Disabled</ScrollBarVisibility>
+          <ScrollBarVisibility>Auto</ScrollBarVisibility>
+          <ScrollBarVisibility>Hidden</ScrollBarVisibility>
+          <ScrollBarVisibility>Visible</ScrollBarVisibility>
+        </ComboBox>
+        <Label Content="Stretch:"
+               Margin="6,0,6,0"
+               VerticalAlignment="Center" />
+        <ComboBox Name="SvgStretch" SelectedIndex="0">
+          <Stretch>None</Stretch>
+          <Stretch>Fill</Stretch>
+          <Stretch>Uniform</Stretch>
+          <Stretch>UniformToFill</Stretch>
+        </ComboBox>
+        <ToggleSwitch IsChecked="{Binding #Svg.EnableCache}"
+                      OnContent="Cache Enabled"
+                      OffContent="Cache Disabled"
+                      Margin="6,0,6,0" />
+        <Button Content="Copy as C#"
+                Command="{Binding CopyAsCSharpCommand}"
+                CommandParameter="{Binding #Svg}"
+                Margin="0,0,6,0" />
+        <Button Content="Export"
+                Command="{Binding ExportCommand}"
+                CommandParameter="{Binding #Svg}"
+                Margin="0,0,0,0" />
+      </StackPanel>
+      <ScrollViewer HorizontalScrollBarVisibility="{Binding #HorizontalScrollBarVisibility.SelectedItem}"
+                    VerticalScrollBarVisibility="{Binding #VerticalScrollBarVisibility.SelectedItem}">
+        <ScrollViewer.ContextFlyout>
+          <MenuFlyout Placement="Bottom">
+            <MenuItem Header="Copy as C#"
+                      Command="{Binding CopyAsCSharpCommand}"
+                      CommandParameter="{Binding #Svg}" />
+            <MenuItem Header="Export"
+                      Command="{Binding ExportCommand}"
+                      CommandParameter="{Binding #Svg}" />
+          </MenuFlyout>
+        </ScrollViewer.ContextFlyout>
+        <Svg Name="Svg"
+             Stretch="{Binding #SvgStretch.SelectedItem}"
+             Path="{Binding SelectedItem.Path, FallbackValue=''}"
+             EnableCache="True" />
+      </ScrollViewer>
+    </DockPanel>
+
+  </Grid>
 
 </UserControl>
-
