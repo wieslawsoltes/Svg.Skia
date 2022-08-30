@@ -8,80 +8,80 @@
         x:Class="AvaloniaSKPictureImageSample.MainWindow"
         Title="Avalonia SKPictureImage Sample">
 
-    <TabControl>
+  <TabControl>
 
-        <TabItem Header="Control">
-            <DockPanel Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                <ComboBox Name="SvgPictureStretch" DockPanel.Dock="Top" SelectedIndex="2">
-                    <ComboBoxItem>None</ComboBoxItem>
-                    <ComboBoxItem>Fill</ComboBoxItem>
-                    <ComboBoxItem>Uniform</ComboBoxItem>
-                    <ComboBoxItem>UniformToFill</ComboBoxItem>
-                </ComboBox>
-                <SKPictureControl Picture="{x:Static local:Tiger.Picture}" 
-                                  Stretch="{Binding #SvgPictureStretch.SelectedItem.Content, FallbackValue=None}"/>
-            </DockPanel>
-        </TabItem>
+    <TabItem Header="Control">
+      <DockPanel Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+        <ComboBox Name="SvgPictureStretch" DockPanel.Dock="Top" SelectedIndex="2">
+          <ComboBoxItem>None</ComboBoxItem>
+          <ComboBoxItem>Fill</ComboBoxItem>
+          <ComboBoxItem>Uniform</ComboBoxItem>
+          <ComboBoxItem>UniformToFill</ComboBoxItem>
+        </ComboBox>
+        <SKPictureControl Picture="{x:Static local:Tiger.Picture}"
+                          Stretch="{Binding #SvgPictureStretch.SelectedItem.Content, FallbackValue=None}" />
+      </DockPanel>
+    </TabItem>
 
-        <TabItem Header="Animation">
-            <DockPanel Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                <DockPanel.Styles>
-                    <Style Selector=":is(Control).rotate">
-                        <Style.Animations>
-                            <Animation Duration="0:0:5" IterationCount="Infinite">
-                                <KeyFrame Cue="0%" KeySpline="0.4,0,0.6,1">
-                                    <Setter Property="(RotateTransform.Angle)" Value="0" />
-                                </KeyFrame>
-                                <KeyFrame Cue="100%" KeySpline="0.4,0,0.6,1">
-                                    <Setter Property="(RotateTransform.Angle)" Value="360" />
-                                </KeyFrame>
-                            </Animation>
-                        </Style.Animations>
-                    </Style>
-                    <Style Selector=":is(Control).bounce">
-                        <Style.Animations>
-                            <Animation Duration="0:0:3" Easing="BounceEaseInOut" IterationCount="Infinite">
-                                <KeyFrame Cue="48%">
-                                    <Setter Property="TranslateTransform.Y" Value="-100"/>
-                                </KeyFrame>
-                            </Animation>
-                        </Style.Animations>
-                    </Style>
-                </DockPanel.Styles>
-                <ComboBox Name="SvgAnimationPictureStretch" DockPanel.Dock="Top" SelectedIndex="2">
-                    <ComboBoxItem>None</ComboBoxItem>
-                    <ComboBoxItem>Fill</ComboBoxItem>
-                    <ComboBoxItem>Uniform</ComboBoxItem>
-                    <ComboBoxItem>UniformToFill</ComboBoxItem>
-                </ComboBox>
-                <SKPictureControl Picture="{x:Static local:Logo.Picture}"
-                                  Stretch="{Binding #SvgAnimationPictureStretch.SelectedItem.Content, FallbackValue=None}"
-                                  Margin="100"
-                                  Classes="bounce rotate"/>
-            </DockPanel>
-        </TabItem>
+    <TabItem Header="Animation">
+      <DockPanel Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+        <DockPanel.Styles>
+          <Style Selector=":is(Control).rotate">
+            <Style.Animations>
+              <Animation Duration="0:0:5" IterationCount="Infinite">
+                <KeyFrame Cue="0%" KeySpline="0.4,0,0.6,1">
+                  <Setter Property="(RotateTransform.Angle)" Value="0" />
+                </KeyFrame>
+                <KeyFrame Cue="100%" KeySpline="0.4,0,0.6,1">
+                  <Setter Property="(RotateTransform.Angle)" Value="360" />
+                </KeyFrame>
+              </Animation>
+            </Style.Animations>
+          </Style>
+          <Style Selector=":is(Control).bounce">
+            <Style.Animations>
+              <Animation Duration="0:0:3" Easing="BounceEaseInOut" IterationCount="Infinite">
+                <KeyFrame Cue="48%">
+                  <Setter Property="TranslateTransform.Y" Value="-100" />
+                </KeyFrame>
+              </Animation>
+            </Style.Animations>
+          </Style>
+        </DockPanel.Styles>
+        <ComboBox Name="SvgAnimationPictureStretch" DockPanel.Dock="Top" SelectedIndex="2">
+          <ComboBoxItem>None</ComboBoxItem>
+          <ComboBoxItem>Fill</ComboBoxItem>
+          <ComboBoxItem>Uniform</ComboBoxItem>
+          <ComboBoxItem>UniformToFill</ComboBoxItem>
+        </ComboBox>
+        <SKPictureControl Picture="{x:Static local:Logo.Picture}"
+                          Stretch="{Binding #SvgAnimationPictureStretch.SelectedItem.Content, FallbackValue=None}"
+                          Margin="100"
+                          Classes="bounce rotate" />
+      </DockPanel>
+    </TabItem>
 
-        <TabItem Header="Image">
-            <DockPanel Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                <DockPanel.Resources>
-                    <SKPictureImage x:Key="CameraImage" Source="{x:Static local:Camera.Picture}" />
-                </DockPanel.Resources>
-                <ComboBox Name="SvgImageStretch" DockPanel.Dock="Top" SelectedIndex="2">
-                    <ComboBoxItem>None</ComboBoxItem>
-                    <ComboBoxItem>Fill</ComboBoxItem>
-                    <ComboBoxItem>Uniform</ComboBoxItem>
-                    <ComboBoxItem>UniformToFill</ComboBoxItem>
-                </ComboBox>
-                <Image Source="{StaticResource CameraImage}" 
-                       Stretch="{Binding #SvgImageStretch.SelectedItem.Content, FallbackValue=None}" />
-            </DockPanel>
-        </TabItem>
-      
-      <TabItem Header="Pattern">
-        <SKPictureControl Picture="{x:Static local:Pattern.Picture}" 
-                          Stretch="Uniform"/>
-      </TabItem>
+    <TabItem Header="Image">
+      <DockPanel Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+        <DockPanel.Resources>
+          <SKPictureImage x:Key="CameraImage" Source="{x:Static local:Camera.Picture}" />
+        </DockPanel.Resources>
+        <ComboBox Name="SvgImageStretch" DockPanel.Dock="Top" SelectedIndex="2">
+          <ComboBoxItem>None</ComboBoxItem>
+          <ComboBoxItem>Fill</ComboBoxItem>
+          <ComboBoxItem>Uniform</ComboBoxItem>
+          <ComboBoxItem>UniformToFill</ComboBoxItem>
+        </ComboBox>
+        <Image Source="{StaticResource CameraImage}"
+               Stretch="{Binding #SvgImageStretch.SelectedItem.Content, FallbackValue=None}" />
+      </DockPanel>
+    </TabItem>
 
-    </TabControl>
+    <TabItem Header="Pattern">
+      <SKPictureControl Picture="{x:Static local:Pattern.Picture}"
+                        Stretch="Uniform" />
+    </TabItem>
+
+  </TabControl>
 
 </Window>

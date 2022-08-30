@@ -9,69 +9,94 @@
         UseLayoutRounding="True"
         Title="Avalonia SgvImage Sample">
 
-    <TabControl>
+  <TabControl>
 
-        <TabItem Header="Svg">
-            <DockPanel x:Name="svgSvgDockPanel" Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" DragDrop.AllowDrop="True">
-                <ComboBox Name="svgSvgStretch" DockPanel.Dock="Top" SelectedIndex="2" SelectionChanged="SvgSvgStretchChanged">
-                    <ComboBoxItem>None</ComboBoxItem>
-                    <ComboBoxItem>Fill</ComboBoxItem>
-                    <ComboBoxItem>Uniform</ComboBoxItem>
-                    <ComboBoxItem>UniformToFill</ComboBoxItem>
-                </ComboBox>
-                    <Svg Name="svgSvg" Path="/Assets/__tiger.svg"/>
-            </DockPanel>
-        </TabItem>
+    <TabItem Header="Svg">
+      <DockPanel x:Name="svgSvgDockPanel" 
+                 Background="Transparent" 
+                 Margin="16" 
+                 VerticalAlignment="Stretch"
+                 HorizontalAlignment="Stretch" 
+                 DragDrop.AllowDrop="True">
+        <ComboBox Name="svgSvgStretch" DockPanel.Dock="Top" SelectedIndex="2" SelectionChanged="SvgSvgStretchChanged">
+          <ComboBoxItem>None</ComboBoxItem>
+          <ComboBoxItem>Fill</ComboBoxItem>
+          <ComboBoxItem>Uniform</ComboBoxItem>
+          <ComboBoxItem>UniformToFill</ComboBoxItem>
+        </ComboBox>
+        <Svg Name="svgSvg" Path="/Assets/__tiger.svg" />
+      </DockPanel>
+    </TabItem>
 
-        <TabItem Header="Extension">
-            <DockPanel x:Name="svgExtensionDockPanel" Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" DragDrop.AllowDrop="True">
-                <ComboBox Name="svgExtensionStretch" DockPanel.Dock="Top" SelectedIndex="2" SelectionChanged="SvgExtensionStretchChanged">
-                    <ComboBoxItem>None</ComboBoxItem>
-                    <ComboBoxItem>Fill</ComboBoxItem>
-                    <ComboBoxItem>Uniform</ComboBoxItem>
-                    <ComboBoxItem>UniformToFill</ComboBoxItem>
-                </ComboBox>
-                <Image Name="svgExtensionImage" Source="{SvgImage /Assets/__tiger.svg}"/>
-            </DockPanel>
-        </TabItem>
+    <TabItem Header="Extension">
+      <DockPanel x:Name="svgExtensionDockPanel" 
+                 Background="Transparent" 
+                 Margin="16" 
+                 VerticalAlignment="Stretch"
+                 HorizontalAlignment="Stretch" 
+                 DragDrop.AllowDrop="True">
+        <ComboBox Name="svgExtensionStretch" DockPanel.Dock="Top" SelectedIndex="2"
+                  SelectionChanged="SvgExtensionStretchChanged">
+          <ComboBoxItem>None</ComboBoxItem>
+          <ComboBoxItem>Fill</ComboBoxItem>
+          <ComboBoxItem>Uniform</ComboBoxItem>
+          <ComboBoxItem>UniformToFill</ComboBoxItem>
+        </ComboBox>
+        <Image Name="svgExtensionImage" Source="{SvgImage /Assets/__tiger.svg}" />
+      </DockPanel>
+    </TabItem>
 
-        <TabItem Header="Source">
-            <DockPanel x:Name="svgSourceDockPanel" Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" DragDrop.AllowDrop="True">
-                <ComboBox Name="svgSourceStretch" DockPanel.Dock="Top" SelectedIndex="2" SelectionChanged="SvgSourceStretchChanged">
-                    <ComboBoxItem>None</ComboBoxItem>
-                    <ComboBoxItem>Fill</ComboBoxItem>
-                    <ComboBoxItem>Uniform</ComboBoxItem>
-                    <ComboBoxItem>UniformToFill</ComboBoxItem>
-                </ComboBox>
-                <Image Name="svgSourceImage">
-                    <Image.Source>
-                        <svg:SvgImage Source="/Assets/__AJ_Digital_Camera.svg" />
-                    </Image.Source>
-                </Image>
-            </DockPanel>
-        </TabItem>
+    <TabItem Header="Source">
+      <DockPanel x:Name="svgSourceDockPanel" 
+                 Background="Transparent" 
+                 Margin="16" 
+                 VerticalAlignment="Stretch"
+                 HorizontalAlignment="Stretch" 
+                 DragDrop.AllowDrop="True">
+        <ComboBox Name="svgSourceStretch" DockPanel.Dock="Top" SelectedIndex="2"
+                  SelectionChanged="SvgSourceStretchChanged">
+          <ComboBoxItem>None</ComboBoxItem>
+          <ComboBoxItem>Fill</ComboBoxItem>
+          <ComboBoxItem>Uniform</ComboBoxItem>
+          <ComboBoxItem>UniformToFill</ComboBoxItem>
+        </ComboBox>
+        <Image Name="svgSourceImage">
+          <Image.Source>
+            <svg:SvgImage Source="/Assets/__AJ_Digital_Camera.svg" />
+          </Image.Source>
+        </Image>
+      </DockPanel>
+    </TabItem>
 
-        <TabItem Header="Resource">
-            <DockPanel x:Name="svgResourceDockPanel" Background="Transparent" Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" DragDrop.AllowDrop="True">
-                <DockPanel.Resources>
-                    <svg:SvgImage x:Key="__tiger" Source="/Assets/__tiger.svg" />
-                </DockPanel.Resources>
-                <ComboBox Name="svgResourceStretch" DockPanel.Dock="Top" SelectedIndex="2" SelectionChanged="SvgResourceStretchChanged">
-                    <ComboBoxItem>None</ComboBoxItem>
-                    <ComboBoxItem>Fill</ComboBoxItem>
-                    <ComboBoxItem>Uniform</ComboBoxItem>
-                    <ComboBoxItem>UniformToFill</ComboBoxItem>
-                </ComboBox>
-                <Image Name="svgResourceImage" Source="{DynamicResource __tiger}" />
-            </DockPanel> 
-        </TabItem>
+    <TabItem Header="Resource">
+      <DockPanel x:Name="svgResourceDockPanel" 
+                 Background="Transparent" 
+                 Margin="16" 
+                 VerticalAlignment="Stretch"
+                 HorizontalAlignment="Stretch" 
+                 DragDrop.AllowDrop="True">
+        <DockPanel.Resources>
+          <svg:SvgImage x:Key="__tiger" Source="/Assets/__tiger.svg" />
+        </DockPanel.Resources>
+        <ComboBox Name="svgResourceStretch" 
+                  DockPanel.Dock="Top" 
+                  SelectedIndex="2"
+                  SelectionChanged="SvgResourceStretchChanged">
+          <ComboBoxItem>None</ComboBoxItem>
+          <ComboBoxItem>Fill</ComboBoxItem>
+          <ComboBoxItem>Uniform</ComboBoxItem>
+          <ComboBoxItem>UniformToFill</ComboBoxItem>
+        </ComboBox>
+        <Image Name="svgResourceImage" Source="{DynamicResource __tiger}" />
+      </DockPanel>
+    </TabItem>
 
-        <TabItem Header="Content">
-            <Panel Margin="16" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <Button Content="{SvgImage /Assets/__tiger.svg}" Background="Transparent" Width="100" Height="100"/>
-            </Panel>
-        </TabItem>
+    <TabItem Header="Content">
+      <Panel Margin="16" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Button Content="{SvgImage /Assets/__tiger.svg}" Background="Transparent" Width="100" Height="100" />
+      </Panel>
+    </TabItem>
 
-    </TabControl>
+  </TabControl>
 
 </Window>
