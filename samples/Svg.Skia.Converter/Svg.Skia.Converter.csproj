@@ -39,8 +39,8 @@
   <Import Project="..\..\build\System.CommandLine.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Svg.Skia\Svg.Skia.csproj" />
-<!--    <ProjectReference Include="..\..\src\Svg.Skia.NoModel\Svg.Skia.NoModel.csproj" />-->
+    <!--<ProjectReference Include="..\..\src\Svg.Skia\Svg.Skia.csproj" />-->
+    <ProjectReference Include="..\..\src\Svg.Skia.NoModel\Svg.Skia.NoModel.csproj" />
   </ItemGroup>
 
 </Project>
