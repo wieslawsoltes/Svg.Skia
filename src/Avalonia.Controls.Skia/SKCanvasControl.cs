@@ -21,14 +21,11 @@ public class SKCanvasControl : Control
     public override void Render(DrawingContext context)
     {
         var viewPort = new Rect(Bounds.Size);
-
-        using (context.PushClip(viewPort))
-        {
-            context.Custom(
-                new SKCanvasDrawOperation(
-                    new Rect(0, 0, viewPort.Width, viewPort.Height),
-                    RaiseOnDraw));
-        }
+        using var clip = ClipToBounds ? context.PushClip(viewPort) : default;
+        context.Custom(
+            new SKCanvasDrawOperation(
+                new Rect(0, 0, viewPort.Width, viewPort.Height),
+                RaiseOnDraw));
     }
 
     /// <summary>
@@ -48,5 +45,15 @@ public class SKCanvasControl : Control
     protected virtual void OnDraw(SKCanvasEventArgs e)
     {
         Draw?.Invoke(this, e);
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == ClipToBoundsProperty)
+        {
+            InvalidateVisual();
+        }
     }
 }
