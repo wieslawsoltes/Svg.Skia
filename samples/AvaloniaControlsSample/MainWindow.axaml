@@ -1,0 +1,24 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+        x:Class="AvaloniaControlsSample.MainWindow"
+        Width="900" Height="600" WindowStartupLocation="CenterScreen"
+        UseLayoutRounding="True"
+        Title="Avalonia SgvImage Sample">
+  <TabControl>
+    <TabItem Header="Canvas">
+      <SKCanvasControl Name="Canvas" Width="400" Height="400" />
+    </TabItem>
+    <TabItem Header="Bitmap">
+      <!-- TODO: -->
+    </TabItem>
+    <TabItem Header="Path">
+      <!-- TODO: -->
+    </TabItem>
+    <TabItem Header="Picture">
+      <!-- TODO: -->
+    </TabItem>
+  </TabControl>
+</Window>
