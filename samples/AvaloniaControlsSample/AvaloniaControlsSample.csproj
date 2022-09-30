@@ -16,6 +16,7 @@
   <Import Project="..\..\build\Avalonia.Themes.Fluent.props" />
   <Import Project="..\..\build\Avalonia.Desktop.props" />
   <Import Project="..\..\build\Avalonia.Diagnostics.props" />
+  <Import Project="..\..\build\XamlNameReferenceGenerator.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Avalonia.Controls.Skia\Avalonia.Controls.Skia.csproj" />
