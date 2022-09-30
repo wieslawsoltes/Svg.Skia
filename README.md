@@ -216,7 +216,33 @@ public static AppBuilder BuildAvaloniaApp()
 
 This is know issue as previewer not always loads all dependencies, especially custom controls in Avalonia xmlns, other solution would be to add xmlns prefix to control with provided assembly path.
 
-### Tool
+### AvaloniaUI SkiaSharp Controls
+
+#### Install Package
+
+```
+dotnet add package Avalonia.Controls.Skia
+```
+
+```
+Install-Package Avalonia.Controls.Skia
+```
+
+#### Canvas
+
+Usage:
+```xaml
+<SKCanvasControl Name="CanvasControl" />
+```
+
+```C#
+CanvasControl.Draw += (_, e) =>
+{
+    e.Canvas.DrawRect(SKRect.Create(0f, 0f, 100f, 100f), new SKPaint { Color = SKColors.Aqua });
+};
+```
+
+### Command-line tool
 
 ```
 dotnet tool install -g Svg.Skia.Converter

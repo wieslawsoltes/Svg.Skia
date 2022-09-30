@@ -60,6 +60,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "props", "props", "{5BFEF4F8
 		build\SourceLink.props = build\SourceLink.props
 		build\Avalonia.Web.Blazor.props = build\Avalonia.Web.Blazor.props
 		build\Avalonia.Themes.Fluent.props = build\Avalonia.Themes.Fluent.props
+		build\XamlNameReferenceGenerator.props = build\XamlNameReferenceGenerator.props
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{7863AE7D-FF68-45BF-BA68-6FA0E5604CB7}"
@@ -113,6 +114,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp.Web", "samples\TestApp.Web\TestApp.Web.csproj", "{6C8BD3A7-4B5A-48A9-942A-3498CD862AC3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Svg.Skia.NoModel", "src\Svg.Skia.NoModel\Svg.Skia.NoModel.csproj", "{8C62EC28-5A2B-47B8-B585-420B5A6E39CC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaControlsSample", "samples\AvaloniaControlsSample\AvaloniaControlsSample.csproj", "{BE25FC07-9A8C-4494-A6AE-F2561CF89010}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -218,6 +221,10 @@ Global
 		{8C62EC28-5A2B-47B8-B585-420B5A6E39CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C62EC28-5A2B-47B8-B585-420B5A6E39CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C62EC28-5A2B-47B8-B585-420B5A6E39CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE25FC07-9A8C-4494-A6AE-F2561CF89010}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE25FC07-9A8C-4494-A6AE-F2561CF89010}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE25FC07-9A8C-4494-A6AE-F2561CF89010}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE25FC07-9A8C-4494-A6AE-F2561CF89010}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -251,6 +258,7 @@ Global
 		{31657391-E681-47B6-8B90-33B61B5A95C0} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
 		{6C8BD3A7-4B5A-48A9-942A-3498CD862AC3} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
 		{8C62EC28-5A2B-47B8-B585-420B5A6E39CC} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
+		{BE25FC07-9A8C-4494-A6AE-F2561CF89010} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12D5E557-A27B-4FB2-83A3-4AC75B04B22C}
