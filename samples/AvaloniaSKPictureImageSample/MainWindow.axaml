@@ -57,7 +57,14 @@
         <SKPictureControl Picture="{x:Static local:Logo.Picture}"
                           Stretch="{Binding #SvgAnimationPictureStretch.SelectedItem.Content, FallbackValue=None}"
                           Margin="100"
-                          Classes="bounce rotate" />
+                          Classes="bounce rotate">
+          <SKPictureControl.RenderTransform>
+            <TransformGroup>
+              <RotateTransform />
+              <TranslateTransform />
+            </TransformGroup>
+          </SKPictureControl.RenderTransform>
+        </SKPictureControl>
       </DockPanel>
     </TabItem>
 
