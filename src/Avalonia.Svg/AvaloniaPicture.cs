@@ -114,22 +114,72 @@ public sealed class AvaloniaPicture : IDisposable
         }
     }
 
+    private static void RecordClipPathCommand(ClipPathCanvasCommand clipPathCanvasCommand, List<DrawCommand> commands)
+    {
+        if (clipPathCanvasCommand.ClipPath is null)
+        {
+            return;
+        }
+
+        // TODO: clipPathCanvasCommand.Operation
+        // TODO: clipPathCanvasCommand.Antialias
+
+        var clipPath = clipPathCanvasCommand.ClipPath;
+
+        if (clipPath.Clips?.Count == 1)
+        {
+            var clip = clipPath.Clips[0];
+
+            if (clip?.Path?.Commands?.Count == 1)
+            {
+                var pathCommand = clip.Path.Commands[0];
+
+                switch (pathCommand)
+                {
+                    case AddRectPathCommand addRectPathCommand:
+                    {
+                        var rect = addRectPathCommand.Rect.ToRect();
+                        commands.Add(new ClipDrawCommand(rect));
+                        break;
+                    }
+                    case AddRoundRectPathCommand addRoundRectPathCommand:
+                    {
+                        var rect = addRoundRectPathCommand.Rect.ToRect();
+                        var rx = addRoundRectPathCommand.Rx;
+                        var ry = addRoundRectPathCommand.Ry;
+                        var roundedRect = new A.RoundedRect(rect, rx, ry);
+                        commands.Add(new RoundedClipDrawCommand(roundedRect));
+                        break;
+                    }
+                    case AddOvalPathCommand addOvalPathCommand:
+                    {
+                        var rect = addOvalPathCommand.Rect.ToRect();
+                        var ellipseGeometry = new AM.EllipseGeometry(rect);
+                        commands.Add(new GeometryClipDrawCommand(ellipseGeometry));
+                        break;
+                    }
+                    case AddCirclePathCommand addCirclePathCommand:
+                    {
+                        var x = addCirclePathCommand.X;
+                        var y = addCirclePathCommand.Y;
+                        var radius = addCirclePathCommand.Radius;
+                        var rect = new A.Rect(x - radius, y - radius, radius + radius, radius + radius);
+                        var ellipseGeometry = new AM.EllipseGeometry(rect);
+                        commands.Add(new GeometryClipDrawCommand(ellipseGeometry));
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     private static void RecordCommand(CanvasCommand canvasCommand, List<DrawCommand> commands)
     {
         switch (canvasCommand)
         {
             case ClipPathCanvasCommand clipPathCanvasCommand:
             {
-                if (clipPathCanvasCommand.ClipPath is { })
-                {
-                    var path = clipPathCanvasCommand.ClipPath.ToGeometry(false);
-                    if (path is { })
-                    {
-                        // TODO: clipPathCanvasCommand.Operation;
-                        // TODO: clipPathCanvasCommand.Antialias;
-                        commands.Add(new GeometryClipDrawCommand(path));
-                    }
-                }
+                RecordClipPathCommand(clipPathCanvasCommand, commands);
                 break;
             }
             case ClipRectCanvasCommand clipRectCanvasCommand:
@@ -250,6 +300,13 @@ public sealed class AvaloniaPicture : IDisposable
             case ClipDrawCommand clipDrawCommand:
             {
                 var clipPushedState = context.PushClip(clipDrawCommand.Clip);
+                var currentPushedStates = pushedStates.Peek();
+                currentPushedStates.Push(clipPushedState);
+                break;
+            }
+            case RoundedClipDrawCommand roundedClipDrawCommand:
+            {
+                var clipPushedState = context.PushClip(roundedClipDrawCommand.Clip);
                 var currentPushedStates = pushedStates.Peek();
                 currentPushedStates.Push(clipPushedState);
                 break;
