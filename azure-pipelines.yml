@@ -67,6 +67,7 @@ jobs:
       name: 'Publish_Ubuntu_TestApp_Desktop'
       vmImage: 'ubuntu-20.04'
       BuildConfiguration: ${{ variables.BuildConfiguration }}
+      Workloads: ${{ variables.Workloads }}
       PublishFramework: ${{ variables.PublishFramework }}
       PublishProject: 'TestApp.Desktop'
       PublishRuntime: 'ubuntu.14.04-x64'
