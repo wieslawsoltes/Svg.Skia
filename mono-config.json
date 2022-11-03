@@ -29,6 +29,10 @@
     },
     {
       "behavior": "assembly",
+      "name": "Avalonia.ReactiveUI.dll"
+    },
+    {
+      "behavior": "assembly",
       "name": "Avalonia.Skia.dll"
     },
     {
