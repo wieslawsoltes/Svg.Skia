@@ -5,7 +5,8 @@
              xmlns:vm="using:TestApp.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="TestApp.Views.MainView"
-             DragDrop.AllowDrop="True">
+             DragDrop.AllowDrop="True"
+             FontFamily="avares://Avalonia.Themes.Fluent/Assets#Inter">
 
   <Design.DataContext>
     <vm:MainWindowViewModel />
