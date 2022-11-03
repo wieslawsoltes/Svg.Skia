@@ -1,0 +1,251 @@
+{
+  "mainAssemblyName": "TestApp.Web.dll",
+  "assemblyRootFolder": "managed",
+  "debugLevel": 0,
+  "assets": [
+    {
+      "behavior": "assembly",
+      "name": "Avalonia.Base.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "Avalonia.Controls.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "Avalonia.Dialogs.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "Avalonia.Markup.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "Avalonia.Markup.Xaml.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "Avalonia.OpenGL.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "Avalonia.Skia.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "Avalonia.Svg.Skia.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "Avalonia.Themes.Fluent.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "Avalonia.Web.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "DynamicData.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "ExCSS.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "Fizzler.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "HarfBuzzSharp.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "ReactiveUI.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "ShimSkiaSharp.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "SkiaSharp.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "Splat.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "Svg.CodeGen.Skia.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "Svg.Custom.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "Svg.Model.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "Svg.Skia.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Collections.Concurrent.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Collections.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Collections.NonGeneric.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Collections.Specialized.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.ComponentModel.Annotations.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.ComponentModel.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.ComponentModel.Primitives.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.ComponentModel.TypeConverter.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Console.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Diagnostics.Process.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Diagnostics.TraceSource.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Drawing.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Drawing.Primitives.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.IO.Compression.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Linq.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Linq.Expressions.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Memory.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Net.Http.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Net.Primitives.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Net.Requests.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.ObjectModel.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Private.CoreLib.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Private.Uri.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Private.Xml.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Private.Xml.Linq.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Reactive.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Runtime.InteropServices.JavaScript.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Runtime.Serialization.Primitives.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Text.Encodings.Web.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Text.Json.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Text.RegularExpressions.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "System.Xml.Linq.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "TestApp.Base.dll"
+    },
+    {
+      "behavior": "assembly",
+      "name": "TestApp.Web.dll"
+    },
+    {
+      "virtualPath": "runtimeconfig.bin",
+      "behavior": "vfs",
+      "name": "supportFiles/0_runtimeconfig.bin"
+    },
+    {
+      "virtualPath": "/usr/share/zoneinfo/",
+      "behavior": "vfs",
+      "name": "dotnet.timezones.blat"
+    },
+    {
+      "behavior": "dotnetwasm",
+      "name": "dotnet.wasm"
+    }
+  ],
+  "remoteSources": [],
+  "pthreadPoolSize": 0
+}
