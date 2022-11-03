@@ -58,9 +58,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "props", "props", "{5BFEF4F8
 		build\System.CommandLine.props = build\System.CommandLine.props
 		build\XUnit.props = build\XUnit.props
 		build\SourceLink.props = build\SourceLink.props
-		build\Avalonia.Web.Blazor.props = build\Avalonia.Web.Blazor.props
 		build\Avalonia.Themes.Fluent.props = build\Avalonia.Themes.Fluent.props
 		build\XamlNameReferenceGenerator.props = build\XamlNameReferenceGenerator.props
+		build\Avalonia.Web.props = build\Avalonia.Web.props
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{7863AE7D-FF68-45BF-BA68-6FA0E5604CB7}"
@@ -116,6 +116,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Svg.Skia.NoModel", "src\Svg.Skia.NoModel\Svg.Skia.NoModel.csproj", "{8C62EC28-5A2B-47B8-B585-420B5A6E39CC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaControlsSample", "samples\AvaloniaControlsSample\AvaloniaControlsSample.csproj", "{BE25FC07-9A8C-4494-A6AE-F2561CF89010}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "github", "github", "{380E7565-C6FF-45C1-A683-E4E1FC744DCC}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\build.yml = .github\workflows\build.yml
+		.github\workflows\pages.yml = .github\workflows\pages.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -259,6 +265,7 @@ Global
 		{6C8BD3A7-4B5A-48A9-942A-3498CD862AC3} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
 		{8C62EC28-5A2B-47B8-B585-420B5A6E39CC} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
 		{BE25FC07-9A8C-4494-A6AE-F2561CF89010} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
+		{380E7565-C6FF-45C1-A683-E4E1FC744DCC} = {32B4A27D-6FC0-498C-9AD8-5510ACF2C4A1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12D5E557-A27B-4FB2-83A3-4AC75B04B22C}
