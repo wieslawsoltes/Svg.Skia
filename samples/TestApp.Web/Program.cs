@@ -1,5 +1,6 @@
 using System.Runtime.Versioning;
 using Avalonia;
+using Avalonia.ReactiveUI;
 using Avalonia.Web;
 using TestApp;
 
@@ -11,5 +12,6 @@ internal class Program
         => BuildAvaloniaApp().SetupBrowserApp("out");
 
     public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>();
+        => AppBuilder.Configure<App>()
+            .UseReactiveUI();
 }
