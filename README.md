@@ -30,7 +30,7 @@ or more complete then original `System.Drawing` implementation and more performa
 The `Svg.Skia` can be used in same way as the [SkiaSharp.Extended.Svg](https://github.com/mono/SkiaSharp.Extended/tree/main/source/SkiaSharp.Extended.Svg) 
 (load `svg` files as `SKPicture`). 
 
-The `Svg` library has more complete implementation of `Svg` document model then [SkiaSharp.Extended.Svg](https://github.com/mono/SkiaSharp.Extended/tree/main/source/SkiaSharp.Extended.Svg)
+The `Svg` library has more complete implementation of `Svg` document model than [SkiaSharp.Extended.Svg](https://github.com/mono/SkiaSharp.Extended/tree/main/source/SkiaSharp.Extended.Svg)
 and the `Svg.Skia` renderer will provide more complete rendering subsystem implementation.
 
 ## NuGet
