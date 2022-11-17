@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using Avalonia.Platform;
 using ShimSkiaSharp;
 using SM = Svg.Model;
@@ -29,10 +31,27 @@ public class SvgSource
         if (File.Exists(path))
         {
             var document = SM.SvgExtensions.Open(path);
-            if (document is { })
+            return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;
+        }
+
+        if (Uri.TryCreate(path, UriKind.Absolute, out var uriHttp) && (uriHttp.Scheme == "http" || uriHttp.Scheme == "https"))
+        {
+            try
             {
-                return SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _);
+                var response = new HttpClient().GetAsync(uriHttp).Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    var stream = response.Content.ReadAsStreamAsync().Result;
+                    var document = SM.SvgExtensions.Open(stream);
+                    return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;
+                }
             }
+            catch (HttpRequestException e)
+            {
+                Debug.WriteLine("Failed to connect to " + uriHttp);
+                Debug.WriteLine(e.ToString());
+            }
+
             return default;
         }
 
@@ -40,11 +59,7 @@ public class SvgSource
         if (uri.IsAbsoluteUri && uri.IsFile)
         {
             var document = SM.SvgExtensions.Open(uri.LocalPath);
-            if (document is { })
-            {
-                return SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _);
-            }
-            return default;
+            return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;
         }
         else
         {
@@ -55,11 +70,7 @@ public class SvgSource
                 return default;
             }
             var document = SM.SvgExtensions.Open(stream);
-            if (document is { })
-            {
-                return SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _);
-            }
-            return default;
+            return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;
         }
     }
 
