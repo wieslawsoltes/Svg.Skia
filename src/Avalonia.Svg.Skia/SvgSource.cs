@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using Avalonia.Platform;
 using Svg.Skia;
 
@@ -27,6 +29,28 @@ public class SvgSource : SKSvg
             return source;
         }
 
+        if (Uri.TryCreate(path, UriKind.Absolute, out var uriHttp) && (uriHttp.Scheme == "http" || uriHttp.Scheme == "https"))
+        {
+            try
+            {
+                var response = new HttpClient().GetAsync(uriHttp).Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    var stream = response.Content.ReadAsStreamAsync().Result;
+                    var source = new T();
+                    source.Load(stream);
+                    return source;
+                }
+            }
+            catch (HttpRequestException e)
+            {
+                Debug.WriteLine("Failed to connect to " + uriHttp);
+                Debug.WriteLine(e.ToString());
+            }
+
+            return default;
+        }
+        
         var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
         if (uri.IsAbsoluteUri && uri.IsFile)
         {
