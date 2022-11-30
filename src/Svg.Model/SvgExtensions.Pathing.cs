@@ -254,6 +254,9 @@ public static partial class SvgExtensions
             {
                 case SvgMoveToSegment svgMoveToSegment:
                 {
+                    var end = ToAbsolute(svgMoveToSegment.End, svgMoveToSegment.IsRelative, start);
+                    start = end;
+                    prevMove = end;
                     if (isEndFigure && haveFigure == false)
                     {
                         return default;
@@ -272,15 +275,16 @@ public static partial class SvgExtensions
 
                         if (svgPathSegmentList[i + 1] is SvgClosePathSegment)
                         {
-                            return skPath;
+                            isEndFigure = true;
+                            haveFigure = true;
+                            break;
                         }
                     }
                     isEndFigure = true;
                     haveFigure = false;
-                    var end = ToAbsolute(svgMoveToSegment.End, svgMoveToSegment.IsRelative, start);
+
                     skPath.MoveTo(end.X, end.Y);
-                    start = end;
-                    prevMove = end;
+
                 }
                     break;
 
@@ -407,7 +411,11 @@ public static partial class SvgExtensions
                     }
                     isEndFigure = false;
                     haveFigure = false;
-                    skPath.Close();
+                    if (!skPath.IsEmpty)
+                    {
+                        skPath.Close();
+                    }
+
                     start = prevMove;
                 } 
                     break;
