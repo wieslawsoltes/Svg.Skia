@@ -287,7 +287,7 @@ public static class AvaloniaModelExtensions
         }
     }
 
-    private static AM.IBrush ToSolidColorBrush(this ColorShader colorShader)
+    private static AM.IImmutableBrush ToSolidColorBrush(this ColorShader colorShader)
     {
         var color = colorShader.Color.ToColor();
         return new AMII.ImmutableSolidColorBrush(color);
@@ -309,7 +309,7 @@ public static class AvaloniaModelExtensions
         }
     }
 
-    public static AM.IBrush? ToLinearGradientBrush(this LinearGradientShader linearGradientShader, SKRect bounds)
+    public static AM.IImmutableBrush? ToLinearGradientBrush(this LinearGradientShader linearGradientShader, SKRect bounds)
     {
         if (linearGradientShader.Colors is null || linearGradientShader.ColorPos is null)
         {
@@ -348,7 +348,7 @@ public static class AvaloniaModelExtensions
             endPoint);
     }
 
-    public static AM.IBrush? ToRadialGradientBrush(this RadialGradientShader radialGradientShader, SKRect bounds)
+    public static AM.IImmutableBrush? ToRadialGradientBrush(this RadialGradientShader radialGradientShader, SKRect bounds)
     {
         if (radialGradientShader.Colors is null || radialGradientShader.ColorPos is null)
         {
@@ -389,7 +389,7 @@ public static class AvaloniaModelExtensions
             radius);
     }
 
-    public static AM.IBrush? ToRadialGradientBrush(this TwoPointConicalGradientShader twoPointConicalGradientShader, SKRect bounds)
+    public static AM.IImmutableBrush? ToRadialGradientBrush(this TwoPointConicalGradientShader twoPointConicalGradientShader, SKRect bounds)
     {
         if (twoPointConicalGradientShader.Colors is null || twoPointConicalGradientShader.ColorPos is null)
         {
@@ -437,7 +437,7 @@ public static class AvaloniaModelExtensions
             radius);
     }
 
-    public static AM.IBrush? ToVisualBrush(this PictureShader pictureShader, SKRect bounds)
+    public static AM.IImmutableBrush? ToVisualBrush(this PictureShader pictureShader, SKRect bounds)
     {
         if (pictureShader.Src is null)
         {
@@ -449,7 +449,7 @@ public static class AvaloniaModelExtensions
         return null;
     }
 
-    public static AM.IBrush? ToBrush(this SKShader? shader, SKRect bounds)
+    public static AM.IImmutableBrush? ToBrush(this SKShader? shader, SKRect bounds)
     {
         switch (shader)
         {
