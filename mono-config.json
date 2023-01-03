@@ -9,6 +9,10 @@
     },
     {
       "behavior": "assembly",
+      "name": "Avalonia.Browser.dll"
+    },
+    {
+      "behavior": "assembly",
       "name": "Avalonia.Controls.dll"
     },
     {
@@ -42,10 +46,6 @@
     {
       "behavior": "assembly",
       "name": "Avalonia.Themes.Fluent.dll"
-    },
-    {
-      "behavior": "assembly",
-      "name": "Avalonia.Web.dll"
     },
     {
       "behavior": "assembly",
