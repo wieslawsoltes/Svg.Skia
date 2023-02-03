@@ -197,10 +197,6 @@
     },
     {
       "behavior": "assembly",
-      "name": "System.Private.Xml.Linq.dll"
-    },
-    {
-      "behavior": "assembly",
       "name": "System.Reactive.dll"
     },
     {
@@ -222,10 +218,6 @@
     {
       "behavior": "assembly",
       "name": "System.Text.RegularExpressions.dll"
-    },
-    {
-      "behavior": "assembly",
-      "name": "System.Xml.Linq.dll"
     },
     {
       "behavior": "assembly",
