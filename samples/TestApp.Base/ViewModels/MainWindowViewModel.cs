@@ -142,7 +142,7 @@ public class MainWindowViewModel : ViewModelBase
             ShowOverwritePrompt = true
         });
 
-        if (file is not null && file.CanOpenWrite)
+        if (file is not null)
         {
             try
             {
@@ -231,7 +231,7 @@ public class MainWindowViewModel : ViewModelBase
             ShowOverwritePrompt = true
         });
 
-        if (file is not null && file.CanOpenWrite)
+        if (file is not null)
         {
             try
             {
