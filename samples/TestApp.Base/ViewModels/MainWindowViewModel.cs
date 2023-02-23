@@ -263,7 +263,7 @@ public class MainWindowViewModel : ViewModelBase
 
         var file = result.FirstOrDefault();
 
-        if (file is not null && file.CanOpenRead)
+        if (file is not null)
         {
             try
             {
