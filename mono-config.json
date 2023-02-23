@@ -129,10 +129,6 @@
     },
     {
       "behavior": "assembly",
-      "name": "System.Console.dll"
-    },
-    {
-      "behavior": "assembly",
       "name": "System.Diagnostics.Process.dll"
     },
     {
