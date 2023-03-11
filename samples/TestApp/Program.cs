@@ -3,7 +3,7 @@ using Avalonia;
 using Avalonia.ReactiveUI;
 using Avalonia.Svg.Skia;
 
-namespace TestApp.Desktop;
+namespace TestApp;
 
 class Program
 {
