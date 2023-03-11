@@ -226,7 +226,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             Title = "Save configuration",
             FileTypeChoices = GetConfigurationFileTypes(),
-            SuggestedFileName = Path.GetFileNameWithoutExtension("TestApp.Base.json"),
+            SuggestedFileName = Path.GetFileNameWithoutExtension("TestApp.json"),
             DefaultExtension = "json",
             ShowOverwritePrompt = true
         });

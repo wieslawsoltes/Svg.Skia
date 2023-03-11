@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Library</OutputType>
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <IsPackable>False</IsPackable>
     <Nullable>enable</Nullable>
@@ -17,6 +17,7 @@
   <Import Project="..\..\build\Avalonia.Themes.Fluent.props" />
   <Import Project="..\..\build\Avalonia.Diagnostics.props" />
   <Import Project="..\..\build\Avalonia.ReactiveUI.props" />
+  <Import Project="..\..\build\Avalonia.Desktop.props" />
   <Import Project="..\..\build\SkiaSharp.props" />
   <Import Project="..\..\build\Newtonsoft.Json.props" />
 

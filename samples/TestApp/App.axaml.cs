@@ -9,7 +9,7 @@ namespace TestApp;
 
 public class App : Application
 {
-    private const string ConfigurationPath = "TestApp.Base.json";
+    private const string ConfigurationPath = "TestApp.json";
 
     public override void Initialize()
     {
