@@ -6,6 +6,7 @@
     <IsPackable>False</IsPackable>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
+    <AvaloniaNameGeneratorIsEnabled>False</AvaloniaNameGeneratorIsEnabled>
   </PropertyGroup>
 
   <ItemGroup>
