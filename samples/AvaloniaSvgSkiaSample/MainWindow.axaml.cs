@@ -17,12 +17,6 @@ public partial class MainWindow : Window
 #if DEBUG
         this.AttachDevTools();
 #endif
-    }
-
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
-
         svgSvgDockPanel.AddHandler(DragDrop.DropEvent, Drop);
         svgSvgDockPanel.AddHandler(DragDrop.DragOverEvent, DragOver);
 
