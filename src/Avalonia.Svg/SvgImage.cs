@@ -68,7 +68,7 @@ public class SvgImage : AvaloniaObject, IImage, IAffectsRender
             -sourceRect.X + destRect.X - bounds.Top,
             -sourceRect.Y + destRect.Y - bounds.Left);
         using (context.PushClip(destRect))
-        using (context.PushPreTransform(translateMatrix * scaleMatrix))
+        using (context.PushTransform(translateMatrix * scaleMatrix))
         {
             try
             {

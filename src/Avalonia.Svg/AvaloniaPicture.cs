@@ -271,7 +271,7 @@ public sealed class AvaloniaPicture : IDisposable
             }
             case SetTransformDrawCommand setTransformDrawCommand:
             {
-                var transformPreTransform = context.PushSetTransform(setTransformDrawCommand.Matrix);
+                var transformPreTransform = context.PushTransform(setTransformDrawCommand.Matrix);
                 var currentPushedStates = pushedStates.Peek();
                 currentPushedStates.Push(transformPreTransform);
                 break;
@@ -340,7 +340,7 @@ public sealed class AvaloniaPicture : IDisposable
 
     public void Draw(AM.DrawingContext context)
     {
-        using var transformContainerState = context.PushTransformContainer();
+        using var transformContainerState = context.PushTransform(Matrix.Identity);
         var pushedStates = new Stack<Stack<IDisposable>>();
 
         foreach (var command in _commands)

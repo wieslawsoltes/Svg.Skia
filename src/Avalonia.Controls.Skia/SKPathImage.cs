@@ -68,7 +68,7 @@ public class SKPathImage : AvaloniaObject, IImage, IAffectsRender
         var scaleMatrix = Matrix.CreateScale(destRect.Width / sourceRect.Width, destRect.Height / sourceRect.Height);
         var translateMatrix = Matrix.CreateTranslation(-sourceRect.X + destRect.X - bounds.Top, -sourceRect.Y + destRect.Y - bounds.Left);
         using (context.PushClip(destRect))
-        using (context.PushPreTransform(translateMatrix * scaleMatrix))
+        using (context.PushTransform(translateMatrix * scaleMatrix))
         {
             context.Custom(new SKPathDrawOperation(new Rect(0, 0, bounds.Width, bounds.Height), source, paint));
         }

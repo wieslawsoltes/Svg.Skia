@@ -59,7 +59,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "props", "props", "{5BFEF4F8
 		build\XUnit.props = build\XUnit.props
 		build\SourceLink.props = build\SourceLink.props
 		build\Avalonia.Themes.Fluent.props = build\Avalonia.Themes.Fluent.props
-		build\XamlNameReferenceGenerator.props = build\XamlNameReferenceGenerator.props
 		build\Avalonia.Web.props = build\Avalonia.Web.props
 	EndProjectSection
 EndProject

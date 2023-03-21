@@ -187,7 +187,7 @@ public class Svg : Control, IAffectsRender
             -sourceRect.Y + destRect.Y - bounds.Left);
 
         using (context.PushClip(destRect))
-        using (context.PushPreTransform(translateMatrix * scaleMatrix))
+        using (context.PushTransform(translateMatrix * scaleMatrix))
         {
             context.Custom(
                 new SvgCustomDrawOperation(

@@ -9,7 +9,7 @@ using TestApp.ViewModels;
 
 namespace TestApp.Views;
 
-public class MainView : UserControl
+public partial class MainView : UserControl
 {
     public MainView()
     {

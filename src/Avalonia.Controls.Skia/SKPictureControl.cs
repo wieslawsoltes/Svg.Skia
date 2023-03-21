@@ -120,13 +120,13 @@ public class SKPictureControl : Control, IAffectsRender
             -sourceRect.X + destRect.X - bounds.Top,
             -sourceRect.Y + destRect.Y - bounds.Left);
 
-        if (bounds.IsEmpty || destRect.IsEmpty)
+        if (bounds.IsEmpty || destRect == default)
         {
             return;
         }
 
         using (context.PushClip(destRect))
-        using (context.PushPreTransform(translateMatrix * scaleMatrix))
+        using (context.PushTransform(translateMatrix * scaleMatrix))
         {
             context.Custom(
                 new SKPictureDrawOperation(
