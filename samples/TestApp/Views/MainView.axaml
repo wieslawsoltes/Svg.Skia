@@ -6,7 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="TestApp.Views.MainView"
              DragDrop.AllowDrop="True"
-             FontFamily="avares://Avalonia.Themes.Fluent/Assets#Inter">
+             FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter">
 
   <Design.DataContext>
     <vm:MainWindowViewModel />
