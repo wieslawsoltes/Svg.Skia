@@ -535,7 +535,7 @@ public sealed class TextDrawable : DrawableBase
                 if (SvgExtensions.IsValidFill(svgTextPath))
                 {
                     var skPaint = SvgExtensions.GetFillPaint(svgTextPath, skBounds, AssetLoader, References, ignoreAttributes);
-                    if (skPaint is { })
+                    if (skPaint is { } && text is { })
                     {
                         SvgExtensions.SetPaintText(svgTextPath, skBounds, skPaint);
                         skCanvas.DrawTextOnPath(text, skPath, hOffset, vOffset, skPaint);
@@ -545,7 +545,7 @@ public sealed class TextDrawable : DrawableBase
                 if (SvgExtensions.IsValidStroke(svgTextPath, skBounds))
                 {
                     var skPaint = SvgExtensions.GetStrokePaint(svgTextPath, skBounds, AssetLoader, References, ignoreAttributes);
-                    if (skPaint is { })
+                    if (skPaint is { } && text is { })
                     {
                         SvgExtensions.SetPaintText(svgTextPath, skBounds, skPaint);
                         skCanvas.DrawTextOnPath(text, skPath, hOffset, vOffset, skPaint);
