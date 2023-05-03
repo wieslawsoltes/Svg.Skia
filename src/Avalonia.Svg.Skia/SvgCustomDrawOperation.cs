@@ -1,4 +1,5 @@
-﻿using Avalonia.Platform;
+﻿using Avalonia.Media;
+using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Svg.Skia;
@@ -25,14 +26,14 @@ public class SvgCustomDrawOperation : ICustomDrawOperation
 
     public bool Equals(ICustomDrawOperation? other) => false;
 
-    public void Render(IDrawingContextImpl context)
+    public void Render(ImmediateDrawingContext context)
     {
         if (_svg?.Picture is null)
         {
             return;
         }
         
-        var leaseFeature = context.GetFeature<ISkiaSharpApiLeaseFeature>();
+        var leaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
         if (leaseFeature is null)
         {
             return;
