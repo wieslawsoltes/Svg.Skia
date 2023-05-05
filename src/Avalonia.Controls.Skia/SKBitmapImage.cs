@@ -33,7 +33,7 @@ public class SKBitmapImage : AvaloniaObject, IImage, IAffectsRender
     public Size Size => Source is { } ? new Size(Source.Width, Source.Height) : default;
 
     /// <inheritdoc/>
-    void IImage.Draw(DrawingContext context, Rect sourceRect, Rect destRect, BitmapInterpolationMode bitmapInterpolationMode)
+    void IImage.Draw(DrawingContext context, Rect sourceRect, Rect destRect)
     {
         var source = Source;
         if (source is null)
