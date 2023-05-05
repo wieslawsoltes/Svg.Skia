@@ -34,11 +34,7 @@ public class SvgImage : AvaloniaObject, IImage, IAffectsRender
         Source?.Picture is { } ? new Size(Source.Picture.CullRect.Width, Source.Picture.CullRect.Height) : default;
 
     /// <inheritdoc/>
-    void IImage.Draw(
-        DrawingContext context,
-        Rect sourceRect,
-        Rect destRect,
-        BitmapInterpolationMode bitmapInterpolationMode)
+    void IImage.Draw(DrawingContext context, Rect sourceRect, Rect destRect)
     {
         var source = Source;
         if (source?.Picture is null)
