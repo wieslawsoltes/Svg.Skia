@@ -4,10 +4,9 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using Avalonia.Svg.Skia;
-using SS = Svg.Skia;
+using Avalonia.Svg;
 
-namespace AvaloniaSvgSkiaSample;
+namespace AvaloniaSvgSample;
 
 public partial class MainWindow : Window
 {
@@ -52,7 +51,7 @@ public partial class MainWindow : Window
     {
         if (svgSourceImage is { })
         {
-            var comboBox = (ComboBox)sender; 
+            var comboBox = (ComboBox)sender;
             svgSourceImage.Stretch = (Stretch)comboBox.SelectedIndex;
         }
     }
@@ -78,7 +77,7 @@ public partial class MainWindow : Window
 
     private void Drop(object sender, DragEventArgs e)
     {
-        if (e.Data.Contains(DataFormats.Files))
+        if (e.Data.Contains(DataFormats.FileNames))
         {
             var fileName = e.Data.GetFileNames()?.FirstOrDefault();
             if (!string.IsNullOrWhiteSpace(fileName))
@@ -89,39 +88,24 @@ public partial class MainWindow : Window
                 }
                 else if (sender == svgExtensionDockPanel)
                 {
-                    var svg = new SvgSource();
-                    var picture = svg.Load(fileName);
-                    if (picture is { })
+                    svgExtensionImage.Source = new SvgImage
                     {
-                        svgExtensionImage.Source = new SvgImage
-                        {
-                            Source = svg
-                        };
-                    }
+                        Source = SvgSource.Load(fileName, null)
+                    };
                 }
                 else if (sender == svgSourceDockPanel)
                 {
-                    var svg = new SvgSource();
-                    var picture = svg.Load(fileName);
-                    if (picture is { })
+                    svgSourceImage.Source = new SvgImage
                     {
-                        svgSourceImage.Source = new SvgImage
-                        {
-                            Source = svg
-                        };
-                    }
+                        Source = SvgSource.Load(fileName, null)
+                    };
                 }
                 else if (sender == svgResourceDockPanel)
                 {
-                    var svg = new SvgSource();
-                    var picture = svg.Load(fileName);
-                    if (picture is { })
+                    svgResourceImage.Source = new SvgImage
                     {
-                        svgResourceImage.Source = new SvgImage
-                        {
-                            Source = svg
-                        };
-                    }
+                        Source = SvgSource.Load(fileName, null)
+                    };
                 }
             }
         }

@@ -1,0 +1,273 @@
+﻿<Window x:Class="SvgToPng.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SvgToPng"
+        mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen" WindowState="Maximized"
+        UseLayoutRounding="True" SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.BitmapScalingMode="HighQuality"
+        AllowDrop="True" DragDrop.Drop="Window_Drop"
+        Title="SvgToPng" Height="650" Width="1000">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="4"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Row="0" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TabControl Grid.Column="0" Grid.Row="0">
+                <TabItem Header="Items">
+                    <ListBox x:Name="items" ItemsSource="{Binding ItemsView}" Margin="2,2,0,2">
+                        <ListBox.Resources>
+                            <ContextMenu x:Key="ListBoxItemMenu">
+                                <MenuItem x:Name="ItemExport" Header="_Export..." Click="ItemExport_Click"/>
+                                <Separator/>
+                                <MenuItem x:Name="ItemReload" Header="_Reload" InputGestureText="Insert" Click="ItemReload_Click"/>
+                                <Separator/>
+                                <MenuItem x:Name="Item_Delete" Header="_Delete" InputGestureText="Delete" Click="Item_Delete_Click"/>
+                                <Separator/>
+                                <MenuItem x:Name="ItemOpenNotepad" Header="Open in _Notepad..." Click="ItemOpenNotepad_Click"/>
+                                <Separator/>
+                                <MenuItem x:Name="ItemOpenExplorer" Header="Open in E_xplorer..." Click="ItemOpenExplorer_Click"/>
+                            </ContextMenu>
+                            <Style TargetType="{x:Type ListBoxItem}">
+                                <Setter Property="ContextMenu" Value="{StaticResource ListBoxItemMenu}"/>
+                            </Style>
+                        </ListBox.Resources>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox IsChecked="{Binding Passed}" Margin="1"/>
+                                    <TextBlock Text="{Binding Name}" Margin="1"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </TabItem>
+                <TabItem Header="Code">
+                    <TextBox Text="{Binding ElementName=items, Path=SelectedItem.Code}"
+                             VerticalScrollBarVisibility="Auto"/>
+                </TabItem>
+            </TabControl>
+            <Grid Margin="2,0,0,0" Grid.Column="0" Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Filter" Padding="0" Margin="2" Grid.Row="0" Grid.Column="0"/>
+                <TextBox x:Name="TextItemsFilter" Text="{Binding ItemsFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="0" Margin="2" Grid.Row="0" Grid.Column="1"/>
+                <Button x:Name="ButtonClearFilter" Content="X" Padding="4,0,4,0" Margin="2" Grid.Row="0" Grid.Column="2" Click="ButtonClearFilter_Click"/>
+                <CheckBox x:Name="CheckShowPassed" IsChecked="{Binding ShowPassed}" Content="Show Passed" Padding="0" Margin="2" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"/>
+                <CheckBox x:Name="CheckShowFailed" IsChecked="{Binding ShowFailed}" Content="Show Failed" Padding="0" Margin="2" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"/>
+            </Grid>
+            <Grid Margin="2,0,0,0" Grid.Column="0" Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Open" Padding="0" Margin="2" Grid.Row="0" Grid.Column="0"/>
+                <TextBox x:Name="TextOpenTime" Text="" BorderBrush="Transparent" Padding="0" Margin="2,2,0,2" Grid.Row="0" Grid.Column="1"/>
+                <TextBlock Text="ToPicture" Padding="0" Margin="2" Grid.Row="1" Grid.Column="0"/>
+                <TextBox x:Name="TextToPictureTime" Text="" BorderBrush="Transparent" Padding="0" Margin="2,2,0,2" Grid.Row="1" Grid.Column="1"/>
+                <TextBlock Text="Draw" Padding="0" Margin="2" Grid.Row="2" Grid.Column="0"/>
+                <TextBox x:Name="TextDrawTime" Text="" BorderBrush="Transparent" Padding="0" Margin="2,2,0,2" Grid.Row="2" Grid.Column="1"/>
+            </Grid>
+            <Grid Margin="0,0,0,2" Grid.Column="0" Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50*"/>
+                    <ColumnDefinition Width="50*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Button x:Name="ButtonSave" Content="Save..." Padding="2" Margin="1" Grid.Row="0" Grid.Column="0" Click="ButtonSave_Click"/>
+                <Button x:Name="ButtonLoad" Content="Load..." Padding="2" Margin="1" Grid.Row="0" Grid.Column="2" Click="ButtonLoad_Click"/>
+                <Button x:Name="ButtonClear" Content="Clear" Padding="2" Margin="1" Grid.Row="1" Grid.Column="0" Click="ButtonClear_Click"/>
+                <Button x:Name="ButtonAdd" Content="Add..." Padding="2" Margin="1" Grid.Row="1" Grid.Column="1" Click="ButtonAdd_Click"/>
+            </Grid>
+        </Grid>
+        <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="1" Grid.Row="0"/>
+        <Grid Grid.Row="0" Grid.Column="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="50*"/>
+                <ColumnDefinition Width="50*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid Margin="0,2,2,2" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50*"/>
+                    <RowDefinition Height="4"/>
+                    <RowDefinition Height="50*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Column="0" Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="50*"/>
+                        <ColumnDefinition Width="4"/>
+                        <ColumnDefinition Width="50*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="50*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Skia" Padding="0" Margin="0" Grid.Column="0" Grid.Row="0" RenderTransformOrigin="0.5,0.5" VerticalAlignment="Top">
+                        <TextBlock.LayoutTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="90"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </TextBlock.LayoutTransform>
+                    </TextBlock>
+                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="1" Grid.Row="0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <Grid>
+                                <local:SKElement x:Name="skElementSvg" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
+                            </Grid>
+                        </ScrollViewer>
+                    </Border>
+                    <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="2" Grid.Row="0" Grid.RowSpan="2"/>
+                    <TextBlock Text="Reference" Padding="0" Margin="0" Grid.Column="4" Grid.Row="0">
+                        <TextBlock.LayoutTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="90"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </TextBlock.LayoutTransform>
+                    </TextBlock>
+                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="3" Grid.Row="0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <Grid>
+                                <local:SKElement x:Name="skElementPng" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
+                            </Grid>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+                <GridSplitter ResizeDirection="Rows" ResizeBehavior="PreviousAndNext" Background="Transparent" HorizontalAlignment="Stretch" Height="4" Grid.Column="0" Grid.Row="1"/>
+                <Grid Grid.Column="0" Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="50*"/>
+                        <ColumnDefinition Width="4"/>
+                        <ColumnDefinition Width="50*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="50*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Settings" Padding="0" Margin="0" Grid.Column="0" Grid.Row="0">
+                        <TextBlock.LayoutTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="90"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </TextBlock.LayoutTransform>
+                    </TextBlock>
+                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="1" Grid.Row="0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Output path" Padding="0" Margin="2,2,2,1" Grid.Row="0" Grid.Column="0"/>
+                            <TextBox x:Name="TextOutputPath" Text="{Binding OutputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="0" Margin="2,2,2,1" Grid.Row="0" Grid.Column="1"/>
+                            <Button x:Name="ButtonOutputPath" Content="..." Padding="4,1,4,1" Margin="2,2,2,1" Grid.Row="0" Grid.Column="2" Click="ButtonOutputPath_Click"/>
+                            <TextBlock Text="Output format" Padding="0" Margin="2,2,2,1" Grid.Row="1" Grid.Column="0"/>
+                            <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <CheckBox x:Name="CheckFormatPng" Content="png" IsChecked="True" Padding="0" Margin="2,2,2,1" Grid.Row="0" Grid.Column="0"/>
+                                <CheckBox x:Name="CheckFormatJpg" Content="jpg" IsChecked="False" Padding="0" Margin="2,2,2,1" Grid.Row="1" Grid.Column="0"/>
+                                <CheckBox x:Name="CheckFormatWebp" Content="webp" IsChecked="False" Padding="0" Margin="2,2,2,1" Grid.Row="2" Grid.Column="0"/>
+                                <CheckBox x:Name="CheckFormatPdf" Content="pdf" IsChecked="False" Padding="0" Margin="2,2,2,1" Grid.Row="3" Grid.Column="0"/>
+                                <CheckBox x:Name="CheckFormatXps" Content="xps" IsChecked="False" Padding="0" Margin="2,2,2,1" Grid.Row="4" Grid.Column="0"/>
+                                <Button x:Name="ButtonExport" Content="Export" Padding="4" Margin="2,2,2,1" Grid.Row="5" Grid.Column="0" Click="ButtonExport_Click"/>
+                            </Grid>
+                            <TextBlock Text="Output ScaleX" Padding="0" Margin="2,2,2,1" Grid.Row="2" Grid.Column="0"/>
+                            <TextBox x:Name="TextOutputScaleX" Text="1" Padding="0" Margin="2,2,2,1" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"/>
+                            <TextBlock Text="Output ScaleY" Padding="0" Margin="2,2,2,1" Grid.Row="3" Grid.Column="0"/>
+                            <TextBox x:Name="TextOutputScaleY" Text="1" Padding="0" Margin="2,2,2,1" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"/>
+                            <TextBlock Text="Output Background" Padding="0" Margin="2,2,2,1" Grid.Row="4" Grid.Column="0"/>
+                            <TextBox x:Name="TextOutputBackground" Text="#00FFFFFF" Padding="0" Margin="2,2,2,1" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"/>
+                            <TextBlock Text="Reference path" Padding="0" Margin="2,3,2,0" Grid.Row="5" Grid.Column="0"/>
+                            <ComboBox x:Name="TextReferencePath" ItemsSource="{Binding ReferencePaths}" SelectedItem="{Binding ReferencePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" Padding="0" Margin="2,3,2,0" Grid.Row="5" Grid.Column="1"/>
+                            <Button x:Name="ButtonReferencePath" Content="..." Padding="4,1,4,1" Margin="2,3,2,0" Grid.Row="5" Grid.Column="2" Click="ButtonReferencePath_Click"/>
+                            <CheckBox x:Name="CheckDrawReference" Content="Draw Reference" IsChecked="True" Padding="0" Margin="2,2,2,1" Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2"/>
+                            <CheckBox x:Name="CheckDrawDiff" Content="Draw Diff" IsChecked="True" Padding="0" Margin="2,2,2,1" Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2"/>
+                        </Grid>
+                    </Border>
+                    <GridSplitter ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent" Width="4" Grid.Column="2" Grid.Row="0" Grid.RowSpan="2"/>
+                    <TextBlock Text="Diff" Padding="0" Margin="0" Grid.Column="4" Grid.Row="0">
+                        <TextBlock.LayoutTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="90"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </TextBlock.LayoutTransform>
+                    </TextBlock>
+                    <Border Padding="2" BorderThickness="1" BorderBrush="#FFABADB3" Margin="1" Grid.Column="3" Grid.Row="0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <Grid>
+                                <local:SKElement x:Name="skElementDiff" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible"/>
+                            </Grid>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

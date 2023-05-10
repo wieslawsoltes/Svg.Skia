@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+    <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
+    <EnableDefaultItems>False</EnableDefaultItems>
+    <NoWarn>CS1591</NoWarn>
+    <IsPackable>True</IsPackable>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Description>An SVG image control for Avalonia.</Description>
+    <PackageId>Avalonia.Svg</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;control;avalonia;avaloniaui</PackageTags>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\Base.props" />
+  <Import Project="..\..\build\SourceLink.props" />
+  <!--<Import Project="..\..\build\SignAssembly.props" />-->
+  <Import Project="..\..\build\ReferenceAssemblies.props" />
+  <!--<Import Project="..\..\build\SkiaSharp.props" />-->
+  <Import Project="..\..\build\Avalonia.props" />
+  <!--<Import Project="..\..\build\Avalonia.Skia.props" />-->
+
+  <PropertyGroup>
+    <VersionPrefix>$(AvaloniaVersionPrefix)</VersionPrefix>
+    <VersionSuffix>$(AvaloniaVersionSuffix)</VersionSuffix>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Svg.Model\Svg.Model.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="**\*.cs" Exclude="obj\**" />
+  </ItemGroup>
+
+</Project>
