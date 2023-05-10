@@ -27,7 +27,7 @@ public partial class MainView : UserControl
     {
         e.DragEffects = e.DragEffects & (DragDropEffects.Copy | DragDropEffects.Link);
 
-        if (!e.Data.Contains(DataFormats.FileNames))
+        if (!e.Data.Contains(DataFormats.Files))
         {
             e.DragEffects = DragDropEffects.None;
         }
@@ -35,7 +35,7 @@ public partial class MainView : UserControl
 
     private void Drop(object? sender, DragEventArgs e)
     {
-        if (e.Data.Contains(DataFormats.FileNames))
+        if (e.Data.Contains(DataFormats.Files))
         {
             var paths = e.Data.GetFileNames();
             if (paths is { })

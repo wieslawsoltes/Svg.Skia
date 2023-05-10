@@ -70,7 +70,7 @@ public partial class MainWindow : Window
     {
         e.DragEffects = e.DragEffects & (DragDropEffects.Copy | DragDropEffects.Link);
 
-        if (!e.Data.Contains(DataFormats.FileNames))
+        if (!e.Data.Contains(DataFormats.Files))
         {
             e.DragEffects = DragDropEffects.None;
         }
