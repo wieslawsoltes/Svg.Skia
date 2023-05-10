@@ -12,8 +12,6 @@ namespace Avalonia.Svg;
 
 public sealed class AvaloniaPicture : IDisposable
 {
-    private static AP.IPlatformRenderInterface? Factory => A.AvaloniaLocator.Current?.GetService<AP.IPlatformRenderInterface>();
-
     private readonly List<DrawCommand> _commands;
 
     public IReadOnlyList<DrawCommand> Commands => _commands;
@@ -58,8 +56,8 @@ public sealed class AvaloniaPicture : IDisposable
                 case AddOvalPathCommand addOvalPathCommand:
                 {
                     var rect = addOvalPathCommand.Rect.ToRect();
-                    var ellipseGeometry = Factory?.CreateEllipseGeometry(rect);
-                    commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
+                    var ellipseGeometry = new AM.EllipseGeometry(rect);
+                    commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry.PlatformImpl));
                     success = true;
                     break;
                 }
@@ -69,8 +67,8 @@ public sealed class AvaloniaPicture : IDisposable
                     var y = addCirclePathCommand.Y;
                     var radius = addCirclePathCommand.Radius;
                     var rect = new A.Rect(x - radius, y - radius, radius + radius, radius + radius);
-                    var ellipseGeometry = Factory?.CreateEllipseGeometry(rect);
-                    commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
+                    var ellipseGeometry = new AM.EllipseGeometry(rect);
+                    commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry.PlatformImpl));
                     success = true;
                     break;
                 }
@@ -173,7 +171,7 @@ public sealed class AvaloniaPicture : IDisposable
                     {
                         var source = drawImageCanvasCommand.Source.ToRect();
                         var dest = drawImageCanvasCommand.Dest.ToRect();
-                        var bitmapInterpolationMode = drawImageCanvasCommand.Paint?.FilterQuality.ToBitmapInterpolationMode() ?? AVMI.BitmapInterpolationMode.Default;
+                        var bitmapInterpolationMode = drawImageCanvasCommand.Paint?.FilterQuality.ToBitmapInterpolationMode() ?? AVMI.BitmapInterpolationMode.None;
                         commands.Add(new ImageDrawCommand(image, source, dest, bitmapInterpolationMode));
                     }
                 }
@@ -285,11 +283,11 @@ public sealed class AvaloniaPicture : IDisposable
             {
                 if (imageDrawCommand.Source is { })
                 {
+                    // TODO: imageDrawCommand.BitmapInterpolationMode
                     context.DrawImage(
                         imageDrawCommand.Source,
                         imageDrawCommand.SourceRect,
-                        imageDrawCommand.DestRect,
-                        imageDrawCommand.BitmapInterpolationMode);
+                        imageDrawCommand.DestRect);
                 }
                 break;
             }
