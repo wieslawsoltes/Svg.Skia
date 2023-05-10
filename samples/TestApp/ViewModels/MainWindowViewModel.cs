@@ -12,9 +12,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using Svg.CodeGen.Skia;
 using Svg.Skia;
 using TestApp.Models;
 using TestApp.Services;
@@ -55,6 +57,8 @@ public class MainWindowViewModel : ViewModelBase
     public ICommand ClearConfigurationCommand { get; }
         
     public ICommand AddItemCommand { get; }
+
+    public ICommand CopyAsCSharpCommand { get; }
 
     public ICommand ExportCommand { get; }
 
@@ -111,6 +115,8 @@ public class MainWindowViewModel : ViewModelBase
 
         AddItemCommand = ReactiveCommand.CreateFromTask(async () => await AddItemExecute());
 
+        CopyAsCSharpCommand = ReactiveCommand.CreateFromTask<Avalonia.Svg.Skia.Svg>(async svg => await CopyAsCSharpExecute(svg));
+
         ExportCommand = ReactiveCommand.CreateFromTask<Avalonia.Svg.Skia.Svg>(async svg => await ExportExecute(svg));
     }
 
@@ -141,7 +147,7 @@ public class MainWindowViewModel : ViewModelBase
             try
             {
                 await using var stream = await file.OpenWriteAsync();
-                Export(stream, file.Name, svg, "#00FFFFFF", 1f, 1f);
+                await Export(stream, file.Name, svg, "#00FFFFFF", 1f, 1f);
             }
             catch (Exception ex)
             {
@@ -149,6 +155,28 @@ public class MainWindowViewModel : ViewModelBase
                 Debug.WriteLine(ex.StackTrace);
             }
         }
+    }
+
+    private async Task CopyAsCSharpExecute(Avalonia.Svg.Skia.Svg svg)
+    {
+        if (_selectedItem is null || svg?.Model is null)
+        {
+            return;
+        }
+
+        var code = SkiaCSharpCodeGen.Generate(svg.Model, "Svg", CreateClassName(_selectedItem.Path));
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            try
+            {
+                Application.Current?.Clipboard?.SetTextAsync(code);
+            }
+            catch
+            {
+                // ignored
+            }
+        });
     }
 
     private async Task AddItemExecute()
@@ -337,7 +365,7 @@ public class MainWindowViewModel : ViewModelBase
         writer.Write(json);
     }
 
-    public void Export(Stream stream, string name, Avalonia.Svg.Skia.Svg? svg, string backgroundColor, float scaleX, float scaleY)
+    public async Task Export(Stream stream, string name, Avalonia.Svg.Skia.Svg? svg, string backgroundColor, float scaleX, float scaleY)
     {
         if (svg?.Model is null || svg.Picture is null)
         {
@@ -391,6 +419,20 @@ public class MainWindowViewModel : ViewModelBase
                 svg.Picture?.ToXps(stream, skBackgroundColor, scaleX, scaleY);
                 break;
             }
+            case ".cs":
+            {
+                var code = SkiaCSharpCodeGen.Generate(svg.Model, "Svg", CreateClassName(name));
+                await using var writer = new StreamWriter(stream);
+                await writer.WriteAsync(code);
+                break;
+            }
         }
+    }
+
+    private static string CreateClassName(string filename)
+    {
+        string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filename);
+        string className = fileNameWithoutExtension.Replace("-", "_");
+        return $"Svg_{className}";
     }
 }
