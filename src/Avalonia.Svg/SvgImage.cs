@@ -43,8 +43,7 @@ public class SvgImage : AvaloniaObject, IImage, IAffectsRender
     void IImage.Draw(
         DrawingContext context,
         Rect sourceRect,
-        Rect destRect,
-        BitmapInterpolationMode bitmapInterpolationMode)
+        Rect destRect)
     {
         var source = Source;
         if (source is null || source.Picture is null)
