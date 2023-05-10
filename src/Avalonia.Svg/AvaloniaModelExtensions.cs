@@ -13,8 +13,6 @@ namespace Avalonia.Svg;
 
 public static class AvaloniaModelExtensions
 {
-    private static AP.IPlatformRenderInterface? Factory => A.AvaloniaLocator.Current?.GetService<AP.IPlatformRenderInterface>();
-
     public static Point Transform(this Matrix m, Point point)
     {
         return point * m;
@@ -274,7 +272,7 @@ public static class AvaloniaModelExtensions
         {
             default:
             case SKFilterQuality.None:
-                return AVMI.BitmapInterpolationMode.Default;
+                return AVMI.BitmapInterpolationMode.None;
 
             case SKFilterQuality.Low:
                 return AVMI.BitmapInterpolationMode.LowQuality;
@@ -580,7 +578,7 @@ public static class AvaloniaModelExtensions
 
     public static AP.IGeometryImpl? ToGeometry(this IList<SKPoint> points, bool isFilled)
     {
-        var geometry = Factory?.CreateStreamGeometry();
+        var geometry = new AM.StreamGeometry();
         if (geometry is null)
         {
             return null;
@@ -600,7 +598,7 @@ public static class AvaloniaModelExtensions
             context.EndFigure(isFilled);
         }
 
-        return geometry;
+        return geometry.PlatformImpl;
     }
 
     public static AP.IGeometryImpl? ToGeometry(this SKPath path, bool isFilled)
@@ -610,7 +608,7 @@ public static class AvaloniaModelExtensions
             return null;
         }
 
-        var streamGeometry = Factory?.CreateStreamGeometry();
+        var streamGeometry = new AM.StreamGeometry();
         if (streamGeometry is null)
         {
             return null;
@@ -642,18 +640,18 @@ public static class AvaloniaModelExtensions
                     }
                     if (isLast == true)
                     {
-                        return streamGeometry;
+                        return streamGeometry.PlatformImpl;
                     }
                     else
                     {
                         if (path.Commands[i + 1] is MoveToPathCommand)
                         {
-                            return streamGeometry;
+                            return streamGeometry.PlatformImpl;
                         }
 
                         if (path.Commands[i + 1] is ClosePathCommand)
                         {
-                            return streamGeometry;
+                            return streamGeometry.PlatformImpl;
                         }
                     }
                     endFigure = true;
@@ -767,7 +765,7 @@ public static class AvaloniaModelExtensions
             streamGeometryContext.EndFigure(false);
         }
 
-        return streamGeometry;
+        return streamGeometry.PlatformImpl;
     }
 
     public static AM.Geometry? ToGeometry(this ClipPath clipPath, bool isFilled)
