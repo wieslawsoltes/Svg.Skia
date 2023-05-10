@@ -170,7 +170,10 @@ public class MainWindowViewModel : ViewModelBase
         {
             try
             {
-                Application.Current?.Clipboard?.SetTextAsync(code);
+                if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+                {
+                    lifetime.MainWindow?.Clipboard?.SetTextAsync(code);
+                }
             }
             catch
             {
