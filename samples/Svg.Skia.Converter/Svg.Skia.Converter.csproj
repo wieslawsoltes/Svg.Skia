@@ -11,6 +11,7 @@
     <PackAsTool>True</PackAsTool>
     <ToolCommandName>Svg.Skia.Converter</ToolCommandName>
     <Nullable>enable</Nullable>
+    <RollForward>Major</RollForward>
   </PropertyGroup>
 
   <PropertyGroup>
