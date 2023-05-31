@@ -8,7 +8,7 @@ namespace Avalonia.Controls.Skia;
 /// <summary>
 /// SKBitmap control.
 /// </summary>
-public class SKBitmapControl : Control, IAffectsRender
+public class SKBitmapControl : Control
 {
     /// <summary>
     /// Defines the <see cref="Bitmap"/> property.
@@ -27,9 +27,6 @@ public class SKBitmapControl : Control, IAffectsRender
     /// </summary>
     public static readonly StyledProperty<StretchDirection> StretchDirectionProperty =
         AvaloniaProperty.Register<SKBitmapControl, StretchDirection>(nameof(StretchDirection), StretchDirection.Both);
-
-    /// <inheritdoc/>
-    public event EventHandler? Invalidated;
 
     /// <summary>
     /// Gets or sets the <see cref="SKBitmap"/> bitmap.
@@ -139,13 +136,7 @@ public class SKBitmapControl : Control, IAffectsRender
 
         if (change.Property == BitmapProperty)
         {
-            RaiseInvalidated(EventArgs.Empty);
+            InvalidateVisual();
         }
     }
-
-    /// <summary>
-    /// Raises the <see cref="Invalidated"/> event.
-    /// </summary>
-    /// <param name="e">The event args.</param>
-    protected void RaiseInvalidated(EventArgs e) => Invalidated?.Invoke(this, e);
 }

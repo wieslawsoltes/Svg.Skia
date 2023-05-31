@@ -576,7 +576,7 @@ public static class AvaloniaModelExtensions
         }
     }
 
-    public static AP.IGeometryImpl? ToGeometry(this IList<SKPoint> points, bool isFilled)
+    public static AM.Geometry? ToGeometry(this IList<SKPoint> points, bool isFilled)
     {
         var geometry = new AM.StreamGeometry();
         if (geometry is null)
@@ -598,10 +598,10 @@ public static class AvaloniaModelExtensions
             context.EndFigure(isFilled);
         }
 
-        return geometry.PlatformImpl;
+        return geometry;
     }
 
-    public static AP.IGeometryImpl? ToGeometry(this SKPath path, bool isFilled)
+    public static AM.Geometry? ToGeometry(this SKPath path, bool isFilled)
     {
         if (path.Commands is null)
         {
@@ -640,18 +640,18 @@ public static class AvaloniaModelExtensions
                     }
                     if (isLast == true)
                     {
-                        return streamGeometry.PlatformImpl;
+                        return streamGeometry;
                     }
                     else
                     {
                         if (path.Commands[i + 1] is MoveToPathCommand)
                         {
-                            return streamGeometry.PlatformImpl;
+                            return streamGeometry;
                         }
 
                         if (path.Commands[i + 1] is ClosePathCommand)
                         {
-                            return streamGeometry.PlatformImpl;
+                            return streamGeometry;
                         }
                     }
                     endFigure = true;
@@ -765,7 +765,7 @@ public static class AvaloniaModelExtensions
             streamGeometryContext.EndFigure(false);
         }
 
-        return streamGeometry.PlatformImpl;
+        return streamGeometry;
     }
 
     public static AM.Geometry? ToGeometry(this ClipPath clipPath, bool isFilled)

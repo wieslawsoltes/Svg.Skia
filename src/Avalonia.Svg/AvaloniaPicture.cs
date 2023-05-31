@@ -57,7 +57,7 @@ public sealed class AvaloniaPicture : IDisposable
                 {
                     var rect = addOvalPathCommand.Rect.ToRect();
                     var ellipseGeometry = new AM.EllipseGeometry(rect);
-                    commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry.PlatformImpl));
+                    commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
                     success = true;
                     break;
                 }
@@ -68,7 +68,7 @@ public sealed class AvaloniaPicture : IDisposable
                     var radius = addCirclePathCommand.Radius;
                     var rect = new A.Rect(x - radius, y - radius, radius + radius, radius + radius);
                     var ellipseGeometry = new AM.EllipseGeometry(rect);
-                    commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry.PlatformImpl));
+                    commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
                     success = true;
                     break;
                 }

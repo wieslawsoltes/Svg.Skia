@@ -9,15 +9,13 @@ namespace Avalonia.Controls.Skia;
 /// <summary>
 /// An <see cref="IImage"/> that uses a <see cref="SKBitmapImage"/> for content.
 /// </summary>
-public class SKBitmapImage : AvaloniaObject, IImage, IAffectsRender
+public class SKBitmapImage : AvaloniaObject, IImage
 {
     /// <summary>
     /// Defines the <see cref="Source"/> property.
     /// </summary>
     public static readonly StyledProperty<SKBitmap?> SourceProperty =
         AvaloniaProperty.Register<SKBitmapImage, SKBitmap?>(nameof(Source));
-
-    public event EventHandler? Invalidated;
 
     /// <summary>
     /// Gets or sets the <see cref="SKBitmap"/> content.
@@ -60,13 +58,7 @@ public class SKBitmapImage : AvaloniaObject, IImage, IAffectsRender
         base.OnPropertyChanged(change);
         if (change.Property == SourceProperty)
         {
-            RaiseInvalidated(EventArgs.Empty);
+            // TODO: Invalidate IImage
         }
     }
-
-    /// <summary>
-    /// Raises the <see cref="Invalidated"/> event.
-    /// </summary>
-    /// <param name="e">The event args.</param>
-    protected void RaiseInvalidated(EventArgs e) => Invalidated?.Invoke(this, e);
 }

@@ -8,7 +8,7 @@ namespace Avalonia.Controls.Skia;
 /// <summary>
 /// SKPicture control.
 /// </summary>
-public class SKPictureControl : Control, IAffectsRender
+public class SKPictureControl : Control
 {
     /// <summary>
     /// Defines the <see cref="Picture"/> property.
@@ -27,9 +27,6 @@ public class SKPictureControl : Control, IAffectsRender
     /// </summary>
     public static readonly StyledProperty<StretchDirection> StretchDirectionProperty =
         AvaloniaProperty.Register<SKPictureControl, StretchDirection>(nameof(StretchDirection), StretchDirection.Both);
-
-    /// <inheritdoc/>
-    public event EventHandler? Invalidated;
 
     /// <summary>
     /// Gets or sets the <see cref="SKPicture"/> picture.
@@ -142,13 +139,7 @@ public class SKPictureControl : Control, IAffectsRender
 
         if (change.Property == PictureProperty)
         {
-            RaiseInvalidated(EventArgs.Empty);
+            InvalidateVisual();
         }
     }
-
-    /// <summary>
-    /// Raises the <see cref="Invalidated"/> event.
-    /// </summary>
-    /// <param name="e">The event args.</param>
-    protected void RaiseInvalidated(EventArgs e) => Invalidated?.Invoke(this, e);
 }

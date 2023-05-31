@@ -63,8 +63,7 @@ public class SvgSource
         }
         else
         {
-            var loader = AvaloniaLocator.Current.GetService<IAssetLoader>();
-            var stream = loader?.Open(uri, baseUri);
+            var stream = AssetLoader.Open(uri, baseUri);
             if (stream is null)
             {
                 return default;

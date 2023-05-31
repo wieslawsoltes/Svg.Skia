@@ -9,7 +9,7 @@ namespace Avalonia.Controls.Skia;
 /// <summary>
 /// An <see cref="IImage"/> that uses a <see cref="SKPath"/> for content.
 /// </summary>
-public class SKPathImage : AvaloniaObject, IImage, IAffectsRender
+public class SKPathImage : AvaloniaObject, IImage
 {
     /// <summary>
     /// Defines the <see cref="Source"/> property.
@@ -22,8 +22,6 @@ public class SKPathImage : AvaloniaObject, IImage, IAffectsRender
     /// </summary>
     public static readonly StyledProperty<SKPaint?> PaintProperty =
         AvaloniaProperty.Register<SKPathImage, SKPaint?>(nameof(Paint));
-
-    public event EventHandler? Invalidated;
 
     /// <summary>
     /// Gets or sets the <see cref="SKPath"/> content.
@@ -80,13 +78,7 @@ public class SKPathImage : AvaloniaObject, IImage, IAffectsRender
         base.OnPropertyChanged(change);
         if (change.Property == SourceProperty)
         {
-            RaiseInvalidated(EventArgs.Empty);
+            // TODO: Invalidate IImage
         }
     }
-
-    /// <summary>
-    /// Raises the <see cref="Invalidated"/> event.
-    /// </summary>
-    /// <param name="e">The event args.</param>
-    protected void RaiseInvalidated(EventArgs e) => Invalidated?.Invoke(this, e);
 }

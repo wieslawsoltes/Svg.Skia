@@ -8,7 +8,7 @@ namespace Avalonia.Controls.Skia;
 /// <summary>
 /// SKPath control.
 /// </summary>
-public class SKPathControl : Control, IAffectsRender
+public class SKPathControl : Control
 {
     /// <summary>
     /// Defines the <see cref="Path"/> property.
@@ -33,9 +33,6 @@ public class SKPathControl : Control, IAffectsRender
     /// </summary>
     public static readonly StyledProperty<StretchDirection> StretchDirectionProperty =
         AvaloniaProperty.Register<SKPathControl, StretchDirection>(nameof(StretchDirection), StretchDirection.Both);
-
-    /// <inheritdoc/>
-    public event EventHandler? Invalidated;
 
     /// <summary>
     /// Gets or sets the <see cref="SKPath"/> path.
@@ -160,18 +157,12 @@ public class SKPathControl : Control, IAffectsRender
 
         if (change.Property == PathProperty)
         {
-            RaiseInvalidated(EventArgs.Empty);
+            InvalidateVisual();
         }
 
         if (change.Property == PaintProperty)
         {
-            RaiseInvalidated(EventArgs.Empty);
+            InvalidateVisual();
         }
     }
-
-    /// <summary>
-    /// Raises the <see cref="Invalidated"/> event.
-    /// </summary>
-    /// <param name="e">The event args.</param>
-    protected void RaiseInvalidated(EventArgs e) => Invalidated?.Invoke(this, e);
 }

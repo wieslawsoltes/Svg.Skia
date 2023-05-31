@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
-using Avalonia.Platform;
 using Svg.Skia;
 
 namespace Avalonia.Svg.Skia;
@@ -60,8 +59,7 @@ public class SvgSource : SKSvg
         }
         else
         {
-            var loader = AvaloniaLocator.Current.GetService<IAssetLoader>();
-            var stream = loader?.Open(uri, baseUri);
+            var stream = Platform.AssetLoader.Open(uri, baseUri);
             if (stream is null)
             {
                 return default;

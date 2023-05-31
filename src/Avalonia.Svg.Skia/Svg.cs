@@ -12,7 +12,7 @@ namespace Avalonia.Svg.Skia;
 /// <summary>
 /// Svg control.
 /// </summary>
-public class Svg : Control, IAffectsRender
+public class Svg : Control
 {
     private readonly Uri _baseUri;
     private SKSvg? _svg;
@@ -46,9 +46,6 @@ public class Svg : Control, IAffectsRender
         AvaloniaProperty.RegisterDirect<Svg, bool>(nameof(EnableCache),
             o => o.EnableCache,
             (o, v) => o.EnableCache = v);
-
-    /// <inheritdoc/>
-    public event EventHandler? Invalidated;
 
     /// <summary>
     /// Gets or sets the Svg path.
@@ -205,7 +202,7 @@ public class Svg : Control, IAffectsRender
         {
             var path = change.GetNewValue<string?>();
             Load(path);
-            RaiseInvalidated(EventArgs.Empty);
+            InvalidateVisual();
         }
 
         if (change.Property == EnableCacheProperty)
@@ -277,10 +274,4 @@ public class Svg : Control, IAffectsRender
 
         _cache = null;
     }
-
-    /// <summary>
-    /// Raises the <see cref="Invalidated"/> event.
-    /// </summary>
-    /// <param name="e">The event args.</param>
-    protected void RaiseInvalidated(EventArgs e) => Invalidated?.Invoke(this, e);
 }

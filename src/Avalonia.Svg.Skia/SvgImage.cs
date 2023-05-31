@@ -8,16 +8,13 @@ namespace Avalonia.Svg.Skia;
 /// <summary>
 /// An <see cref="IImage"/> that uses a <see cref="SvgSource"/> for content.
 /// </summary>
-public class SvgImage : AvaloniaObject, IImage, IAffectsRender
+public class SvgImage : AvaloniaObject, IImage
 {
     /// <summary>
     /// Defines the <see cref="Source"/> property.
     /// </summary>
     public static readonly StyledProperty<SvgSource?> SourceProperty =
         AvaloniaProperty.Register<SvgImage, SvgSource?>(nameof(Source));
-
-    /// <inheritdoc/>
-    public event EventHandler? Invalidated;
 
     /// <summary>
     /// Gets or sets the <see cref="SvgSource"/> content.
@@ -70,13 +67,7 @@ public class SvgImage : AvaloniaObject, IImage, IAffectsRender
         base.OnPropertyChanged(change);
         if (change.Property == SourceProperty)
         {
-            RaiseInvalidated(EventArgs.Empty);
+            // TODO: Invalidate IImage
         }
     }
-
-    /// <summary>
-    /// Raises the <see cref="Invalidated"/> event.
-    /// </summary>
-    /// <param name="e">The event args.</param>
-    protected void RaiseInvalidated(EventArgs e) => Invalidated?.Invoke(this, e);
 }
