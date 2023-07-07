@@ -253,11 +253,15 @@ public class SkiaModel
         {
             case ColorShader colorShader:
             {
+#if COLORSHADER_SUPPORTCOLORSPACE
                 return SkiaSharp.SKShader.CreateColor(
                     ToSKColor(colorShader.Color),
                     colorShader.ColorSpace == SKColorSpace.Srgb 
                         ? Settings.Srgb 
                         : Settings.SrgbLinear);
+#else
+                return SkiaSharp.SKShader.CreateColor(ToSKColor(colorShader.Color));
+#endif
             }
             case LinearGradientShader linearGradientShader:
             {

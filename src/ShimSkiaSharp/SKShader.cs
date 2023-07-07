@@ -2,9 +2,13 @@
 
 public abstract record SKShader
 {
+#if COLORSHADER_SUPPORTCOLORSPACE
     public static SKShader CreateColor(SKColor color, SKColorSpace colorSpace) 
         => new ColorShader(color, colorSpace);
-
+#else
+    public static SKShader CreateColor(SKColor color)
+        => new ColorShader(color);
+#endif
     public static SKShader CreateLinearGradient(SKPoint start, SKPoint end, SKColorF[] colors, SKColorSpace colorSpace, float[] colorPos, SKShaderTileMode mode) 
         => new LinearGradientShader(start, end, colors, colorSpace, colorPos, mode, null);
 
@@ -33,7 +37,11 @@ public abstract record SKShader
         => new TwoPointConicalGradientShader(start, startRadius, end, endRadius, colors, colorSpace, colorPos, mode, localMatrix);
 }
 
+#if COLORSHADER_SUPPORTCOLORSPACE
 public record ColorShader(SKColor Color, SKColorSpace ColorSpace) : SKShader;
+#else
+public record ColorShader(SKColor Color) : SKShader;
+#endif
 
 public record LinearGradientShader(SKPoint Start, SKPoint End, SKColorF[]? Colors, SKColorSpace ColorSpace, float[]? ColorPos, SKShaderTileMode Mode, SKMatrix? LocalMatrix) : SKShader;
 

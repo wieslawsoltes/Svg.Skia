@@ -312,6 +312,7 @@ public static partial class SvgExtensions
         var skColors = colors.ToArray();
         float[] skColorPos = colorPos.ToArray();
 
+#if COLORSHADER_SUPPORTCOLORSPACE
         if (skColors.Length == 0)
         {
             return SKShader.CreateColor(new SKColor(0xFF, 0xFF, 0xFF, 0x00), skColorSpace);
@@ -320,6 +321,16 @@ public static partial class SvgExtensions
         {
             return SKShader.CreateColor(skColors[0], skColorSpace);
         }
+#else
+        if (skColors.Length == 0)
+        {
+            return SKShader.CreateColor(new SKColor(0xFF, 0xFF, 0xFF, 0x00));
+        }
+        else if (skColors.Length == 1)
+        {
+            return SKShader.CreateColor(skColors[0]);
+        }
+#endif
 
         if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
         {
@@ -486,6 +497,7 @@ public static partial class SvgExtensions
         var skColors = colors.ToArray();
         float[] skColorPos = colorPos.ToArray();
 
+#if COLORSHADER_SUPPORTCOLORSPACE
         if (skColors.Length == 0)
         {
             return SKShader.CreateColor(new SKColor(0xFF, 0xFF, 0xFF, 0x00), skColorSpace);
@@ -501,6 +513,21 @@ public static partial class SvgExtensions
                 skColors.Length > 0 ? skColors[skColors.Length - 1] : new SKColor(0x00, 0x00, 0x00, 0xFF), 
                 skColorSpace);
         }
+#else
+        if (skColors.Length == 0)
+        {
+            return SKShader.CreateColor(new SKColor(0xFF, 0xFF, 0xFF, 0x00));
+        }
+        else if (skColors.Length == 1)
+        {
+            return SKShader.CreateColor(skColors[0]);
+        }
+
+        if (radius == 0.0)
+        {
+            return SKShader.CreateColor(skColors.Length > 0 ? skColors[skColors.Length - 1] : new SKColor(0x00, 0x00, 0x00, 0xFF));
+        }
+#endif
 
         var isRadialGradient = skCenter.X == skFocal.X && skCenter.Y == skFocal.Y;
         
@@ -812,7 +839,11 @@ public static partial class SvgExtensions
 #else
                     var skColorSpace = isLinearRgb ? SKColorSpace.SrgbLinear : SKColorSpace.Srgb;
 #endif
+#if COLORSHADER_SUPPORTCOLORSPACE
                     var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
+#else
+                    var skColorShader = SKShader.CreateColor(skColor);
+#endif
                     if (skColorShader is { })
                     {
                         skPaint.Shader = skColorShader;
@@ -842,7 +873,11 @@ public static partial class SvgExtensions
                         if (fallbackServer is SvgColourServer svgColourServerFallback)
                         {
                             var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
+#if COLORSHADER_SUPPORTCOLORSPACE
                             var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
+#else
+                            var skColorShader = SKShader.CreateColor(skColor);
+#endif
                             if (skColorShader is { })
                             {
                                 skPaint.Shader = skColorShader;
@@ -873,7 +908,11 @@ public static partial class SvgExtensions
                         if (fallbackServer is SvgColourServer svgColourServerFallback)
                         {
                             var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
+#if COLORSHADER_SUPPORTCOLORSPACE
                             var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
+#else
+                            var skColorShader = SKShader.CreateColor(skColor);
+#endif
                             if (skColorShader is { })
                             {
                                 skPaint.Shader = skColorShader;
@@ -918,7 +957,11 @@ public static partial class SvgExtensions
                         if (fallbackServer is SvgColourServer svgColourServerFallback)
                         {
                             var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
+#if COLORSHADER_SUPPORTCOLORSPACE
                             var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
+#else
+                            var skColorShader = SKShader.CreateColor(skColor);
+#endif
                             if (skColorShader is { })
                             {
                                 skPaint.Shader = skColorShader;
