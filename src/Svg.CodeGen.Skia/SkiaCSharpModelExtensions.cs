@@ -426,9 +426,11 @@ public static class SkiaCSharpModelExtensions
             {
                 sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
                 sb.AppendLine($"SKShader.CreateColor(");
-                sb.AppendLine($"{indent}    {colorShader.Color.ToSKColor()},");
 #if COLORSHADER_SUPPORTCOLORSPACE
+                sb.AppendLine($"{indent}    {colorShader.Color.ToSKColor()},");
                 sb.AppendLine($"{indent}    {(colorShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)});");
+#else
+                sb.AppendLine($"{indent}    {colorShader.Color.ToSKColor()});");
 #endif
                     return;
             }
