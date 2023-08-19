@@ -6,6 +6,8 @@ public sealed class SKPaint
 
     public bool IsAntialias { get; set; }
 
+    public bool IsDither { get; set; }
+
     public float StrokeWidth { get; set; }
 
     public SKStrokeCap StrokeCap { get; set; }
@@ -44,6 +46,7 @@ public sealed class SKPaint
     {
         Style = SKPaintStyle.Fill;
         IsAntialias = false;
+        IsDither = false;
         StrokeWidth = 0;
         StrokeCap = SKStrokeCap.Butt;
         StrokeJoin = SKStrokeJoin.Miter;
