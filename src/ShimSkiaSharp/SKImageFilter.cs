@@ -49,9 +49,6 @@ public abstract record SKImageFilter
     public static SKImageFilter CreateOffset(float dx, float dy, SKImageFilter? input = null, SKRect? cropRect = null) 
         => new OffsetImageFilter(dx, dy, input, cropRect);
 
-    public static SKImageFilter CreatePaint(SKPaint paint, SKRect? cropRect = null) 
-        => new PaintImageFilter(paint, cropRect);
-
     public static SKImageFilter CreatePicture(SKPicture picture, SKRect cropRect) 
         => new PictureImageFilter(picture, cropRect);
 
@@ -99,8 +96,6 @@ public record MatrixConvolutionImageFilter(SKSizeI KernelSize, float[]? Kernel, 
 public record MergeImageFilter(SKImageFilter[]? Filters, SKRect? Clip) : SKImageFilter;
 
 public record OffsetImageFilter(float Dx, float Dy, SKImageFilter? Input, SKRect? Clip) : SKImageFilter;
-
-public record PaintImageFilter(SKPaint? Paint, SKRect? Clip) : SKImageFilter;
 
 public record PictureImageFilter(SKPicture? Picture, SKRect? Clip) : SKImageFilter;
 
