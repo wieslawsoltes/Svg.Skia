@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -24,8 +26,16 @@ public class App : Application
         {
             if (File.Exists(ConfigurationPath))
             {
-                using var stream = File.OpenRead(ConfigurationPath);
-                mainWindowViewModel.LoadConfiguration(stream);
+                try
+                {
+                    using var stream = File.OpenRead(ConfigurationPath);
+                    mainWindowViewModel.LoadConfiguration(stream);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                    Debug.WriteLine(ex.StackTrace);
+                }
             }
 
             desktop.MainWindow = new MainWindow
@@ -43,8 +53,16 @@ public class App : Application
         {
             if (File.Exists(ConfigurationPath))
             {
-                using var stream = File.OpenRead(ConfigurationPath);
-                mainWindowViewModel.LoadConfiguration(stream);
+                try
+                {
+                    using var stream = File.OpenRead(ConfigurationPath);
+                    mainWindowViewModel.LoadConfiguration(stream);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                    Debug.WriteLine(ex.StackTrace);
+                }
             }
 
             single.MainView = new MainView
