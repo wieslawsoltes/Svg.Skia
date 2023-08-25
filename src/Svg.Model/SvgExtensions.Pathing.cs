@@ -264,11 +264,6 @@ public static partial class SvgExtensions
                         return skPath;
                     }
 
-                    if (svgPathSegmentList[i + 1] is SvgClosePathSegment)
-                    {
-                        return skPath;
-                    }
-
                     isEndFigure = true;
                     haveFigure = true;
                     var end = ToAbsolute(svgMoveToSegment.End, svgMoveToSegment.IsRelative, start);
