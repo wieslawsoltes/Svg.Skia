@@ -263,27 +263,25 @@ public static partial class SvgExtensions
                     {
                         return skPath;
                     }
-                    else
-                    {
-                        if (svgPathSegmentList[i + 1] is SvgMoveToSegment)
-                        {
-                            return skPath;
-                        }
 
-                        if (svgPathSegmentList[i + 1] is SvgClosePathSegment)
-                        {
-                            return skPath;
-                        }
+                    if (svgPathSegmentList[i + 1] is SvgMoveToSegment)
+                    {
+                        return skPath;
                     }
+
+                    if (svgPathSegmentList[i + 1] is SvgClosePathSegment)
+                    {
+                        return skPath;
+                    }
+
                     isEndFigure = true;
                     haveFigure = false;
                     var end = ToAbsolute(svgMoveToSegment.End, svgMoveToSegment.IsRelative, start);
                     skPath.MoveTo(end.X, end.Y);
                     start = end;
                     prevMove = end;
-                }
                     break;
-
+                }
                 case SvgLineSegment svgLineSegment:
                 {
                     if (isEndFigure == false)
@@ -296,9 +294,8 @@ public static partial class SvgExtensions
                     points.Add(start);
                     points.Add(end);
                     start = end;
-                }
                     break;
-
+                }
                 case SvgCubicCurveSegment svgCubicCurveSegment:
                 {
                     if (isEndFigure == false)
@@ -335,9 +332,8 @@ public static partial class SvgExtensions
                     points.Add(second);
                     points.Add(end);
                     start = end;
-                }
                     break;
-
+                }
                 case SvgQuadraticCurveSegment svgQuadraticCurveSegment:
                 {
                     if (isEndFigure == false)
@@ -372,9 +368,8 @@ public static partial class SvgExtensions
                     points.Add(controlPoint);
                     points.Add(end);
                     start = end;
-                }
                     break;
-
+                }
                 case SvgArcSegment svgArcSegment:
                 {
                     if (isEndFigure == false)
@@ -392,9 +387,8 @@ public static partial class SvgExtensions
                     points.Add(start);
                     points.Add(end);
                     start = end;
-                }
                     break;
-
+                }
                 case SvgClosePathSegment _:
                 {
                     if (isEndFigure == false)
@@ -409,8 +403,8 @@ public static partial class SvgExtensions
                     haveFigure = false;
                     skPath.Close();
                     start = prevMove;
-                } 
                     break;
+                } 
             }
         }
 
