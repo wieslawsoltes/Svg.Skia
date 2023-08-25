@@ -381,6 +381,10 @@ public static partial class SvgExtensions
                 }
                 case SvgClosePathSegment _:
                 {
+                    if (isEndFigure == false && haveFigure == false)
+                    {
+                        continue;
+                    }
                     if (isEndFigure == false)
                     {
                         return default;
