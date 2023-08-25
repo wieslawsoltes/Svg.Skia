@@ -264,18 +264,13 @@ public static partial class SvgExtensions
                         return skPath;
                     }
 
-                    if (svgPathSegmentList[i + 1] is SvgMoveToSegment)
-                    {
-                        return skPath;
-                    }
-
                     if (svgPathSegmentList[i + 1] is SvgClosePathSegment)
                     {
                         return skPath;
                     }
 
                     isEndFigure = true;
-                    haveFigure = false;
+                    haveFigure = true;
                     var end = ToAbsolute(svgMoveToSegment.End, svgMoveToSegment.IsRelative, start);
                     skPath.MoveTo(end.X, end.Y);
                     start = end;
