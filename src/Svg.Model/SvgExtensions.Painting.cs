@@ -844,6 +844,7 @@ public static partial class SvgExtensions
 #else
                     var skColorShader = SKShader.CreateColor(skColor);
 #endif
+                    skPaint.Color = skColor;
                     if (skColorShader is { })
                     {
                         skPaint.Shader = skColorShader;
