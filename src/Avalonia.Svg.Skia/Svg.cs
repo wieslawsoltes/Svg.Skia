@@ -26,6 +26,12 @@ public class Svg : Control
         AvaloniaProperty.Register<Svg, string?>(nameof(Path));
 
     /// <summary>
+    /// Defines the <see cref="Source"/> property.
+    /// </summary>
+    public static readonly StyledProperty<string?> SourceProperty =
+        AvaloniaProperty.Register<Svg, string?>(nameof(Source));
+
+    /// <summary>
     /// Defines the <see cref="Stretch"/> property.
     /// </summary>
     public static readonly StyledProperty<Stretch> StretchProperty =
@@ -55,6 +61,15 @@ public class Svg : Control
     {
         get => GetValue(PathProperty);
         set => SetValue(PathProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the Svg source.
+    /// </summary>
+    public string? Source
+    {
+        get => GetValue(SourceProperty);
+        set => SetValue(SourceProperty, value);
     }
 
     /// <summary>
@@ -101,8 +116,8 @@ public class Svg : Control
 
     static Svg()
     {
-        AffectsRender<Svg>(PathProperty, StretchProperty, StretchDirectionProperty);
-        AffectsMeasure<Svg>(PathProperty, StretchProperty, StretchDirectionProperty);
+        AffectsRender<Svg>(PathProperty, SourceProperty, StretchProperty, StretchDirectionProperty);
+        AffectsMeasure<Svg>(PathProperty, SourceProperty, StretchProperty, StretchDirectionProperty);
     }
 
     /// <summary>
@@ -135,7 +150,6 @@ public class Svg : Control
             : default;
 
         return Stretch.CalculateSize(availableSize, sourceSize, StretchDirection);
-
     }
 
     protected override Size ArrangeOverride(Size finalSize)
@@ -201,7 +215,14 @@ public class Svg : Control
         if (change.Property == PathProperty)
         {
             var path = change.GetNewValue<string?>();
-            Load(path);
+            LoadFromPath(path);
+            InvalidateVisual();
+        }
+
+        if (change.Property == SourceProperty)
+        {
+            var source = change.GetNewValue<string?>();
+            LoadFromSource(source);
             InvalidateVisual();
         }
 
@@ -219,7 +240,7 @@ public class Svg : Control
         }
     }
 
-    private void Load(string? path)
+    private void LoadFromPath(string? path, Dictionary<string, string>? entities = null)
     {
         if (path is null)
         {
@@ -243,12 +264,33 @@ public class Svg : Control
 
         try
         {
-            _svg = SvgSource.Load<SvgSource>(path, _baseUri);
+            _svg = SvgSource.Load<SvgSource>(path, _baseUri, entities);
 
             if (_enableCache && _cache is { } && _svg is { })
             {
                 _cache[path] = _svg;
             }
+        }
+        catch (Exception e)
+        {
+            Logger.TryGet(LogEventLevel.Warning, LogArea.Control)?.Log(this, "Failed to load svg image: " + e);
+            _svg = null;
+        }
+    }
+
+    private void LoadFromSource(string? source)
+    {
+        if (source is null)
+        {
+            _svg?.Dispose();
+            _svg = null;
+            DisposeCache();
+            return;
+        }
+
+        try
+        {
+            _svg = SvgSource.LoadFromSvg<SvgSource>(source);
         }
         catch (Exception e)
         {

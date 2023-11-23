@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using Svg;
 using Svg.Skia;
 
 namespace Avalonia.Svg.Skia;
@@ -18,13 +20,14 @@ public class SvgSource : SKSvg
     /// </summary>
     /// <param name="path">The path to file or resource.</param>
     /// <param name="baseUri">The base uri.</param>
+    /// <param name="entities">The svg entities.</param>
     /// <returns>The svg source.</returns>
-    public static T? Load<T>(string path, Uri? baseUri) where T : SKSvg, new()
+    public static T? Load<T>(string path, Uri? baseUri, Dictionary<string, string>? entities = null) where T : SKSvg, new()
     {
         if (File.Exists(path))
         {
             var source = new T();
-            source.Load(path);
+            source.Load(path, entities);
             return source;
         }
 
@@ -37,7 +40,7 @@ public class SvgSource : SKSvg
                 {
                     var stream = response.Content.ReadAsStreamAsync().Result;
                     var source = new T();
-                    source.Load(stream);
+                    source.Load(stream, entities);
                     return source;
                 }
             }
@@ -54,7 +57,7 @@ public class SvgSource : SKSvg
         if (uri.IsAbsoluteUri && uri.IsFile)
         {
             var source = new T();
-            source.Load(uri.LocalPath);
+            source.Load(uri.LocalPath, entities);
             return source;
         }
         else
@@ -65,8 +68,45 @@ public class SvgSource : SKSvg
                 return default;
             }
             var source = new T();
-            source.Load(stream);
+            source.Load(stream, entities);
             return source;
         }
+    }
+
+    /// <summary>t
+    /// Loads svg source from svg source.
+    /// </summary>
+    /// <param name="source">The svg source.</param>
+    /// <returns>The svg source.</returns>
+    public static T? LoadFromSvg<T>(string source) where T : SKSvg, new()
+    {
+        var skSvg = new T();
+        skSvg.FromSvg(source);
+        return skSvg;
+    }
+
+    /// <summary>t
+    /// Loads svg source from file or resource.
+    /// </summary>
+    /// <param name="stream">The svg stream.</param>
+    /// <param name="entities">The svg entities.</param>
+    /// <returns>The svg source.</returns>
+    public static T? LoadFromStream<T>(Stream stream, Dictionary<string, string>? entities = null) where T : SKSvg, new()
+    {
+        var skSvg = new T();
+        skSvg.Load(stream, entities);
+        return skSvg;
+    }
+
+    /// <summary>t
+    /// Loads svg source from svg document.
+    /// </summary>
+    /// <param name="document">The svg document.</param>
+    /// <returns>The svg source.</returns>
+    public static T? LoadFromSvgDocument<T>(SvgDocument document) where T : SKSvg, new()
+    {
+        var skSvg = new T();
+        skSvg.FromSvgDocument(document);
+        return skSvg;
     }
 }

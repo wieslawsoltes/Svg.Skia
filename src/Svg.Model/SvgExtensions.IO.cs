@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO.Compression;
 using System.Net;
 using System.Text;
+using System.Xml;
 using Svg.Model.Drawables;
 #if USE_SKIASHARP
 using SkiaSharp;
@@ -296,12 +297,12 @@ public static partial class SvgExtensions
         return picture;
     }
 #endif
-    public static SvgDocument? OpenSvg(string path)
+    public static SvgDocument? OpenSvg(string path, Dictionary<string, string>? entities = null)
     {
-        return SvgDocument.Open<SvgDocument>(path, null);
+        return SvgDocument.Open<SvgDocument>(path, entities);
     }
 
-    public static SvgDocument? OpenSvgz(string path)
+    public static SvgDocument? OpenSvgz(string path, Dictionary<string, string>? entities = null)
     {
         using var fileStream = System.IO.File.OpenRead(path);
         using var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress);
@@ -310,27 +311,32 @@ public static partial class SvgExtensions
         gzipStream.CopyTo(memoryStream);
         memoryStream.Position = 0;
 
-        return Open(memoryStream);
+        return Open(memoryStream, entities);
     }
 
-    public static SvgDocument? Open(string path)
+    public static SvgDocument? Open(string path, Dictionary<string, string>? entities = null)
     {
         var extension = System.IO.Path.GetExtension(path);
         return extension.ToLower() switch
         {
-            ".svg" => OpenSvg(path),
-            ".svgz" => OpenSvgz(path),
-            _ => OpenSvg(path),
+            ".svg" => OpenSvg(path, entities),
+            ".svgz" => OpenSvgz(path, entities),
+            _ => OpenSvg(path, entities),
         };
     }
 
-    public static SvgDocument? Open(System.IO.Stream stream)
+    public static SvgDocument? Open(System.IO.Stream stream, Dictionary<string, string>? entities = null)
     {
-        return SvgDocument.Open<SvgDocument>(stream, null);
+        return SvgDocument.Open<SvgDocument>(stream, entities);
     }
 
     public static SvgDocument? FromSvg(string svg)
     {
         return SvgDocument.FromSvg<SvgDocument>(svg);
+    }
+
+    public static SvgDocument? Open(XmlReader reader)
+    {
+        return SvgDocument.Open<SvgDocument>(reader);
     }
 }

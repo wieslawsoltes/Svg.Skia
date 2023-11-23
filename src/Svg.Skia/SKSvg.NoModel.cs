@@ -1,11 +1,48 @@
 ﻿#if USE_SKIASHARP
 using System;
+using System.Collections.Generic;
+using System.Xml;
 using Svg.Model;
 
 namespace Svg.Skia;
 
 public class SKSvg : IDisposable
 {
+    public static SKSvg CreateFromStream(System.IO.Stream stream, Dictionary<string, string>? entities = null)
+    {
+        var skSvg = new SKSvg();
+        skSvg.Load(stream, entities);
+        return skSvg;
+    }
+
+    public static SKSvg CreateFromFile(string path, Dictionary<string, string>? entities = null)
+    {
+        var skSvg = new SKSvg();
+        skSvg.Load(path, entities);
+        return skSvg;
+    }
+
+    public static SKSvg CreateFromXmlReader(XmlReader reader)
+    {
+        var skSvg = new SKSvg();
+        skSvg.Load(reader);
+        return skSvg;
+    }
+
+    public static SKSvg CreateFromSvg(string svg)
+    {
+        var skSvg = new SKSvg();
+        skSvg.FromSvg(svg);
+        return skSvg;
+    }
+
+    public static SKSvg CreateFromSvgDocument(SvgDocument svgDocument)
+    {
+        var skSvg = new SKSvg();
+        skSvg.FromSvgDocument(svgDocument);
+        return skSvg;
+    }
+
     public static SkiaSharp.SKPicture? ToPicture(SvgFragment svgFragment, IAssetLoader assetLoader)
     {
         return SvgExtensions.ToPicture(svgFragment, assetLoader, out _, out _);
@@ -23,10 +60,10 @@ public class SKSvg : IDisposable
         AssetLoader = new SkiaAssetLoader();
     }
 
-    public SkiaSharp.SKPicture? Load(System.IO.Stream stream)
+    public SkiaSharp.SKPicture? Load(System.IO.Stream stream, Dictionary<string, string>? entities = null)
     {
         Reset();
-        var svgDocument = SvgExtensions.Open(stream);
+        var svgDocument = SvgExtensions.Open(stream, entities);
         if (svgDocument is { })
         {
             Picture = SvgExtensions.ToPicture(svgDocument, AssetLoader, out var _, out _);
@@ -35,10 +72,22 @@ public class SKSvg : IDisposable
         return null;
     }
 
-    public SkiaSharp.SKPicture? Load(string path)
+    public SkiaSharp.SKPicture? Load(string path, Dictionary<string, string>? entities = null)
     {
         Reset();
-        var svgDocument = SvgExtensions.Open(path);
+        var svgDocument = SvgExtensions.Open(path, entities);
+        if (svgDocument is { })
+        {
+            Picture = SvgExtensions.ToPicture(svgDocument, AssetLoader, out var _, out _);
+            return Picture;
+        }
+        return null;
+    }
+
+    public SkiaSharp.SKPicture? Load(XmlReader reader)
+    {
+        Reset();
+        var svgDocument = SvgExtensions.Open(reader);
         if (svgDocument is { })
         {
             Picture = SvgExtensions.ToPicture(svgDocument, AssetLoader, out var _, out _);
