@@ -73,7 +73,7 @@ public class SvgSource : SKSvg
         }
     }
 
-    /// <summary>t
+    /// <summary>
     /// Loads svg source from svg source.
     /// </summary>
     /// <param name="source">The svg source.</param>
@@ -86,7 +86,7 @@ public class SvgSource : SKSvg
     }
 
     /// <summary>t
-    /// Loads svg source from file or resource.
+    /// Loads svg source from stream.
     /// </summary>
     /// <param name="stream">The svg stream.</param>
     /// <param name="entities">The svg entities.</param>
