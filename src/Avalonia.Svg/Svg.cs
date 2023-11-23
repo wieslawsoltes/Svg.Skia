@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Metadata;
@@ -22,6 +23,12 @@ public class Svg : Control
         AvaloniaProperty.Register<Svg, string?>(nameof(Path));
 
     /// <summary>
+    /// Defines the <see cref="Source"/> property.
+    /// </summary>
+    public static readonly StyledProperty<string?> SourceProperty =
+        AvaloniaProperty.Register<Svg, string?>(nameof(Source));
+
+    /// <summary>
     /// Defines the <see cref="Stretch"/> property.
     /// </summary>
     public static readonly StyledProperty<Stretch> StretchProperty =
@@ -43,6 +50,15 @@ public class Svg : Control
     {
         get => GetValue(PathProperty);
         set => SetValue(PathProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the Svg source.
+    /// </summary>
+    public string? Source
+    {
+        get => GetValue(SourceProperty);
+        set => SetValue(SourceProperty, value);
     }
 
     /// <summary>
@@ -70,8 +86,8 @@ public class Svg : Control
 
     static Svg()
     {
-        AffectsRender<Svg>(PathProperty, StretchProperty, StretchDirectionProperty);
-        AffectsMeasure<Svg>(PathProperty, StretchProperty, StretchDirectionProperty);
+        AffectsRender<Svg>(PathProperty, SourceProperty, StretchProperty, StretchDirectionProperty);
+        AffectsMeasure<Svg>(PathProperty, SourceProperty, StretchProperty, StretchDirectionProperty);
     }
 
     /// <summary>
@@ -169,20 +185,42 @@ public class Svg : Control
 
         if (change.Property == PathProperty)
         {
-            Load();
+            var path = change.GetNewValue<string?>();
+            LoadFromPath(path);
+            InvalidateVisual();
+        }
+        
+        if (change.Property == SourceProperty)
+        {
+            var source = change.GetNewValue<string?>();
+            LoadFromSource(source);
             InvalidateVisual();
         }
     }
 
-    private void Load()
+    private void LoadFromPath(string? path, Dictionary<string, string>? entities = null)
     {
         _picture = default;
         _avaloniaPicture?.Dispose();
 
-        var path = Path;
         if (path is not null)
         {
-            _picture = SvgSource.LoadPicture(path, _baseUri);
+            _picture = SvgSource.LoadPicture(path, _baseUri, entities);
+            if (_picture is { })
+            {
+                _avaloniaPicture = AvaloniaPicture.Record(_picture);
+            }
+        }
+    }
+
+    private void LoadFromSource(string? source)
+    {
+        _picture = default;
+        _avaloniaPicture?.Dispose();
+
+        if (source is not null)
+        {
+            _picture = SvgSource.LoadPictureFromSvg(source);
             if (_picture is { })
             {
                 _avaloniaPicture = AvaloniaPicture.Record(_picture);
