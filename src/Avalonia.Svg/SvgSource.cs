@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -25,12 +26,13 @@ public class SvgSource
     /// </summary>
     /// <param name="path">The path to file or resource.</param>
     /// <param name="baseUri">The base uri.</param>
+    /// <param name="entities">The svg entities.</param>
     /// <returns>The svg picture.</returns>
-    public static SKPicture? LoadPicture(string path, Uri? baseUri)
+    public static SKPicture? LoadPicture(string path, Uri? baseUri, Dictionary<string, string>? entities = null)
     {
         if (File.Exists(path))
         {
-            var document = SM.SvgExtensions.Open(path);
+            var document = SM.SvgExtensions.Open(path, entities);
             return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;
         }
 
@@ -42,7 +44,7 @@ public class SvgSource
                 if (response.IsSuccessStatusCode)
                 {
                     var stream = response.Content.ReadAsStreamAsync().Result;
-                    var document = SM.SvgExtensions.Open(stream);
+                    var document = SM.SvgExtensions.Open(stream, entities);
                     return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;
                 }
             }
@@ -58,7 +60,7 @@ public class SvgSource
         var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
         if (uri.IsAbsoluteUri && uri.IsFile)
         {
-            var document = SM.SvgExtensions.Open(uri.LocalPath);
+            var document = SM.SvgExtensions.Open(uri.LocalPath, entities);
             return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;
         }
         else
@@ -68,7 +70,7 @@ public class SvgSource
             {
                 return default;
             }
-            var document = SM.SvgExtensions.Open(stream);
+            var document = SM.SvgExtensions.Open(stream, entities);
             return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;
         }
     }
@@ -78,9 +80,54 @@ public class SvgSource
     /// </summary>
     /// <param name="path">The path to file or resource.</param>
     /// <param name="baseUri">The base uri.</param>
+    /// <param name="entities">The svg entities.</param>
     /// <returns>The svg source.</returns>
-    public static SvgSource Load(string path, Uri? baseUri)
+    public static SvgSource Load(string path, Uri? baseUri, Dictionary<string, string>? entities = null)
     {
-        return new() { Picture = LoadPicture(path, baseUri) };
+        return new() { Picture = LoadPicture(path, baseUri, entities) };
+    }
+
+    /// <summary>
+    /// Loads svg picture from stream.
+    /// </summary>
+    /// <param name="stream">The svg stream.</param>
+    /// <param name="entities">The svg entities.</param>
+    /// <returns>The svg picture.</returns>
+    public static SKPicture? LoadPicture(Stream stream, Dictionary<string, string>? entities = null)
+    {
+        var document = SM.SvgExtensions.Open(stream, entities);
+        return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;
+    }
+
+    /// <summary>
+    /// Loads svg source from stream.
+    /// </summary>
+    /// <param name="stream">The svg stream.</param>
+    /// <param name="entities">The svg entities.</param>
+    /// <returns>The svg source.</returns>
+    public static SvgSource Load(Stream stream, Dictionary<string, string>? entities = null)
+    {
+        return new() { Picture = LoadPicture(stream, entities) };
+    }
+
+    /// <summary>
+    /// Loads svg picture from svg source.
+    /// </summary>
+    /// <param name="source">The svg source.</param>
+    /// <returns>The svg picture.</returns>
+    public static SKPicture? LoadPictureFromSvg(string source)
+    {
+        var document = SM.SvgExtensions.FromSvg(source);
+        return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;
+    }
+
+    /// <summary>
+    /// Loads svg source from svg source.
+    /// </summary>
+    /// <param name="source">The svg source.</param>
+    /// <returns>The svg source.</returns>
+    public static SvgSource LoadFromSvg(string source)
+    {
+        return new() { Picture = LoadPictureFromSvg(source) };
     }
 }
