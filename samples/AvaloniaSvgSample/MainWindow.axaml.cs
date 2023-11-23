@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -27,6 +28,13 @@ public partial class MainWindow : Window
 
         svgResourceDockPanel.AddHandler(DragDrop.DropEvent, Drop);
         svgResourceDockPanel.AddHandler(DragDrop.DragOverEvent, DragOver);
+
+        stringTextBox.Text =
+            """
+            <svg width="100" height="100">
+               <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" />
+            </svg>
+            """;
     }
 
     public void SvgSvgStretchChanged(object sender, SelectionChangedEventArgs e)
@@ -62,6 +70,15 @@ public partial class MainWindow : Window
         {
             var comboBox = (ComboBox)sender;
             svgResourceImage.Stretch = (Stretch)comboBox.SelectedIndex;
+        }
+    }
+
+    public void SvgStringStretchChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (svgString is { })
+        {
+            var comboBox = (ComboBox)sender;
+            svgString.Stretch = (Stretch)comboBox.SelectedIndex;
         }
     }
 
@@ -106,6 +123,11 @@ public partial class MainWindow : Window
                     {
                         Source = SvgSource.Load(fileName, null)
                     };
+                }
+                else if (sender == stringTextBox || sender == svgString)
+                {
+                    var source = File.ReadAllText(fileName);
+                    stringTextBox.Text = source;
                 }
             }
         }

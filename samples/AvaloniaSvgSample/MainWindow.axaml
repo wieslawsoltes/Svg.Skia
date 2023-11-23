@@ -95,6 +95,27 @@
       </Panel>
     </TabItem>
 
+    <TabItem Header="String">
+      <DockPanel x:Name="svgStringDockPanel" 
+                 Background="Transparent" 
+                 Margin="16" 
+                 VerticalAlignment="Stretch"
+                 HorizontalAlignment="Stretch" 
+                 DragDrop.AllowDrop="True">
+        <ComboBox Name="svgStringStretch" DockPanel.Dock="Top" SelectedIndex="2" SelectionChanged="SvgStringStretchChanged">
+          <ComboBoxItem>None</ComboBoxItem>
+          <ComboBoxItem>Fill</ComboBoxItem>
+          <ComboBoxItem>Uniform</ComboBoxItem>
+          <ComboBoxItem>UniformToFill</ComboBoxItem>
+        </ComboBox>
+        <Grid ColumnDefinitions="50*,8,50*">
+          <Svg Grid.Column="0" Name="svgString" Source="{Binding #stringTextBox.Text}" />
+          <GridSplitter Grid.Column="1" />
+          <TextBox Grid.Column="2" Name="stringTextBox" AcceptsReturn="True" AcceptsTab="True" />
+        </Grid>
+      </DockPanel>
+    </TabItem>
+
   </TabControl>
 
 </Window>
