@@ -3,12 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
-#if USE_SKIASHARP
-using SkiaSharp;
-using SkiaSharp.HarfBuzz;
-#else
 using ShimSkiaSharp;
-#endif
 
 namespace Svg.Model.Drawables.Elements;
 
@@ -157,12 +152,7 @@ public sealed class TextDrawable : DrawableBase
             if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !IgnoreAttributes.HasFlag(DrawAttributes.ClipPath))
             {
                 var antialias = SvgExtensions.IsAntialias(svgTextBase);
-#if USE_SKIASHARP
-                // TODO: skCanvas.ClipPath(clipPath, SKClipOperation.Intersect, antialias);
-                throw new NotImplementedException();
-#else
                 skCanvas.ClipPath(clipPath, SKClipOperation.Intersect, antialias);
-#endif
             }
         }
 
@@ -287,9 +277,7 @@ public sealed class TextDrawable : DrawableBase
 #else
                     skCanvas.DrawText(typefaceSpan.Text, x + fillAdvance, y, skPaint);
 #endif
-#if !USE_SKIASHARP
                     skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
-#endif
                     fillAdvance += typefaceSpan.Advance;
                 }
             }
@@ -316,9 +304,7 @@ public sealed class TextDrawable : DrawableBase
 #else
                     skCanvas.DrawText(typefaceSpan.Text, x + strokeAdvance, y, skPaint);
 #endif
-#if !USE_SKIASHARP
                     skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
-#endif
                     strokeAdvance += typefaceSpan.Advance;
                 }
             }
@@ -407,17 +393,10 @@ public sealed class TextDrawable : DrawableBase
                             {
                                 skPaint.Typeface = typefaceSpan.Typeface;
                                 var codepoints = Codepoints(typefaceSpan.Text);
-#if USE_SKIASHARP
-                                var textBlob = SKTextBlob.CreatePositioned(
-                                    typefaceSpan.Text, 
-                                    skPaint.ToFont(), 
-                                    points.AsSpan(offset, codepoints));
-#else
                                 var textBlob = SKTextBlob.CreatePositioned(
                                     typefaceSpan.Text,
                                     points.AsMemory(offset, codepoints).ToArray());
                                 skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
-#endif
                                 skCanvas.DrawText(textBlob, 0, 0, skPaint);
                                 offset += codepoints;
                             }

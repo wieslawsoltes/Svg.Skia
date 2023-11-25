@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-#if USE_SKIASHARP
-using SkiaSharp;
-#else
 using ShimSkiaSharp;
-#endif
 
 namespace Svg.Model.Drawables.Elements;
 
@@ -102,11 +98,7 @@ public sealed class FragmentDrawable : DrawableContainer
             SvgExtensions.GetClipPath(svgClipPath, skViewport, clipPathUris, clipPath);
             if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !IgnoreAttributes.HasFlag(DrawAttributes.ClipPath))
             {
-#if USE_SKIASHARP
-                ClipPath = SvgExtensions.ToSKPath(clipPath);
-#else
                 ClipPath = clipPath;    
-#endif
             }
             else
             {

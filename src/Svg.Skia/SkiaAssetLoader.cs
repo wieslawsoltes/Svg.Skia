@@ -4,34 +4,21 @@ namespace Svg.Skia;
 
 public class SkiaAssetLoader : Model.IAssetLoader
 {
-#if !USE_SKIASHARP
     private readonly SkiaModel _skiaModel;
 
     public SkiaAssetLoader(SkiaModel skiaModel)
     {
         _skiaModel = skiaModel;
     }
-#endif
-    
-#if USE_SKIASHARP
-    public SkiaSharp.SKImage LoadImage(System.IO.Stream stream)
-    {
-        return SkiaSharp.SKImage.FromEncodedData(stream);
-    }
-#else
+
     public ShimSkiaSharp.SKImage LoadImage(System.IO.Stream stream)
     {
         var data = ShimSkiaSharp.SKImage.FromStream(stream);
         using var image = SkiaSharp.SKImage.FromEncodedData(data);
         return new ShimSkiaSharp.SKImage {Data = data, Width = image.Width, Height = image.Height};
     }
-#endif
 
-#if USE_SKIASHARP
-    public List<Model.TypefaceSpan> FindTypefaces(string? text, SkiaSharp.SKPaint paintPreferredTypeface)
-#else
     public List<Model.TypefaceSpan> FindTypefaces(string? text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
-#endif
     {
         var ret = new List<Model.TypefaceSpan>();
 
@@ -44,15 +31,10 @@ public class SkiaAssetLoader : Model.IAssetLoader
 
         if (paintPreferredTypeface.Typeface is { } preferredTypeface)
         {
-#if USE_SKIASHARP
-            var weight = (SkiaSharp.SKFontStyleWeight)preferredTypeface.FontWeight;
-            var width = (SkiaSharp.SKFontStyleWidth)preferredTypeface.FontWidth;
-            var slant = (SkiaSharp.SKFontStyleSlant)preferredTypeface.FontSlant;
-#else
             var weight = _skiaModel.ToSKFontStyleWeight(preferredTypeface.FontWeight);
             var width = _skiaModel.ToSKFontStyleWidth(preferredTypeface.FontWidth);
             var slant = _skiaModel.ToSKFontStyleSlant(preferredTypeface.FontSlant);
-#endif
+
             matchCharacter = codepoint => SkiaSharp.SKFontManager.Default.MatchCharacter(
                 preferredTypeface.FamilyName,
                 weight,
@@ -66,12 +48,7 @@ public class SkiaAssetLoader : Model.IAssetLoader
             matchCharacter = codepoint => SkiaSharp.SKFontManager.Default.MatchCharacter(codepoint);
         }
 
-        
-#if USE_SKIASHARP
-        using var runningPaint = paintPreferredTypeface.Clone();
-#else
         using var runningPaint = _skiaModel.ToSKPaint(paintPreferredTypeface);
-#endif
         if (runningPaint is null)
         {
             return ret;
@@ -85,9 +62,6 @@ public class SkiaAssetLoader : Model.IAssetLoader
             var currentTypefaceText = text.Substring(currentTypefaceStartIndex, i - currentTypefaceStartIndex);
 
             ret.Add(new(currentTypefaceText, runningPaint.MeasureText(currentTypefaceText),
-#if USE_SKIASHARP
-                runningPaint.Typeface
-#else
                 runningPaint.Typeface is null
                     ? null
                     : ShimSkiaSharp.SKTypeface.FromFamilyName(
@@ -97,7 +71,6 @@ public class SkiaAssetLoader : Model.IAssetLoader
                         (ShimSkiaSharp.SKFontStyleWeight)runningPaint.Typeface.FontWeight,
                         (ShimSkiaSharp.SKFontStyleWidth)runningPaint.Typeface.FontWidth,
                         (ShimSkiaSharp.SKFontStyleSlant)runningPaint.Typeface.FontSlant)
-#endif
             ));
         }
 

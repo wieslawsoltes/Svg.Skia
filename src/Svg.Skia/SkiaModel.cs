@@ -1,5 +1,4 @@
-﻿#if !USE_SKIASHARP
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ShimSkiaSharp;
 
 namespace Svg.Skia;
@@ -1184,4 +1183,3 @@ public class SkiaModel
         }
     }
 }
-#endif

@@ -1,9 +1,4 @@
-﻿#if USE_SKIASHARP
-using SkiaSharp;
-namespace SkiaSharp;
-#else
-namespace ShimSkiaSharp;
-#endif
+﻿namespace ShimSkiaSharp;
 
 public class PathClip
 {

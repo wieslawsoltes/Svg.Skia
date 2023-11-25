@@ -2,11 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using Svg.Model.Drawables.Elements;
-#if USE_SKIASHARP
-using SkiaSharp;
-#else
 using ShimSkiaSharp;
-#endif
 
 namespace Svg.Model;
 

@@ -1,5 +1,4 @@
-﻿#if !USE_SKIASHARP
-using System;
+﻿using System;
 using Svg.Model;
 using System.Collections.Generic;
 using System.Xml;
@@ -194,4 +193,3 @@ public class SKSvg : IDisposable
         Reset();
     }
 }
-#endif

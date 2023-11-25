@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using Svg.Model;
 using Newtonsoft.Json;
+using Svg.Model;
 
 namespace Svg.Skia.Converter;
 

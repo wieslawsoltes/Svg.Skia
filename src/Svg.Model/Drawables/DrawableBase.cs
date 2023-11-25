@@ -3,11 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using Svg.Model.Drawables.Elements;
-#if USE_SKIASHARP
-using SkiaSharp;
-#else
 using ShimSkiaSharp;
-#endif
 
 namespace Svg.Model.Drawables;
 
@@ -26,11 +22,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
     public SKMatrix TotalTransform { get; set; }
     public SKRect? Overflow { get; set; }
     public SKRect? Clip { get; set; }
-#if USE_SKIASHARP
-    public SKPath? ClipPath { get; set; }
-#else
     public ClipPath? ClipPath { get; set; }
-#endif
     public MaskDrawable? MaskDrawable { get; set; }
     public SKPaint? Mask { get; set; }
     public SKPaint? MaskDstIn { get; set; }
@@ -242,11 +234,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
             SvgExtensions.GetSvgVisualElementClipPath(visualElement, GeometryBounds, new HashSet<Uri>(), clipPath);
             if (clipPath.Clips is { } && clipPath.Clips.Count > 0)
             {
-#if USE_SKIASHARP
-                ClipPath = SvgExtensions.ToSKPath(clipPath);
-#else
                 ClipPath = clipPath;    
-#endif
             }
             else
             {

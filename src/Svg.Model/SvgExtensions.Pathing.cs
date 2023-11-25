@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-#if USE_SKIASHARP
-using SkiaSharp;
-#else
 using ShimSkiaSharp;
-#endif
 using Svg.Pathing;
 
 namespace Svg.Model;
@@ -24,88 +20,7 @@ public static partial class SvgExtensions
         PathMarker = 0x20,
         CloseSubpath = 0x80
     }
-#if USE_SKIASHARP
-        internal static List<(SKPoint Point, byte Type)> GetPathTypes(this SKPath path)
-        {
-            // System.Drawing.Drawing2D.GraphicsPath.PathTypes
-            // System.Drawing.Drawing2D.PathPointType
-            // byte -> PathPointType
-            var pathTypes = new List<(SKPoint Point, byte Type)>();
 
-            using var iterator = path.CreateRawIterator();
-            var points = new SKPoint[4];
-            var pathVerb = SKPathVerb.Move;
-
-            (SKPoint Point, byte Type) lastPoint = (default, 0);
-            while ((pathVerb = iterator.Next(points)) != SKPathVerb.Done)
-            {
-                switch (pathVerb)
-                {
-                    case SKPathVerb.Move:
-                    {
-                        var point0 = new SKPoint(points[0].X, points[0].Y);
-                        pathTypes.Add((point0, (byte)PathPointType.Start));
-                        lastPoint = (point0, (byte)PathPointType.Start);
-                        break;
-                    }
-                    case SKPathVerb.Line:
-                    {
-                        var point1 = new SKPoint(points[1].X, points[1].Y);
-                        pathTypes.Add((point1, (byte)PathPointType.Line));
-                        lastPoint = (point1, (byte)PathPointType.Line);
-                        break;
-                    }
-                    case SKPathVerb.Cubic:
-                    {
-                        
-                        var point1 = new SKPoint(points[1].X, points[1].Y);
-                        var point2 = new SKPoint(points[2].X, points[2].Y);
-                        var point3 = new SKPoint(points[3].X, points[3].Y);
-                        pathTypes.Add((point1, (byte)PathPointType.Bezier));
-                        pathTypes.Add((point2, (byte)PathPointType.Bezier));
-                        pathTypes.Add((point3, (byte)PathPointType.Bezier));
-                        lastPoint = (point3, (byte)PathPointType.Bezier);
-                        break;
-                    }
-                    case SKPathVerb.Quad:
-                    {
-                        var point1 = new SKPoint(points[1].X, points[1].Y);
-                        var point2 = new SKPoint(points[2].X, points[2].Y);
-                        pathTypes.Add((point1, (byte)PathPointType.Bezier));
-                        pathTypes.Add((point2, (byte)PathPointType.Bezier));
-                        lastPoint = (point2, (byte)PathPointType.Bezier);
-                        break;
-                    }
-                    case SKPathVerb.Conic:
-                    {
-                        var quads = SKPath.ConvertConicToQuads(points[0], points[1], points[2], iterator.ConicWeight(), 1);
-
-                        var point1 = new SKPoint(quads[1].X, quads[1].Y);
-                        var point2 = new SKPoint(quads[2].X, quads[2].Y);
-                        pathTypes.Add((point1, (byte)PathPointType.Bezier));
-                        pathTypes.Add((point2, (byte)PathPointType.Bezier));
-                        
-                        var point3 = new SKPoint(quads[3].X, quads[3].Y);
-                        var point4 = new SKPoint(quads[4].X, quads[4].Y);
-                        pathTypes.Add((point3, (byte)PathPointType.Bezier));
-                        pathTypes.Add((point4, (byte)PathPointType.Bezier));
-                        
-                        lastPoint = (point4, (byte)PathPointType.Bezier);
-                        
-                        break;
-                    }
-                    case SKPathVerb.Close:
-                    {
-                        lastPoint = (lastPoint.Point, (byte)(lastPoint.Type | (byte)PathPointType.CloseSubpath));
-                        pathTypes[pathTypes.Count - 1] = lastPoint;
-                        break;
-                    }
-                }
-            }
-
-            return pathTypes;
-        }
-#else
     internal static List<(SKPoint Point, byte Type)> GetPathTypes(this SKPath path)
     {
         // System.Drawing.Drawing2D.GraphicsPath.PathTypes
@@ -191,7 +106,7 @@ public static partial class SvgExtensions
 
         return pathTypes;
     }
-#endif
+
     internal static System.Drawing.PointF Reflect(System.Drawing.PointF point, System.Drawing.PointF mirror)
     {
         var dx = Math.Abs(mirror.X - point.X);
@@ -572,61 +487,4 @@ public static partial class SvgExtensions
 
         return skPath;
     }
-
-#if USE_SKIASHARP
-    internal static SkiaSharp.SKPath? ToSKPath(ClipPath? clipPath)
-    {
-        if (clipPath?.Clips is null)
-        {
-            return null;
-        }
-
-        var skPathResult = default(SkiaSharp.SKPath);
-
-        foreach (var clip in clipPath.Clips)
-        {
-            if (clip.Path is null)
-            {
-                return null;
-            }
-
-            var skPath = clip.Path;
-            var skPathClip = ToSKPath(clip.Clip);
-            if (skPathClip is { }) skPath = clip.Path.Op(skPathClip, SkiaSharp.SKPathOp.Intersect);
-
-            if (clip.Transform is { })
-            {
-                var skMatrix = clip.Transform.Value;
-                skPath.Transform(skMatrix);
-            }
-
-            if (skPathResult is null)
-            {
-                skPathResult = skPath;
-            }
-            else
-            {
-                var result = skPathResult.Op(skPath, SkiaSharp.SKPathOp.Union);
-                skPathResult = result;
-            }
-        }
-
-        if (skPathResult is { })
-        {
-            if (clipPath.Clip?.Clips is { })
-            {
-                var skPathClip = ToSKPath(clipPath.Clip);
-                if (skPathClip is { }) skPathResult = skPathResult.Op(skPathClip, SkiaSharp.SKPathOp.Intersect);
-            }
-
-            if (clipPath.Transform is { })
-            {
-                var skMatrix = clipPath.Transform.Value;
-                skPathResult.Transform(skMatrix);
-            }
-        }
-
-        return skPathResult;
-    }
-#endif
 }

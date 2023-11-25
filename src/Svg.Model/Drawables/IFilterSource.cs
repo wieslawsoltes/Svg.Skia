@@ -1,8 +1,4 @@
-﻿#if USE_SKIASHARP
-using SkiaSharp;
-#else
-using ShimSkiaSharp;
-#endif
+﻿using ShimSkiaSharp;
 
 namespace Svg.Model.Drawables;
 

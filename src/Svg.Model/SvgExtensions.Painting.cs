@@ -2,21 +2,12 @@
 using System.Collections.Generic;
 using Svg.DataTypes;
 using Svg.Model.Drawables;
-#if USE_SKIASHARP
-using SkiaSharp;
-#else
 using ShimSkiaSharp;
-#endif
 
 namespace Svg.Model;
 
 public static partial class SvgExtensions
 {
-#if USE_SKIASHARP
-    public static readonly SkiaSharp.SKColorSpace s_srgbLinear = SkiaSharp.SKColorSpace.CreateRgb(SkiaSharp.SKColorSpaceTransferFn.Linear, SkiaSharp.SKColorSpaceXyz.Srgb); // SkiaSharp.SKColorSpace.CreateSrgbLinear();
-
-    public static readonly SkiaSharp.SKColorSpace s_srgb = SkiaSharp.SKColorSpace.CreateRgb(SkiaSharp.SKColorSpaceTransferFn.Srgb, SkiaSharp.SKColorSpaceXyz.Srgb); // SkiaSharp.SKColorSpace.CreateSrgb();
-#endif
     internal static float AdjustSvgOpacity(float opacity)
     {
         return Math.Min(Math.Max(opacity, 0), 1);
@@ -807,11 +798,7 @@ public static partial class SvgExtensions
                     var skColor = GetColor(svgColourServer, opacity, ignoreAttributes);
                     var colorInterpolation = GetColorInterpolation(svgVisualElement);
                     var isLinearRgb = colorInterpolation == SvgColourInterpolation.LinearRGB;
-#if USE_SKIASHARP
-                    var skColorSpace = isLinearRgb ? s_srgbLinear : s_srgb;
-#else
                     var skColorSpace = isLinearRgb ? SKColorSpace.SrgbLinear : SKColorSpace.Srgb;
-#endif
                     var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
                     if (skColorShader is { })
                     {
@@ -825,11 +812,7 @@ public static partial class SvgExtensions
                 {
                     var colorInterpolation = GetColorInterpolation(svgVisualElement);
                     var isLinearRgb = colorInterpolation == SvgColourInterpolation.LinearRGB;
-#if USE_SKIASHARP
-                    var skColorSpace = isLinearRgb ? s_srgbLinear : s_srgb;
-#else
                     var skColorSpace = isLinearRgb ? SKColorSpace.SrgbLinear : SKColorSpace.Srgb;
-#endif
                     // TODO: Use skColorSpace in CreatePicture
                     var skPatternShader = CreatePicture(svgPatternServer, skBounds, svgVisualElement, opacity, assetLoader, references, ignoreAttributes);
                     if (skPatternShader is { })
@@ -862,11 +845,7 @@ public static partial class SvgExtensions
                 {
                     var colorInterpolation = GetColorInterpolation(svgLinearGradientServer);
                     var isLinearRgb = colorInterpolation == SvgColourInterpolation.LinearRGB;
-#if USE_SKIASHARP
-                    var skColorSpace = isLinearRgb ? s_srgbLinear : s_srgb;
-#else
                     var skColorSpace = isLinearRgb ? SKColorSpace.SrgbLinear : SKColorSpace.Srgb;
-#endif
 
                     if (svgLinearGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox && (skBounds.Width == 0f || skBounds.Height == 0f))
                     {
@@ -907,11 +886,7 @@ public static partial class SvgExtensions
                 {
                     var colorInterpolation = GetColorInterpolation(svgRadialGradientServer);
                     var isLinearRgb = colorInterpolation == SvgColourInterpolation.LinearRGB;
-#if USE_SKIASHARP
-                    var skColorSpace = isLinearRgb ? s_srgbLinear : s_srgb;
-#else
                     var skColorSpace = isLinearRgb ? SKColorSpace.SrgbLinear : SKColorSpace.Srgb;
-#endif
 
                     if (svgRadialGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox && (skBounds.Width == 0f || skBounds.Height == 0f))
                     {
