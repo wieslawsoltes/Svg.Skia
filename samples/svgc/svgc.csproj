@@ -33,7 +33,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Svg.Custom\Svg.Custom.csproj" />
     <ProjectReference Include="..\..\src\Svg.Model\Svg.Model.csproj" />
   </ItemGroup>
 
