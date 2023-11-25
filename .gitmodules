@@ -1,0 +1,6 @@
+[submodule "externals/SVG"]
+	path = externals/SVG
+	url = https://github.com/wieslawsoltes/SVG.git
+[submodule "externals/resvg"]
+	path = externals/resvg
+	url = https://github.com/wieslawsoltes/resvg.git
