@@ -16,12 +16,16 @@ public class SKSvg : IDisposable
         return skSvg;
     }
 
+    public static SKSvg CreateFromStream(System.IO.Stream stream) => CreateFromStream(stream, null);
+
     public static SKSvg CreateFromFile(string path, Dictionary<string, string>? entities = null)
     {
         var skSvg = new SKSvg();
         skSvg.Load(path, entities);
         return skSvg;
     }
+
+    public static SKSvg CreateFromFile(string path) => CreateFromFile(path, null);
 
     public static SKSvg CreateFromXmlReader(XmlReader reader)
     {
@@ -106,6 +110,8 @@ public class SKSvg : IDisposable
         return null;
     }
 
+    public SkiaSharp.SKPicture? Load(System.IO.Stream stream) => Load(stream, null);
+
     public SkiaSharp.SKPicture? Load(string path, Dictionary<string, string>? entities = null)
     {
         Reset();
@@ -119,6 +125,8 @@ public class SKSvg : IDisposable
         }
         return null;
     }
+
+    public SkiaSharp.SKPicture? Load(string path) => Load(path, null);
 
     public SkiaSharp.SKPicture? Load(XmlReader reader)
     {
