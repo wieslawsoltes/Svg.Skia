@@ -12,7 +12,7 @@
   <PropertyGroup>
     <Description>SkiaSharp picture recorder object model shim.</Description>
     <PackageId>ShimSkiaSharp</PackageId>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
     <PackageTags>vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;model</PackageTags>
   </PropertyGroup>
 

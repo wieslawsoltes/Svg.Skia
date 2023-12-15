@@ -461,4 +461,22 @@ The `Svg.Skia` library is using code from the https://github.com/vvvv/SVG
 
 Parts of Svg.Skia source code are adapted from the https://github.com/vvvv/SVG
 
-Svg.Skia is licensed under the [MIT license](LICENSE.TXT).
+Svg.Skia is licensed under the [GNU Affero General Public License](COPYING).
+
+```
+Svg.Skia SVG rendering library.
+Copyright (C) 2023  Wiesław Šoltés
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+```

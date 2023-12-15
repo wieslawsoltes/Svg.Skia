@@ -13,7 +13,7 @@
   <PropertyGroup>
     <Description>An SVG image control for Avalonia.</Description>
     <PackageId>Avalonia.Svg.Skia</PackageId>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
     <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;control;avalonia;avaloniaui</PackageTags>
   </PropertyGroup>
 
