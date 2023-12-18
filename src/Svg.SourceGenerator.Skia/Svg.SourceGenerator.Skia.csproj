@@ -14,7 +14,7 @@
   <PropertyGroup>
     <Description>An Svg drawing markup to C# source generator using SkiaSharp as rendering engine.</Description>
     <PackageId>Svg.SourceGenerator.Skia</PackageId>
-    <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>svg;skia;skiasharp;sourcegenerator;compiler;csharp;codegen;graphics</PackageTags>
   </PropertyGroup>
   

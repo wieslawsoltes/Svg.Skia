@@ -13,7 +13,7 @@
 
   <PropertyGroup>
     <Description>An Svg drawing markup to C# code generator using SkiaSharp as rendering engine.</Description>
-    <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageId>svgc</PackageId>
     <PackageTags>svg;skia;skiasharp;codegen;codegenerator;compiler;csharp;codegen;graphics</PackageTags>
   </PropertyGroup>

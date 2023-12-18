@@ -12,7 +12,7 @@
   <PropertyGroup>
     <Description>An SVG rendering object model library.</Description>
     <PackageId>Svg.Model</PackageId>
-    <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;model</PackageTags>
   </PropertyGroup>
 
