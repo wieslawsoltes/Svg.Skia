@@ -795,15 +795,25 @@ public static partial class SvgExtensions
         {
             case SvgColourServer svgColourServer:
                 {
+                    // We don't need to use a shader if we're just drawing a solid coloir in sRGB
+                    // See issue #195
                     var skColor = GetColor(svgColourServer, opacity, ignoreAttributes);
                     var colorInterpolation = GetColorInterpolation(svgVisualElement);
                     var isLinearRgb = colorInterpolation == SvgColourInterpolation.LinearRGB;
-                    var skColorSpace = isLinearRgb ? SKColorSpace.SrgbLinear : SKColorSpace.Srgb;
-                    var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
-                    if (skColorShader is { })
+                    if (!isLinearRgb)
                     {
-                        skPaint.Shader = skColorShader;
+                        skPaint.Color = skColor;
                         return true;
+                    }
+                    else
+                    {
+                        // Fall back to a shader which lets us specify the colour space
+                        var skColorShader = SKShader.CreateColor(skColor, SKColorSpace.SrgbLinear);
+                        if (skColorShader is { })
+                        {
+                            skPaint.Shader = skColorShader;
+                            return true;
+                        }
                     }
                 }
                 break;
