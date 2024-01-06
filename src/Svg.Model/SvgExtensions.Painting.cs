@@ -798,6 +798,14 @@ public static partial class SvgExtensions
                     var skColor = GetColor(svgColourServer, opacity, ignoreAttributes);
                     var colorInterpolation = GetColorInterpolation(svgVisualElement);
                     var isLinearRgb = colorInterpolation == SvgColourInterpolation.LinearRGB;
+
+                    if (colorInterpolation == SvgColourInterpolation.SRGB)
+                    {
+                        skPaint.Color = skColor;
+                        skPaint.Shader = null;
+                        return true;
+                    }
+
                     var skColorSpace = isLinearRgb ? SKColorSpace.SrgbLinear : SKColorSpace.Srgb;
                     var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
                     if (skColorShader is { })
@@ -825,6 +833,14 @@ public static partial class SvgExtensions
                         if (fallbackServer is SvgColourServer svgColourServerFallback)
                         {
                             var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
+                            
+                            if (skColorSpace == SKColorSpace.Srgb)
+                            {
+                                skPaint.Color = skColor;
+                                skPaint.Shader = null;
+                                return true;
+                            }
+
                             var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
                             if (skColorShader is { })
                             {
@@ -852,6 +868,14 @@ public static partial class SvgExtensions
                         if (fallbackServer is SvgColourServer svgColourServerFallback)
                         {
                             var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
+
+                            if (skColorSpace == SKColorSpace.Srgb)
+                            {
+                                skPaint.Color = skColor;
+                                skPaint.Shader = null;
+                                return true;
+                            }
+
                             var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
                             if (skColorShader is { })
                             {
@@ -893,6 +917,14 @@ public static partial class SvgExtensions
                         if (fallbackServer is SvgColourServer svgColourServerFallback)
                         {
                             var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
+
+                            if (skColorSpace == SKColorSpace.Srgb)
+                            {
+                                skPaint.Color = skColor;
+                                skPaint.Shader = null;
+                                return true;
+                            }
+ 
                             var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
                             if (skColorShader is { })
                             {
