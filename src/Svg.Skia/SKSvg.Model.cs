@@ -114,7 +114,7 @@ public class SKSvg : IDisposable
         Path = null;
         Entities = entities;
         Stream.Position = 0;
-        var svgDocument = SvgExtensions.Open(stream, entities);
+        var svgDocument = SvgExtensions.Open(Stream, entities);
         if (svgDocument is { })
         {
             Model = SvgExtensions.ToModel(svgDocument, AssetLoader, out var drawable, out _);
