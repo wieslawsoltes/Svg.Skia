@@ -273,12 +273,12 @@ public static partial class SvgExtensions
         return picture;
     }
 
-    public static SvgDocument? OpenSvg(string path, Dictionary<string, string>? entities = null)
+    public static SvgDocument? OpenSvg(string path, SvgParameters? entities = null)
     {
-        return SvgDocument.Open<SvgDocument>(path, entities);
+        return SvgDocument.Open<SvgDocument>(path, entities?.ParserEntities, entities?.CSS);
     }
 
-    public static SvgDocument? OpenSvgz(string path, Dictionary<string, string>? entities = null)
+    public static SvgDocument? OpenSvgz(string path, SvgParameters? entities = null)
     {
         using var fileStream = System.IO.File.OpenRead(path);
         using var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress);
@@ -290,7 +290,7 @@ public static partial class SvgExtensions
         return Open(memoryStream, entities);
     }
 
-    public static SvgDocument? Open(string path, Dictionary<string, string>? entities = null)
+    public static SvgDocument? Open(string path, SvgParameters? entities = null)
     {
         var extension = System.IO.Path.GetExtension(path);
         return extension.ToLower() switch
@@ -301,9 +301,9 @@ public static partial class SvgExtensions
         };
     }
 
-    public static SvgDocument? Open(System.IO.Stream stream, Dictionary<string, string>? entities = null)
+    public static SvgDocument? Open(System.IO.Stream stream, SvgParameters? entities = null)
     {
-        return SvgDocument.Open<SvgDocument>(stream, entities);
+        return SvgDocument.Open<SvgDocument>(stream, entities?.ParserEntities, entities?.CSS);
     }
 
     public static SvgDocument? FromSvg(string svg)

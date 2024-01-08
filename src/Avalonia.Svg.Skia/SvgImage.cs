@@ -1,5 +1,6 @@
 ﻿using Avalonia.Media;
 using Avalonia.Metadata;
+using Svg.Model;
 
 namespace Avalonia.Svg.Skia;
 
@@ -13,6 +14,12 @@ public class SvgImage : AvaloniaObject, IImage
     /// </summary>
     public static readonly StyledProperty<SvgSource?> SourceProperty =
         AvaloniaProperty.Register<SvgImage, SvgSource?>(nameof(Source));
+                
+    public static readonly StyledProperty<string> CSSProperty =
+    AvaloniaProperty.Register<SvgImage, string>(nameof(CSS));
+
+    public static readonly StyledProperty<string> CSSCurrentProperty =
+        AvaloniaProperty.Register<SvgImage, string>(nameof(CSSCurrent));
 
     /// <summary>
     /// Gets or sets the <see cref="SvgSource"/> content.
@@ -23,6 +30,18 @@ public class SvgImage : AvaloniaObject, IImage
         get => GetValue(SourceProperty);
         set => SetValue(SourceProperty, value);
     }
+    
+     public string CSS
+    {
+        get => GetValue(CSSProperty);
+        set => SetValue(CSSProperty, value);
+    }
+
+    public string CSSCurrent
+    {
+        get => GetValue(CSSCurrentProperty);
+        set => SetValue(CSSCurrentProperty, value);
+    }
 
     /// <inheritdoc/>
     public Size Size =>
@@ -32,6 +51,9 @@ public class SvgImage : AvaloniaObject, IImage
     void IImage.Draw(DrawingContext context, Rect sourceRect, Rect destRect)
     {
         var source = Source;
+		var css = SvgSource.CombineCSS(CSS, CSSCurrent);
+        if (source?.Entities?.CSS != css)
+            source?.ReLoad(new SvgParameters() { CSS = css  });
         if (source?.Picture is null)
         {
             return;
