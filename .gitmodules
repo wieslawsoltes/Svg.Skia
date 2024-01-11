@@ -1,6 +1,6 @@
 [submodule "externals/SVG"]
 	path = externals/SVG
-	url = https://github.com/RomanKalachik/SVG.git
+	url = https://github.com/wieslawsoltes/SVG.git
 	branch = master
 [submodule "externals/resvg"]
 	path = externals/resvg
