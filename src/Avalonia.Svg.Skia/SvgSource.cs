@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using Svg;
+using Svg.Model;
 using Svg.Skia;
 
 namespace Avalonia.Svg.Skia;
@@ -15,6 +16,13 @@ namespace Avalonia.Svg.Skia;
 [TypeConverter(typeof(SvgSourceTypeConverter))]
 public class SvgSource : SKSvg
 {
+    public static bool ThrowExceptionIfResourceMissing { get; set; } = false;
+    public static T? ResourceMissing<T>(string path) where T : SKSvg, new()
+    {
+        if (ThrowExceptionIfResourceMissing)
+            throw new ArgumentException($"Missing resource: {path}");
+        return default;
+    }
     /// <summary>t
     /// Loads svg source from file or resource.
     /// </summary>
@@ -22,7 +30,7 @@ public class SvgSource : SKSvg
     /// <param name="baseUri">The base uri.</param>
     /// <param name="entities">The svg entities.</param>
     /// <returns>The svg source.</returns>
-    public static T? Load<T>(string path, Uri? baseUri, Dictionary<string, string>? entities = null) where T : SKSvg, new()
+    public static T? Load<T>(string path, Uri? baseUri, SvgParameters? entities = null) where T : SKSvg, new()
     {
         if (File.Exists(path))
         {
@@ -50,7 +58,7 @@ public class SvgSource : SKSvg
                 Debug.WriteLine(e.ToString());
             }
 
-            return default;
+            return ResourceMissing<T>(path);
         }
         
         var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
@@ -65,12 +73,16 @@ public class SvgSource : SKSvg
             var stream = Platform.AssetLoader.Open(uri, baseUri);
             if (stream is null)
             {
-                return default;
+                return ResourceMissing<T>(path);
             }
             var source = new T();
             source.Load(stream, entities);
             return source;
         }
+    }
+     public static string CombineCSS(string? css, string? cssCurrent)
+    {
+        return $"{css} {cssCurrent}"; // The last entry has higher prioriry, so cssCurrent can overrride styles
     }
 
     /// <summary>
@@ -91,7 +103,7 @@ public class SvgSource : SKSvg
     /// <param name="stream">The svg stream.</param>
     /// <param name="entities">The svg entities.</param>
     /// <returns>The svg source.</returns>
-    public static T? LoadFromStream<T>(Stream stream, Dictionary<string, string>? entities = null) where T : SKSvg, new()
+    public static T? LoadFromStream<T>(Stream stream, SvgParameters? entities = null) where T : SKSvg, new()
     {
         var skSvg = new T();
         skSvg.Load(stream, entities);

@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Svg.Model;
 
 namespace Avalonia.Svg.Skia;
 
@@ -27,16 +28,37 @@ public class SvgImageExtension : MarkupExtension
         var path = Path;
         var context = (IUriContext)serviceProvider.GetService(typeof(IUriContext))!;
         var baseUri = context.BaseUri;
-        var source = SvgSource.Load<SvgSource>(path, baseUri);
         var target = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget))!;
+        var targetControl = target.TargetObject as Control;
+        var iimage = ProvideValue(path, baseUri, targetControl);
         if (target.TargetProperty is AvaloniaProperty property)
         {
             if (property.PropertyType == typeof(IImage))
             {
-                return new SvgImage { Source = source };
+                return iimage;
             }
-            return new Image { Source = new SvgImage { Source = source } };
+            return new Image { Source = iimage };
         }
-        return new SvgImage { Source = source };
+        return iimage;
+    }
+
+    public static IImage ProvideValue(string path, Uri baseUri, Control targetControl)
+    {
+       var css = targetControl != null ? Svg.GetCSS(targetControl) : null;
+        var cssCurrent = targetControl != null ? Svg.GetCSSCurrent(targetControl) : null;
+        var source = SvgSource.Load<SvgSource>(path, baseUri, new SvgParameters() { CSS = SvgSource.CombineCSS(css, cssCurrent) });
+        return CreateSvgImage(source, targetControl);
+    }
+
+    public static SvgImage CreateSvgImage(SvgSource source, Control? targetControl)
+    {
+        var result = new SvgImage();
+        result.Source = source;
+        if (targetControl != null)
+        {
+            result.Bind(SvgImage.CSSProperty, targetControl.GetObservable(Svg.CSSProperty).ToBinding());
+            result.Bind(SvgImage.CSSCurrentProperty, targetControl.GetObservable(Svg.CSSCurrentProperty).ToBinding());
+        }
+        return result;
     }
 }

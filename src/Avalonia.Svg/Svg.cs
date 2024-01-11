@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using ShimSkiaSharp;
+using Svg.Model;
 
 namespace Avalonia.Svg;
 
@@ -198,7 +199,7 @@ public class Svg : Control
         }
     }
 
-    private void LoadFromPath(string? path, Dictionary<string, string>? entities = null)
+    private void LoadFromPath(string? path, SvgParameters? entities = null)
     {
         _picture = default;
         _avaloniaPicture?.Dispose();

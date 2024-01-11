@@ -5,6 +5,7 @@ using Avalonia.Logging;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using ShimSkiaSharp;
+using Svg.Model;
 using Svg.Skia;
 
 namespace Avalonia.Svg.Skia;
@@ -18,6 +19,18 @@ public class Svg : Control
     private SKSvg? _svg;
     private bool _enableCache;
     private Dictionary<string, SKSvg>? _cache;
+
+    /// <summary>
+    /// Defines CSS for global icnos theming
+    /// </summary>
+    public static readonly AttachedProperty<string?> CSSProperty =
+        AvaloniaProperty.RegisterAttached<Svg, AvaloniaObject, string?>("CSS", inherits: true);
+
+    /// <summary>
+    /// Defines CSS for control states like Hover, Pressed, Enabled
+    /// </summary>
+    public static readonly AttachedProperty<string?> CSSCurrentProperty =
+    AvaloniaProperty.RegisterAttached<Svg, AvaloniaObject, string?>("CSSCurrent", inherits: true);
 
     /// <summary>
     /// Defines the <see cref="Path"/> property.
@@ -62,6 +75,13 @@ public class Svg : Control
         get => GetValue(PathProperty);
         set => SetValue(PathProperty, value);
     }
+
+    public static string? GetCSS(AvaloniaObject element) => element.GetValue(CSSProperty);
+    public static void SetCSS(AvaloniaObject element, string? value) => element.SetValue(CSSProperty, value);
+
+    public static string? GetCSSCurrent(AvaloniaObject element) => element.GetValue(CSSCurrentProperty);
+    public static void SetCSSCurrent(AvaloniaObject element, string? value) => element.SetValue(CSSCurrentProperty, value);
+
 
     /// <summary>
     /// Gets or sets the Svg source.
@@ -118,6 +138,17 @@ public class Svg : Control
     {
         AffectsRender<Svg>(PathProperty, SourceProperty, StretchProperty, StretchDirectionProperty);
         AffectsMeasure<Svg>(PathProperty, SourceProperty, StretchProperty, StretchDirectionProperty);
+
+        CSSProperty.Changed.AddClassHandler<Control>(OnCSSPropertyAttachedPropertyChanged);
+        CSSCurrentProperty.Changed.AddClassHandler<Control>(OnCSSPropertyAttachedPropertyChanged);
+
+    }
+
+    private static void OnCSSPropertyAttachedPropertyChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
+    {
+        var control = d as Control;
+        if (control != null)
+            control.InvalidateVisual();
     }
 
     /// <summary>
@@ -212,10 +243,10 @@ public class Svg : Control
     {
         base.OnPropertyChanged(change);
 
-        if (change.Property == PathProperty)
+        if (change.Property == PathProperty || change.Property == CSSProperty || change.Property == CSSCurrentProperty)
         {
             var path = change.GetNewValue<string?>();
-            LoadFromPath(path);
+            LoadFromPath(path, new SvgParameters() { CSS = SvgSource.CombineCSS(GetCSS(this), GetCSSCurrent(this))});
             InvalidateVisual();
         }
 
@@ -240,7 +271,7 @@ public class Svg : Control
         }
     }
 
-    private void LoadFromPath(string? path, Dictionary<string, string>? entities = null)
+    private void LoadFromPath(string? path, SvgParameters? entities = null)
     {
         if (path is null)
         {

@@ -6,6 +6,7 @@ using System.IO;
 using System.Net.Http;
 using Avalonia.Platform;
 using ShimSkiaSharp;
+using Svg.Model;
 using SM = Svg.Model;
 using SP = Svg.Model;
 
@@ -28,7 +29,7 @@ public class SvgSource
     /// <param name="baseUri">The base uri.</param>
     /// <param name="entities">The svg entities.</param>
     /// <returns>The svg picture.</returns>
-    public static SKPicture? LoadPicture(string path, Uri? baseUri, Dictionary<string, string>? entities = null)
+    public static SKPicture? LoadPicture(string path, Uri? baseUri, SvgParameters? entities = null)
     {
         if (File.Exists(path))
         {
@@ -82,7 +83,7 @@ public class SvgSource
     /// <param name="baseUri">The base uri.</param>
     /// <param name="entities">The svg entities.</param>
     /// <returns>The svg source.</returns>
-    public static SvgSource Load(string path, Uri? baseUri, Dictionary<string, string>? entities = null)
+    public static SvgSource Load(string path, Uri? baseUri, SvgParameters? entities = null)
     {
         return new() { Picture = LoadPicture(path, baseUri, entities) };
     }
@@ -93,7 +94,7 @@ public class SvgSource
     /// <param name="stream">The svg stream.</param>
     /// <param name="entities">The svg entities.</param>
     /// <returns>The svg picture.</returns>
-    public static SKPicture? LoadPicture(Stream stream, Dictionary<string, string>? entities = null)
+    public static SKPicture? LoadPicture(Stream stream, SvgParameters? entities = null)
     {
         var document = SM.SvgExtensions.Open(stream, entities);
         return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;
@@ -105,7 +106,7 @@ public class SvgSource
     /// <param name="stream">The svg stream.</param>
     /// <param name="entities">The svg entities.</param>
     /// <returns>The svg source.</returns>
-    public static SvgSource Load(Stream stream, Dictionary<string, string>? entities = null)
+    public static SvgSource Load(Stream stream, SvgParameters? entities = null)
     {
         return new() { Picture = LoadPicture(stream, entities) };
     }
