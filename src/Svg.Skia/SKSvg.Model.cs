@@ -5,11 +5,13 @@ using System.Xml;
 using Svg.Model.Drawables;
 using ShimSkiaSharp;
 using System.IO;
+using System.Threading;
 
 namespace Svg.Skia;
 
 public class SKSvg : IDisposable
 {
+    public static bool EnableSvgStyling { get; set; } = true;
     public static SKSvg CreateFromStream(System.IO.Stream stream, SvgParameters? entities = null)
     {
         var skSvg = new SKSvg();
@@ -105,16 +107,26 @@ public class SKSvg : IDisposable
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream, SvgParameters? entities = null)
     {
         Reset();
-        if (Stream != stream)
+        SvgDocument svgDocument;
+        if (EnableSvgStyling)
         {
-            Stream?.Dispose();
-            Stream = new MemoryStream();
-            stream.CopyTo(Stream);
+            if (Stream != stream)
+            {
+                Stream?.Dispose();
+                Stream = new MemoryStream();
+                stream.CopyTo(Stream);
+            }
+            Path = null;
+            Entities = entities;
+            Stream.Position = 0;
+            svgDocument = SvgExtensions.Open(Stream, entities);
         }
-        Path = null;
-        Entities = entities;
-        Stream.Position = 0;
-        var svgDocument = SvgExtensions.Open(Stream, entities);
+        else
+        {
+            Stream = null;
+            svgDocument = SvgExtensions.Open(stream, entities);
+        }
+
         if (svgDocument is { })
         {
             Model = SvgExtensions.ToModel(svgDocument, AssetLoader, out var drawable, out _);
@@ -126,6 +138,8 @@ public class SKSvg : IDisposable
     }
     public SkiaSharp.SKPicture? ReLoad(SvgParameters? entities)
     {
+        if (!EnableSvgStyling)
+            throw new ArgumentException("Can not use CSS and CSSCurrent properties if EnableSvgStyling feature toggle is disabled");
         Reset();
         Entities = entities;
         if (Stream == null)
