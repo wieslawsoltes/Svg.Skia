@@ -64,12 +64,6 @@ public class SvgImage : AvaloniaObject, IImage
     {
         var source = Source;
 
-		var style = string.Concat(Style, ' ', CurrentStyle);
-        if (source?.Parameters?.Style != style)
-        {
-            source?.ReLoad(new SvgParameters(null, style));
-        }
-
         if (source?.Picture is null)
         {
             return;
@@ -101,9 +95,30 @@ public class SvgImage : AvaloniaObject, IImage
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
+
         if (change.Property == SourceProperty)
         {
             // TODO: Invalidate IImage
+        }
+
+        if (change.Property == StyleProperty)
+        {
+            var style = string.Concat(Style, ' ', CurrentStyle);
+
+            if (Source?.Parameters?.Style != style)
+            {
+                Source?.ReLoad(new SvgParameters(null, style));
+            }
+        }
+
+        if (change.Property == CurrentStyleProperty)
+        {
+            var style = string.Concat(Style, ' ', CurrentStyle);
+
+            if (Source?.Parameters?.Style != style)
+            {
+                Source?.ReLoad(new SvgParameters(null, style));
+            }
         }
     }
 }
