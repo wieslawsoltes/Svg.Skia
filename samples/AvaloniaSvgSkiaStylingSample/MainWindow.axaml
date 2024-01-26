@@ -11,23 +11,53 @@
         UseLayoutRounding="True"
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d">
-  <DockPanel>
-    <Button x:Name="ApplyButton" DockPanel.Dock="Top">Apply SVG Palette</Button>
-    <TextBlock DockPanel.Dock="Top">Hover mouse on a tiger to apply SVG palette for hover state</TextBlock>
-    <Panel
-      Margin="16"
-      HorizontalAlignment="Center"
-      VerticalAlignment="Center">
-      <Viewbox Stretch="Uniform">
-        <Button Background="Transparent" 
-                Content="{SvgImage /Assets/__tiger.svg}">
-          <Button.Styles>
-            <Style Selector="Button:pointerover">
+  <TabControl>
+    <TabItem Header="Svg">
+      <DockPanel>
+        <Button x:Name="ApplySvgStyleButton"
+                Content="Apply style"
+                DockPanel.Dock="Top" />
+        <TextBlock Text="Move mouse pointer over SVG to apply style"
+                   DockPanel.Dock="Top" />
+        <Panel Margin="16"
+               Background="Transparent"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center">
+          <Panel.Styles>
+            <Style Selector="Panel:pointerover Svg">
               <Setter Property="(Svg.Style)" Value=".Black { fill: #FF0000; }" />
             </Style>
-          </Button.Styles>
-        </Button>
-      </Viewbox>
-    </Panel>
-  </DockPanel>
+          </Panel.Styles>
+          <Viewbox Stretch="Uniform">
+            <Svg Name="SvgControl" 
+                 Path="/Assets/__tiger.svg" />
+          </Viewbox>
+        </Panel>
+      </DockPanel>
+    </TabItem>
+    <TabItem Header="SvgImage">
+      <DockPanel>
+        <Button x:Name="ApplySvgImageStyleButton"
+                Content="Apply style"
+                DockPanel.Dock="Top" />
+        <TextBlock Text="Move mouse pointer over SVG to apply style"
+                   DockPanel.Dock="Top" />
+        <Panel Margin="16"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center">
+          <Viewbox Stretch="Uniform">
+            <Button Background="Transparent"
+                    Content="{SvgImage /Assets/__tiger.svg}"
+                    Name="SvgImageButton">
+              <Button.Styles>
+                <Style Selector="Button:pointerover">
+                  <Setter Property="(Svg.Style)" Value=".Black { fill: #FF0000; }" />
+                </Style>
+              </Button.Styles>
+            </Button>
+          </Viewbox>
+        </Panel>
+      </DockPanel>
+    </TabItem>
+  </TabControl>
 </Window>

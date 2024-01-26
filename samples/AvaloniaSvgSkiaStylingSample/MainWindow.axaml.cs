@@ -15,11 +15,17 @@ public partial class MainWindow : Window
 #if DEBUG
         this.AttachDevTools();
 #endif
-        ApplyButton.AddHandler(Button.ClickEvent, OnApply);
+        ApplySvgStyleButton.Click += ApplySvgStyleButtonClick;
+        ApplySvgImageStyleButton.Click += ApplySvgImageStyleButtonClick;
     }
 
-    private void OnApply(object sender, EventArgs e) 
+    private void ApplySvgStyleButtonClick(object sender, EventArgs e) 
     {
-        this.SetValue(Avalonia.Svg.Skia.Svg.StyleProperty, ".Black { fill: #AAAAFF; }");
+        SvgControl.SetCurrentValue(Avalonia.Svg.Skia.Svg.StyleProperty, ".Black { fill: #AAAAFF; }");
+    }
+
+    private void ApplySvgImageStyleButtonClick(object sender, EventArgs e) 
+    {
+        SvgImageButton.SetCurrentValue(Avalonia.Svg.Skia.Svg.StyleProperty, ".Black { fill: #AAAAFF; }");
     }
 }
