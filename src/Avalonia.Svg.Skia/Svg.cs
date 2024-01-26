@@ -21,18 +21,6 @@ public class Svg : Control
     private Dictionary<string, SKSvg>? _cache;
 
     /// <summary>
-    /// Defines the <see cref="Css"/> property.
-    /// </summary>
-    public static readonly AttachedProperty<string?> CssProperty =
-        AvaloniaProperty.RegisterAttached<Svg, AvaloniaObject, string?>("Css", inherits: true);
-
-    /// <summary>
-    /// Defines the <see cref="CurrentCss"/> property.
-    /// </summary>
-    public static readonly AttachedProperty<string?> CurrentCssProperty =
-    AvaloniaProperty.RegisterAttached<Svg, AvaloniaObject, string?>("CurrentCss", inherits: true);
-
-    /// <summary>
     /// Defines the <see cref="Path"/> property.
     /// </summary>
     public static readonly StyledProperty<string?> PathProperty =
@@ -65,6 +53,18 @@ public class Svg : Control
         AvaloniaProperty.RegisterDirect<Svg, bool>(nameof(EnableCache),
             o => o.EnableCache,
             (o, v) => o.EnableCache = v);
+
+    /// <summary>
+    /// Defines the Css property.
+    /// </summary>
+    public static readonly AttachedProperty<string?> CssProperty =
+        AvaloniaProperty.RegisterAttached<Svg, AvaloniaObject, string?>("Css", inherits: true);
+
+    /// <summary>
+    /// Defines the CurrentCss property.
+    /// </summary>
+    public static readonly AttachedProperty<string?> CurrentCssProperty =
+        AvaloniaProperty.RegisterAttached<Svg, AvaloniaObject, string?>("CurrentCss", inherits: true);
 
     /// <summary>
     /// Gets or sets the Svg path.
