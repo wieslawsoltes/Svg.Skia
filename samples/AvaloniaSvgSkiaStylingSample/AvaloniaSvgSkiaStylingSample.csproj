@@ -6,6 +6,7 @@
     <LangVersion>latest</LangVersion>
     <IsPackable>False</IsPackable>
     <Nullable>disable</Nullable>
+    <RootNamespace>AvaloniaSvgSkiaStylingSample</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

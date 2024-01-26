@@ -2,7 +2,7 @@
 using Avalonia;
 using Avalonia.Svg.Skia;
 
-namespace AvaloniaSvgCSSSample;
+namespace AvaloniaSvgSkiaStylingSample;
 
 internal class Program
 {

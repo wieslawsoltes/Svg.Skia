@@ -5,7 +5,7 @@ using Avalonia.Media;
 using System;
 using System.Linq;
 
-namespace AvaloniaSvgCSSSample;
+namespace AvaloniaSvgSkiaStylingSample;
 
 public partial class MainWindow : Window
 {

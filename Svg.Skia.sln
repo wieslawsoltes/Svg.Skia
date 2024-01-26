@@ -111,7 +111,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.SourceGenerator.Skia", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Svg", "src\Avalonia.Svg\Avalonia.Svg.csproj", "{B742F260-0EC6-4805-AE9F-987818CE3CF4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaSvgCSSSample", "samples\AvaloniaSvgCSSSample\AvaloniaSvgCSSSample.csproj", "{8A938DC2-1634-4387-BAB3-69F871D54FB5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaSvgSkiaStylingSample", "samples\AvaloniaSvgSkiaStylingSample\AvaloniaSvgSkiaStylingSample.csproj", "{8A938DC2-1634-4387-BAB3-69F871D54FB5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
