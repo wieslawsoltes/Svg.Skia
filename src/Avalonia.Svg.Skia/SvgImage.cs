@@ -14,12 +14,18 @@ public class SvgImage : AvaloniaObject, IImage
     /// </summary>
     public static readonly StyledProperty<SvgSource?> SourceProperty =
         AvaloniaProperty.Register<SvgImage, SvgSource?>(nameof(Source));
-                
-    public static readonly StyledProperty<string> CSSProperty =
-    AvaloniaProperty.Register<SvgImage, string>(nameof(CSS));
 
-    public static readonly StyledProperty<string> CSSCurrentProperty =
-        AvaloniaProperty.Register<SvgImage, string>(nameof(CSSCurrent));
+    /// <summary>
+    /// Defines the <see cref="Style"/> property.
+    /// </summary>
+    public static readonly StyledProperty<string?> StyleProperty =
+        AvaloniaProperty.Register<SvgImage, string?>(nameof(Style));
+
+    /// <summary>
+    /// Defines the <see cref="CurrentStyle"/> property.
+    /// </summary>
+    public static readonly StyledProperty<string?> CurrentStyleProperty =
+        AvaloniaProperty.Register<SvgImage, string?>(nameof(CurrentStyle));
 
     /// <summary>
     /// Gets or sets the <see cref="SvgSource"/> content.
@@ -30,17 +36,23 @@ public class SvgImage : AvaloniaObject, IImage
         get => GetValue(SourceProperty);
         set => SetValue(SourceProperty, value);
     }
-    
-     public string CSS
+
+    /// <summary>
+    /// Gets or sets the <see cref="SvgSource"/> style.
+    /// </summary>
+    public string? Style
     {
-        get => GetValue(CSSProperty);
-        set => SetValue(CSSProperty, value);
+        get => GetValue(StyleProperty);
+        set => SetValue(StyleProperty, value);
     }
 
-    public string CSSCurrent
+    /// <summary>
+    /// Gets or sets the <see cref="SvgSource"/> current style.
+    /// </summary>
+    public string? CurrentStyle
     {
-        get => GetValue(CSSCurrentProperty);
-        set => SetValue(CSSCurrentProperty, value);
+        get => GetValue(CurrentStyleProperty);
+        set => SetValue(CurrentStyleProperty, value);
     }
 
     /// <inheritdoc/>
@@ -51,9 +63,13 @@ public class SvgImage : AvaloniaObject, IImage
     void IImage.Draw(DrawingContext context, Rect sourceRect, Rect destRect)
     {
         var source = Source;
-		var css = SvgSource.CombineCSS(CSS, CSSCurrent);
-        if (source?.Entities?.CSS != css)
-            source?.ReLoad(new SvgParameters() { CSS = css  });
+
+		var style = string.Concat(Style, ' ', CurrentStyle);
+        if (source?.Parameters?.Style != style)
+        {
+            source?.ReLoad(new SvgParameters(null, style));
+        }
+
         if (source?.Picture is null)
         {
             return;

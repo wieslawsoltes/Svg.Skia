@@ -273,12 +273,12 @@ public static partial class SvgExtensions
         return picture;
     }
 
-    public static SvgDocument? OpenSvg(string path, SvgParameters? entities = null)
+    public static SvgDocument? OpenSvg(string path, SvgParameters? parameters = null)
     {
-        return SvgDocument.Open<SvgDocument>(path, entities?.ParserEntities, entities?.CSS);
+        return SvgDocument.Open<SvgDocument>(path, new SvgOptions(parameters?.Entities, parameters?.Style));
     }
 
-    public static SvgDocument? OpenSvgz(string path, SvgParameters? entities = null)
+    public static SvgDocument? OpenSvgz(string path, SvgParameters? parameters = null)
     {
         using var fileStream = System.IO.File.OpenRead(path);
         using var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress);
@@ -287,23 +287,23 @@ public static partial class SvgExtensions
         gzipStream.CopyTo(memoryStream);
         memoryStream.Position = 0;
 
-        return Open(memoryStream, entities);
+        return Open(memoryStream, parameters);
     }
 
-    public static SvgDocument? Open(string path, SvgParameters? entities = null)
+    public static SvgDocument? Open(string path, SvgParameters? parameters = null)
     {
         var extension = System.IO.Path.GetExtension(path);
         return extension.ToLower() switch
         {
-            ".svg" => OpenSvg(path, entities),
-            ".svgz" => OpenSvgz(path, entities),
-            _ => OpenSvg(path, entities),
+            ".svg" => OpenSvg(path, parameters),
+            ".svgz" => OpenSvgz(path, parameters),
+            _ => OpenSvg(path, parameters),
         };
     }
 
-    public static SvgDocument? Open(System.IO.Stream stream, SvgParameters? entities = null)
+    public static SvgDocument? Open(System.IO.Stream stream, SvgParameters? parameters = null)
     {
-        return SvgDocument.Open<SvgDocument>(stream, entities?.ParserEntities, entities?.CSS);
+        return SvgDocument.Open<SvgDocument>(stream, new SvgOptions(parameters?.Entities, parameters?.Style));
     }
 
     public static SvgDocument? FromSvg(string svg)

@@ -20,6 +20,6 @@ public partial class MainWindow : Window
 
     private void OnApply(object sender, EventArgs e) 
     {
-        this.SetValue(Avalonia.Svg.Skia.Svg.CSSProperty, ".Black { fill: #AAAAFF; }");
+        this.SetValue(Avalonia.Svg.Skia.Svg.StyleProperty, ".Black { fill: #AAAAFF; }");
     }
 }

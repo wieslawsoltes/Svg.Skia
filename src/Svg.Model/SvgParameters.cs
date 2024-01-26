@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace Svg.Model
+namespace Svg.Model;
+
+public class SvgParameters(Dictionary<string, string>? entities, string? style)
 {
-    public class SvgParameters
-    {
-        public Dictionary<string, string>? ParserEntities { get; set; }
-        public string? CSS { get; set; }
+    public Dictionary<string, string>? Entities { get; } = entities;
 
-    }
+    public string? Style { get; } = style;
 }

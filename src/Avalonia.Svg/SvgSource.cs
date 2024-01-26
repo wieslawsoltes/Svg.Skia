@@ -27,13 +27,13 @@ public class SvgSource
     /// </summary>
     /// <param name="path">The path to file or resource.</param>
     /// <param name="baseUri">The base uri.</param>
-    /// <param name="entities">The svg entities.</param>
+    /// <param name="parameters">The svg parameters.</param>
     /// <returns>The svg picture.</returns>
-    public static SKPicture? LoadPicture(string path, Uri? baseUri, SvgParameters? entities = null)
+    public static SKPicture? LoadPicture(string path, Uri? baseUri, SvgParameters? parameters = null)
     {
         if (File.Exists(path))
         {
-            var document = SM.SvgExtensions.Open(path, entities);
+            var document = SM.SvgExtensions.Open(path, parameters);
             return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;
         }
 
@@ -45,7 +45,7 @@ public class SvgSource
                 if (response.IsSuccessStatusCode)
                 {
                     var stream = response.Content.ReadAsStreamAsync().Result;
-                    var document = SM.SvgExtensions.Open(stream, entities);
+                    var document = SM.SvgExtensions.Open(stream, parameters);
                     return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;
                 }
             }
@@ -61,7 +61,7 @@ public class SvgSource
         var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
         if (uri.IsAbsoluteUri && uri.IsFile)
         {
-            var document = SM.SvgExtensions.Open(uri.LocalPath, entities);
+            var document = SM.SvgExtensions.Open(uri.LocalPath, parameters);
             return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;
         }
         else
@@ -71,7 +71,7 @@ public class SvgSource
             {
                 return default;
             }
-            var document = SM.SvgExtensions.Open(stream, entities);
+            var document = SM.SvgExtensions.Open(stream, parameters);
             return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;
         }
     }
@@ -81,22 +81,22 @@ public class SvgSource
     /// </summary>
     /// <param name="path">The path to file or resource.</param>
     /// <param name="baseUri">The base uri.</param>
-    /// <param name="entities">The svg entities.</param>
+    /// <param name="parameters">The svg parameters.</param>
     /// <returns>The svg source.</returns>
-    public static SvgSource Load(string path, Uri? baseUri, SvgParameters? entities = null)
+    public static SvgSource Load(string path, Uri? baseUri, SvgParameters? parameters = null)
     {
-        return new() { Picture = LoadPicture(path, baseUri, entities) };
+        return new() { Picture = LoadPicture(path, baseUri, parameters) };
     }
 
     /// <summary>
     /// Loads svg picture from stream.
     /// </summary>
     /// <param name="stream">The svg stream.</param>
-    /// <param name="entities">The svg entities.</param>
+    /// <param name="parameters">The svg parameters.</param>
     /// <returns>The svg picture.</returns>
-    public static SKPicture? LoadPicture(Stream stream, SvgParameters? entities = null)
+    public static SKPicture? LoadPicture(Stream stream, SvgParameters? parameters = null)
     {
-        var document = SM.SvgExtensions.Open(stream, entities);
+        var document = SM.SvgExtensions.Open(stream, parameters);
         return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;
     }
 
@@ -104,11 +104,11 @@ public class SvgSource
     /// Loads svg source from stream.
     /// </summary>
     /// <param name="stream">The svg stream.</param>
-    /// <param name="entities">The svg entities.</param>
+    /// <param name="parameters">The svg parameters.</param>
     /// <returns>The svg source.</returns>
-    public static SvgSource Load(Stream stream, SvgParameters? entities = null)
+    public static SvgSource Load(Stream stream, SvgParameters? parameters = null)
     {
-        return new() { Picture = LoadPicture(stream, entities) };
+        return new() { Picture = LoadPicture(stream, parameters) };
     }
 
     /// <summary>

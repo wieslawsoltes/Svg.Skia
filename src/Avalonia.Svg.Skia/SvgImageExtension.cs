@@ -12,7 +12,7 @@ namespace Avalonia.Svg.Skia;
 public class SvgImageExtension : MarkupExtension
 {
     /// <summary>
-    /// Initialises a new instance of an <see cref="SvgContentExtension"/>.
+    /// Initialises a new instance of an <see cref="SvgImageExtension"/>.
     /// </summary>
     /// <param name="path">The resource or file path</param>
     public SvgImageExtension(string path) => Path = path;
@@ -30,35 +30,59 @@ public class SvgImageExtension : MarkupExtension
         var baseUri = context.BaseUri;
         var target = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget))!;
         var targetControl = target.TargetObject as Control;
-        var iimage = ProvideValue(path, baseUri, targetControl);
+        var image = CreateImage(path, baseUri, targetControl);
         if (target.TargetProperty is AvaloniaProperty property)
         {
             if (property.PropertyType == typeof(IImage))
             {
-                return iimage;
+                return image;
             }
-            return new Image { Source = iimage };
+            return new Image { Source = image };
         }
-        return iimage;
+        return image;
     }
 
-    public static IImage ProvideValue(string path, Uri baseUri, Control targetControl)
+    private static IImage CreateImage(string path, Uri baseUri, Control? targetControl)
     {
-       var css = targetControl != null ? Svg.GetCSS(targetControl) : null;
-        var cssCurrent = targetControl != null ? Svg.GetCSSCurrent(targetControl) : null;
-        var source = SvgSource.Load<SvgSource>(path, baseUri, new SvgParameters() { CSS = SvgSource.CombineCSS(css, cssCurrent) });
-        return CreateSvgImage(source, targetControl);
-    }
-
-    public static SvgImage CreateSvgImage(SvgSource source, Control? targetControl)
-    {
-        var result = new SvgImage();
-        result.Source = source;
-        if (targetControl != null)
+        if (targetControl is not null)
         {
-            result.Bind(SvgImage.CSSProperty, targetControl.GetObservable(Svg.CSSProperty).ToBinding());
-            result.Bind(SvgImage.CSSCurrentProperty, targetControl.GetObservable(Svg.CSSCurrentProperty).ToBinding());
+            var style = Svg.GetStyle(targetControl);
+            var currentStyle = Svg.GetCurrentStyle(targetControl);
+            var source = SvgSource.Load<SvgSource>(
+                path,
+                baseUri,
+                new SvgParameters(null, string.Concat(style, ' ', currentStyle)));
+
+            return CreateSvgImage(source, targetControl);
         }
+        else
+        {
+            var source = SvgSource.Load<SvgSource>(
+                path,
+                baseUri);
+            
+            return CreateSvgImage(source, targetControl);
+        }
+    }
+
+    private static SvgImage CreateSvgImage(SvgSource? source, Control? targetControl)
+    {
+        var result = new SvgImage
+        {
+            Source = source
+        };
+
+        if (targetControl == null)
+        {
+            return result;
+        }
+
+        var styleBinding = targetControl.GetObservable(Svg.StyleProperty).ToBinding();
+        var currentStyleBinding = targetControl.GetObservable(Svg.CurrentStyleProperty).ToBinding();
+
+        result.Bind(SvgImage.StyleProperty, styleBinding);
+        result.Bind(SvgImage.CurrentStyleProperty, currentStyleBinding);
+
         return result;
     }
 }

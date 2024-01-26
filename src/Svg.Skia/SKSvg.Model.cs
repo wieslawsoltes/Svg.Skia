@@ -4,25 +4,24 @@ using System.Collections.Generic;
 using System.Xml;
 using Svg.Model.Drawables;
 using ShimSkiaSharp;
-using System.IO;
 
 namespace Svg.Skia;
 
 public class SKSvg : IDisposable
 {
-    public static SKSvg CreateFromStream(System.IO.Stream stream, SvgParameters? entities = null)
+    public static SKSvg CreateFromStream(System.IO.Stream stream, SvgParameters? parameters = null)
     {
         var skSvg = new SKSvg();
-        skSvg.Load(stream, entities);
+        skSvg.Load(stream, parameters);
         return skSvg;
     }
 
     public static SKSvg CreateFromStream(System.IO.Stream stream) => CreateFromStream(stream, null);
 
-    public static SKSvg CreateFromFile(string path, SvgParameters? entities = null)
+    public static SKSvg CreateFromFile(string path, SvgParameters? parameters = null)
     {
         var skSvg = new SKSvg();
-        skSvg.Load(path, entities);
+        skSvg.Load(path, parameters);
         return skSvg;
     }
 
@@ -90,11 +89,12 @@ public class SKSvg : IDisposable
 
     public SkiaSharp.SKPicture? Picture { get; private set; }
 
-    internal string Path { get; set; }
+    public SvgParameters? Parameters { get; set; }
 
-    public SvgParameters? Entities { get; set; }
+    private string? Path { get; set; }
 
-    System.IO.Stream? Stream { get; set; }
+    private System.IO.Stream? Stream { get; set; }
+
     public SKSvg()
     {
         Settings = new SKSvgSettings();
@@ -102,19 +102,19 @@ public class SKSvg : IDisposable
         AssetLoader = new SkiaAssetLoader(SkiaModel);
     }
 
-    public SkiaSharp.SKPicture? Load(System.IO.Stream stream, SvgParameters? entities = null)
+    public SkiaSharp.SKPicture? Load(System.IO.Stream stream, SvgParameters? parameters = null)
     {
         Reset();
         if (Stream != stream)
         {
             Stream?.Dispose();
-            Stream = new MemoryStream();
+            Stream = new System.IO.MemoryStream();
             stream.CopyTo(Stream);
         }
         Path = null;
-        Entities = entities;
+        Parameters = parameters;
         Stream.Position = 0;
-        var svgDocument = SvgExtensions.Open(Stream, entities);
+        var svgDocument = SvgExtensions.Open(Stream, parameters);
         if (svgDocument is { })
         {
             Model = SvgExtensions.ToModel(svgDocument, AssetLoader, out var drawable, out _);
@@ -124,29 +124,32 @@ public class SKSvg : IDisposable
         }
         return null;
     }
-    public SkiaSharp.SKPicture? ReLoad(SvgParameters? entities)
+
+    public SkiaSharp.SKPicture? ReLoad(SvgParameters? parameters)
     {
         Reset();
-        Entities = entities;
+
+        Parameters = parameters;
+
         if (Stream == null)
-            return Load(Path, entities);
-        else
         {
-            Stream.Position = 0;
-            return Load(Stream, entities);
+            return Load(Path, parameters);
         }
+
+        Stream.Position = 0;
+        return Load(Stream, parameters);
     }
 
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream) => Load(stream, null);
 
-    public SkiaSharp.SKPicture? Load(string path, SvgParameters? entities = null)
+    public SkiaSharp.SKPicture? Load(string path, SvgParameters? parameters = null)
     {
         Reset();
         Path = path;
-        Entities = entities;
+        Parameters = parameters;
         Stream?.Dispose();
         Stream = null;
-        var svgDocument = SvgExtensions.Open(path, entities);
+        var svgDocument = SvgExtensions.Open(path, parameters);
         if (svgDocument is { })
         {
             Model = SvgExtensions.ToModel(svgDocument, AssetLoader, out var drawable, out _);
