@@ -103,9 +103,9 @@ public class SvgImage : AvaloniaObject, IImage
 
         if (change.Property == StyleProperty)
         {
-            var style = string.Concat(Style, ' ', CurrentStyle);
+            var style = string.Concat(change.GetNewValue<string>(), ' ', CurrentStyle);
 
-            if (Source?.Parameters?.Style != style)
+            if (Source?.Style != style)
             {
                 Source?.ReLoad(new SvgParameters(null, style));
             }
@@ -113,9 +113,9 @@ public class SvgImage : AvaloniaObject, IImage
 
         if (change.Property == CurrentStyleProperty)
         {
-            var style = string.Concat(Style, ' ', CurrentStyle);
+            var style = string.Concat(Style, ' ', change.GetNewValue<string>());
 
-            if (Source?.Parameters?.Style != style)
+            if (Source?.Style != style)
             {
                 Source?.ReLoad(new SvgParameters(null, style));
             }
