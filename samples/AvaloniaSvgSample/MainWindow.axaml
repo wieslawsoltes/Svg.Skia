@@ -28,6 +28,16 @@
       </DockPanel>
     </TabItem>
 
+    <TabItem Header="Svg Css">
+      <DockPanel Background="Transparent" 
+                 Margin="16" 
+                 VerticalAlignment="Stretch"
+                 HorizontalAlignment="Stretch" 
+                 DragDrop.AllowDrop="True">
+        <Svg Path="/Assets/__tiger.svg" Stretch="Uniform" Css=".Black { fill: #FF0000; }" />
+      </DockPanel>
+    </TabItem>
+
     <TabItem Header="Extension">
       <DockPanel x:Name="svgExtensionDockPanel" 
                  Background="Transparent" 
