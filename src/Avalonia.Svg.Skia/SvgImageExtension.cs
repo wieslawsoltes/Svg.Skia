@@ -31,15 +31,18 @@ public class SvgImageExtension : MarkupExtension
         var target = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget))!;
         var targetControl = target.TargetObject as Control;
         var image = CreateImage(path, baseUri, targetControl);
-        if (target.TargetProperty is AvaloniaProperty property)
+
+        if (target.TargetProperty is not AvaloniaProperty property)
         {
-            if (property.PropertyType == typeof(IImage))
-            {
-                return image;
-            }
-            return new Image { Source = image };
+            return image;
         }
-        return image;
+
+        if (property.PropertyType == typeof(IImage))
+        {
+            return image;
+        }
+
+        return new Image { Source = image };
     }
 
     private static IImage CreateImage(string path, Uri baseUri, Control? targetControl)
