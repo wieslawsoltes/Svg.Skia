@@ -93,7 +93,7 @@ public class SKSvg : IDisposable
 
     public SkiaSharp.SKPicture? Picture { get; private set; }
 
-    public string? Style => _originalParameters?.Style;
+    public string? Css => _originalParameters?.Css;
 
     public Dictionary<string, string>? Entities => _originalParameters?.Entities;
 

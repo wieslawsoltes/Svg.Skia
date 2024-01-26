@@ -25,7 +25,7 @@
                VerticalAlignment="Center">
           <Panel.Styles>
             <Style Selector="Panel:pointerover Svg">
-              <Setter Property="(Svg.Style)" Value=".Black { fill: #FF0000; }" />
+              <Setter Property="(Svg.Css)" Value=".Black { fill: #FF0000; }" />
             </Style>
           </Panel.Styles>
           <Viewbox Stretch="Uniform">
@@ -51,7 +51,7 @@
                     Name="SvgImageButton">
               <Button.Styles>
                 <Style Selector="Button:pointerover">
-                  <Setter Property="(Svg.Style)" Value=".Black { fill: #FF0000; }" />
+                  <Setter Property="(Svg.Css)" Value=".Black { fill: #FF0000; }" />
                 </Style>
               </Button.Styles>
             </Button>

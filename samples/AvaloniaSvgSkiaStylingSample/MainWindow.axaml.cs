@@ -21,11 +21,11 @@ public partial class MainWindow : Window
 
     private void ApplySvgStyleButtonClick(object sender, EventArgs e) 
     {
-        SvgControl.SetCurrentValue(Avalonia.Svg.Skia.Svg.StyleProperty, ".Black { fill: #AAAAFF; }");
+        SvgControl.SetCurrentValue(Avalonia.Svg.Skia.Svg.CssProperty, ".Black { fill: #AAAAFF; }");
     }
 
     private void ApplySvgImageStyleButtonClick(object sender, EventArgs e) 
     {
-        SvgImageButton.SetCurrentValue(Avalonia.Svg.Skia.Svg.StyleProperty, ".Black { fill: #AAAAFF; }");
+        SvgImageButton.SetCurrentValue(Avalonia.Svg.Skia.Svg.CssProperty, ".Black { fill: #AAAAFF; }");
     }
 }

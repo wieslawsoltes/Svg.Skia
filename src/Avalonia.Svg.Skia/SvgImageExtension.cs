@@ -49,12 +49,12 @@ public class SvgImageExtension : MarkupExtension
     {
         if (targetControl is not null)
         {
-            var style = Svg.GetStyle(targetControl);
-            var currentStyle = Svg.GetCurrentStyle(targetControl);
+            var css = Svg.GetCss(targetControl);
+            var currentCss = Svg.GetCurrentCss(targetControl);
             var source = SvgSource.Load<SvgSource>(
                 path,
                 baseUri,
-                new SvgParameters(null, string.Concat(style, ' ', currentStyle)));
+                new SvgParameters(null, string.Concat(css, ' ', currentCss)));
 
             return CreateSvgImage(source, targetControl);
         }
@@ -80,11 +80,11 @@ public class SvgImageExtension : MarkupExtension
             return result;
         }
 
-        var styleBinding = targetControl.GetObservable(Svg.StyleProperty).ToBinding();
-        var currentStyleBinding = targetControl.GetObservable(Svg.CurrentStyleProperty).ToBinding();
+        var styleBinding = targetControl.GetObservable(Svg.CssProperty).ToBinding();
+        var currentStyleBinding = targetControl.GetObservable(Svg.CurrentCssProperty).ToBinding();
 
-        result.Bind(SvgImage.StyleProperty, styleBinding);
-        result.Bind(SvgImage.CurrentStyleProperty, currentStyleBinding);
+        result.Bind(SvgImage.CssProperty, styleBinding);
+        result.Bind(SvgImage.CurrentCssProperty, currentStyleBinding);
 
         return result;
     }

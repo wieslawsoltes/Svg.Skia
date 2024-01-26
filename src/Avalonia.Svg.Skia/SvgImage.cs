@@ -16,16 +16,16 @@ public class SvgImage : AvaloniaObject, IImage
         AvaloniaProperty.Register<SvgImage, SvgSource?>(nameof(Source));
 
     /// <summary>
-    /// Defines the <see cref="Style"/> property.
+    /// Defines the <see cref="Css"/> property.
     /// </summary>
-    public static readonly StyledProperty<string?> StyleProperty =
-        AvaloniaProperty.Register<SvgImage, string?>(nameof(Style));
+    public static readonly StyledProperty<string?> CssProperty =
+        AvaloniaProperty.Register<SvgImage, string?>(nameof(Css));
 
     /// <summary>
-    /// Defines the <see cref="CurrentStyle"/> property.
+    /// Defines the <see cref="CurrentCss"/> property.
     /// </summary>
-    public static readonly StyledProperty<string?> CurrentStyleProperty =
-        AvaloniaProperty.Register<SvgImage, string?>(nameof(CurrentStyle));
+    public static readonly StyledProperty<string?> CurrentCssProperty =
+        AvaloniaProperty.Register<SvgImage, string?>(nameof(CurrentCss));
 
     /// <summary>
     /// Gets or sets the <see cref="SvgSource"/> content.
@@ -40,19 +40,19 @@ public class SvgImage : AvaloniaObject, IImage
     /// <summary>
     /// Gets or sets the <see cref="SvgSource"/> style.
     /// </summary>
-    public string? Style
+    public string? Css
     {
-        get => GetValue(StyleProperty);
-        set => SetValue(StyleProperty, value);
+        get => GetValue(CssProperty);
+        set => SetValue(CssProperty, value);
     }
 
     /// <summary>
     /// Gets or sets the <see cref="SvgSource"/> current style.
     /// </summary>
-    public string? CurrentStyle
+    public string? CurrentCss
     {
-        get => GetValue(CurrentStyleProperty);
-        set => SetValue(CurrentStyleProperty, value);
+        get => GetValue(CurrentCssProperty);
+        set => SetValue(CurrentCssProperty, value);
     }
 
     /// <inheritdoc/>
@@ -101,23 +101,23 @@ public class SvgImage : AvaloniaObject, IImage
             // TODO: Invalidate IImage
         }
 
-        if (change.Property == StyleProperty)
+        if (change.Property == CssProperty)
         {
-            var style = string.Concat(change.GetNewValue<string>(), ' ', CurrentStyle);
+            var css = string.Concat(change.GetNewValue<string>(), ' ', CurrentCss);
 
-            if (Source?.Style != style)
+            if (Source?.Css != css)
             {
-                Source?.ReLoad(new SvgParameters(null, style));
+                Source?.ReLoad(new SvgParameters(null, css));
             }
         }
 
-        if (change.Property == CurrentStyleProperty)
+        if (change.Property == CurrentCssProperty)
         {
-            var style = string.Concat(Style, ' ', change.GetNewValue<string>());
+            var css = string.Concat(Css, ' ', change.GetNewValue<string>());
 
-            if (Source?.Style != style)
+            if (Source?.Css != css)
             {
-                Source?.ReLoad(new SvgParameters(null, style));
+                Source?.ReLoad(new SvgParameters(null, css));
             }
         }
     }

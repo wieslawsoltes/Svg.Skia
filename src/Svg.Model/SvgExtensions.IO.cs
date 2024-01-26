@@ -275,7 +275,7 @@ public static partial class SvgExtensions
 
     public static SvgDocument? OpenSvg(string path, SvgParameters? parameters = null)
     {
-        return SvgDocument.Open<SvgDocument>(path, new SvgOptions(parameters?.Entities, parameters?.Style));
+        return SvgDocument.Open<SvgDocument>(path, new SvgOptions(parameters?.Entities, parameters?.Css));
     }
 
     public static SvgDocument? OpenSvgz(string path, SvgParameters? parameters = null)
@@ -303,7 +303,7 @@ public static partial class SvgExtensions
 
     public static SvgDocument? Open(System.IO.Stream stream, SvgParameters? parameters = null)
     {
-        return SvgDocument.Open<SvgDocument>(stream, new SvgOptions(parameters?.Entities, parameters?.Style));
+        return SvgDocument.Open<SvgDocument>(stream, new SvgOptions(parameters?.Entities, parameters?.Css));
     }
 
     public static SvgDocument? FromSvg(string svg)

@@ -21,16 +21,16 @@ public class Svg : Control
     private Dictionary<string, SKSvg>? _cache;
 
     /// <summary>
-    /// Defines the <see cref="Style"/> property.
+    /// Defines the <see cref="Css"/> property.
     /// </summary>
-    public static readonly AttachedProperty<string?> StyleProperty =
-        AvaloniaProperty.RegisterAttached<Svg, AvaloniaObject, string?>("Style", inherits: true);
+    public static readonly AttachedProperty<string?> CssProperty =
+        AvaloniaProperty.RegisterAttached<Svg, AvaloniaObject, string?>("Css", inherits: true);
 
     /// <summary>
-    /// Defines the <see cref="CurrentStyle"/> property.
+    /// Defines the <see cref="CurrentCss"/> property.
     /// </summary>
-    public static readonly AttachedProperty<string?> CurrentStyleProperty =
-    AvaloniaProperty.RegisterAttached<Svg, AvaloniaObject, string?>("CurrentStyle", inherits: true);
+    public static readonly AttachedProperty<string?> CurrentCssProperty =
+    AvaloniaProperty.RegisterAttached<Svg, AvaloniaObject, string?>("CurrentCss", inherits: true);
 
     /// <summary>
     /// Defines the <see cref="Path"/> property.
@@ -132,31 +132,31 @@ public class Svg : Control
         AffectsRender<Svg>(PathProperty, SourceProperty, StretchProperty, StretchDirectionProperty);
         AffectsMeasure<Svg>(PathProperty, SourceProperty, StretchProperty, StretchDirectionProperty);
 
-        StyleProperty.Changed.AddClassHandler<Control>(OnStylePropertyAttachedPropertyChanged);
-        CurrentStyleProperty.Changed.AddClassHandler<Control>(OnStylePropertyAttachedPropertyChanged);
+        CssProperty.Changed.AddClassHandler<Control>(OnCssPropertyAttachedPropertyChanged);
+        CurrentCssProperty.Changed.AddClassHandler<Control>(OnCssPropertyAttachedPropertyChanged);
     }
 
-    public static string? GetStyle(AvaloniaObject element)
+    public static string? GetCss(AvaloniaObject element)
     {
-        return element.GetValue(StyleProperty);
+        return element.GetValue(CssProperty);
     }
 
-    public static void SetStyle(AvaloniaObject element, string? value)
+    public static void SetCss(AvaloniaObject element, string? value)
     {
-        element.SetValue(StyleProperty, value);
+        element.SetValue(CssProperty, value);
     }
 
-    public static string? GetCurrentStyle(AvaloniaObject element)
+    public static string? GetCurrentCss(AvaloniaObject element)
     {
-        return element.GetValue(CurrentStyleProperty);
+        return element.GetValue(CurrentCssProperty);
     }
 
-    public static void SetCurrentStyle(AvaloniaObject element, string? value)
+    public static void SetCurrentCss(AvaloniaObject element, string? value)
     {
-        element.SetValue(CurrentStyleProperty, value);
+        element.SetValue(CurrentCssProperty, value);
     }
 
-    private static void OnStylePropertyAttachedPropertyChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
+    private static void OnCssPropertyAttachedPropertyChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
     {
         if (d is Control control)
         {
@@ -259,29 +259,29 @@ public class Svg : Control
         if (change.Property == PathProperty)
         {
             var path = change.GetNewValue<string?>();
-            var style = GetStyle(this);
-            var currentStyle = GetCurrentStyle(this);
-            var parameters = new SvgParameters(null, string.Concat(style, ' ', currentStyle));
+            var css = GetCss(this);
+            var currentCss = GetCurrentCss(this);
+            var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
             LoadFromPath(path, parameters);
             InvalidateVisual();
         }
 
-        if (change.Property == StyleProperty)
+        if (change.Property == CssProperty)
         {
             var path = Path;
-            var style = change.GetNewValue<string?>();
-            var currentStyle = GetCurrentStyle(this);
-            var parameters = new SvgParameters(null, string.Concat(style, ' ', currentStyle));
+            var css = change.GetNewValue<string?>();
+            var currentCss = GetCurrentCss(this);
+            var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
             LoadFromPath(path, parameters);
             InvalidateVisual();
         }
 
-        if (change.Property == CurrentStyleProperty)
+        if (change.Property == CurrentCssProperty)
         {
             var path = Path;
-            var style = GetStyle(this);
-            var currentStyle = change.GetNewValue<string?>();
-            var parameters = new SvgParameters(null, string.Concat(style, ' ', currentStyle));
+            var css = GetCss(this);
+            var currentCss = change.GetNewValue<string?>();
+            var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
             LoadFromPath(path, parameters);
             InvalidateVisual();
         }
