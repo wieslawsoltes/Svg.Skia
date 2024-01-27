@@ -51,7 +51,7 @@ public class SvgImageExtension : MarkupExtension
         {
             var css = Svg.GetCss(targetControl);
             var currentCss = Svg.GetCurrentCss(targetControl);
-            var source = SvgSource.Load<SvgSource>(
+            var source = SvgSource.Load(
                 path,
                 baseUri,
                 new SvgParameters(null, string.Concat(css, ' ', currentCss)));
@@ -60,7 +60,7 @@ public class SvgImageExtension : MarkupExtension
         }
         else
         {
-            var source = SvgSource.Load<SvgSource>(
+            var source = SvgSource.Load(
                 path,
                 baseUri);
             

@@ -331,7 +331,7 @@ public class Svg : Control
 
         try
         {
-            _svg = SvgSource.Load<SvgSource>(path, _baseUri, parameters);
+            _svg = SvgSource.Load(path, _baseUri, parameters);
 
             if (_enableCache && _cache is { } && _svg is { })
             {
@@ -357,7 +357,7 @@ public class Svg : Control
 
         try
         {
-            _svg = SvgSource.LoadFromSvg<SvgSource>(source);
+            _svg = SvgSource.LoadFromSvg(source);
         }
         catch (Exception e)
         {

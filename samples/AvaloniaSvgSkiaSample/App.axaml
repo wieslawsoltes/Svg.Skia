@@ -6,4 +6,10 @@
   <Application.Styles>
     <FluentTheme />
   </Application.Styles>
+  <Application.Resources>
+    <SvgSource x:Key="CameraIcon">/Assets/__AJ_Digital_Camera.svg</SvgSource>
+    <SvgSource x:Key="TigerIcon"
+               Path="/Assets/__tiger.svg"
+               Css=".Black { fill: #FF0000; }" />
+  </Application.Resources>
 </Application>

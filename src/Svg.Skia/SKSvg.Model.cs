@@ -93,11 +93,9 @@ public class SKSvg : IDisposable
 
     public SKPicture? Model { get; private set; }
 
-    public SkiaSharp.SKPicture? Picture { get; private set; }
+    public virtual SkiaSharp.SKPicture? Picture { get; protected set; }
 
-    public string? Css => _originalParameters?.Css;
-
-    public Dictionary<string, string>? Entities => _originalParameters?.Entities;
+    public SvgParameters? Parameters => _originalParameters;
 
     public SKSvg()
     {
@@ -108,8 +106,6 @@ public class SKSvg : IDisposable
 
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream, SvgParameters? parameters = null)
     {
-        Reset();
-
         SvgDocument? svgDocument;
 
         if (CacheOriginalStream)
@@ -151,8 +147,6 @@ public class SKSvg : IDisposable
 
     public SkiaSharp.SKPicture? Load(string path, SvgParameters? parameters = null)
     {
-        Reset();
-
         _originalPath = path;
         _originalStream?.Dispose();
         _originalStream = null;
@@ -174,7 +168,6 @@ public class SKSvg : IDisposable
 
     public SkiaSharp.SKPicture? Load(XmlReader reader)
     {
-        Reset();
         var svgDocument = SvgExtensions.Open(reader);
         if (svgDocument is { })
         {
@@ -209,7 +202,6 @@ public class SKSvg : IDisposable
 
     public SkiaSharp.SKPicture? FromSvg(string svg)
     {
-        Reset();
         var svgDocument = SvgExtensions.FromSvg(svg);
         if (svgDocument is { })
         {
@@ -223,7 +215,6 @@ public class SKSvg : IDisposable
 
     public SkiaSharp.SKPicture? FromSvgDocument(SvgDocument? svgDocument)
     {
-        Reset();
         if (svgDocument is { })
         {
             Model = SvgExtensions.ToModel(svgDocument, AssetLoader, out var drawable, out _);
@@ -259,7 +250,6 @@ public class SKSvg : IDisposable
         Drawable = null;
         Picture?.Dispose();
         Picture = null;
-       
     }
 
     public void Dispose()

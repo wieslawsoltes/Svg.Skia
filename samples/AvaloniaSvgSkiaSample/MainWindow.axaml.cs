@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -106,7 +107,7 @@ public partial class MainWindow : Window
                 }
                 else if (sender == svgExtensionDockPanel)
                 {
-                    var svg = new SvgSource();
+                    var svg = new SvgSource(default(Uri));
                     var picture = svg.Load(fileName);
                     if (picture is { })
                     {
@@ -118,7 +119,7 @@ public partial class MainWindow : Window
                 }
                 else if (sender == svgSourceDockPanel)
                 {
-                    var svg = new SvgSource();
+                    var svg = new SvgSource(default(Uri));
                     var picture = svg.Load(fileName);
                     if (picture is { })
                     {
@@ -130,7 +131,7 @@ public partial class MainWindow : Window
                 }
                 else if (sender == svgResourceDockPanel)
                 {
-                    var svg = new SvgSource();
+                    var svg = new SvgSource(default(Uri));
                     var picture = svg.Load(fileName);
                     if (picture is { })
                     {

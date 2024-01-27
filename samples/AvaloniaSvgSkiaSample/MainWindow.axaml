@@ -28,6 +28,34 @@
       </DockPanel>
     </TabItem>
 
+    <TabItem Header="Image">
+      <DockPanel Background="Transparent" 
+                 Margin="16" 
+                 VerticalAlignment="Stretch"
+                 HorizontalAlignment="Stretch" 
+                 DragDrop.AllowDrop="True">
+        <Image>
+          <Image.Source>
+            <SvgImage Source="{DynamicResource CameraIcon}" />
+          </Image.Source>
+        </Image>
+      </DockPanel>
+    </TabItem>
+
+    <TabItem Header="Image Css">
+      <DockPanel Background="Transparent" 
+                 Margin="16" 
+                 VerticalAlignment="Stretch"
+                 HorizontalAlignment="Stretch" 
+                 DragDrop.AllowDrop="True">
+        <Image>
+          <Image.Source>
+            <SvgImage Source="{DynamicResource TigerIcon}" />
+          </Image.Source>
+        </Image>
+      </DockPanel>
+    </TabItem>
+
     <TabItem Header="Extension">
       <DockPanel x:Name="svgExtensionDockPanel" 
                  Background="Transparent" 

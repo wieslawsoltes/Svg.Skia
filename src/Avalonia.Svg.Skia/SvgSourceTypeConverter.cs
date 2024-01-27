@@ -21,6 +21,6 @@ public class SvgSourceTypeConverter : TypeConverter
     {
         var path = (string)value;
         var baseUri = context?.GetContextBaseUri();
-        return SvgSource.Load<SvgSource>(path, baseUri);
+        return SvgSource.Load(path, baseUri);
     }
 }
