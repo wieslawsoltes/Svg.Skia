@@ -285,6 +285,11 @@ public static class AvaloniaModelExtensions
         }
     }
 
+    private static AM.IImmutableBrush ToSolidColorBrush(this SKColor color)
+    {
+        return new AMII.ImmutableSolidColorBrush(color.ToColor());
+    }
+
     private static AM.IImmutableBrush ToSolidColorBrush(this ColorShader colorShader)
     {
         var color = colorShader.Color.ToColor();
@@ -473,7 +478,11 @@ public static class AvaloniaModelExtensions
 
     private static AM.IPen ToPen(this SKPaint paint, SKRect bounds)
     {
-        var brush = ToBrush(paint.Shader, bounds);
+        var brush = paint.Shader is not null 
+            ? ToBrush(paint.Shader, bounds)
+            : paint.Color is not null 
+                ? ToSolidColorBrush(paint.Color.Value) 
+                : null;
         var lineCap = paint.StrokeCap.ToPenLineCap();
         var lineJoin = paint.StrokeJoin.ToPenLineJoin();
 
@@ -506,7 +515,11 @@ public static class AvaloniaModelExtensions
 
         if (paint.Style == SKPaintStyle.Fill || paint.Style == SKPaintStyle.StrokeAndFill)
         {
-            brush = ToBrush(paint.Shader, bounds);
+            brush = paint.Shader is not null 
+                ? ToBrush(paint.Shader, bounds)
+                : paint.Color is not null 
+                    ? ToSolidColorBrush(paint.Color.Value) 
+                    : null;
         }
 
         if (paint.Style == SKPaintStyle.Stroke || paint.Style == SKPaintStyle.StrokeAndFill)
