@@ -1,6 +1,7 @@
 ﻿using System;
 using Avalonia;
 using Avalonia.Svg.Skia;
+using Svg.Skia;
 
 namespace AvaloniaSvgSkiaStylingSample;
 
@@ -14,6 +15,9 @@ internal class Program
     {
         GC.KeepAlive(typeof(SvgImageExtension).Assembly);
         GC.KeepAlive(typeof(Avalonia.Svg.Skia.Svg).Assembly);
+
+        SKSvg.CacheOriginalStream = true;
+        
         return AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .With(new X11PlatformOptions
