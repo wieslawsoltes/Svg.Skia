@@ -9,6 +9,8 @@ namespace Svg.Skia;
 
 public class SKSvg : IDisposable
 {
+    public static bool CacheOriginalStream { get; set; }
+
     public static SKSvg CreateFromStream(System.IO.Stream stream, SvgParameters? parameters = null)
     {
         var skSvg = new SKSvg();
@@ -108,21 +110,34 @@ public class SKSvg : IDisposable
     {
         Reset();
 
-        if (_originalStream != stream)
+        SvgDocument? svgDocument;
+
+        if (CacheOriginalStream)
         {
-            _originalStream?.Dispose();
-            _originalStream = new System.IO.MemoryStream();
-            stream.CopyTo(_originalStream);
+            if (_originalStream != stream)
+            {
+                _originalStream?.Dispose();
+                _originalStream = new System.IO.MemoryStream();
+                stream.CopyTo(_originalStream);
+            }
+
+            _originalPath = null;
+            _originalParameters = parameters;
+            _originalStream.Position = 0;
+
+            svgDocument = SvgExtensions.Open(_originalStream, parameters);
+            if (svgDocument is null)
+            {
+                return null;
+            }
         }
-
-        _originalPath = null;
-        _originalParameters = parameters;
-        _originalStream.Position = 0;
-
-        var svgDocument = SvgExtensions.Open(_originalStream, parameters);
-        if (svgDocument is null)
+        else
         {
-            return null;
+            svgDocument = SvgExtensions.Open(stream, parameters);
+            if (svgDocument is null)
+            {
+                return null;
+            }
         }
 
         Model = SvgExtensions.ToModel(svgDocument, AssetLoader, out var drawable, out _);
@@ -173,6 +188,11 @@ public class SKSvg : IDisposable
 
     public SkiaSharp.SKPicture? ReLoad(SvgParameters? parameters)
     {
+        if (!CacheOriginalStream)
+        {
+            throw new ArgumentException($"Enable {nameof(CacheOriginalStream)} feature toggle to enable reload feature.");
+        }
+
         Reset();
 
         _originalParameters = parameters;
@@ -183,7 +203,7 @@ public class SKSvg : IDisposable
         }
 
         _originalStream.Position = 0;
-        
+
         return Load(_originalStream, parameters);
     }
 
