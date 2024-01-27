@@ -724,7 +724,7 @@ public class W3CTestSuiteTests
     [InlineData("coords-transformattr-05-f", 0.022)]
     public void coords_transformattr(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [WindowsAndOSXTheory]
+    [WindowsAndOSXTheory(Skip = "Missing svg files")]
     [InlineData("paths-data-01-t", 0.074)]
     [InlineData("paths-data-02-t", 0.086)]
     [InlineData("paths-data-03-f", 0.076)]
@@ -746,7 +746,7 @@ public class W3CTestSuiteTests
     [InlineData("paths-data-20-f", 0.063)]
     public void paths_data(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [WindowsTheory]
+    [WindowsTheory(Skip = "Missing svg files")]
     [InlineData("__AJ_Digital_Camera", 0.027)]
     [InlineData("__Telefunken_FuBK_test_pattern", 0.022)]
     [InlineData("__tiger", 0.055)]

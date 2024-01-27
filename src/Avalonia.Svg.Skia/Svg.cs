@@ -5,6 +5,7 @@ using Avalonia.Logging;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using ShimSkiaSharp;
+using Svg.Model;
 using Svg.Skia;
 
 namespace Avalonia.Svg.Skia;
@@ -52,6 +53,18 @@ public class Svg : Control
         AvaloniaProperty.RegisterDirect<Svg, bool>(nameof(EnableCache),
             o => o.EnableCache,
             (o, v) => o.EnableCache = v);
+
+    /// <summary>
+    /// Defines the Css property.
+    /// </summary>
+    public static readonly AttachedProperty<string?> CssProperty =
+        AvaloniaProperty.RegisterAttached<Svg, AvaloniaObject, string?>("Css", inherits: true);
+
+    /// <summary>
+    /// Defines the CurrentCss property.
+    /// </summary>
+    public static readonly AttachedProperty<string?> CurrentCssProperty =
+        AvaloniaProperty.RegisterAttached<Svg, AvaloniaObject, string?>("CurrentCss", inherits: true);
 
     /// <summary>
     /// Gets or sets the Svg path.
@@ -118,6 +131,37 @@ public class Svg : Control
     {
         AffectsRender<Svg>(PathProperty, SourceProperty, StretchProperty, StretchDirectionProperty);
         AffectsMeasure<Svg>(PathProperty, SourceProperty, StretchProperty, StretchDirectionProperty);
+
+        CssProperty.Changed.AddClassHandler<Control>(OnCssPropertyAttachedPropertyChanged);
+        CurrentCssProperty.Changed.AddClassHandler<Control>(OnCssPropertyAttachedPropertyChanged);
+    }
+
+    public static string? GetCss(AvaloniaObject element)
+    {
+        return element.GetValue(CssProperty);
+    }
+
+    public static void SetCss(AvaloniaObject element, string? value)
+    {
+        element.SetValue(CssProperty, value);
+    }
+
+    public static string? GetCurrentCss(AvaloniaObject element)
+    {
+        return element.GetValue(CurrentCssProperty);
+    }
+
+    public static void SetCurrentCss(AvaloniaObject element, string? value)
+    {
+        element.SetValue(CurrentCssProperty, value);
+    }
+
+    private static void OnCssPropertyAttachedPropertyChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (d is Control control)
+        {
+            control.InvalidateVisual();
+        }
     }
 
     /// <summary>
@@ -215,7 +259,30 @@ public class Svg : Control
         if (change.Property == PathProperty)
         {
             var path = change.GetNewValue<string?>();
-            LoadFromPath(path);
+            var css = GetCss(this);
+            var currentCss = GetCurrentCss(this);
+            var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+            LoadFromPath(path, parameters);
+            InvalidateVisual();
+        }
+
+        if (change.Property == CssProperty)
+        {
+            var path = Path;
+            var css = change.GetNewValue<string?>();
+            var currentCss = GetCurrentCss(this);
+            var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+            LoadFromPath(path, parameters);
+            InvalidateVisual();
+        }
+
+        if (change.Property == CurrentCssProperty)
+        {
+            var path = Path;
+            var css = GetCss(this);
+            var currentCss = change.GetNewValue<string?>();
+            var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+            LoadFromPath(path, parameters);
             InvalidateVisual();
         }
 
@@ -240,7 +307,7 @@ public class Svg : Control
         }
     }
 
-    private void LoadFromPath(string? path, Dictionary<string, string>? entities = null)
+    private void LoadFromPath(string? path, SvgParameters? parameters = null)
     {
         if (path is null)
         {
@@ -264,7 +331,7 @@ public class Svg : Control
 
         try
         {
-            _svg = SvgSource.Load<SvgSource>(path, _baseUri, entities);
+            _svg = SvgSource.Load<SvgSource>(path, _baseUri, parameters);
 
             if (_enableCache && _cache is { } && _svg is { })
             {

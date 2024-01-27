@@ -1,0 +1,63 @@
+﻿<Window x:Class="AvaloniaSvgSkiaStylingSample.MainWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        Title="Avalonia SgvImage Sample"
+        Width="900"
+        Height="600"
+        d:DesignHeight="600"
+        d:DesignWidth="900"
+        UseLayoutRounding="True"
+        WindowStartupLocation="CenterScreen"
+        mc:Ignorable="d">
+  <TabControl>
+    <TabItem Header="Svg">
+      <DockPanel>
+        <Button x:Name="ApplySvgStyleButton"
+                Content="Apply style"
+                DockPanel.Dock="Top" />
+        <TextBlock Text="Move mouse pointer over SVG to apply style"
+                   DockPanel.Dock="Top" />
+        <Panel Margin="16"
+               Background="Transparent"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center">
+          <Panel.Styles>
+            <Style Selector="Panel:pointerover Svg">
+              <Setter Property="(Svg.Css)" Value=".Black { fill: #FF0000; }" />
+            </Style>
+          </Panel.Styles>
+          <Viewbox Stretch="Uniform">
+            <Svg Name="SvgControl" 
+                 Path="/Assets/__tiger.svg" />
+          </Viewbox>
+        </Panel>
+      </DockPanel>
+    </TabItem>
+    <TabItem Header="SvgImage">
+      <DockPanel>
+        <Button x:Name="ApplySvgImageStyleButton"
+                Content="Apply style"
+                DockPanel.Dock="Top" />
+        <TextBlock Text="Move mouse pointer over SVG to apply style"
+                   DockPanel.Dock="Top" />
+        <Panel Margin="16"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center">
+          <Viewbox Stretch="Uniform">
+            <Button Background="Transparent"
+                    Content="{SvgImage /Assets/__tiger.svg}"
+                    Name="SvgImageButton">
+              <Button.Styles>
+                <Style Selector="Button:pointerover">
+                  <Setter Property="(Svg.Css)" Value=".Black { fill: #FF0000; }" />
+                </Style>
+              </Button.Styles>
+            </Button>
+          </Viewbox>
+        </Panel>
+      </DockPanel>
+    </TabItem>
+  </TabControl>
+</Window>
