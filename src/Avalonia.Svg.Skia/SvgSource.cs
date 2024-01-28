@@ -23,11 +23,11 @@ public class SvgSource : SKSvg
     private SKPicture? _picture;
 
     [Content]
-    public string? Path { get; init; }
+    public string? Path { get; set; }
 
-    public Dictionary<string, string>? Entities { get; init; }
+    public Dictionary<string, string>? Entities { get; set; }
 
-    public string? Css { get; init; }
+    public string? Css { get; set; }
 
     public override SKPicture? Picture
     {
