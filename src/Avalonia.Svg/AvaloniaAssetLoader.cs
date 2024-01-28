@@ -30,7 +30,6 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
         if (paintPreferredTypeface.Typeface is { } preferredTypeface)
         {
             var weight = preferredTypeface.FontWeight.ToFontWeight();
-            var width = preferredTypeface.FontWidth.ToFontStretch();
             var slant = preferredTypeface.FontSlant.ToFontStyle();
 
             matchCharacter = codepoint =>
@@ -39,7 +38,6 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
                     codepoint,
                     slant,
                     weight,
-                    width,
                     preferredTypeface.FamilyName is { } n 
                         ? FontFamily.Parse(n) 
                         : null,
@@ -56,7 +54,6 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
                     codepoint,
                     FontStyle.Normal,
                     FontWeight.Normal,
-                    FontStretch.Normal,
                     null,
                     null,
                     out var typeface
@@ -84,7 +81,7 @@ public class AvaloniaAssetLoader : SM.IAssetLoader
                         : ShimSkiaSharp.SKTypeface.FromFamilyName(
                             typeface.FontFamily.Name,
                             typeface.Weight.ToSKFontWeight(),
-                            typeface.Stretch.ToSKFontStretch(),
+                            SKFontStyleWidth.Normal,
                             typeface.Style.ToSKFontStyle()
                         )));
         }

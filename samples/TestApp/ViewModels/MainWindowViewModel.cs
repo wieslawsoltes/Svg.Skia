@@ -11,7 +11,7 @@ using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Platform.Storage;
+// using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
@@ -19,7 +19,7 @@ using ReactiveUI;
 using Svg.CodeGen.Skia;
 using Svg.Skia;
 using TestApp.Models;
-using TestApp.Services;
+// using TestApp.Services;
 
 namespace TestApp.ViewModels;
 
@@ -61,7 +61,7 @@ public class MainWindowViewModel : ViewModelBase
     public ICommand CopyAsCSharpCommand { get; }
 
     public ICommand ExportCommand { get; }
-
+/*
     private List<FilePickerFileType> GetConfigurationFileTypes()
     {
         return new List<FilePickerFileType>
@@ -83,7 +83,7 @@ public class MainWindowViewModel : ViewModelBase
             StorageService.All
         };
     }
-
+*/
     public MainWindowViewModel()
     {
         _items = new ObservableCollection<FileItemViewModel>();
@@ -122,6 +122,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private async Task ExportExecute(Avalonia.Svg.Skia.Svg svg)
     {
+        /*
         if (_selectedItem is null || svg.Model is null)
         {
             return;
@@ -155,10 +156,12 @@ public class MainWindowViewModel : ViewModelBase
                 Debug.WriteLine(ex.StackTrace);
             }
         }
+        */
     }
 
     private async Task CopyAsCSharpExecute(Avalonia.Svg.Skia.Svg svg)
     {
+        /*
         if (_selectedItem is null || svg?.Model is null)
         {
             return;
@@ -180,6 +183,7 @@ public class MainWindowViewModel : ViewModelBase
                 // ignored
             }
         });
+        */
     }
 
     private async Task AddItemExecute()
@@ -219,6 +223,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private async Task SaveConfigurationExecute()
     {
+        /*
         var storageProvider = StorageService.GetStorageProvider();
         if (storageProvider is null)
         {
@@ -247,10 +252,12 @@ public class MainWindowViewModel : ViewModelBase
                 Debug.WriteLine(ex.StackTrace);
             }
         }
+        */
     }
 
     private async Task LoadConfigurationExecute()
     {
+        /*
         var storageProvider = StorageService.GetStorageProvider();
         if (storageProvider is null)
         {
@@ -279,6 +286,7 @@ public class MainWindowViewModel : ViewModelBase
                 Debug.WriteLine(ex.StackTrace);
             }
         }
+        */
     }
 
     private Func<FileItemViewModel, bool> ItemQueryFilter(string? searchQuery)

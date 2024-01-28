@@ -7,7 +7,7 @@ namespace TestApp;
 
 public class ViewLocator : IDataTemplate
 {
-    public Control Build(object? data)
+    public IControl Build(object? data)
     {
         var name = data?.GetType().FullName?.Replace("ViewModel", "View");
         var type = name is null ? null : Type.GetType(name);

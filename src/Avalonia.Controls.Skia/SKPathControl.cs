@@ -140,7 +140,7 @@ public class SKPathControl : Control
         }
 
         using (context.PushClip(destRect))
-        using (context.PushTransform(translateMatrix * scaleMatrix))
+        using (context.PushPreTransform(translateMatrix * scaleMatrix))
         {
             context.Custom(
                 new SKPathDrawOperation(
@@ -151,7 +151,7 @@ public class SKPathControl : Control
     }
 
     /// <inheritdoc/>
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
     {
         base.OnPropertyChanged(change);
 

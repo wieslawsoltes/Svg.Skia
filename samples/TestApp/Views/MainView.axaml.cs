@@ -27,7 +27,7 @@ public partial class MainView : UserControl
     {
         e.DragEffects = e.DragEffects & (DragDropEffects.Copy | DragDropEffects.Link);
 
-        if (!e.Data.Contains(DataFormats.Files))
+        if (!e.Data.Contains(DataFormats.FileNames))
         {
             e.DragEffects = DragDropEffects.None;
         }
@@ -35,7 +35,7 @@ public partial class MainView : UserControl
 
     private void Drop(object? sender, DragEventArgs e)
     {
-        if (e.Data.Contains(DataFormats.Files))
+        if (e.Data.Contains(DataFormats.FileNames))
         {
             var paths = e.Data.GetFileNames();
             if (paths is { })
@@ -55,7 +55,7 @@ public partial class MainView : UserControl
         }
     }
 
-    private void FileItem_OnDoubleTapped(object? sender, TappedEventArgs e)
+    private void FileItem_OnDoubleTapped(object? sender, RoutedEventArgs e)
     {
         if (sender is Control control && control.DataContext is FileItemViewModel fileItemViewModel)
         {

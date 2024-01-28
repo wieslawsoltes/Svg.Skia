@@ -27,15 +27,9 @@ public class SKPictureDrawOperation : ICustomDrawOperation
 
     public bool Equals(ICustomDrawOperation? other) => false;
 
-    public void Render(ImmediateDrawingContext context)
+    public void Render(IDrawingContextImpl context)
     {
-        var leaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
-        if (leaseFeature is null)
-        {
-            return;
-        }
-        using var lease = leaseFeature.Lease();
-        var canvas = lease?.SkCanvas;
+var canvas = (context as ISkiaDrawingContextImpl)?.SkCanvas;
         if (canvas is null || _picture is null)
         {
             return;

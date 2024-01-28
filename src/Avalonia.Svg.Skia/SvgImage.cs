@@ -1,5 +1,6 @@
 ﻿using Avalonia.Media;
 using Avalonia.Metadata;
+using Avalonia.Visuals.Media.Imaging;
 using Svg.Model;
 
 namespace Avalonia.Svg.Skia;
@@ -60,7 +61,10 @@ public class SvgImage : AvaloniaObject, IImage
         Source?.Picture is { } ? new Size(Source.Picture.CullRect.Width, Source.Picture.CullRect.Height) : default;
 
     /// <inheritdoc/>
-    void IImage.Draw(DrawingContext context, Rect sourceRect, Rect destRect)
+    void IImage.Draw(DrawingContext context,
+        Rect sourceRect,
+        Rect destRect,
+        BitmapInterpolationMode bitmapInterpolationMode)
     {
         var source = Source;
 
@@ -82,7 +86,7 @@ public class SvgImage : AvaloniaObject, IImage
             -sourceRect.X + destRect.X - bounds.Top,
             -sourceRect.Y + destRect.Y - bounds.Left);
         using (context.PushClip(destRect))
-        using (context.PushTransform(translateMatrix * scaleMatrix))
+        using (context.PushPreTransform(translateMatrix * scaleMatrix))
         {
             context.Custom(
                 new SvgCustomDrawOperation(
@@ -92,7 +96,7 @@ public class SvgImage : AvaloniaObject, IImage
     }
 
     /// <inheritdoc/>
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
     {
         base.OnPropertyChanged(change);
 
@@ -103,7 +107,7 @@ public class SvgImage : AvaloniaObject, IImage
 
         if (change.Property == CssProperty)
         {
-            var css = string.Concat(change.GetNewValue<string>(), ' ', CurrentCss);
+            var css = string.Concat(change.NewValue.GetValueOrDefault<string>(), ' ', CurrentCss);
 
             if (Source?.Css != css)
             {
@@ -113,7 +117,7 @@ public class SvgImage : AvaloniaObject, IImage
 
         if (change.Property == CurrentCssProperty)
         {
-            var css = string.Concat(Css, ' ', change.GetNewValue<string>());
+            var css = string.Concat(Css, ' ', change.NewValue.GetValueOrDefault<string>());
 
             if (Source?.Css != css)
             {

@@ -7,7 +7,7 @@ using AM = Avalonia.Media;
 using AMI = Avalonia.Media.Imaging;
 using AMII = Avalonia.Media.Immutable;
 using AP = Avalonia.Platform;
-using AVMI = Avalonia.Media.Imaging;
+using AVMI = Avalonia.Visuals.Media.Imaging;
 
 namespace Avalonia.Svg;
 
@@ -160,40 +160,6 @@ public static class AvaloniaModelExtensions
         return (SKFontStyleWeight)fontStyleWeight;
     }
 
-    public static AM.FontStretch ToFontStretch(this SKFontStyleWidth fontStyleWidth)
-    {
-        return fontStyleWidth switch
-        {
-            SKFontStyleWidth.UltraCondensed => AM.FontStretch.UltraCondensed,
-            SKFontStyleWidth.ExtraCondensed => AM.FontStretch.ExtraCondensed,
-            SKFontStyleWidth.Condensed => AM.FontStretch.Condensed,
-            SKFontStyleWidth.SemiCondensed => AM.FontStretch.SemiCondensed,
-            SKFontStyleWidth.Normal => AM.FontStretch.Normal,
-            SKFontStyleWidth.SemiExpanded => AM.FontStretch.SemiExpanded,
-            SKFontStyleWidth.Expanded => AM.FontStretch.Expanded,
-            SKFontStyleWidth.ExtraExpanded => AM.FontStretch.ExtraExpanded,
-            SKFontStyleWidth.UltraExpanded => AM.FontStretch.UltraExpanded,
-            _ => AM.FontStretch.Normal
-        };
-    }
-
-    public static SKFontStyleWidth ToSKFontStretch(this AM.FontStretch fontStyleWidth)
-    {
-        return fontStyleWidth switch
-        {
-            AM.FontStretch.UltraCondensed => SKFontStyleWidth.UltraCondensed,
-            AM.FontStretch.ExtraCondensed => SKFontStyleWidth.ExtraCondensed,
-            AM.FontStretch.Condensed => SKFontStyleWidth.Condensed,
-            AM.FontStretch.SemiCondensed => SKFontStyleWidth.SemiCondensed,
-            AM.FontStretch.Normal => SKFontStyleWidth.Normal,
-            AM.FontStretch.SemiExpanded => SKFontStyleWidth.SemiExpanded,
-            AM.FontStretch.Expanded => SKFontStyleWidth.Expanded,
-            AM.FontStretch.ExtraExpanded => SKFontStyleWidth.ExtraExpanded,
-            AM.FontStretch.UltraExpanded => SKFontStyleWidth.UltraExpanded,
-            _ => SKFontStyleWidth.Normal
-        };
-    }
-
     public static AM.FontStyle ToFontStyle(this SKFontStyleSlant fontStyleSlant)
     {
         return fontStyleSlant switch
@@ -223,9 +189,8 @@ public static class AvaloniaModelExtensions
 
         var familyName = typeface.FamilyName ?? AM.Typeface.Default.FontFamily.Name;
         var weight = typeface.FontWeight.ToFontWeight();
-        var stretch = typeface.FontWidth.ToFontStretch();
         var slant = typeface.FontSlant.ToFontStyle();
-        return new AM.Typeface(familyName, slant, weight, stretch);
+        return new AM.Typeface(familyName, slant, weight);
     }
 
     public static AM.Color ToColor(this SKColor color)
@@ -272,7 +237,7 @@ public static class AvaloniaModelExtensions
         {
             default:
             case SKFilterQuality.None:
-                return AVMI.BitmapInterpolationMode.None;
+                return AVMI.BitmapInterpolationMode.Default;
 
             case SKFilterQuality.Low:
                 return AVMI.BitmapInterpolationMode.LowQuality;
@@ -285,12 +250,12 @@ public static class AvaloniaModelExtensions
         }
     }
 
-    private static AM.IImmutableBrush ToSolidColorBrush(this SKColor color)
+    private static AM.IBrush ToSolidColorBrush(this SKColor color)
     {
         return new AMII.ImmutableSolidColorBrush(color.ToColor());
     }
 
-    private static AM.IImmutableBrush ToSolidColorBrush(this ColorShader colorShader)
+    private static AM.IBrush ToSolidColorBrush(this ColorShader colorShader)
     {
         var color = colorShader.Color.ToColor();
         return new AMII.ImmutableSolidColorBrush(color);
@@ -312,7 +277,7 @@ public static class AvaloniaModelExtensions
         }
     }
 
-    public static AM.IImmutableBrush? ToLinearGradientBrush(this LinearGradientShader linearGradientShader, SKRect bounds)
+    public static AM.IBrush? ToLinearGradientBrush(this LinearGradientShader linearGradientShader, SKRect bounds)
     {
         if (linearGradientShader.Colors is null || linearGradientShader.ColorPos is null)
         {
@@ -323,10 +288,10 @@ public static class AvaloniaModelExtensions
         var start = linearGradientShader.Start.ToPoint();
         var end = linearGradientShader.End.ToPoint();
 
-        var transform = default(AMII.ImmutableTransform);
+        var transform = default(AM.MatrixTransform);
         if (linearGradientShader.LocalMatrix is { })
         {
-            transform = new AMII.ImmutableTransform(linearGradientShader.LocalMatrix.Value.ToMatrix());
+            transform = new AM.MatrixTransform(linearGradientShader.LocalMatrix.Value.ToMatrix());
         }
 
         var startPoint = new A.RelativePoint(start, A.RelativeUnit.Absolute);
@@ -344,14 +309,12 @@ public static class AvaloniaModelExtensions
         return new AMII.ImmutableLinearGradientBrush(
             gradientStops,
             1,
-            transform,
-            null,
             spreadMethod,
             startPoint,
             endPoint);
     }
 
-    public static AM.IImmutableBrush? ToRadialGradientBrush(this RadialGradientShader radialGradientShader, SKRect bounds)
+    public static AM.IBrush? ToRadialGradientBrush(this RadialGradientShader radialGradientShader, SKRect bounds)
     {
         if (radialGradientShader.Colors is null || radialGradientShader.ColorPos is null)
         {
@@ -362,10 +325,10 @@ public static class AvaloniaModelExtensions
         var center = radialGradientShader.Center.ToPoint();
         var gradientOrigin = center;
 
-        var transform = default(AMII.ImmutableTransform);
+        var transform = default(AM.MatrixTransform);
         if (radialGradientShader.LocalMatrix is { })
         {
-            transform = new AMII.ImmutableTransform(radialGradientShader.LocalMatrix.Value.ToMatrix());
+            transform = new AM.MatrixTransform(radialGradientShader.LocalMatrix.Value.ToMatrix());
         }
 
         var gradientOriginPoint = new A.RelativePoint(gradientOrigin, A.RelativeUnit.Absolute);
@@ -384,15 +347,13 @@ public static class AvaloniaModelExtensions
         return new AMII.ImmutableRadialGradientBrush(
             gradientStops,
             1,
-            transform,
-            null,
             spreadMethod,
             centerPoint,
             gradientOriginPoint,
             radius);
     }
 
-    public static AM.IImmutableBrush? ToRadialGradientBrush(this TwoPointConicalGradientShader twoPointConicalGradientShader, SKRect bounds)
+    public static AM.IBrush? ToRadialGradientBrush(this TwoPointConicalGradientShader twoPointConicalGradientShader, SKRect bounds)
     {
         if (twoPointConicalGradientShader.Colors is null || twoPointConicalGradientShader.ColorPos is null)
         {
@@ -403,10 +364,10 @@ public static class AvaloniaModelExtensions
         var center = twoPointConicalGradientShader.End.ToPoint();
         var gradientOrigin = twoPointConicalGradientShader.Start.ToPoint();
 
-        var transform = default(AMII.ImmutableTransform);
+        var transform = default(AM.MatrixTransform);
         if (twoPointConicalGradientShader.LocalMatrix is { })
         {
-            transform = new AMII.ImmutableTransform(twoPointConicalGradientShader.LocalMatrix.Value.ToMatrix());
+            transform = new AM.MatrixTransform(twoPointConicalGradientShader.LocalMatrix.Value.ToMatrix());
         }
 
         var gradientOriginPoint = new A.RelativePoint(gradientOrigin, A.RelativeUnit.Absolute);
@@ -432,15 +393,13 @@ public static class AvaloniaModelExtensions
         return new AMII.ImmutableRadialGradientBrush(
             gradientStops,
             1,
-            transform,
-            null,
             spreadMethod,
             centerPoint,
             gradientOriginPoint,
             radius);
     }
 
-    public static AM.IImmutableBrush? ToVisualBrush(this PictureShader pictureShader, SKRect bounds)
+    public static AM.IBrush? ToVisualBrush(this PictureShader pictureShader, SKRect bounds)
     {
         if (pictureShader.Src is null)
         {
@@ -452,7 +411,7 @@ public static class AvaloniaModelExtensions
         return null;
     }
 
-    public static AM.IImmutableBrush? ToBrush(this SKShader? shader, SKRect bounds)
+    public static AM.IBrush? ToBrush(this SKShader? shader, SKRect bounds)
     {
         switch (shader)
         {
@@ -548,14 +507,13 @@ public static class AvaloniaModelExtensions
         // TODO: paint.SubpixelText
 
         var ft = new AM.FormattedText
-        (
-            text,
-            CultureInfo.CurrentCulture,
-            AM.FlowDirection.LeftToRight,
-            typeface ?? AM.Typeface.Default,
-            fontSize,
-            brush
-        );
+        {
+            Text = text,
+            Typeface = typeface ?? AM.Typeface.Default,
+            FontSize = fontSize,
+            TextAlignment = textAlignment,
+            TextWrapping = AM.TextWrapping.NoWrap
+        };
 
         ft.TextAlignment = textAlignment;
         // TODO; ft.TextWrapping = AM.TextWrapping.NoWrap;

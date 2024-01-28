@@ -2,6 +2,7 @@
 using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Media.Imaging;
+using Avalonia.Visuals.Media.Imaging;
 using SkiaSharp;
 
 namespace Avalonia.Controls.Skia;
@@ -46,7 +47,10 @@ public class SKPathImage : AvaloniaObject, IImage
     public Size Size => Source is { } ? new Size(Source.Bounds.Width, Source.Bounds.Height) : default;
 
     /// <inheritdoc/>
-    void IImage.Draw(DrawingContext context, Rect sourceRect, Rect destRect)
+    void IImage.Draw(DrawingContext context,
+        Rect sourceRect,
+        Rect destRect,
+        BitmapInterpolationMode bitmapInterpolationMode)
     {
         var source = Source;
         if (source is null)
@@ -66,14 +70,14 @@ public class SKPathImage : AvaloniaObject, IImage
         var scaleMatrix = Matrix.CreateScale(destRect.Width / sourceRect.Width, destRect.Height / sourceRect.Height);
         var translateMatrix = Matrix.CreateTranslation(-sourceRect.X + destRect.X - bounds.Top, -sourceRect.Y + destRect.Y - bounds.Left);
         using (context.PushClip(destRect))
-        using (context.PushTransform(translateMatrix * scaleMatrix))
+        using (context.PushPreTransform(translateMatrix * scaleMatrix))
         {
             context.Custom(new SKPathDrawOperation(new Rect(0, 0, bounds.Width, bounds.Height), source, paint));
         }
     }
 
     /// <inheritdoc/>
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
     {
         base.OnPropertyChanged(change);
         if (change.Property == SourceProperty)

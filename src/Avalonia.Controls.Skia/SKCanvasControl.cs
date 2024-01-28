@@ -47,7 +47,7 @@ public class SKCanvasControl : Control
         Draw?.Invoke(this, e);
     }
 
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
     {
         base.OnPropertyChanged(change);
 

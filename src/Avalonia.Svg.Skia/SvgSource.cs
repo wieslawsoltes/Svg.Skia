@@ -102,7 +102,7 @@ public class SvgSource : SKSvg
         }
         else
         {
-            var stream = Platform.AssetLoader.Open(uri, baseUri);
+            var stream = AvaloniaLocator.Current.GetService<Avalonia.Platform.IAssetLoader>()?.Open(uri, baseUri);
             if (stream is null)
             {
                 ThrowOnMissingResource(path);
@@ -159,7 +159,7 @@ public class SvgSource : SKSvg
         }
         else
         {
-            var stream = Platform.AssetLoader.Open(uri, baseUri);
+            var stream = AvaloniaLocator.Current.GetService<Avalonia.Platform.IAssetLoader>()?.Open(uri, baseUri);
             if (stream is null)
             {
                 return ThrowOnMissingResource(path);

@@ -1,8 +1,7 @@
 ﻿<Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="AvaloniaSvgSample.App"
-             Name="AvaloniaSvgSample"
-             RequestedThemeVariant="Light">
+             Name="AvaloniaSvgSample">
   <Application.Styles>
     <FluentTheme />
   </Application.Styles>

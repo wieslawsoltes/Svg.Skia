@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Metadata;
+using Avalonia.Visuals.Media.Imaging;
 using ShimSkiaSharp;
 using SP = Svg.Model;
 
@@ -40,7 +41,8 @@ public class SvgImage : AvaloniaObject, IImage
     void IImage.Draw(
         DrawingContext context,
         Rect sourceRect,
-        Rect destRect)
+        Rect destRect,
+        BitmapInterpolationMode bitmapInterpolationMode)
     {
         var source = Source;
         if (source is null || source.Picture is null)
@@ -64,7 +66,7 @@ public class SvgImage : AvaloniaObject, IImage
             -sourceRect.X + destRect.X - bounds.Top,
             -sourceRect.Y + destRect.Y - bounds.Left);
         using (context.PushClip(destRect))
-        using (context.PushTransform(translateMatrix * scaleMatrix))
+        using (context.PushPreTransform(translateMatrix * scaleMatrix))
         {
             try
             {
@@ -89,7 +91,7 @@ public class SvgImage : AvaloniaObject, IImage
     }
 
     /// <inheritdoc/>
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
     {
         base.OnPropertyChanged(change);
         if (change.Property == SourceProperty)

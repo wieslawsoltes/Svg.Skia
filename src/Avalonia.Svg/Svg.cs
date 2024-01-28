@@ -213,7 +213,7 @@ public class Svg : Control
             -sourceRect.Y + destRect.Y - bounds.Left);
 
         using (context.PushClip(destRect))
-        using (context.PushTransform(translateMatrix * scaleMatrix))
+        using (context.PushPreTransform(translateMatrix * scaleMatrix))
         {
             if (_avaloniaPicture is { })
             {
@@ -223,13 +223,13 @@ public class Svg : Control
     }
 
     /// <inheritdoc/>
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
     {
         base.OnPropertyChanged(change);
 
         if (change.Property == PathProperty)
         {
-            var path = change.GetNewValue<string?>();
+            var path = change.NewValue.GetValueOrDefault<string>();
             var css = GetCss(this);
             var currentCss = GetCurrentCss(this);
             var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
@@ -240,7 +240,7 @@ public class Svg : Control
         if (change.Property == CssProperty)
         {
             var path = Path;
-            var css = change.GetNewValue<string?>();
+            var css = change.NewValue.GetValueOrDefault<string>();
             var currentCss = GetCurrentCss(this);
             var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
             LoadFromPath(path, parameters);
@@ -251,7 +251,7 @@ public class Svg : Control
         {
             var path = Path;
             var css = GetCss(this);
-            var currentCss = change.GetNewValue<string?>();
+            var currentCss = change.NewValue.GetValueOrDefault<string>();
             var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
             LoadFromPath(path, parameters);
             InvalidateVisual();
@@ -259,7 +259,7 @@ public class Svg : Control
         
         if (change.Property == SourceProperty)
         {
-            var source = change.GetNewValue<string?>();
+            var source = change.NewValue.GetValueOrDefault<string>();
             LoadFromSource(source);
             InvalidateVisual();
         }

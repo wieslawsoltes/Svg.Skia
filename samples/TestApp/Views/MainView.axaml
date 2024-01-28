@@ -28,7 +28,7 @@
     <ListBox Grid.Column="0"
              Grid.Row="1"
              Margin="6,0,6,0"
-             ItemsSource="{Binding FilteredItems}"
+             Items="{Binding FilteredItems}"
              SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
       <ListBox.Styles>
         <Style Selector="ListBoxItem">

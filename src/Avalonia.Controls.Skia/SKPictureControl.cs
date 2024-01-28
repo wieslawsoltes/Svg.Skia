@@ -123,7 +123,7 @@ public class SKPictureControl : Control
         }
 
         using (context.PushClip(destRect))
-        using (context.PushTransform(translateMatrix * scaleMatrix))
+        using (context.PushPreTransform(translateMatrix * scaleMatrix))
         {
             context.Custom(
                 new SKPictureDrawOperation(
@@ -133,7 +133,7 @@ public class SKPictureControl : Control
     }
 
     /// <inheritdoc/>
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
     {
         base.OnPropertyChanged(change);
 

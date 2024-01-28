@@ -88,7 +88,7 @@ public partial class MainWindow : Window
     {
         e.DragEffects = e.DragEffects & (DragDropEffects.Copy | DragDropEffects.Link);
 
-        if (!e.Data.Contains(DataFormats.Files))
+        if (!e.Data.Contains(DataFormats.FileNames))
         {
             e.DragEffects = DragDropEffects.None;
         }
@@ -96,7 +96,7 @@ public partial class MainWindow : Window
 
     private void Drop(object sender, DragEventArgs e)
     {
-        if (e.Data.Contains(DataFormats.Files))
+        if (e.Data.Contains(DataFormats.FileNames))
         {
             var fileName = e.Data.GetFileNames()?.FirstOrDefault();
             if (!string.IsNullOrWhiteSpace(fileName))

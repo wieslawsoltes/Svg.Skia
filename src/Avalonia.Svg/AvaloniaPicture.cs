@@ -5,7 +5,7 @@ using ShimSkiaSharp;
 using A = Avalonia;
 using AM = Avalonia.Media;
 using AP = Avalonia.Platform;
-using AVMI = Avalonia.Media.Imaging;
+using AVMI = Avalonia.Visuals.Media.Imaging;
 using SP = Svg.Model;
 
 namespace Avalonia.Svg;
@@ -171,7 +171,7 @@ public sealed class AvaloniaPicture : IDisposable
                     {
                         var source = drawImageCanvasCommand.Source.ToRect();
                         var dest = drawImageCanvasCommand.Dest.ToRect();
-                        var bitmapInterpolationMode = drawImageCanvasCommand.Paint?.FilterQuality.ToBitmapInterpolationMode() ?? AVMI.BitmapInterpolationMode.None;
+                        var bitmapInterpolationMode = drawImageCanvasCommand.Paint?.FilterQuality.ToBitmapInterpolationMode() ?? AVMI.BitmapInterpolationMode.Default;
                         commands.Add(new ImageDrawCommand(image, source, dest, bitmapInterpolationMode));
                     }
                 }
@@ -198,7 +198,7 @@ public sealed class AvaloniaPicture : IDisposable
                     var x = drawTextCanvasCommand.X;
                     var y = drawTextCanvasCommand.Y;
                     var origin = new A.Point(x, y - drawTextCanvasCommand.Paint.TextSize);
-                    commands.Add(new TextDrawCommand(origin, text));
+                    commands.Add(new TextDrawCommand(origin, text, brush));
                 }
                 break;
             }
@@ -269,7 +269,7 @@ public sealed class AvaloniaPicture : IDisposable
             }
             case SetTransformDrawCommand setTransformDrawCommand:
             {
-                var transformPreTransform = context.PushTransform(setTransformDrawCommand.Matrix);
+                var transformPreTransform = context.PushPreTransform(setTransformDrawCommand.Matrix);
                 var currentPushedStates = pushedStates.Peek();
                 currentPushedStates.Push(transformPreTransform);
                 break;
@@ -328,8 +328,9 @@ public sealed class AvaloniaPicture : IDisposable
                 if (textDrawCommand.FormattedText is { })
                 {
                     context.DrawText(
-                        textDrawCommand.FormattedText,
-                        textDrawCommand.Origin);
+                        textDrawCommand.Brush,
+                        textDrawCommand.Origin,
+                        textDrawCommand.FormattedText);
                 }
                 break;
             }
@@ -338,7 +339,7 @@ public sealed class AvaloniaPicture : IDisposable
 
     public void Draw(AM.DrawingContext context)
     {
-        using var transformContainerState = context.PushTransform(Matrix.Identity);
+        using var transformContainerState = context.PushPreTransform(Matrix.Identity);
         var pushedStates = new Stack<Stack<IDisposable>>();
 
         foreach (var command in _commands)

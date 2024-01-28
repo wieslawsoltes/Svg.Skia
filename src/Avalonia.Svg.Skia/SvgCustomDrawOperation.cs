@@ -26,20 +26,14 @@ public class SvgCustomDrawOperation : ICustomDrawOperation
 
     public bool Equals(ICustomDrawOperation? other) => false;
 
-    public void Render(ImmediateDrawingContext context)
+    public void Render(IDrawingContextImpl context)
     {
         if (_svg?.Picture is null)
         {
             return;
         }
         
-        var leaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
-        if (leaseFeature is null)
-        {
-            return;
-        }
-        using var lease = leaseFeature.Lease();
-        var canvas = lease?.SkCanvas;
+var canvas = (context as ISkiaDrawingContextImpl)?.SkCanvas;
         if (canvas is null)
         {
             return;

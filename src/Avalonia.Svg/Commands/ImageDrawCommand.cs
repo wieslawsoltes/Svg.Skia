@@ -1,7 +1,7 @@
 ﻿using System;
 using A = Avalonia;
 using AM = Avalonia.Media;
-using AVMI = Avalonia.Media.Imaging;
+using AVMI = Avalonia.Visuals.Media.Imaging;
 
 namespace Avalonia.Svg.Commands;
 
