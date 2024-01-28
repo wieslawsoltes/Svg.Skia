@@ -6,7 +6,7 @@ namespace Avalonia.Svg.Skia.UnitTests;
 
 public class SvgImageTests
 {
-    [Fact]
+    [Fact(Skip = "Avalonia 0.10.x not supported")]
     public void SvgImage_Load()
     {
         var uri = new Uri($"avares://Avalonia.Svg.Skia.UnitTests/Assets/Icon.svg");
