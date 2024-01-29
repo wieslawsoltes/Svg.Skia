@@ -194,6 +194,41 @@ Install-Package Avalonia.Svg.Skia
 <Image Source="{SvgImage /Assets/__AJ_Digital_Camera.svg}"/>
 ```
 
+### CSS styling
+
+```XAML
+<Svg Path="/Assets/__tiger.svg" 
+     Css=".Black { fill: #FF0000; }"  />
+```
+
+```XAML
+<Style Selector="Svg">
+  <Setter Property="(Svg.Css)" Value=".Black { fill: #FF0000; }" />
+</Style>
+```
+
+```XAML
+<SvgSource x:Key="TigerIcon"
+           Path="/Assets/__tiger.svg"
+           Css=".Black { fill: #FF0000; }" />
+```
+
+```XAML
+<Image>
+  <Image.Source>
+    <SvgImage Source="{DynamicResource TigerIcon}" />
+  </Image.Source>
+</Image>
+```
+
+```XAML
+<Image>
+  <Image.Source>
+    <SvgImage Source="/Assets/__tiger.svg" Value=".Black { fill: #FF0000; }" />
+  </Image.Source>
+</Image>
+```
+
 #### Avalonia Previewer
 
 To make controls work with `Avalonia Previewer` please add the following lines to `BuildAvaloniaApp()` method:
