@@ -224,7 +224,7 @@ Install-Package Avalonia.Svg.Skia
 ```XAML
 <Image>
   <Image.Source>
-    <SvgImage Source="/Assets/__tiger.svg" Value=".Black { fill: #FF0000; }" />
+    <SvgImage Source="/Assets/__tiger.svg" Css=".Black { fill: #FF0000; }" />
   </Image.Source>
 </Image>
 ```
