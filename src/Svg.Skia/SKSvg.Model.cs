@@ -95,6 +95,8 @@ public class SKSvg : IDisposable
 
     public virtual SkiaSharp.SKPicture? Picture { get; protected set; }
 
+    public object Locker { get; } = new object();
+
     public SvgParameters? Parameters => _originalParameters;
 
     public SKSvg()
@@ -181,23 +183,26 @@ public class SKSvg : IDisposable
 
     public SkiaSharp.SKPicture? ReLoad(SvgParameters? parameters)
     {
-        if (!CacheOriginalStream)
+        lock (Locker)
         {
-            throw new ArgumentException($"Enable {nameof(CacheOriginalStream)} feature toggle to enable reload feature.");
+            if (!CacheOriginalStream)
+            {
+                throw new ArgumentException($"Enable {nameof(CacheOriginalStream)} feature toggle to enable reload feature.");
+            }
+
+            Reset();
+
+            _originalParameters = parameters;
+
+            if (_originalStream == null)
+            {
+                return Load(_originalPath, parameters);
+            }
+
+            _originalStream.Position = 0;
+
+            return Load(_originalStream, parameters);
         }
-
-        Reset();
-
-        _originalParameters = parameters;
-
-        if (_originalStream == null)
-        {
-            return Load(_originalPath, parameters);
-        }
-
-        _originalStream.Position = 0;
-
-        return Load(_originalStream, parameters);
     }
 
     public SkiaSharp.SKPicture? FromSvg(string svg)
