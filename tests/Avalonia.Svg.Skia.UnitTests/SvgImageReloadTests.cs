@@ -44,6 +44,7 @@ public class SvgImageReloadTests
         
         timer?.Stop();
         window?.Close();
+        SKSvg.CacheOriginalStream = false;
     }
 
 
