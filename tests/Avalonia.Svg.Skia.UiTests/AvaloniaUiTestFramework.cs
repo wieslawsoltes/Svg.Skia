@@ -10,7 +10,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-[assembly: TestFramework("UITests.AvaloniaUiTestFramework", "Avalonia.Svg.Skia.UnitTests")]
+[assembly: TestFramework("UITests.AvaloniaUiTestFramework", "Avalonia.Svg.Skia.UiTests")]
 [assembly: CollectionBehavior(CollectionBehavior.CollectionPerAssembly, DisableTestParallelization = true, MaxParallelThreads = 1)]
 namespace UITests
 {
