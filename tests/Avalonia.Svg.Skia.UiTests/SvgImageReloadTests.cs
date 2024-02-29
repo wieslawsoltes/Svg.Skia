@@ -20,7 +20,7 @@ public class SvgImageReloadTests
     public async void SvgImage_ReLoad()
     {
         SKSvg.CacheOriginalStream = true;
-        var uri = new Uri($"avares://Avalonia.Svg.Skia.UnitTests/Assets/__tiger.svg");
+        var uri = new Uri($"avares://Avalonia.Svg.Skia.UiTests/Assets/__tiger.svg");
         var assetLoader = new StandardAssetLoader(); // AvaloniaLocator.Current.GetService<IAssetLoader>()
 
         var svgFile = assetLoader.Open(uri);
