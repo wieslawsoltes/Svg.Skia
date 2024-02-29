@@ -253,8 +253,11 @@ public class SKSvg : IDisposable
     {
         Model = null;
         Drawable = null;
-        Picture?.Dispose();
-        Picture = null;
+        lock (Locker)
+        {
+            Picture?.Dispose();
+            Picture = null;
+        }
     }
 
     public void Dispose()
