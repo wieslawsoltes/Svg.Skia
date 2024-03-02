@@ -36,9 +36,9 @@ public class SvgCustomDrawOperation(Rect bounds, SKSvg? svg) : ICustomDrawOperat
         {
             return;
         }
-        lock (_svg.Locker)
+        lock (svg.Locker)
         {
-            var picture = _svg.Picture;
+            var picture = svg.Picture;
             if (picture is null)
                 return;
             canvas.Save();
