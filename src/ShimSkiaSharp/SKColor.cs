@@ -2,25 +2,17 @@
 
 namespace ShimSkiaSharp;
 
-public readonly struct SKColor
+public readonly struct SKColor(byte red, byte green, byte blue, byte alpha)
 {
-    public byte Red { get; }
-        
-    public byte Green { get; }
-        
-    public byte Blue { get; }
-        
-    public byte Alpha { get; }
+    public byte Red { get; } = red;
+
+    public byte Green { get; } = green;
+
+    public byte Blue { get; } = blue;
+
+    public byte Alpha { get; } = alpha;
 
     public static readonly SKColor Empty = default;
-
-    public SKColor(byte red, byte green, byte blue, byte alpha)
-    {
-        Red = red;
-        Green = green;
-        Blue = blue;
-        Alpha = alpha;
-    }
 
     public static implicit operator SKColorF(SKColor color)
     {

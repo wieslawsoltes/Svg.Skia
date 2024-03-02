@@ -2,21 +2,15 @@
 
 namespace ShimSkiaSharp;
 
-public readonly struct SKSizeI
+public readonly struct SKSizeI(int width, int height)
 {
-    public int Width { get; }
+    public int Width { get; } = width;
 
-    public int Height { get; }
+    public int Height { get; } = height;
 
     public static readonly SKSizeI Empty;
 
     public readonly bool IsEmpty => Width == default && Height == default;
-
-    public SKSizeI(int width, int height)
-    {
-        Width = width;
-        Height = height;
-    }
 
     public override string ToString() 
         => FormattableString.Invariant($"{Width}, {Height}");

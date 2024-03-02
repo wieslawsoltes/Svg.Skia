@@ -81,7 +81,7 @@ public static partial class SvgExtensions
                 case ClosePathCommand:
                 {
                     lastPoint = (lastPoint.Point, (byte)(lastPoint.Type | (byte)PathPointType.CloseSubpath));
-                    pathTypes[pathTypes.Count - 1] = lastPoint;
+                    pathTypes[^1] = lastPoint;
                     break;
                 }
                 case AddPolyPathCommand addPolyPathCommand:
@@ -94,7 +94,7 @@ public static partial class SvgExtensions
                             pathTypes.Add((point1, (byte)PathPointType.Start));
                         }
 
-                        var point = addPolyPathCommand.Points[addPolyPathCommand.Points.Count - 1];
+                        var point = addPolyPathCommand.Points[^1];
                         lastPoint = (point, (byte)PathPointType.Line);
                     }
                     break;
@@ -215,7 +215,7 @@ public static partial class SvgExtensions
                         var prev = svgPathSegmentList.IndexOf(svgCubicCurveSegment) - 1;
                         if (prev >= 0 && svgPathSegmentList[prev] is SvgCubicCurveSegment)
                         {
-                            var prevSecondControlPoint = points[points.Count - 2];
+                            var prevSecondControlPoint = points[^2];
                             firstControlPoint = Reflect(new System.Drawing.PointF(prevSecondControlPoint.X, prevSecondControlPoint.Y), start);
                         }
                         else
@@ -253,7 +253,7 @@ public static partial class SvgExtensions
                         var prev = svgPathSegmentList.IndexOf(svgQuadraticCurveSegment) - 1;
                         if (prev >= 0 && svgPathSegmentList[prev] is SvgQuadraticCurveSegment)
                         {
-                            var prevControlPoint = points[points.Count - 2];
+                            var prevControlPoint = points[^2];
                             controlPoint = Reflect(new System.Drawing.PointF(prevControlPoint.X, prevControlPoint.Y), start);
                         }
                         else

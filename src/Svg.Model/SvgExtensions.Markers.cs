@@ -109,7 +109,7 @@ public static partial class SvgExtensions
         var pathLength = pathTypes.Count;
 
         var markerStart = svgMarkerElement.MarkerStart;
-        if (markerStart is { } && pathLength > 0 && !HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
+        if (markerStart is { } && pathLength > 0 && !HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, []))
         {
             var marker = GetReference<SvgMarker>(svgMarkerElement, markerStart);
             if (marker is { })
@@ -128,7 +128,7 @@ public static partial class SvgExtensions
         }
 
         var markerMid = svgMarkerElement.MarkerMid;
-        if (markerMid is { } && pathLength > 0 && !HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, new HashSet<Uri>()))
+        if (markerMid is { } && pathLength > 0 && !HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, []))
         {
             var marker = GetReference<SvgMarker>(svgMarkerElement, markerMid);
             if (marker is { })
@@ -155,7 +155,7 @@ public static partial class SvgExtensions
         }
 
         var markerEnd = svgMarkerElement.MarkerEnd;
-        if (markerEnd is { } && pathLength > 0 && !HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, new HashSet<Uri>()))
+        if (markerEnd is { } && pathLength > 0 && !HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, []))
         {
             var marker = GetReference<SvgMarker>(svgMarkerElement, markerEnd);
             if (marker is { })

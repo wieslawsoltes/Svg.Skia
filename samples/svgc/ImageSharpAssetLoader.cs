@@ -16,15 +16,12 @@ internal class ImageSharpAssetLoader : Svg.Model.IAssetLoader
     {
         if (text is null || string.IsNullOrEmpty(text))
         {
-            return new List<Svg.Model.TypefaceSpan>();
+            return [];
         }
 
         // TODO:
         // Font fallback and text advancing code should be generated along with canvas commands instead.
         // Otherwise, some package reference hacking may be needed.
-        return new List<Svg.Model.TypefaceSpan>
-        {
-            new(text, text.Length * paintPreferredTypeface.TextSize, paintPreferredTypeface.Typeface)
-        };
+        return [new(text, text.Length * paintPreferredTypeface.TextSize, paintPreferredTypeface.Typeface)];
     }
 }

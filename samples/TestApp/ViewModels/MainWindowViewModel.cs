@@ -64,29 +64,29 @@ public class MainWindowViewModel : ViewModelBase
 
     private List<FilePickerFileType> GetConfigurationFileTypes()
     {
-        return new List<FilePickerFileType>
-        {
+        return
+        [
             StorageService.Json,
             StorageService.All
-        };
+        ];
     }
 
     private static List<FilePickerFileType> GetExportFileTypes()
     {
-        return new List<FilePickerFileType>
-        {
+        return
+        [
             StorageService.ImagePng,
             StorageService.ImageJpg,
             StorageService.CSharp,
             StorageService.Pdf,
             StorageService.Xps,
             StorageService.All
-        };
+        ];
     }
 
     public MainWindowViewModel()
     {
-        _items = new ObservableCollection<FileItemViewModel>();
+        _items = [];
 
         var queryFilter = this.WhenValueChanged(t => t.ItemQuery)
             .Throttle(TimeSpan.FromMilliseconds(100))
@@ -193,11 +193,11 @@ public class MainWindowViewModel : ViewModelBase
         var dlg = new OpenFileDialog
         {
             AllowMultiple = true,
-            Filters = new List<FileDialogFilter>
-            {
-                new() {Name = "Svg Files (*.svg;*.svgz)", Extensions = new List<string> {"svg", "svgz"}},
-                new() {Name = "All Files (*.*)", Extensions = new List<string> {"*"}}
-            }
+            Filters =
+            [
+                new() {Name = "Svg Files (*.svg;*.svgz)", Extensions = ["svg", "svgz"]},
+                new() {Name = "All Files (*.*)", Extensions = ["*"]}
+            ]
         };
         var result = await dlg.ShowAsync(window);
         if (result is { })

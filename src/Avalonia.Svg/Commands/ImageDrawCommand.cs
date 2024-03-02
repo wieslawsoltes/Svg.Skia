@@ -5,20 +5,17 @@ using AVMI = Avalonia.Media.Imaging;
 
 namespace Avalonia.Svg.Commands;
 
-public sealed class ImageDrawCommand : DrawCommand
+public sealed class ImageDrawCommand(
+    AM.IImage? source,
+    A.Rect sourceRect,
+    A.Rect destRect,
+    AVMI.BitmapInterpolationMode bitmapInterpolationMode)
+    : DrawCommand
 {
-    public AM.IImage? Source { get; }
-    public A.Rect SourceRect { get; }
-    public A.Rect DestRect { get; }
-    public AVMI.BitmapInterpolationMode BitmapInterpolationMode { get; }
-
-    public ImageDrawCommand(AM.IImage? source, A.Rect sourceRect, A.Rect destRect, AVMI.BitmapInterpolationMode bitmapInterpolationMode)
-    {
-        Source = source;
-        SourceRect = sourceRect;
-        DestRect = destRect;
-        BitmapInterpolationMode = bitmapInterpolationMode;
-    }
+    public AM.IImage? Source { get; } = source;
+    public A.Rect SourceRect { get; } = sourceRect;
+    public A.Rect DestRect { get; } = destRect;
+    public AVMI.BitmapInterpolationMode BitmapInterpolationMode { get; } = bitmapInterpolationMode;
 
     public override void Dispose()
     {

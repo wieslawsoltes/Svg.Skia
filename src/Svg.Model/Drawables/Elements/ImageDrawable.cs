@@ -121,7 +121,7 @@ public sealed class ImageDrawable : DrawableBase
             GeometryBounds = DestRect;
         }
 
-        Transform = SvgExtensions.ToMatrix(svgImage.Transforms);
+        Transform = svgImage.Transforms.ToMatrix();
         FragmentTransform = SKMatrix.CreateIdentity();
 
         if (FragmentDrawable is { })

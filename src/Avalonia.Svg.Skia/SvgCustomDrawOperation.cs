@@ -6,21 +6,13 @@ using Svg.Skia;
 
 namespace Avalonia.Svg.Skia;
 
-public class SvgCustomDrawOperation : ICustomDrawOperation
+public class SvgCustomDrawOperation(Rect bounds, SKSvg? svg) : ICustomDrawOperation
 {
-    private readonly SKSvg? _svg;
-
-    public SvgCustomDrawOperation(Rect bounds, SKSvg? svg)
-    {
-        _svg = svg;
-        Bounds = bounds;
-    }
-
     public void Dispose()
     {
     }
 
-    public Rect Bounds { get; }
+    public Rect Bounds { get; } = bounds;
 
     public bool HitTest(Point p) => false;
 
@@ -28,7 +20,7 @@ public class SvgCustomDrawOperation : ICustomDrawOperation
 
     public void Render(ImmediateDrawingContext context)
     {
-        if (_svg?.Picture is null)
+        if (svg?.Picture is null)
         {
             return;
         }
@@ -46,7 +38,7 @@ public class SvgCustomDrawOperation : ICustomDrawOperation
         }
 
         canvas.Save();
-        canvas.DrawPicture(_svg.Picture);
+        canvas.DrawPicture(svg.Picture);
         canvas.Restore();
     }
 }
