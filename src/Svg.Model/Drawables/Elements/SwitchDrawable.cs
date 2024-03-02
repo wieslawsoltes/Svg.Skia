@@ -74,7 +74,7 @@ public sealed class SwitchDrawable : DrawableBase
         // TODO: use drawable.FirstChild.GeometryBounds
         GeometryBounds = FirstChild.GeometryBounds;
 
-        Transform = SvgExtensions.ToMatrix(svgSwitch.Transforms);
+        Transform = svgSwitch.Transforms.ToMatrix();
 
         Fill = null;
         Stroke = null;

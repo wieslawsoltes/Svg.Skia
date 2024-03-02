@@ -50,7 +50,7 @@ public sealed class CircleDrawable : DrawablePath
 
         GeometryBounds = Path.Bounds;
 
-        Transform = SvgExtensions.ToMatrix(svgCircle.Transforms);
+        Transform = svgCircle.Transforms.ToMatrix();
 
         var canDrawFill = true;
         var canDrawStroke = true;

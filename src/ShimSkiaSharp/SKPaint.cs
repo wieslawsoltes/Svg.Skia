@@ -2,66 +2,43 @@
 
 public sealed class SKPaint
 {
-    public SKPaintStyle Style { get; set; }
+    public SKPaintStyle Style { get; set; } = SKPaintStyle.Fill;
 
-    public bool IsAntialias { get; set; }
+    public bool IsAntialias { get; set; } = false;
 
-    public float StrokeWidth { get; set; }
+    public float StrokeWidth { get; set; } = 0;
 
-    public SKStrokeCap StrokeCap { get; set; }
+    public SKStrokeCap StrokeCap { get; set; } = SKStrokeCap.Butt;
 
-    public SKStrokeJoin StrokeJoin { get; set; }
+    public SKStrokeJoin StrokeJoin { get; set; } = SKStrokeJoin.Miter;
 
-    public float StrokeMiter { get; set; }
+    public float StrokeMiter { get; set; } = 4;
 
-    public SKTypeface? Typeface { get; set; }
+    public SKTypeface? Typeface { get; set; } = null;
 
-    public float TextSize { get; set; }
+    public float TextSize { get; set; } = 12;
 
-    public SKTextAlign TextAlign { get; set; }
+    public SKTextAlign TextAlign { get; set; } = SKTextAlign.Left;
 
-    public bool LcdRenderText { get; set; }
+    public bool LcdRenderText { get; set; } = false;
 
-    public bool SubpixelText { get; set; }
+    public bool SubpixelText { get; set; } = false;
 
-    public SKTextEncoding TextEncoding { get; set; }
+    public SKTextEncoding TextEncoding { get; set; } = SKTextEncoding.Utf8;
 
-    public SKColor? Color { get; set; }
+    public SKColor? Color { get; set; } = new SKColor(0x00, 0x00, 0x00, 0xFF);
 
-    public SKShader? Shader { get; set; }
+    public SKShader? Shader { get; set; } = null;
 
-    public SKColorFilter? ColorFilter { get; set; }
+    public SKColorFilter? ColorFilter { get; set; } = null;
 
-    public SKImageFilter? ImageFilter { get; set; }
+    public SKImageFilter? ImageFilter { get; set; } = null;
 
-    public SKPathEffect? PathEffect { get; set; }
+    public SKPathEffect? PathEffect { get; set; } = null;
 
-    public SKBlendMode BlendMode { get; set; }
+    public SKBlendMode BlendMode { get; set; } = SKBlendMode.SrcOver;
 
-    public SKFilterQuality FilterQuality { get; set; }
-
-    public SKPaint()
-    {
-        Style = SKPaintStyle.Fill;
-        IsAntialias = false;
-        StrokeWidth = 0;
-        StrokeCap = SKStrokeCap.Butt;
-        StrokeJoin = SKStrokeJoin.Miter;
-        StrokeMiter = 4;
-        Typeface = null;
-        TextSize = 12;
-        TextAlign = SKTextAlign.Left;
-        LcdRenderText = false;
-        SubpixelText = false;
-        TextEncoding = SKTextEncoding.Utf8;
-        Color = new SKColor(0x00, 0x00, 0x00, 0xFF);
-        Shader = null;
-        ColorFilter = null;
-        ImageFilter = null;
-        PathEffect = null;
-        BlendMode = SKBlendMode.SrcOver;
-        FilterQuality = SKFilterQuality.None;
-    }
+    public SKFilterQuality FilterQuality { get; set; } = SKFilterQuality.None;
 
     public SKPaint Clone()
     {

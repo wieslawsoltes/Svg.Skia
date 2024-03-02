@@ -6,24 +6,15 @@ using SkiaSharp;
 
 namespace Avalonia.Controls.Skia;
 
-public class SKBitmapDrawOperation : ICustomDrawOperation
+public class SKBitmapDrawOperation(Rect bounds, SKBitmap? bitmap) : ICustomDrawOperation
 {
-    private readonly SKBitmap? _bitmap;
-    private readonly Rect _bounds;
-
-    public SKBitmapDrawOperation(Rect bounds, SKBitmap? bitmap)
-    {
-        _bitmap = bitmap;
-        _bounds = bounds;
-    }
-
     public void Dispose()
     {
     }
 
-    public Rect Bounds => _bounds;
+    public Rect Bounds => bounds;
 
-    public bool HitTest(Point p) => _bounds.Contains(p);
+    public bool HitTest(Point p) => bounds.Contains(p);
 
     public bool Equals(ICustomDrawOperation? other) => false;
 
@@ -36,12 +27,12 @@ public class SKBitmapDrawOperation : ICustomDrawOperation
         }
         using var lease = leaseFeature.Lease();
         var canvas = lease?.SkCanvas;
-        if (canvas is { } && _bitmap is { })
+        if (canvas is { } && bitmap is { })
         {
             canvas.DrawBitmap(
-                _bitmap,
-                SKRect.Create(0, 0, _bitmap.Width, _bitmap.Height),
-                SKRect.Create((float)_bounds.Left, (float)_bounds.Top, (float)_bounds.Width, (float)_bounds.Height));
+                bitmap,
+                SKRect.Create(0, 0, bitmap.Width, bitmap.Height),
+                SKRect.Create((float)bounds.Left, (float)bounds.Top, (float)bounds.Width, (float)bounds.Height));
         }
     }
 }

@@ -14,7 +14,7 @@ public static partial class SvgExtensions
 {
     private const string MimeTypeSvg = "image/svg+xml";
 
-    private static byte[] GZipMagicHeaderBytes => new byte[] {0x1f, 0x8b};
+    private static byte[] GZipMagicHeaderBytes => [0x1f, 0x8b];
 
     static SvgExtensions()
     {
@@ -126,7 +126,7 @@ public static partial class SvgExtensions
         }
 
         if (headers.Count > 0 &&
-            headers[headers.Count - 1].Trim().Equals("base64", StringComparison.OrdinalIgnoreCase))
+            headers[^1].Trim().Equals("base64", StringComparison.OrdinalIgnoreCase))
         {
             base64 = true;
             headers.RemoveAt(headers.Count - 1);

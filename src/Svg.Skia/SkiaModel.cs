@@ -3,14 +3,9 @@ using ShimSkiaSharp;
 
 namespace Svg.Skia;
 
-public class SkiaModel
+public class SkiaModel(SKSvgSettings settings)
 {
-    public SKSvgSettings Settings { get; }
-
-    public SkiaModel(SKSvgSettings settings)
-    {
-        Settings = settings;
-    }
+    public SKSvgSettings Settings { get; } = settings;
 
     public SkiaSharp.SKPoint ToSKPoint(SKPoint point)
     {

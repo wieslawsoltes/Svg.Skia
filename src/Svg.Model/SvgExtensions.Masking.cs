@@ -220,7 +220,7 @@ public static partial class SvgExtensions
 
             case SvgUse svgUse:
                 {
-                    if (HasRecursiveReference(svgUse, (e) => e.ReferencedElement, new HashSet<Uri>()))
+                    if (HasRecursiveReference(svgUse, (e) => e.ReferencedElement, []))
                     {
                         break;
                     }
@@ -242,7 +242,7 @@ public static partial class SvgExtensions
                     if (clipPath.Clips is { } && clipPath.Clips.Count > 0)
                     {
                         // TODO: clipPath.Clips
-                        var lastClip = clipPath.Clips[clipPath.Clips.Count - 1];
+                        var lastClip = clipPath.Clips[^1];
                         if (lastClip.Clip is { })
                         {
                             GetSvgVisualElementClipPath(svgUse, skBounds, uris, lastClip.Clip);

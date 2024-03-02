@@ -3,14 +3,9 @@ using ShimSkiaSharp;
 
 namespace Svg.Model;
 
-internal class SvgFilterPrimitiveContext
+internal class SvgFilterPrimitiveContext(SvgFilterPrimitive svgFilterPrimitive)
 {
-    public SvgFilterPrimitiveContext(SvgFilterPrimitive svgFilterPrimitive)
-    {
-        FilterPrimitive = svgFilterPrimitive;
-    }
-
-    public SvgFilterPrimitive FilterPrimitive { get; }
+    public SvgFilterPrimitive FilterPrimitive { get; } = svgFilterPrimitive;
 
     public SKRect Boundaries { get; set; }
 

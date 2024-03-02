@@ -5,30 +5,17 @@ namespace Svg.Skia;
 
 public class SKSvgSettings
 {
-    public SkiaSharp.SKAlphaType AlphaType { get; set; }
+    public SkiaSharp.SKAlphaType AlphaType { get; set; } = SkiaSharp.SKAlphaType.Unpremul;
 
-    public SkiaSharp.SKColorType ColorType { get; set; }
+    public SkiaSharp.SKColorType ColorType { get; set; } = SkiaSharp.SKImageInfo.PlatformColorType;
 
-    public SkiaSharp.SKColorSpace SrgbLinear { get; set; }
+    public SkiaSharp.SKColorSpace SrgbLinear { get; set; } = SkiaSharp.SKColorSpace.CreateRgb(SkiaSharp.SKColorSpaceTransferFn.Linear, SkiaSharp.SKColorSpaceXyz.Srgb); // SkiaSharp.SKColorSpace.CreateSrgbLinear();
 
-    public SkiaSharp.SKColorSpace Srgb { get; set; }
+    public SkiaSharp.SKColorSpace Srgb { get; set; } = SkiaSharp.SKColorSpace.CreateRgb(SkiaSharp.SKColorSpaceTransferFn.Srgb, SkiaSharp.SKColorSpaceXyz.Srgb); // SkiaSharp.SKColorSpace.CreateSrgb();
 
-    public IList<ITypefaceProvider>? TypefaceProviders  { get; set; }
-
-    public SKSvgSettings()
+    public IList<ITypefaceProvider>? TypefaceProviders  { get; set; } = new List<ITypefaceProvider>
     {
-        AlphaType = SkiaSharp.SKAlphaType.Unpremul;
-
-        ColorType = SkiaSharp.SKImageInfo.PlatformColorType;
-
-        SrgbLinear = SkiaSharp.SKColorSpace.CreateRgb(SkiaSharp.SKColorSpaceTransferFn.Linear, SkiaSharp.SKColorSpaceXyz.Srgb); // SkiaSharp.SKColorSpace.CreateSrgbLinear();
-
-        Srgb = SkiaSharp.SKColorSpace.CreateRgb(SkiaSharp.SKColorSpaceTransferFn.Srgb, SkiaSharp.SKColorSpaceXyz.Srgb); // SkiaSharp.SKColorSpace.CreateSrgb();
-
-        TypefaceProviders = new List<ITypefaceProvider>
-        {
-            new FontManagerTypefaceProvider(),
-            new DefaultTypefaceProvider()
-        };
-    }
+        new FontManagerTypefaceProvider(),
+        new DefaultTypefaceProvider()
+    };
 }

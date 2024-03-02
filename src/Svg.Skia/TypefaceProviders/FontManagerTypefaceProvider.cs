@@ -6,14 +6,9 @@ namespace Svg.Skia.TypefaceProviders;
 
 public sealed class FontManagerTypefaceProvider : ITypefaceProvider
 {
-    public static readonly char[] s_fontFamilyTrim = { '\'' };
+    public static readonly char[] s_fontFamilyTrim = ['\''];
 
-    public SkiaSharp.SKFontManager FontManager { get; set; }
-
-    public FontManagerTypefaceProvider()
-    {
-        FontManager = SkiaSharp.SKFontManager.Default;
-    }
+    public SkiaSharp.SKFontManager FontManager { get; set; } = SkiaSharp.SKFontManager.Default;
 
     public SkiaSharp.SKTypeface CreateTypeface(Stream stream, int index = 0)
     {

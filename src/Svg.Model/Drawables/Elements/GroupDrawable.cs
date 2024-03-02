@@ -23,7 +23,7 @@ public sealed class GroupDrawable : DrawableContainer
         drawable.IsDrawable = drawable.CanDraw(svgGroup, drawable.IgnoreAttributes) && drawable.HasFeatures(svgGroup, drawable.IgnoreAttributes);
 
         // NOTE: Call AddMarkers only once.
-        SvgExtensions.AddMarkers(svgGroup);
+        svgGroup.AddMarkers();
 
         drawable.CreateChildren(svgGroup, skViewport, drawable, assetLoader, references, ignoreAttributes);
 
@@ -60,7 +60,7 @@ public sealed class GroupDrawable : DrawableContainer
 
         CreateGeometryBounds();
 
-        Transform = SvgExtensions.ToMatrix(svgGroup.Transforms);
+        Transform = svgGroup.Transforms.ToMatrix();
 
         if (SvgExtensions.IsValidFill(svgGroup))
         {

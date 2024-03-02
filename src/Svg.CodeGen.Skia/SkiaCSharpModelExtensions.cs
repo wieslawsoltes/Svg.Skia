@@ -15,7 +15,7 @@ public static class SkiaCSharpModelExtensions
 
     private static readonly CultureInfo s_ci = CultureInfo.InvariantCulture;
 
-    private static readonly char[] s_fontFamilyTrim = { '\'' };
+    private static readonly char[] s_fontFamilyTrim = ['\''];
 
     public static string ToBoolString(this bool value) => value ? "true" : "false";
 

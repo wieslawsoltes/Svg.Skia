@@ -31,16 +31,11 @@ public class SKPath
 {
     public SKPathFillType FillType { get; set; }
 
-    public IList<PathCommand>? Commands { get; private set; }
+    public IList<PathCommand>? Commands { get; private set; } = new List<PathCommand>();
 
     public bool IsEmpty => Commands is null || Commands.Count == 0;
 
     public SKRect Bounds => GetBounds();
-
-    public SKPath()
-    {
-        Commands = new List<PathCommand>();
-    }
 
     private void ComputePointBounds(float x, float y, ref SKRect bounds)
     {
