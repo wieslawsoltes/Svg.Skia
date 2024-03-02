@@ -9,13 +9,13 @@ using Avalonia.Threading;
 using Svg.Skia;
 using Xunit;
 
-namespace Avalonia.Svg.Skia.UnitTests;
+namespace Avalonia.Svg.Skia.UiTests;
 
 public class SvgImageReloadTests
 {
-    Image test;
     private string css = ".Black { fill: #FF0000; }";
     Window window;
+    Image test;
     [Fact]
     public async void SvgImage_ReLoad()
     {
@@ -41,7 +41,7 @@ public class SvgImageReloadTests
         timer.Start();
 
         await Task.Delay(10000);
-        
+
         timer?.Stop();
         window?.Close();
         SKSvg.CacheOriginalStream = false;
