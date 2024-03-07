@@ -647,12 +647,6 @@ public static class SkiaCSharpModelExtensions
         }
     }
 
-    // TODO:
-    // public static string ToSKRect(this SKRect cropRect)
-    // {
-    //     return $"new SKRect({cropRect.Rect.ToSKRect()})";
-    // }
-
     public static string ToSKColorChannel(this SKColorChannel colorChannel)
     {
         switch (colorChannel)
