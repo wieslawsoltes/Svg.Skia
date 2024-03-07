@@ -6,6 +6,8 @@ public sealed class SKPaint
 
     public bool IsAntialias { get; set; } = false;
 
+    public bool IsDither { get; set; } = false;
+
     public float StrokeWidth { get; set; } = 0;
 
     public SKStrokeCap StrokeCap { get; set; } = SKStrokeCap.Butt;
