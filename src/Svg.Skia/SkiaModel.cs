@@ -431,9 +431,9 @@ public class SkiaModel(SKSvgSettings settings)
         }
     }
 
-    public SkiaSharp.SKImageFilter.CropRect? ToCropRect(SKImageFilter.CropRect? cropRect)
+    public SkiaSharp.SKRect ToSKRect(SKRect? cropRect)
     {
-        return cropRect is null ? null : new(ToSKRect(cropRect.Rect));
+        return cropRect is null ? SkiaSharp.SKRect.Empty : ToSKRect(cropRect.Value);
     }
 
     public SkiaSharp.SKColorChannel ToSKColorChannel(SKColorChannel colorChannel)
@@ -467,7 +467,7 @@ public class SkiaModel(SKSvgSettings settings)
                     arithmeticImageFilter.EforcePMColor,
                     ToSKImageFilter(arithmeticImageFilter.Background),
                     ToSKImageFilter(arithmeticImageFilter.Foreground),
-                    ToCropRect(arithmeticImageFilter.Clip));
+                    ToSKRect(arithmeticImageFilter.Clip));
             }
             case BlendModeImageFilter blendModeImageFilter:
             {
@@ -480,7 +480,7 @@ public class SkiaModel(SKSvgSettings settings)
                     ToSKBlendMode(blendModeImageFilter.Mode),
                     ToSKImageFilter(blendModeImageFilter.Background),
                     ToSKImageFilter(blendModeImageFilter.Foreground),
-                    ToCropRect(blendModeImageFilter.Clip));
+                    ToSKRect(blendModeImageFilter.Clip));
             }
             case BlurImageFilter blurImageFilter:
             {
@@ -488,7 +488,7 @@ public class SkiaModel(SKSvgSettings settings)
                     blurImageFilter.SigmaX,
                     blurImageFilter.SigmaY,
                     ToSKImageFilter(blurImageFilter.Input),
-                    ToCropRect(blurImageFilter.Clip));
+                    ToSKRect(blurImageFilter.Clip));
             }
             case ColorFilterImageFilter colorFilterImageFilter:
             {
@@ -500,7 +500,7 @@ public class SkiaModel(SKSvgSettings settings)
                 return SkiaSharp.SKImageFilter.CreateColorFilter(
                     ToSKColorFilter(colorFilterImageFilter.ColorFilter),
                     ToSKImageFilter(colorFilterImageFilter.Input),
-                    ToCropRect(colorFilterImageFilter.Clip));
+                    ToSKRect(colorFilterImageFilter.Clip));
             }
             case DilateImageFilter dilateImageFilter:
             {
@@ -508,7 +508,7 @@ public class SkiaModel(SKSvgSettings settings)
                     dilateImageFilter.RadiusX,
                     dilateImageFilter.RadiusY,
                     ToSKImageFilter(dilateImageFilter.Input),
-                    ToCropRect(dilateImageFilter.Clip));
+                    ToSKRect(dilateImageFilter.Clip));
             }
             case DisplacementMapEffectImageFilter displacementMapEffectImageFilter:
             {
@@ -523,7 +523,7 @@ public class SkiaModel(SKSvgSettings settings)
                     displacementMapEffectImageFilter.Scale,
                     ToSKImageFilter(displacementMapEffectImageFilter.Displacement),
                     ToSKImageFilter(displacementMapEffectImageFilter.Input),
-                    ToCropRect(displacementMapEffectImageFilter.Clip));
+                    ToSKRect(displacementMapEffectImageFilter.Clip));
             }
             case DistantLitDiffuseImageFilter distantLitDiffuseImageFilter:
             {
@@ -533,7 +533,7 @@ public class SkiaModel(SKSvgSettings settings)
                     distantLitDiffuseImageFilter.SurfaceScale,
                     distantLitDiffuseImageFilter.Kd,
                     ToSKImageFilter(distantLitDiffuseImageFilter.Input),
-                    ToCropRect(distantLitDiffuseImageFilter.Clip));
+                    ToSKRect(distantLitDiffuseImageFilter.Clip));
             }
             case DistantLitSpecularImageFilter distantLitSpecularImageFilter:
             {
@@ -544,7 +544,7 @@ public class SkiaModel(SKSvgSettings settings)
                     distantLitSpecularImageFilter.Ks,
                     distantLitSpecularImageFilter.Shininess,
                     ToSKImageFilter(distantLitSpecularImageFilter.Input),
-                    ToCropRect(distantLitSpecularImageFilter.Clip));
+                    ToSKRect(distantLitSpecularImageFilter.Clip));
             }
             case ErodeImageFilter erodeImageFilter:
             {
@@ -552,7 +552,7 @@ public class SkiaModel(SKSvgSettings settings)
                     erodeImageFilter.RadiusX,
                     erodeImageFilter.RadiusY,
                     ToSKImageFilter(erodeImageFilter.Input),
-                    ToCropRect(erodeImageFilter.Clip));
+                    ToSKRect(erodeImageFilter.Clip));
             }
             case ImageImageFilter imageImageFilter:
             {
@@ -565,7 +565,7 @@ public class SkiaModel(SKSvgSettings settings)
                     ToSKImage(imageImageFilter.Image),
                     ToSKRect(imageImageFilter.Src),
                     ToSKRect(imageImageFilter.Dst),
-                    SkiaSharp.SKFilterQuality.High);
+                    new SkiaSharp.SKSamplingOptions(SkiaSharp.SKCubicResampler.Mitchell));
             }
             case MatrixConvolutionImageFilter matrixConvolutionImageFilter:
             {
@@ -583,7 +583,7 @@ public class SkiaModel(SKSvgSettings settings)
                     ToSKShaderTileMode(matrixConvolutionImageFilter.TileMode),
                     matrixConvolutionImageFilter.ConvolveAlpha,
                     ToSKImageFilter(matrixConvolutionImageFilter.Input),
-                    ToCropRect(matrixConvolutionImageFilter.Clip));
+                    ToSKRect(matrixConvolutionImageFilter.Clip));
             }
             case MergeImageFilter mergeImageFilter:
             {
@@ -594,7 +594,7 @@ public class SkiaModel(SKSvgSettings settings)
 
                 return SkiaSharp.SKImageFilter.CreateMerge(
                     ToSKImageFilters(mergeImageFilter.Filters),
-                    ToCropRect(mergeImageFilter.Clip));
+                    ToSKRect(mergeImageFilter.Clip));
             }
             case OffsetImageFilter offsetImageFilter:
             {
@@ -602,7 +602,7 @@ public class SkiaModel(SKSvgSettings settings)
                     offsetImageFilter.Dx,
                     offsetImageFilter.Dy,
                     ToSKImageFilter(offsetImageFilter.Input),
-                    ToCropRect(offsetImageFilter.Clip));
+                    ToSKRect(offsetImageFilter.Clip));
             }
             case PaintImageFilter paintImageFilter:
             {
@@ -611,9 +611,11 @@ public class SkiaModel(SKSvgSettings settings)
                     return null;
                 }
 
-                return SkiaSharp.SKImageFilter.CreatePaint(
-                    ToSKPaint(paintImageFilter.Paint),
-                    ToCropRect(paintImageFilter.Clip));
+                // TODO:
+                // return SkiaSharp.SKImageFilter.CreatePaint(
+                //     ToSKPaint(paintImageFilter.Paint),
+                //     ToSKRect(paintImageFilter.Clip));
+                return null;
             }
             case PictureImageFilter pictureImageFilter:
             {
@@ -634,7 +636,7 @@ public class SkiaModel(SKSvgSettings settings)
                     pointLitDiffuseImageFilter.SurfaceScale,
                     pointLitDiffuseImageFilter.Kd,
                     ToSKImageFilter(pointLitDiffuseImageFilter.Input),
-                    ToCropRect(pointLitDiffuseImageFilter.Clip));
+                    ToSKRect(pointLitDiffuseImageFilter.Clip));
             }
             case PointLitSpecularImageFilter pointLitSpecularImageFilter:
             {
@@ -645,7 +647,7 @@ public class SkiaModel(SKSvgSettings settings)
                     pointLitSpecularImageFilter.Ks,
                     pointLitSpecularImageFilter.Shininess,
                     ToSKImageFilter(pointLitSpecularImageFilter.Input),
-                    ToCropRect(pointLitSpecularImageFilter.Clip));
+                    ToSKRect(pointLitSpecularImageFilter.Clip));
             }
             case SpotLitDiffuseImageFilter spotLitDiffuseImageFilter:
             {
@@ -658,7 +660,7 @@ public class SkiaModel(SKSvgSettings settings)
                     spotLitDiffuseImageFilter.SurfaceScale,
                     spotLitDiffuseImageFilter.Kd,
                     ToSKImageFilter(spotLitDiffuseImageFilter.Input),
-                    ToCropRect(spotLitDiffuseImageFilter.Clip));
+                    ToSKRect(spotLitDiffuseImageFilter.Clip));
             }
             case SpotLitSpecularImageFilter spotLitSpecularImageFilter:
             {
@@ -672,7 +674,7 @@ public class SkiaModel(SKSvgSettings settings)
                     spotLitSpecularImageFilter.Ks,
                     spotLitSpecularImageFilter.SpecularExponent,
                     ToSKImageFilter(spotLitSpecularImageFilter.Input),
-                    ToCropRect(spotLitSpecularImageFilter.Clip));
+                    ToSKRect(spotLitSpecularImageFilter.Clip));
             }
             case TileImageFilter tileImageFilter:
             {

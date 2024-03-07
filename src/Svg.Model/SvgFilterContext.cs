@@ -314,10 +314,10 @@ internal class SvgFilterContext
                 }
 
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, input1FilterResult, input2FilterResult, input1Key, input2Key);
-                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
+                var skSKRect = skFilterPrimitiveRegion;
                 var background = ApplyColourInterpolation(input2FilterResult, colorInterpolationFilters)!;
                 var foreground = ApplyColourInterpolation(input1FilterResult, colorInterpolationFilters);
-                var skImageFilter = CreateBlend(svgBlend, background, foreground, skCropRect);
+                var skImageFilter = CreateBlend(svgBlend, background, foreground, skSKRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
                 if (skImageFilter is { })
                 {
@@ -331,9 +331,9 @@ internal class SvgFilterContext
                 var inputKey = svgColourMatrix.Input;
                 var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, _skFilterRegion, isFirst);
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
-                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
+                var skSKRect = skFilterPrimitiveRegion;
                 var input = ApplyColourInterpolation(inputFilterResult, colorInterpolationFilters);
-                var skImageFilter = CreateColorMatrix(svgColourMatrix, input, skCropRect);
+                var skImageFilter = CreateColorMatrix(svgColourMatrix, input, skSKRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
                 if (skImageFilter is { })
                 {
@@ -347,9 +347,9 @@ internal class SvgFilterContext
                 var inputKey = svgComponentTransfer.Input;
                 var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, _skFilterRegion, isFirst);
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
-                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
+                var skSKRect = skFilterPrimitiveRegion;
                 var input = ApplyColourInterpolation(inputFilterResult, colorInterpolationFilters);
-                var skImageFilter = CreateComponentTransfer(svgComponentTransfer, input, skCropRect);
+                var skImageFilter = CreateComponentTransfer(svgComponentTransfer, input, skSKRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
                 if (skImageFilter is { })
                 {
@@ -370,10 +370,10 @@ internal class SvgFilterContext
                 }
                 
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, input1FilterResult, input2FilterResult, input1Key, input2Key);
-                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
+                var skSKRect = skFilterPrimitiveRegion;
                 var background = ApplyColourInterpolation(input2FilterResult, colorInterpolationFilters)!;
                 var foreground = ApplyColourInterpolation(input1FilterResult, colorInterpolationFilters);
-                var skImageFilter = CreateComposite(svgComposite, background, foreground, skCropRect);
+                var skImageFilter = CreateComposite(svgComposite, background, foreground, skSKRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
                 if (skImageFilter is { })
                 {
@@ -387,9 +387,9 @@ internal class SvgFilterContext
                 var inputKey = svgConvolveMatrix.Input;
                 var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, _skFilterRegion, isFirst);
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
-                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
+                var skSKRect = skFilterPrimitiveRegion;
                 var input = ApplyColourInterpolation(inputFilterResult, colorInterpolationFilters);
-                var skImageFilter = CreateConvolveMatrix(svgConvolveMatrix, input, skCropRect);
+                var skImageFilter = CreateConvolveMatrix(svgConvolveMatrix, input, skSKRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
                 if (skImageFilter is { })
                 {
@@ -403,9 +403,9 @@ internal class SvgFilterContext
                 var inputKey = svgDiffuseLighting.Input;
                 var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, _skFilterRegion, isFirst);
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
-                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
+                var skSKRect = skFilterPrimitiveRegion;
                 var input = ApplyColourInterpolation(inputFilterResult, colorInterpolationFilters);
-                var skImageFilter = CreateDiffuseLighting(svgDiffuseLighting, _svgVisualElement, input, skCropRect);
+                var skImageFilter = CreateDiffuseLighting(svgDiffuseLighting, _svgVisualElement, input, skSKRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
                 if (skImageFilter is { })
                 {
@@ -426,10 +426,10 @@ internal class SvgFilterContext
                 }
 
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, input1FilterResult, input2FilterResult, input1Key, input2Key);
-                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
+                var skSKRect = skFilterPrimitiveRegion;
                 var displacement = ApplyColourInterpolation(input2FilterResult, input2FilterResult.ColorSpace)!;
                 var input = ApplyColourInterpolation(input1FilterResult, colorInterpolationFilters);
-                var skImageFilter = CreateDisplacementMap(svgDisplacementMap, displacement, input, skCropRect);
+                var skImageFilter = CreateDisplacementMap(svgDisplacementMap, displacement, input, skSKRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
                 if (skImageFilter is { })
                 {
@@ -441,8 +441,8 @@ internal class SvgFilterContext
             case SvgFlood svgFlood:
             {  
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
-                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
-                var skImageFilter = CreateFlood(svgFlood, _svgVisualElement, null, skCropRect);
+                var skSKRect = skFilterPrimitiveRegion;
+                var skImageFilter = CreateFlood(svgFlood, _svgVisualElement, null, skSKRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, SvgColourInterpolation.SRGB);
                 if (skImageFilter is { })
                 {
@@ -456,9 +456,9 @@ internal class SvgFilterContext
                 var inputKey = svgGaussianBlur.Input;
                 var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, _skFilterRegion, isFirst);
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
-                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
+                var skSKRect = skFilterPrimitiveRegion;
                 var input = ApplyColourInterpolation(inputFilterResult, colorInterpolationFilters);
-                var skImageFilter = CreateBlur(svgGaussianBlur, input, skCropRect);
+                var skImageFilter = CreateBlur(svgGaussianBlur, input, skSKRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
                 if (skImageFilter is { })
                 {
@@ -470,8 +470,8 @@ internal class SvgFilterContext
             case FilterEffects.SvgImage svgImage:
             {
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
-                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
-                var skImageFilter = CreateImage(svgImage, _assetLoader, _references, skFilterPrimitiveRegion, skCropRect);
+                var skSKRect = skFilterPrimitiveRegion;
+                var skImageFilter = CreateImage(svgImage, _assetLoader, _references, skFilterPrimitiveRegion, skSKRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, SvgColourInterpolation.SRGB);
                 if (skImageFilter is { })
                 {
@@ -483,8 +483,8 @@ internal class SvgFilterContext
             case SvgMerge svgMerge:
             {
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
-                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
-                var skImageFilter = CreateMerge(svgMerge, colorInterpolationFilters, skCropRect);
+                var skSKRect = skFilterPrimitiveRegion;
+                var skImageFilter = CreateMerge(svgMerge, colorInterpolationFilters, skSKRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
                 if (skImageFilter is { })
                 {
@@ -498,9 +498,9 @@ internal class SvgFilterContext
                 var inputKey = svgMorphology.Input;
                 var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, _skFilterRegion, isFirst);
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
-                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
+                var skSKRect = skFilterPrimitiveRegion;
                 var input = ApplyColourInterpolation(inputFilterResult, colorInterpolationFilters);
-                var skImageFilter = CreateMorphology(svgMorphology, input, skCropRect);
+                var skImageFilter = CreateMorphology(svgMorphology, input, skSKRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
                 if (skImageFilter is { })
                 {
@@ -514,9 +514,9 @@ internal class SvgFilterContext
                 var inputKey = svgOffset.Input;
                 var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, _skFilterRegion, isFirst);
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
-                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
+                var skSKRect = skFilterPrimitiveRegion;
                 var input = inputFilterResult?.Filter;
-                var skImageFilter = CreateOffset(svgOffset, input, skCropRect);
+                var skImageFilter = CreateOffset(svgOffset, input, skSKRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, inputFilterResult?.ColorSpace ?? colorInterpolationFilters);
                 if (skImageFilter is { })
                 {
@@ -530,9 +530,9 @@ internal class SvgFilterContext
                 var inputKey = svgSpecularLighting.Input;
                 var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, _skFilterRegion, isFirst);
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
-                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
+                var skSKRect = skFilterPrimitiveRegion;
                 var input = ApplyColourInterpolation(inputFilterResult, colorInterpolationFilters);
-                var skImageFilter = CreateSpecularLighting(svgSpecularLighting, _svgVisualElement, input, skCropRect);
+                var skImageFilter = CreateSpecularLighting(svgSpecularLighting, _svgVisualElement, input, skSKRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
                 if (skImageFilter is { })
                 {
@@ -554,9 +554,9 @@ internal class SvgFilterContext
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
                 var tileBounds = _regions[inputFilterResult.Filter];
                 var cropBounds = skFilterPrimitiveRegion;
-                var skCropRect = new SKImageFilter.CropRect(cropBounds);
+                var skSKRect = cropBounds;
                 var input = inputFilterResult.Filter;
-                var skImageFilter = CreateTile(svgTile, tileBounds, skFilterPrimitiveRegion, input, skCropRect);
+                var skImageFilter = CreateTile(svgTile, tileBounds, skFilterPrimitiveRegion, input, skSKRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, inputFilterResult?.ColorSpace ?? colorInterpolationFilters);
                 if (skImageFilter is { })
                 {
@@ -568,8 +568,8 @@ internal class SvgFilterContext
             case SvgTurbulence svgTurbulence:
             {
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
-                var skCropRect = new SKImageFilter.CropRect(skFilterPrimitiveRegion);
-                var skImageFilter = CreateTurbulence(svgTurbulence, skCropRect);
+                var skSKRect = skFilterPrimitiveRegion;
+                var skImageFilter = CreateTurbulence(svgTurbulence, skSKRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
                 if (skImageFilter is { })
                 {
@@ -989,7 +989,7 @@ internal class SvgFilterContext
         };
     }
 
-    private SKImageFilter? CreateBlend(SvgBlend svgBlend, SKImageFilter background, SKImageFilter? foreground = default, SKImageFilter.CropRect? cropRect = default)
+    private SKImageFilter? CreateBlend(SvgBlend svgBlend, SKImageFilter background, SKImageFilter? foreground = default, SKRect? cropRect = default)
     {
         var mode = GetBlendMode(svgBlend.Mode);
         return SKImageFilter.CreateBlendMode(mode, background, foreground, cropRect);
@@ -1006,7 +1006,7 @@ internal class SvgFilterContext
         ];
     }
 
-    private SKImageFilter? CreateColorMatrix(SvgColourMatrix svgColourMatrix, SKImageFilter? input = default, SKImageFilter.CropRect? cropRect = default)
+    private SKImageFilter? CreateColorMatrix(SvgColourMatrix svgColourMatrix, SKImageFilter? input = default, SKRect? cropRect = default)
     {
         SKColorFilter skColorFilter;
 
@@ -1197,7 +1197,7 @@ internal class SvgFilterContext
         }
     }
 
-    private SKImageFilter? CreateComponentTransfer(SvgComponentTransfer svgComponentTransfer, SKImageFilter? input = default, SKImageFilter.CropRect? cropRect = default)
+    private SKImageFilter? CreateComponentTransfer(SvgComponentTransfer svgComponentTransfer, SKImageFilter? input = default, SKRect? cropRect = default)
     {
         var svgFuncA = s_identitySvgFuncA;
         var svgFuncR = s_identitySvgFuncR;
@@ -1246,7 +1246,7 @@ internal class SvgFilterContext
         return SKImageFilter.CreateColorFilter(cf, input, cropRect);
     }
 
-    private SKImageFilter? CreateComposite(SvgComposite svgComposite, SKImageFilter background, SKImageFilter? foreground = default, SKImageFilter.CropRect? cropRect = default)
+    private SKImageFilter? CreateComposite(SvgComposite svgComposite, SKImageFilter background, SKImageFilter? foreground = default, SKRect? cropRect = default)
     {
         var oper = svgComposite.Operator;
         if (oper == SvgCompositeOperator.Arithmetic)
@@ -1272,7 +1272,7 @@ internal class SvgFilterContext
         }
     }
 
-    private SKImageFilter? CreateConvolveMatrix(SvgConvolveMatrix svgConvolveMatrix, SKImageFilter? input = default, SKImageFilter.CropRect? cropRect = default)
+    private SKImageFilter? CreateConvolveMatrix(SvgConvolveMatrix svgConvolveMatrix, SKImageFilter? input = default, SKRect? cropRect = default)
     {
         svgConvolveMatrix.Order.GetOptionalNumbers(3f, 3f, out var orderX, out var orderY);
 
@@ -1359,7 +1359,7 @@ internal class SvgFilterContext
         return new SKPoint3(x, y, z);
     }
 
-    private SKImageFilter? CreateDiffuseLighting(SvgDiffuseLighting svgDiffuseLighting, SvgVisualElement svgVisualElement, SKImageFilter? input = default, SKImageFilter.CropRect? cropRect = default)
+    private SKImageFilter? CreateDiffuseLighting(SvgDiffuseLighting svgDiffuseLighting, SvgVisualElement svgVisualElement, SKImageFilter? input = default, SKRect? cropRect = default)
     {
         var lightColor = SvgExtensions.GetColor(svgVisualElement, svgDiffuseLighting.LightingColor);
         if (lightColor is null)
@@ -1416,7 +1416,7 @@ internal class SvgFilterContext
         };
     }
 
-    private SKImageFilter? CreateDisplacementMap(SvgDisplacementMap svgDisplacementMap, SKImageFilter displacement, SKImageFilter? input = default, SKImageFilter.CropRect? cropRect = default)
+    private SKImageFilter? CreateDisplacementMap(SvgDisplacementMap svgDisplacementMap, SKImageFilter displacement, SKImageFilter? input = default, SKRect? cropRect = default)
     {
         var xChannelSelector = GetColorChannel(svgDisplacementMap.XChannelSelector);
         var yChannelSelector = GetColorChannel(svgDisplacementMap.YChannelSelector);
@@ -1430,7 +1430,7 @@ internal class SvgFilterContext
         return SKImageFilter.CreateDisplacementMapEffect(xChannelSelector, yChannelSelector, scale, displacement, input, cropRect);
     }
 
-    private SKImageFilter? CreateFlood(SvgFlood svgFlood, SvgVisualElement svgVisualElement, SKImageFilter? input = default, SKImageFilter.CropRect? cropRect = default)
+    private SKImageFilter? CreateFlood(SvgFlood svgFlood, SvgVisualElement svgVisualElement, SKImageFilter? input = default, SKRect? cropRect = default)
     {
         var floodColor = SvgExtensions.GetColor(svgVisualElement, svgFlood.FloodColor);
         if (floodColor is null)
@@ -1444,7 +1444,7 @@ internal class SvgFilterContext
 
         if (cropRect is null)
         {
-            cropRect = new SKImageFilter.CropRect(_skFilterRegion);
+            cropRect = _skFilterRegion;
         }
 
         var cf = SKColorFilter.CreateBlendMode(floodColor.Value, SKBlendMode.Src);
@@ -1452,7 +1452,7 @@ internal class SvgFilterContext
         return SKImageFilter.CreateColorFilter(cf, input, cropRect);
     }
 
-    private SKImageFilter? CreateBlur(SvgGaussianBlur svgGaussianBlur, SKImageFilter? input = default, SKImageFilter.CropRect? cropRect = default)
+    private SKImageFilter? CreateBlur(SvgGaussianBlur svgGaussianBlur, SKImageFilter? input = default, SKRect? cropRect = default)
     {
         svgGaussianBlur.StdDeviation.GetOptionalNumbers(0f, 0f, out var sigmaX, out var sigmaY);
 
@@ -1471,7 +1471,7 @@ internal class SvgFilterContext
         return SKImageFilter.CreateBlur(sigmaX, sigmaY, input, cropRect);
     }
 
-    private SKImageFilter? CreateImage(FilterEffects.SvgImage svgImage, IAssetLoader assetLoader, HashSet<Uri>? references, SKRect skFilterPrimitiveRegion, SKImageFilter.CropRect? cropRect = default)
+    private SKImageFilter? CreateImage(FilterEffects.SvgImage svgImage, IAssetLoader assetLoader, HashSet<Uri>? references, SKRect skFilterPrimitiveRegion, SKRect? cropRect = default)
     {
         var uri = SvgExtensions.GetImageUri(svgImage.Href, svgImage.OwnerDocument);
         if (references is { } && references.Contains(uri))
@@ -1532,7 +1532,7 @@ internal class SvgFilterContext
         return default;
     }
 
-    private SKImageFilter? CreateMerge(SvgMerge svgMerge, SvgColourInterpolation colorInterpolationFilters, SKImageFilter.CropRect? cropRect = default)
+    private SKImageFilter? CreateMerge(SvgMerge svgMerge, SvgColourInterpolation colorInterpolationFilters, SKRect? cropRect = default)
     {
         var children = new List<SvgMergeNode>();
 
@@ -1564,7 +1564,7 @@ internal class SvgFilterContext
         return SKImageFilter.CreateMerge(filters, cropRect);
     }
 
-    private SKImageFilter? CreateMorphology(SvgMorphology svgMorphology, SKImageFilter? input = default, SKImageFilter.CropRect? cropRect = default)
+    private SKImageFilter? CreateMorphology(SvgMorphology svgMorphology, SKImageFilter? input = default, SKRect? cropRect = default)
     {
         svgMorphology.Radius.GetOptionalNumbers(0f, 0f, out var radiusX, out var radiusY);
 
@@ -1588,7 +1588,7 @@ internal class SvgFilterContext
         };
     }
 
-    private SKImageFilter? CreateOffset(SvgOffset svgOffset, SKImageFilter? input = default, SKImageFilter.CropRect? cropRect = default)
+    private SKImageFilter? CreateOffset(SvgOffset svgOffset, SKImageFilter? input = default, SKRect? cropRect = default)
     {
         var dxUnit = svgOffset.Dx;
         var dyUnit = svgOffset.Dy;
@@ -1597,7 +1597,7 @@ internal class SvgFilterContext
         return SKImageFilter.CreateOffset(dx, dy, input, cropRect);
     }
 
-    private SKImageFilter? CreateSpecularLighting(SvgSpecularLighting svgSpecularLighting, SvgVisualElement svgVisualElement, SKImageFilter? input = default, SKImageFilter.CropRect? cropRect = default)
+    private SKImageFilter? CreateSpecularLighting(SvgSpecularLighting svgSpecularLighting, SvgVisualElement svgVisualElement, SKImageFilter? input = default, SKRect? cropRect = default)
     {
         var lightColor = SvgExtensions.GetColor(svgVisualElement, svgSpecularLighting.LightingColor);
         if (lightColor is null)
@@ -1638,14 +1638,14 @@ internal class SvgFilterContext
         return default;
     }
 
-    private SKImageFilter? CreateTile(SvgTile svgTile, SKRect srcBounds, SKRect dstBounds, SKImageFilter? input = default, SKImageFilter.CropRect? cropRect = default)
+    private SKImageFilter? CreateTile(SvgTile svgTile, SKRect srcBounds, SKRect dstBounds, SKImageFilter? input = default, SKRect? cropRect = default)
     {
         var src = srcBounds;
         var dst = dstBounds;
         return SKImageFilter.CreateTile(src, dst, input);
     }
 
-    private SKImageFilter? CreateTurbulence(SvgTurbulence svgTurbulence, SKImageFilter.CropRect? cropRect = default)
+    private SKImageFilter? CreateTurbulence(SvgTurbulence svgTurbulence, SKRect? cropRect = default)
     {
         svgTurbulence.BaseFrequency.GetOptionalNumbers(0f, 0f, out var baseFrequencyX, out var baseFrequencyY);
 
@@ -1699,7 +1699,7 @@ internal class SvgFilterContext
 
         if (cropRect is null)
         {
-            cropRect = new SKImageFilter.CropRect(_skFilterRegion);
+            cropRect = _skFilterRegion;
         }
 
         return SKImageFilter.CreatePaint(skPaint, cropRect);
