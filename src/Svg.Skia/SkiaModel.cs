@@ -431,9 +431,14 @@ public class SkiaModel(SKSvgSettings settings)
         }
     }
 
-    public SkiaSharp.SKImageFilter.CropRect? ToCropRect(SKImageFilter.CropRect? cropRect)
+    public SkiaSharp.SKRect ToSKRect(SKRect? cropRect)
     {
-        return cropRect is null ? null : new(ToSKRect(cropRect.Rect));
+        return cropRect is null ? SkiaSharp.SKRect.Empty : ToSKRect(cropRect.Value);
+    }
+
+    public SkiaSharp.SKRect? ToCropRect(SKRect? cropRect)
+    {
+        return cropRect is null ? null : ToSKRect(cropRect);
     }
 
     public SkiaSharp.SKColorChannel ToSKColorChannel(SKColorChannel colorChannel)
@@ -448,6 +453,29 @@ public class SkiaModel(SKSvgSettings settings)
         };
     }
 
+    private SkiaSharp.SKImageFilter? CreatePaint(SKPaint skPaint, SKRect? skCropRect = null)
+    {
+        if (skPaint.Shader is null && skPaint.Color is null)
+        {
+            return null;
+        }
+
+        var skShader = skPaint.Shader is null 
+            ? SkiaSharp.SKShader.CreateColor(ToSKColor(skPaint.Color!.Value), SkiaSharp.SKColorSpace.CreateSrgb())
+            : ToSKShader(skPaint.Shader);
+ 
+        if (skCropRect == null)
+        {
+            var skImageFilter = SkiaSharp.SKImageFilter.CreateShader(skShader, skPaint.IsDither);
+            return skImageFilter;
+        }
+        else
+        {
+            var skImageFilter = SkiaSharp.SKImageFilter.CreateShader(skShader, skPaint.IsDither, ToSKRect(skCropRect.Value));
+            return skImageFilter;
+        }
+    }
+    
     public SkiaSharp.SKImageFilter? ToSKImageFilter(SKImageFilter? imageFilter)
     {
         switch (imageFilter)
@@ -459,6 +487,19 @@ public class SkiaModel(SKSvgSettings settings)
                     return null;
                 }
 
+                var cropRect = ToCropRect(arithmeticImageFilter.Clip);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreateArithmetic(
+                        arithmeticImageFilter.K1,
+                        arithmeticImageFilter.K2,
+                        arithmeticImageFilter.K3,
+                        arithmeticImageFilter.K4,
+                        arithmeticImageFilter.EforcePMColor,
+                        ToSKImageFilter(arithmeticImageFilter.Background),
+                        ToSKImageFilter(arithmeticImageFilter.Foreground));
+                }
+
                 return SkiaSharp.SKImageFilter.CreateArithmetic(
                     arithmeticImageFilter.K1,
                     arithmeticImageFilter.K2,
@@ -467,7 +508,7 @@ public class SkiaModel(SKSvgSettings settings)
                     arithmeticImageFilter.EforcePMColor,
                     ToSKImageFilter(arithmeticImageFilter.Background),
                     ToSKImageFilter(arithmeticImageFilter.Foreground),
-                    ToCropRect(arithmeticImageFilter.Clip));
+                    cropRect.Value);
             }
             case BlendModeImageFilter blendModeImageFilter:
             {
@@ -476,19 +517,37 @@ public class SkiaModel(SKSvgSettings settings)
                     return null;
                 }
 
+                var cropRect = ToCropRect(blendModeImageFilter.Clip);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreateBlendMode(
+                        ToSKBlendMode(blendModeImageFilter.Mode),
+                        ToSKImageFilter(blendModeImageFilter.Background),
+                        ToSKImageFilter(blendModeImageFilter.Foreground));
+                }
+                
                 return SkiaSharp.SKImageFilter.CreateBlendMode(
                     ToSKBlendMode(blendModeImageFilter.Mode),
                     ToSKImageFilter(blendModeImageFilter.Background),
                     ToSKImageFilter(blendModeImageFilter.Foreground),
-                    ToCropRect(blendModeImageFilter.Clip));
+                    cropRect.Value);
             }
             case BlurImageFilter blurImageFilter:
             {
+                var cropRect = ToCropRect(blurImageFilter.Clip);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreateBlur(
+                        blurImageFilter.SigmaX,
+                        blurImageFilter.SigmaY,
+                        ToSKImageFilter(blurImageFilter.Input));
+                }
+                
                 return SkiaSharp.SKImageFilter.CreateBlur(
                     blurImageFilter.SigmaX,
                     blurImageFilter.SigmaY,
                     ToSKImageFilter(blurImageFilter.Input),
-                    ToCropRect(blurImageFilter.Clip));
+                    cropRect.Value);
             }
             case ColorFilterImageFilter colorFilterImageFilter:
             {
@@ -497,18 +556,35 @@ public class SkiaModel(SKSvgSettings settings)
                     return null;
                 }
 
+                var cropRect = ToCropRect(colorFilterImageFilter.Clip);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreateColorFilter(
+                        ToSKColorFilter(colorFilterImageFilter.ColorFilter),
+                        ToSKImageFilter(colorFilterImageFilter.Input));
+                }
+                
                 return SkiaSharp.SKImageFilter.CreateColorFilter(
                     ToSKColorFilter(colorFilterImageFilter.ColorFilter),
                     ToSKImageFilter(colorFilterImageFilter.Input),
-                    ToCropRect(colorFilterImageFilter.Clip));
+                    cropRect.Value);
             }
             case DilateImageFilter dilateImageFilter:
             {
+                var cropRect = ToCropRect(dilateImageFilter.Clip);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreateDilate(
+                        dilateImageFilter.RadiusX,
+                        dilateImageFilter.RadiusY,
+                        ToSKImageFilter(dilateImageFilter.Input));
+                }
+                
                 return SkiaSharp.SKImageFilter.CreateDilate(
                     dilateImageFilter.RadiusX,
                     dilateImageFilter.RadiusY,
                     ToSKImageFilter(dilateImageFilter.Input),
-                    ToCropRect(dilateImageFilter.Clip));
+                    cropRect.Value);
             }
             case DisplacementMapEffectImageFilter displacementMapEffectImageFilter:
             {
@@ -517,26 +593,60 @@ public class SkiaModel(SKSvgSettings settings)
                     return null;
                 }
 
+                var cropRect = ToCropRect(displacementMapEffectImageFilter.Clip);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreateDisplacementMapEffect(
+                        ToSKColorChannel(displacementMapEffectImageFilter.XChannelSelector),
+                        ToSKColorChannel(displacementMapEffectImageFilter.YChannelSelector),
+                        displacementMapEffectImageFilter.Scale,
+                        ToSKImageFilter(displacementMapEffectImageFilter.Displacement),
+                        ToSKImageFilter(displacementMapEffectImageFilter.Input));
+                }
+                
                 return SkiaSharp.SKImageFilter.CreateDisplacementMapEffect(
                     ToSKColorChannel(displacementMapEffectImageFilter.XChannelSelector),
                     ToSKColorChannel(displacementMapEffectImageFilter.YChannelSelector),
                     displacementMapEffectImageFilter.Scale,
                     ToSKImageFilter(displacementMapEffectImageFilter.Displacement),
                     ToSKImageFilter(displacementMapEffectImageFilter.Input),
-                    ToCropRect(displacementMapEffectImageFilter.Clip));
+                    cropRect.Value);
             }
             case DistantLitDiffuseImageFilter distantLitDiffuseImageFilter:
             {
+                var cropRect = ToCropRect(distantLitDiffuseImageFilter.Clip);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreateDistantLitDiffuse(
+                        ToSKPoint3(distantLitDiffuseImageFilter.Direction),
+                        ToSKColor(distantLitDiffuseImageFilter.LightColor),
+                        distantLitDiffuseImageFilter.SurfaceScale,
+                        distantLitDiffuseImageFilter.Kd,
+                        ToSKImageFilter(distantLitDiffuseImageFilter.Input));
+                }
+                
                 return SkiaSharp.SKImageFilter.CreateDistantLitDiffuse(
                     ToSKPoint3(distantLitDiffuseImageFilter.Direction),
                     ToSKColor(distantLitDiffuseImageFilter.LightColor),
                     distantLitDiffuseImageFilter.SurfaceScale,
                     distantLitDiffuseImageFilter.Kd,
                     ToSKImageFilter(distantLitDiffuseImageFilter.Input),
-                    ToCropRect(distantLitDiffuseImageFilter.Clip));
+                    cropRect.Value);
             }
             case DistantLitSpecularImageFilter distantLitSpecularImageFilter:
             {
+                var cropRect = ToCropRect(distantLitSpecularImageFilter.Clip);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreateDistantLitSpecular(
+                        ToSKPoint3(distantLitSpecularImageFilter.Direction),
+                        ToSKColor(distantLitSpecularImageFilter.LightColor),
+                        distantLitSpecularImageFilter.SurfaceScale,
+                        distantLitSpecularImageFilter.Ks,
+                        distantLitSpecularImageFilter.Shininess,
+                        ToSKImageFilter(distantLitSpecularImageFilter.Input));
+                }
+                
                 return SkiaSharp.SKImageFilter.CreateDistantLitSpecular(
                     ToSKPoint3(distantLitSpecularImageFilter.Direction),
                     ToSKColor(distantLitSpecularImageFilter.LightColor),
@@ -544,15 +654,24 @@ public class SkiaModel(SKSvgSettings settings)
                     distantLitSpecularImageFilter.Ks,
                     distantLitSpecularImageFilter.Shininess,
                     ToSKImageFilter(distantLitSpecularImageFilter.Input),
-                    ToCropRect(distantLitSpecularImageFilter.Clip));
+                    cropRect.Value);
             }
             case ErodeImageFilter erodeImageFilter:
             {
+                var cropRect = ToCropRect(erodeImageFilter.Clip);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreateErode(
+                        erodeImageFilter.RadiusX,
+                        erodeImageFilter.RadiusY,
+                        ToSKImageFilter(erodeImageFilter.Input));
+                }
+                
                 return SkiaSharp.SKImageFilter.CreateErode(
                     erodeImageFilter.RadiusX,
                     erodeImageFilter.RadiusY,
                     ToSKImageFilter(erodeImageFilter.Input),
-                    ToCropRect(erodeImageFilter.Clip));
+                    cropRect.Value);
             }
             case ImageImageFilter imageImageFilter:
             {
@@ -561,11 +680,13 @@ public class SkiaModel(SKSvgSettings settings)
                     return null;
                 }
 
+                var skSamplingOptions = new SkiaSharp.SKSamplingOptions(SkiaSharp.SKCubicResampler.Mitchell);
+
                 return SkiaSharp.SKImageFilter.CreateImage(
                     ToSKImage(imageImageFilter.Image),
                     ToSKRect(imageImageFilter.Src),
                     ToSKRect(imageImageFilter.Dst),
-                    SkiaSharp.SKFilterQuality.High);
+                    skSamplingOptions);
             }
             case MatrixConvolutionImageFilter matrixConvolutionImageFilter:
             {
@@ -574,6 +695,20 @@ public class SkiaModel(SKSvgSettings settings)
                     return null;
                 }
 
+                var cropRect = ToCropRect(matrixConvolutionImageFilter.Clip);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreateMatrixConvolution(
+                        ToSKSizeI(matrixConvolutionImageFilter.KernelSize),
+                        matrixConvolutionImageFilter.Kernel,
+                        matrixConvolutionImageFilter.Gain,
+                        matrixConvolutionImageFilter.Bias,
+                        ToSKPointI(matrixConvolutionImageFilter.KernelOffset),
+                        ToSKShaderTileMode(matrixConvolutionImageFilter.TileMode),
+                        matrixConvolutionImageFilter.ConvolveAlpha,
+                        ToSKImageFilter(matrixConvolutionImageFilter.Input));
+                }
+                
                 return SkiaSharp.SKImageFilter.CreateMatrixConvolution(
                     ToSKSizeI(matrixConvolutionImageFilter.KernelSize),
                     matrixConvolutionImageFilter.Kernel,
@@ -583,7 +718,7 @@ public class SkiaModel(SKSvgSettings settings)
                     ToSKShaderTileMode(matrixConvolutionImageFilter.TileMode),
                     matrixConvolutionImageFilter.ConvolveAlpha,
                     ToSKImageFilter(matrixConvolutionImageFilter.Input),
-                    ToCropRect(matrixConvolutionImageFilter.Clip));
+                    cropRect.Value);
             }
             case MergeImageFilter mergeImageFilter:
             {
@@ -592,17 +727,33 @@ public class SkiaModel(SKSvgSettings settings)
                     return null;
                 }
 
+                var cropRect = ToCropRect(mergeImageFilter.Clip);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreateMerge(
+                        ToSKImageFilters(mergeImageFilter.Filters));
+                }
+                
                 return SkiaSharp.SKImageFilter.CreateMerge(
                     ToSKImageFilters(mergeImageFilter.Filters),
-                    ToCropRect(mergeImageFilter.Clip));
+                    cropRect.Value);
             }
             case OffsetImageFilter offsetImageFilter:
             {
+                var cropRect = ToCropRect(offsetImageFilter.Clip);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreateOffset(
+                        offsetImageFilter.Dx,
+                        offsetImageFilter.Dy,
+                        ToSKImageFilter(offsetImageFilter.Input));
+                }
+                
                 return SkiaSharp.SKImageFilter.CreateOffset(
                     offsetImageFilter.Dx,
                     offsetImageFilter.Dy,
                     ToSKImageFilter(offsetImageFilter.Input),
-                    ToCropRect(offsetImageFilter.Clip));
+                    cropRect.Value);
             }
             case PaintImageFilter paintImageFilter:
             {
@@ -611,9 +762,7 @@ public class SkiaModel(SKSvgSettings settings)
                     return null;
                 }
 
-                return SkiaSharp.SKImageFilter.CreatePaint(
-                    ToSKPaint(paintImageFilter.Paint),
-                    ToCropRect(paintImageFilter.Clip));
+                return CreatePaint(paintImageFilter.Paint);
             }
             case PictureImageFilter pictureImageFilter:
             {
@@ -622,22 +771,52 @@ public class SkiaModel(SKSvgSettings settings)
                     return null;
                 }
 
+                var cropRect = ToCropRect(pictureImageFilter.Picture.CullRect);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreatePicture(
+                        ToSKPicture(pictureImageFilter.Picture));
+                }
+                
                 return SkiaSharp.SKImageFilter.CreatePicture(
                     ToSKPicture(pictureImageFilter.Picture),
-                    ToSKRect(pictureImageFilter.Picture.CullRect));
+                    cropRect.Value);
             }
             case PointLitDiffuseImageFilter pointLitDiffuseImageFilter:
             {
+                var cropRect = ToCropRect(pointLitDiffuseImageFilter.Clip);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreatePointLitDiffuse(
+                        ToSKPoint3(pointLitDiffuseImageFilter.Location),
+                        ToSKColor(pointLitDiffuseImageFilter.LightColor),
+                        pointLitDiffuseImageFilter.SurfaceScale,
+                        pointLitDiffuseImageFilter.Kd,
+                        ToSKImageFilter(pointLitDiffuseImageFilter.Input));
+                }
+                
                 return SkiaSharp.SKImageFilter.CreatePointLitDiffuse(
                     ToSKPoint3(pointLitDiffuseImageFilter.Location),
                     ToSKColor(pointLitDiffuseImageFilter.LightColor),
                     pointLitDiffuseImageFilter.SurfaceScale,
                     pointLitDiffuseImageFilter.Kd,
                     ToSKImageFilter(pointLitDiffuseImageFilter.Input),
-                    ToCropRect(pointLitDiffuseImageFilter.Clip));
+                    cropRect.Value);
             }
             case PointLitSpecularImageFilter pointLitSpecularImageFilter:
             {
+                var cropRect = ToCropRect(pointLitSpecularImageFilter.Clip);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreatePointLitSpecular(
+                        ToSKPoint3(pointLitSpecularImageFilter.Location),
+                        ToSKColor(pointLitSpecularImageFilter.LightColor),
+                        pointLitSpecularImageFilter.SurfaceScale,
+                        pointLitSpecularImageFilter.Ks,
+                        pointLitSpecularImageFilter.Shininess,
+                        ToSKImageFilter(pointLitSpecularImageFilter.Input));
+                }
+                
                 return SkiaSharp.SKImageFilter.CreatePointLitSpecular(
                     ToSKPoint3(pointLitSpecularImageFilter.Location),
                     ToSKColor(pointLitSpecularImageFilter.LightColor),
@@ -645,10 +824,24 @@ public class SkiaModel(SKSvgSettings settings)
                     pointLitSpecularImageFilter.Ks,
                     pointLitSpecularImageFilter.Shininess,
                     ToSKImageFilter(pointLitSpecularImageFilter.Input),
-                    ToCropRect(pointLitSpecularImageFilter.Clip));
+                    cropRect.Value);
             }
             case SpotLitDiffuseImageFilter spotLitDiffuseImageFilter:
             {
+                var cropRect = ToCropRect(spotLitDiffuseImageFilter.Clip);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreateSpotLitDiffuse(
+                        ToSKPoint3(spotLitDiffuseImageFilter.Location),
+                        ToSKPoint3(spotLitDiffuseImageFilter.Target),
+                        spotLitDiffuseImageFilter.SpecularExponent,
+                        spotLitDiffuseImageFilter.CutoffAngle,
+                        ToSKColor(spotLitDiffuseImageFilter.LightColor),
+                        spotLitDiffuseImageFilter.SurfaceScale,
+                        spotLitDiffuseImageFilter.Kd,
+                        ToSKImageFilter(spotLitDiffuseImageFilter.Input));
+                }
+                
                 return SkiaSharp.SKImageFilter.CreateSpotLitDiffuse(
                     ToSKPoint3(spotLitDiffuseImageFilter.Location),
                     ToSKPoint3(spotLitDiffuseImageFilter.Target),
@@ -658,10 +851,25 @@ public class SkiaModel(SKSvgSettings settings)
                     spotLitDiffuseImageFilter.SurfaceScale,
                     spotLitDiffuseImageFilter.Kd,
                     ToSKImageFilter(spotLitDiffuseImageFilter.Input),
-                    ToCropRect(spotLitDiffuseImageFilter.Clip));
+                    cropRect.Value);
             }
             case SpotLitSpecularImageFilter spotLitSpecularImageFilter:
             {
+                var cropRect = ToCropRect(spotLitSpecularImageFilter.Clip);
+                if (cropRect is null)
+                {
+                    return SkiaSharp.SKImageFilter.CreateSpotLitSpecular(
+                        ToSKPoint3(spotLitSpecularImageFilter.Location),
+                        ToSKPoint3(spotLitSpecularImageFilter.Target),
+                        spotLitSpecularImageFilter.SpecularExponent,
+                        spotLitSpecularImageFilter.CutoffAngle,
+                        ToSKColor(spotLitSpecularImageFilter.LightColor),
+                        spotLitSpecularImageFilter.SurfaceScale,
+                        spotLitSpecularImageFilter.Ks,
+                        spotLitSpecularImageFilter.SpecularExponent,
+                        ToSKImageFilter(spotLitSpecularImageFilter.Input));
+                }
+
                 return SkiaSharp.SKImageFilter.CreateSpotLitSpecular(
                     ToSKPoint3(spotLitSpecularImageFilter.Location),
                     ToSKPoint3(spotLitSpecularImageFilter.Target),
@@ -672,7 +880,7 @@ public class SkiaModel(SKSvgSettings settings)
                     spotLitSpecularImageFilter.Ks,
                     spotLitSpecularImageFilter.SpecularExponent,
                     ToSKImageFilter(spotLitSpecularImageFilter.Input),
-                    ToCropRect(spotLitSpecularImageFilter.Clip));
+                    cropRect.Value);
             }
             case TileImageFilter tileImageFilter:
             {
