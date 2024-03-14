@@ -14,7 +14,9 @@
   <Import Project="..\..\build\SkiaSharp.Linux.props" />
   <Import Project="..\..\build\HarfBuzzSharp.NativeAssets.Linux.props" />
   <Import Project="..\..\build\Avalonia.props" />
+  <Import Project="..\..\build\Avalonia.Desktop.props" />
   <Import Project="..\..\build\Avalonia.Skia.props" />
+  <Import Project="..\..\build\Avalonia.Themes.Fluent.props" />
  
   <ItemGroup>
     <AvaloniaResource Include="Assets\*" />

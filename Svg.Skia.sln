@@ -113,6 +113,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Svg", "src\Avaloni
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaSvgSkiaStylingSample", "samples\AvaloniaSvgSkiaStylingSample\AvaloniaSvgSkiaStylingSample.csproj", "{8A938DC2-1634-4387-BAB3-69F871D54FB5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.Svg.Skia.UiTests", "tests\Avalonia.Svg.Skia.UiTests\Avalonia.Svg.Skia.UiTests.csproj", "{CDAEEF97-F162-468B-9424-6496253C2BFE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -207,6 +209,10 @@ Global
 		{8A938DC2-1634-4387-BAB3-69F871D54FB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A938DC2-1634-4387-BAB3-69F871D54FB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A938DC2-1634-4387-BAB3-69F871D54FB5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDAEEF97-F162-468B-9424-6496253C2BFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDAEEF97-F162-468B-9424-6496253C2BFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDAEEF97-F162-468B-9424-6496253C2BFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDAEEF97-F162-468B-9424-6496253C2BFE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -238,6 +244,7 @@ Global
 		{3049C672-8A3F-4FE4-9973-515B8323B546} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
 		{B742F260-0EC6-4805-AE9F-987818CE3CF4} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
 		{8A938DC2-1634-4387-BAB3-69F871D54FB5} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
+		{CDAEEF97-F162-468B-9424-6496253C2BFE} = {7863AE7D-FF68-45BF-BA68-6FA0E5604CB7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12D5E557-A27B-4FB2-83A3-4AC75B04B22C}

@@ -22,22 +22,23 @@ public class SvgCustomDrawOperation : ICustomDrawOperation
 
     public Rect Bounds { get; }
 
-    public bool HitTest(Point p) => false;
+    public bool HitTest(Point p) => true;
 
     public bool Equals(ICustomDrawOperation? other) => false;
 
     public void Render(ImmediateDrawingContext context)
     {
-        if (_svg?.Picture is null)
+        if (_svg == null)
         {
             return;
         }
-        
+
         var leaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
         if (leaseFeature is null)
         {
             return;
         }
+
         using var lease = leaseFeature.Lease();
         var canvas = lease?.SkCanvas;
         if (canvas is null)
@@ -45,8 +46,17 @@ public class SvgCustomDrawOperation : ICustomDrawOperation
             return;
         }
 
-        canvas.Save();
-        canvas.DrawPicture(_svg.Picture);
-        canvas.Restore();
+        lock (_svg.Sync)
+        {
+            var picture = _svg.Picture;
+            if (picture is null)
+            {
+                return;
+            }
+
+            canvas.Save();
+            canvas.DrawPicture(picture);
+            canvas.Restore();
+        }
     }
 }

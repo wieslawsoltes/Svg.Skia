@@ -83,6 +83,8 @@ public class SKSvg : IDisposable
     private string? _originalPath;
     private System.IO.Stream? _originalStream;
 
+    public object Sync { get; } = new ();
+
     public SKSvgSettings Settings { get; }
 
     public IAssetLoader AssetLoader { get; }
@@ -181,23 +183,26 @@ public class SKSvg : IDisposable
 
     public SkiaSharp.SKPicture? ReLoad(SvgParameters? parameters)
     {
-        if (!CacheOriginalStream)
+        lock (Sync)
         {
-            throw new ArgumentException($"Enable {nameof(CacheOriginalStream)} feature toggle to enable reload feature.");
+            if (!CacheOriginalStream)
+            {
+                throw new ArgumentException($"Enable {nameof(CacheOriginalStream)} feature toggle to enable reload feature.");
+            }
+
+            Reset();
+
+            _originalParameters = parameters;
+
+            if (_originalStream == null)
+            {
+                return Load(_originalPath, parameters);
+            }
+
+            _originalStream.Position = 0;
+
+            return Load(_originalStream, parameters);
         }
-
-        Reset();
-
-        _originalParameters = parameters;
-
-        if (_originalStream == null)
-        {
-            return Load(_originalPath, parameters);
-        }
-
-        _originalStream.Position = 0;
-
-        return Load(_originalStream, parameters);
     }
 
     public SkiaSharp.SKPicture? FromSvg(string svg)
@@ -246,10 +251,14 @@ public class SKSvg : IDisposable
 
     private void Reset()
     {
-        Model = null;
-        Drawable = null;
-        Picture?.Dispose();
-        Picture = null;
+        lock (Sync)
+        {
+            Model = null;
+            Drawable = null;
+
+            Picture?.Dispose();
+            Picture = null;
+        }
     }
 
     public void Dispose()
