@@ -14,6 +14,11 @@ namespace Avalonia.Svg;
 public class SvgImage : AvaloniaObject, IImage
 {
     /// <summary>
+    /// Raised when the resource changes visually.
+    /// </summary>
+    public event EventHandler? Invalidated;
+
+    /// <summary>
     /// Defines the <see cref="Source"/> property.
     /// </summary>
     public static readonly StyledProperty<SvgSource> SourceProperty =
@@ -92,9 +97,17 @@ public class SvgImage : AvaloniaObject, IImage
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
+
         if (change.Property == SourceProperty)
         {
             // TODO: Invalidate IImage
+            RaiseInvalidated(EventArgs.Empty);
         }
     }
+
+    /// <summary>
+    /// Raises the <see cref="Invalidated"/> event.
+    /// </summary>
+    /// <param name="e">The event args.</param>
+    protected void RaiseInvalidated(EventArgs e) => Invalidated?.Invoke(this, e);
 }
