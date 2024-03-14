@@ -83,6 +83,8 @@ public class SKSvg : IDisposable
     private string? _originalPath;
     private System.IO.Stream? _originalStream;
 
+    public object Sync { get; } = new ();
+
     public SKSvgSettings Settings { get; }
 
     public IAssetLoader AssetLoader { get; }
@@ -94,8 +96,6 @@ public class SKSvg : IDisposable
     public SKPicture? Model { get; private set; }
 
     public virtual SkiaSharp.SKPicture? Picture { get; protected set; }
-
-    public object Locker { get; } = new object();
 
     public SvgParameters? Parameters => _originalParameters;
 
@@ -183,7 +183,7 @@ public class SKSvg : IDisposable
 
     public SkiaSharp.SKPicture? ReLoad(SvgParameters? parameters)
     {
-        lock (Locker)
+        lock (Sync)
         {
             if (!CacheOriginalStream)
             {
@@ -251,10 +251,11 @@ public class SKSvg : IDisposable
 
     private void Reset()
     {
-        Model = null;
-        Drawable = null;
-        lock (Locker)
+        lock (Sync)
         {
+            Model = null;
+            Drawable = null;
+
             Picture?.Dispose();
             Picture = null;
         }
