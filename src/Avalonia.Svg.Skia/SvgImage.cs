@@ -1,4 +1,5 @@
-﻿using Avalonia.Media;
+﻿using System;
+using Avalonia.Media;
 using Avalonia.Metadata;
 using Svg.Model;
 
@@ -9,6 +10,11 @@ namespace Avalonia.Svg.Skia;
 /// </summary>
 public class SvgImage : AvaloniaObject, IImage
 {
+    /// <summary>
+    /// Raised when the resource changes visually.
+    /// </summary>
+    public event EventHandler? Invalidated;
+
     /// <summary>
     /// Defines the <see cref="Source"/> property.
     /// </summary>
@@ -99,6 +105,7 @@ public class SvgImage : AvaloniaObject, IImage
         if (change.Property == SourceProperty)
         {
             // TODO: Invalidate IImage
+            RaiseInvalidated(EventArgs.Empty);
         }
 
         if (change.Property == CssProperty)
@@ -108,6 +115,7 @@ public class SvgImage : AvaloniaObject, IImage
             if (Source?.Css != css)
             {
                 Source?.ReLoad(new SvgParameters(null, css));
+                RaiseInvalidated(EventArgs.Empty);
             }
         }
 
@@ -118,7 +126,14 @@ public class SvgImage : AvaloniaObject, IImage
             if (Source?.Css != css)
             {
                 Source?.ReLoad(new SvgParameters(null, css));
+                RaiseInvalidated(EventArgs.Empty);
             }
         }
     }
+
+    /// <summary>
+    /// Raises the <see cref="Invalidated"/> event.
+    /// </summary>
+    /// <param name="e">The event args.</param>
+    protected void RaiseInvalidated(EventArgs e) => Invalidated?.Invoke(this, e);
 }
