@@ -107,9 +107,8 @@ public partial class MainWindow : Window
                 }
                 else if (sender == svgExtensionDockPanel)
                 {
-                    var svg = new SvgSource(default(Uri));
-                    var picture = svg.Load(fileName);
-                    if (picture is { })
+                    var svg = SvgSource.Load(fileName);
+                    if (svg is { })
                     {
                         svgExtensionImage.Source = new SvgImage
                         {
@@ -119,9 +118,8 @@ public partial class MainWindow : Window
                 }
                 else if (sender == svgSourceDockPanel)
                 {
-                    var svg = new SvgSource(default(Uri));
-                    var picture = svg.Load(fileName);
-                    if (picture is { })
+                    var svg = SvgSource.Load(fileName);
+                    if (svg is { })
                     {
                         svgSourceImage.Source = new SvgImage
                         {
@@ -131,9 +129,8 @@ public partial class MainWindow : Window
                 }
                 else if (sender == svgResourceDockPanel)
                 {
-                    var svg = new SvgSource(default(Uri));
-                    var picture = svg.Load(fileName);
-                    if (picture is { })
+                    var svg = SvgSource.Load(fileName);
+                    if (svg is { })
                     {
                         svgResourceImage.Source = new SvgImage
                         {

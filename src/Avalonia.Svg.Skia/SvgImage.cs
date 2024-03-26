@@ -91,7 +91,7 @@ public class SvgImage : AvaloniaObject, IImage
         using (context.PushTransform(translateMatrix * scaleMatrix))
         {
             context.Custom(
-                new SvgCustomDrawOperation(
+                new SvgSourceCustomDrawOperation(
                     new Rect(0, 0, bounds.Width, bounds.Height),
                     source));
         }

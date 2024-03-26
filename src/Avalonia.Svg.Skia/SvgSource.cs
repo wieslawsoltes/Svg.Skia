@@ -16,11 +16,17 @@ namespace Avalonia.Svg.Skia;
 /// Represents a <see cref="SkiaSharp.SKPicture"/> based image.
 /// </summary>
 [TypeConverter(typeof(SvgSourceTypeConverter))]
-public class SvgSource : SKSvg
+public sealed class SvgSource : IDisposable
 {
-    private readonly IServiceProvider? _serviceProvider;
+    private static readonly IAssetLoader s_assetLoader;
+    private static readonly SkiaModel s_skiaModel;
+
     private readonly Uri? _baseUri;
     private SKPicture? _picture;
+
+    private SvgParameters? _originalParameters;
+    private string? _originalPath;
+    private Stream? _originalStream;
 
     [Content]
     public string? Path { get; init; }
@@ -29,7 +35,9 @@ public class SvgSource : SKSvg
 
     public string? Css { get; init; }
 
-    public override SKPicture? Picture
+    public SvgParameters? Parameters => _originalParameters;
+
+    public SKPicture? Picture
     {
         get
         {
@@ -58,20 +66,60 @@ public class SvgSource : SKSvg
     /// <param name="serviceProvider">The XAML service provider.</param>
     public SvgSource(IServiceProvider serviceProvider)
     {
-        _serviceProvider = serviceProvider;
         _baseUri = serviceProvider.GetContextBaseUri();
     }
-    
+
+    public void Dispose()
+    {
+        lock (Sync)
+        {
+            _picture?.Dispose();
+
+            _originalPath = null;
+            _originalStream?.Dispose();
+            _originalStream = null;
+        }
+    }
+
     /// <summary>
     /// Enable throw exception on missing resource.
     /// </summary>
     public static bool EnableThrowOnMissingResource { get; set; }
 
+    public object Sync { get; } = new ();
+
+    static SvgSource()
+    {
+        s_skiaModel = new SkiaModel(new SKSvgSettings());
+        s_assetLoader = new SkiaAssetLoader(s_skiaModel);
+    }
+
+    public SKPicture? ReLoad(SvgParameters? parameters)
+    {
+        lock (Sync)
+        {
+            _picture = null;
+
+            _originalParameters = parameters;
+
+            if (_originalStream == null)
+            {
+                _picture = Load(this, _originalPath, parameters);
+                return _picture;
+            }
+
+            _originalStream.Position = 0;
+
+            _picture = Load(this, _originalStream, parameters);
+            return _picture;
+        }
+    }
+
     private static SKPicture? LoadImpl(SvgSource source, string path, Uri? baseUri, SvgParameters? parameters = null)
     {
         if (File.Exists(path))
         {
-            return source.Load(path, parameters);
+            return Load(source, path, parameters);
         }
 
         if (Uri.TryCreate(path, UriKind.Absolute, out var uriHttp) && (uriHttp.Scheme == "http" || uriHttp.Scheme == "https"))
@@ -82,7 +130,7 @@ public class SvgSource : SKSvg
                 if (response.IsSuccessStatusCode)
                 {
                     var stream = response.Content.ReadAsStreamAsync().Result;
-                    return source.Load(stream, parameters);
+                    return Load(source, stream, parameters);
                 }
             }
             catch (HttpRequestException e)
@@ -98,7 +146,7 @@ public class SvgSource : SKSvg
         var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
         if (uri.IsAbsoluteUri && uri.IsFile)
         {
-            return source.Load(uri.LocalPath, parameters);
+            return Load(source, uri.LocalPath, parameters);
         }
         else
         {
@@ -108,8 +156,72 @@ public class SvgSource : SKSvg
                 ThrowOnMissingResource(path);
                 return null;
             }
-            return source.Load(stream, parameters);
+            return Load(source, stream, parameters);
         }
+    }
+
+    private static SKPicture? Load(SvgSource source, string path, SvgParameters? parameters)
+    {
+        source._originalPath = path;
+        source._originalStream?.Dispose();
+        source._originalStream = null;
+
+        var svgDocument = SvgExtensions.Open(path, parameters);
+        if (svgDocument is null)
+        {
+            return null;
+        }
+            
+        var model = SvgExtensions.ToModel(svgDocument, s_assetLoader, out _, out _);
+
+        return s_skiaModel.ToSKPicture(model);
+    }
+
+    private static SKPicture? Load(SvgSource source, Stream stream, SvgParameters? parameters = null)
+    {
+        if (source._originalStream != stream)
+        {
+            source._originalStream?.Dispose();
+            source._originalStream = new MemoryStream();
+            stream.CopyTo(source._originalStream);
+        }
+
+        source._originalPath = null;
+        source._originalParameters = parameters;
+        source._originalStream.Position = 0;
+
+        var svgDocument = SvgExtensions.Open(source._originalStream, parameters);
+        if (svgDocument is null)
+        {
+            return null;
+        }
+
+        var model = SvgExtensions.ToModel(svgDocument, s_assetLoader, out _, out _);
+
+        return s_skiaModel.ToSKPicture(model);
+    }
+
+    private static SKPicture? FromSvg(string svg)
+    {
+        var svgDocument = SvgExtensions.FromSvg(svg);
+        if (svgDocument is { })
+        {
+            var model = SvgExtensions.ToModel(svgDocument, s_assetLoader, out _, out _);
+
+            return s_skiaModel.ToSKPicture(model);
+        }
+        return null;
+    }
+
+    public static SKPicture? FromSvgDocument(SvgDocument? svgDocument)
+    {
+        if (svgDocument is { })
+        {
+            var model = SvgExtensions.ToModel(svgDocument, s_assetLoader, out _, out _);
+
+            return s_skiaModel.ToSKPicture(model);
+        }
+        return null;
     }
 
     /// <summary>t
@@ -119,12 +231,12 @@ public class SvgSource : SKSvg
     /// <param name="baseUri">The base uri.</param>
     /// <param name="parameters">The svg parameters.</param>
     /// <returns>The svg source.</returns>
-    public static SvgSource? Load(string path, Uri? baseUri, SvgParameters? parameters = null)
+    public static SvgSource? Load(string path, Uri? baseUri = default, SvgParameters? parameters = null)
     {
         if (File.Exists(path))
         {
             var source = new SvgSource(baseUri);
-            source.Load(path, parameters);
+            source._picture = Load(source, path, parameters);
             return source;
         }
 
@@ -137,7 +249,7 @@ public class SvgSource : SKSvg
                 {
                     var stream = response.Content.ReadAsStreamAsync().Result;
                     var source = new SvgSource(baseUri);
-                    source.Load(stream, parameters);
+                    source._picture = Load(source, stream, parameters);
                     return source;
                 }
             }
@@ -154,7 +266,7 @@ public class SvgSource : SKSvg
         if (uri.IsAbsoluteUri && uri.IsFile)
         {
             var source = new SvgSource(baseUri);
-            source.Load(uri.LocalPath, parameters);
+            source._picture = Load(source, uri.LocalPath, parameters);
             return source;
         }
         else
@@ -165,7 +277,7 @@ public class SvgSource : SKSvg
                 return ThrowOnMissingResource(path);
             }
             var source = new SvgSource(baseUri);
-            source.Load(stream, parameters);
+            source._picture = Load(source, stream, parameters);
             return source;
         }
     }
@@ -173,13 +285,13 @@ public class SvgSource : SKSvg
     /// <summary>
     /// Loads svg source from svg source.
     /// </summary>
-    /// <param name="source">The svg source.</param>
+    /// <param name="svg">The svg source.</param>
     /// <returns>The svg source.</returns>
-    public static SvgSource? LoadFromSvg(string source)
+    public static SvgSource? LoadFromSvg(string svg)
     {
-        var skSvg = new SvgSource(default(Uri));
-        skSvg.FromSvg(source);
-        return skSvg;
+        var source = new SvgSource(default(Uri));
+        source._picture = FromSvg(svg);
+        return source;
     }
 
     /// <summary>t
@@ -190,9 +302,9 @@ public class SvgSource : SKSvg
     /// <returns>The svg source.</returns>
     public static SvgSource? LoadFromStream(Stream stream, SvgParameters? parameters = null)
     {
-        var skSvg = new SvgSource(default(Uri));
-        skSvg.Load(stream, parameters);
-        return skSvg;
+        var source = new SvgSource(default(Uri));
+        Load(source, stream, parameters);
+        return source;
     }
 
     /// <summary>t
@@ -202,9 +314,9 @@ public class SvgSource : SKSvg
     /// <returns>The svg source.</returns>
     public static SvgSource? LoadFromSvgDocument(SvgDocument document)
     {
-        var skSvg = new SvgSource(default(Uri));
-        skSvg.FromSvgDocument(document);
-        return skSvg;
+        var source = new SvgSource(default(Uri));
+        source._picture = FromSvgDocument(document);
+        return source;
     }
 
     private static SvgSource? ThrowOnMissingResource(string path)
