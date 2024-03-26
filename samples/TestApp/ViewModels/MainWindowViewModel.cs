@@ -58,8 +58,6 @@ public class MainWindowViewModel : ViewModelBase
         
     public ICommand AddItemCommand { get; }
 
-    public ICommand CopyAsCSharpCommand { get; }
-
     public ICommand ExportCommand { get; }
 
     private List<FilePickerFileType> GetConfigurationFileTypes()
@@ -115,14 +113,12 @@ public class MainWindowViewModel : ViewModelBase
 
         AddItemCommand = ReactiveCommand.CreateFromTask(async () => await AddItemExecute());
 
-        CopyAsCSharpCommand = ReactiveCommand.CreateFromTask<Avalonia.Svg.Skia.Svg>(async svg => await CopyAsCSharpExecute(svg));
-
         ExportCommand = ReactiveCommand.CreateFromTask<Avalonia.Svg.Skia.Svg>(async svg => await ExportExecute(svg));
     }
 
     private async Task ExportExecute(Avalonia.Svg.Skia.Svg svg)
     {
-        if (_selectedItem is null || svg.Model is null)
+        if (_selectedItem is null || svg.Picture is null)
         {
             return;
         }
@@ -155,31 +151,6 @@ public class MainWindowViewModel : ViewModelBase
                 Debug.WriteLine(ex.StackTrace);
             }
         }
-    }
-
-    private async Task CopyAsCSharpExecute(Avalonia.Svg.Skia.Svg svg)
-    {
-        if (_selectedItem is null || svg?.Model is null)
-        {
-            return;
-        }
-
-        var code = SkiaCSharpCodeGen.Generate(svg.Model, "Svg", CreateClassName(_selectedItem.Path));
-
-        await Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            try
-            {
-                if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
-                {
-                    lifetime.MainWindow?.Clipboard?.SetTextAsync(code);
-                }
-            }
-            catch
-            {
-                // ignored
-            }
-        });
     }
 
     private async Task AddItemExecute()
@@ -370,7 +341,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public async Task Export(Stream stream, string name, Avalonia.Svg.Skia.Svg? svg, string backgroundColor, float scaleX, float scaleY)
     {
-        if (svg?.Model is null || svg.Picture is null)
+        if (svg.Picture is null)
         {
             return;
         }
@@ -420,13 +391,6 @@ public class MainWindowViewModel : ViewModelBase
             case ".xps":
             {
                 svg.Picture?.ToXps(stream, skBackgroundColor, scaleX, scaleY);
-                break;
-            }
-            case ".cs":
-            {
-                var code = SkiaCSharpCodeGen.Generate(svg.Model, "Svg", CreateClassName(name));
-                await using var writer = new StreamWriter(stream);
-                await writer.WriteAsync(code);
                 break;
             }
         }
