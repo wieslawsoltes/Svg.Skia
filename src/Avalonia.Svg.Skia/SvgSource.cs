@@ -147,7 +147,7 @@ public sealed class SvgSource : IDisposable
         return null;
     }
 
-    public static SKPicture? FromSvgDocument(SvgDocument? svgDocument)
+    private static SKPicture? FromSvgDocument(SvgDocument? svgDocument)
     {
         if (svgDocument is { })
         {
@@ -226,26 +226,6 @@ public sealed class SvgSource : IDisposable
         return source;
     }
 
-    public void ReLoad(SvgParameters? parameters)
-    {
-        lock (Sync)
-        {
-            _picture = null;
-
-            _originalParameters = parameters;
-
-            if (_originalStream == null)
-            {
-                _picture = Load(this, _originalPath, parameters);
-                return;
-            }
-
-            _originalStream.Position = 0;
-
-            _picture = Load(this, _originalStream, parameters);
-        }
-    }
-
     /// <summary>
     /// Loads svg source from svg source.
     /// </summary>
@@ -281,5 +261,25 @@ public sealed class SvgSource : IDisposable
         var source = new SvgSource(default(Uri));
         source._picture = FromSvgDocument(document);
         return source;
+    }
+
+    public void ReLoad(SvgParameters? parameters)
+    {
+        lock (Sync)
+        {
+            _picture = null;
+
+            _originalParameters = parameters;
+
+            if (_originalStream == null)
+            {
+                _picture = Load(this, _originalPath, parameters);
+                return;
+            }
+
+            _originalStream.Position = 0;
+
+            _picture = Load(this, _originalStream, parameters);
+        }
     }
 }
