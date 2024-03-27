@@ -94,72 +94,6 @@ public sealed class SvgSource : IDisposable
         s_assetLoader = new SkiaAssetLoader(s_skiaModel);
     }
 
-    public SKPicture? ReLoad(SvgParameters? parameters)
-    {
-        lock (Sync)
-        {
-            _picture = null;
-
-            _originalParameters = parameters;
-
-            if (_originalStream == null)
-            {
-                _picture = Load(this, _originalPath, parameters);
-                return _picture;
-            }
-
-            _originalStream.Position = 0;
-
-            _picture = Load(this, _originalStream, parameters);
-            return _picture;
-        }
-    }
-
-    private static SKPicture? LoadImpl(SvgSource source, string path, Uri? baseUri, SvgParameters? parameters = null)
-    {
-        if (File.Exists(path))
-        {
-            return Load(source, path, parameters);
-        }
-
-        if (Uri.TryCreate(path, UriKind.Absolute, out var uriHttp) && (uriHttp.Scheme == "http" || uriHttp.Scheme == "https"))
-        {
-            try
-            {
-                var response = new HttpClient().GetAsync(uriHttp).Result;
-                if (response.IsSuccessStatusCode)
-                {
-                    var stream = response.Content.ReadAsStreamAsync().Result;
-                    return Load(source, stream, parameters);
-                }
-            }
-            catch (HttpRequestException e)
-            {
-                Debug.WriteLine("Failed to connect to " + uriHttp);
-                Debug.WriteLine(e.ToString());
-            }
-
-            ThrowOnMissingResource(path);
-            return null;
-        }
-        
-        var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
-        if (uri.IsAbsoluteUri && uri.IsFile)
-        {
-            return Load(source, uri.LocalPath, parameters);
-        }
-        else
-        {
-            var stream = Platform.AssetLoader.Open(uri, baseUri);
-            if (stream is null)
-            {
-                ThrowOnMissingResource(path);
-                return null;
-            }
-            return Load(source, stream, parameters);
-        }
-    }
-
     private static SKPicture? Load(SvgSource source, string path, SvgParameters? parameters)
     {
         source._originalPath = path;
@@ -224,20 +158,18 @@ public sealed class SvgSource : IDisposable
         return null;
     }
 
-    /// <summary>t
-    /// Loads svg source from file or resource.
-    /// </summary>
-    /// <param name="path">The path to file or resource.</param>
-    /// <param name="baseUri">The base uri.</param>
-    /// <param name="parameters">The svg parameters.</param>
-    /// <returns>The svg source.</returns>
-    public static SvgSource? Load(string path, Uri? baseUri = default, SvgParameters? parameters = null)
+    private static SvgSource? ThrowOnMissingResource(string path)
+    {
+        return EnableThrowOnMissingResource 
+            ? throw new ArgumentException($"Invalid resource path: {path}") 
+            : default;
+    }
+
+    private static SKPicture? LoadImpl(SvgSource source, string path, Uri? baseUri, SvgParameters? parameters = null)
     {
         if (File.Exists(path))
         {
-            var source = new SvgSource(baseUri);
-            source._picture = Load(source, path, parameters);
-            return source;
+            return Load(source, path, parameters);
         }
 
         if (Uri.TryCreate(path, UriKind.Absolute, out var uriHttp) && (uriHttp.Scheme == "http" || uriHttp.Scheme == "https"))
@@ -248,9 +180,7 @@ public sealed class SvgSource : IDisposable
                 if (response.IsSuccessStatusCode)
                 {
                     var stream = response.Content.ReadAsStreamAsync().Result;
-                    var source = new SvgSource(baseUri);
-                    source._picture = Load(source, stream, parameters);
-                    return source;
+                    return Load(source, stream, parameters);
                 }
             }
             catch (HttpRequestException e)
@@ -259,26 +189,60 @@ public sealed class SvgSource : IDisposable
                 Debug.WriteLine(e.ToString());
             }
 
-            return ThrowOnMissingResource(path);
+            ThrowOnMissingResource(path);
+            return null;
         }
         
         var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
         if (uri.IsAbsoluteUri && uri.IsFile)
         {
-            var source = new SvgSource(baseUri);
-            source._picture = Load(source, uri.LocalPath, parameters);
-            return source;
+            return Load(source, uri.LocalPath, parameters);
         }
         else
         {
             var stream = Platform.AssetLoader.Open(uri, baseUri);
             if (stream is null)
             {
-                return ThrowOnMissingResource(path);
+                ThrowOnMissingResource(path);
+                return null;
             }
-            var source = new SvgSource(baseUri);
-            source._picture = Load(source, stream, parameters);
-            return source;
+            return Load(source, stream, parameters);
+        }
+    }
+
+    /// <summary>t
+    /// Loads svg source from file or resource.
+    /// </summary>
+    /// <param name="path">The path to file or resource.</param>
+    /// <param name="baseUri">The base uri.</param>
+    /// <param name="parameters">The svg parameters.</param>
+    /// <returns>The svg source.</returns>
+    public static SvgSource? Load(string path, Uri? baseUri = default, SvgParameters? parameters = null)
+    {
+        var source = new SvgSource(baseUri);
+
+        source._picture = LoadImpl(source, path, baseUri, parameters);
+
+        return source;
+    }
+
+    public void ReLoad(SvgParameters? parameters)
+    {
+        lock (Sync)
+        {
+            _picture = null;
+
+            _originalParameters = parameters;
+
+            if (_originalStream == null)
+            {
+                _picture = Load(this, _originalPath, parameters);
+                return;
+            }
+
+            _originalStream.Position = 0;
+
+            _picture = Load(this, _originalStream, parameters);
         }
     }
 
@@ -317,12 +281,5 @@ public sealed class SvgSource : IDisposable
         var source = new SvgSource(default(Uri));
         source._picture = FromSvgDocument(document);
         return source;
-    }
-
-    private static SvgSource? ThrowOnMissingResource(string path)
-    {
-        return EnableThrowOnMissingResource 
-            ? throw new ArgumentException($"Invalid resource path: {path}") 
-            : default;
     }
 }
