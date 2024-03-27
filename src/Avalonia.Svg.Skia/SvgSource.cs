@@ -18,12 +18,12 @@ namespace Avalonia.Svg.Skia;
 [TypeConverter(typeof(SvgSourceTypeConverter))]
 public sealed class SvgSource : IDisposable
 {
-    private static readonly IAssetLoader s_assetLoader;
-    private static readonly SkiaModel s_skiaModel;
+    public static readonly IAssetLoader s_assetLoader;
+
+    public static readonly SkiaModel s_skiaModel;
 
     private readonly Uri? _baseUri;
     private SKPicture? _picture;
-
     private SvgParameters? _originalParameters;
     private string? _originalPath;
     private Stream? _originalStream;
