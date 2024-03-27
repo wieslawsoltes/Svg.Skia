@@ -14,10 +14,9 @@ public class SvgImageTests
 
         var svgFile = assetLoader.Open(uri);
         Assert.NotNull(svgFile);
-
-        var svgSource = new SvgSource(default(Uri));
-        var picture = svgSource.Load(svgFile);
-        Assert.NotNull(picture);
+        
+        var svgSource = SvgSource.LoadFromStream(svgFile);
+        Assert.NotNull(svgSource);
 
         var svgImage = new SvgImage() { Source = svgSource };
         Assert.NotNull(svgImage);

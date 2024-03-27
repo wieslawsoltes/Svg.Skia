@@ -4,9 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Logging;
 using Avalonia.Media;
 using Avalonia.Metadata;
-using ShimSkiaSharp;
 using Svg.Model;
-using Svg.Skia;
 
 namespace Avalonia.Svg.Skia;
 
@@ -16,9 +14,9 @@ namespace Avalonia.Svg.Skia;
 public class Svg : Control
 {
     private readonly Uri _baseUri;
-    private SKSvg? _svg;
+    private SvgSource? _svg;
     private bool _enableCache;
-    private Dictionary<string, SKSvg>? _cache;
+    private Dictionary<string, SvgSource>? _cache;
 
     /// <summary>
     /// Defines the <see cref="Path"/> property.
@@ -111,16 +109,6 @@ public class Svg : Control
         get { return _enableCache; }
         set { SetAndRaise(EnableCacheProperty, ref _enableCache, value); }
     }
-
-    /// <summary>
-    /// Gets svg drawable.
-    /// </summary>
-    public SKDrawable? Drawable => _svg?.Drawable;
-
-    /// <summary>
-    /// Gets svg model.
-    /// </summary>
-    public SKPicture? Model => _svg?.Model;
 
     /// <summary>
     /// Gets svg picture.
@@ -245,7 +233,7 @@ public class Svg : Control
         using (context.PushTransform(translateMatrix * scaleMatrix))
         {
             context.Custom(
-                new SvgCustomDrawOperation(
+                new SvgSourceCustomDrawOperation(
                     new Rect(0, 0, bounds.Width, bounds.Height),
                     source));
         }
@@ -302,7 +290,7 @@ public class Svg : Control
             }
             else
             {
-                _cache = new Dictionary<string, SKSvg>();
+                _cache = new Dictionary<string, SvgSource>();
             }
         }
     }
