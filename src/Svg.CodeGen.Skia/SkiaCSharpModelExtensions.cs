@@ -1063,6 +1063,26 @@ public static class SkiaCSharpModelExtensions
                 sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
                 return;
             }
+            case ShaderImageFilter shaderImageFilter:
+            {
+                if (shaderImageFilter.Shader is null)
+                {
+                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
+                    return;
+                }
+
+                var counterShader = ++counter.Shader;
+                shaderImageFilter.Shader.ToSKShader(counter, sb, indent);
+
+                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                sb.AppendLine($"SKImageFilter.CreateShader(");
+                sb.AppendLine($"{indent}    {counter.ShaderVarName}{counterShader},");
+                sb.AppendLine($"{indent}    {shaderImageFilter.Dither.ToBoolString()},");
+                sb.AppendLine($"{indent}    {shaderImageFilter.Clip?.ToCropRect() ?? "null"});");
+
+                sb.AppendLine($"{indent}{counter.ShaderVarName}{counterShader}?.Dispose();");
+                return;
+            }
             case PictureImageFilter pictureImageFilter:
             {
                 if (pictureImageFilter.Picture is null)
