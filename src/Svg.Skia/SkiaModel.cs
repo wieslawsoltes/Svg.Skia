@@ -530,7 +530,7 @@ public class SkiaModel
                     : SkiaSharp.SKImageFilter.CreateColorFilter(
                         ToSKColorFilter(colorFilterImageFilter.ColorFilter),
                         ToSKImageFilter(colorFilterImageFilter.Input));
-                }
+            }
             case DilateImageFilter dilateImageFilter:
             {
                 return dilateImageFilter.Clip is { } clip
