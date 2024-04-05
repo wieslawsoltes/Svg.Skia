@@ -437,6 +437,11 @@ public class SkiaModel
         }
     }
 
+    public SkiaSharp.SKImageFilter.CropRect? ToCropRect(SKImageFilter.CropRect? cropRect)
+    {
+        return cropRect is null ? null : new(ToSKRect(cropRect.Rect));
+    }
+
     public SkiaSharp.SKColorChannel ToSKColorChannel(SKColorChannel colorChannel)
     {
         return colorChannel switch
