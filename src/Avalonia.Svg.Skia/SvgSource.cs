@@ -220,9 +220,7 @@ public sealed class SvgSource : IDisposable
     public static SvgSource? Load(string path, Uri? baseUri = default, SvgParameters? parameters = null)
     {
         var source = new SvgSource(baseUri);
-
         source._picture = LoadImpl(source, path, baseUri, parameters);
-
         return source;
     }
 
