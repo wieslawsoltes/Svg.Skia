@@ -245,7 +245,7 @@ public sealed class SvgSource : IDisposable
     public static SvgSource? LoadFromStream(Stream stream, SvgParameters? parameters = null)
     {
         var source = new SvgSource(default(Uri));
-        Load(source, stream, parameters);
+        source._picture = Load(source, stream, parameters);
         return source;
     }
 
