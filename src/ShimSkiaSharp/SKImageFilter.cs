@@ -52,6 +52,9 @@ public abstract record SKImageFilter
     public static SKImageFilter CreatePaint(SKPaint paint, CropRect? cropRect = null) 
         => new PaintImageFilter(paint, cropRect);
 
+    public static SKImageFilter CreateShader(SKShader shader, bool dither, CropRect? cropRect = null)
+        => new ShaderImageFilter(shader, dither, cropRect);
+
     public static SKImageFilter CreatePicture(SKPicture picture, SKRect cropRect) 
         => new PictureImageFilter(picture, cropRect);
 
@@ -98,6 +101,8 @@ public record MergeImageFilter(SKImageFilter[]? Filters, SKImageFilter.CropRect?
 public record OffsetImageFilter(float Dx, float Dy, SKImageFilter? Input, SKImageFilter.CropRect? Clip) : SKImageFilter;
 
 public record PaintImageFilter(SKPaint? Paint, SKImageFilter.CropRect? Clip) : SKImageFilter;
+
+public record ShaderImageFilter(SKShader? Shader, bool Dither, SKImageFilter.CropRect? Clip) : SKImageFilter;
 
 public record PictureImageFilter(SKPicture? Picture, SKRect? Clip) : SKImageFilter;
 
