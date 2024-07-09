@@ -27,14 +27,14 @@ jobs:
   - template: Test-Bash.yml@templates
     parameters:
       name: 'Test_Linux'
-      vmImage: 'ubuntu-20.04'
+      vmImage: 'ubuntu-22.04'
       BuildConfiguration: ${{ variables.BuildConfiguration }}
       Workloads: ${{ variables.Workloads }}
 
   - template: Test-Bash.yml@templates
     parameters:
       name: 'Test_macOS'
-      vmImage: 'macOS-11'
+      vmImage: 'macOS-14'
       BuildConfiguration: ${{ variables.BuildConfiguration }}
       Workloads: ${{ variables.Workloads }}
 
@@ -65,7 +65,7 @@ jobs:
   - template: Publish-Bash.yml@templates
     parameters:
       name: 'Publish_Linux'
-      vmImage: 'ubuntu-20.04'
+      vmImage: 'ubuntu-22.04'
       BuildConfiguration: ${{ variables.BuildConfiguration }}
       Workloads: ${{ variables.Workloads }}
       PublishFramework: ${{ variables.PublishFramework }}
@@ -75,7 +75,7 @@ jobs:
   - template: Publish-Bash.yml@templates
     parameters:
       name: 'Publish_macOS_x64'
-      vmImage: 'macOS-11'
+      vmImage: 'macOS-14'
       BuildConfiguration: ${{ variables.BuildConfiguration }}
       Workloads: ${{ variables.Workloads }}
       PublishFramework: ${{ variables.PublishFramework }}
@@ -85,7 +85,7 @@ jobs:
   - template: Publish-Bash.yml@templates
     parameters:
         name: 'Publish_macOS_arm64'
-        vmImage: 'macOS-11'
+        vmImage: 'macOS-14'
         BuildConfiguration: ${{ variables.BuildConfiguration }}
         Workloads: ${{ variables.Workloads }}
         PublishFramework: ${{ variables.PublishFramework }}
