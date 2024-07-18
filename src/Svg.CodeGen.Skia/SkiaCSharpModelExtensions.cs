@@ -1778,9 +1778,9 @@ public static class SkiaCSharpModelExtensions
                     sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.Restore();");
                     break;
                 }
-                case SetMatrixCanvasCommand setMatrixCanvasCommand:
+                case PushMatrixCanvasCommand pushMatrixCanvasCommand:
                 {
-                    sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SetMatrix({setMatrixCanvasCommand.Matrix.ToSKMatrix()});");
+                    sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SetMatrix({pushMatrixCanvasCommand.TotalMatrix.ToSKMatrix()});");
                     break;
                 }
                 case SaveLayerCanvasCommand saveLayerCanvasCommand:

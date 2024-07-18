@@ -2,11 +2,11 @@
 
 namespace Avalonia.Svg.Commands;
 
-public sealed class SetTransformDrawCommand : DrawCommand
+public sealed class PushTransformDrawCommand : DrawCommand
 {
     public A.Matrix Matrix { get; }
 
-    public SetTransformDrawCommand(A.Matrix matrix)
+    public PushTransformDrawCommand(A.Matrix matrix)
     {
         Matrix = matrix;
     }

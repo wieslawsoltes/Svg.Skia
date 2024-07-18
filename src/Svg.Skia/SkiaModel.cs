@@ -1217,9 +1217,9 @@ public class SkiaModel
                 skCanvas.Restore();
                 break;
             }
-            case SetMatrixCanvasCommand setMatrixCanvasCommand:
+            case PushMatrixCanvasCommand pushMatrixCanvasCommand:
             {
-                var matrix = ToSKMatrix(setMatrixCanvasCommand.Matrix);
+                var matrix = ToSKMatrix(pushMatrixCanvasCommand.TotalMatrix);
                 skCanvas.SetMatrix(matrix);
                 break;
             }

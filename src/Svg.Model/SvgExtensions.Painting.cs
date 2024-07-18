@@ -588,7 +588,7 @@ public static partial class SvgExtensions
         var skPictureRecorder = new SKPictureRecorder();
         var skCanvas = skPictureRecorder.BeginRecording(skBounds);
 
-        skCanvas.SetMatrix(skMatrix);
+        skCanvas.PushMatrix(skMatrix);
 
         var skPaintOpacity = ignoreAttributes.HasFlag(DrawAttributes.Opacity) ? null : GetOpacityPaint(opacity);
         if (skPaintOpacity is { })

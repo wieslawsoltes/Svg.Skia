@@ -137,9 +137,7 @@ public sealed class TextDrawable : DrawableBase
 
         if (!skMatrix.IsIdentity && enableTransform)
         {
-            var skMatrixTotal = skCanvas.TotalMatrix;
-            skMatrixTotal = skMatrixTotal.PreConcat(skMatrix);
-            skCanvas.SetMatrix(skMatrixTotal);
+            skCanvas.PushMatrix(skMatrix);
         }
 
         if (enableClip)
