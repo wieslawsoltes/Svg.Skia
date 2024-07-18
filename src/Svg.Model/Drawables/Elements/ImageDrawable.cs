@@ -162,9 +162,7 @@ public sealed class ImageDrawable : DrawableBase
         {
             canvas.Save();
 
-            var skMatrixTotal = canvas.TotalMatrix;
-            skMatrixTotal = skMatrixTotal.PreConcat(FragmentTransform);
-            canvas.SetMatrix(skMatrixTotal);
+            canvas.SetMatrix(FragmentTransform);
 
             FragmentDrawable.Draw(canvas, ignoreAttributes, until, true);
 

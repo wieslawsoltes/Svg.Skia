@@ -152,8 +152,8 @@ public sealed class AvaloniaPicture : IDisposable
             }
             case SetMatrixCanvasCommand setMatrixCanvasCommand:
             {
-                var matrix = setMatrixCanvasCommand.Matrix.ToMatrix();
-                commands.Add(new SetTransformDrawCommand(matrix));
+                var matrix = setMatrixCanvasCommand.DeltaMatrix.ToMatrix();
+                commands.Add(new PushTransformDrawCommand(matrix));
                 break;
             }
             case SaveLayerCanvasCommand saveLayerCanvasCommand:
@@ -267,9 +267,9 @@ public sealed class AvaloniaPicture : IDisposable
                 }
                 break;
             }
-            case SetTransformDrawCommand setTransformDrawCommand:
+            case PushTransformDrawCommand pushTransformDrawCommand:
             {
-                var transformPreTransform = context.PushTransform(setTransformDrawCommand.Matrix);
+                var transformPreTransform = context.PushTransform(pushTransformDrawCommand.Matrix);
                 var currentPushedStates = pushedStates.Peek();
                 currentPushedStates.Push(transformPreTransform);
                 break;

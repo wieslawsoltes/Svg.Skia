@@ -1219,7 +1219,7 @@ public class SkiaModel
             }
             case SetMatrixCanvasCommand setMatrixCanvasCommand:
             {
-                var matrix = ToSKMatrix(setMatrixCanvasCommand.Matrix);
+                var matrix = ToSKMatrix(setMatrixCanvasCommand.TotalMatrix);
                 skCanvas.SetMatrix(matrix);
                 break;
             }

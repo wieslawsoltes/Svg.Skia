@@ -25,7 +25,7 @@ public record SaveCanvasCommand(int Count) : CanvasCommand;
 
 public record SaveLayerCanvasCommand(int Count, SKPaint? Paint = null) : CanvasCommand;
 
-public record SetMatrixCanvasCommand(SKMatrix Matrix) : CanvasCommand;
+public record SetMatrixCanvasCommand(SKMatrix DeltaMatrix, SKMatrix TotalMatrix) : CanvasCommand;
 
 public class SKCanvas
 {
@@ -77,10 +77,10 @@ public class SKCanvas
         Commands?.Add(new DrawTextOnPathCanvasCommand(text, path, hOffset, vOffset, paint));
     }
 
-    public void SetMatrix(SKMatrix matrix)
+    public void SetMatrix(SKMatrix deltaMatrix)
     {
-        TotalMatrix = matrix;
-        Commands?.Add(new SetMatrixCanvasCommand(matrix));
+        TotalMatrix = TotalMatrix.PreConcat(deltaMatrix);
+        Commands?.Add(new SetMatrixCanvasCommand(deltaMatrix, TotalMatrix));
     }
 
     public int Save()

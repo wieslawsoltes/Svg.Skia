@@ -114,9 +114,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
 
         if (!Transform.IsIdentity && enableTransform)
         {
-            var skMatrixTotal = canvas.TotalMatrix;
-            skMatrixTotal = skMatrixTotal.PreConcat(Transform);
-            canvas.SetMatrix(skMatrixTotal);
+            canvas.SetMatrix(Transform);
         }
 
         if (Clip is { })
