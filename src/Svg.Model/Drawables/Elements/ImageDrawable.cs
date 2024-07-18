@@ -162,7 +162,7 @@ public sealed class ImageDrawable : DrawableBase
         {
             canvas.Save();
 
-            canvas.PushMatrix(FragmentTransform);
+            canvas.SetMatrix(FragmentTransform);
 
             FragmentDrawable.Draw(canvas, ignoreAttributes, until, true);
 

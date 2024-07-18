@@ -137,7 +137,7 @@ public sealed class TextDrawable : DrawableBase
 
         if (!skMatrix.IsIdentity && enableTransform)
         {
-            skCanvas.PushMatrix(skMatrix);
+            skCanvas.SetMatrix(skMatrix);
         }
 
         if (enableClip)

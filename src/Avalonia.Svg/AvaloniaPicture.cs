@@ -150,9 +150,9 @@ public sealed class AvaloniaPicture : IDisposable
                 commands.Add(new RestoreDrawCommand());
                 break;
             }
-            case PushMatrixCanvasCommand pushMatrixCanvasCommand:
+            case SetMatrixCanvasCommand setMatrixCanvasCommand:
             {
-                var matrix = pushMatrixCanvasCommand.DeltaMatrix.ToMatrix();
+                var matrix = setMatrixCanvasCommand.DeltaMatrix.ToMatrix();
                 commands.Add(new PushTransformDrawCommand(matrix));
                 break;
             }

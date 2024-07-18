@@ -114,7 +114,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
 
         if (!Transform.IsIdentity && enableTransform)
         {
-            canvas.PushMatrix(Transform);
+            canvas.SetMatrix(Transform);
         }
 
         if (Clip is { })
