@@ -140,7 +140,7 @@ public class SKPathControl : Control
         }
 
         using (context.PushClip(destRect))
-        using (context.PushTransform(translateMatrix * scaleMatrix))
+        using (context.PushTransform(scaleMatrix * translateMatrix))
         {
             context.Custom(
                 new SKPathDrawOperation(
