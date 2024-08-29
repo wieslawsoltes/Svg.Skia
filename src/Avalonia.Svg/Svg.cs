@@ -213,7 +213,7 @@ public class Svg : Control
             -sourceRect.Y + destRect.Y - bounds.Left);
 
         using (context.PushClip(destRect))
-        using (context.PushTransform(translateMatrix * scaleMatrix))
+        using (context.PushTransform(scaleMatrix * translateMatrix))
         {
             if (_avaloniaPicture is { })
             {

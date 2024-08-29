@@ -88,7 +88,7 @@ public class SvgImage : AvaloniaObject, IImage
             -sourceRect.X + destRect.X - bounds.Top,
             -sourceRect.Y + destRect.Y - bounds.Left);
         using (context.PushClip(destRect))
-        using (context.PushTransform(translateMatrix * scaleMatrix))
+        using (context.PushTransform(scaleMatrix * translateMatrix))
         {
             context.Custom(
                 new SvgSourceCustomDrawOperation(

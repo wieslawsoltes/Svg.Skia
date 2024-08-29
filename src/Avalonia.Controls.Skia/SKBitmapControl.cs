@@ -123,7 +123,7 @@ public class SKBitmapControl : Control
         }
 
         using (context.PushClip(destRect))
-        using (context.PushTransform(translateMatrix * scaleMatrix))
+        using (context.PushTransform(scaleMatrix * translateMatrix))
         {
             context.Custom(new SKBitmapDrawOperation(new Rect(0, 0, bounds.Width, bounds.Height), bitmap));
         }
