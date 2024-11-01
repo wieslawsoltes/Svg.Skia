@@ -178,7 +178,7 @@ public static partial class SvgExtensions
             h = svgFragment.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, SKRect.Empty);
         }
 
-        return new SKSize((float)Math.Round(w), (float)Math.Round(h));
+        return new SKSize((float)Math.Round(w, 3), (float)Math.Round(h, 3));
     }
 
     internal static SKMatrix ToMatrix(this SvgMatrix svgMatrix)
