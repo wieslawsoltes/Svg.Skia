@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using Avalonia.Controls;
 using Avalonia.Logging;
 using Avalonia.Media;
@@ -246,38 +248,61 @@ public class Svg : Control
 
         if (change.Property == PathProperty)
         {
-            var path = change.GetNewValue<string?>();
             var css = GetCss(this);
             var currentCss = GetCurrentCss(this);
             var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+            var path = change.GetNewValue<string?>();
             LoadFromPath(path, parameters);
             InvalidateVisual();
         }
 
         if (change.Property == CssProperty)
         {
-            var path = Path;
             var css = change.GetNewValue<string?>();
             var currentCss = GetCurrentCss(this);
             var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
-            LoadFromPath(path, parameters);
+            var path = Path;
+            var source = Source;
+            
+            if (path is { })
+            {
+                LoadFromPath(path, parameters);
+            }
+            else if (source is { })
+            {
+                LoadFromSource(source, parameters);
+            }
+
             InvalidateVisual();
         }
 
         if (change.Property == CurrentCssProperty)
         {
-            var path = Path;
             var css = GetCss(this);
             var currentCss = change.GetNewValue<string?>();
             var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
-            LoadFromPath(path, parameters);
+            var path = Path;
+            var source = Source;
+            
+            if (path is { })
+            {
+                LoadFromPath(path, parameters);
+            }
+            else if (source is { })
+            {
+                LoadFromSource(source, parameters);
+            }
+
             InvalidateVisual();
         }
 
         if (change.Property == SourceProperty)
         {
             var source = change.GetNewValue<string?>();
-            LoadFromSource(source);
+            var css = GetCss(this);
+            var currentCss = GetCurrentCss(this);
+            var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+            LoadFromSource(source, parameters);
             InvalidateVisual();
         }
 
@@ -333,7 +358,7 @@ public class Svg : Control
         }
     }
 
-    private void LoadFromSource(string? source)
+    private void LoadFromSource(string? source, SvgParameters? parameters = null)
     {
         if (source is null)
         {
@@ -345,7 +370,9 @@ public class Svg : Control
 
         try
         {
-            _svg = SvgSource.LoadFromSvg(source);
+            var bytes = Encoding.UTF8.GetBytes(source);
+            using var ms = new MemoryStream(bytes);
+            _svg = SvgSource.LoadFromStream(ms, parameters);
         }
         catch (Exception e)
         {

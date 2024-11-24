@@ -116,7 +116,7 @@ public class SvgSource
     /// </summary>
     /// <param name="source">The svg source.</param>
     /// <returns>The svg picture.</returns>
-    public static SKPicture? LoadPictureFromSvg(string source)
+    public static SKPicture? LoadPictureFromSvg(string source, SvgParameters? parameters = null)
     {
         var document = SM.SvgExtensions.FromSvg(source);
         return document is { } ? SM.SvgExtensions.ToModel(document, s_assetLoader, out _, out _) : default;

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Metadata;
@@ -239,28 +241,51 @@ public class Svg : Control
 
         if (change.Property == CssProperty)
         {
-            var path = Path;
             var css = change.GetNewValue<string?>();
             var currentCss = GetCurrentCss(this);
             var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
-            LoadFromPath(path, parameters);
+            var path = Path;
+            var source = Source;
+            
+            if (path is { })
+            {
+                LoadFromPath(path, parameters);
+            }
+            else if (source is { })
+            {
+                LoadFromSource(source, parameters);
+            }
+            
             InvalidateVisual();
         }
 
         if (change.Property == CurrentCssProperty)
         {
-            var path = Path;
             var css = GetCss(this);
             var currentCss = change.GetNewValue<string?>();
             var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
-            LoadFromPath(path, parameters);
+            var path = Path;
+            var source = Source;
+            
+            if (path is { })
+            {
+                LoadFromPath(path, parameters);
+            }
+            else if (source is { })
+            {
+                LoadFromSource(source, parameters);
+            }
+            
             InvalidateVisual();
         }
         
         if (change.Property == SourceProperty)
         {
+            var css = GetCss(this);
+            var currentCss = GetCurrentCss(this);
+            var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
             var source = change.GetNewValue<string?>();
-            LoadFromSource(source);
+            LoadFromSource(source, parameters);
             InvalidateVisual();
         }
     }
@@ -280,14 +305,16 @@ public class Svg : Control
         }
     }
 
-    private void LoadFromSource(string? source)
+    private void LoadFromSource(string? source, SvgParameters? parameters = null)
     {
         _picture = default;
         _avaloniaPicture?.Dispose();
 
         if (source is not null)
         {
-            _picture = SvgSource.LoadPictureFromSvg(source);
+            var bytes = Encoding.UTF8.GetBytes(source);
+            using var ms = new MemoryStream(bytes);
+            _picture = SvgSource.LoadPicture(ms, parameters);
             if (_picture is { })
             {
                 _avaloniaPicture = AvaloniaPicture.Record(_picture);

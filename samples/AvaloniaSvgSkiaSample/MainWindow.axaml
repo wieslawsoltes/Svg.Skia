@@ -140,9 +140,16 @@
           <ComboBoxItem>UniformToFill</ComboBoxItem>
         </ComboBox>
         <Grid ColumnDefinitions="50*,8,50*">
-          <Svg Grid.Column="0" Name="svgString" Source="{Binding #stringTextBox.Text}" />
+          <Svg Grid.Column="0" Name="svgString" 
+               Source="{Binding #stringTextBox.Text}"
+               Css="{Binding #cssTextBox.Text}" />
           <GridSplitter Grid.Column="1" />
-          <TextBox Grid.Column="2" Name="stringTextBox" AcceptsReturn="True" AcceptsTab="True" />
+          <Grid Grid.Column="2" RowDefinitions="Auto,50*,Auto,30*">
+            <TextBlock Grid.Row="0" Text="Svg" />
+            <TextBox Grid.Row="1" Name="stringTextBox" AcceptsReturn="True" AcceptsTab="True" />
+            <TextBlock Grid.Row="2" Text="Svg" />
+            <TextBox Grid.Row="3" Name="cssTextBox" AcceptsReturn="True" AcceptsTab="True" />
+          </Grid>
         </Grid>
       </DockPanel>
     </TabItem>
