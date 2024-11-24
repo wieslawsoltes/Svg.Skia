@@ -1421,9 +1421,13 @@ public static class SkiaCSharpModelExtensions
             sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.TextEncoding = {paint.TextEncoding.ToSKTextEncoding()};");
         }
 
-        if (paint.Color is { } && paint.Color.Value.Alpha != 255 && paint.Color.Value.Red != 0 && paint.Color.Value.Green != 0 && paint.Color.Value.Blue != 0)
+        if (paint.Color is { })
         {
-            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.Color = {(paint.Color is null ? "SKColor.Empty" : ToSKColor(paint.Color.Value))};");
+            // Skip default color
+            if (paint.Color.Value is not { Alpha: 255, Red: 0, Green: 0, Blue: 0 })
+            {
+                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}.Color = {(paint.Color is null ? "SKColor.Empty" : ToSKColor(paint.Color.Value))};");
+            }
         }
 
         if (paint.Shader is { })
