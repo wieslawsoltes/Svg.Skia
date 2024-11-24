@@ -622,82 +622,45 @@ public static class AvaloniaModelExtensions
         }
 
         var streamGeometry = new AM.StreamGeometry();
-        if (streamGeometry is null)
-        {
-            return null;
-        }
 
         using var streamGeometryContext = streamGeometry.Open();
 
         streamGeometryContext.SetFillRule(path.FillType.ToFillRule());
 
-        bool endFigure = false;
-        bool haveFigure = false;
+        var haveFigure = false;
 
         for (int i = 0; i < path.Commands.Count; i++)
         {
             var pathCommand = path.Commands[i];
-            var isLast = i == path.Commands.Count - 1;
 
             switch (pathCommand)
             {
                 case MoveToPathCommand moveToPathCommand:
                 {
-                    if (endFigure == true && haveFigure == false)
+                    if (haveFigure)
                     {
-                        return null;
+                        streamGeometryContext.EndFigure(isClosed: false);
                     }
-                    if (haveFigure == true)
-                    {
-                        streamGeometryContext.EndFigure(false);
-                    }
-                    if (isLast == true)
-                    {
-                        return streamGeometry;
-                    }
-                    else
-                    {
-                        if (path.Commands[i + 1] is MoveToPathCommand)
-                        {
-                            return streamGeometry;
-                        }
 
-                        if (path.Commands[i + 1] is ClosePathCommand)
-                        {
-                            return streamGeometry;
-                        }
-                    }
-                    endFigure = true;
-                    haveFigure = false;
                     var x = moveToPathCommand.X;
                     var y = moveToPathCommand.Y;
                     var point = new A.Point(x, y);
-                    // TODO: isFilled
                     streamGeometryContext.BeginFigure(point, isFilled);
-                }
+                    haveFigure = true;
                     break;
+                }
 
                 case LineToPathCommand lineToPathCommand:
                 {
-                    if (endFigure == false)
-                    {
-                        return null;
-                    }
-                    haveFigure = true;
                     var x = lineToPathCommand.X;
                     var y = lineToPathCommand.Y;
                     var point = new A.Point(x, y);
                     streamGeometryContext.LineTo(point);
-                }
                     break;
+                }
 
                 case ArcToPathCommand arcToPathCommand:
                 {
-                    if (endFigure == false)
-                    {
-                        return null;
-                    }
-                    haveFigure = true;
                     var x = arcToPathCommand.X;
                     var y = arcToPathCommand.Y;
                     var point = new A.Point(x, y);
@@ -708,16 +671,11 @@ public static class AvaloniaModelExtensions
                     var isLargeArc = arcToPathCommand.LargeArc == SKPathArcSize.Large;
                     var sweep = arcToPathCommand.Sweep.ToSweepDirection();
                     streamGeometryContext.ArcTo(point, size, rotationAngle, isLargeArc, sweep);
-                }
                     break;
+                }
 
                 case QuadToPathCommand quadToPathCommand:
                 {
-                    if (endFigure == false)
-                    {
-                        return null;
-                    }
-                    haveFigure = true;
                     var x0 = quadToPathCommand.X0;
                     var y0 = quadToPathCommand.Y0;
                     var x1 = quadToPathCommand.X1;
@@ -725,16 +683,11 @@ public static class AvaloniaModelExtensions
                     var control = new A.Point(x0, y0);
                     var endPoint = new A.Point(x1, y1);
                     streamGeometryContext.QuadraticBezierTo(control, endPoint);
-                }
                     break;
+                }
 
                 case CubicToPathCommand cubicToPathCommand:
                 {
-                    if (endFigure == false)
-                    {
-                        return null;
-                    }
-                    haveFigure = true;
                     var x0 = cubicToPathCommand.X0;
                     var y0 = cubicToPathCommand.Y0;
                     var x1 = cubicToPathCommand.X1;
@@ -745,36 +698,20 @@ public static class AvaloniaModelExtensions
                     var point2 = new A.Point(x1, y1);
                     var point3 = new A.Point(x2, y2);
                     streamGeometryContext.CubicBezierTo(point1, point2, point3);
-                }
                     break;
+                }
 
                 case ClosePathCommand _:
                 {
-                    if (endFigure == false)
-                    {
-                        return null;
-                    }
-                    if (haveFigure == false)
-                    {
-                        return null;
-                    }
-                    endFigure = false;
                     haveFigure = false;
-                    streamGeometryContext.EndFigure(true);
+                    streamGeometryContext.EndFigure(isClosed: true);
+                    break;
                 }
-                    break;
-
-                default:
-                    break;
             }
         }
 
-        if (endFigure)
+        if (haveFigure)
         {
-            if (haveFigure == false)
-            {
-                return null;
-            }
             streamGeometryContext.EndFigure(false);
         }
 
