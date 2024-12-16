@@ -12,42 +12,28 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
-using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
-using Svg.CodeGen.Skia;
 using Svg.Skia;
 using TestApp.Models;
 using TestApp.Services;
 
 namespace TestApp.ViewModels;
 
-public class MainWindowViewModel : ViewModelBase
+public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly ObservableCollection<FileItemViewModel>? _items;
-    private FileItemViewModel? _selectedItem;
-    private string? _itemQuery;
-    private ReadOnlyObservableCollection<FileItemViewModel>? _filteredItems;
 
-    public FileItemViewModel? SelectedItem
-    {
-        get => _selectedItem;
-        set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
-    }
-
-    public string? ItemQuery
-    {
-        get => _itemQuery;
-        set => this.RaiseAndSetIfChanged(ref _itemQuery, value);
-    }
-
-    public ReadOnlyObservableCollection<FileItemViewModel>? FilteredItems
-    {
-        get => _filteredItems;
-        set => this.RaiseAndSetIfChanged(ref _filteredItems, value);
-    }
-
+    [Reactive]
+    public partial FileItemViewModel? SelectedItem { get; set; }
+    
+    [Reactive]
+    public partial string? ItemQuery { get; set; }
+    
+    [Reactive]
+    public partial ReadOnlyObservableCollection<FileItemViewModel>? FilteredItems { get; set; }
+    
     public ICommand ResetQueryCommand { get; }
 
     public ICommand LoadConfigurationCommand { get; }
@@ -86,7 +72,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         _items = new ObservableCollection<FileItemViewModel>();
 
-        var queryFilter = this.WhenValueChanged(t => t.ItemQuery)
+        var queryFilter = this.WhenAnyItemQuery()
             .Throttle(TimeSpan.FromMilliseconds(100))
             .Select(ItemQueryFilter)
             .DistinctUntilChanged();
@@ -99,7 +85,7 @@ public class MainWindowViewModel : ViewModelBase
             .Bind(out _filteredItems)
             .AsObservableList();
 
-        var resetQueryCanExecute = this.WhenAnyValue(x => x.ItemQuery)
+        var resetQueryCanExecute = this.WhenAnyItemQuery()
             .Select(x => !string.IsNullOrWhiteSpace(x))
             .ObserveOn(RxApp.MainThreadScheduler);
 

@@ -6,23 +6,14 @@ using ReactiveUI;
 
 namespace TestApp.ViewModels;
 
-public class FileItemViewModel : ViewModelBase
+public partial class FileItemViewModel : ViewModelBase
 {
-    private string _name;
-    private string _path;
-
-    public string Name
-    {
-        get => _name;
-        set => this.RaiseAndSetIfChanged(ref _name, value);
-    }
-
-    public string Path
-    {
-        get => _path;
-        set => this.RaiseAndSetIfChanged(ref _path, value);
-    }
-
+    [Reactive]
+    public partial string Name { get; set; }
+    
+    [Reactive]
+    public partial string Path { get; set; }
+    
     public ICommand RemoveCommand { get; }
 
     public ICommand OpenInExplorerCommand { get; }

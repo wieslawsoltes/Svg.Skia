@@ -1,11 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <IsPackable>False</IsPackable>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>TestApp</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <LangVersion>13</LangVersion>
+    <UseBackingFields>true</UseBackingFields>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +35,13 @@
     <ProjectReference Include="..\..\src\Avalonia.Svg.Skia\Avalonia.Svg.Skia.csproj" />
     <ProjectReference Include="..\..\src\Svg.CodeGen.Skia\Svg.CodeGen.Skia.csproj" />
     <ProjectReference Include="..\..\src\Svg.Skia\Svg.Skia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ReactiveGenerator" Version="0.9.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>
