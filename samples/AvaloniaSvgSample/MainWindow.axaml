@@ -24,7 +24,7 @@
           <ComboBoxItem>Uniform</ComboBoxItem>
           <ComboBoxItem>UniformToFill</ComboBoxItem>
         </ComboBox>
-        <Svg Name="svgSvg" Path="/Assets/__tiger.svg" />
+        <Svg Name="svgSvg" Path="/Assets/__text.svg" />
       </DockPanel>
     </TabItem>
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Svg.DataTypes;
 using Svg.Model.Drawables;
 using ShimSkiaSharp;
+using Avalonia.Controls.Skia;
 
 namespace Svg.Model;
 
@@ -489,12 +490,12 @@ public static partial class SvgExtensions
         if (radius == 0.0)
         {
             return SKShader.CreateColor(
-                skColors.Length > 0 ? skColors[skColors.Length - 1] : new SKColor(0x00, 0x00, 0x00, 0xFF), 
+                skColors.Length > 0 ? skColors[skColors.Length - 1] : new SKColor(0x00, 0x00, 0x00, 0xFF),
                 skColorSpace);
         }
 
         var isRadialGradient = skCenter.X == skFocal.X && skCenter.Y == skFocal.Y;
-        
+
         if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
         {
             var skBoundingBoxTransform = new SKMatrix
@@ -597,7 +598,7 @@ public static partial class SvgExtensions
         }
 
         var drawables = new List<DrawableBase>();
-        
+
         foreach (var svgElement in svgElementCollection)
         {
             var drawable = DrawableFactory.Create(svgElement, skBounds, null, assetLoader, references, ignoreAttributes);
@@ -833,7 +834,7 @@ public static partial class SvgExtensions
                         if (fallbackServer is SvgColourServer svgColourServerFallback)
                         {
                             var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
-                            
+
                             if (skColorSpace == SKColorSpace.Srgb)
                             {
                                 skPaint.Color = skColor;
@@ -924,7 +925,7 @@ public static partial class SvgExtensions
                                 skPaint.Shader = null;
                                 return true;
                             }
- 
+
                             var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
                             if (skColorShader is { })
                             {
@@ -1251,6 +1252,46 @@ public static partial class SvgExtensions
         skPaint.Typeface = SKTypeface.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
     }
 
+    private static void DrawLine(SvgTextBase svgText, float x, float y, SKPaint skPaint, SKCanvas sKCanvas)
+    {
+        var length = TextOperations.MeasureTextLength(svgText.FontFamily, skPaint.TextSize, svgText.Text);
+        var underlinePaint = new SKPaint
+        {
+            Style = SKPaintStyle.Stroke,
+            Color = skPaint.Color,
+            StrokeWidth = 1,
+            IsAntialias = true,
+        };
+
+        SKPath path = new SKPath();
+        path.MoveTo(x, y);
+        path.LineTo(length, y);
+        path.Close();
+
+        sKCanvas.DrawPath(path, underlinePaint);
+    }
+
+    internal static void SetTextDecoration(SvgTextBase svgText, float x, float y, SKPaint skPaint, SKCanvas sKCanvas)
+    {
+        var yOffset = 2f;
+        if (svgText.TextDecoration.HasFlag(SvgTextDecoration.Underline))
+        {
+            DrawLine(svgText, x, y + yOffset, skPaint, sKCanvas);
+        }
+
+        if (svgText.TextDecoration.HasFlag(SvgTextDecoration.Overline))
+        {
+            var topY = y - TextOperations.MeasureTextHeight(svgText.FontFamily, skPaint.TextSize, svgText.Text);
+            DrawLine(svgText, x, topY, skPaint, sKCanvas);
+        }
+
+        if (svgText.TextDecoration.HasFlag(SvgTextDecoration.LineThrough))
+        {
+            var midY = y + yOffset - TextOperations.MeasureTextHeight(svgText.FontFamily, skPaint.TextSize, svgText.Text) / 2;
+            DrawLine(svgText, x, midY, skPaint, sKCanvas);
+        }
+    }
+
     internal static void SetPaintText(SvgTextBase svgText, SKRect skBounds, SKPaint skPaint)
     {
         skPaint.LcdRenderText = true;
@@ -1258,21 +1299,6 @@ public static partial class SvgExtensions
         skPaint.TextEncoding = SKTextEncoding.Utf16;
 
         skPaint.TextAlign = ToTextAlign(svgText.TextAnchor);
-
-        if (svgText.TextDecoration.HasFlag(SvgTextDecoration.Underline))
-        {
-            // TODO: Implement SvgTextDecoration.Underline
-        }
-
-        if (svgText.TextDecoration.HasFlag(SvgTextDecoration.Overline))
-        {
-            // TODO: Implement SvgTextDecoration.Overline
-        }
-
-        if (svgText.TextDecoration.HasFlag(SvgTextDecoration.LineThrough))
-        {
-            // TODO: Implement SvgTextDecoration.LineThrough
-        }
 
         float fontSize;
         var fontSizeUnit = svgText.FontSize;
