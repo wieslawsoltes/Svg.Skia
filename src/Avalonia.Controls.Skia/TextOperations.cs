@@ -31,9 +31,3 @@ public class TextOperations
         return textBounds.Height;
     }
 }
-
-
-
-
-
-
