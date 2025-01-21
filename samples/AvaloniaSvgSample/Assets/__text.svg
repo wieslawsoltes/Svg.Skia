@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+
+<svg height="60" width="200" xmlns="http://www.w3.org/2000/svg">
+    <text x="5" y="15" fill="red" text-decoration="underline">Text Underline</text>
+    <text x="5" y="35" fill="red" text-decoration="overline">Text Overline</text>
+    <text x="5" y="55" fill="red" text-decoration="linethrough">Text Line Through</text>
+</svg>
+
