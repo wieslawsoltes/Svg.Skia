@@ -1,0 +1,48 @@
+name: $(date:yyyyMMdd)$(rev:-rr)
+
+variables:
+  BuildConfiguration: 'Release'
+  Workloads: 'wasm-tools wasm-experimental'
+
+jobs:
+  - job: 'Pack NuGet'
+    pool:
+      vmImage: 'windows-2022'
+    variables:
+      BuildConfiguration: ${{ variables.BuildConfiguration }}
+      Workloads: ${{ variables.Workloads }}
+    steps:
+      - task: UseDotNet@2
+        displayName: Install .NET Core SDK
+        inputs:
+          useGlobalJson: true
+
+      - task: DotNetCoreCLI@2
+        condition: ne(variables.Workloads, '')
+        displayName: Install workloads
+        inputs:
+          command: 'custom'
+          custom: 'workload'
+          arguments: 'install $(Workloads)'
+
+      - task: PowerShell@2
+        displayName: Nuke Target Pack
+        inputs:
+          targetType: filePath
+          filePath: ./build.ps1
+          arguments: --target Pack --configuration $(BuildConfiguration)
+
+      - task: PublishBuildArtifacts@1
+        displayName: Publish Artifact NuGet
+        inputs:
+          PathtoPublish: ./artifacts/NuGet
+          ArtifactName: NuGet
+
+      - task: DotNetCoreCLI@2
+        displayName: Push packages
+        condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/release'))
+        inputs:
+          command: 'push'
+          packagesToPush: '$(Build.SourcesDirectory)/artifacts/nuget/*.nupkg'
+          nuGetFeedType: 'internal'
+          publishVstsFeed: 'a0b0aaaa-c5cc-43c6-af3e-60bcbbc1f245'
