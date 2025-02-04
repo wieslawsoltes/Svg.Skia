@@ -17,18 +17,21 @@ jobs:
         inputs:
           useGlobalJson: true
 
+      - task: PowerShell@2
+        displayName: "List Folders Only"
+        inputs:
+          targetType: inline
+          script: |
+            Get-ChildItem -Path "$(Build.SourcesDirectory)" -Recurse -Directory | Select-Object FullName
+
       - task: DotNetCoreCLI@2
-        condition: ne(variables.Workloads, '')
+        condition: false
+        # condition: ne(variables.Workloads, '')
         displayName: Install workloads
         inputs:
           command: 'custom'
           custom: 'workload'
           arguments: 'install $(Workloads)'
-
-      - script: |
-          echo "Listing folders only..."
-          tree /F /A | findstr /C:"\"
-        displayName: "Log Folder Structure Only (Windows)"
 
       - task: PowerShell@2
         condition: false
