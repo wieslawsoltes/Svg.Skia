@@ -28,6 +28,15 @@ jobs:
           script: |
             Get-ChildItem -Path "$(Build.SourcesDirectory)" -Recurse -Directory | Select-Object FullName
 
+      - script: dotnet tool install --global dotnet-outdated-tool
+        displayName: "Install dotnet-outdated"
+
+      - script: dotnet outdated --upgrade
+        displayName: "Upgrade All Packages"
+
+      - script: dotnet restore
+        displayName: "Restore Packages After Upgrade"
+
       - task: DotNetCoreCLI@2
         condition: ne(variables.Workloads, '')
         displayName: Install workloads
