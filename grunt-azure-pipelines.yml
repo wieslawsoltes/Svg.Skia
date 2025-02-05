@@ -13,9 +13,10 @@ jobs:
       Workloads: ${{ variables.Workloads }}
     steps:
       - task: UseDotNet@2
-        displayName: Install .NET Core SDK
+        displayName: "Install .NET SDK 9.0"
         inputs:
-          useGlobalJson: true
+          packageType: 'sdk'
+          version: '9.0.x'
 
       - script: git submodule update --init --recursive
         displayName: 'Update Git Submodules'
