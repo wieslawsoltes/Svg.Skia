@@ -38,7 +38,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.0-4.final" PrivateAssets="all" />
     <PackageReference Include="ExCSS" Version="4.2.3" GeneratePathProperty="true" PrivateAssets="all" />
-    <PackageReference Include="SkiaSharp" Version="2.88.8" GeneratePathProperty="true" />
+    <PackageReference Include="SkiaSharp" Version="2.88.9" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,6 +46,7 @@
     <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Svg.Model\Svg.Model.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Avalonia.Controls.Skia\Avalonia.Controls.Skia.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,6 +57,7 @@
     <None Include="..\Svg.Custom\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\Svg.Model\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\Svg.Skia\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="..\Avalonia.Controls.Skia\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -70,6 +72,7 @@
       <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\Svg.Custom\bin\$(Configuration)\netstandard2.0\Svg.Custom.dll" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\Svg.Model\bin\$(Configuration)\netstandard2.0\Svg.Model.dll" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\Svg.Skia\bin\$(Configuration)\netstandard2.0\Svg.Skia.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\Avalonia.Controls.Skia\bin\$(Configuration)\netstandard2.0\Avalonia.Controls.Skia.dll" IncludeRuntimeDependency="false" />
     </ItemGroup>
   </Target>
 
