@@ -5,7 +5,7 @@ variables:
   Workloads: 'wasm-tools wasm-experimental'
 
 jobs:
-  - job: 'Pack NuGet'
+  - job: 'PackNuGet'
     pool:
       vmImage: 'windows-2022'
     variables:
