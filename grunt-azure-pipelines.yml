@@ -13,9 +13,30 @@ jobs:
       Workloads: ${{ variables.Workloads }}
     steps:
       - task: UseDotNet@2
-        displayName: Install .NET Core SDK
+        displayName: "Install .NET SDK 9.0"
         inputs:
-          useGlobalJson: true
+          packageType: 'sdk'
+          version: '9.0.x'
+
+      - script: git submodule update --init --recursive
+        displayName: 'Update Git Submodules'
+        
+      - task: PowerShell@2
+        condition: false
+        displayName: "List Folders Only"
+        inputs:
+          targetType: inline
+          script: |
+            Get-ChildItem -Path "$(Build.SourcesDirectory)" -Recurse -Directory | Select-Object FullName
+
+      - script: dotnet tool install --global dotnet-outdated-tool
+        displayName: "Install dotnet-outdated"
+
+      - script: dotnet outdated --upgrade
+        displayName: "Upgrade All Packages"
+
+      - script: dotnet restore
+        displayName: "Restore Packages After Upgrade"
 
       - task: DotNetCoreCLI@2
         condition: ne(variables.Workloads, '')
@@ -31,6 +52,7 @@ jobs:
           targetType: filePath
           filePath: ./build.ps1
           arguments: --target Pack --configuration $(BuildConfiguration)
+          workingDirectory: $(Build.SourcesDirectory)
 
       - task: PublishBuildArtifacts@1
         displayName: Publish Artifact NuGet
