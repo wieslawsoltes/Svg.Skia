@@ -46,6 +46,9 @@ jobs:
           custom: 'workload'
           arguments: 'install $(Workloads)'
 
+      - script: git submodule update --init --recursive
+        displayName: 'Update Git Submodules'
+
       - task: PowerShell@2
         displayName: Nuke Target Pack
         inputs:
