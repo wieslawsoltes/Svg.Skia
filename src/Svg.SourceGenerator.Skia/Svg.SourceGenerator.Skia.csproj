@@ -38,7 +38,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.0-4.final" PrivateAssets="all" />
     <PackageReference Include="ExCSS" Version="4.2.3" GeneratePathProperty="true" PrivateAssets="all" />
-    <PackageReference Include="SkiaSharp" Version="2.88.8" GeneratePathProperty="true" />
+    <PackageReference Include="SkiaSharp" Version="3.116.1" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
