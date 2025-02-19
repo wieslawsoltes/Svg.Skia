@@ -7,6 +7,9 @@ using Nuke.Common.IO;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
+using Nuke.Common.CI.AzurePipelines;
+using System;
+using Nuke.Common.Tools.GitVersion;
 
 class Build : NukeBuild
 {
@@ -18,11 +21,18 @@ class Build : NukeBuild
     [GitRepository]
     readonly GitRepository GitRepository;
 
+    [GitVersion] 
+    readonly GitVersion GitVersion;
+
     [Parameter("configuration")]
     public string Configuration { get; set; }
 
     [Parameter("version-suffix")]
     public string VersionSuffix { get; set; }
+
+    public bool IsRunningOnAzure { get; set; }
+
+    public string Version { get; set; }
 
     [Parameter("publish-framework")]
     public string PublishFramework { get; set; }
@@ -46,6 +56,16 @@ class Build : NukeBuild
     {
         Configuration = Configuration ?? "Release";
         VersionSuffix = VersionSuffix ?? "";
+        Version = new Version(GitVersion.Major, GitVersion.Minor, GitVersion.Patch).ToString();
+        IsRunningOnAzure = Host is AzurePipelines || Environment.GetEnvironmentVariable("LOGNAME") == "vsts";
+
+        if(IsRunningOnAzure)
+        {
+            // Always use branch name as minor part of version (must be an integer, i.e. complete naming release/2)
+            var minor = int.Parse(AzurePipelines.Instance.SourceBranchName);
+            var gruntVersion = new Version(GitVersion.Major, minor, GitVersion.Patch);
+            Version = gruntVersion.ToString();
+        }
     }
 
     private void DeleteDirectories(IReadOnlyCollection<string> directories)
@@ -79,6 +99,7 @@ class Build : NukeBuild
             DotNetBuild(s => s
                 .SetProjectFile(Solution)
                 .SetConfiguration(Configuration)
+                .SetVersion(Version)
                 .SetVersionSuffix(VersionSuffix)
                 .EnableNoRestore());
         });
@@ -103,6 +124,7 @@ class Build : NukeBuild
             DotNetPack(s => s
                 .SetProject(Solution)
                 .SetConfiguration(Configuration)
+                .SetVersion(Version)
                 .SetVersionSuffix(VersionSuffix)
                 .SetOutputDirectory(ArtifactsDirectory / "NuGet")
                 .EnableNoBuild()
@@ -119,6 +141,7 @@ class Build : NukeBuild
             DotNetPublish(s => s
                 .SetProject(Solution.GetProject(PublishProject))
                 .SetConfiguration(Configuration)
+                .SetVersion(Version)
                 .SetVersionSuffix(VersionSuffix)
                 .SetFramework(PublishFramework)
                 .SetRuntime(PublishRuntime)
