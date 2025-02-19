@@ -59,11 +59,16 @@ class Build : NukeBuild
         Version = new Version(GitVersion.Major, GitVersion.Minor, GitVersion.Patch).ToString();
         IsRunningOnAzure = Host is AzurePipelines || Environment.GetEnvironmentVariable("LOGNAME") == "vsts";
 
-        if(IsRunningOnAzure)
+        Console.WriteLine($"Version is: {Version}");
+        Console.WriteLine($"Running on Azure: {IsRunningOnAzure}");
+
+        if (IsRunningOnAzure && AzurePipelines.Instance.SourceBranchName.Contains("release"))
         {
             // Always use branch name as minor part of version (must be an integer, i.e. complete naming release/2)
             var minor = int.Parse(AzurePipelines.Instance.SourceBranchName);
             var gruntVersion = new Version(GitVersion.Major, minor, GitVersion.Patch);
+            
+            Console.WriteLine($"Grunt Version is: {gruntVersion}");
             Version = gruntVersion.ToString();
         }
     }
