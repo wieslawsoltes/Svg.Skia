@@ -21,9 +21,6 @@ class Build : NukeBuild
     [GitRepository]
     readonly GitRepository GitRepository;
 
-    [GitVersion] 
-    readonly GitVersion GitVersion;
-
     [Parameter("configuration")]
     public string Configuration { get; set; }
 
@@ -56,7 +53,7 @@ class Build : NukeBuild
     {
         Configuration = Configuration ?? "Release";
         VersionSuffix = VersionSuffix ?? "";
-        Version = new Version(GitVersion.Major, GitVersion.Minor, GitVersion.Patch).ToString();
+        Version = Solution.GetProject("Svg.Skia").GetProperty("Version");
         IsRunningOnAzure = Host is AzurePipelines || Environment.GetEnvironmentVariable("LOGNAME") == "vsts";
 
         Console.WriteLine($"Version is: {Version}");
@@ -66,8 +63,9 @@ class Build : NukeBuild
         {
             // Always use branch name as minor part of version (must be an integer, i.e. complete naming release/2)
             var minor = int.Parse(AzurePipelines.Instance.SourceBranchName);
-            var gruntVersion = new Version(GitVersion.Major, minor, GitVersion.Patch);
-            
+            var currentVersion = new Version(Version);
+            var gruntVersion = new Version(currentVersion.Major, minor, currentVersion.Build, currentVersion.Revision);
+
             Console.WriteLine($"Grunt Version is: {gruntVersion}");
             Version = gruntVersion.ToString();
         }
