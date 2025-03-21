@@ -6,13 +6,21 @@ using Svg.Skia;
 
 namespace Avalonia.Svg.Skia;
 
-public class SvgCustomDrawOperation(Rect bounds, SKSvg? svg) : ICustomDrawOperation
+public class SvgCustomDrawOperation : ICustomDrawOperation
 {
+    private readonly SKSvg? _svg;
+
+    public SvgCustomDrawOperation(Rect bounds, SKSvg? svg)
+    {
+        _svg = svg;
+        Bounds = bounds;
+    }
+
     public void Dispose()
     {
     }
 
-    public Rect Bounds { get; } = bounds;
+    public Rect Bounds { get; }
 
     public bool HitTest(Point p) => true;
 

@@ -320,6 +320,80 @@ SVGC compiles SVG drawing markup to C# using SkiaSharp as rendering engine. SVGC
 
 [![Demo](images/Demo.png)](images/Demo.png)
 
+### Source Generator Usage
+
+Add NuGet package reference to your `csproj`.
+
+```xml
+<PropertyGroup>
+  <OutputType>Exe</OutputType>
+  <TargetFramework>net6.0</TargetFramework>
+  <LangVersion>latest</LangVersion>
+</PropertyGroup>
+```
+
+```xml
+<ItemGroup>
+  <PackageReference Include="Svg.SourceGenerator.Skia" Version="0.5.0" />
+</ItemGroup>
+```
+
+Include `svg` assets file in your `csproj`.
+
+```xml
+<ItemGroup>
+  <AdditionalFiles Include="Assets/Sample.svg" NamespaceName="Assets" ClassName="Sample" />
+</ItemGroup>
+```
+
+Use generated `SKPicture` using static `Picture` property from `Sample` class.
+
+```C#
+using SkiaSharp;
+using Assets;
+
+public void Draw(SKCanvas canvas)
+{
+    canvas.DrawPicture(Sample.Picture);
+}
+```
+
+### Avalonia Usage
+
+`csproj`
+```xml
+<ItemGroup>
+  <AdditionalFiles Include="Assets/__tiger.svg" NamespaceName="AvaloniaSample" ClassName="Tiger" />
+</ItemGroup>
+```
+```xml
+<ItemGroup>
+  <PackageReference Include="Svg.SourceGenerator.Skia" Version="0.5.0" />
+  <PackageReference Include="Avalonia.Controls.Skia" Version="0.5.0" />
+</ItemGroup>
+```
+
+`xaml`
+```xaml
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AvaloniaSample;assembly=AvaloniaSample"
+        xmlns:skp="clr-namespace:Avalonia.Controls.Skia;assembly=Avalonia.Controls.Skia"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        Width="900" Height="650" WindowStartupLocation="CenterScreen"
+        x:Class="AvaloniaSample.MainWindow"
+        Title="AvaloniaSample">
+    <Window.Resources>
+        <skp:SKPictureImage x:Key="TigeImage" Source="{x:Static local:Tiger.Picture}" />
+    </Window.Resources>
+    <Grid>
+        <Image Source="{StaticResource TigeImage}" />
+    </Grid>
+</Window>
+```
+
 ### svgc Usage
 
 ```
@@ -347,15 +421,71 @@ Json File Format
 ]
 ```
 
+### Links
+
+* [Source Generators Cookbook](https://github.com/dotnet/roslyn/blob/master/docs/features/source-generators.cookbook.md)
+* [Source Generators](https://github.com/dotnet/roslyn/blob/master/docs/features/source-generators.md)
+* [Source Generators Samples](https://github.com/dotnet/roslyn-sdk/tree/master/samples/CSharp/SourceGenerators)
+* [Introducing C# Source Generators](https://devblogs.microsoft.com/dotnet/introducing-c-source-generators/)
+
 ## Build
 
-To build the projects you need to install [.NET 8.0](https://dotnet.microsoft.com/download/dotnet/8.0) version `SDK 8.0.100`.
+To build the projects you need to install [.NET 5.0](https://dotnet.microsoft.com/download/dotnet/5.0) version `SDK 5.0.100`.
 
 ```
 git clone git@github.com:wieslawsoltes/Svg.Skia.git
 cd Svg.Skia
 git submodule update --init --recursive
 dotnet build -c Release
+```
+
+### Publish Managed
+
+```
+cd ./src/Svg.Skia.Converter
+dotnet publish -c Release -f net6.0 -r win7-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_net6.0_win7-x64
+```
+
+```
+cd ./src/Svg.Skia.Converter
+dotnet publish -c Release -f net6.0 -r ubuntu.14.04-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_net6.0_ubuntu.14.04-x64
+```
+
+```
+cd ./src/Svg.Skia.Converter
+dotnet publish -c Release -f net6.0 -r osx.10.12-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_net6.0_osx.10.12-x64
+```
+
+```
+cd ./src/Svg.Skia.Converter
+dotnet publish -c Release -f net6.0 -r debian.8-x64 /p:PublishTrimmed=True /p:PublishReadyToRun=True -o Svg.Skia.Converter_net6.0_debian.8-x64
+```
+
+```
+cd ./src/SvgToPng
+dotnet publish -c Release -f net6.0 -r win7-x64 -o SvgToPng_net6.0_win7-x64
+```
+
+```
+cd ./src/SvgXml.Diagnostics
+dotnet publish -c Release -f net6.0 -r win7-x64 -o SvgXml.Diagnostics_net6.0_win7-x64
+```
+
+### Publish Native
+
+```
+cd ./src/Svg.Skia.Converter
+dotnet publish -c Release -f net6.0 -r win-x64 -o Svg.Skia.Converter_net6.0_win-x64
+```
+
+```
+cd ./src/Svg.Skia.Converter
+dotnet publish -c Release -f net6.0 -r linux-x64 -o Svg.Skia.Converter_net6.0_linux-x64
+```
+
+```
+cd ./src/Svg.Skia.Converter
+dotnet publish -c Release -f net6.0 -r osx-x64 -o Svg.Skia.Converter_net6.0_osx-x64
 ```
 
 ## Externals

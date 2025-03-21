@@ -59,8 +59,8 @@ public sealed class FragmentDrawable : DrawableContainer
 
         CreateGeometryBounds();
 
-        Transform = svgFragment.Transforms.ToMatrix();
-        var skViewBoxMatrix = svgFragment.ViewBox.ToMatrix(svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
+        Transform = SvgExtensions.ToMatrix(svgFragment.Transforms);
+        var skViewBoxMatrix = SvgExtensions.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
         Transform = Transform.PreConcat(skViewBoxMatrix);
 
         switch (svgFragment.Overflow)

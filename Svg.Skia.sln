@@ -46,6 +46,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "props", "props", "{5BFEF4F8
 		build\Avalonia.ReactiveUI.props = build\Avalonia.ReactiveUI.props
 		build\Avalonia.Skia.props = build\Avalonia.Skia.props
 		build\Avalonia.Themes.Fluent.props = build\Avalonia.Themes.Fluent.props
+		build\Avalonia.Web.props = build\Avalonia.Web.props
 		build\Base.props = build\Base.props
 		build\HarfBuzzSharp.NativeAssets.Linux.props = build\HarfBuzzSharp.NativeAssets.Linux.props
 		build\Newtonsoft.Json.props = build\Newtonsoft.Json.props
@@ -98,9 +99,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "github", "github", "{380E75
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "svgc", "samples\svgc\svgc.csproj", "{6B758C64-5BDA-4842-B0F5-A124D65D83F9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.SourceGenerator.Skia.Sample", "samples\Svg.SourceGenerator.Skia.Sample\Svg.SourceGenerator.Skia.Sample.csproj", "{89FD53A6-8DE6-4733-AF87-EF8660C8EBD3}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Skia.Converter", "samples\Svg.Skia.Converter\Svg.Skia.Converter.csproj", "{68F9524C-BA9F-451D-881D-6192EF2FAAAA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaSvgSample", "samples\AvaloniaSvgSample\AvaloniaSvgSample.csproj", "{C3BCD2D5-DFC2-43C1-922D-2E76E6AEF122}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaSKPictureImageSample", "samples\AvaloniaSKPictureImageSample\AvaloniaSKPictureImageSample.csproj", "{5A3BC87E-F3F6-4F89-B412-1324CCA2C32B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.SourceGenerator.Skia", "src\Svg.SourceGenerator.Skia\Svg.SourceGenerator.Skia.csproj", "{3049C672-8A3F-4FE4-9973-515B8323B546}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Svg", "src\Avalonia.Svg\Avalonia.Svg.csproj", "{B742F260-0EC6-4805-AE9F-987818CE3CF4}"
 EndProject
@@ -172,6 +179,10 @@ Global
 		{6B758C64-5BDA-4842-B0F5-A124D65D83F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B758C64-5BDA-4842-B0F5-A124D65D83F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B758C64-5BDA-4842-B0F5-A124D65D83F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89FD53A6-8DE6-4733-AF87-EF8660C8EBD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89FD53A6-8DE6-4733-AF87-EF8660C8EBD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89FD53A6-8DE6-4733-AF87-EF8660C8EBD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89FD53A6-8DE6-4733-AF87-EF8660C8EBD3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{68F9524C-BA9F-451D-881D-6192EF2FAAAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{68F9524C-BA9F-451D-881D-6192EF2FAAAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68F9524C-BA9F-451D-881D-6192EF2FAAAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -180,6 +191,14 @@ Global
 		{C3BCD2D5-DFC2-43C1-922D-2E76E6AEF122}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3BCD2D5-DFC2-43C1-922D-2E76E6AEF122}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C3BCD2D5-DFC2-43C1-922D-2E76E6AEF122}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A3BC87E-F3F6-4F89-B412-1324CCA2C32B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A3BC87E-F3F6-4F89-B412-1324CCA2C32B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A3BC87E-F3F6-4F89-B412-1324CCA2C32B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A3BC87E-F3F6-4F89-B412-1324CCA2C32B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3049C672-8A3F-4FE4-9973-515B8323B546}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3049C672-8A3F-4FE4-9973-515B8323B546}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3049C672-8A3F-4FE4-9973-515B8323B546}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3049C672-8A3F-4FE4-9973-515B8323B546}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B742F260-0EC6-4805-AE9F-987818CE3CF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B742F260-0EC6-4805-AE9F-987818CE3CF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B742F260-0EC6-4805-AE9F-987818CE3CF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -212,8 +231,11 @@ Global
 		{BE25FC07-9A8C-4494-A6AE-F2561CF89010} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
 		{380E7565-C6FF-45C1-A683-E4E1FC744DCC} = {32B4A27D-6FC0-498C-9AD8-5510ACF2C4A1}
 		{6B758C64-5BDA-4842-B0F5-A124D65D83F9} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
+		{89FD53A6-8DE6-4733-AF87-EF8660C8EBD3} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
 		{68F9524C-BA9F-451D-881D-6192EF2FAAAA} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
 		{C3BCD2D5-DFC2-43C1-922D-2E76E6AEF122} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
+		{5A3BC87E-F3F6-4F89-B412-1324CCA2C32B} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
+		{3049C672-8A3F-4FE4-9973-515B8323B546} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
 		{B742F260-0EC6-4805-AE9F-987818CE3CF4} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
 		{8A938DC2-1634-4387-BAB3-69F871D54FB5} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
 	EndGlobalSection

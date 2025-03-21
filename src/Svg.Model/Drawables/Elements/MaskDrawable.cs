@@ -92,7 +92,7 @@ public sealed class MaskDrawable : DrawableContainer
 
         if (enableMask)
         {
-            MaskDrawable = SvgExtensions.GetSvgElementMask(element, GeometryBounds, [], AssetLoader, References);
+            MaskDrawable = SvgExtensions.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader, References);
             if (MaskDrawable is { })
             {
                 CreateMaskPaints();

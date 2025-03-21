@@ -6,15 +6,24 @@ using SkiaSharp;
 
 namespace Avalonia.Controls.Skia;
 
-public class SKPictureDrawOperation(Rect bounds, SKPicture? picture) : ICustomDrawOperation
+public class SKPictureDrawOperation : ICustomDrawOperation
 {
+    private readonly SKPicture? _picture;
+    private readonly Rect _bounds;
+
+    public SKPictureDrawOperation(Rect bounds, SKPicture? picture)
+    {
+        _picture = picture;
+        _bounds = bounds;
+    }
+
     public void Dispose()
     {
     }
 
-    public Rect Bounds => bounds;
+    public Rect Bounds => _bounds;
 
-    public bool HitTest(Point p) => bounds.Contains(p);
+    public bool HitTest(Point p) => _bounds.Contains(p);
 
     public bool Equals(ICustomDrawOperation? other) => false;
 
@@ -27,13 +36,13 @@ public class SKPictureDrawOperation(Rect bounds, SKPicture? picture) : ICustomDr
         }
         using var lease = leaseFeature.Lease();
         var canvas = lease?.SkCanvas;
-        if (canvas is null || picture is null)
+        if (canvas is null || _picture is null)
         {
             return;
         }
 
         canvas.Save();
-        canvas.DrawPicture(picture);
+        canvas.DrawPicture(_picture);
         canvas.Restore();
     }
 }

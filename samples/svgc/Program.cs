@@ -49,35 +49,35 @@ class Program
             Description = "Converts a svg file to a C# code."
         };
 
-        var optionInputFile = new Option(["--inputFile", "-i"], "The relative or absolute path to the input file")
+        var optionInputFile = new Option(new[] { "--inputFile", "-i" }, "The relative or absolute path to the input file")
         {
             IsRequired = false,
             Argument = new Argument<System.IO.FileInfo?>(getDefaultValue: () => null)
         };
         rootCommand.AddOption(optionInputFile);
 
-        var optionOutputFile = new Option(["--outputFile", "-o"], "The relative or absolute path to the output file")
+        var optionOutputFile = new Option(new[] { "--outputFile", "-o" }, "The relative or absolute path to the output file")
         {
             IsRequired = false,
             Argument = new Argument<System.IO.FileInfo?>(getDefaultValue: () => null)
         };
         rootCommand.AddOption(optionOutputFile);
 
-        var optionJsonFile = new Option(["--jsonFile", "-j"], "The relative or absolute path to the json file")
+        var optionJsonFile = new Option(new[] { "--jsonFile", "-j" }, "The relative or absolute path to the json file")
         {
             IsRequired = false,
             Argument = new Argument<System.IO.FileInfo?>(getDefaultValue: () => null)
         };
         rootCommand.AddOption(optionJsonFile);
 
-        var optionNamespace = new Option(["--namespace", "-n"], "The generated C# namespace name")
+        var optionNamespace = new Option(new[] { "--namespace", "-n" }, "The generated C# namespace name")
         {
             IsRequired = false,
             Argument = new Argument<string>(getDefaultValue: () => "Svg")
         };
         rootCommand.AddOption(optionNamespace);
 
-        var optionClass = new Option(["--class", "-c"], "The generated C# class name")
+        var optionClass = new Option(new[] { "--class", "-c" }, "The generated C# class name")
         {
             IsRequired = false,
             Argument = new Argument<string>(getDefaultValue: () => "Generated")

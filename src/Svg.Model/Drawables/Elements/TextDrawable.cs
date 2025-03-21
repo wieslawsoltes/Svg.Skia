@@ -133,7 +133,7 @@ public sealed class TextDrawable : DrawableBase
 
         skCanvas.Save();
 
-        var skMatrix = svgTextBase.Transforms.ToMatrix();
+        var skMatrix = SvgExtensions.ToMatrix(svgTextBase.Transforms);
 
         if (!skMatrix.IsIdentity && enableTransform)
         {
@@ -146,7 +146,7 @@ public sealed class TextDrawable : DrawableBase
             {
                 Clip = new ClipPath()
             };
-            SvgExtensions.GetSvgVisualElementClipPath(svgTextBase, GeometryBounds, [], clipPath);
+            SvgExtensions.GetSvgVisualElementClipPath(svgTextBase, GeometryBounds, new HashSet<Uri>(), clipPath);
             if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !IgnoreAttributes.HasFlag(DrawAttributes.ClipPath))
             {
                 var antialias = SvgExtensions.IsAntialias(svgTextBase);
@@ -158,7 +158,7 @@ public sealed class TextDrawable : DrawableBase
         {
             var mask = default(SKPaint);
             maskDstIn = default(SKPaint);
-            maskDrawable = SvgExtensions.GetSvgElementMask(svgTextBase, skBounds, [], AssetLoader, References);
+            maskDrawable = SvgExtensions.GetSvgElementMask(svgTextBase, skBounds, new HashSet<Uri>(), AssetLoader, References);
             if (maskDrawable is { })
             {
                 mask = new SKPaint
@@ -375,7 +375,7 @@ public sealed class TextDrawable : DrawableBase
 
                         // TODO: Calculate correct bounds.
                         var skBounds = skViewport;
-                        int endingCodepointStart = text.Length - (char.IsLowSurrogate(text[^1]) ? 2 : 1);
+                        int endingCodepointStart = text.Length - (char.IsLowSurrogate(text[text.Length - 1]) ? 2 : 1);
 
                         float DrawTextLocal(SKPaint? skPaint)
                         {
@@ -402,7 +402,7 @@ public sealed class TextDrawable : DrawableBase
                             foreach (var typefaceSpan in AssetLoader.FindTypefaces(text.Substring(endingCodepointStart), skPaint))
                             {
                                 skPaint.Typeface = typefaceSpan.Typeface;
-                                skCanvas.DrawText(typefaceSpan.Text, points[^1].X, points[^1].Y, skPaint);
+                                skCanvas.DrawText(typefaceSpan.Text, points[points.Length - 1].X, points[points.Length - 1].Y, skPaint);
                                 return typefaceSpan.Advance;
                             }
 
@@ -425,8 +425,8 @@ public sealed class TextDrawable : DrawableBase
                             strokeAdvance = DrawTextLocal(skPaint);
                         }
 
-                        currentX = points[^1].X + Math.Max(fillAdvance, strokeAdvance);
-                        currentY = points[^1].Y;
+                        currentX = points[points.Length - 1].X + Math.Max(fillAdvance, strokeAdvance);
+                        currentY = points[points.Length - 1].Y;
                     }
                     else
                     {
@@ -467,12 +467,12 @@ public sealed class TextDrawable : DrawableBase
             return;
         }
 
-        if (svgTextPath.HasRecursiveReference((e) => e.ReferencedPath, []))
+        if (SvgExtensions.HasRecursiveReference(svgTextPath, (e) => e.ReferencedPath, new HashSet<Uri>()))
         {
             return;
         }
 
-        var svgPath = svgTextPath.GetReference<SvgPath>(svgTextPath.ReferencedPath);
+        var svgPath = SvgExtensions.GetReference<SvgPath>(svgTextPath, svgTextPath.ReferencedPath);
         if (svgPath is null)
         {
             return;
@@ -541,12 +541,12 @@ public sealed class TextDrawable : DrawableBase
             return;
         }
 
-        if (svgTextRef.HasRecursiveReference((e) => e.ReferencedElement, []))
+        if (SvgExtensions.HasRecursiveReference(svgTextRef, (e) => e.ReferencedElement, new HashSet<Uri>()))
         {
             return;
         }
 
-        var svgReferencedText = svgTextRef.GetReference<SvgText>(svgTextRef.ReferencedElement);
+        var svgReferencedText = SvgExtensions.GetReference<SvgText>(svgTextRef, svgTextRef.ReferencedElement);
         if (svgReferencedText is null)
         {
             return;

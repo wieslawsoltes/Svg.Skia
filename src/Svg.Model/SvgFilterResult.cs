@@ -3,11 +3,18 @@ using ShimSkiaSharp;
 
 namespace Svg.Model;
 
-internal class SvgFilterResult(string? key, SKImageFilter filter, SvgColourInterpolation colorSpace)
+internal class SvgFilterResult
 {
-    public string? Key { get; } = key;
+    public string? Key { get; }
 
-    public SKImageFilter Filter { get; } = filter;
+    public SKImageFilter Filter { get; }
 
-    public SvgColourInterpolation ColorSpace { get; } = colorSpace;
+    public SvgColourInterpolation ColorSpace { get; }
+
+    public SvgFilterResult(string? key, SKImageFilter filter, SvgColourInterpolation colorSpace)
+    {
+        Key = key;
+        Filter = filter;
+        ColorSpace = colorSpace;
+    }
 }

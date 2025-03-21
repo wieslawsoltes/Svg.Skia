@@ -129,7 +129,7 @@ public sealed class MarkerDrawable : DrawableBase
 
         GeometryBounds = MarkerElementDrawable.GeometryBounds;
 
-        Transform = svgMarker.Transforms.ToMatrix();
+        Transform = SvgExtensions.ToMatrix(svgMarker.Transforms);
         Transform = Transform.PreConcat(skMarkerMatrix);
 
         Fill = null;

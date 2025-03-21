@@ -50,7 +50,7 @@ public sealed class RectangleDrawable : DrawablePath
 
         GeometryBounds = Path.Bounds;
 
-        Transform = svgRectangle.Transforms.ToMatrix();
+        Transform = SvgExtensions.ToMatrix(svgRectangle.Transforms);
 
         var canDrawFill = true;
         var canDrawStroke = true;

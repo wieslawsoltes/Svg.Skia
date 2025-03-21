@@ -41,7 +41,7 @@ public sealed class AnchorDrawable : DrawableContainer
 
         CreateGeometryBounds();
 
-        Transform = svgAnchor.Transforms.ToMatrix();
+        Transform = SvgExtensions.ToMatrix(svgAnchor.Transforms);
 
         Fill = null;
         Stroke = null;

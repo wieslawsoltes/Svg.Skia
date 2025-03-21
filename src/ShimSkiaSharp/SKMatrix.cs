@@ -2,35 +2,25 @@
 
 namespace ShimSkiaSharp;
 
-public struct SKMatrix(
-    float scaleX,
-    float skewX,
-    float transX,
-    float skewY,
-    float scaleY,
-    float transY,
-    float persp0,
-    float persp1,
-    float persp2)
-    : IEquatable<SKMatrix>
+public struct SKMatrix : IEquatable<SKMatrix>
 {
-    public float ScaleX { get; set; } = scaleX;
+    public float ScaleX { get; set; }
 
-    public float SkewX { get; set; } = skewX;
+    public float SkewX { get; set; }
 
-    public float TransX { get; set; } = transX;
+    public float TransX { get; set; }
 
-    public float ScaleY { get; set; } = scaleY;
+    public float ScaleY { get; set; }
 
-    public float SkewY { get; set; } = skewY;
+    public float SkewY { get; set; }
 
-    public float TransY { get; set; } = transY;
+    public float TransY { get; set; }
 
-    public float Persp0 { get; set; } = persp0;
+    public float Persp0 { get; set; }
 
-    public float Persp1 { get; set; } = persp1;
+    public float Persp1 { get; set; }
 
-    public float Persp2 { get; set; } = persp2;
+    public float Persp2 { get; set; }
 
     internal const float DegreesToRadians = (float)Math.PI / 180.0f;
 
@@ -219,6 +209,19 @@ public struct SKMatrix(
             Persp1 = 0,
             Persp2 = 1
         };
+    }
+
+    public SKMatrix(float scaleX, float skewX, float transX, float skewY, float scaleY, float transY, float persp0, float persp1, float persp2)
+    {
+        ScaleX = scaleX;
+        SkewX = skewX;
+        TransX = transX;
+        SkewY = skewY;
+        ScaleY = scaleY;
+        TransY = transY;
+        Persp0 = persp0;
+        Persp1 = persp1;
+        Persp2 = persp2;
     }
 
     public readonly SKMatrix PreConcat(SKMatrix matrix)

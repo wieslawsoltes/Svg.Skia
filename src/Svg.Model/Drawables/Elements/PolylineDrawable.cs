@@ -50,7 +50,7 @@ public sealed class PolylineDrawable : DrawablePath
 
         GeometryBounds = Path.Bounds;
 
-        Transform = svgPolyline.Transforms.ToMatrix();
+        Transform = SvgExtensions.ToMatrix(svgPolyline.Transforms);
 
         var canDrawFill = true;
         var canDrawStroke = true;
@@ -79,6 +79,6 @@ public sealed class PolylineDrawable : DrawablePath
             return;
         }
 
-        svgPolyline.CreateMarkers(Path, skViewport, this, AssetLoader, references);
+        SvgExtensions.CreateMarkers(svgPolyline, Path, skViewport, this, AssetLoader, references);
     }
 }

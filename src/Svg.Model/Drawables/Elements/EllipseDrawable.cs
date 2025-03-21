@@ -47,7 +47,7 @@ public sealed class EllipseDrawable : DrawablePath
         }
         
         IsAntialias = SvgExtensions.IsAntialias(svgEllipse);
-        Transform = svgEllipse.Transforms.ToMatrix();
+        Transform = SvgExtensions.ToMatrix(svgEllipse.Transforms);
 
         GeometryBounds = Path.Bounds;
 

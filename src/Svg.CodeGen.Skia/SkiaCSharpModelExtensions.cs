@@ -15,7 +15,7 @@ public static class SkiaCSharpModelExtensions
 
     private static readonly CultureInfo s_ci = CultureInfo.InvariantCulture;
 
-    private static readonly char[] s_fontFamilyTrim = ['\''];
+    private static readonly char[] s_fontFamilyTrim = { '\'' };
 
     public static string ToBoolString(this bool value) => value ? "true" : "false";
 
@@ -647,6 +647,11 @@ public static class SkiaCSharpModelExtensions
         }
     }
 
+    public static string ToCropRect(this SKImageFilter.CropRect cropRect)
+    {
+        return $"new SKImageFilter.CropRect({cropRect.Rect.ToSKRect()})";
+    }
+
     public static string ToSKColorChannel(this SKColorChannel colorChannel)
     {
         switch (colorChannel)
@@ -706,7 +711,7 @@ public static class SkiaCSharpModelExtensions
                 sb.AppendLine($"{indent}    {arithmeticImageFilter.EforcePMColor.ToBoolString()},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterBackground},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterForeground},");
-                sb.AppendLine($"{indent}    {arithmeticImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {arithmeticImageFilter.Clip?.ToCropRect() ?? "null"});");
                 return;
             }
             case BlendModeImageFilter blendModeImageFilter:
@@ -742,7 +747,7 @@ public static class SkiaCSharpModelExtensions
                 sb.AppendLine($"{indent}    {blendModeImageFilter.Mode.ToSKBlendMode()},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterBackground},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterForeground},");
-                sb.AppendLine($"{indent}    {blendModeImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {blendModeImageFilter.Clip?.ToCropRect() ?? "null"});");
                 return;
             }
             case BlurImageFilter blurImageFilter:
@@ -762,7 +767,7 @@ public static class SkiaCSharpModelExtensions
                 sb.AppendLine($"{indent}    {blurImageFilter.SigmaX.ToFloatString()},");
                 sb.AppendLine($"{indent}    {blurImageFilter.SigmaY.ToFloatString()},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {blurImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {blurImageFilter.Clip?.ToCropRect() ?? "null"});");
                 return;
             }
             case ColorFilterImageFilter colorFilterImageFilter:
@@ -790,7 +795,7 @@ public static class SkiaCSharpModelExtensions
                 sb.AppendLine($"SKImageFilter.CreateColorFilter(");
                 sb.AppendLine($"{indent}    {counter.ColorFilterVarName}{counterColorFilter},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {colorFilterImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {colorFilterImageFilter.Clip?.ToCropRect() ?? "null"});");
                 return;
             }
             case DilateImageFilter dilateImageFilter:
@@ -810,7 +815,7 @@ public static class SkiaCSharpModelExtensions
                 sb.AppendLine($"{indent}    {dilateImageFilter.RadiusX.ToIntString()},");
                 sb.AppendLine($"{indent}    {dilateImageFilter.RadiusY.ToIntString()},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {dilateImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {dilateImageFilter.Clip?.ToCropRect() ?? "null"});");
                 return;
             }
             case DisplacementMapEffectImageFilter displacementMapEffectImageFilter:
@@ -841,7 +846,7 @@ public static class SkiaCSharpModelExtensions
                 sb.AppendLine($"{indent}    {displacementMapEffectImageFilter.Scale.ToFloatString()},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterDisplacement},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {displacementMapEffectImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {displacementMapEffectImageFilter.Clip?.ToCropRect() ?? "null"});");
                 return;
             }
             case DistantLitDiffuseImageFilter distantLitDiffuseImageFilter:
@@ -863,7 +868,7 @@ public static class SkiaCSharpModelExtensions
                 sb.AppendLine($"{indent}    {distantLitDiffuseImageFilter.SurfaceScale.ToFloatString()},");
                 sb.AppendLine($"{indent}    {distantLitDiffuseImageFilter.Kd.ToFloatString()},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {distantLitDiffuseImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {distantLitDiffuseImageFilter.Clip?.ToCropRect() ?? "null"});");
                 return;
             }
             case DistantLitSpecularImageFilter distantLitSpecularImageFilter:
@@ -886,7 +891,7 @@ public static class SkiaCSharpModelExtensions
                 sb.AppendLine($"{indent}    {distantLitSpecularImageFilter.Ks.ToFloatString()},");
                 sb.AppendLine($"{indent}    {distantLitSpecularImageFilter.Shininess.ToFloatString()},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {distantLitSpecularImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {distantLitSpecularImageFilter.Clip?.ToCropRect() ?? "null"});");
                 return;
             }
             case ErodeImageFilter erodeImageFilter:
@@ -906,7 +911,7 @@ public static class SkiaCSharpModelExtensions
                 sb.AppendLine($"{indent}    {erodeImageFilter.RadiusX.ToIntString()},");
                 sb.AppendLine($"{indent}    {erodeImageFilter.RadiusY.ToIntString()},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {erodeImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {erodeImageFilter.Clip?.ToCropRect() ?? "null"});");
                 return;
             }
             case ImageImageFilter imageImageFilter:
@@ -956,7 +961,7 @@ public static class SkiaCSharpModelExtensions
                 sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.TileMode.ToSKShaderTileMode()},");
                 sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.ConvolveAlpha.ToBoolString()},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.Clip?.ToCropRect() ?? "null"});");
                 return;
             }
             case MergeImageFilter mergeImageFilter:
@@ -989,7 +994,7 @@ public static class SkiaCSharpModelExtensions
                 sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
                 sb.AppendLine($"SKImageFilter.CreateMerge(");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}s{counterImageFilter},");
-                sb.AppendLine($"{indent}    {mergeImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {mergeImageFilter.Clip?.ToCropRect() ?? "null"});");
                 return;
             }
             case OffsetImageFilter offsetImageFilter:
@@ -1009,7 +1014,7 @@ public static class SkiaCSharpModelExtensions
                 sb.AppendLine($"{indent}    {offsetImageFilter.Dx.ToFloatString()},");
                 sb.AppendLine($"{indent}    {offsetImageFilter.Dy.ToFloatString()},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {offsetImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {offsetImageFilter.Clip?.ToCropRect() ?? "null"});");
                 return;
             }
             case PaintImageFilter paintImageFilter:
@@ -1026,7 +1031,7 @@ public static class SkiaCSharpModelExtensions
                 sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
                 sb.AppendLine($"SKImageFilter.CreatePaint(");
                 sb.AppendLine($"{indent}    {counter.PaintVarName}{counterPaint},");
-                sb.AppendLine($"{indent}    {paintImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {paintImageFilter.Clip?.ToCropRect() ?? "null"});");
 
                 // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
@@ -1114,7 +1119,7 @@ public static class SkiaCSharpModelExtensions
                 sb.AppendLine($"{indent}    {pointLitDiffuseImageFilter.SurfaceScale.ToFloatString()},");
                 sb.AppendLine($"{indent}    {pointLitDiffuseImageFilter.Kd.ToFloatString()},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {pointLitDiffuseImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {pointLitDiffuseImageFilter.Clip?.ToCropRect() ?? "null"});");
                 return;
             }
             case PointLitSpecularImageFilter pointLitSpecularImageFilter:
@@ -1137,7 +1142,7 @@ public static class SkiaCSharpModelExtensions
                 sb.AppendLine($"{indent}    {pointLitSpecularImageFilter.Ks.ToFloatString()},");
                 sb.AppendLine($"{indent}    {pointLitSpecularImageFilter.Shininess.ToFloatString()},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {pointLitSpecularImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {pointLitSpecularImageFilter.Clip?.ToCropRect() ?? "null"});");
                 return;
             }
             case SpotLitDiffuseImageFilter spotLitDiffuseImageFilter:
@@ -1162,7 +1167,7 @@ public static class SkiaCSharpModelExtensions
                 sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.SurfaceScale.ToFloatString()},");
                 sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.Kd.ToFloatString()},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.Clip?.ToCropRect() ?? "null"});");
                 return;
             }
             case SpotLitSpecularImageFilter spotLitSpecularImageFilter:
@@ -1188,7 +1193,7 @@ public static class SkiaCSharpModelExtensions
                 sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.Ks.ToFloatString()},");
                 sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.SpecularExponent.ToFloatString()},");
                 sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.Clip?.ToSKRect() ?? "null"});");
+                sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.Clip?.ToCropRect() ?? "null"});");
                 return;
             }
             case TileImageFilter tileImageFilter:

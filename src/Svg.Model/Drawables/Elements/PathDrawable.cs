@@ -50,7 +50,7 @@ public sealed class PathDrawable : DrawablePath
 
         GeometryBounds = Path.Bounds;
 
-        Transform = svgPath.Transforms.ToMatrix();
+        Transform = SvgExtensions.ToMatrix(svgPath.Transforms);
 
         var canDrawFill = true;
         var canDrawStroke = true;
@@ -79,6 +79,6 @@ public sealed class PathDrawable : DrawablePath
             return;
         }
         
-        svgPath.CreateMarkers(Path, skViewport, this, AssetLoader, references);
+        SvgExtensions.CreateMarkers(svgPath, Path, skViewport, this, AssetLoader, references);
     }
 }

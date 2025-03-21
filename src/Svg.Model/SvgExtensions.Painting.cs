@@ -489,7 +489,7 @@ public static partial class SvgExtensions
         if (radius == 0.0)
         {
             return SKShader.CreateColor(
-                skColors.Length > 0 ? skColors[^1] : new SKColor(0x00, 0x00, 0x00, 0xFF), 
+                skColors.Length > 0 ? skColors[skColors.Length - 1] : new SKColor(0x00, 0x00, 0x00, 0xFF), 
                 skColorSpace);
         }
 

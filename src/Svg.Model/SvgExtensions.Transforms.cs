@@ -12,7 +12,7 @@ public static partial class SvgExtensions
         var ppi = SvgDocument.PointsPerInch;
         var type = svgUnit.Type;
         var value = svgUnit.Value;
-        float? deviceValue;
+        float? _deviceValue;
         float points;
         float? ownerFontSize = owner?.FontSize.ToDeviceValue(UnitRenderingType.Other, null, SKRect.Empty);
 
@@ -21,46 +21,46 @@ public static partial class SvgExtensions
             case SvgUnitType.Em:
                 if (ownerFontSize.HasValue)
                 {
-                    deviceValue = ownerFontSize.Value * value;
+                    _deviceValue = ownerFontSize.Value * value;
                 }
                 else
                 {
                     points = value * 9;
-                    deviceValue = points / 72.0f * ppi;
+                    _deviceValue = points / 72.0f * ppi;
                 }
                 break;
 
             case SvgUnitType.Ex:
                 points = value * 9;
-                deviceValue = points * 0.5f / 72.0f * ppi;
+                _deviceValue = points * 0.5f / 72.0f * ppi;
                 break;
 
             case SvgUnitType.Centimeter:
-                deviceValue = value / cmInInch * ppi;
+                _deviceValue = value / cmInInch * ppi;
                 break;
 
             case SvgUnitType.Inch:
-                deviceValue = value * ppi;
+                _deviceValue = value * ppi;
                 break;
 
             case SvgUnitType.Millimeter:
-                deviceValue = value / 10 / cmInInch * ppi;
+                _deviceValue = value / 10 / cmInInch * ppi;
                 break;
 
             case SvgUnitType.Pica:
-                deviceValue = value * 12 / 72 * ppi;
+                _deviceValue = value * 12 / 72 * ppi;
                 break;
 
             case SvgUnitType.Point:
-                deviceValue = value / 72 * ppi;
+                _deviceValue = value / 72 * ppi;
                 break;
 
             case SvgUnitType.Pixel:
-                deviceValue = value;
+                _deviceValue = value;
                 break;
 
             case SvgUnitType.User:
-                deviceValue = value;
+                _deviceValue = value;
                 break;
 
             case SvgUnitType.Percentage:
@@ -69,41 +69,41 @@ public static partial class SvgExtensions
                 switch (renderType)
                 {
                     case UnitRenderingType.Horizontal:
-                        deviceValue = size.Width / 100 * value;
+                        _deviceValue = size.Width / 100 * value;
                         break;
 
                     case UnitRenderingType.HorizontalOffset:
-                        deviceValue = size.Width / 100 * value + skBounds.Location.X;
+                        _deviceValue = size.Width / 100 * value + skBounds.Location.X;
                         break;
 
                     case UnitRenderingType.Vertical:
-                        deviceValue = size.Height / 100 * value;
+                        _deviceValue = size.Height / 100 * value;
                         break;
 
                     case UnitRenderingType.VerticalOffset:
-                        deviceValue = size.Height / 100 * value + skBounds.Location.Y;
+                        _deviceValue = size.Height / 100 * value + skBounds.Location.Y;
                         break;
 
                     default:
                     case UnitRenderingType.Other:
                         if (owner?.OwnerDocument?.ViewBox is { } && owner.OwnerDocument.ViewBox.Width != 0 && owner.OwnerDocument.ViewBox.Height != 0)
                         {
-                            deviceValue = (float)(Math.Sqrt(Math.Pow(owner.OwnerDocument.ViewBox.Width, 2) + Math.Pow(owner.OwnerDocument.ViewBox.Height, 2)) / Math.Sqrt(2) * value / 100.0);
+                            _deviceValue = (float)(Math.Sqrt(Math.Pow(owner.OwnerDocument.ViewBox.Width, 2) + Math.Pow(owner.OwnerDocument.ViewBox.Height, 2)) / Math.Sqrt(2) * value / 100.0);
                         }
                         else
                         {
-                            deviceValue = (float)(Math.Sqrt(Math.Pow(size.Width, 2) + Math.Pow(size.Height, 2)) / Math.Sqrt(2) * value / 100.0);
+                            _deviceValue = (float)(Math.Sqrt(Math.Pow(size.Width, 2) + Math.Pow(size.Height, 2)) / Math.Sqrt(2) * value / 100.0);
                         }
                         break;
                 }
                 break;
 
             default:
-                deviceValue = value;
+                _deviceValue = value;
                 break;
         }
 
-        return deviceValue.Value;
+        return _deviceValue.Value;
     }
 
     internal static void GetOptionalNumbers(this SvgNumberCollection? svgNumberCollection, float defaultValue1, float defaultValue2, out float value1, out float value2)

@@ -4,15 +4,19 @@ using ShimSkiaSharp;
 
 namespace Svg.Model.Drawables;
 
-public abstract class DrawablePath(IAssetLoader assetLoader, HashSet<Uri>? references)
-    : DrawableBase(assetLoader, references), IMarkerHost
+public abstract class DrawablePath : DrawableBase, IMarkerHost
 {
     public SKPath? Path { get; set; }
     public List<DrawableBase>? MarkerDrawables { get; set; }
 
+    protected DrawablePath(IAssetLoader assetLoader, HashSet<Uri>? references)
+        : base(assetLoader, references)
+    {
+    }
+
     void IMarkerHost.AddMarker(DrawableBase drawable)
     {
-        MarkerDrawables ??= [];
+        MarkerDrawables ??= new List<DrawableBase>();
         MarkerDrawables.Add(drawable);
     }
 
