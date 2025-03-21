@@ -6,7 +6,7 @@ namespace Svg.Skia.TypefaceProviders;
 
 public sealed class CustomTypefaceProvider : ITypefaceProvider, IDisposable
 {
-    public static readonly char[] s_fontFamilyTrim = { '\'' };
+    public static readonly char[] s_fontFamilyTrim = ['\''];
 
     public SkiaSharp.SKTypeface? Typeface { get; set; }
 

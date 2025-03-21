@@ -3,20 +3,12 @@ using AM = Avalonia.Media;
 
 namespace Avalonia.Svg.Commands;
 
-public sealed class RectangleDrawCommand : DrawCommand
+public sealed class RectangleDrawCommand(AM.IBrush? brush, AM.IPen? pen, A.Rect rect, double radiusX, double radiusY)
+    : DrawCommand
 {
-    public AM.IBrush? Brush { get; }
-    public AM.IPen? Pen { get; }
-    public A.Rect Rect { get; }
-    public double RadiusX { get; }
-    public double RadiusY { get; }
-
-    public RectangleDrawCommand(AM.IBrush? brush, AM.IPen? pen, A.Rect rect, double radiusX, double radiusY)
-    {
-        Brush = brush;
-        Pen = pen;
-        Rect = rect;
-        RadiusX = radiusX;
-        RadiusY = radiusY;
-    }
+    public AM.IBrush? Brush { get; } = brush;
+    public AM.IPen? Pen { get; } = pen;
+    public A.Rect Rect { get; } = rect;
+    public double RadiusX { get; } = radiusX;
+    public double RadiusY { get; } = radiusY;
 }

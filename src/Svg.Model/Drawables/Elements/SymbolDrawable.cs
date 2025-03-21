@@ -84,8 +84,8 @@ public sealed class SymbolDrawable : DrawableContainer
 
         CreateGeometryBounds();
 
-        Transform = SvgExtensions.ToMatrix(svgSymbol.Transforms);
-        var skMatrixViewBox = SvgExtensions.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
+        Transform = svgSymbol.Transforms.ToMatrix();
+        var skMatrixViewBox = svgSymbol.ViewBox.ToMatrix(svgSymbol.AspectRatio, x, y, width, height);
         Transform = Transform.PreConcat(skMatrixViewBox);
 
         Fill = null;

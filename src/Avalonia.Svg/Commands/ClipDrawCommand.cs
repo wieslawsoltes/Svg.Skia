@@ -2,12 +2,7 @@
 
 namespace Avalonia.Svg.Commands;
 
-public sealed class ClipDrawCommand : DrawCommand
+public sealed class ClipDrawCommand(A.Rect clip) : DrawCommand
 {
-    public A.Rect Clip { get; }
-
-    public ClipDrawCommand(A.Rect clip)
-    {
-        Clip = clip;
-    }
+    public A.Rect Clip { get; } = clip;
 }

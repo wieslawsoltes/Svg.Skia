@@ -4,15 +4,10 @@ using ShimSkiaSharp;
 
 namespace Svg.Model.Drawables;
 
-public abstract class DrawableContainer : DrawableBase
+public abstract class DrawableContainer(IAssetLoader assetLoader, HashSet<Uri>? references)
+    : DrawableBase(assetLoader, references)
 {
-    public List<DrawableBase> ChildrenDrawables { get; }
-
-    protected DrawableContainer(IAssetLoader assetLoader, HashSet<Uri>? references)
-        : base(assetLoader, references)
-    {
-        ChildrenDrawables = new List<DrawableBase>();
-    }
+    public List<DrawableBase> ChildrenDrawables { get; } = [];
 
     protected void CreateChildren(SvgElement svgElement, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
     {

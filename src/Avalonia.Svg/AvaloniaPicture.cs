@@ -18,7 +18,7 @@ public sealed class AvaloniaPicture : IDisposable
 
     private AvaloniaPicture()
     {
-        _commands = new List<DrawCommand>();
+        _commands = [];
     }
 
     private static void RecordPathCommand(DrawPathCanvasCommand drawPathCanvasCommand, List<DrawCommand> commands)

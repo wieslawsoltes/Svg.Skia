@@ -2,15 +2,8 @@
 
 namespace Svg.Skia;
 
-public class SkiaAssetLoader : Model.IAssetLoader
+public class SkiaAssetLoader(SkiaModel skiaModel) : Model.IAssetLoader
 {
-    private readonly SkiaModel _skiaModel;
-
-    public SkiaAssetLoader(SkiaModel skiaModel)
-    {
-        _skiaModel = skiaModel;
-    }
-
     public ShimSkiaSharp.SKImage LoadImage(System.IO.Stream stream)
     {
         var data = ShimSkiaSharp.SKImage.FromStream(stream);
@@ -31,9 +24,9 @@ public class SkiaAssetLoader : Model.IAssetLoader
 
         if (paintPreferredTypeface.Typeface is { } preferredTypeface)
         {
-            var weight = _skiaModel.ToSKFontStyleWeight(preferredTypeface.FontWeight);
-            var width = _skiaModel.ToSKFontStyleWidth(preferredTypeface.FontWidth);
-            var slant = _skiaModel.ToSKFontStyleSlant(preferredTypeface.FontSlant);
+            var weight = skiaModel.ToSKFontStyleWeight(preferredTypeface.FontWeight);
+            var width = skiaModel.ToSKFontStyleWidth(preferredTypeface.FontWidth);
+            var slant = skiaModel.ToSKFontStyleSlant(preferredTypeface.FontSlant);
 
             matchCharacter = codepoint => SkiaSharp.SKFontManager.Default.MatchCharacter(
                 preferredTypeface.FamilyName,
@@ -48,7 +41,7 @@ public class SkiaAssetLoader : Model.IAssetLoader
             matchCharacter = codepoint => SkiaSharp.SKFontManager.Default.MatchCharacter(codepoint);
         }
 
-        using var runningPaint = _skiaModel.ToSKPaint(paintPreferredTypeface);
+        using var runningPaint = skiaModel.ToSKPaint(paintPreferredTypeface);
         if (runningPaint is null)
         {
             return ret;

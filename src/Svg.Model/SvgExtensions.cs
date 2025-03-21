@@ -8,12 +8,12 @@ public static partial class SvgExtensions
 {
     public static CultureInfo? s_systemLanguageOverride = default;
 
-    private static readonly char[] s_spaceTab = { ' ', '\t' };
+    private static readonly char[] s_spaceTab = [' ', '\t'];
 
-    private static readonly char[] s_comma = { ',' };
+    private static readonly char[] s_comma = [','];
 
-    internal static HashSet<string> s_supportedFeatures = new()
-    {
+    internal static readonly HashSet<string> s_supportedFeatures =
+    [
         "http://www.w3.org/TR/SVG11/feature#SVG",
         "http://www.w3.org/TR/SVG11/feature#SVGDOM",
         "http://www.w3.org/TR/SVG11/feature#SVG-static",
@@ -60,9 +60,9 @@ public static partial class SvgExtensions
         "http://www.w3.org/TR/SVG11/feature#Font",
         "http://www.w3.org/TR/SVG11/feature#BasicFont",
         "http://www.w3.org/TR/SVG11/feature#Extensibility"
-    };
+    ];
 
-    internal static HashSet<string> s_supportedExtensions = new();
+    internal static readonly HashSet<string> s_supportedExtensions = [];
 
     internal static T? GetReference<T>(this SvgElement svgElement, Uri? uri) where T : SvgElement
     {

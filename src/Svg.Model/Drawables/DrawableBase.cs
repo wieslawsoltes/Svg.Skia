@@ -7,10 +7,11 @@ using ShimSkiaSharp;
 
 namespace Svg.Model.Drawables;
 
-public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
+public abstract class DrawableBase(IAssetLoader assetLoader, HashSet<Uri>? references)
+    : SKDrawable, IFilterSource, IPictureSource
 {
-    public IAssetLoader AssetLoader { get; }
-    public HashSet<Uri>? References { get; }
+    public IAssetLoader AssetLoader { get; } = assetLoader;
+    public HashSet<Uri>? References { get; } = references;
     public SvgElement? Element { get; set; }
     public DrawableBase? Parent { get; set; }
     public bool IsDrawable { get; set; }
@@ -31,12 +32,6 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
     public SKRect? FilterClip { get; set; }
     public SKPaint? Fill { get; set; }
     public SKPaint? Stroke { get; set; }
-
-    protected DrawableBase(IAssetLoader assetLoader, HashSet<Uri>? references)
-    {
-        AssetLoader = assetLoader;
-        References = references;
-    }
 
     protected override void OnDraw(SKCanvas canvas)
     {
@@ -229,7 +224,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
             {
                 Clip = new ClipPath()
             };
-            SvgExtensions.GetSvgVisualElementClipPath(visualElement, GeometryBounds, new HashSet<Uri>(), clipPath);
+            SvgExtensions.GetSvgVisualElementClipPath(visualElement, GeometryBounds, [], clipPath);
             if (clipPath.Clips is { } && clipPath.Clips.Count > 0)
             {
                 ClipPath = clipPath;    
@@ -246,7 +241,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
 
         if (enableMask)
         {
-            MaskDrawable = SvgExtensions.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader, References);
+            MaskDrawable = SvgExtensions.GetSvgElementMask(element, GeometryBounds, [], AssetLoader, References);
             if (MaskDrawable is { })
             {
                 CreateMaskPaints();
