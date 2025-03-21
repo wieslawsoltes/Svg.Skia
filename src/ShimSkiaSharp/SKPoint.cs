@@ -2,21 +2,15 @@
 
 namespace ShimSkiaSharp;
 
-public readonly struct SKPoint
+public readonly struct SKPoint(float x, float y)
 {
-    public float X { get; }
+    public float X { get; } = x;
 
-    public float Y { get; }
+    public float Y { get; } = y;
 
     public static readonly SKPoint Empty = default;
 
     public readonly bool IsEmpty => X == default && Y == default;
-
-    public SKPoint(float x, float y)
-    {
-        X = x;
-        Y = y;
-    }
 
     public override string ToString() 
         => FormattableString.Invariant($"{X}, {Y}");

@@ -2,15 +2,15 @@
 
 namespace ShimSkiaSharp;
 
-public struct SKRect
+public struct SKRect(float left, float top, float right, float bottom)
 {
-    public float Left { get; set; }
+    public float Left { get; set; } = left;
 
-    public float Top { get; set; }
+    public float Top { get; set; } = top;
 
-    public float Right { get; set; }
+    public float Right { get; set; } = right;
 
-    public float Bottom { get; set; }
+    public float Bottom { get; set; } = bottom;
 
     public SKPoint TopLeft => new(Left, Top);
 
@@ -31,14 +31,6 @@ public struct SKRect
     public readonly SKSize Size => new(Width, Height);
 
     public readonly SKPoint Location => new(Left, Top);
-
-    public SKRect(float left, float top, float right, float bottom)
-    {
-        Left = left;
-        Right = right;
-        Top = top;
-        Bottom = bottom;
-    }
 
     public static SKRect Create(float x, float y, float width, float height)
     {
