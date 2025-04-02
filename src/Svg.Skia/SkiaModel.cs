@@ -617,9 +617,7 @@ public class SkiaModel
                     return null;
                 }
 
-                var sampling = new SkiaSharp.SKSamplingOptions(
-                    SkiaSharp.SKFilterMode.Linear,
-                    SkiaSharp.SKMipmapMode.Linear);
+                var sampling = new SkiaSharp.SKSamplingOptions(SkiaSharp.SKCubicResampler.Mitchell);
 
                 return SkiaSharp.SKImageFilter.CreateImage(
                     ToSKImage(imageImageFilter.Image),
