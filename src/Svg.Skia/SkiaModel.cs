@@ -437,11 +437,6 @@ public class SkiaModel
         }
     }
 
-    public SkiaSharp.SKImageFilter.CropRect? ToCropRect(SKImageFilter.CropRect? cropRect)
-    {
-        return cropRect is null ? null : new(ToSKRect(cropRect.Rect));
-    }
-
     public SkiaSharp.SKColorChannel ToSKColorChannel(SKColorChannel colorChannel)
     {
         return colorChannel switch
@@ -622,11 +617,13 @@ public class SkiaModel
                     return null;
                 }
 
+                var sampling = new SkiaSharp.SKSamplingOptions(SkiaSharp.SKCubicResampler.Mitchell);
+
                 return SkiaSharp.SKImageFilter.CreateImage(
                     ToSKImage(imageImageFilter.Image),
                     ToSKRect(imageImageFilter.Src),
                     ToSKRect(imageImageFilter.Dst),
-                    SkiaSharp.SKFilterQuality.High);
+                    sampling);
             }
             case MatrixConvolutionImageFilter matrixConvolutionImageFilter:
             {
@@ -690,12 +687,11 @@ public class SkiaModel
                     return null;
                 }
 
+                var shader = paintImageFilter.Paint.Shader ?? SKShader.CreateColor(paintImageFilter.Paint.Color!.Value, SKColorSpace.Srgb);
+
                 return paintImageFilter.Clip is { } clip
-                    ? SkiaSharp.SKImageFilter.CreatePaint(
-                        ToSKPaint(paintImageFilter.Paint),
-                        ToSKRect(clip.Rect))
-                    : SkiaSharp.SKImageFilter.CreatePaint(
-                        ToSKPaint(paintImageFilter.Paint));
+                    ? SkiaSharp.SKImageFilter.CreateShader(ToSKShader(shader), dither: false, cropRect: ToSKRect(clip.Rect))
+                    : SkiaSharp.SKImageFilter.CreateShader(ToSKShader(shader), dither: false);
             }
             case ShaderImageFilter shaderImageFilter:
             {
