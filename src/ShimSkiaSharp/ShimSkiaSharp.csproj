@@ -16,7 +16,6 @@
     <PackageTags>vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;model</PackageTags>
   </PropertyGroup>
 
-  <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\SourceLink.props" />
   <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />

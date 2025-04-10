@@ -18,7 +18,6 @@
     <PackageTags>vector graphics;rendering;2d;graphics;picture;bitamp;geometry;shapes;skiasharp;skia;control;avalonia;avaloniaui</PackageTags>
   </PropertyGroup>
 
-  <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\SourceLink.props" />
   <!--<Import Project="..\..\build\SignAssembly.props" />-->
   <Import Project="..\..\build\ReferenceAssemblies.props" />

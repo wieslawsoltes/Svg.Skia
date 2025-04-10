@@ -21,7 +21,6 @@
     <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes</PackageTags>
   </PropertyGroup>
 
-  <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\SourceLink.props" />
   <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
@@ -59,7 +58,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ExCSS" Version="4.2.3" />
+    <PackageReference Include="ExCSS" />
   </ItemGroup>
 
   <PropertyGroup>

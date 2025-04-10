@@ -15,6 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{32B4A27D
 		build.sh = build.sh
 		global.json = global.json
 		build\svg.skia.public.snk = build\svg.skia.public.snk
+		Directory.Packages.props = Directory.Packages.props
+		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{8F2FA341-A87B-4BF8-986F-95A123073091}"
@@ -47,7 +49,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "props", "props", "{5BFEF4F8
 		build\Avalonia.Skia.props = build\Avalonia.Skia.props
 		build\Avalonia.Themes.Fluent.props = build\Avalonia.Themes.Fluent.props
 		build\Avalonia.Web.props = build\Avalonia.Web.props
-		build\Base.props = build\Base.props
 		build\HarfBuzzSharp.NativeAssets.Linux.props = build\HarfBuzzSharp.NativeAssets.Linux.props
 		build\Newtonsoft.Json.props = build\Newtonsoft.Json.props
 		build\ReferenceAssemblies.props = build\ReferenceAssemblies.props

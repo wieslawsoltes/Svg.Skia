@@ -21,7 +21,6 @@
     <!--<DefineConstants>$(DefineConstants);USE_DEBUG_DRAW_FILTER_BOUNDS</DefineConstants>-->
   </PropertyGroup>
 
-  <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\SourceLink.props" />
   <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
