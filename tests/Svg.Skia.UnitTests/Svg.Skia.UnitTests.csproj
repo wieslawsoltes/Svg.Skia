@@ -9,7 +9,7 @@
 
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <Import Project="..\..\build\XUnit.props" />
-  <Import Project="..\..\build\ImageSharp.props" />
+  <Import Project="..\..\build\SixLabors.ImageSharp.props" />
   <Import Project="..\..\build\SkiaSharp.props" />
   <Import Project="..\..\build\SkiaSharp.Linux.props" />
   <Import Project="..\..\build\HarfBuzzSharp.NativeAssets.Linux.props" />
