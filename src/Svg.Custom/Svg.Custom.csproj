@@ -21,7 +21,6 @@
     <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes</PackageTags>
   </PropertyGroup>
 
-  <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\SourceLink.props" />
   <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
@@ -54,12 +53,8 @@
     <DefineConstants>$(DefineConstants);NETCORE;NET6</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-  </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="ExCSS" Version="4.2.3" />
+    <PackageReference Include="ExCSS" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -67,7 +62,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(SvgSourcesBasePath)\Generators\Svg.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\externals\Svg.Generators\Svg.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Memory" />
   </ItemGroup>
 
 </Project>

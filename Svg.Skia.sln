@@ -15,6 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{32B4A27D
 		build.sh = build.sh
 		global.json = global.json
 		build\svg.skia.public.snk = build\svg.skia.public.snk
+		Directory.Packages.props = Directory.Packages.props
+		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{8F2FA341-A87B-4BF8-986F-95A123073091}"
@@ -47,7 +49,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "props", "props", "{5BFEF4F8
 		build\Avalonia.Skia.props = build\Avalonia.Skia.props
 		build\Avalonia.Themes.Fluent.props = build\Avalonia.Themes.Fluent.props
 		build\Avalonia.Web.props = build\Avalonia.Web.props
-		build\Base.props = build\Base.props
 		build\HarfBuzzSharp.NativeAssets.Linux.props = build\HarfBuzzSharp.NativeAssets.Linux.props
 		build\Newtonsoft.Json.props = build\Newtonsoft.Json.props
 		build\ReferenceAssemblies.props = build\ReferenceAssemblies.props
@@ -82,8 +83,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.CodeGen.Skia", "src\Svg
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Controls.Skia", "src\Avalonia.Controls.Skia\Avalonia.Controls.Skia.csproj", "{223B7A5A-E263-4D40-9A6E-FE31EAE92F45}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Svg.Generators", "externals\SVG\Generators\Svg.Generators.csproj", "{AF8AEF5B-0664-4106-9BD3-389758F39B12}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "samples\TestApp\TestApp.csproj", "{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "externals", "externals", "{C5FFCF4B-86DC-453E-8006-44EE9EEFEE39}"
@@ -112,6 +111,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Svg", "src\Avalonia.Svg\Avalonia.Svg.csproj", "{B742F260-0EC6-4805-AE9F-987818CE3CF4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaSvgSkiaStylingSample", "samples\AvaloniaSvgSkiaStylingSample\AvaloniaSvgSkiaStylingSample.csproj", "{8A938DC2-1634-4387-BAB3-69F871D54FB5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Svg.Generators", "externals\Svg.Generators\Svg.Generators.csproj", "{A27DF58D-4865-4233-9D1A-476DF155EC8C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -159,10 +160,6 @@ Global
 		{223B7A5A-E263-4D40-9A6E-FE31EAE92F45}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{223B7A5A-E263-4D40-9A6E-FE31EAE92F45}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{223B7A5A-E263-4D40-9A6E-FE31EAE92F45}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AF8AEF5B-0664-4106-9BD3-389758F39B12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AF8AEF5B-0664-4106-9BD3-389758F39B12}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AF8AEF5B-0664-4106-9BD3-389758F39B12}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AF8AEF5B-0664-4106-9BD3-389758F39B12}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -207,6 +204,10 @@ Global
 		{8A938DC2-1634-4387-BAB3-69F871D54FB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A938DC2-1634-4387-BAB3-69F871D54FB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A938DC2-1634-4387-BAB3-69F871D54FB5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A27DF58D-4865-4233-9D1A-476DF155EC8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A27DF58D-4865-4233-9D1A-476DF155EC8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A27DF58D-4865-4233-9D1A-476DF155EC8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A27DF58D-4865-4233-9D1A-476DF155EC8C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -225,7 +226,6 @@ Global
 		{4C970B2C-6C96-445B-B80B-4EFBF803FD5F} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
 		{29F59C87-EAE6-4DD3-8666-B79BFAF6B34D} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
 		{223B7A5A-E263-4D40-9A6E-FE31EAE92F45} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
-		{AF8AEF5B-0664-4106-9BD3-389758F39B12} = {C5FFCF4B-86DC-453E-8006-44EE9EEFEE39}
 		{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
 		{6D2786A1-F110-4448-9CBF-D3CC9D803F31} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
 		{BE25FC07-9A8C-4494-A6AE-F2561CF89010} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
@@ -238,6 +238,7 @@ Global
 		{3049C672-8A3F-4FE4-9973-515B8323B546} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
 		{B742F260-0EC6-4805-AE9F-987818CE3CF4} = {4C42912C-9F8C-43D9-A4B5-4427F7EC8F18}
 		{8A938DC2-1634-4387-BAB3-69F871D54FB5} = {B65D5B3A-77BE-4AFF-B502-A136B9C932F8}
+		{A27DF58D-4865-4233-9D1A-476DF155EC8C} = {C5FFCF4B-86DC-453E-8006-44EE9EEFEE39}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12D5E557-A27B-4FB2-83A3-4AC75B04B22C}

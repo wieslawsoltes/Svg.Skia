@@ -1,0 +1,20 @@
+﻿<Project>
+  <PropertyGroup>
+    <VersionPrefix>2.0.0.4</VersionPrefix>
+    <VersionSuffix></VersionSuffix>
+    <AvaloniaVersionPrefix>11.2.0.2</AvaloniaVersionPrefix>
+    <AvaloniaVersionSuffix>$(VersionSuffix)</AvaloniaVersionSuffix>
+    <Authors>Wiesław Šoltés</Authors>
+    <Company>Wiesław Šoltés</Company>
+    <Copyright>Copyright © Wiesław Šoltés 2025</Copyright>
+    <PackageProjectUrl>https://github.com/wieslawsoltes/Svg.Skia</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/wieslawsoltes/Svg.Skia/master/icon/SvgToPng.png</PackageIconUrl>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+</Project>

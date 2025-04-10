@@ -22,14 +22,13 @@
     <PublishReadyToRunExclude Include="Microsoft.CodeAnalysis.dll" />
   </ItemGroup>
   
-  <Import Project="..\..\build\Base.props" />
   <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <Import Project="..\..\build\SixLabors.ImageSharp.props" />
   
   <ItemGroup>
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20371.2" />
-    <PackageReference Include="System.Text.Json" Version="4.7.2" />
+    <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
   <ItemGroup>

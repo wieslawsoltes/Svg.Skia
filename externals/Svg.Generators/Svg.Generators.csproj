@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>netstandard2.0</TargetFrameworks>
+        <OutputType>Library</OutputType>
+        <IsPackable>False</IsPackable>
+        <AnalysisLevel>latest</AnalysisLevel>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+        <Configurations>Debug;Release</Configurations>
+    </PropertyGroup>
+
+  <PropertyGroup>
+    <GeneratorsBasePath>..\SVG\Generators</GeneratorsBasePath>
+  </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    </PropertyGroup>
+    
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <NoWarn>$(NoWarn);CS1591;CS0618</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Compile Include="$(GeneratorsBasePath)\**\*.cs" Exclude="$(GeneratorsBasePath)\Properties\**;$(GeneratorsBasePath)\obj\**;$(GeneratorsBasePath)\bin\**" />
+    </ItemGroup>
+  
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+    </ItemGroup>
+
+</Project>
