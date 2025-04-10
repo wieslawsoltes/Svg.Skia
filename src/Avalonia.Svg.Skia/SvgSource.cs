@@ -48,7 +48,7 @@ public sealed class SvgSource : IDisposable
 
             return _picture;
         }
-        protected set => _picture = value;
+        set => _picture = value;
     }
 
     /// <summary>
