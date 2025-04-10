@@ -94,12 +94,17 @@ public sealed class SvgSource : IDisposable
         s_assetLoader = new SkiaAssetLoader(s_skiaModel);
     }
 
-    private static SKPicture? Load(SvgSource source, string path, SvgParameters? parameters)
+    private static SKPicture? Load(SvgSource source, string? path, SvgParameters? parameters)
     {
         source._originalPath = path;
         source._originalStream?.Dispose();
         source._originalStream = null;
 
+        if (path is null)
+        {
+            return null;
+        }
+        
         var svgDocument = SvgExtensions.Open(path, parameters);
         if (svgDocument is null)
         {
@@ -162,7 +167,7 @@ public sealed class SvgSource : IDisposable
     {
         return EnableThrowOnMissingResource 
             ? throw new ArgumentException($"Invalid resource path: {path}") 
-            : default;
+            : null;
     }
 
     private static SKPicture? LoadImpl(SvgSource source, string path, Uri? baseUri, SvgParameters? parameters = null)
