@@ -188,9 +188,9 @@ public class SkiaModel
 
         if (Settings.TypefaceProviders is { } && Settings.TypefaceProviders.Count > 0)
         {
-            foreach (var typefaceProviders in Settings.TypefaceProviders)
+            foreach (var typefaceProvider in Settings.TypefaceProviders)
             {
-                var skTypeface = typefaceProviders.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
+                var skTypeface = typefaceProvider.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
                 if (skTypeface is { })
                 {
                     return skTypeface;
