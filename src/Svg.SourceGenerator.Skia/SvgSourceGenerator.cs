@@ -1,16 +1,18 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Svg.CodeGen.Skia;
 
 namespace Svg.SourceGenerator.Skia;
 
 [Generator]
-public class SvgSourceGenerator : ISourceGenerator
+public class SvgSourceGenerator : IIncrementalGenerator
 {
     private static readonly Model.IAssetLoader s_assetLoader = new SkiaGeneratorAssetLoader();
 
@@ -24,88 +26,101 @@ public class SvgSourceGenerator : ISourceGenerator
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public void Initialize(GeneratorInitializationContext context)
+    public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // System.Diagnostics.Debugger.Launch();
+        // Register the additional files provider to get all .svg files
+        IncrementalValuesProvider<AdditionalText> svgFiles = context.AdditionalTextsProvider
+            .Where(file => file.Path.EndsWith(".svg", StringComparison.InvariantCultureIgnoreCase));
+
+        // Create a provider for the global namespace from build properties
+        IncrementalValueProvider<string?> globalNamespace = context.AnalyzerConfigOptionsProvider
+            .Select((options, _) => 
+            {
+                options.GlobalOptions.TryGetValue("build_property.NamespaceName", out var namespaceName);
+                return namespaceName;
+            });
+
+        // Combine the SVG files with their analyzer config options and global namespace
+        IncrementalValuesProvider<(AdditionalText File, AnalyzerConfigOptionsProvider Options, string? GlobalNamespace)> combined =
+            svgFiles.Combine(context.AnalyzerConfigOptionsProvider.Select((options, _) => options))
+                   .Combine(globalNamespace)
+                   .Select((pair, _) => (pair.Left.Left, pair.Left.Right, pair.Right));
+
+        // Register the source output
+        context.RegisterSourceOutput(combined, (spc, data) => Execute(spc, data.File, data.Options, data.GlobalNamespace));
     }
 
-    public void Execute(GeneratorExecutionContext context)
+    private void Execute(SourceProductionContext context, AdditionalText file, AnalyzerConfigOptionsProvider optionsProvider, string? globalNamespaceName)
     {
         try
         {
-            context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("build_property.NamespaceName", out var globalNamespaceName);
+            string? namespaceName = null;
 
-            var files = context.AdditionalFiles.Where(at => at.Path.EndsWith(".svg", StringComparison.InvariantCultureIgnoreCase));
-
-            foreach (var file in files)
+            if (!string.IsNullOrWhiteSpace(globalNamespaceName))
             {
-                string? namespaceName = null;
+                namespaceName = globalNamespaceName;
+            }
 
-                if (!string.IsNullOrWhiteSpace(globalNamespaceName))
+            var options = optionsProvider.GetOptions(file);
+            if (options.TryGetValue("build_metadata.AdditionalFiles.NamespaceName", out var perFilenamespaceName))
+            {
+                if (!string.IsNullOrWhiteSpace(perFilenamespaceName))
                 {
-                    namespaceName = globalNamespaceName;
+                    namespaceName = perFilenamespaceName;
                 }
+            }
 
-                if (context.AnalyzerConfigOptions.GetOptions(file).TryGetValue("build_metadata.AdditionalFiles.NamespaceName", out var perFilenamespaceName))
+            if (string.IsNullOrWhiteSpace(namespaceName))
+            {
+                namespaceName = "Svg";
+            }
+
+            options.TryGetValue("build_metadata.AdditionalFiles.ClassName", out var className);
+
+            if (string.IsNullOrWhiteSpace(className))
+            {
+                className = CreateClassName(file.Path);
+            }
+
+            if (string.IsNullOrWhiteSpace(namespaceName))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "The specified namespace name is invalid."));
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(className))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "The specified class name is invalid."));
+                return;
+            }
+
+            var svg = file.GetText(context.CancellationToken)?.ToString();
+            if (string.IsNullOrWhiteSpace(svg))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "Svg file is null or empty."));
+                return;
+            }
+
+            var svgDocument = Svg.Model.SvgExtensions.FromSvg(svg!);
+            if (svgDocument is { })
+            {
+                var picture = Svg.Model.SvgExtensions.ToModel(svgDocument, s_assetLoader, out _, out _);
+                if (picture is { } && picture.Commands is { })
                 {
-                    if (!string.IsNullOrWhiteSpace(perFilenamespaceName))
-                    {
-                        namespaceName = perFilenamespaceName;
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(namespaceName))
-                {
-                    namespaceName = "Svg";
-                }
-
-                context.AnalyzerConfigOptions.GetOptions(file).TryGetValue("build_metadata.AdditionalFiles.ClassName", out var className);
-
-                if (string.IsNullOrWhiteSpace(className))
-                {
-                    className = CreateClassName(file.Path);
-                }
-
-                if (string.IsNullOrWhiteSpace(namespaceName))
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "The specified namespace name is invalid."));
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(className))
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "The specified class name is invalid."));
-                    return;
-                }
-
-                var svg = file.GetText(context.CancellationToken)?.ToString();
-                if (string.IsNullOrWhiteSpace(svg))
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "Svg file is null or empty."));
-                    return;
-                }
-
-                var svgDocument =  Svg.Model.SvgExtensions.FromSvg(svg!);
-                if (svgDocument is { })
-                {
-                    var picture =  Svg.Model.SvgExtensions.ToModel(svgDocument, s_assetLoader, out _, out _);
-                    if (picture is { } && picture.Commands is { })
-                    {
-                        var code = SkiaCSharpCodeGen.Generate(picture, namespaceName!, className!);
-                        var sourceText = SourceText.From(code, Encoding.UTF8);
-                        context.AddSource($"{className}.svg.cs", sourceText);
-                    }
-                    else
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "Invalid svg picture model."));
-                        return;
-                    }
+                    var code = SkiaCSharpCodeGen.Generate(picture, namespaceName!, className!);
+                    var sourceText = SourceText.From(code, Encoding.UTF8);
+                    context.AddSource($"{className}.svg.cs", sourceText);
                 }
                 else
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "Could not load svg document."));
+                    context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "Invalid svg picture model."));
                     return;
                 }
+            }
+            else
+            {
+                context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "Could not load svg document."));
+                return;
             }
         }
         catch (Exception e)
