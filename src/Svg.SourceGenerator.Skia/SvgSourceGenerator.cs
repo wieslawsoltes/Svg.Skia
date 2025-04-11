@@ -1,7 +1,4 @@
-#nullable enable
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
@@ -29,11 +26,11 @@ public class SvgSourceGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Register the additional files provider to get all .svg files
-        IncrementalValuesProvider<AdditionalText> svgFiles = context.AdditionalTextsProvider
+        var svgFiles = context.AdditionalTextsProvider
             .Where(file => file.Path.EndsWith(".svg", StringComparison.InvariantCultureIgnoreCase));
 
         // Create a provider for the global namespace from build properties
-        IncrementalValueProvider<string?> globalNamespace = context.AnalyzerConfigOptionsProvider
+        var globalNamespace = context.AnalyzerConfigOptionsProvider
             .Select((options, _) => 
             {
                 options.GlobalOptions.TryGetValue("build_property.NamespaceName", out var namespaceName);
@@ -101,10 +98,10 @@ public class SvgSourceGenerator : IIncrementalGenerator
                 return;
             }
 
-            var svgDocument = Svg.Model.SvgExtensions.FromSvg(svg!);
+            var svgDocument = Model.SvgExtensions.FromSvg(svg!);
             if (svgDocument is { })
             {
-                var picture = Svg.Model.SvgExtensions.ToModel(svgDocument, s_assetLoader, out _, out _);
+                var picture = Model.SvgExtensions.ToModel(svgDocument, s_assetLoader, out _, out _);
                 if (picture is { } && picture.Commands is { })
                 {
                     var code = SkiaCSharpCodeGen.Generate(picture, namespaceName!, className!);
@@ -114,13 +111,11 @@ public class SvgSourceGenerator : IIncrementalGenerator
                 else
                 {
                     context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "Invalid svg picture model."));
-                    return;
                 }
             }
             else
             {
                 context.ReportDiagnostic(Diagnostic.Create(s_errorDescriptor, Location.None, "Could not load svg document."));
-                return;
             }
         }
         catch (Exception e)
@@ -145,8 +140,8 @@ public class SvgSourceGenerator : IIncrementalGenerator
     
     private string CreateClassName(string path)
     {
-        string name = System.IO.Path.GetFileNameWithoutExtension(path);
-        string className = s_regexReplaceName.Replace(name, "_");
+        var name = System.IO.Path.GetFileNameWithoutExtension(path);
+        var className = s_regexReplaceName.Replace(name, "_");
         return $"Svg_{className}";
     }
 }
