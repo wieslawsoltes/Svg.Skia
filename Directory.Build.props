@@ -1,7 +1,7 @@
 ﻿<Project>
   <PropertyGroup>
     <VersionPrefix>3.0.0</VersionPrefix>
-    <VersionSuffix></VersionSuffix>
+    <VersionSuffix>beta1</VersionSuffix>
     <AvaloniaVersionPrefix>11.2.7.1</AvaloniaVersionPrefix>
     <AvaloniaVersionSuffix>$(VersionSuffix)</AvaloniaVersionSuffix>
     <Authors>Wiesław Šoltés</Authors>
