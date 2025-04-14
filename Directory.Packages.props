@@ -17,7 +17,7 @@
     <PackageVersion Include="Svg" Version="3.4.4" />
     <PackageVersion Include="ExCSS" Version="4.3.0" />
     <PackageVersion Include="SkiaSharp" Version="2.88.9" />
-    <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="2.88.9" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="3.116.1" />
     <PackageVersion Include="SkiaSharp.HarfBuzz" Version="2.88.9" />
     <PackageVersion Include="HarfBuzzSharp.NativeAssets.Linux" Version="8.3.0.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
