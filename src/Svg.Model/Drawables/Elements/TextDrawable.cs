@@ -486,7 +486,7 @@ public sealed class TextDrawable : DrawableBase
         }
 
         // TODO: svgPath.Transforms
-        // var skMatrixPath = SvgExtensions.ToSKMatrix(svgPath.Transforms);
+        // var skMatrixPath = TransformsService.ToSKMatrix(svgPath.Transforms);
         // skPath.Transform(skMatrixPath);
 
         // TODO: Implement StartOffset
