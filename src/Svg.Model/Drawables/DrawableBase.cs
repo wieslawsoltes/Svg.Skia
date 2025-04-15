@@ -10,7 +10,7 @@ namespace Svg.Model.Drawables;
 
 public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
 {
-    public IAssetLoader AssetLoader { get; }
+    public ISvgAssetLoader AssetLoader { get; }
     public HashSet<Uri>? References { get; }
     public SvgElement? Element { get; set; }
     public DrawableBase? Parent { get; set; }
@@ -33,7 +33,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
     public SKPaint? Fill { get; set; }
     public SKPaint? Stroke { get; set; }
 
-    protected DrawableBase(IAssetLoader assetLoader, HashSet<Uri>? references)
+    protected DrawableBase(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
     {
         AssetLoader = assetLoader;
         References = references;

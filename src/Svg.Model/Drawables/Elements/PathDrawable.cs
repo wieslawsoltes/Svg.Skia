@@ -7,12 +7,12 @@ namespace Svg.Model.Drawables.Elements;
 
 public sealed class PathDrawable : DrawablePath
 {
-    private PathDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+    private PathDrawable(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
         : base(assetLoader, references)
     {
     }
 
-    public static PathDrawable Create(SvgPath svgPath, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+    public static PathDrawable Create(SvgPath svgPath, SKRect skViewport, DrawableBase? parent, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
         var drawable = new PathDrawable(assetLoader, references)
         {

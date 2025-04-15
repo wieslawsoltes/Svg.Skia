@@ -368,7 +368,7 @@ public static class SvgService
     return uri;
 }
 
-    internal static object? GetImage(string uriString, SvgDocument svgOwnerDocument, IAssetLoader assetLoader)
+    internal static object? GetImage(string uriString, SvgDocument svgOwnerDocument, ISvgAssetLoader assetLoader)
     {
         try
         {
@@ -388,7 +388,7 @@ public static class SvgService
         }
     }
 
-    internal static object? GetImageFromWeb(Uri uri, IAssetLoader assetLoader)
+    internal static object? GetImageFromWeb(Uri uri, ISvgAssetLoader assetLoader)
     {
 #pragma warning disable 618, SYSLIB0014
         var request = WebRequest.Create(uri);
@@ -424,7 +424,7 @@ public static class SvgService
         return assetLoader.LoadImage(stream);
     }
 
-    internal static object? GetImageFromDataUri(string? uriString, SvgDocument svgOwnerDocument, IAssetLoader assetLoader)
+    internal static object? GetImageFromDataUri(string? uriString, SvgDocument svgOwnerDocument, ISvgAssetLoader assetLoader)
     {
         if (uriString is null)
         {
@@ -589,7 +589,7 @@ public static class SvgService
         return new SKSize((float)Math.Round(w), (float)Math.Round(h));
     }
 
-    public static SKDrawable? ToDrawable(SvgFragment svgFragment, IAssetLoader assetLoader, HashSet<Uri>? references, out SKRect? bounds, DrawAttributes ignoreAttributes = DrawAttributes.None)
+    public static SKDrawable? ToDrawable(SvgFragment svgFragment, ISvgAssetLoader assetLoader, HashSet<Uri>? references, out SKRect? bounds, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
         var size = GetDimensions(svgFragment);
         var fragmentBounds = SKRect.Create(size);
@@ -621,7 +621,7 @@ public static class SvgService
         return drawable;
     }
 
-    public static SKPicture? ToModel(SvgFragment svgFragment, IAssetLoader assetLoader, out SKDrawable? skDrawable, out SKRect? skBounds, DrawAttributes ignoreAttributes = DrawAttributes.None)
+    public static SKPicture? ToModel(SvgFragment svgFragment, ISvgAssetLoader assetLoader, out SKDrawable? skDrawable, out SKRect? skBounds, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
         var references = new HashSet<Uri>
         {

@@ -12,7 +12,7 @@ namespace Svg.SourceGenerator.Skia;
 [Generator]
 public class SvgSourceGenerator : IIncrementalGenerator
 {
-    private static readonly Model.IAssetLoader s_assetLoader = new SkiaGeneratorAssetLoader();
+    private static readonly Model.ISvgAssetLoader s_assetLoader = new SkiaGeneratorSvgAssetLoader();
 
     private static readonly DiagnosticDescriptor s_errorDescriptor = new(
 #pragma warning disable RS2008 // Enable analyzer release tracking

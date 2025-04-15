@@ -7,12 +7,12 @@ namespace Svg.Model.Drawables.Elements;
 
 public sealed class RectangleDrawable : DrawablePath
 {
-    private RectangleDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+    private RectangleDrawable(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
         : base(assetLoader, references)
     {
     }
 
-    public static RectangleDrawable Create(SvgRectangle svgRectangle, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+    public static RectangleDrawable Create(SvgRectangle svgRectangle, SKRect skViewport, DrawableBase? parent, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
         var drawable = new RectangleDrawable(assetLoader, references)
         {

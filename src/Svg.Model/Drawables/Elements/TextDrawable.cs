@@ -16,12 +16,12 @@ public sealed class TextDrawable : DrawableBase
 
     public SKRect OwnerBounds { get; set; }
 
-    private TextDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+    private TextDrawable(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
         : base(assetLoader, references)
     {
     }
 
-    public static TextDrawable Create(SvgText svgText, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+    public static TextDrawable Create(SvgText svgText, SKRect skViewport, DrawableBase? parent, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
         var drawable = new TextDrawable(assetLoader, references)
         {

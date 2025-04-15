@@ -72,7 +72,7 @@ internal static class MarkerService
         }
     }
 
-    internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skViewport, IMarkerHost markerHost, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+    internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, bool isStartMarker, SKRect skViewport, IMarkerHost markerHost, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
         var fAngle1 = 0f;
         if (svgMarker.Orient.IsAuto)
@@ -90,7 +90,7 @@ internal static class MarkerService
         markerHost.AddMarker(markerDrawable);
     }
 
-    internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, SKPoint pMarkerPoint3, SKRect skViewport, IMarkerHost markerHost, IAssetLoader assetLoader, HashSet<Uri>? references)
+    internal static void CreateMarker(this SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pRefPoint, SKPoint pMarkerPoint1, SKPoint pMarkerPoint2, SKPoint pMarkerPoint3, SKRect skViewport, IMarkerHost markerHost, ISvgAssetLoader assetLoader, HashSet<Uri>? references)
     {
         var xDiff = pMarkerPoint2.X - pMarkerPoint1.X;
         var yDiff = pMarkerPoint2.Y - pMarkerPoint1.Y;
@@ -103,7 +103,7 @@ internal static class MarkerService
         markerHost.AddMarker(markerDrawable);
     }
 
-    internal static void CreateMarkers(this SvgMarkerElement svgMarkerElement, SKPath skPath, SKRect skViewport, IMarkerHost markerHost, IAssetLoader assetLoader, HashSet<Uri>? references)
+    internal static void CreateMarkers(this SvgMarkerElement svgMarkerElement, SKPath skPath, SKRect skViewport, IMarkerHost markerHost, ISvgAssetLoader assetLoader, HashSet<Uri>? references)
     {
         var pathTypes = skPath.GetPathTypes();
         var pathLength = pathTypes.Count;

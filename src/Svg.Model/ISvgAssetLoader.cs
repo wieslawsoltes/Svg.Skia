@@ -6,7 +6,7 @@ namespace Svg.Model;
 
 public record struct TypefaceSpan(string Text, float Advance, SKTypeface? Typeface);
 
-public interface IAssetLoader
+public interface ISvgAssetLoader
 {
     SKImage LoadImage(Stream stream);
     List<TypefaceSpan> FindTypefaces(string? text, SKPaint paintPreferredTypeface);

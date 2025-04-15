@@ -10,7 +10,7 @@ namespace svgc;
 
 class Program
 {
-    private static readonly Svg.Model.IAssetLoader AssetLoader = new ImageSharpAssetLoader();
+    private static readonly Svg.Model.ISvgAssetLoader AssetLoader = new ImageSharpAssetLoader();
 
     static void Log(string message)
     {

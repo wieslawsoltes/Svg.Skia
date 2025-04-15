@@ -7,12 +7,12 @@ namespace Svg.Model.Drawables.Elements;
 
 public sealed class AnchorDrawable : DrawableContainer
 {
-    private AnchorDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+    private AnchorDrawable(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
         : base(assetLoader, references)
     {
     }
 
-    public static AnchorDrawable Create(SvgAnchor svgAnchor, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+    public static AnchorDrawable Create(SvgAnchor svgAnchor, SKRect skViewport, DrawableBase? parent, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
         var drawable = new AnchorDrawable(assetLoader, references)
         {

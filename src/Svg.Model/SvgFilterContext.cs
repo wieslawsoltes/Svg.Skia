@@ -54,7 +54,7 @@ internal class SvgFilterContext
     private readonly SKRect _skBounds;
     private readonly SKRect _skViewport;
     private readonly IFilterSource _filterSource;
-    private readonly IAssetLoader _assetLoader;
+    private readonly ISvgAssetLoader _assetLoader;
     private readonly HashSet<Uri>? _references;
     private SKRect _skFilterRegion;
     private SvgCoordinateUnits _primitiveUnits;
@@ -69,7 +69,7 @@ internal class SvgFilterContext
 
     public SKPaint? FilterPaint { get; private set; }
 
-    public SvgFilterContext(SvgVisualElement svgVisualElement, SKRect skBounds, SKRect skViewport, IFilterSource filterSource, IAssetLoader assetLoader, HashSet<Uri>? references)
+    public SvgFilterContext(SvgVisualElement svgVisualElement, SKRect skBounds, SKRect skViewport, IFilterSource filterSource, ISvgAssetLoader assetLoader, HashSet<Uri>? references)
     { 
         _svgVisualElement = svgVisualElement;
         _skBounds = skBounds;
@@ -1469,7 +1469,7 @@ internal class SvgFilterContext
         return SKImageFilter.CreateBlur(sigmaX, sigmaY, input, cropRect);
     }
 
-    private SKImageFilter? CreateImage(FilterEffects.SvgImage svgImage, IAssetLoader assetLoader, HashSet<Uri>? references, SKRect skFilterPrimitiveRegion, SKRect? cropRect = default)
+    private SKImageFilter? CreateImage(FilterEffects.SvgImage svgImage, ISvgAssetLoader assetLoader, HashSet<Uri>? references, SKRect skFilterPrimitiveRegion, SKRect? cropRect = default)
     {
         var uri = SvgService.GetImageUri(svgImage.Href, svgImage.OwnerDocument);
         if (references is { } && references.Contains(uri))

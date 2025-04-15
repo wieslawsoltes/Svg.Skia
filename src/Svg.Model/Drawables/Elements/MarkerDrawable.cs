@@ -12,12 +12,12 @@ public sealed class MarkerDrawable : DrawableBase
     public DrawableBase? MarkerElementDrawable { get; set; }
     public SKRect? MarkerClipRect { get; set; }
 
-    private MarkerDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+    private MarkerDrawable(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
         : base(assetLoader, references)
     {
     }
 
-    public static MarkerDrawable Create(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+    public static MarkerDrawable Create(SvgMarker svgMarker, SvgVisualElement pOwner, SKPoint pMarkerPoint, float fAngle, SKRect skViewport, DrawableBase? parent, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
         var drawable = new MarkerDrawable(assetLoader, references)
         {

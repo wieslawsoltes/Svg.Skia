@@ -14,12 +14,12 @@ public sealed class ImageDrawable : DrawableBase
     public SKRect DestRect { get; set; }
     public SKMatrix FragmentTransform { get; set; }
 
-    private ImageDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+    private ImageDrawable(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
         : base(assetLoader, references)
     {
     }
 
-    public static ImageDrawable Create(SvgImage svgImage, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+    public static ImageDrawable Create(SvgImage svgImage, SKRect skViewport, DrawableBase? parent, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
         var drawable = new ImageDrawable(assetLoader, references)
         {

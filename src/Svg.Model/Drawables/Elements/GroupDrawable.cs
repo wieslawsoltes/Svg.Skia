@@ -7,12 +7,12 @@ namespace Svg.Model.Drawables.Elements;
 
 public sealed class GroupDrawable : DrawableContainer
 {
-    private GroupDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+    private GroupDrawable(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
         : base(assetLoader, references)
     {
     }
 
-    public static GroupDrawable Create(SvgGroup svgGroup, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+    public static GroupDrawable Create(SvgGroup svgGroup, SKRect skViewport, DrawableBase? parent, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
         var drawable = new GroupDrawable(assetLoader, references)
         {

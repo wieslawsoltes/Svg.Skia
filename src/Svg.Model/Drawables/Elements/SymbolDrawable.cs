@@ -7,12 +7,12 @@ namespace Svg.Model.Drawables.Elements;
 
 public sealed class SymbolDrawable : DrawableContainer
 {
-    private SymbolDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+    private SymbolDrawable(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
         : base(assetLoader, references)
     {
     }
 
-    public static SymbolDrawable Create(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
+    public static SymbolDrawable Create(SvgSymbol svgSymbol, float x, float y, float width, float height, SKRect skViewport, DrawableBase? parent, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
     {
         var drawable = new SymbolDrawable(assetLoader, references)
         {

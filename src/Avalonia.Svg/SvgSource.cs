@@ -17,7 +17,7 @@ namespace Avalonia.Svg;
 [TypeConverter(typeof(SvgSourceTypeConverter))]
 public class SvgSource
 {
-    private static readonly SM.IAssetLoader s_assetLoader = new AvaloniaAssetLoader();
+    private static readonly SM.ISvgAssetLoader s_assetLoader = new AvaloniaSvgAssetLoader();
 
     public SKPicture? Picture { get; set; }
 

@@ -7,7 +7,7 @@ namespace Svg.Model.Drawables.Factories;
 
 public static class DrawableFactory
 {
-    public static DrawableBase? Create(SvgElement svgElement, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+    public static DrawableBase? Create(SvgElement svgElement, SKRect skViewport, DrawableBase? parent, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
         return svgElement switch
         {

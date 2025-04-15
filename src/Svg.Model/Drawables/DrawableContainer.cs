@@ -9,13 +9,13 @@ public abstract class DrawableContainer : DrawableBase
 {
     public List<DrawableBase> ChildrenDrawables { get; }
 
-    protected DrawableContainer(IAssetLoader assetLoader, HashSet<Uri>? references)
+    protected DrawableContainer(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
         : base(assetLoader, references)
     {
         ChildrenDrawables = new List<DrawableBase>();
     }
 
-    protected void CreateChildren(SvgElement svgElement, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
+    protected void CreateChildren(SvgElement svgElement, SKRect skViewport, DrawableBase? parent, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
     {
         foreach (var child in svgElement.Children)
         {

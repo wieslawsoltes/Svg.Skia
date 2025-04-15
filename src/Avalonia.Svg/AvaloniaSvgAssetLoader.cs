@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Avalonia.Svg;
 
-public class AvaloniaAssetLoader : SM.IAssetLoader
+public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
 {
     public SKImage LoadImage(Stream stream)
     {

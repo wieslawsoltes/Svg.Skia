@@ -15,12 +15,12 @@ public sealed class UseDrawable : DrawableBase
 
     public DrawableBase? ReferencedDrawable { get; set; }
 
-    private UseDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+    private UseDrawable(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
         : base(assetLoader, references)
     {
     }
 
-    public static UseDrawable Create(SvgUse svgUse, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+    public static UseDrawable Create(SvgUse svgUse, SKRect skViewport, DrawableBase? parent, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
         var drawable = new UseDrawable(assetLoader, references)
         {

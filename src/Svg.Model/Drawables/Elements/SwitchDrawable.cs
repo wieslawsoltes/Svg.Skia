@@ -10,12 +10,12 @@ public sealed class SwitchDrawable : DrawableBase
 {
     public DrawableBase? FirstChild { get; set; }
 
-    private SwitchDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+    private SwitchDrawable(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
         : base(assetLoader, references)
     {
     }
 
-    public static SwitchDrawable Create(SvgSwitch svgSwitch, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+    public static SwitchDrawable Create(SvgSwitch svgSwitch, SKRect skViewport, DrawableBase? parent, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
         var drawable = new SwitchDrawable(assetLoader, references)
         {

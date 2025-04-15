@@ -52,13 +52,13 @@ public class SKSvg : IDisposable
         return skSvg;
     }
 
-    public static SkiaSharp.SKPicture? ToPicture(SvgFragment svgFragment, SkiaModel skiaModel, IAssetLoader assetLoader)
+    public static SkiaSharp.SKPicture? ToPicture(SvgFragment svgFragment, SkiaModel skiaModel, ISvgAssetLoader assetLoader)
     {
         var picture = SvgService.ToModel(svgFragment, assetLoader, out _, out _);
         return skiaModel.ToSKPicture(picture);
     }
 
-    public static void Draw(SkiaSharp.SKCanvas skCanvas, SvgFragment svgFragment, SkiaModel skiaModel, IAssetLoader assetLoader)
+    public static void Draw(SkiaSharp.SKCanvas skCanvas, SvgFragment svgFragment, SkiaModel skiaModel, ISvgAssetLoader assetLoader)
     {
         var references = new HashSet<Uri> {svgFragment.OwnerDocument.BaseUri};
         var size = SvgService.GetDimensions(svgFragment);
@@ -72,7 +72,7 @@ public class SKSvg : IDisposable
         }
     }
 
-    public static void Draw(SkiaSharp.SKCanvas skCanvas, string path, SkiaModel skiaModel, IAssetLoader assetLoader)
+    public static void Draw(SkiaSharp.SKCanvas skCanvas, string path, SkiaModel skiaModel, ISvgAssetLoader assetLoader)
     {
         var svgDocument = SvgService.Open(path);
         if (svgDocument is { })
@@ -89,7 +89,7 @@ public class SKSvg : IDisposable
 
     public SKSvgSettings Settings { get; }
 
-    public IAssetLoader AssetLoader { get; }
+    public ISvgAssetLoader AssetLoader { get; }
 
     public SkiaModel SkiaModel { get; }
 
@@ -105,7 +105,7 @@ public class SKSvg : IDisposable
     {
         Settings = new SKSvgSettings();
         SkiaModel = new SkiaModel(Settings);
-        AssetLoader = new SkiaAssetLoader(SkiaModel);
+        AssetLoader = new SkiaSvgAssetLoader(SkiaModel);
     }
 
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream, SvgParameters? parameters = null)

@@ -7,12 +7,12 @@ namespace Svg.Model.Drawables.Elements;
 
 public sealed class FragmentDrawable : DrawableContainer
 {
-    private FragmentDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+    private FragmentDrawable(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
         : base(assetLoader, references)
     {
     }
 
-    public static FragmentDrawable Create(SvgFragment svgFragment, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+    public static FragmentDrawable Create(SvgFragment svgFragment, SKRect skViewport, DrawableBase? parent, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
         var drawable = new FragmentDrawable(assetLoader, references)
         {

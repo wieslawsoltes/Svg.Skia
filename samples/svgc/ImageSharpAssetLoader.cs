@@ -3,7 +3,7 @@ using System.IO;
 
 namespace svgc;
 
-internal class ImageSharpAssetLoader : Svg.Model.IAssetLoader
+internal class ImageSharpAssetLoader : Svg.Model.ISvgAssetLoader
 {
     public ShimSkiaSharp.SKImage LoadImage(Stream stream)
     {

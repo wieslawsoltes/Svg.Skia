@@ -9,7 +9,7 @@ public abstract class DrawablePath : DrawableBase, IMarkerHost
     public SKPath? Path { get; set; }
     public List<DrawableBase>? MarkerDrawables { get; set; }
 
-    protected DrawablePath(IAssetLoader assetLoader, HashSet<Uri>? references)
+    protected DrawablePath(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
         : base(assetLoader, references)
     {
     }

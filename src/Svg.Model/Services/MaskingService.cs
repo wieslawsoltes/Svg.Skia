@@ -391,7 +391,7 @@ internal static class MaskingService
         return default;
     }
 
-    internal static MaskDrawable? GetSvgElementMask(SvgElement svgElement, SKRect skBounds, HashSet<Uri> uris, IAssetLoader assetLoader, HashSet<Uri>? references)
+    internal static MaskDrawable? GetSvgElementMask(SvgElement svgElement, SKRect skBounds, HashSet<Uri> uris, ISvgAssetLoader assetLoader, HashSet<Uri>? references)
     {
         var svgMaskRef = svgElement.GetUriElementReference<SvgMask>("mask", uris);
         if (svgMaskRef?.Children is null)

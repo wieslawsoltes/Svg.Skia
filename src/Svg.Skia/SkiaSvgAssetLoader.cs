@@ -2,11 +2,11 @@
 
 namespace Svg.Skia;
 
-public class SkiaAssetLoader : Model.IAssetLoader
+public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
 {
     private readonly SkiaModel _skiaModel;
 
-    public SkiaAssetLoader(SkiaModel skiaModel)
+    public SkiaSvgAssetLoader(SkiaModel skiaModel)
     {
         _skiaModel = skiaModel;
     }

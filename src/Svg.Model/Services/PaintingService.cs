@@ -582,7 +582,7 @@ internal static class PaintingService
         }
     }
 
-    internal static SKPicture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
+    internal static SKPicture RecordPicture(SvgElementCollection svgElementCollection, float width, float height, SKMatrix skMatrix, float opacity, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
     {
         var skSize = new SKSize(width, height);
         var skBounds = SKRect.Create(skSize);
@@ -628,7 +628,7 @@ internal static class PaintingService
         return skPictureRecorder.EndRecording();
     }
 
-    internal static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
+    internal static SKShader? CreatePicture(SvgPatternServer svgPatternServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
     {
         var svgReferencedPatternServers = GetLinkedPatternServer(svgPatternServer, svgVisualElement);
 
@@ -769,7 +769,7 @@ internal static class PaintingService
         return SKShader.CreatePicture(skPicture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, skMatrix, skPicture.CullRect);
     }
 
-    internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, SKRect skBounds, SKPaint skPaint, bool forStroke, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
+    internal static bool SetColorOrShader(SvgVisualElement svgVisualElement, SvgPaintServer server, float opacity, SKRect skBounds, SKPaint skPaint, bool forStroke, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
     {
         var fallbackServer = SvgPaintServer.None;
         if (server is SvgDeferredPaintServer deferredServer)
@@ -1004,7 +1004,7 @@ internal static class PaintingService
             && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
     }
 
-    internal static SKPaint? GetFillPaint(SvgVisualElement svgVisualElement, SKRect skBounds, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
+    internal static SKPaint? GetFillPaint(SvgVisualElement svgVisualElement, SKRect skBounds, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
     {
         var skPaint = new SKPaint
         {
@@ -1022,7 +1022,7 @@ internal static class PaintingService
         return skPaint;
     }
 
-    internal static SKPaint? GetStrokePaint(SvgVisualElement svgVisualElement, SKRect skBounds, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
+    internal static SKPaint? GetStrokePaint(SvgVisualElement svgVisualElement, SKRect skBounds, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
     {
         var skPaint = new SKPaint
         {

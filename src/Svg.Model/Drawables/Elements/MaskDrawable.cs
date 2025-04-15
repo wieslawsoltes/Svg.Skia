@@ -7,12 +7,12 @@ namespace Svg.Model.Drawables.Elements;
 
 public sealed class MaskDrawable : DrawableContainer
 {
-    private MaskDrawable(IAssetLoader assetLoader, HashSet<Uri>? references)
+    private MaskDrawable(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
         : base(assetLoader, references)
     {
     }
 
-    public static MaskDrawable Create(SvgMask svgMask, SKRect skViewport, DrawableBase? parent, IAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
+    public static MaskDrawable Create(SvgMask svgMask, SKRect skViewport, DrawableBase? parent, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
         var drawable = new MaskDrawable(assetLoader, references)
         {

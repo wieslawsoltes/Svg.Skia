@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Svg.SourceGenerator.Skia;
 
-public class SkiaGeneratorAssetLoader : Model.IAssetLoader
+public class SkiaGeneratorSvgAssetLoader : Model.ISvgAssetLoader
 {
     public ShimSkiaSharp.SKImage LoadImage(System.IO.Stream stream)
     {

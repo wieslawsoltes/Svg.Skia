@@ -19,7 +19,7 @@ namespace Avalonia.Svg.Skia;
 [TypeConverter(typeof(SvgSourceTypeConverter))]
 public sealed class SvgSource : IDisposable
 {
-    public static readonly IAssetLoader s_assetLoader;
+    public static readonly ISvgAssetLoader s_assetLoader;
 
     public static readonly SkiaModel s_skiaModel;
 
@@ -92,7 +92,7 @@ public sealed class SvgSource : IDisposable
     static SvgSource()
     {
         s_skiaModel = new SkiaModel(new SKSvgSettings());
-        s_assetLoader = new SkiaAssetLoader(s_skiaModel);
+        s_assetLoader = new SkiaSvgAssetLoader(s_skiaModel);
     }
 
     private static SKPicture? Load(SvgSource source, string? path, SvgParameters? parameters)
