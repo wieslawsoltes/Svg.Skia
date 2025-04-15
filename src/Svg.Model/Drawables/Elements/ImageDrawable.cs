@@ -46,14 +46,14 @@ public sealed class ImageDrawable : DrawableBase
             return drawable;
         }
 
-        var uri = IoService.GetImageUri(svgImage.Href, svgImage.OwnerDocument);
+        var uri = SvgService.GetImageUri(svgImage.Href, svgImage.OwnerDocument);
         if (references is { } && references.Contains(uri))
         {
             drawable.IsDrawable = false;
             return drawable;
         }
 
-        var image = IoService.GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
+        var image = SvgService.GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
         var skImage = image as SKImage;
         var svgFragment = image as SvgFragment;
         if (skImage is null && svgFragment is null)

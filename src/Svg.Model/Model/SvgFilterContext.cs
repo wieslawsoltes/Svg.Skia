@@ -1470,13 +1470,13 @@ internal class SvgFilterContext
 
     private SKImageFilter? CreateImage(FilterEffects.SvgImage svgImage, IAssetLoader assetLoader, HashSet<Uri>? references, SKRect skFilterPrimitiveRegion, SKRect? cropRect = default)
     {
-        var uri = IoService.GetImageUri(svgImage.Href, svgImage.OwnerDocument);
+        var uri = SvgService.GetImageUri(svgImage.Href, svgImage.OwnerDocument);
         if (references is { } && references.Contains(uri))
         {
             return default;
         }
 
-        var image = IoService.GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
+        var image = SvgService.GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
         var skImage = image as SKImage;
         var svgFragment = image as SvgFragment;
         if (skImage is null && svgFragment is null)

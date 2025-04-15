@@ -52,7 +52,7 @@ public class SKSvg : IDisposable
 
     public static SkiaSharp.SKPicture? ToPicture(SvgFragment svgFragment, SkiaModel skiaModel, IAssetLoader assetLoader)
     {
-        var picture = IoService.ToModel(svgFragment, assetLoader, out _, out _);
+        var picture = SvgService.ToModel(svgFragment, assetLoader, out _, out _);
         return skiaModel.ToSKPicture(picture);
     }
 
@@ -72,7 +72,7 @@ public class SKSvg : IDisposable
 
     public static void Draw(SkiaSharp.SKCanvas skCanvas, string path, SkiaModel skiaModel, IAssetLoader assetLoader)
     {
-        var svgDocument = IoService.Open(path);
+        var svgDocument = SvgService.Open(path);
         if (svgDocument is { })
         {
             Draw(skCanvas, svgDocument, skiaModel, assetLoader);
@@ -123,7 +123,7 @@ public class SKSvg : IDisposable
             _originalParameters = parameters;
             _originalStream.Position = 0;
 
-            svgDocument = IoService.Open(_originalStream, parameters);
+            svgDocument = SvgService.Open(_originalStream, parameters);
             if (svgDocument is null)
             {
                 return null;
@@ -131,14 +131,14 @@ public class SKSvg : IDisposable
         }
         else
         {
-            svgDocument = IoService.Open(stream, parameters);
+            svgDocument = SvgService.Open(stream, parameters);
             if (svgDocument is null)
             {
                 return null;
             }
         }
 
-        Model = IoService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
+        Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
         Drawable = drawable;
         Picture = SkiaModel.ToSKPicture(Model);
 
@@ -153,13 +153,13 @@ public class SKSvg : IDisposable
         _originalStream?.Dispose();
         _originalStream = null;
 
-        var svgDocument = IoService.Open(path, parameters);
+        var svgDocument = SvgService.Open(path, parameters);
         if (svgDocument is null)
         {
             return null;
         }
 
-        Model = IoService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
+        Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
         Drawable = drawable;
         Picture = SkiaModel.ToSKPicture(Model);
 
@@ -170,10 +170,10 @@ public class SKSvg : IDisposable
 
     public SkiaSharp.SKPicture? Load(XmlReader reader)
     {
-        var svgDocument = IoService.Open(reader);
+        var svgDocument = SvgService.Open(reader);
         if (svgDocument is { })
         {
-            Model = IoService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
+            Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
             Drawable = drawable;
             Picture = SkiaModel.ToSKPicture(Model);
             return Picture;
@@ -207,10 +207,10 @@ public class SKSvg : IDisposable
 
     public SkiaSharp.SKPicture? FromSvg(string svg)
     {
-        var svgDocument = IoService.FromSvg(svg);
+        var svgDocument = SvgService.FromSvg(svg);
         if (svgDocument is { })
         {
-            Model = IoService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
+            Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
             Drawable = drawable;
             Picture = SkiaModel.ToSKPicture(Model);
             return Picture;
@@ -222,7 +222,7 @@ public class SKSvg : IDisposable
     {
         if (svgDocument is { })
         {
-            Model = IoService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
+            Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
             Drawable = drawable;
             Picture = SkiaModel.ToSKPicture(Model);
             return Picture;
