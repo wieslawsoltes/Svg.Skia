@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -7,8 +6,8 @@ using System.Net.Http;
 using Avalonia.Platform;
 using ShimSkiaSharp;
 using Svg.Model;
+using Svg.Model.Services;
 using SM = Svg.Model;
-using SP = Svg.Model;
 
 namespace Avalonia.Svg;
 
@@ -33,8 +32,8 @@ public class SvgSource
     {
         if (File.Exists(path))
         {
-            var document = SM.SvgService.Open(path, parameters);
-            return document is { } ? SM.SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
+            var document = SvgService.Open(path, parameters);
+            return document is { } ? SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
         }
 
         if (Uri.TryCreate(path, UriKind.Absolute, out var uriHttp) && (uriHttp.Scheme == "http" || uriHttp.Scheme == "https"))
@@ -45,8 +44,8 @@ public class SvgSource
                 if (response.IsSuccessStatusCode)
                 {
                     var stream = response.Content.ReadAsStreamAsync().Result;
-                    var document = SM.SvgService.Open(stream, parameters);
-                    return document is { } ? SM.SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
+                    var document = SvgService.Open(stream, parameters);
+                    return document is { } ? SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
                 }
             }
             catch (HttpRequestException e)
@@ -61,8 +60,8 @@ public class SvgSource
         var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
         if (uri.IsAbsoluteUri && uri.IsFile)
         {
-            var document = SM.SvgService.Open(uri.LocalPath, parameters);
-            return document is { } ? SM.SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
+            var document = SvgService.Open(uri.LocalPath, parameters);
+            return document is { } ? SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
         }
         else
         {
@@ -71,8 +70,8 @@ public class SvgSource
             {
                 return default;
             }
-            var document = SM.SvgService.Open(stream, parameters);
-            return document is { } ? SM.SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
+            var document = SvgService.Open(stream, parameters);
+            return document is { } ? SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
         }
     }
 
@@ -96,8 +95,8 @@ public class SvgSource
     /// <returns>The svg picture.</returns>
     public static SKPicture? LoadPicture(Stream stream, SvgParameters? parameters = null)
     {
-        var document = SM.SvgService.Open(stream, parameters);
-        return document is { } ? SM.SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
+        var document = SvgService.Open(stream, parameters);
+        return document is { } ? SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
     }
 
     /// <summary>
@@ -118,8 +117,8 @@ public class SvgSource
     /// <returns>The svg picture.</returns>
     public static SKPicture? LoadPictureFromSvg(string source, SvgParameters? parameters = null)
     {
-        var document = SM.SvgService.FromSvg(source);
-        return document is { } ? SM.SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
+        var document = SvgService.FromSvg(source);
+        return document is { } ? SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
     }
 
     /// <summary>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ShimSkiaSharp;
+using Svg.Model.Drawables.Factories;
 
 namespace Svg.Model.Drawables;
 

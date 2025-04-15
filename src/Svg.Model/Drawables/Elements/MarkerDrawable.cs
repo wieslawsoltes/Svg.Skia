@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using Svg.DataTypes;
 using ShimSkiaSharp;
+using Svg.Model.Drawables.Factories;
+using Svg.Model.Services;
 
 namespace Svg.Model.Drawables.Elements;
 

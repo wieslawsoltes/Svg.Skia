@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using ShimSkiaSharp;
+using Svg.Model.Services;
 
 namespace Svg.Model.Drawables.Elements;
 

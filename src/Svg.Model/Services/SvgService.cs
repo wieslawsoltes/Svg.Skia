@@ -8,8 +8,9 @@ using System.Text;
 using System.Xml;
 using ShimSkiaSharp;
 using Svg.Model.Drawables;
+using Svg.Model.Drawables.Factories;
 
-namespace Svg.Model;
+namespace Svg.Model.Services;
 
 public static class SvgService
 {

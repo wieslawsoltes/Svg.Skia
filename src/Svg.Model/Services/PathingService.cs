@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using ShimSkiaSharp;
 using Svg.Pathing;
 
-namespace Svg.Model;
+namespace Svg.Model.Services;
 
 internal static class PathingService
 {

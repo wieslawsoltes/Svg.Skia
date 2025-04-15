@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Reflection;
 using Svg.Document_Structure;
 using ShimSkiaSharp;
+using Svg.Model.Drawables.Factories;
+using Svg.Model.Services;
 
 namespace Svg.Model.Drawables.Elements;
 

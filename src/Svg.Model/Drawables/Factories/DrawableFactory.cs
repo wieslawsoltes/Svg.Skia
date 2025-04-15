@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Svg.Model.Drawables.Elements;
 using ShimSkiaSharp;
+using Svg.Model.Drawables.Elements;
 
-namespace Svg.Model.Drawables;
+namespace Svg.Model.Drawables.Factories;
 
 public static class DrawableFactory
 {

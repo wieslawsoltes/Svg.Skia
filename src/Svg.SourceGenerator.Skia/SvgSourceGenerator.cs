@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Svg.CodeGen.Skia;
+using Svg.Model.Services;
 
 namespace Svg.SourceGenerator.Skia;
 
@@ -98,10 +99,10 @@ public class SvgSourceGenerator : IIncrementalGenerator
                 return;
             }
 
-            var svgDocument = Model.SvgService.FromSvg(svg!);
+            var svgDocument = SvgService.FromSvg(svg!);
             if (svgDocument is { })
             {
-                var picture = Model.SvgService.ToModel(svgDocument, s_assetLoader, out _, out _);
+                var picture = SvgService.ToModel(svgDocument, s_assetLoader, out _, out _);
                 if (picture is { } && picture.Commands is { })
                 {
                     var code = SkiaCSharpCodeGen.Generate(picture, namespaceName!, className!);

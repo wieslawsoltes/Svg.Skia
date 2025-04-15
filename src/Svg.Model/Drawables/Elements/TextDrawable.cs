@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using ShimSkiaSharp;
+using Svg.Model.Services;
 
 namespace Svg.Model.Drawables.Elements;
 

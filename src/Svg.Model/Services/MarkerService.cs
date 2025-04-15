@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using ShimSkiaSharp;
 using Svg.Model.Drawables;
 using Svg.Model.Drawables.Elements;
-using ShimSkiaSharp;
 
-namespace Svg.Model;
+namespace Svg.Model.Services;
 
 internal static class MarkerService
 {

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Xml;
 using Svg.Model.Drawables;
 using ShimSkiaSharp;
+using Svg.Model.Drawables.Factories;
+using Svg.Model.Services;
 
 namespace Svg.Skia;
 

@@ -2,7 +2,7 @@
 using ShimSkiaSharp;
 using Svg.Transforms;
 
-namespace Svg.Model;
+namespace Svg.Model.Services;
 
 internal static class TransformsService
 {

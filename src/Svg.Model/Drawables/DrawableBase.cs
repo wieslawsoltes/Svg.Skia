@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using Svg.Model.Drawables.Elements;
 using ShimSkiaSharp;
+using Svg.Model.Services;
 
 namespace Svg.Model.Drawables;
 

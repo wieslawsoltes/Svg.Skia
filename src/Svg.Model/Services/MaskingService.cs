@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Svg.Model.Drawables.Elements;
 using ShimSkiaSharp;
+using Svg.Model.Drawables.Elements;
 
-namespace Svg.Model;
+namespace Svg.Model.Services;
 
 internal static class MaskingService
 {

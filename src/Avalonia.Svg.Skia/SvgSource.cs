@@ -8,6 +8,7 @@ using Avalonia.Metadata;
 using SkiaSharp;
 using Svg;
 using Svg.Model;
+using Svg.Model.Services;
 using Svg.Skia;
 
 namespace Avalonia.Svg.Skia;

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using ShimSkiaSharp;
 using Svg.DataTypes;
 using Svg.Model.Drawables;
-using ShimSkiaSharp;
+using Svg.Model.Drawables.Factories;
 
-namespace Svg.Model;
+namespace Svg.Model.Services;
 
 internal static class PaintingService
 {

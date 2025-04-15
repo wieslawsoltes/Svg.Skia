@@ -6,6 +6,7 @@ using Svg.FilterEffects;
 using Svg.Model.Drawables;
 using Svg.Model.Drawables.Elements;
 using ShimSkiaSharp;
+using Svg.Model.Services;
 
 namespace Svg.Model;
 

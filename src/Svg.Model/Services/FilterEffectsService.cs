@@ -1,7 +1,7 @@
 ﻿using System;
 using ShimSkiaSharp;
 
-namespace Svg.Model;
+namespace Svg.Model.Services;
 
 internal static class FilterEffectsService
 {

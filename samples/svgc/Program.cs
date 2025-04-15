@@ -30,10 +30,10 @@ class Program
     static void Generate(string inputPath, string outputPath, string namespaceName = "Svg", string className = "Generated")
     {
         var svg = System.IO.File.ReadAllText(inputPath);
-        var svgDocument = Svg.Model.SvgService.FromSvg(svg);
+        var svgDocument = Svg.Model.Services.SvgService.FromSvg(svg);
         if (svgDocument is { })
         {
-            var picture = Svg.Model.SvgService.ToModel(svgDocument, AssetLoader, out _, out _);
+            var picture = Svg.Model.Services.SvgService.ToModel(svgDocument, AssetLoader, out _, out _);
             if (picture is { } && picture.Commands is { })
             {
                 var text = SkiaCSharpCodeGen.Generate(picture, namespaceName, className);
