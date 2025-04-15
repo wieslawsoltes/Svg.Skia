@@ -35,13 +35,13 @@ public sealed class AnchorDrawable : DrawableContainer
             return;;
         }
 
-        IsAntialias = SvgExtensions.IsAntialias(svgAnchor);
+        IsAntialias = PaintingService.IsAntialias(svgAnchor);
 
         GeometryBounds = SKRect.Empty;
 
         CreateGeometryBounds();
 
-        Transform = SvgExtensions.ToMatrix(svgAnchor.Transforms);
+        Transform = TransformsService.ToMatrix(svgAnchor.Transforms);
 
         Fill = null;
         Stroke = null;
@@ -50,7 +50,7 @@ public sealed class AnchorDrawable : DrawableContainer
         MaskDrawable = null;
         Opacity = IgnoreAttributes.HasFlag(DrawAttributes.Opacity)
             ? null
-            : SvgExtensions.GetOpacityPaint(svgAnchor);
+            : PaintingService.GetOpacityPaint(svgAnchor);
         Filter = null;
     }
 
@@ -66,7 +66,7 @@ public sealed class AnchorDrawable : DrawableContainer
 
         ClipPath = null;
         MaskDrawable = null;
-        Opacity = enableOpacity ? SvgExtensions.GetOpacityPaint(element) : null;
+        Opacity = enableOpacity ? PaintingService.GetOpacityPaint(element) : null;
         Filter = null;
 
         TotalTransform = totalMatrix.PreConcat(Transform);

@@ -66,7 +66,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
             IsAntialias = true,
             Style = SKPaintStyle.StrokeAndFill,
             BlendMode = SKBlendMode.DstIn,
-            Color = SvgExtensions.s_transparentBlack,
+            Color = FilterEffectsService.s_transparentBlack,
             ColorFilter = lumaColor
         };
     }
@@ -229,7 +229,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
             {
                 Clip = new ClipPath()
             };
-            SvgExtensions.GetSvgVisualElementClipPath(visualElement, GeometryBounds, new HashSet<Uri>(), clipPath);
+            MaskingService.GetSvgVisualElementClipPath(visualElement, GeometryBounds, new HashSet<Uri>(), clipPath);
             if (clipPath.Clips is { } && clipPath.Clips.Count > 0)
             {
                 ClipPath = clipPath;    
@@ -246,7 +246,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
 
         if (enableMask)
         {
-            MaskDrawable = SvgExtensions.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader, References);
+            MaskDrawable = MaskingService.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader, References);
             if (MaskDrawable is { })
             {
                 CreateMaskPaints();
@@ -257,7 +257,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
             MaskDrawable = null;
         }
 
-        Opacity = enableOpacity ? SvgExtensions.GetOpacityPaint(element) : null;
+        Opacity = enableOpacity ? PaintingService.GetOpacityPaint(element) : null;
 
         if (visualElement is { } && enableFilter)
         {

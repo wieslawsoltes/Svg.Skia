@@ -46,27 +46,27 @@ public sealed class PolylineDrawable : DrawablePath
             return;
         }
 
-        IsAntialias = SvgExtensions.IsAntialias(svgPolyline);
+        IsAntialias = PaintingService.IsAntialias(svgPolyline);
 
         GeometryBounds = Path.Bounds;
 
-        Transform = SvgExtensions.ToMatrix(svgPolyline.Transforms);
+        Transform = TransformsService.ToMatrix(svgPolyline.Transforms);
 
         var canDrawFill = true;
         var canDrawStroke = true;
 
-        if (SvgExtensions.IsValidFill(svgPolyline))
+        if (PaintingService.IsValidFill(svgPolyline))
         {
-            Fill = SvgExtensions.GetFillPaint(svgPolyline, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+            Fill = PaintingService.GetFillPaint(svgPolyline, GeometryBounds, AssetLoader, references, IgnoreAttributes);
             if (Fill is null)
             {
                 canDrawFill = false;
             }
         }
 
-        if (SvgExtensions.IsValidStroke(svgPolyline, GeometryBounds))
+        if (PaintingService.IsValidStroke(svgPolyline, GeometryBounds))
         {
-            Stroke = SvgExtensions.GetStrokePaint(svgPolyline, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+            Stroke = PaintingService.GetStrokePaint(svgPolyline, GeometryBounds, AssetLoader, references, IgnoreAttributes);
             if (Stroke is null)
             {
                 canDrawStroke = false;
@@ -79,6 +79,6 @@ public sealed class PolylineDrawable : DrawablePath
             return;
         }
 
-        SvgExtensions.CreateMarkers(svgPolyline, Path, skViewport, this, AssetLoader, references);
+        MarkerService.CreateMarkers(svgPolyline, Path, skViewport, this, AssetLoader, references);
     }
 }

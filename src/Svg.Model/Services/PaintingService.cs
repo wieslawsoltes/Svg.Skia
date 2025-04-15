@@ -6,7 +6,7 @@ using ShimSkiaSharp;
 
 namespace Svg.Model;
 
-public static partial class SvgExtensions
+public static class PaintingService
 {
     internal static float AdjustSvgOpacity(float opacity)
     {
@@ -237,7 +237,7 @@ public static partial class SvgExtensions
                 if (firstX1 is null)
                 {
                     var pX1 = svgLinearGradientServerHref.X1;
-                    if (pX1 != SvgUnit.None && TryGetAttribute(svgLinearGradientServerHref, "x1", out _))
+                    if (pX1 != SvgUnit.None && SvgService.TryGetAttribute(svgLinearGradientServerHref, "x1", out _))
                     {
                         firstX1 = svgLinearGradientServerHref;
                     }
@@ -245,14 +245,14 @@ public static partial class SvgExtensions
                 if (firstY1 is null)
                 {
                     var pY1 = svgLinearGradientServerHref.Y1;
-                    if (pY1 != SvgUnit.None && TryGetAttribute(svgLinearGradientServerHref, "y1", out _))
+                    if (pY1 != SvgUnit.None && SvgService.TryGetAttribute(svgLinearGradientServerHref, "y1", out _))
                     {
                         firstY1 = svgLinearGradientServerHref;
                     }
                 }
                 if (firstX2 is null)
                 {
-                    if (svgLinearGradientServerHref.X2 is { } pX2 && pX2 != SvgUnit.None && TryGetAttribute(svgLinearGradientServerHref, "x2", out _))
+                    if (svgLinearGradientServerHref.X2 is { } pX2 && pX2 != SvgUnit.None && SvgService.TryGetAttribute(svgLinearGradientServerHref, "x2", out _))
                     {
                         firstX2 = svgLinearGradientServerHref;
                     }
@@ -260,7 +260,7 @@ public static partial class SvgExtensions
                 if (firstY2 is null)
                 {
                     var pY2 = svgLinearGradientServerHref.Y2;
-                    if (pY2 != SvgUnit.None && TryGetAttribute(svgLinearGradientServerHref, "y2", out _))
+                    if (pY2 != SvgUnit.None && SvgService.TryGetAttribute(svgLinearGradientServerHref, "y2", out _))
                     {
                         firstY2 = svgLinearGradientServerHref;
                     }
@@ -329,7 +329,7 @@ public static partial class SvgExtensions
 
             if (svgGradientTransform is { } && svgGradientTransform.Count > 0)
             {
-                var gradientTransform = ToMatrix(svgGradientTransform);
+                var gradientTransform = TransformsService.ToMatrix(svgGradientTransform);
                 skBoundingBoxTransform = skBoundingBoxTransform.PreConcat(gradientTransform);
             }
 
@@ -340,7 +340,7 @@ public static partial class SvgExtensions
         {
             if (svgGradientTransform is { } && svgGradientTransform.Count > 0)
             {
-                var gradientTransform = ToMatrix(svgGradientTransform);
+                var gradientTransform = TransformsService.ToMatrix(svgGradientTransform);
                 var skColorsF = ToSkColorF(skColors);
                 return SKShader.CreateLinearGradient(skStart, skEnd, skColorsF, skColorSpace, skColorPos, shaderTileMode, gradientTransform);
             }
@@ -397,14 +397,14 @@ public static partial class SvgExtensions
                 if (firstCenterX is null)
                 {
                     var pCenterX = svgRadialGradientServerHref.CenterX;
-                    if (pCenterX != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "cx", out _))
+                    if (pCenterX != SvgUnit.None && SvgService.TryGetAttribute(svgRadialGradientServerHref, "cx", out _))
                     {
                         firstCenterX = svgRadialGradientServerHref;
                     }
                 }
                 if (firstCenterY is null)
                 {
-                    if (svgRadialGradientServerHref.CenterY is { } pCenterY && pCenterY != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "cy", out _))
+                    if (svgRadialGradientServerHref.CenterY is { } pCenterY && pCenterY != SvgUnit.None && SvgService.TryGetAttribute(svgRadialGradientServerHref, "cy", out _))
                     {
                         firstCenterY = svgRadialGradientServerHref;
                     }
@@ -412,7 +412,7 @@ public static partial class SvgExtensions
                 if (firstRadius is null)
                 {
                     var pRadius = svgRadialGradientServerHref.Radius;
-                    if (pRadius != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "r", out _))
+                    if (pRadius != SvgUnit.None && SvgService.TryGetAttribute(svgRadialGradientServerHref, "r", out _))
                     {
                         firstRadius = svgRadialGradientServerHref;
                     }
@@ -420,7 +420,7 @@ public static partial class SvgExtensions
                 if (firstFocalX is null)
                 {
                     var pFocalX = svgRadialGradientServerHref.FocalX;
-                    if (pFocalX != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "fx", out _))
+                    if (pFocalX != SvgUnit.None && SvgService.TryGetAttribute(svgRadialGradientServerHref, "fx", out _))
                     {
                         firstFocalX = svgRadialGradientServerHref;
                     }
@@ -428,7 +428,7 @@ public static partial class SvgExtensions
                 if (firstFocalY is null)
                 {
                     var pFocalY = svgRadialGradientServerHref.FocalY;
-                    if (pFocalY != SvgUnit.None && TryGetAttribute(svgRadialGradientServerHref, "fy", out _))
+                    if (pFocalY != SvgUnit.None && SvgService.TryGetAttribute(svgRadialGradientServerHref, "fy", out _))
                     {
                         firstFocalY = svgRadialGradientServerHref;
                     }
@@ -512,7 +512,7 @@ public static partial class SvgExtensions
 
             if (svgGradientTransform is { } && svgGradientTransform.Count > 0)
             {
-                var gradientTransform = ToMatrix(svgGradientTransform);
+                var gradientTransform = TransformsService.ToMatrix(svgGradientTransform);
                 skBoundingBoxTransform = skBoundingBoxTransform.PreConcat(gradientTransform);
             }
 
@@ -540,7 +540,7 @@ public static partial class SvgExtensions
         {
             if (svgGradientTransform is { } && svgGradientTransform.Count > 0)
             {
-                var gradientTransform = ToMatrix(svgGradientTransform);
+                var gradientTransform = TransformsService.ToMatrix(svgGradientTransform);
                 var skColorsF = ToSkColorF(skColors);
                 if (isRadialGradient)
                 {
@@ -682,14 +682,14 @@ public static partial class SvgExtensions
             }
             if (firstPatternUnit is null)
             {
-                if (TryGetAttribute(p, "patternUnits", out _))
+                if (SvgService.TryGetAttribute(p, "patternUnits", out _))
                 {
                     firstPatternUnit = p;
                 }
             }
             if (firstPatternContentUnit is null)
             {
-                if (TryGetAttribute(p, "patternContentUnits", out _))
+                if (SvgService.TryGetAttribute(p, "patternContentUnits", out _))
                 {
                     firstPatternContentUnit = p;
                 }
@@ -728,7 +728,7 @@ public static partial class SvgExtensions
         var aspectRatio = firstAspectRatio is null ? new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid, false) : firstAspectRatio.AspectRatio;
 
         // TODO: Pass correct skViewport
-        var skRectTransformed = CalculateRect(xUnit, yUnit, widthUnit, heightUnit, patternUnits, skBounds, skBounds, svgPatternServer);
+        var skRectTransformed = TransformsService.CalculateRect(xUnit, yUnit, widthUnit, heightUnit, patternUnits, skBounds, skBounds, svgPatternServer);
         if (skRectTransformed is null)
         {
             return default;
@@ -736,7 +736,7 @@ public static partial class SvgExtensions
 
         var skMatrix = SKMatrix.CreateIdentity();
 
-        var skPatternTransformMatrix = ToMatrix(svgPatternServer.PatternTransform);
+        var skPatternTransformMatrix = TransformsService.ToMatrix(svgPatternServer.PatternTransform);
         skMatrix = skMatrix.PreConcat(skPatternTransformMatrix);
 
         var translateTransform = SKMatrix.CreateTranslation(skRectTransformed.Value.Left, skRectTransformed.Value.Top);
@@ -745,7 +745,7 @@ public static partial class SvgExtensions
         var skPictureTransform = SKMatrix.CreateIdentity();
         if (!viewBox.Equals(SvgViewBox.Empty))
         {
-            var viewBoxTransform = ToMatrix(
+            var viewBoxTransform = TransformsService.ToMatrix(
                 viewBox,
                 aspectRatio,
                 0f,

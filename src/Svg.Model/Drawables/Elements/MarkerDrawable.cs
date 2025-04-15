@@ -125,11 +125,11 @@ public sealed class MarkerDrawable : DrawableBase
             return;
         }
 
-        IsAntialias = SvgExtensions.IsAntialias(svgMarker);
+        IsAntialias = PaintingService.IsAntialias(svgMarker);
 
         GeometryBounds = MarkerElementDrawable.GeometryBounds;
 
-        Transform = SvgExtensions.ToMatrix(svgMarker.Transforms);
+        Transform = TransformsService.ToMatrix(svgMarker.Transforms);
         Transform = Transform.PreConcat(skMarkerMatrix);
 
         Fill = null;

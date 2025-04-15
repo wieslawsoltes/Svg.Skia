@@ -34,7 +34,7 @@ public sealed class MaskDrawable : DrawableContainer
         var heightUnit = svgMask.Height;
 
         // TODO: Pass correct skViewport
-        var skRectTransformed = SvgExtensions.CalculateRect(xUnit, yUnit, widthUnit, heightUnit, maskUnits, skViewport, skViewport, svgMask);
+        var skRectTransformed = TransformsService.CalculateRect(xUnit, yUnit, widthUnit, heightUnit, maskUnits, skViewport, skViewport, svgMask);
         if (skRectTransformed is null)
         {
             drawable.IsDrawable = false;
@@ -68,7 +68,7 @@ public sealed class MaskDrawable : DrawableContainer
 
         Overflow = skRectTransformed;
 
-        IsAntialias = SvgExtensions.IsAntialias(svgMask);
+        IsAntialias = PaintingService.IsAntialias(svgMask);
 
         GeometryBounds = skRectTransformed;
 
@@ -92,7 +92,7 @@ public sealed class MaskDrawable : DrawableContainer
 
         if (enableMask)
         {
-            MaskDrawable = SvgExtensions.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader, References);
+            MaskDrawable = MaskingService.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader, References);
             if (MaskDrawable is { })
             {
                 CreateMaskPaints();

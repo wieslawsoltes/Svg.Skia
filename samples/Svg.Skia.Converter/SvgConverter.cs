@@ -167,7 +167,7 @@ internal class SvgConverter
 
         if (settings.SystemLanguage is { })
         {
-            SvgExtensions.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture(settings.SystemLanguage);
+            SvgService.s_systemLanguageOverride = CultureInfo.CreateSpecificCulture(settings.SystemLanguage);
         }
 
         var sw = Stopwatch.StartNew();
@@ -221,7 +221,7 @@ internal class SvgConverter
 
         if (settings.SystemLanguage is { })
         {
-            SvgExtensions.s_systemLanguageOverride = null;
+            SvgService.s_systemLanguageOverride = null;
         }
 
         if (paths.Count > 0)

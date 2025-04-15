@@ -43,30 +43,30 @@ public sealed class CircleDrawable : DrawablePath
     {
         if (Element is not SvgCircle svgCircle || Path is null)
         {
-            return;;
+            return;
         }
 
-        IsAntialias = SvgExtensions.IsAntialias(svgCircle);
+        IsAntialias = PaintingService.IsAntialias(svgCircle);
 
         GeometryBounds = Path.Bounds;
 
-        Transform = SvgExtensions.ToMatrix(svgCircle.Transforms);
+        Transform = TransformsService.ToMatrix(svgCircle.Transforms);
 
         var canDrawFill = true;
         var canDrawStroke = true;
 
-        if (SvgExtensions.IsValidFill(svgCircle))
+        if (PaintingService.IsValidFill(svgCircle))
         {
-            Fill = SvgExtensions.GetFillPaint(svgCircle, GeometryBounds ,AssetLoader, references, IgnoreAttributes);
+            Fill = PaintingService.GetFillPaint(svgCircle, GeometryBounds ,AssetLoader, references, IgnoreAttributes);
             if (Fill is null)
             {
                 canDrawFill = false;
             }
         }
 
-        if (SvgExtensions.IsValidStroke(svgCircle, GeometryBounds))
+        if (PaintingService.IsValidStroke(svgCircle, GeometryBounds))
         {
-            Stroke = SvgExtensions.GetStrokePaint(svgCircle, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+            Stroke = PaintingService.GetStrokePaint(svgCircle, GeometryBounds, AssetLoader, references, IgnoreAttributes);
             if (Stroke is null)
             {
                 canDrawStroke = false;

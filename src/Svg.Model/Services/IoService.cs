@@ -10,13 +10,13 @@ using ShimSkiaSharp;
 
 namespace Svg.Model;
 
-public static partial class SvgExtensions
+public static class IoService
 {
     private const string MimeTypeSvg = "image/svg+xml";
 
     private static byte[] GZipMagicHeaderBytes => new byte[] {0x1f, 0x8b};
 
-    static SvgExtensions()
+    static IoService()
     {
         // SvgDocument.SkipGdiPlusCapabilityCheck = true;
         SvgDocument.PointsPerInch = 96;
@@ -223,7 +223,7 @@ public static partial class SvgExtensions
 
     public static SKDrawable? ToDrawable(SvgFragment svgFragment, IAssetLoader assetLoader, HashSet<Uri>? references, out SKRect? bounds, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
-        var size = GetDimensions(svgFragment);
+        var size = TransformsService.GetDimensions(svgFragment);
         var fragmentBounds = SKRect.Create(size);
         var drawable = DrawableFactory.Create(svgFragment, fragmentBounds, null, assetLoader, references, ignoreAttributes);
         if (drawable is null)

@@ -6,7 +6,7 @@ using ShimSkiaSharp;
 
 namespace Svg.Model;
 
-public static partial class SvgExtensions
+public static class MaskingService
 {
     internal static bool CanDraw(SvgVisualElement svgVisualElement, DrawAttributes ignoreAttributes)
     {
@@ -24,7 +24,7 @@ public static partial class SvgExtensions
 
     private static SvgClipRule? GetSvgClipRule(SvgClipPath svgClipPath)
     {
-        TryGetAttribute(svgClipPath, "clip-rule", out var clipRuleString);
+        SvgService.TryGetAttribute(svgClipPath, "clip-rule", out var clipRuleString);
 
         return clipRuleString switch
         {
@@ -62,7 +62,7 @@ public static partial class SvgExtensions
                     var pathClip = new PathClip
                     {
                         Path = skPath,
-                        Transform = ToMatrix(svgPath.Transforms),
+                        Transform = TransformsService.ToMatrix(svgPath.Transforms),
                         Clip = new ClipPath
                         {
                             Clip = new ClipPath()
@@ -86,7 +86,7 @@ public static partial class SvgExtensions
                     var pathClip = new PathClip
                     {
                         Path = skPath,
-                        Transform = ToMatrix(svgRectangle.Transforms),
+                        Transform = TransformsService.ToMatrix(svgRectangle.Transforms),
                         Clip = new ClipPath
                         {
                             Clip = new ClipPath()
@@ -110,7 +110,7 @@ public static partial class SvgExtensions
                     var pathClip = new PathClip
                     {
                         Path = skPath,
-                        Transform = ToMatrix(svgCircle.Transforms),
+                        Transform = TransformsService.ToMatrix(svgCircle.Transforms),
                         Clip = new ClipPath
                         {
                             Clip = new ClipPath()
@@ -134,7 +134,7 @@ public static partial class SvgExtensions
                     var pathClip = new PathClip
                     {
                         Path = skPath,
-                        Transform = ToMatrix(svgEllipse.Transforms),
+                        Transform = TransformsService.ToMatrix(svgEllipse.Transforms),
                         Clip = new ClipPath
                         {
                             Clip = new ClipPath()
@@ -158,7 +158,7 @@ public static partial class SvgExtensions
                     var pathClip = new PathClip
                     {
                         Path = skPath,
-                        Transform = ToMatrix(svgLine.Transforms),
+                        Transform = TransformsService.ToMatrix(svgLine.Transforms),
                         Clip = new ClipPath
                         {
                             Clip = new ClipPath()
@@ -182,7 +182,7 @@ public static partial class SvgExtensions
                     var pathClip = new PathClip
                     {
                         Path = skPath,
-                        Transform = ToMatrix(svgPolyline.Transforms),
+                        Transform = TransformsService.ToMatrix(svgPolyline.Transforms),
                         Clip = new ClipPath
                         {
                             Clip = new ClipPath()
@@ -206,7 +206,7 @@ public static partial class SvgExtensions
                     var pathClip = new PathClip
                     {
                         Path = skPath,
-                        Transform = ToMatrix(svgPolygon.Transforms),
+                        Transform = TransformsService.ToMatrix(svgPolygon.Transforms),
                         Clip = new ClipPath
                         {
                             Clip = new ClipPath()
@@ -220,12 +220,12 @@ public static partial class SvgExtensions
 
             case SvgUse svgUse:
                 {
-                    if (HasRecursiveReference(svgUse, (e) => e.ReferencedElement, new HashSet<Uri>()))
+                    if (SvgService.HasRecursiveReference(svgUse, (e) => e.ReferencedElement, new HashSet<Uri>()))
                     {
                         break;
                     }
 
-                    var svgReferencedVisualElement = GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
+                    var svgReferencedVisualElement = SvgService.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
                     if (svgReferencedVisualElement is null || svgReferencedVisualElement is SvgSymbol)
                     {
                         break;
@@ -300,7 +300,7 @@ public static partial class SvgExtensions
             skMatrix = skMatrix.PostConcat(skTranslateMatrix);
         }
 
-        var skTransformsMatrix = ToMatrix(svgClipPathRef.Transforms);
+        var skTransformsMatrix = TransformsService.ToMatrix(svgClipPathRef.Transforms);
         skMatrix = skMatrix.PostConcat(skTransformsMatrix);
 
         // TODO: clipPath.Transform
@@ -331,7 +331,7 @@ public static partial class SvgExtensions
             skMatrix = skMatrix.PostConcat(skTranslateMatrix);
         }
 
-        var skTransformsMatrix = ToMatrix(svgClipPath.Transforms);
+        var skTransformsMatrix = TransformsService.ToMatrix(svgClipPath.Transforms);
         skMatrix = skMatrix.PostConcat(skTransformsMatrix);
 
         // TODO: clipPath.Transform
@@ -356,12 +356,12 @@ public static partial class SvgExtensions
             return;
         }
 
-        if (HasRecursiveReference(svgVisualElement, (e) => e.ClipPath, uris))
+        if (SvgService.HasRecursiveReference(svgVisualElement, (e) => e.ClipPath, uris))
         {
             return;
         }
 
-        var svgClipPath = GetReference<SvgClipPath>(svgVisualElement, svgVisualElement.ClipPath);
+        var svgClipPath = SvgService.GetReference<SvgClipPath>(svgVisualElement, svgVisualElement.ClipPath);
         if (svgClipPath?.Children is null)
         {
             return;

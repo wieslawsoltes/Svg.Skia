@@ -32,7 +32,7 @@ public sealed class FragmentDrawable : DrawableContainer
         var x = svgFragmentParent is null ? 0f : svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skViewport);
         var y = svgFragmentParent is null ? 0f : svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skViewport);
 
-        var skSize = SvgExtensions.GetDimensions(svgFragment);
+        var skSize = TransformsService.GetDimensions(svgFragment);
 
         if (skViewport.IsEmpty)
         {
@@ -53,14 +53,14 @@ public sealed class FragmentDrawable : DrawableContainer
             return;;
         }
 
-        IsAntialias = SvgExtensions.IsAntialias(svgFragment);
+        IsAntialias = PaintingService.IsAntialias(svgFragment);
 
         GeometryBounds = skViewport;
 
         CreateGeometryBounds();
 
-        Transform = SvgExtensions.ToMatrix(svgFragment.Transforms);
-        var skViewBoxMatrix = SvgExtensions.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
+        Transform = TransformsService.ToMatrix(svgFragment.Transforms);
+        var skViewBoxMatrix = TransformsService.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, skSize.Width, skSize.Height);
         Transform = Transform.PreConcat(skViewBoxMatrix);
 
         switch (svgFragment.Overflow)
@@ -95,7 +95,7 @@ public sealed class FragmentDrawable : DrawableContainer
             {
                 Clip = new ClipPath()
             };
-            SvgExtensions.GetClipPath(svgClipPath, skViewport, clipPathUris, clipPath);
+            MaskingService.GetClipPath(svgClipPath, skViewport, clipPathUris, clipPath);
             if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !IgnoreAttributes.HasFlag(DrawAttributes.ClipPath))
             {
                 ClipPath = clipPath;    
@@ -126,7 +126,7 @@ public sealed class FragmentDrawable : DrawableContainer
 
         ClipPath = null;
         MaskDrawable = null;
-        Opacity = enableOpacity ? SvgExtensions.GetOpacityPaint(element) : null;
+        Opacity = enableOpacity ? PaintingService.GetOpacityPaint(element) : null;
         Filter = null;
 
         TotalTransform = totalMatrix.PreConcat(Transform);

@@ -69,12 +69,12 @@ public sealed class SwitchDrawable : DrawableBase
             return;
         }
         
-        IsAntialias = SvgExtensions.IsAntialias(svgSwitch);
+        IsAntialias = PaintingService.IsAntialias(svgSwitch);
 
         // TODO: use drawable.FirstChild.GeometryBounds
         GeometryBounds = FirstChild.GeometryBounds;
 
-        Transform = SvgExtensions.ToMatrix(svgSwitch.Transforms);
+        Transform = TransformsService.ToMatrix(svgSwitch.Transforms);
 
         Fill = null;
         Stroke = null;

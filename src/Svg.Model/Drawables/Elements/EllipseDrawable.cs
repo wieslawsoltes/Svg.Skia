@@ -46,26 +46,26 @@ public sealed class EllipseDrawable : DrawablePath
             return;
         }
         
-        IsAntialias = SvgExtensions.IsAntialias(svgEllipse);
-        Transform = SvgExtensions.ToMatrix(svgEllipse.Transforms);
+        IsAntialias = PaintingService.IsAntialias(svgEllipse);
+        Transform = TransformsService.ToMatrix(svgEllipse.Transforms);
 
         GeometryBounds = Path.Bounds;
 
         var canDrawFill = true;
         var canDrawStroke = true;
 
-        if (SvgExtensions.IsValidFill(svgEllipse))
+        if (PaintingService.IsValidFill(svgEllipse))
         {
-            Fill = SvgExtensions.GetFillPaint(svgEllipse, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+            Fill = PaintingService.GetFillPaint(svgEllipse, GeometryBounds, AssetLoader, references, IgnoreAttributes);
             if (Fill is null)
             {
                 canDrawFill = false;
             }
         }
 
-        if (SvgExtensions.IsValidStroke(svgEllipse, GeometryBounds))
+        if (PaintingService.IsValidStroke(svgEllipse, GeometryBounds))
         {
-            Stroke = SvgExtensions.GetStrokePaint(svgEllipse, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+            Stroke = PaintingService.GetStrokePaint(svgEllipse, GeometryBounds, AssetLoader, references, IgnoreAttributes);
             if (Stroke is null)
             {
                 canDrawStroke = false;

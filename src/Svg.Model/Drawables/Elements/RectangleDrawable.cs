@@ -46,27 +46,27 @@ public sealed class RectangleDrawable : DrawablePath
             return;
         }
         
-        IsAntialias = SvgExtensions.IsAntialias(svgRectangle);
+        IsAntialias = PaintingService.IsAntialias(svgRectangle);
 
         GeometryBounds = Path.Bounds;
 
-        Transform = SvgExtensions.ToMatrix(svgRectangle.Transforms);
+        Transform = TransformsService.ToMatrix(svgRectangle.Transforms);
 
         var canDrawFill = true;
         var canDrawStroke = true;
 
-        if (SvgExtensions.IsValidFill(svgRectangle))
+        if (PaintingService.IsValidFill(svgRectangle))
         {
-            Fill = SvgExtensions.GetFillPaint(svgRectangle, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+            Fill = PaintingService.GetFillPaint(svgRectangle, GeometryBounds, AssetLoader, references, IgnoreAttributes);
             if (Fill is null)
             {
                 canDrawFill = false;
             }
         }
 
-        if (SvgExtensions.IsValidStroke(svgRectangle, GeometryBounds))
+        if (PaintingService.IsValidStroke(svgRectangle, GeometryBounds))
         {
-            Stroke = SvgExtensions.GetStrokePaint(svgRectangle, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+            Stroke = PaintingService.GetStrokePaint(svgRectangle, GeometryBounds, AssetLoader, references, IgnoreAttributes);
             if (Stroke is null)
             {
                 canDrawStroke = false;

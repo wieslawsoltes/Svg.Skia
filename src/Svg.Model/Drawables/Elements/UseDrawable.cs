@@ -34,13 +34,13 @@ public sealed class UseDrawable : DrawableBase
             return drawable;
         }
 
-        if (SvgExtensions.HasRecursiveReference(svgUse, (e) => e.ReferencedElement, new HashSet<Uri>()))
+        if (SvgService.HasRecursiveReference(svgUse, (e) => e.ReferencedElement, new HashSet<Uri>()))
         {
             drawable.IsDrawable = false;
             return drawable;
         }
 
-        var svgReferencedElement = SvgExtensions.GetReference<SvgElement>(svgUse, svgUse.ReferencedElement);
+        var svgReferencedElement = SvgService.GetReference<SvgElement>(svgUse, svgUse.ReferencedElement);
         if (svgReferencedElement is null)
         {
             drawable.IsDrawable = false;
@@ -97,12 +97,12 @@ public sealed class UseDrawable : DrawableBase
             }
         }
 
-        drawable.IsAntialias = SvgExtensions.IsAntialias(svgUse);
+        drawable.IsAntialias = PaintingService.IsAntialias(svgUse);
 
         // TODO: use drawable.ReferencedDrawable.GeometryBounds
         drawable.GeometryBounds = drawable.ReferencedDrawable.GeometryBounds;
 
-        drawable.Transform = SvgExtensions.ToMatrix(svgUse.Transforms);
+        drawable.Transform = TransformsService.ToMatrix(svgUse.Transforms);
         if (!(svgReferencedElement is SvgSymbol))
         {
             var skMatrixTranslateXY = SKMatrix.CreateTranslation(x, y);

@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace Svg.Model;
 
-public static partial class SvgExtensions
+public static class SvgService
 {
     public static CultureInfo? s_systemLanguageOverride = default;
 

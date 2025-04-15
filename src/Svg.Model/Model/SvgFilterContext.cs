@@ -87,7 +87,7 @@ internal class SvgFilterContext
     private bool Initialize()
     {
         var filter = _svgVisualElement.Filter;
-        if (filter is null || SvgExtensions.IsNone(filter))
+        if (filter is null || FilterEffectsService.IsNone(filter))
         {
             IsValid = true;
             FilterClip = default;
@@ -119,32 +119,32 @@ internal class SvgFilterContext
                 firstChildren = p;
             }
 
-            if (firstX is null && SvgExtensions.TryGetAttribute(p, "x", out _))
+            if (firstX is null && SvgService.TryGetAttribute(p, "x", out _))
             {
                 firstX = p;
             }
 
-            if (firstY is null && SvgExtensions.TryGetAttribute(p, "y", out _))
+            if (firstY is null && SvgService.TryGetAttribute(p, "y", out _))
             {
                 firstY = p;
             }
 
-            if (firstWidth is null && SvgExtensions.TryGetAttribute(p, "width", out _))
+            if (firstWidth is null && SvgService.TryGetAttribute(p, "width", out _))
             {
                 firstWidth = p;
             }
 
-            if (firstHeight is null && SvgExtensions.TryGetAttribute(p, "height", out _))
+            if (firstHeight is null && SvgService.TryGetAttribute(p, "height", out _))
             {
                 firstHeight = p;
             }
 
-            if (firstFilterUnits is null && SvgExtensions.TryGetAttribute(p, "filterUnits", out _))
+            if (firstFilterUnits is null && SvgService.TryGetAttribute(p, "filterUnits", out _))
             {
                 firstFilterUnits = p;
             }
 
-            if (firstPrimitiveUnits is null && SvgExtensions.TryGetAttribute(p, "primitiveUnits", out _))
+            if (firstPrimitiveUnits is null && SvgService.TryGetAttribute(p, "primitiveUnits", out _))
             {
                 firstPrimitiveUnits = p;
             }
@@ -164,7 +164,7 @@ internal class SvgFilterContext
         var filterUnits = firstFilterUnits?.FilterUnits ?? SvgCoordinateUnits.ObjectBoundingBox;
         _primitiveUnits = firstPrimitiveUnits?.PrimitiveUnits ?? SvgCoordinateUnits.UserSpaceOnUse;
 
-        var skFilterRegion = SvgExtensions.CalculateRect(xUnit, yUnit, widthUnit, heightUnit, filterUnits, _skBounds, _skViewport, svgFirstFilter);
+        var skFilterRegion = TransformsService.CalculateRect(xUnit, yUnit, widthUnit, heightUnit, filterUnits, _skBounds, _skViewport, svgFirstFilter);
         if (skFilterRegion is null)
         {
             IsValid = false;
@@ -183,7 +183,7 @@ internal class SvgFilterContext
 
             var primitiveContext = new SvgFilterPrimitiveContext(svgFilterPrimitive);
 
-            if (SvgExtensions.TryGetAttribute(svgFilterPrimitive, "x", out var xChildString))
+            if (SvgService.TryGetAttribute(svgFilterPrimitive, "x", out var xChildString))
             {
                 primitiveContext.IsXValid = true;
 
@@ -197,7 +197,7 @@ internal class SvgFilterContext
                 primitiveContext.X = new SvgUnit(SvgUnitType.Percentage, 0);
             }
 
-            if (SvgExtensions.TryGetAttribute(svgFilterPrimitive, "y", out var yChildString))
+            if (SvgService.TryGetAttribute(svgFilterPrimitive, "y", out var yChildString))
             {
                 primitiveContext.IsYValid = true;
 
@@ -211,7 +211,7 @@ internal class SvgFilterContext
                 primitiveContext.Y = new SvgUnit(SvgUnitType.Percentage, 0);
             }
 
-            if (SvgExtensions.TryGetAttribute(svgFilterPrimitive, "width", out var widthChildString))
+            if (SvgService.TryGetAttribute(svgFilterPrimitive, "width", out var widthChildString))
             {
                 primitiveContext.IsWidthValid = true;
 
@@ -225,7 +225,7 @@ internal class SvgFilterContext
                 primitiveContext.Width = new SvgUnit(SvgUnitType.Percentage, 100);
             }
 
-            if (SvgExtensions.TryGetAttribute(svgFilterPrimitive, "height", out var heightChildString))
+            if (SvgService.TryGetAttribute(svgFilterPrimitive, "height", out var heightChildString))
             {
                 primitiveContext.IsHeightValid = true;
 
@@ -239,7 +239,7 @@ internal class SvgFilterContext
                 primitiveContext.Height = new SvgUnit(SvgUnitType.Percentage, 100);
             }
 
-            var boundaries = SvgExtensions.CalculateRect(
+            var boundaries = TransformsService.CalculateRect(
                 primitiveContext.X,
                 primitiveContext.Y,
                 primitiveContext.Width,
@@ -673,7 +673,7 @@ internal class SvgFilterContext
         var skPaint = new SKPaint
         {
             Style = SKPaintStyle.StrokeAndFill,
-            Color = SvgExtensions.s_transparentBlack
+            Color = FilterEffectsService.s_transparentBlack
         };
         var skImageFilter = SKImageFilter.CreatePaint(skPaint);
         return skImageFilter;
@@ -684,7 +684,7 @@ internal class SvgFilterContext
         var skPaint = new SKPaint
         {
             Style = SKPaintStyle.StrokeAndFill,
-            Color = SvgExtensions.s_transparentBlack
+            Color = FilterEffectsService.s_transparentBlack
         };
 
         var skImageFilterGraphic = SKImageFilter.CreatePaint(skPaint);
@@ -869,7 +869,7 @@ internal class SvgFilterContext
 
     private List<SvgFilter>? GetLinkedFilter(SvgVisualElement svgVisualElement, HashSet<Uri> uris)
     {
-        var currentFilter = SvgExtensions.GetReference<SvgFilter>(svgVisualElement, svgVisualElement.Filter);
+        var currentFilter = SvgService.GetReference<SvgFilter>(svgVisualElement, svgVisualElement.Filter);
         if (currentFilter is null)
         {
             return default;
@@ -881,11 +881,11 @@ internal class SvgFilterContext
             if (currentFilter is { })
             {
                 svgFilters.Add(currentFilter);
-                if (SvgExtensions.HasRecursiveReference(currentFilter, (e) => e.Href, uris))
+                if (SvgService.HasRecursiveReference(currentFilter, (e) => e.Href, uris))
                 {
                     return svgFilters;
                 }
-                currentFilter = SvgExtensions.GetReference<SvgFilter>(currentFilter, currentFilter.Href);
+                currentFilter = SvgService.GetReference<SvgFilter>(currentFilter, currentFilter.Href);
             }
         } while (currentFilter is { });
 
@@ -908,12 +908,12 @@ internal class SvgFilterContext
 
         if (src == SvgColourInterpolation.SRGB && dst == SvgColourInterpolation.LinearRGB)
         {
-            return SKImageFilter.CreateColorFilter(SvgExtensions.SRGBToLinearGamma(), input.Filter);
+            return SKImageFilter.CreateColorFilter(FilterEffectsService.SRGBToLinearGamma(), input.Filter);
         }
 
         if (src == SvgColourInterpolation.LinearRGB && dst == SvgColourInterpolation.SRGB)
         {
-            return SKImageFilter.CreateColorFilter(SvgExtensions.LinearToSRGBGamma(), input.Filter);
+            return SKImageFilter.CreateColorFilter(FilterEffectsService.LinearToSRGBGamma(), input.Filter);
         }
 
         return null;
@@ -1015,7 +1015,7 @@ internal class SvgFilterContext
             case SvgColourMatrixType.HueRotate:
                 {
                     var value = string.IsNullOrEmpty(svgColourMatrix.Values) ? 0 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture);
-                    var hue = (float)SvgExtensions.DegreeToRadian(value);
+                    var hue = (float)SvgService.DegreeToRadian(value);
                     var cosHue = Math.Cos(hue);
                     var sinHue = Math.Sin(hue);
                     float[] matrix = {
@@ -1271,7 +1271,7 @@ internal class SvgFilterContext
 
     private SKImageFilter? CreateConvolveMatrix(SvgConvolveMatrix svgConvolveMatrix, SKImageFilter? input = default, SKRect? cropRect = default)
     {
-        SvgExtensions.GetOptionalNumbers(svgConvolveMatrix.Order, 3f, 3f, out var orderX, out var orderY);
+        TransformsService.GetOptionalNumbers(svgConvolveMatrix.Order, 3f, 3f, out var orderX, out var orderY);
 
         if (_primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
         {
@@ -1337,8 +1337,8 @@ internal class SvgFilterContext
     {
         var azimuth = svgDistantLight.Azimuth;
         var elevation = svgDistantLight.Elevation;
-        var azimuthRad = SvgExtensions.DegreeToRadian(azimuth);
-        var elevationRad = SvgExtensions.DegreeToRadian(elevation);
+        var azimuthRad = SvgService.DegreeToRadian(azimuth);
+        var elevationRad = SvgService.DegreeToRadian(elevation);
         var x = (float)(Math.Cos(azimuthRad) * Math.Cos(elevationRad));
         var y = (float)(Math.Sin(azimuthRad) * Math.Cos(elevationRad));
         var z = (float)Math.Sin(elevationRad);
@@ -1351,14 +1351,14 @@ internal class SvgFilterContext
         {
             x *= _skBounds.Width;
             y *= _skBounds.Height;
-            z *= SvgExtensions.CalculateOtherPercentageValue(_skBounds);
+            z *= TransformsService.CalculateOtherPercentageValue(_skBounds);
         }
         return new SKPoint3(x, y, z);
     }
 
     private SKImageFilter? CreateDiffuseLighting(SvgDiffuseLighting svgDiffuseLighting, SvgVisualElement svgVisualElement, SKImageFilter? input = default, SKRect? cropRect = default)
     {
-        var lightColor = SvgExtensions.GetColor(svgVisualElement, svgDiffuseLighting.LightingColor);
+        var lightColor = PaintingService.GetColor(svgVisualElement, svgDiffuseLighting.LightingColor);
         if (lightColor is null)
         {
             return default;
@@ -1421,7 +1421,7 @@ internal class SvgFilterContext
 
         if (_primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
         {
-            scale *= SvgExtensions.CalculateOtherPercentageValue(_skBounds);
+            scale *= TransformsService.CalculateOtherPercentageValue(_skBounds);
         }
 
         return SKImageFilter.CreateDisplacementMapEffect(xChannelSelector, yChannelSelector, scale, displacement, input, cropRect);
@@ -1429,14 +1429,14 @@ internal class SvgFilterContext
 
     private SKImageFilter? CreateFlood(SvgFlood svgFlood, SvgVisualElement svgVisualElement, SKImageFilter? input = default, SKRect? cropRect = default)
     {
-        var floodColor = SvgExtensions.GetColor(svgVisualElement, svgFlood.FloodColor);
+        var floodColor = PaintingService.GetColor(svgVisualElement, svgFlood.FloodColor);
         if (floodColor is null)
         {
             return default;
         }
 
         var floodOpacity = svgFlood.FloodOpacity;
-        var floodAlpha = SvgExtensions.CombineWithOpacity(floodColor.Value.Alpha, floodOpacity);
+        var floodAlpha = PaintingService.CombineWithOpacity(floodColor.Value.Alpha, floodOpacity);
         floodColor = new SKColor(floodColor.Value.Red, floodColor.Value.Green, floodColor.Value.Blue, floodAlpha);
 
         if (cropRect is null)
@@ -1451,11 +1451,11 @@ internal class SvgFilterContext
 
     private SKImageFilter? CreateBlur(SvgGaussianBlur svgGaussianBlur, SKImageFilter? input = default, SKRect? cropRect = default)
     {
-        SvgExtensions.GetOptionalNumbers(svgGaussianBlur.StdDeviation, 0f, 0f, out var sigmaX, out var sigmaY);
+        TransformsService.GetOptionalNumbers(svgGaussianBlur.StdDeviation, 0f, 0f, out var sigmaX, out var sigmaY);
 
         if (_primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
         {
-            var value = SvgExtensions.CalculateOtherPercentageValue(_skBounds);
+            var value = TransformsService.CalculateOtherPercentageValue(_skBounds);
             sigmaX *= value;
             sigmaY *= value;
         }
@@ -1470,13 +1470,13 @@ internal class SvgFilterContext
 
     private SKImageFilter? CreateImage(FilterEffects.SvgImage svgImage, IAssetLoader assetLoader, HashSet<Uri>? references, SKRect skFilterPrimitiveRegion, SKRect? cropRect = default)
     {
-        var uri = SvgExtensions.GetImageUri(svgImage.Href, svgImage.OwnerDocument);
+        var uri = IoService.GetImageUri(svgImage.Href, svgImage.OwnerDocument);
         if (references is { } && references.Contains(uri))
         {
             return default;
         }
 
-        var image = SvgExtensions.GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
+        var image = IoService.GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
         var skImage = image as SKImage;
         var svgFragment = image as SvgFragment;
         if (skImage is null && svgFragment is null)
@@ -1495,11 +1495,11 @@ internal class SvgFilterContext
 
         if (svgFragment is { })
         {
-            var skSize = SvgExtensions.GetDimensions(svgFragment);
+            var skSize = TransformsService.GetDimensions(svgFragment);
             srcRect = SKRect.Create(0f, 0f, skSize.Width, skSize.Height);
         }
 
-        var destRect = SvgExtensions.CalculateRect(svgImage.AspectRatio, srcRect, destClip);
+        var destRect = TransformsService.CalculateRect(svgImage.AspectRatio, srcRect, destClip);
 
         if (skImage is { })
         {
@@ -1563,11 +1563,11 @@ internal class SvgFilterContext
 
     private SKImageFilter? CreateMorphology(SvgMorphology svgMorphology, SKImageFilter? input = default, SKRect? cropRect = default)
     {
-        SvgExtensions.GetOptionalNumbers(svgMorphology.Radius, 0f, 0f, out var radiusX, out var radiusY);
+        TransformsService.GetOptionalNumbers(svgMorphology.Radius, 0f, 0f, out var radiusX, out var radiusY);
 
         if (_primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
         {
-            var value = SvgExtensions.CalculateOtherPercentageValue(_skBounds);
+            var value = TransformsService.CalculateOtherPercentageValue(_skBounds);
             radiusX *= value;
             radiusY *= value;
         }
@@ -1596,7 +1596,7 @@ internal class SvgFilterContext
 
     private SKImageFilter? CreateSpecularLighting(SvgSpecularLighting svgSpecularLighting, SvgVisualElement svgVisualElement, SKImageFilter? input = default, SKRect? cropRect = default)
     {
-        var lightColor = SvgExtensions.GetColor(svgVisualElement, svgSpecularLighting.LightingColor);
+        var lightColor = PaintingService.GetColor(svgVisualElement, svgSpecularLighting.LightingColor);
         if (lightColor is null)
         {
             return default;
@@ -1644,7 +1644,7 @@ internal class SvgFilterContext
 
     private SKImageFilter? CreateTurbulence(SvgTurbulence svgTurbulence, SKRect? cropRect = default)
     {
-        SvgExtensions.GetOptionalNumbers(svgTurbulence.BaseFrequency, 0f, 0f, out var baseFrequencyX, out var baseFrequencyY);
+        TransformsService.GetOptionalNumbers(svgTurbulence.BaseFrequency, 0f, 0f, out var baseFrequencyX, out var baseFrequencyY);
 
         if (baseFrequencyX < 0f || baseFrequencyY < 0f)
         {

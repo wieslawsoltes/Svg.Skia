@@ -4,7 +4,7 @@ using Svg.Transforms;
 
 namespace Svg.Model;
 
-public static partial class SvgExtensions
+public static class TransformsService
 {
     internal static float ToDeviceValue(this SvgUnit svgUnit, UnitRenderingType renderType, SvgElement? owner, SKRect skBounds)
     {

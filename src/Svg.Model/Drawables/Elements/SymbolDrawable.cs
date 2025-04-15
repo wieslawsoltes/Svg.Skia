@@ -78,14 +78,14 @@ public sealed class SymbolDrawable : DrawableContainer
             return;
         }
 
-        IsAntialias = SvgExtensions.IsAntialias(svgSymbol);
+        IsAntialias = PaintingService.IsAntialias(svgSymbol);
 
         GeometryBounds = SKRect.Empty;
 
         CreateGeometryBounds();
 
-        Transform = SvgExtensions.ToMatrix(svgSymbol.Transforms);
-        var skMatrixViewBox = SvgExtensions.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
+        Transform = TransformsService.ToMatrix(svgSymbol.Transforms);
+        var skMatrixViewBox = TransformsService.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
         Transform = Transform.PreConcat(skMatrixViewBox);
 
         Fill = null;

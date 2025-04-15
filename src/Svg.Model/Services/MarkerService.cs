@@ -6,7 +6,7 @@ using ShimSkiaSharp;
 
 namespace Svg.Model;
 
-public static partial class SvgExtensions
+public static class MarkerService
 {
     internal static void AddMarkers(this SvgGroup svgGroup)
     {
@@ -109,9 +109,9 @@ public static partial class SvgExtensions
         var pathLength = pathTypes.Count;
 
         var markerStart = svgMarkerElement.MarkerStart;
-        if (markerStart is { } && pathLength > 0 && !HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
+        if (markerStart is { } && pathLength > 0 && !SvgService.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerStart, new HashSet<Uri>()))
         {
-            var marker = GetReference<SvgMarker>(svgMarkerElement, markerStart);
+            var marker = SvgService.GetReference<SvgMarker>(svgMarkerElement, markerStart);
             if (marker is { })
             {
                 var refPoint1 = pathTypes[0].Point;
@@ -128,16 +128,16 @@ public static partial class SvgExtensions
         }
 
         var markerMid = svgMarkerElement.MarkerMid;
-        if (markerMid is { } && pathLength > 0 && !HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, new HashSet<Uri>()))
+        if (markerMid is { } && pathLength > 0 && !SvgService.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerMid, new HashSet<Uri>()))
         {
-            var marker = GetReference<SvgMarker>(svgMarkerElement, markerMid);
+            var marker = SvgService.GetReference<SvgMarker>(svgMarkerElement, markerMid);
             if (marker is { })
             {
                 var bezierIndex = -1;
                 for (var i = 1; i <= pathLength - 2; i++)
                 {
                     // for Bezier curves, the marker shall only been shown at the last point
-                    if ((pathTypes[i].Type & (byte)PathPointType.PathTypeMask) == (byte)PathPointType.Bezier)
+                    if ((pathTypes[i].Type & (byte)PathingService.PathPointType.PathTypeMask) == (byte)PathingService.PathPointType.Bezier)
                     {
                         bezierIndex = (bezierIndex + 1) % 3;
                     }
@@ -155,9 +155,9 @@ public static partial class SvgExtensions
         }
 
         var markerEnd = svgMarkerElement.MarkerEnd;
-        if (markerEnd is { } && pathLength > 0 && !HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, new HashSet<Uri>()))
+        if (markerEnd is { } && pathLength > 0 && !SvgService.HasRecursiveReference(svgMarkerElement, (e) => e.MarkerEnd, new HashSet<Uri>()))
         {
-            var marker = GetReference<SvgMarker>(svgMarkerElement, markerEnd);
+            var marker = SvgService.GetReference<SvgMarker>(svgMarkerElement, markerEnd);
             if (marker is { })
             {
                 var index = pathLength - 1;

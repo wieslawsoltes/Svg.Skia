@@ -23,7 +23,7 @@ public sealed class GroupDrawable : DrawableContainer
         drawable.IsDrawable = drawable.CanDraw(svgGroup, drawable.IgnoreAttributes) && drawable.HasFeatures(svgGroup, drawable.IgnoreAttributes);
 
         // NOTE: Call AddMarkers only once.
-        SvgExtensions.AddMarkers(svgGroup);
+        MarkerService.AddMarkers(svgGroup);
 
         drawable.CreateChildren(svgGroup, skViewport, drawable, assetLoader, references, ignoreAttributes);
 
@@ -54,22 +54,22 @@ public sealed class GroupDrawable : DrawableContainer
             return;;
         }
 
-        IsAntialias = SvgExtensions.IsAntialias(svgGroup);
+        IsAntialias = PaintingService.IsAntialias(svgGroup);
 
         GeometryBounds = SKRect.Empty;
 
         CreateGeometryBounds();
 
-        Transform = SvgExtensions.ToMatrix(svgGroup.Transforms);
+        Transform = TransformsService.ToMatrix(svgGroup.Transforms);
 
-        if (SvgExtensions.IsValidFill(svgGroup))
+        if (PaintingService.IsValidFill(svgGroup))
         {
-            Fill = SvgExtensions.GetFillPaint(svgGroup, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+            Fill = PaintingService.GetFillPaint(svgGroup, GeometryBounds, AssetLoader, references, IgnoreAttributes);
         }
 
-        if (SvgExtensions.IsValidStroke(svgGroup, GeometryBounds))
+        if (PaintingService.IsValidStroke(svgGroup, GeometryBounds))
         {
-            Stroke = SvgExtensions.GetStrokePaint(svgGroup, GeometryBounds, AssetLoader, references, IgnoreAttributes);
+            Stroke = PaintingService.GetStrokePaint(svgGroup, GeometryBounds, AssetLoader, references, IgnoreAttributes);
         }
     }
 }

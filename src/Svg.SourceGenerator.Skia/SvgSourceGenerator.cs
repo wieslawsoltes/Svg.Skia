@@ -98,10 +98,10 @@ public class SvgSourceGenerator : IIncrementalGenerator
                 return;
             }
 
-            var svgDocument = Model.SvgExtensions.FromSvg(svg!);
+            var svgDocument = Model.IoService.FromSvg(svg!);
             if (svgDocument is { })
             {
-                var picture = Model.SvgExtensions.ToModel(svgDocument, s_assetLoader, out _, out _);
+                var picture = Model.IoService.ToModel(svgDocument, s_assetLoader, out _, out _);
                 if (picture is { } && picture.Commands is { })
                 {
                     var code = SkiaCSharpCodeGen.Generate(picture, namespaceName!, className!);

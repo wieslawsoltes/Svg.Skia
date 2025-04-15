@@ -133,7 +133,7 @@ public sealed class TextDrawable : DrawableBase
 
         skCanvas.Save();
 
-        var skMatrix = SvgExtensions.ToMatrix(svgTextBase.Transforms);
+        var skMatrix = TransformsService.ToMatrix(svgTextBase.Transforms);
 
         if (!skMatrix.IsIdentity && enableTransform)
         {
@@ -146,10 +146,10 @@ public sealed class TextDrawable : DrawableBase
             {
                 Clip = new ClipPath()
             };
-            SvgExtensions.GetSvgVisualElementClipPath(svgTextBase, GeometryBounds, new HashSet<Uri>(), clipPath);
+            MaskingService.GetSvgVisualElementClipPath(svgTextBase, GeometryBounds, new HashSet<Uri>(), clipPath);
             if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !IgnoreAttributes.HasFlag(DrawAttributes.ClipPath))
             {
-                var antialias = SvgExtensions.IsAntialias(svgTextBase);
+                var antialias = PaintingService.IsAntialias(svgTextBase);
                 skCanvas.ClipPath(clipPath, SKClipOperation.Intersect, antialias);
             }
         }
@@ -158,7 +158,7 @@ public sealed class TextDrawable : DrawableBase
         {
             var mask = default(SKPaint);
             maskDstIn = default(SKPaint);
-            maskDrawable = SvgExtensions.GetSvgElementMask(svgTextBase, skBounds, new HashSet<Uri>(), AssetLoader, References);
+            maskDrawable = MaskingService.GetSvgElementMask(svgTextBase, skBounds, new HashSet<Uri>(), AssetLoader, References);
             if (maskDrawable is { })
             {
                 mask = new SKPaint
@@ -174,7 +174,7 @@ public sealed class TextDrawable : DrawableBase
                     IsAntialias = true,
                     Style = SKPaintStyle.StrokeAndFill,
                     BlendMode = SKBlendMode.DstIn,
-                    Color = SvgExtensions.s_transparentBlack,
+                    Color = FilterEffectsService.s_transparentBlack,
                     ColorFilter = lumaColor
                 };
                 skCanvas.SaveLayer(mask);
@@ -188,7 +188,7 @@ public sealed class TextDrawable : DrawableBase
 
         if (enableOpacity)
         {
-            skPaintOpacity = SvgExtensions.GetOpacityPaint(svgTextBase);
+            skPaintOpacity = PaintingService.GetOpacityPaint(svgTextBase);
             if (skPaintOpacity is { } && !IgnoreAttributes.HasFlag(DrawAttributes.Opacity))
             {
                 skCanvas.SaveLayer(skPaintOpacity);
@@ -255,13 +255,13 @@ public sealed class TextDrawable : DrawableBase
         var skBounds = skViewport;
         var fillAdvance = 0f;
 
-        if (SvgExtensions.IsValidFill(svgTextBase))
+        if (PaintingService.IsValidFill(svgTextBase))
         {
-            var skPaint = SvgExtensions.GetFillPaint(svgTextBase, skBounds, AssetLoader, References, ignoreAttributes);
+            var skPaint = PaintingService.GetFillPaint(svgTextBase, skBounds, AssetLoader, References, ignoreAttributes);
 
             if (skPaint is { })
             {
-                SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
+                PaintingService.SetPaintText(svgTextBase, skBounds, skPaint);
 
                 foreach (var typefaceSpan in AssetLoader.FindTypefaces(text, skPaint))
                 {
@@ -283,12 +283,12 @@ public sealed class TextDrawable : DrawableBase
 
         var strokeAdvance = 0f;
 
-        if (SvgExtensions.IsValidStroke(svgTextBase, skBounds))
+        if (PaintingService.IsValidStroke(svgTextBase, skBounds))
         {
-            var skPaint = SvgExtensions.GetStrokePaint(svgTextBase, skBounds, AssetLoader, References, ignoreAttributes);
+            var skPaint = PaintingService.GetStrokePaint(svgTextBase, skBounds, AssetLoader, References, ignoreAttributes);
             if (skPaint is { })
             {
-                SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
+                PaintingService.SetPaintText(svgTextBase, skBounds, skPaint);
 
                 foreach (var typefaceSpan in AssetLoader.FindTypefaces(text, skPaint))
                 {
@@ -326,8 +326,8 @@ public sealed class TextDrawable : DrawableBase
 
                     var text = PrepareText(svgTextBase, node.Content);
                     // TODO: Fix SvgTextBase rendering.
-                    var isValidFill = SvgExtensions.IsValidFill(svgTextBase);
-                    var isValidStroke = SvgExtensions.IsValidStroke(svgTextBase, skViewport);
+                    var isValidFill = PaintingService.IsValidFill(svgTextBase);
+                    var isValidStroke = PaintingService.IsValidStroke(svgTextBase, skViewport);
 
                     if (!isValidFill && !isValidStroke || text is null || string.IsNullOrEmpty(text))
                     {
@@ -384,7 +384,7 @@ public sealed class TextDrawable : DrawableBase
                                 return 0;
                             }
 
-                            SvgExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
+                            PaintingService.SetPaintText(svgTextBase, skBounds, skPaint);
 
                             int offset = 0;
                             foreach (var typefaceSpan in AssetLoader.FindTypefaces(text.Substring(0, endingCodepointStart), skPaint))
@@ -411,17 +411,17 @@ public sealed class TextDrawable : DrawableBase
 
                         var fillAdvance = 0f;
 
-                        if (SvgExtensions.IsValidFill(svgTextBase))
+                        if (PaintingService.IsValidFill(svgTextBase))
                         {
-                            var skPaint = SvgExtensions.GetFillPaint(svgTextBase, skBounds, AssetLoader, References, ignoreAttributes);
+                            var skPaint = PaintingService.GetFillPaint(svgTextBase, skBounds, AssetLoader, References, ignoreAttributes);
                             fillAdvance = DrawTextLocal(skPaint);
                         }
 
                         var strokeAdvance = 0f;
 
-                        if (SvgExtensions.IsValidStroke(svgTextBase, skBounds))
+                        if (PaintingService.IsValidStroke(svgTextBase, skBounds))
                         {
-                            var skPaint = SvgExtensions.GetStrokePaint(svgTextBase, skBounds, AssetLoader, References, ignoreAttributes);
+                            var skPaint = PaintingService.GetStrokePaint(svgTextBase, skBounds, AssetLoader, References, ignoreAttributes);
                             strokeAdvance = DrawTextLocal(skPaint);
                         }
 
@@ -467,12 +467,12 @@ public sealed class TextDrawable : DrawableBase
             return;
         }
 
-        if (SvgExtensions.HasRecursiveReference(svgTextPath, (e) => e.ReferencedPath, new HashSet<Uri>()))
+        if (SvgService.HasRecursiveReference(svgTextPath, (e) => e.ReferencedPath, new HashSet<Uri>()))
         {
             return;
         }
 
-        var svgPath = SvgExtensions.GetReference<SvgPath>(svgTextPath, svgTextPath.ReferencedPath);
+        var svgPath = SvgService.GetReference<SvgPath>(svgTextPath, svgTextPath.ReferencedPath);
         if (svgPath is null)
         {
             return;
@@ -500,8 +500,8 @@ public sealed class TextDrawable : DrawableBase
         BeginDraw(svgTextPath, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
         // TODO: Fix SvgTextPath rendering.
-        var isValidFill = SvgExtensions.IsValidFill(svgTextPath);
-        var isValidStroke = SvgExtensions.IsValidStroke(svgTextPath, skBounds);
+        var isValidFill = PaintingService.IsValidFill(svgTextPath);
+        var isValidStroke = PaintingService.IsValidStroke(svgTextPath, skBounds);
 
         if (isValidFill || isValidStroke)
         {
@@ -509,22 +509,22 @@ public sealed class TextDrawable : DrawableBase
             {
                 var text = PrepareText(svgTextPath, svgTextPath.Text);
 
-                if (SvgExtensions.IsValidFill(svgTextPath))
+                if (PaintingService.IsValidFill(svgTextPath))
                 {
-                    var skPaint = SvgExtensions.GetFillPaint(svgTextPath, skBounds, AssetLoader, References, ignoreAttributes);
+                    var skPaint = PaintingService.GetFillPaint(svgTextPath, skBounds, AssetLoader, References, ignoreAttributes);
                     if (skPaint is { } && text is { })
                     {
-                        SvgExtensions.SetPaintText(svgTextPath, skBounds, skPaint);
+                        PaintingService.SetPaintText(svgTextPath, skBounds, skPaint);
                         skCanvas.DrawTextOnPath(text, skPath, hOffset, vOffset, skPaint);
                     }
                 }
 
-                if (SvgExtensions.IsValidStroke(svgTextPath, skBounds))
+                if (PaintingService.IsValidStroke(svgTextPath, skBounds))
                 {
-                    var skPaint = SvgExtensions.GetStrokePaint(svgTextPath, skBounds, AssetLoader, References, ignoreAttributes);
+                    var skPaint = PaintingService.GetStrokePaint(svgTextPath, skBounds, AssetLoader, References, ignoreAttributes);
                     if (skPaint is { } && text is { })
                     {
-                        SvgExtensions.SetPaintText(svgTextPath, skBounds, skPaint);
+                        PaintingService.SetPaintText(svgTextPath, skBounds, skPaint);
                         skCanvas.DrawTextOnPath(text, skPath, hOffset, vOffset, skPaint);
                     }
                 }
@@ -541,12 +541,12 @@ public sealed class TextDrawable : DrawableBase
             return;
         }
 
-        if (SvgExtensions.HasRecursiveReference(svgTextRef, (e) => e.ReferencedElement, new HashSet<Uri>()))
+        if (SvgService.HasRecursiveReference(svgTextRef, (e) => e.ReferencedElement, new HashSet<Uri>()))
         {
             return;
         }
 
-        var svgReferencedText = SvgExtensions.GetReference<SvgText>(svgTextRef, svgTextRef.ReferencedElement);
+        var svgReferencedText = SvgService.GetReference<SvgText>(svgTextRef, svgTextRef.ReferencedElement);
         if (svgReferencedText is null)
         {
             return;

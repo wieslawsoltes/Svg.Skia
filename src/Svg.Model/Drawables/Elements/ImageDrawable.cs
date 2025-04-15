@@ -46,14 +46,14 @@ public sealed class ImageDrawable : DrawableBase
             return drawable;
         }
 
-        var uri = SvgExtensions.GetImageUri(svgImage.Href, svgImage.OwnerDocument);
+        var uri = IoService.GetImageUri(svgImage.Href, svgImage.OwnerDocument);
         if (references is { } && references.Contains(uri))
         {
             drawable.IsDrawable = false;
             return drawable;
         }
 
-        var image = SvgExtensions.GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
+        var image = IoService.GetImage(svgImage.Href, svgImage.OwnerDocument, assetLoader);
         var skImage = image as SKImage;
         var svgFragment = image as SvgFragment;
         if (skImage is null && svgFragment is null)
@@ -71,15 +71,15 @@ public sealed class ImageDrawable : DrawableBase
 
         if (svgFragment is { })
         {
-            var skSize = SvgExtensions.GetDimensions(svgFragment);
+            var skSize = TransformsService.GetDimensions(svgFragment);
             drawable.SrcRect = SKRect.Create(0f, 0f, skSize.Width, skSize.Height);
         }
 
         var destClip = SKRect.Create(location.X, location.Y, width, height);
-        drawable.DestRect = SvgExtensions.CalculateRect(svgImage.AspectRatio, drawable.SrcRect, destClip);
+        drawable.DestRect = TransformsService.CalculateRect(svgImage.AspectRatio, drawable.SrcRect, destClip);
         drawable.Clip = destClip;
 
-        var skClipRect = SvgExtensions.GetClipRect(svgImage.Clip, destClip);
+        var skClipRect = MaskingService.GetClipRect(svgImage.Clip, destClip);
         if (skClipRect is { })
         {
             drawable.Clip = skClipRect;
@@ -107,7 +107,7 @@ public sealed class ImageDrawable : DrawableBase
             return;
         }
         
-        IsAntialias = SvgExtensions.IsAntialias(svgImage);
+        IsAntialias = PaintingService.IsAntialias(svgImage);
 
         GeometryBounds = default(SKRect);
 
@@ -121,7 +121,7 @@ public sealed class ImageDrawable : DrawableBase
             GeometryBounds = DestRect;
         }
 
-        Transform = SvgExtensions.ToMatrix(svgImage.Transforms);
+        Transform = TransformsService.ToMatrix(svgImage.Transforms);
         FragmentTransform = SKMatrix.CreateIdentity();
 
         if (FragmentDrawable is { })

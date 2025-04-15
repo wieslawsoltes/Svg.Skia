@@ -9,7 +9,7 @@ using ShimSkiaSharp;
 
 namespace Svg.Model;
 
-public static partial class SvgExtensions
+public static class FilterEffectsService
 {
     internal static SKColor s_transparentBlack = new(0, 0, 0, 255);
 
