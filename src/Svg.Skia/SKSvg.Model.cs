@@ -59,7 +59,7 @@ public class SKSvg : IDisposable
     public static void Draw(SkiaSharp.SKCanvas skCanvas, SvgFragment svgFragment, SkiaModel skiaModel, IAssetLoader assetLoader)
     {
         var references = new HashSet<Uri> {svgFragment.OwnerDocument.BaseUri};
-        var size = TransformsService.GetDimensions(svgFragment);
+        var size = SvgService.GetDimensions(svgFragment);
         var bounds = SKRect.Create(size);
         var drawable = DrawableFactory.Create(svgFragment, bounds, null, assetLoader, references);
         if (drawable is { })

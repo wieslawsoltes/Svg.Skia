@@ -346,26 +346,26 @@ public static class SvgService
         return radians * (180.0 / Math.PI);
     }
     
-        internal static Uri GetImageUri(string uriString, SvgDocument svgOwnerDocument)
+    internal static Uri GetImageUri(string uriString, SvgDocument svgOwnerDocument)
+{
+    // Uri MaxLength is 65519 (https://msdn.microsoft.com/en-us/library/z6c2z492.aspx)
+    // if using data URI scheme, very long URI may happen.
+    var safeUriString = uriString.Length > 65519 ? uriString.Substring(0, 65519) : uriString;
+    var uri = new Uri(safeUriString, UriKind.RelativeOrAbsolute);
+
+    // handle data/uri embedded images (http://en.wikipedia.org/wiki/Data_URI_scheme)
+    if (uri.IsAbsoluteUri && uri.Scheme == "data")
     {
-        // Uri MaxLength is 65519 (https://msdn.microsoft.com/en-us/library/z6c2z492.aspx)
-        // if using data URI scheme, very long URI may happen.
-        var safeUriString = uriString.Length > 65519 ? uriString.Substring(0, 65519) : uriString;
-        var uri = new Uri(safeUriString, UriKind.RelativeOrAbsolute);
-
-        // handle data/uri embedded images (http://en.wikipedia.org/wiki/Data_URI_scheme)
-        if (uri.IsAbsoluteUri && uri.Scheme == "data")
-        {
-            return uri;
-        }
-
-        if (!uri.IsAbsoluteUri)
-        {
-            uri = new Uri(svgOwnerDocument.BaseUri, uri);
-        }
-
         return uri;
     }
+
+    if (!uri.IsAbsoluteUri)
+    {
+        uri = new Uri(svgOwnerDocument.BaseUri, uri);
+    }
+
+    return uri;
+}
 
     internal static object? GetImage(string uriString, SvgDocument svgOwnerDocument, IAssetLoader assetLoader)
     {
@@ -545,9 +545,52 @@ public static class SvgService
         return svgDocument;
     }
 
+    public static SKSize GetDimensions(SvgFragment svgFragment)
+    {
+        float w, h;
+        var isWidthperc = svgFragment.Width.Type == SvgUnitType.Percentage;
+        var isHeightperc = svgFragment.Height.Type == SvgUnitType.Percentage;
+
+        var bounds = new SKRect();
+        if (isWidthperc || isHeightperc)
+        {
+            if (svgFragment.ViewBox.Width > 0 && svgFragment.ViewBox.Height > 0)
+            {
+                bounds = new SKRect(
+                    svgFragment.ViewBox.MinX, svgFragment.ViewBox.MinY,
+                    svgFragment.ViewBox.Width, svgFragment.ViewBox.Height);
+            }
+            else
+            {
+                // TODO: Calculate correct bounds using Children bounds.
+            }
+        }
+
+        if (isWidthperc)
+        {
+            w = (bounds.Width + bounds.Left) * (svgFragment.Width.Value * 0.01f);
+        }
+        else
+        {
+            // NOTE: Pass bounds as Rect.Empty because percentage case is handled before.
+            w = svgFragment.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, SKRect.Empty);
+        }
+        if (isHeightperc)
+        {
+            h = (bounds.Height + bounds.Top) * (svgFragment.Height.Value * 0.01f);
+        }
+        else
+        {
+            // NOTE: Pass bounds as Rect.Empty because percentage case is handled before.
+            h = svgFragment.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, SKRect.Empty);
+        }
+
+        return new SKSize((float)Math.Round(w), (float)Math.Round(h));
+    }
+
     public static SKDrawable? ToDrawable(SvgFragment svgFragment, IAssetLoader assetLoader, HashSet<Uri>? references, out SKRect? bounds, DrawAttributes ignoreAttributes = DrawAttributes.None)
     {
-        var size = TransformsService.GetDimensions(svgFragment);
+        var size = GetDimensions(svgFragment);
         var fragmentBounds = SKRect.Create(size);
         var drawable = DrawableFactory.Create(svgFragment, fragmentBounds, null, assetLoader, references, ignoreAttributes);
         if (drawable is null)

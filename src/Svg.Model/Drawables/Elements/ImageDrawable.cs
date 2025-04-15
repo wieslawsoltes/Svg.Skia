@@ -71,7 +71,7 @@ public sealed class ImageDrawable : DrawableBase
 
         if (svgFragment is { })
         {
-            var skSize = TransformsService.GetDimensions(svgFragment);
+            var skSize = SvgService.GetDimensions(svgFragment);
             drawable.SrcRect = SKRect.Create(0f, 0f, skSize.Width, skSize.Height);
         }
 

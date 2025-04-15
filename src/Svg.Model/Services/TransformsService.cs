@@ -4,7 +4,7 @@ using Svg.Transforms;
 
 namespace Svg.Model;
 
-public static class TransformsService
+internal static class TransformsService
 {
     internal static float ToDeviceValue(this SvgUnit svgUnit, UnitRenderingType renderType, SvgElement? owner, SKRect skBounds)
     {
@@ -136,49 +136,6 @@ public static class TransformsService
         return svgUnit.Type == SvgUnitType.Percentage
                && svgCoordinateUnits == SvgCoordinateUnits.ObjectBoundingBox ?
             new SvgUnit(SvgUnitType.User, svgUnit.Value / 100) : svgUnit;
-    }
-
-    public static SKSize GetDimensions(SvgFragment svgFragment)
-    {
-        float w, h;
-        var isWidthperc = svgFragment.Width.Type == SvgUnitType.Percentage;
-        var isHeightperc = svgFragment.Height.Type == SvgUnitType.Percentage;
-
-        var bounds = new SKRect();
-        if (isWidthperc || isHeightperc)
-        {
-            if (svgFragment.ViewBox.Width > 0 && svgFragment.ViewBox.Height > 0)
-            {
-                bounds = new SKRect(
-                    svgFragment.ViewBox.MinX, svgFragment.ViewBox.MinY,
-                    svgFragment.ViewBox.Width, svgFragment.ViewBox.Height);
-            }
-            else
-            {
-                // TODO: Calculate correct bounds using Children bounds.
-            }
-        }
-
-        if (isWidthperc)
-        {
-            w = (bounds.Width + bounds.Left) * (svgFragment.Width.Value * 0.01f);
-        }
-        else
-        {
-            // NOTE: Pass bounds as Rect.Empty because percentage case is handled before.
-            w = svgFragment.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, SKRect.Empty);
-        }
-        if (isHeightperc)
-        {
-            h = (bounds.Height + bounds.Top) * (svgFragment.Height.Value * 0.01f);
-        }
-        else
-        {
-            // NOTE: Pass bounds as Rect.Empty because percentage case is handled before.
-            h = svgFragment.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, SKRect.Empty);
-        }
-
-        return new SKSize((float)Math.Round(w), (float)Math.Round(h));
     }
 
     internal static SKMatrix ToMatrix(this SvgMatrix svgMatrix)

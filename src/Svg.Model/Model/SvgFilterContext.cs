@@ -1495,7 +1495,7 @@ internal class SvgFilterContext
 
         if (svgFragment is { })
         {
-            var skSize = TransformsService.GetDimensions(svgFragment);
+            var skSize = SvgService.GetDimensions(svgFragment);
             srcRect = SKRect.Create(0f, 0f, skSize.Width, skSize.Height);
         }
 

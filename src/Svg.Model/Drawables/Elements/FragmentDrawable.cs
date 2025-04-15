@@ -32,7 +32,7 @@ public sealed class FragmentDrawable : DrawableContainer
         var x = svgFragmentParent is null ? 0f : svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skViewport);
         var y = svgFragmentParent is null ? 0f : svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skViewport);
 
-        var skSize = TransformsService.GetDimensions(svgFragment);
+        var skSize = SvgService.GetDimensions(svgFragment);
 
         if (skViewport.IsEmpty)
         {
