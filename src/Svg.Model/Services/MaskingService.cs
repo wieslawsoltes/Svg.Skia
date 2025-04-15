@@ -6,7 +6,7 @@ using ShimSkiaSharp;
 
 namespace Svg.Model;
 
-public static class MaskingService
+internal static class MaskingService
 {
     internal static bool CanDraw(SvgVisualElement svgVisualElement, DrawAttributes ignoreAttributes)
     {

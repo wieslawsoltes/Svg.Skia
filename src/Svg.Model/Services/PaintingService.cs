@@ -6,7 +6,7 @@ using ShimSkiaSharp;
 
 namespace Svg.Model;
 
-public static class PaintingService
+internal static class PaintingService
 {
     internal static float AdjustSvgOpacity(float opacity)
     {

@@ -6,7 +6,7 @@ using ShimSkiaSharp;
 
 namespace Svg.Model;
 
-public static class MarkerService
+internal static class MarkerService
 {
     internal static void AddMarkers(this SvgGroup svgGroup)
     {
