@@ -170,16 +170,16 @@ using (var svg = new SKSvg())
 }
 ```
 
-### AvaloniaUI
+### Avalonia
 
 #### Install Package
 
 ```
-dotnet add package Avalonia.Svg.Skia
+dotnet add package Svg.Controls.Skia.Avalonia
 ```
 
 ```
-Install-Package Avalonia.Svg.Skia
+Install-Package Svg.Controls.Skia.Avalonia
 ```
 
 ### Svg control
@@ -234,7 +234,7 @@ Install-Package Avalonia.Svg.Skia
 To make controls work with `Avalonia Previewer` please add the following lines to `BuildAvaloniaApp()` method:
 ```C#
 GC.KeepAlive(typeof(SvgImageExtension).Assembly);
-GC.KeepAlive(typeof(Avalonia.Svg.Skia.Svg).Assembly);
+GC.KeepAlive(typeof(Svg.Controls.Skia.Avalonia.Svg).Assembly);
 ```
 
 The `BuildAvaloniaApp()` should look similar to this:
@@ -242,25 +242,25 @@ The `BuildAvaloniaApp()` should look similar to this:
 public static AppBuilder BuildAvaloniaApp()
 {
     GC.KeepAlive(typeof(SvgImageExtension).Assembly);
-    GC.KeepAlive(typeof(Avalonia.Svg.Skia.Svg).Assembly);
+    GC.KeepAlive(typeof(Svg.Controls.Skia.Avalonia.Svg).Assembly);
     return AppBuilder.Configure<App>()
         .UsePlatformDetect()
         .LogToTrace();
 }
 ```
 
-This is know issue as previewer not always loads all dependencies, especially custom controls in Avalonia xmlns, other solution would be to add xmlns prefix to control with provided assembly path.
+This is known issue as previewer not always loads all dependencies, especially custom controls in Avalonia xmlns, other solution would be to add xmlns prefix to control with provided assembly path.
 
-### AvaloniaUI SkiaSharp Controls
+### Avalonia SkiaSharp Controls
 
 #### Install Package
 
 ```
-dotnet add package Avalonia.Controls.Skia
+dotnet add package Skia.Controls.Avalonia
 ```
 
 ```
-Install-Package Avalonia.Controls.Skia
+Install-Package Skia.Controls.Avalonia
 ```
 
 #### Canvas
@@ -369,7 +369,7 @@ public void Draw(SKCanvas canvas)
 ```xml
 <ItemGroup>
   <PackageReference Include="Svg.SourceGenerator.Skia" Version="0.5.0" />
-  <PackageReference Include="Avalonia.Controls.Skia" Version="0.5.0" />
+  <PackageReference Include="Skia.Controls.Avalonia" Version="0.5.0" />
 </ItemGroup>
 ```
 
@@ -380,7 +380,7 @@ public void Draw(SKCanvas canvas)
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AvaloniaSample;assembly=AvaloniaSample"
-        xmlns:skp="clr-namespace:Avalonia.Controls.Skia;assembly=Avalonia.Controls.Skia"
+        xmlns:skp="clr-namespace:Skia.Controls.Avalonia;assembly=Skia.Controls.Avalonia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         Width="900" Height="650" WindowStartupLocation="CenterScreen"
         x:Class="AvaloniaSample.MainWindow"
