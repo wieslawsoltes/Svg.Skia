@@ -18,7 +18,7 @@
   <Import Project="..\..\build\Avalonia.Diagnostics.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Avalonia.Svg.Skia\Avalonia.Svg.Skia.csproj" />
+    <ProjectReference Include="..\..\src\Svg.Controls.Skia.Avalonia\Svg.Controls.Skia.Avalonia.csproj" />
   </ItemGroup>
 
 </Project>

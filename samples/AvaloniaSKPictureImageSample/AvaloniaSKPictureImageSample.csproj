@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Avalonia.Controls.Skia\Avalonia.Controls.Skia.csproj" />
+    <ProjectReference Include="..\..\src\Skia.Controls.Avalonia\Skia.Controls.Avalonia.csproj" />
     <ProjectReference Include="..\..\src\Svg.SourceGenerator.Skia\Svg.SourceGenerator.Skia.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="False" />
   </ItemGroup>
 

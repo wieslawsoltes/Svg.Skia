@@ -8,11 +8,12 @@
     <NoWarn>CS1591</NoWarn>
     <IsPackable>True</IsPackable>
     <Nullable>enable</Nullable>
+    <RootNamespace>Avalonia.Svg.Skia</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
     <Description>An SVG image control for Avalonia.</Description>
-    <PackageId>Avalonia.Svg.Skia</PackageId>
+    <PackageId>Svg.Controls.Skia.Avalonia</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;skiasharp;skia;control;avalonia;avaloniaui</PackageTags>
   </PropertyGroup>

@@ -9,7 +9,7 @@ public class SvgImageTests
     [Fact]
     public void SvgImage_Load()
     {
-        var uri = new Uri($"avares://Avalonia.Svg.Skia.UnitTests/Assets/Icon.svg");
+        var uri = new Uri($"avares://Svg.Controls.Skia.Avalonia.UnitTests/Assets/Icon.svg");
         var assetLoader = new StandardAssetLoader(); // AvaloniaLocator.Current.GetService<IAssetLoader>()
 
         var svgFile = assetLoader.Open(uri);

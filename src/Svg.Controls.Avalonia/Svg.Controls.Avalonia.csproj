@@ -8,11 +8,12 @@
     <NoWarn>CS1591</NoWarn>
     <IsPackable>True</IsPackable>
     <Nullable>enable</Nullable>
+    <RootNamespace>Avalonia.Svg</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
     <Description>An SVG image control for Avalonia.</Description>
-    <PackageId>Avalonia.Svg</PackageId>
+    <PackageId>Svg.Controls.Avalonia</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>svg;vector graphics;rendering;2d;graphics;geometry;shapes;control;avalonia;avaloniaui</PackageTags>
   </PropertyGroup>

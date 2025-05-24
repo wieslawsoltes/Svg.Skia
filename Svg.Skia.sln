@@ -69,19 +69,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Skia.UnitTests", "tests
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{B65D5B3A-77BE-4AFF-B502-A136B9C932F8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Svg.Skia", "src\Avalonia.Svg.Skia\Avalonia.Svg.Skia.csproj", "{8BAAB509-6073-4D68-9F16-EA28986839B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Controls.Skia.Avalonia", "src\Svg.Controls.Skia.Avalonia\Svg.Controls.Skia.Avalonia.csproj", "{8BAAB509-6073-4D68-9F16-EA28986839B1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaSvgSkiaSample", "samples\AvaloniaSvgSkiaSample\AvaloniaSvgSkiaSample.csproj", "{81724F00-B7C3-4E25-B473-C7433BABDC81}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Custom", "src\Svg.Custom\Svg.Custom.csproj", "{CFA46E73-0050-4C57-85CE-6C5868A2483C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Svg.Skia.UnitTests", "tests\Avalonia.Svg.Skia.UnitTests\Avalonia.Svg.Skia.UnitTests.csproj", "{D4467DCA-494D-4C32-9525-4A9713221A53}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Controls.Skia.Avalonia.UnitTests", "tests\Svg.Controls.Skia.Avalonia.UnitTests\Svg.Controls.Skia.Avalonia.UnitTests.csproj", "{D4467DCA-494D-4C32-9525-4A9713221A53}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Model", "src\Svg.Model\Svg.Model.csproj", "{4C970B2C-6C96-445B-B80B-4EFBF803FD5F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.CodeGen.Skia", "src\Svg.CodeGen.Skia\Svg.CodeGen.Skia.csproj", "{29F59C87-EAE6-4DD3-8666-B79BFAF6B34D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Controls.Skia", "src\Avalonia.Controls.Skia\Avalonia.Controls.Skia.csproj", "{223B7A5A-E263-4D40-9A6E-FE31EAE92F45}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Skia.Controls.Avalonia", "src\Skia.Controls.Avalonia\Skia.Controls.Avalonia.csproj", "{223B7A5A-E263-4D40-9A6E-FE31EAE92F45}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "samples\TestApp\TestApp.csproj", "{B4BC7C90-09C3-46CB-B8B1-0450CC7EAAB0}"
 EndProject
@@ -108,7 +108,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaSKPictureImageSampl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.SourceGenerator.Skia", "src\Svg.SourceGenerator.Skia\Svg.SourceGenerator.Skia.csproj", "{3049C672-8A3F-4FE4-9973-515B8323B546}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Svg", "src\Avalonia.Svg\Avalonia.Svg.csproj", "{B742F260-0EC6-4805-AE9F-987818CE3CF4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svg.Controls.Avalonia", "src\Svg.Controls.Avalonia\Svg.Controls.Avalonia.csproj", "{B742F260-0EC6-4805-AE9F-987818CE3CF4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaSvgSkiaStylingSample", "samples\AvaloniaSvgSkiaStylingSample\AvaloniaSvgSkiaStylingSample.csproj", "{8A938DC2-1634-4387-BAB3-69F871D54FB5}"
 EndProject
