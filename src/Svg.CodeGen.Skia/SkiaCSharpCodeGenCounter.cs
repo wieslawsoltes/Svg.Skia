@@ -1,4 +1,6 @@
-﻿namespace Svg.CodeGen.Skia;
+﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for details.
+namespace Svg.CodeGen.Skia;
 
 public class SkiaCSharpCodeGenCounter
 {

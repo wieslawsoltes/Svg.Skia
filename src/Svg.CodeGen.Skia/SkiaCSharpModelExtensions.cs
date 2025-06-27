@@ -1,4 +1,6 @@
-﻿//#define USE_DISPOSE_TYPEFACE
+﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for details.
+//#define USE_DISPOSE_TYPEFACE
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
