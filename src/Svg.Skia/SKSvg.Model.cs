@@ -304,7 +304,7 @@ public class SKSvg : IDisposable
             return;
         }
 
-        SkiaModel.Draw(Picture, canvas);
+        canvas.DrawPicture(Picture);
 
         if (Settings.ShowHitBounds && Drawable is DrawableBase drawable)
         {
