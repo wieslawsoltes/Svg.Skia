@@ -21,9 +21,9 @@ public partial class MainView : UserControl
     private readonly ObservableCollection<string> _hitResults = new();
     private SKSvg? _currentSkSvg;
     private bool _showHitBounds;
-    private SKColor _hitBoundsColor = SKColors.Cyan;
-    private readonly IList<SKPoint> _hitTestPoints = new List<SKPoint>();
-    private readonly IList<SKRect> _hitTestRects = new List<SKRect>();
+    private SkiaSharp.SKColor _hitBoundsColor = SKColors.Cyan;
+    private readonly IList<ShimSkiaSharp.SKPoint> _hitTestPoints = new List<ShimSkiaSharp.SKPoint>();
+    private readonly IList<ShimSkiaSharp.SKRect> _hitTestRects = new List<ShimSkiaSharp.SKRect>();
 
     public MainView()
     {
@@ -165,25 +165,19 @@ public partial class MainView : UserControl
 
         var hits = new HashSet<DrawableBase>();
 
-        if (_hitTestPoints is { })
+        foreach (var pt in _hitTestPoints)
         {
-            foreach (var pt in _hitTestPoints)
+            foreach (var d in HitTestService.HitTest(drawable, pt))
             {
-                foreach (var d in HitTestService.HitTest(drawable, pt))
-                {
-                    hits.Add(d);
-                }
+                hits.Add(d);
             }
         }
 
-        if (_hitTestRects is { })
+        foreach (var r in _hitTestRects)
         {
-            foreach (var r in _hitTestRects)
+            foreach (var d in HitTestService.HitTest(drawable, r))
             {
-                foreach (var d in HitTestService.HitTest(drawable, r))
-                {
-                    hits.Add(d);
-                }
+                hits.Add(d);
             }
         }
 
