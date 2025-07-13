@@ -645,7 +645,7 @@ public static class SvgService
 
     public static SvgDocument? OpenSvg(string path, SvgParameters? parameters = null)
     {
-        return SvgDocument.Open<SvgDocument>(path, parameters?.Entities);
+        return SvgDocument.Open<SvgDocument>(path, new SvgOptions(parameters?.Entities, parameters?.Css));
     }
 
     public static SvgDocument? OpenSvgz(string path, SvgParameters? parameters = null)
@@ -673,7 +673,7 @@ public static class SvgService
 
     public static SvgDocument? Open(System.IO.Stream stream, SvgParameters? parameters = null)
     {
-        return SvgDocument.Open<SvgDocument>(stream, parameters?.Entities);
+        return SvgDocument.Open<SvgDocument>(stream, new SvgOptions(parameters?.Entities, parameters?.Css));
     }
 
     public static SvgDocument? FromSvg(string svg)
