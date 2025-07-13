@@ -3,6 +3,7 @@
 using System;
 using Svg.Model;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
 using Svg.Model.Drawables;
 using ShimSkiaSharp;
@@ -408,7 +409,7 @@ public class SKSvg : IDisposable
                 Color = Settings.HitBoundsColor
             };
 
-            foreach (var hit in hits)
+            foreach (var hit in hits.Take(1))
             {
                 var rect = SkiaModel.ToSKRect(hit.TransformedBounds);
                 canvas.DrawRect(rect, paint);
