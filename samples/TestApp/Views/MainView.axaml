@@ -29,7 +29,8 @@
              Grid.Row="1"
              Margin="6,0,6,0"
              ItemsSource="{Binding FilteredItems}"
-             SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+             SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+             SelectionChanged="SelectingItemsControl_OnSelectionChanged">
       <ListBox.Styles>
         <Style Selector="ListBoxItem">
           <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -133,14 +134,15 @@
           <Stretch>Uniform</Stretch>
           <Stretch>UniformToFill</Stretch>
         </ComboBox>
-        <ToggleSwitch Name="ShowHitBoundsToggle"
-                      Content="Show Bounds"
-                      Margin="6,0,6,0"
-                      Click="ShowHitBoundsToggle_OnToggled" />
         <ToggleSwitch IsChecked="{Binding #Svg.EnableCache}"
                       OnContent="Cache Enabled"
                       OffContent="Cache Disabled"
                       Margin="6,0,6,0" />
+        <ToggleSwitch Name="ShowHitBoundsToggle"
+                      OnContent="Show Bounds"
+                      OffContent="Hide Bounds"
+                      Margin="6,0,6,0"
+                      Click="ShowHitBoundsToggle_OnToggled" />
         <Button Content="Export"
                 Command="{Binding ExportCommand}"
                 CommandParameter="{Binding #Svg}"
