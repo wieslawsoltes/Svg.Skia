@@ -9,6 +9,7 @@ using Avalonia.Logging;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using Svg.Model;
+using Svg.Skia;
 
 namespace Avalonia.Svg.Skia;
 

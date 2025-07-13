@@ -8,6 +8,8 @@ using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using ShimSkiaSharp;
 using System.Collections.ObjectModel;
+using Avalonia;
+using Avalonia.Media;
 using TestApp.ViewModels;
 
 namespace TestApp.Views;
@@ -21,7 +23,7 @@ public partial class MainView : UserControl
         InitializeComponent();
         AddHandler(DragDrop.DropEvent, Drop);
         AddHandler(DragDrop.DragOverEvent, DragOver);
-        HitResults.Items = _hitResults;
+        HitResults.ItemsSource = _hitResults;
     }
 
     private void InitializeComponent()

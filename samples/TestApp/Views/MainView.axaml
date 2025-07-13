@@ -136,7 +136,7 @@
         <ToggleSwitch Name="ShowHitBoundsToggle"
                       Content="Show Bounds"
                       Margin="6,0,6,0"
-                      Toggled="ShowHitBoundsToggle_OnToggled" />
+                      Click="ShowHitBoundsToggle_OnToggled" />
         <ToggleSwitch IsChecked="{Binding #Svg.EnableCache}"
                       OnContent="Cache Enabled"
                       OffContent="Cache Disabled"
@@ -166,8 +166,7 @@
     <ListBox Grid.Column="2"
              Grid.Row="3"
              Name="HitResults"
-             Margin="6"
-             Items="{Binding}" />
+             Margin="6" />
 
   </Grid>
 
