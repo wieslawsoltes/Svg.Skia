@@ -4,10 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Logging;
 using Avalonia.Media;
 using Avalonia.Metadata;
+using ShimSkiaSharp;
 using Svg.Model;
 using Svg.Skia;
 
@@ -121,6 +123,54 @@ public class Svg : Control
     public SkiaSharp.SKPicture? Picture => _svg?.Picture;
 
     public SKSvg? SkSvg => _svg?.Svg;
+
+    /// <summary>
+    /// Converts a point from control coordinates to picture coordinates.
+    /// </summary>
+    /// <param name="point">Point in control coordinates.</param>
+    /// <param name="picturePoint">Converted point in picture coordinates.</param>
+    /// <returns>True if the point could be converted.</returns>
+    public bool TryGetPicturePoint(Point point, out SKPoint picturePoint)
+    {
+        picturePoint = default;
+
+        if (_svg?.Picture is null)
+        {
+            return false;
+        }
+
+        var picture = _svg.Picture;
+        var viewPort = new Rect(Bounds.Size);
+        var sourceSize = new Size(picture.CullRect.Width, picture.CullRect.Height);
+        var scale = Stretch.CalculateScaling(Bounds.Size, sourceSize, StretchDirection);
+        var scaledSize = sourceSize * scale;
+        var destRect = viewPort.CenterRect(new Rect(scaledSize)).Intersect(viewPort);
+        var sourceRect = new Rect(sourceSize).CenterRect(new Rect(destRect.Size / scale));
+        var bounds = picture.CullRect;
+        var scaleMatrix = Matrix.CreateScale(destRect.Width / sourceRect.Width, destRect.Height / sourceRect.Height);
+        var translateMatrix = Matrix.CreateTranslation(-sourceRect.X + destRect.X - bounds.Top, -sourceRect.Y + destRect.Y - bounds.Left);
+        var matrix = scaleMatrix * translateMatrix;
+        var inverse = matrix.Invert();
+        var local = inverse.Transform(point);
+
+        picturePoint = new SKPoint((float)local.X, (float)local.Y);
+        return true;
+    }
+
+    /// <summary>
+    /// Hit tests elements using control coordinates.
+    /// </summary>
+    /// <param name="point">Point in control coordinates.</param>
+    /// <returns>Sequence of hit elements.</returns>
+    public IEnumerable<SvgElement> HitTestElements(Point point)
+    {
+        if (SkSvg is { } skSvg && TryGetPicturePoint(point, out var pp))
+        {
+            return skSvg.HitTestElements(pp);
+        }
+
+        return Array.Empty<SvgElement>();
+    }
 
     static Svg()
     {
