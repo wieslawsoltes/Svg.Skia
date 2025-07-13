@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <IsPackable>False</IsPackable>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\ReferenceAssemblies.props" />
+  <Import Project="..\..\build\XUnit.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ShimSkiaSharp\ShimSkiaSharp.csproj" />
+  </ItemGroup>
+
+</Project>
