@@ -208,6 +208,16 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
         canvas.Restore();
     }
 
+    public virtual bool HitTest(SKPoint point)
+    {
+        return TransformedBounds.Contains(point);
+    }
+
+    public virtual bool HitTest(SKRect rect)
+    {
+        return HitTestService.IntersectsWith(TransformedBounds, rect);
+    }
+
     public virtual void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
     {
         var element = Element;

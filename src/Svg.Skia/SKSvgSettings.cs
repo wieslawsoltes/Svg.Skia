@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System.Collections.Generic;
 using Svg.Skia.TypefaceProviders;
+using ShimSkiaSharp;
 
 namespace Svg.Skia;
 
@@ -16,6 +17,14 @@ public class SKSvgSettings
     public SkiaSharp.SKColorSpace Srgb { get; set; }
 
     public IList<ITypefaceProvider>? TypefaceProviders  { get; set; }
+
+    public bool ShowHitBounds { get; set; }
+
+    public SkiaSharp.SKColor HitBoundsColor { get; set; }
+
+    public IList<ShimSkiaSharp.SKPoint> HitTestPoints { get; set; }
+
+    public IList<ShimSkiaSharp.SKRect> HitTestRects { get; set; }
 
     public SKSvgSettings()
     {
@@ -32,5 +41,10 @@ public class SKSvgSettings
             new FontManagerTypefaceProvider(),
             new DefaultTypefaceProvider()
         };
+
+        ShowHitBounds = false;
+        HitBoundsColor = SkiaSharp.SKColors.Cyan;
+        HitTestPoints = new List<ShimSkiaSharp.SKPoint>();
+        HitTestRects = new List<ShimSkiaSharp.SKRect>();
     }
 }

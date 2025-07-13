@@ -77,7 +77,7 @@ public sealed class AnchorDrawable : DrawableContainer
 
         foreach (var child in ChildrenDrawables)
         {
-            child.PostProcess(viewport, totalMatrix);
+            child.PostProcess(viewport, TotalTransform);
         }
     }
 }

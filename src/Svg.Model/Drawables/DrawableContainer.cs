@@ -77,7 +77,7 @@ public abstract class DrawableContainer : DrawableBase
 
         foreach (var child in ChildrenDrawables)
         {
-            child.PostProcess(clip, SKMatrix.Identity);
+            child.PostProcess(clip, totalMatrix);
         }
     }
 

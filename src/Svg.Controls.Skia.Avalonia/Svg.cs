@@ -119,6 +119,8 @@ public class Svg : Control
     /// </summary>
     public SkiaSharp.SKPicture? Picture => _svg?.Picture;
 
+    public SKSvg? SkSvg => _svg?.Svg;
+
     static Svg()
     {
         AffectsRender<Svg>(PathProperty, SourceProperty, StretchProperty, StretchDirectionProperty);

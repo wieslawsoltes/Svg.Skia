@@ -12,7 +12,7 @@
     <vm:MainWindowViewModel />
   </Design.DataContext>
 
-  <Grid ColumnDefinitions="300,8,*" RowDefinitions="Auto,*,Auto">
+  <Grid ColumnDefinitions="300,8,*" RowDefinitions="Auto,*,Auto,Auto">
 
     <TextBox Grid.Column="0"
              Grid.Row="0"
@@ -133,6 +133,10 @@
           <Stretch>Uniform</Stretch>
           <Stretch>UniformToFill</Stretch>
         </ComboBox>
+        <ToggleSwitch Name="ShowHitBoundsToggle"
+                      Content="Show Bounds"
+                      Margin="6,0,6,0"
+                      Toggled="ShowHitBoundsToggle_OnToggled" />
         <ToggleSwitch IsChecked="{Binding #Svg.EnableCache}"
                       OnContent="Cache Enabled"
                       OffContent="Cache Disabled"
@@ -154,9 +158,16 @@
         <Svg Name="Svg"
              Stretch="{Binding #SvgStretch.SelectedItem}"
              Path="{Binding SelectedItem.Path, FallbackValue=''}"
-             EnableCache="True" />
+             EnableCache="True"
+             PointerPressed="Svg_OnPointerPressed" />
       </ScrollViewer>
     </DockPanel>
+
+    <ListBox Grid.Column="2"
+             Grid.Row="3"
+             Name="HitResults"
+             Margin="6"
+             Items="{Binding}" />
 
   </Grid>
 

@@ -253,6 +253,100 @@ public class SKSvg : IDisposable
         return false;
     }
 
+    public IEnumerable<DrawableBase> HitTestDrawables(SKPoint point)
+    {
+        if (Drawable is DrawableBase drawable)
+        {
+            foreach (var d in HitTestService.HitTest(drawable, point))
+            {
+                yield return d;
+            }
+        }
+    }
+
+    public IEnumerable<DrawableBase> HitTestDrawables(SKRect rect)
+    {
+        if (Drawable is DrawableBase drawable)
+        {
+            foreach (var d in HitTestService.HitTest(drawable, rect))
+            {
+                yield return d;
+            }
+        }
+    }
+
+    public IEnumerable<SvgElement> HitTestElements(SKPoint point)
+    {
+        if (Drawable is DrawableBase drawable)
+        {
+            foreach (var e in HitTestService.HitTestElements(drawable, point))
+            {
+                yield return e;
+            }
+        }
+    }
+
+    public IEnumerable<SvgElement> HitTestElements(SKRect rect)
+    {
+        if (Drawable is DrawableBase drawable)
+        {
+            foreach (var e in HitTestService.HitTestElements(drawable, rect))
+            {
+                yield return e;
+            }
+        }
+    }
+
+    public void Draw(SkiaSharp.SKCanvas canvas)
+    {
+        if (Picture is null)
+        {
+            return;
+        }
+
+        SkiaModel.Draw(Picture, canvas);
+
+        if (Settings.ShowHitBounds && Drawable is DrawableBase drawable)
+        {
+            var hits = new HashSet<DrawableBase>();
+
+            if (Settings.HitTestPoints is { })
+            {
+                foreach (var pt in Settings.HitTestPoints)
+                {
+                    foreach (var d in HitTestService.HitTest(drawable, pt))
+                    {
+                        hits.Add(d);
+                    }
+                }
+            }
+
+            if (Settings.HitTestRects is { })
+            {
+                foreach (var r in Settings.HitTestRects)
+                {
+                    foreach (var d in HitTestService.HitTest(drawable, r))
+                    {
+                        hits.Add(d);
+                    }
+                }
+            }
+
+            using var paint = new SkiaSharp.SKPaint
+            {
+                IsAntialias = true,
+                Style = SkiaSharp.SKPaintStyle.Stroke,
+                Color = Settings.HitBoundsColor
+            };
+
+            foreach (var hit in hits)
+            {
+                var rect = SkiaModel.ToSKRect(hit.TransformedBounds);
+                canvas.DrawRect(rect, paint);
+            }
+        }
+    }
+
     private void Reset()
     {
         lock (Sync)

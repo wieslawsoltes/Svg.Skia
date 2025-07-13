@@ -25,6 +25,8 @@ public sealed class SvgSource : IDisposable
 
     public static readonly SkiaModel s_skiaModel;
 
+    private SKSvg? _skSvg;
+
     private readonly Uri? _baseUri;
     private SKPicture? _picture;
     private SvgParameters? _originalParameters;
@@ -37,6 +39,8 @@ public sealed class SvgSource : IDisposable
     public Dictionary<string, string>? Entities { get; init; }
 
     public string? Css { get; init; }
+
+    public SKSvg? Svg => _skSvg;
 
     public SvgParameters? Parameters => _originalParameters;
 
@@ -108,15 +112,10 @@ public sealed class SvgSource : IDisposable
             return null;
         }
         
-        var svgDocument = SvgService.Open(path, parameters);
-        if (svgDocument is null)
-        {
-            return null;
-        }
-            
-        var model = SvgService.ToModel(svgDocument, s_assetLoader, out _, out _);
-
-        return s_skiaModel.ToSKPicture(model);
+        var skSvg = new SKSvg();
+        skSvg.Load(path, parameters);
+        source._skSvg = skSvg;
+        return skSvg.Picture;
     }
 
     private static SKPicture? Load(SvgSource source, Stream stream, SvgParameters? parameters = null)
@@ -132,36 +131,26 @@ public sealed class SvgSource : IDisposable
         source._originalParameters = parameters;
         source._originalStream.Position = 0;
 
-        var svgDocument = SvgService.Open(source._originalStream, parameters);
-        if (svgDocument is null)
-        {
-            return null;
-        }
-
-        var model = SvgService.ToModel(svgDocument, s_assetLoader, out _, out _);
-
-        return s_skiaModel.ToSKPicture(model);
+        var skSvg = new SKSvg();
+        skSvg.Load(source._originalStream, parameters);
+        source._skSvg = skSvg;
+        return skSvg.Picture;
     }
 
     private static SKPicture? FromSvg(string svg)
     {
-        var svgDocument = SvgService.FromSvg(svg);
-        if (svgDocument is { })
-        {
-            var model = SvgService.ToModel(svgDocument, s_assetLoader, out _, out _);
-
-            return s_skiaModel.ToSKPicture(model);
-        }
-        return null;
+        var skSvg = new SKSvg();
+        skSvg.FromSvg(svg);
+        return skSvg.Picture;
     }
 
     private static SKPicture? FromSvgDocument(SvgDocument? svgDocument)
     {
         if (svgDocument is { })
         {
-            var model = SvgService.ToModel(svgDocument, s_assetLoader, out _, out _);
-
-            return s_skiaModel.ToSKPicture(model);
+            var skSvg = new SKSvg();
+            skSvg.FromSvgDocument(svgDocument);
+            return skSvg.Picture;
         }
         return null;
     }
@@ -241,6 +230,8 @@ public sealed class SvgSource : IDisposable
     {
         var source = new SvgSource(default(Uri));
         source._picture = FromSvg(svg);
+        // loading from SVG string does not store SKSvg instance
+        source._skSvg = null;
         return source;
     }
 
@@ -266,6 +257,7 @@ public sealed class SvgSource : IDisposable
     {
         var source = new SvgSource(default(Uri));
         source._picture = FromSvgDocument(document);
+        source._skSvg = null;
         return source;
     }
 
@@ -274,6 +266,7 @@ public sealed class SvgSource : IDisposable
         lock (Sync)
         {
             _picture = null;
+            _skSvg = null;
 
             _originalParameters = parameters;
 
