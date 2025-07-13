@@ -54,9 +54,9 @@ public static class HitTestService
     {
         foreach (var d in HitTest(drawable, point))
         {
-            if (d.Element is { })
+            if (d.Element is { } e && e.ID is not null)
             {
-                yield return d.Element;
+                yield return e;
             }
         }
     }
@@ -65,9 +65,9 @@ public static class HitTestService
     {
         foreach (var d in HitTest(drawable, rect))
         {
-            if (d.Element is { })
+            if (d.Element is { } e && e.ID is not null)
             {
-                yield return d.Element;
+                yield return e;
             }
         }
     }
