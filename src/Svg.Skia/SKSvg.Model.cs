@@ -102,6 +102,13 @@ public partial class SKSvg : IDisposable
 
     public virtual SkiaSharp.SKPicture? Picture { get; protected set; }
 
+    public event EventHandler<SKSvgDrawEventArgs>? OnDraw;
+
+    protected virtual void RaiseOnDraw(SKSvgDrawEventArgs e)
+    {
+        OnDraw?.Invoke(this, e);
+    }
+
     public SvgParameters? Parameters => _originalParameters;
 
     public SKSvg()
@@ -263,45 +270,7 @@ public partial class SKSvg : IDisposable
 
         canvas.DrawPicture(Picture);
 
-        if (Settings.ShowHitBounds && Drawable is DrawableBase drawable)
-        {
-            var hits = new HashSet<DrawableBase>();
-
-            if (Settings.HitTestPoints is { })
-            {
-                foreach (var pt in Settings.HitTestPoints)
-                {
-                    foreach (var d in HitTestService.HitTest(drawable, pt))
-                    {
-                        hits.Add(d);
-                    }
-                }
-            }
-
-            if (Settings.HitTestRects is { })
-            {
-                foreach (var r in Settings.HitTestRects)
-                {
-                    foreach (var d in HitTestService.HitTest(drawable, r))
-                    {
-                        hits.Add(d);
-                    }
-                }
-            }
-
-            using var paint = new SkiaSharp.SKPaint
-            {
-                IsAntialias = true,
-                Style = SkiaSharp.SKPaintStyle.Stroke,
-                Color = Settings.HitBoundsColor
-            };
-
-            foreach (var hit in hits.Take(1))
-            {
-                var rect = SkiaModel.ToSKRect(hit.TransformedBounds);
-                canvas.DrawRect(rect, paint);
-            }
-        }
+        RaiseOnDraw(new SKSvgDrawEventArgs(canvas));
     }
 
     private void Reset()
