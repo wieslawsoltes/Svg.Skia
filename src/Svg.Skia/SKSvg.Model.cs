@@ -297,6 +297,66 @@ public class SKSvg : IDisposable
         }
     }
 
+    public bool TryGetPicturePoint(SKPoint point, SKMatrix canvasMatrix, out SKPoint picturePoint)
+    {
+        if (!canvasMatrix.TryInvert(out var inverse))
+        {
+            picturePoint = default;
+            return false;
+        }
+
+        picturePoint = inverse.MapPoint(point);
+        return true;
+    }
+
+    public IEnumerable<DrawableBase> HitTestDrawables(SKPoint point, SKMatrix canvasMatrix)
+    {
+        if (TryGetPicturePoint(point, canvasMatrix, out var pp))
+        {
+            foreach (var d in HitTestDrawables(pp))
+            {
+                yield return d;
+            }
+        }
+    }
+
+    public IEnumerable<DrawableBase> HitTestDrawables(SKRect rect, SKMatrix canvasMatrix)
+    {
+        if (canvasMatrix.TryInvert(out var inverse))
+        {
+            var pr = rect;
+            inverse.MapRect(ref pr);
+            foreach (var d in HitTestDrawables(pr))
+            {
+                yield return d;
+            }
+        }
+    }
+
+    public IEnumerable<SvgElement> HitTestElements(SKPoint point, SKMatrix canvasMatrix)
+    {
+        if (TryGetPicturePoint(point, canvasMatrix, out var pp))
+        {
+            foreach (var e in HitTestElements(pp))
+            {
+                yield return e;
+            }
+        }
+    }
+
+    public IEnumerable<SvgElement> HitTestElements(SKRect rect, SKMatrix canvasMatrix)
+    {
+        if (canvasMatrix.TryInvert(out var inverse))
+        {
+            var pr = rect;
+            inverse.MapRect(ref pr);
+            foreach (var e in HitTestElements(pr))
+            {
+                yield return e;
+            }
+        }
+    }
+
     public void Draw(SkiaSharp.SKCanvas canvas)
     {
         if (Picture is null)

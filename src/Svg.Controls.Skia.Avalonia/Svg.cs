@@ -12,6 +12,7 @@ using Avalonia.Metadata;
 using ShimSkiaSharp;
 using Svg.Model;
 using Svg.Skia;
+using Svg;
 
 namespace Avalonia.Svg.Skia;
 
