@@ -30,7 +30,6 @@
     <!--<ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />-->
     <ProjectReference Include="..\ShimSkiaSharp\ShimSkiaSharp.csproj" />
     <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
-    
   </ItemGroup>
 
   <ItemGroup>
