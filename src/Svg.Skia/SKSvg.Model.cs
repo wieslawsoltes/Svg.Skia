@@ -309,6 +309,19 @@ public class SKSvg : IDisposable
         return true;
     }
 
+    public bool TryGetPictureRect(SKRect rect, SKMatrix canvasMatrix, out SKRect pictureRect)
+    {
+        if (!canvasMatrix.TryInvert(out var inverse))
+        {
+            pictureRect = default;
+            return false;
+        }
+
+        pictureRect = rect;
+        inverse.MapRect(ref pictureRect);
+        return true;
+    }
+
     public IEnumerable<DrawableBase> HitTestDrawables(SKPoint point, SKMatrix canvasMatrix)
     {
         if (TryGetPicturePoint(point, canvasMatrix, out var pp))
@@ -322,10 +335,8 @@ public class SKSvg : IDisposable
 
     public IEnumerable<DrawableBase> HitTestDrawables(SKRect rect, SKMatrix canvasMatrix)
     {
-        if (canvasMatrix.TryInvert(out var inverse))
+        if (TryGetPictureRect(rect, canvasMatrix, out var pr))
         {
-            var pr = rect;
-            inverse.MapRect(ref pr);
             foreach (var d in HitTestDrawables(pr))
             {
                 yield return d;
@@ -346,10 +357,8 @@ public class SKSvg : IDisposable
 
     public IEnumerable<SvgElement> HitTestElements(SKRect rect, SKMatrix canvasMatrix)
     {
-        if (canvasMatrix.TryInvert(out var inverse))
+        if (TryGetPictureRect(rect, canvasMatrix, out var pr))
         {
-            var pr = rect;
-            inverse.MapRect(ref pr);
             foreach (var e in HitTestElements(pr))
             {
                 yield return e;

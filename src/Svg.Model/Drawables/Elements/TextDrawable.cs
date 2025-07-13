@@ -41,7 +41,48 @@ public sealed class TextDrawable : DrawableBase
 
     private void Initialize()
     {
-        // TODO: Initialize
+        if (Text is null)
+        {
+            return;
+        }
+
+        IsDrawable = CanDraw(Text, IgnoreAttributes) && HasFeatures(Text, IgnoreAttributes);
+
+        if (!IsDrawable)
+        {
+            return;
+        }
+
+        // Approximate geometry bounds using the full text content
+        var builder = new StringBuilder();
+        foreach (var node in GetContentNodes(Text))
+        {
+            if (node is ISvgDescriptiveElement)
+            {
+                continue;
+            }
+
+            builder.Append(PrepareText(Text, node.Content));
+        }
+
+        var text = builder.ToString();
+
+        using var paint = new SKPaint();
+        PaintingService.SetPaintText(Text, OwnerBounds, paint);
+        paint.GetFontMetrics(out var metrics);
+
+        var x = Text.X.Count >= 1 ? Text.X[0].ToDeviceValue(UnitRenderingType.HorizontalOffset, Text, OwnerBounds) : 0f;
+        var y = Text.Y.Count >= 1 ? Text.Y[0].ToDeviceValue(UnitRenderingType.VerticalOffset, Text, OwnerBounds) : 0f;
+        var dx = Text.Dx.Count >= 1 ? Text.Dx[0].ToDeviceValue(UnitRenderingType.HorizontalOffset, Text, OwnerBounds) : 0f;
+        var dy = Text.Dy.Count >= 1 ? Text.Dy[0].ToDeviceValue(UnitRenderingType.VerticalOffset, Text, OwnerBounds) : 0f;
+
+        x += dx;
+        y += dy;
+
+        var width = paint.MeasureText(text);
+
+        GeometryBounds = new SKRect(x, y + metrics.Ascent, x + width, y + metrics.Descent);
+        Transform = TransformsService.ToMatrix(Text.Transforms);
     }
 
     internal void GetPositionsX(SvgTextBase svgTextBase, SKRect skBounds, List<float> xs)
@@ -641,12 +682,11 @@ public sealed class TextDrawable : DrawableBase
 
     protected override void OnDraw(SKCanvas canvas)
     {
-        // TODO: OnDraw
         Draw(canvas, IgnoreAttributes, null, true);
     }
 
     public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
     {
-        // TODO: PostProcess
+        base.PostProcess(viewport, totalMatrix);
     }
 }

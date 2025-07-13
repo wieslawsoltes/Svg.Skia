@@ -42,4 +42,14 @@ public class HitTestTests : SvgUnitTest
         var c = SKRect.Create(20,20,5,5);
         Assert.False(HitTestService.IntersectsWith(a,c));
     }
+
+    [Fact]
+    public void HitTest_Text_Point()
+    {
+        var svg = new SKSvg();
+        using var _ = svg.Load(GetSvgPath("HitTestText.svg"));
+
+        var results = svg.HitTestElements(new SKPoint(12, 20)).Select(e => e.ID).ToList();
+        Assert.Contains("hello", results);
+    }
 }
