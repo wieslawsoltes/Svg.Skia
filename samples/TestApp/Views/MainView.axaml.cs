@@ -7,6 +7,8 @@ using Avalonia.Interactivity;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Linq;
+using ShimSkiaSharp;
+using SkiaSharp;
 using Svg.Skia;
 using Svg.Model.Drawables;
 using Svg.Model.Services;
@@ -18,6 +20,10 @@ public partial class MainView : UserControl
 {
     private readonly ObservableCollection<string> _hitResults = new();
     private SKSvg? _currentSkSvg;
+    private bool _showHitBounds;
+    private SKColor _hitBoundsColor = SKColors.Cyan;
+    private readonly IList<SKPoint> _hitTestPoints = new List<SKPoint>();
+    private readonly IList<SKRect> _hitTestRects = new List<SKRect>();
 
     public MainView()
     {
@@ -96,13 +102,9 @@ public partial class MainView : UserControl
 
     private void ShowHitBoundsToggle_OnToggled(object? sender, RoutedEventArgs e)
     {
-        var svg = Svg.SkSvg;
-        if (svg is { })
-        {
-            svg.Settings.ShowHitBounds = ShowHitBoundsToggle.IsChecked == true;
-            SubscribeOnDraw();
-            Svg.InvalidateVisual();
-        }
+        _showHitBounds = ShowHitBoundsToggle.IsChecked == true;
+        SubscribeOnDraw();
+        Svg.InvalidateVisual();
     }
 
     private void Svg_OnPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -111,13 +113,13 @@ public partial class MainView : UserControl
 
         _hitResults.Clear();
 
-        if (Svg.SkSvg is { } skSvg)
+        if (Svg.SkSvg is { })
         {
-            skSvg.Settings.HitTestPoints.Clear();
+            _hitTestPoints.Clear();
 
             if (Svg.TryGetPicturePoint(pt, out var skPoint))
             {
-                skSvg.Settings.HitTestPoints.Add(skPoint);
+                _hitTestPoints.Add(skPoint);
 
                 // foreach (var element in Svg.HitTestElements(pt))
                 // {
@@ -139,10 +141,10 @@ public partial class MainView : UserControl
     {
         _hitResults.Clear();
 
-        if (Svg.SkSvg is { } skSvg)
+        if (Svg.SkSvg is { })
         {
-            skSvg.Settings.HitTestPoints.Clear();
-            skSvg.Settings.ShowHitBounds = ShowHitBoundsToggle.IsChecked == true;
+            _hitTestPoints.Clear();
+            _showHitBounds = ShowHitBoundsToggle.IsChecked == true;
             SubscribeOnDraw();
         }
 
@@ -156,16 +158,16 @@ public partial class MainView : UserControl
             return;
         }
 
-        if (!skSvg.Settings.ShowHitBounds)
+        if (!_showHitBounds)
         {
             return;
         }
 
         var hits = new HashSet<DrawableBase>();
 
-        if (skSvg.Settings.HitTestPoints is { })
+        if (_hitTestPoints is { })
         {
-            foreach (var pt in skSvg.Settings.HitTestPoints)
+            foreach (var pt in _hitTestPoints)
             {
                 foreach (var d in HitTestService.HitTest(drawable, pt))
                 {
@@ -174,9 +176,9 @@ public partial class MainView : UserControl
             }
         }
 
-        if (skSvg.Settings.HitTestRects is { })
+        if (_hitTestRects is { })
         {
-            foreach (var r in skSvg.Settings.HitTestRects)
+            foreach (var r in _hitTestRects)
             {
                 foreach (var d in HitTestService.HitTest(drawable, r))
                 {
@@ -188,7 +190,7 @@ public partial class MainView : UserControl
         using var paint = new SkiaSharp.SKPaint();
         paint.IsAntialias = true;
         paint.Style = SkiaSharp.SKPaintStyle.Stroke;
-        paint.Color = skSvg.Settings.HitBoundsColor;
+        paint.Color = _hitBoundsColor;
 
         foreach (var hit in hits.Take(1))
         {
