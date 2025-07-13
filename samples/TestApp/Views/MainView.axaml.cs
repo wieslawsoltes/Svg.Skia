@@ -101,8 +101,7 @@ public partial class MainView : UserControl
 
             foreach (var element in Svg.HitTestElements(pt))
             {
-                var id = element.ID ?? element.GetType().Name;
-                _hitResults.Add(id);
+                _hitResults.Add(element.ID);
             }
         }
 

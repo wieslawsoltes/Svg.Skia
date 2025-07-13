@@ -30,7 +30,7 @@ public class HitTestTests : SvgUnitTest
         using var _ = svg.Load(GetSvgPath("HitTest.svg"));
 
         var results = svg.HitTestElements(new SKPoint(10, 10)).Select(e => e.ID).ToList();
-        Assert.Equal(new[] { "outer" }, results);
+        Assert.Equal(new[] { "outer", (string?)null }, results);
     }
 
     [Fact]
