@@ -1,15 +1,12 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using ShimSkiaSharp;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Linq;
-using Avalonia;
 using Svg.Skia;
 using Svg.Model.Drawables;
 using Svg.Model.Services;
@@ -188,12 +185,10 @@ public partial class MainView : UserControl
             }
         }
 
-        using var paint = new SKPaint
-        {
-            IsAntialias = true,
-            Style = SKPaintStyle.Stroke,
-            Color = skSvg.Settings.HitBoundsColor
-        };
+        using var paint = new SkiaSharp.SKPaint();
+        paint.IsAntialias = true;
+        paint.Style = SkiaSharp.SKPaintStyle.Stroke;
+        paint.Color = skSvg.Settings.HitBoundsColor;
 
         foreach (var hit in hits.Take(1))
         {
