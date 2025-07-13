@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using ShimSkiaSharp;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Avalonia;
 using TestApp.ViewModels;
 
@@ -77,14 +78,11 @@ public partial class MainView : UserControl
 
     private void ShowHitBoundsToggle_OnToggled(object? sender, RoutedEventArgs e)
     {
-        if (sender is ToggleSwitch ts)
+        var svg = Svg.SkSvg;
+        if (svg is { })
         {
-            var svg = Svg.SkSvg;
-            if (svg is { })
-            {
-                svg.Settings.ShowHitBounds = ts.IsChecked == true;
-                Svg.InvalidateVisual();
-            }
+            svg.Settings.ShowHitBounds = ShowHitBoundsToggle.IsChecked == true;
+            Svg.InvalidateVisual();
         }
     }
 
@@ -94,15 +92,37 @@ public partial class MainView : UserControl
 
         _hitResults.Clear();
 
-        if (Svg.SkSvg is { } skSvg && Svg.TryGetPicturePoint(pt, out var skPoint))
+        if (Svg.SkSvg is { } skSvg)
         {
             skSvg.Settings.HitTestPoints.Clear();
-            skSvg.Settings.HitTestPoints.Add(skPoint);
 
-            foreach (var element in Svg.HitTestElements(pt))
+            if (Svg.TryGetPicturePoint(pt, out var skPoint))
             {
-                _hitResults.Add(element.ID);
+                skSvg.Settings.HitTestPoints.Add(skPoint);
+
+                // foreach (var element in Svg.HitTestElements(pt))
+                // {
+                //     _hitResults.Add(element.ID);
+                // }
+                var element = Svg.HitTestElements(pt).FirstOrDefault();
+                if (element is { })
+                {
+                    _hitResults.Add(element.ID ?? element.GetType().Name);
+                }
             }
+        }
+
+        Svg.InvalidateVisual();
+    }
+
+    private void SelectingItemsControl_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        _hitResults.Clear();
+
+        if (Svg.SkSvg is { } skSvg)
+        {
+            skSvg.Settings.HitTestPoints.Clear();
+            skSvg.Settings.ShowHitBounds = ShowHitBoundsToggle.IsChecked == true;
         }
 
         Svg.InvalidateVisual();
