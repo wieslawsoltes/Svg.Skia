@@ -138,10 +138,11 @@ internal static class SKPathBoundsHelper
 
     public static void AddArcBounds(SKPoint p0, SKPoint p1, float rx, float ry, float angle, SKPathArcSize largeArc, SKPathDirection sweep, ref SKRect bounds)
     {
+        ComputePointBounds(p0.X, p0.Y, ref bounds);
+        ComputePointBounds(p1.X, p1.Y, ref bounds);
+
         if (rx <= 0f || ry <= 0f)
         {
-            ComputePointBounds(p0.X, p0.Y, ref bounds);
-            ComputePointBounds(p1.X, p1.Y, ref bounds);
             return;
         }
 
@@ -192,10 +193,42 @@ internal static class SKPathBoundsHelper
         else if (sweepFlag && deltaAngle < 0)
             deltaAngle += 2f * (float)Math.PI;
 
-        const int segments = 20;
-        for (var i = 0; i <= segments; i++)
+        static float NormalizeAngle(float a)
         {
-            var theta = startAngle + deltaAngle * i / segments;
+            var twoPi = 2f * (float)Math.PI;
+            a %= twoPi;
+            if (a < 0f)
+                a += twoPi;
+            return a;
+        }
+
+        static bool IsAngleOnArc(float angle, float start, float sweep)
+        {
+            var normStart = NormalizeAngle(start);
+            var normEnd = NormalizeAngle(start + sweep);
+            var normAngle = NormalizeAngle(angle);
+
+            if (sweep >= 0f)
+            {
+                if (normStart <= normEnd)
+                    return normAngle >= normStart && normAngle <= normEnd;
+                return normAngle >= normStart || normAngle <= normEnd;
+            }
+            else
+            {
+                if (normEnd <= normStart)
+                    return normAngle <= normStart && normAngle >= normEnd;
+                return normAngle <= normStart || normAngle >= normEnd;
+            }
+        }
+
+        var candidates = new float[] { 0f, (float)Math.PI / 2f, (float)Math.PI, 3f * (float)Math.PI / 2f };
+
+        foreach (var theta in candidates)
+        {
+            if (!IsAngleOnArc(theta, startAngle, deltaAngle))
+                continue;
+
             var cosTheta = (float)Math.Cos(theta);
             var sinTheta = (float)Math.Sin(theta);
             var x = cosPhi * rx * cosTheta - sinPhi * ry * sinTheta + cx;
