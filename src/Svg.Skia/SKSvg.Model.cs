@@ -263,12 +263,15 @@ public partial class SKSvg : IDisposable
 
     public void Draw(SkiaSharp.SKCanvas canvas)
     {
-        if (Picture is null)
+        var picture = Picture;
+        if (picture is null)
         {
             return;
         }
 
-        canvas.DrawPicture(Picture);
+        canvas.Save();
+        canvas.DrawPicture(picture);
+        canvas.Restore();
 
         RaiseOnDraw(new SKSvgDrawEventArgs(canvas));
     }
