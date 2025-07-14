@@ -70,10 +70,10 @@ public sealed class TextDrawable : DrawableBase
         var paint = new SKPaint();
         PaintingService.SetPaintText(Text, OwnerBounds, paint);
 
-        // Approximate text metrics without relying on Skia APIs
-        var fontSize = paint.TextSize;
-        var metricsAscent = -fontSize * 0.8f;
-        var metricsDescent = fontSize * 0.2f;
+        // Measure text metrics using asset loader
+        var fontMetrics = AssetLoader.GetFontMetrics(paint);
+        var metricsAscent = fontMetrics.Ascent;
+        var metricsDescent = fontMetrics.Descent;
 
         var x = Text.X.Count >= 1 ? Text.X[0].ToDeviceValue(UnitRenderingType.HorizontalOffset, Text, OwnerBounds) : 0f;
         var y = Text.Y.Count >= 1 ? Text.Y[0].ToDeviceValue(UnitRenderingType.VerticalOffset, Text, OwnerBounds) : 0f;
@@ -83,7 +83,8 @@ public sealed class TextDrawable : DrawableBase
         x += dx;
         y += dy;
 
-        var width = text.Length * fontSize * 0.6f;
+        var bounds = new SKRect();
+        var width = AssetLoader.MeasureText(text, paint, ref bounds);
 
         GeometryBounds = new SKRect(x, y + metricsAscent, x + width, y + metricsDescent);
         Transform = TransformsService.ToMatrix(Text.Transforms);

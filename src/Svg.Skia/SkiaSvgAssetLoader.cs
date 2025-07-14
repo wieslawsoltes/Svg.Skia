@@ -106,4 +106,38 @@ public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
 
         return ret;
     }
+
+    public ShimSkiaSharp.SKFontMetrics GetFontMetrics(ShimSkiaSharp.SKPaint paint)
+    {
+        using var skPaint = _skiaModel.ToSKPaint(paint);
+        if (skPaint is null)
+        {
+            return default;
+        }
+
+        skPaint.GetFontMetrics(out var skMetrics);
+        return new ShimSkiaSharp.SKFontMetrics
+        {
+            Top = skMetrics.Top,
+            Ascent = skMetrics.Ascent,
+            Descent = skMetrics.Descent,
+            Bottom = skMetrics.Bottom,
+            Leading = skMetrics.Leading
+        };
+    }
+
+    public float MeasureText(string? text, ShimSkiaSharp.SKPaint paint, ref ShimSkiaSharp.SKRect bounds)
+    {
+        using var skPaint = _skiaModel.ToSKPaint(paint);
+        if (skPaint is null || text is null)
+        {
+            bounds = default;
+            return 0f;
+        }
+
+        var skBounds = new SkiaSharp.SKRect();
+        var width = skPaint.MeasureText(text, ref skBounds);
+        bounds = new ShimSkiaSharp.SKRect(skBounds.Left, skBounds.Top, skBounds.Right, skBounds.Bottom);
+        return width;
+    }
 }
