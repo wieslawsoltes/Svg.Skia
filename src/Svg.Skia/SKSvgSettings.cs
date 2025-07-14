@@ -17,7 +17,6 @@ public class SKSvgSettings
 
     public IList<ITypefaceProvider>? TypefaceProviders  { get; set; }
 
-
     public SKSvgSettings()
     {
         AlphaType = SkiaSharp.SKAlphaType.Unpremul;
