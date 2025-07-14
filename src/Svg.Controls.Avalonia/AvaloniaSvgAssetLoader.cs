@@ -122,4 +122,48 @@ public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
 
         return ret;
     }
+
+    public SKFontMetrics GetFontMetrics(SKPaint paint)
+    {
+        var typeface = paint.Typeface.ToTypeface() ?? Typeface.Default;
+        var metrics = typeface.GlyphTypeface.Metrics;
+
+        return new SKFontMetrics
+        {
+            Top = -(float)(metrics.Ascent * paint.TextSize),
+            Ascent = -(float)(metrics.Ascent * paint.TextSize),
+            Descent = (float)(metrics.Descent * paint.TextSize),
+            Bottom = (float)(metrics.Descent * paint.TextSize),
+            Leading = (float)(metrics.LineGap * paint.TextSize)
+        };
+    }
+
+    public float MeasureText(string? text, SKPaint paint, ref SKRect bounds)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            bounds = default;
+            return 0f;
+        }
+
+        var typeface = paint.Typeface.ToTypeface() ?? Typeface.Default;
+        var glyphTypeface = typeface.GlyphTypeface;
+        float advance = 0f;
+        for (int i = 0; i < text.Length; i++)
+        {
+            var codepoint = char.ConvertToUtf32(text, i);
+            advance += glyphTypeface.GetGlyphAdvance(glyphTypeface.GetGlyph((uint)codepoint));
+            if (char.IsHighSurrogate(text[i]))
+            {
+                i++;
+            }
+        }
+
+        var width = advance * paint.TextSize;
+        var metrics = glyphTypeface.Metrics;
+        var ascent = (float)(metrics.Ascent * paint.TextSize);
+        var descent = (float)(metrics.Descent * paint.TextSize);
+        bounds = new SKRect(0, -ascent, width, descent);
+        return width;
+    }
 }

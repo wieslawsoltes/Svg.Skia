@@ -70,8 +70,8 @@ public sealed class TextDrawable : DrawableBase
         var paint = new SKPaint();
         PaintingService.SetPaintText(Text, OwnerBounds, paint);
 
-        // Measure text metrics using Skia APIs
-        paint.GetFontMetrics(out var fontMetrics);
+        // Measure text metrics using asset loader
+        var fontMetrics = AssetLoader.GetFontMetrics(paint);
         var metricsAscent = fontMetrics.Ascent;
         var metricsDescent = fontMetrics.Descent;
 
@@ -84,7 +84,7 @@ public sealed class TextDrawable : DrawableBase
         y += dy;
 
         var bounds = new SKRect();
-        var width = paint.MeasureText(text, ref bounds);
+        var width = AssetLoader.MeasureText(text, paint, ref bounds);
 
         GeometryBounds = new SKRect(x, y + metricsAscent, x + width, y + metricsDescent);
         Transform = TransformsService.ToMatrix(Text.Transforms);
