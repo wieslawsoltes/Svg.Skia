@@ -89,7 +89,7 @@ public class HitTestTests : SvgUnitTest
         var svg = new SKSvg();
         using var _ = svg.Load(GetSvgPath("HitTestArc.svg"));
 
-        var results = svg.HitTestElements(new SKPoint(50, 70)).Select(e => e.ID).ToList();
+        var results = svg.HitTestElements(new SKPoint(50, 30)).Select(e => e.ID).ToList();
         Assert.Contains("arc", results);
     }
 }
