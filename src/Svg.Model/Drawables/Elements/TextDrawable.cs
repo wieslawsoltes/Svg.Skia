@@ -18,6 +18,8 @@ public sealed class TextDrawable : DrawableBase
 
     public SKRect OwnerBounds { get; set; }
 
+    public SKPath? Path { get; private set; }
+
     private TextDrawable(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
         : base(assetLoader, references)
     {
@@ -87,6 +89,7 @@ public sealed class TextDrawable : DrawableBase
         var width = AssetLoader.MeasureText(text, paint, ref bounds);
 
         GeometryBounds = new SKRect(x, y + metricsAscent, x + width, y + metricsDescent);
+        Path = AssetLoader.GetTextPath(text, paint, x, y);
         Transform = TransformsService.ToMatrix(Text.Transforms);
     }
 

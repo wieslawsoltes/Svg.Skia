@@ -173,4 +173,10 @@ public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
         bounds = new SKRect(0, -ascent, width, descent);
         return width;
     }
+
+    /// <inheritdoc />
+    public SKPath? GetTextPath(string? text, SKPaint paint, float x, float y)
+    {
+        return null;
+    }
 }

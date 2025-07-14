@@ -14,4 +14,5 @@ public interface ISvgAssetLoader
     List<TypefaceSpan> FindTypefaces(string? text, SKPaint paintPreferredTypeface);
     SKFontMetrics GetFontMetrics(SKPaint paint);
     float MeasureText(string? text, SKPaint paint, ref SKRect bounds);
+    SKPath? GetTextPath(string? text, SKPaint paint, float x, float y);
 }

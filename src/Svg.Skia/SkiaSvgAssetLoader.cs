@@ -151,4 +151,17 @@ public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
         bounds = new ShimSkiaSharp.SKRect(skBounds.Left, skBounds.Top, skBounds.Right, skBounds.Bottom);
         return width;
     }
+
+    /// <inheritdoc />
+    public ShimSkiaSharp.SKPath? GetTextPath(string? text, ShimSkiaSharp.SKPaint paint, float x, float y)
+    {
+        using var skPaint = _skiaModel.ToSKPaint(paint);
+        if (skPaint is null || text is null)
+        {
+            return null;
+        }
+
+        using var skPath = skPaint.GetTextPath(text, x, y);
+        return _skiaModel.FromSKPath(skPath);
+    }
 }

@@ -57,4 +57,9 @@ public class SkiaGeneratorSvgAssetLoader : Model.ISvgAssetLoader
         bounds = new ShimSkiaSharp.SKRect(0, -size * 0.8f, width, size * 0.2f);
         return width;
     }
+
+    public ShimSkiaSharp.SKPath? GetTextPath(string? text, ShimSkiaSharp.SKPaint paint, float x, float y)
+    {
+        return null;
+    }
 }
