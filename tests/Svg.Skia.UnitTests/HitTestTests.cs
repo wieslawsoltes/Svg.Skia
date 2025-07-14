@@ -62,4 +62,34 @@ public class HitTestTests : SvgUnitTest
         var results = svg.HitTestElements(new SKPoint(50, 12)).Select(e => e.ID).ToList();
         Assert.Contains("line", results);
     }
+
+    [Fact]
+    public void HitTest_PathQuad_Point()
+    {
+        var svg = new SKSvg();
+        using var _ = svg.Load(GetSvgPath("HitTestQuad.svg"));
+
+        var results = svg.HitTestElements(new SKPoint(50, 50)).Select(e => e.ID).ToList();
+        Assert.Contains("quad", results);
+    }
+
+    [Fact]
+    public void HitTest_PathCubic_Point()
+    {
+        var svg = new SKSvg();
+        using var _ = svg.Load(GetSvgPath("HitTestCubic.svg"));
+
+        var results = svg.HitTestElements(new SKPoint(50, 50)).Select(e => e.ID).ToList();
+        Assert.Contains("cubic", results);
+    }
+
+    [Fact]
+    public void HitTest_PathArc_Point()
+    {
+        var svg = new SKSvg();
+        using var _ = svg.Load(GetSvgPath("HitTestArc.svg"));
+
+        var results = svg.HitTestElements(new SKPoint(50, 70)).Select(e => e.ID).ToList();
+        Assert.Contains("arc", results);
+    }
 }
