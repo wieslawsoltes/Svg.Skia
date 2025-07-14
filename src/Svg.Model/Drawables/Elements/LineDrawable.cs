@@ -94,7 +94,7 @@ public sealed class LineDrawable : DrawablePath
         var lenSq = vx * vx + vy * vy;
         if (lenSq <= float.Epsilon)
         {
-            return MathF.Sqrt(ux * ux + uy * uy);
+            return (float)Math.Sqrt(ux * ux + uy * uy);
         }
 
         var t = (ux * vx + uy * vy) / lenSq;
@@ -105,7 +105,7 @@ public sealed class LineDrawable : DrawablePath
         var py = a.Y + t * vy;
         var dx = p.X - px;
         var dy = p.Y - py;
-        return MathF.Sqrt(dx * dx + dy * dy);
+        return (float)Math.Sqrt(dx * dx + dy * dy);
     }
 
     public override bool HitTest(SKPoint point)
