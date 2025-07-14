@@ -30,52 +30,11 @@ internal class ImageSharpAssetLoader : Svg.Model.ISvgAssetLoader
 
     public ShimSkiaSharp.SKFontMetrics GetFontMetrics(ShimSkiaSharp.SKPaint paint)
     {
-        using var skPaint = new SkiaSharp.SKPaint
-        {
-            TextSize = paint.TextSize,
-            Typeface = paint.Typeface is { } t
-                ? SkiaSharp.SKTypeface.FromFamilyName(
-                    t.FamilyName,
-                    (int)t.FontWeight,
-                    (int)t.FontWidth,
-                    (SkiaSharp.SKFontStyleSlant)t.FontSlant)
-                : SkiaSharp.SKTypeface.Default
-        };
-
-        skPaint.GetFontMetrics(out var skMetrics);
-        return new ShimSkiaSharp.SKFontMetrics
-        {
-            Top = skMetrics.Top,
-            Ascent = skMetrics.Ascent,
-            Descent = skMetrics.Descent,
-            Bottom = skMetrics.Bottom,
-            Leading = skMetrics.Leading
-        };
+        throw new System.NotSupportedException("Font metrics are not supported by the ImageSharp asset loader.");
     }
 
     public float MeasureText(string? text, ShimSkiaSharp.SKPaint paint, ref ShimSkiaSharp.SKRect bounds)
     {
-        if (text is null)
-        {
-            bounds = default;
-            return 0f;
-        }
-
-        using var skPaint = new SkiaSharp.SKPaint
-        {
-            TextSize = paint.TextSize,
-            Typeface = paint.Typeface is { } t
-                ? SkiaSharp.SKTypeface.FromFamilyName(
-                    t.FamilyName,
-                    (int)t.FontWeight,
-                    (int)t.FontWidth,
-                    (SkiaSharp.SKFontStyleSlant)t.FontSlant)
-                : SkiaSharp.SKTypeface.Default
-        };
-
-        var skBounds = new SkiaSharp.SKRect();
-        var width = skPaint.MeasureText(text, ref skBounds);
-        bounds = new ShimSkiaSharp.SKRect(skBounds.Left, skBounds.Top, skBounds.Right, skBounds.Bottom);
-        return width;
+        throw new System.NotSupportedException("Text measurement is not supported by the ImageSharp asset loader.");
     }
 }
