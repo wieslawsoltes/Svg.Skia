@@ -31,52 +31,30 @@ public class SkiaGeneratorSvgAssetLoader : Model.ISvgAssetLoader
 
     public ShimSkiaSharp.SKFontMetrics GetFontMetrics(ShimSkiaSharp.SKPaint paint)
     {
-        using var skPaint = new SkiaSharp.SKPaint
-        {
-            TextSize = paint.TextSize,
-            Typeface = paint.Typeface is { } t
-                ? SkiaSharp.SKTypeface.FromFamilyName(
-                    t.FamilyName,
-                    (int)t.FontWeight,
-                    (int)t.FontWidth,
-                    (SkiaSharp.SKFontStyleSlant)t.FontSlant)
-                : SkiaSharp.SKTypeface.Default
-        };
-
-        skPaint.GetFontMetrics(out var skMetrics);
+        // TODO: compute metrics using SkiaSharp when native library loading is fixed
+        var size = paint.TextSize;
         return new ShimSkiaSharp.SKFontMetrics
         {
-            Top = skMetrics.Top,
-            Ascent = skMetrics.Ascent,
-            Descent = skMetrics.Descent,
-            Bottom = skMetrics.Bottom,
-            Leading = skMetrics.Leading
+            Ascent = -size * 0.8f,
+            Descent = size * 0.2f,
+            Top = -size * 0.8f,
+            Bottom = size * 0.2f,
+            Leading = 0f
         };
     }
 
     public float MeasureText(string? text, ShimSkiaSharp.SKPaint paint, ref ShimSkiaSharp.SKRect bounds)
     {
-        if (text is null)
+        // TODO: compute text width using SkiaSharp when native library loading is fixed
+        if (string.IsNullOrEmpty(text))
         {
             bounds = default;
             return 0f;
         }
 
-        using var skPaint = new SkiaSharp.SKPaint
-        {
-            TextSize = paint.TextSize,
-            Typeface = paint.Typeface is { } t
-                ? SkiaSharp.SKTypeface.FromFamilyName(
-                    t.FamilyName,
-                    (int)t.FontWeight,
-                    (int)t.FontWidth,
-                    (SkiaSharp.SKFontStyleSlant)t.FontSlant)
-                : SkiaSharp.SKTypeface.Default
-        };
-
-        var skBounds = new SkiaSharp.SKRect();
-        var width = skPaint.MeasureText(text, ref skBounds);
-        bounds = new ShimSkiaSharp.SKRect(skBounds.Left, skBounds.Top, skBounds.Right, skBounds.Bottom);
+        var size = paint.TextSize;
+        var width = text.Length * size * 0.6f;
+        bounds = new ShimSkiaSharp.SKRect(0, -size * 0.8f, width, size * 0.2f);
         return width;
     }
 }

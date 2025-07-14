@@ -30,11 +30,30 @@ internal class ImageSharpAssetLoader : Svg.Model.ISvgAssetLoader
 
     public ShimSkiaSharp.SKFontMetrics GetFontMetrics(ShimSkiaSharp.SKPaint paint)
     {
-        throw new System.NotSupportedException("Font metrics are not supported by the ImageSharp asset loader.");
+        // TODO: provide real font metrics once ImageSharp exposes the APIs
+        var size = paint.TextSize;
+        return new ShimSkiaSharp.SKFontMetrics
+        {
+            Ascent = -size * 0.8f,
+            Descent = size * 0.2f,
+            Top = -size * 0.8f,
+            Bottom = size * 0.2f,
+            Leading = 0f
+        };
     }
 
     public float MeasureText(string? text, ShimSkiaSharp.SKPaint paint, ref ShimSkiaSharp.SKRect bounds)
     {
-        throw new System.NotSupportedException("Text measurement is not supported by the ImageSharp asset loader.");
+        // TODO: provide real text measurement once ImageSharp exposes the APIs
+        if (string.IsNullOrEmpty(text))
+        {
+            bounds = default;
+            return 0f;
+        }
+
+        var size = paint.TextSize;
+        var width = text.Length * size * 0.6f;
+        bounds = new ShimSkiaSharp.SKRect(0, -size * 0.8f, width, size * 0.2f);
+        return width;
     }
 }
