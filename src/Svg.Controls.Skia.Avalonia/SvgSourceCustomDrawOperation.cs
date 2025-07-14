@@ -49,15 +49,22 @@ public class SvgSourceCustomDrawOperation : ICustomDrawOperation
 
         lock (_svg.Sync)
         {
-            var picture = _svg.Picture;
-            if (picture is null)
+            if (_svg.Svg is { } skSvg)
             {
-                return;
+                skSvg.Draw(canvas);
             }
+            else
+            {
+                var picture = _svg.Picture;
+                if (picture is null)
+                {
+                    return;
+                }
 
-            canvas.Save();
-            canvas.DrawPicture(picture);
-            canvas.Restore();
+                canvas.Save();
+                canvas.DrawPicture(picture);
+                canvas.Restore();
+            }
         }
     }
 }

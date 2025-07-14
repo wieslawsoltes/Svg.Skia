@@ -28,4 +28,33 @@ public class SkiaGeneratorSvgAssetLoader : Model.ISvgAssetLoader
             new(text, text.Length * paintPreferredTypeface.TextSize, paintPreferredTypeface.Typeface)
         };
     }
+
+    public ShimSkiaSharp.SKFontMetrics GetFontMetrics(ShimSkiaSharp.SKPaint paint)
+    {
+        // TODO: compute metrics using SkiaSharp when native library loading is fixed
+        var size = paint.TextSize;
+        return new ShimSkiaSharp.SKFontMetrics
+        {
+            Ascent = -size * 0.8f,
+            Descent = size * 0.2f,
+            Top = -size * 0.8f,
+            Bottom = size * 0.2f,
+            Leading = 0f
+        };
+    }
+
+    public float MeasureText(string? text, ShimSkiaSharp.SKPaint paint, ref ShimSkiaSharp.SKRect bounds)
+    {
+        // TODO: compute text width using SkiaSharp when native library loading is fixed
+        if (string.IsNullOrEmpty(text))
+        {
+            bounds = default;
+            return 0f;
+        }
+
+        var size = paint.TextSize;
+        var width = text.Length * size * 0.6f;
+        bounds = new ShimSkiaSharp.SKRect(0, -size * 0.8f, width, size * 0.2f);
+        return width;
+    }
 }

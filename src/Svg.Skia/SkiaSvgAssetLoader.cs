@@ -4,15 +4,23 @@ using System.Collections.Generic;
 
 namespace Svg.Skia;
 
+/// <summary>
+/// Asset loader implementation using SkiaSharp types.
+/// </summary>
 public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
 {
     private readonly SkiaModel _skiaModel;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="SkiaSvgAssetLoader"/>.
+    /// </summary>
+    /// <param name="skiaModel">Model used to convert font data.</param>
     public SkiaSvgAssetLoader(SkiaModel skiaModel)
     {
         _skiaModel = skiaModel;
     }
 
+    /// <inheritdoc />
     public ShimSkiaSharp.SKImage LoadImage(System.IO.Stream stream)
     {
         var data = ShimSkiaSharp.SKImage.FromStream(stream);
@@ -20,6 +28,7 @@ public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
         return new ShimSkiaSharp.SKImage {Data = data, Width = image.Width, Height = image.Height};
     }
 
+    /// <inheritdoc />
     public List<Model.TypefaceSpan> FindTypefaces(string? text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
         var ret = new List<Model.TypefaceSpan>();
@@ -105,5 +114,41 @@ public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
         YieldCurrentTypefaceText();
 
         return ret;
+    }
+
+    /// <inheritdoc />
+    public ShimSkiaSharp.SKFontMetrics GetFontMetrics(ShimSkiaSharp.SKPaint paint)
+    {
+        using var skPaint = _skiaModel.ToSKPaint(paint);
+        if (skPaint is null)
+        {
+            return default;
+        }
+
+        skPaint.GetFontMetrics(out var skMetrics);
+        return new ShimSkiaSharp.SKFontMetrics
+        {
+            Top = skMetrics.Top,
+            Ascent = skMetrics.Ascent,
+            Descent = skMetrics.Descent,
+            Bottom = skMetrics.Bottom,
+            Leading = skMetrics.Leading
+        };
+    }
+
+    /// <inheritdoc />
+    public float MeasureText(string? text, ShimSkiaSharp.SKPaint paint, ref ShimSkiaSharp.SKRect bounds)
+    {
+        using var skPaint = _skiaModel.ToSKPaint(paint);
+        if (skPaint is null || text is null)
+        {
+            bounds = default;
+            return 0f;
+        }
+
+        var skBounds = new SkiaSharp.SKRect();
+        var width = skPaint.MeasureText(text, ref skBounds);
+        bounds = new ShimSkiaSharp.SKRect(skBounds.Left, skBounds.Top, skBounds.Right, skBounds.Bottom);
+        return width;
     }
 }

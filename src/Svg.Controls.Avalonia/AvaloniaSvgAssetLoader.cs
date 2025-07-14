@@ -9,8 +9,12 @@ using System.Collections.Generic;
 
 namespace Avalonia.Svg;
 
+/// <summary>
+/// Asset loader implementation using Avalonia types.
+/// </summary>
 public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
 {
+    /// <inheritdoc />
     public SKImage LoadImage(Stream stream)
     {
         var data = SKImage.FromStream(stream);
@@ -18,6 +22,7 @@ public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
         return new SKImage {Data = data, Width = (float)image.Size.Width, Height = (float)image.Size.Height};
     }
 
+    /// <inheritdoc />
     public List<SM.TypefaceSpan> FindTypefaces(string? text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
         var ret = new List<SM.TypefaceSpan>();
@@ -121,5 +126,51 @@ public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
         YieldCurrentTypefaceText();
 
         return ret;
+    }
+
+    /// <inheritdoc />
+    public SKFontMetrics GetFontMetrics(SKPaint paint)
+    {
+        var typeface = paint.Typeface.ToTypeface() ?? Typeface.Default;
+        var metrics = typeface.GlyphTypeface.Metrics;
+
+        return new SKFontMetrics
+        {
+            Top = -(float)(metrics.Ascent * paint.TextSize),
+            Ascent = -(float)(metrics.Ascent * paint.TextSize),
+            Descent = (float)(metrics.Descent * paint.TextSize),
+            Bottom = (float)(metrics.Descent * paint.TextSize),
+            Leading = (float)(metrics.LineGap * paint.TextSize)
+        };
+    }
+
+    /// <inheritdoc />
+    public float MeasureText(string? text, SKPaint paint, ref SKRect bounds)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            bounds = default;
+            return 0f;
+        }
+
+        var typeface = paint.Typeface.ToTypeface() ?? Typeface.Default;
+        var glyphTypeface = typeface.GlyphTypeface;
+        float advance = 0f;
+        for (int i = 0; i < text.Length; i++)
+        {
+            var codepoint = char.ConvertToUtf32(text, i);
+            advance += glyphTypeface.GetGlyphAdvance(glyphTypeface.GetGlyph((uint)codepoint));
+            if (char.IsHighSurrogate(text[i]))
+            {
+                i++;
+            }
+        }
+
+        var width = advance * paint.TextSize;
+        var metrics = glyphTypeface.Metrics;
+        var ascent = (float)(metrics.Ascent * paint.TextSize);
+        var descent = (float)(metrics.Descent * paint.TextSize);
+        bounds = new SKRect(0, -ascent, width, descent);
+        return width;
     }
 }

@@ -238,16 +238,56 @@ public struct SKMatrix : IEquatable<SKMatrix>
 
     public readonly SKRect MapRect(SKRect source)
     {
-        var left = source.Left;
-        var top = source.Top;
-        var right = source.Right;
-        var bottom = source.Bottom;
-        // TODO: MapRect
-        return new SKRect(
-            left * ScaleX + top * SkewX + TransX,
-            left * SkewY + top * ScaleY + TransY,
-            right * ScaleX + bottom * SkewX + TransX,
-            right * SkewY + bottom * ScaleY + TransY);
+        var tl = MapPoint(new SKPoint(source.Left, source.Top));
+        var tr = MapPoint(new SKPoint(source.Right, source.Top));
+        var br = MapPoint(new SKPoint(source.Right, source.Bottom));
+        var bl = MapPoint(new SKPoint(source.Left, source.Bottom));
+
+        var left = Math.Min(Math.Min(tl.X, tr.X), Math.Min(br.X, bl.X));
+        var top = Math.Min(Math.Min(tl.Y, tr.Y), Math.Min(br.Y, bl.Y));
+        var right = Math.Max(Math.Max(tl.X, tr.X), Math.Max(br.X, bl.X));
+        var bottom = Math.Max(Math.Max(tl.Y, tr.Y), Math.Max(br.Y, bl.Y));
+
+        return new SKRect(left, top, right, bottom);
+    }
+
+    public void MapRect(ref SKRect rect)
+    {
+        rect = MapRect(rect);
+    }
+
+    public readonly SKPoint MapPoint(SKPoint source)
+    {
+        return new SKPoint(
+            source.X * ScaleX + source.Y * SkewX + TransX,
+            source.X * SkewY + source.Y * ScaleY + TransY);
+    }
+
+    public bool TryInvert(out SKMatrix inverse)
+    {
+        var det = ScaleX * ScaleY - SkewX * SkewY;
+        if (det == 0)
+        {
+            inverse = Identity;
+            return false;
+        }
+
+        var invDet = 1f / det;
+
+        inverse = new SKMatrix
+        {
+            ScaleX =  ScaleY * invDet,
+            SkewX  = -SkewX * invDet,
+            TransX = (SkewX * TransY - ScaleY * TransX) * invDet,
+            SkewY  = -SkewY * invDet,
+            ScaleY =  ScaleX * invDet,
+            TransY = (SkewY * TransX - ScaleX * TransY) * invDet,
+            Persp0 = 0,
+            Persp1 = 0,
+            Persp2 = 1
+        };
+
+        return true;
     }
 
     public bool Equals(SKMatrix other)

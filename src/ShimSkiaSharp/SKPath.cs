@@ -44,13 +44,6 @@ public class SKPath
         Commands = new List<PathCommand>();
     }
 
-    private void ComputePointBounds(float x, float y, ref SKRect bounds)
-    {
-        bounds.Left = Math.Min(x, bounds.Left);
-        bounds.Right = Math.Max(x, bounds.Right);
-        bounds.Top = Math.Min(y, bounds.Top);
-        bounds.Bottom = Math.Max(y, bounds.Bottom);
-    }
 
     private SKRect GetBounds()
     {
@@ -61,6 +54,9 @@ public class SKPath
 
         var bounds = new SKRect(float.MaxValue, float.MaxValue, float.MinValue, float.MinValue);
 
+        var last = new SKPoint();
+        var haveLast = false;
+
         foreach (var pathCommand in Commands)
         {
             switch (pathCommand)
@@ -69,44 +65,76 @@ public class SKPath
                 {
                     var x = moveToPathCommand.X;
                     var y = moveToPathCommand.Y;
-                    ComputePointBounds(x, y, ref bounds);
+                    SKPathBoundsHelper.ComputePointBounds(x, y, ref bounds);
+                    last = new SKPoint(x, y);
+                    haveLast = true;
                 }
                     break;
                 case LineToPathCommand lineToPathCommand:
                 {
                     var x = lineToPathCommand.X;
                     var y = lineToPathCommand.Y;
-                    ComputePointBounds(x, y, ref bounds);
+                    if (haveLast)
+                    {
+                        SKPathBoundsHelper.AddLineBounds(last.X, last.Y, x, y, ref bounds);
+                    }
+                    else
+                    {
+                        SKPathBoundsHelper.ComputePointBounds(x, y, ref bounds);
+                    }
+                    last = new SKPoint(x, y);
+                    haveLast = true;
                 }
                     break;
                 case ArcToPathCommand arcToPathCommand:
                 {
-                    var x = arcToPathCommand.X;
-                    var y = arcToPathCommand.Y;
-                    ComputePointBounds(x, y, ref bounds);
+                    var end = new SKPoint(arcToPathCommand.X, arcToPathCommand.Y);
+                    if (haveLast)
+                    {
+                        SKPathBoundsHelper.AddArcBounds(last, end, arcToPathCommand.Rx, arcToPathCommand.Ry, arcToPathCommand.XAxisRotate, arcToPathCommand.LargeArc, arcToPathCommand.Sweep, ref bounds);
+                    }
+                    else
+                    {
+                        SKPathBoundsHelper.ComputePointBounds(end.X, end.Y, ref bounds);
+                    }
+                    last = end;
+                    haveLast = true;
                 }
                     break;
                 case QuadToPathCommand quadToPathCommand:
                 {
-                    var x0 = quadToPathCommand.X0;
-                    var y0 = quadToPathCommand.Y0;
-                    var x1 = quadToPathCommand.X1;
-                    var y1 = quadToPathCommand.Y1;
-                    ComputePointBounds(x0, y0, ref bounds);
-                    ComputePointBounds(x1, y1, ref bounds);
+                    var p1 = new SKPoint(quadToPathCommand.X0, quadToPathCommand.Y0);
+                    var p2 = new SKPoint(quadToPathCommand.X1, quadToPathCommand.Y1);
+                    if (haveLast)
+                    {
+                        SKPathBoundsHelper.AddQuadBounds(last, p1, p2, ref bounds);
+                    }
+                    else
+                    {
+                        SKPathBoundsHelper.ComputePointBounds(p1.X, p1.Y, ref bounds);
+                        SKPathBoundsHelper.ComputePointBounds(p2.X, p2.Y, ref bounds);
+                    }
+                    last = p2;
+                    haveLast = true;
                 }
                     break;
                 case CubicToPathCommand cubicToPathCommand:
                 {
-                    var x0 = cubicToPathCommand.X0;
-                    var y0 = cubicToPathCommand.Y0;
-                    var x1 = cubicToPathCommand.X1;
-                    var y1 = cubicToPathCommand.Y1;
-                    var x2 = cubicToPathCommand.X2;
-                    var y2 = cubicToPathCommand.Y2;
-                    ComputePointBounds(x0, y0, ref bounds);
-                    ComputePointBounds(x1, y1, ref bounds);
-                    ComputePointBounds(x2, y2, ref bounds);
+                    var p1 = new SKPoint(cubicToPathCommand.X0, cubicToPathCommand.Y0);
+                    var p2 = new SKPoint(cubicToPathCommand.X1, cubicToPathCommand.Y1);
+                    var p3 = new SKPoint(cubicToPathCommand.X2, cubicToPathCommand.Y2);
+                    if (haveLast)
+                    {
+                        SKPathBoundsHelper.AddCubicBounds(last, p1, p2, p3, ref bounds);
+                    }
+                    else
+                    {
+                        SKPathBoundsHelper.ComputePointBounds(p1.X, p1.Y, ref bounds);
+                        SKPathBoundsHelper.ComputePointBounds(p2.X, p2.Y, ref bounds);
+                        SKPathBoundsHelper.ComputePointBounds(p3.X, p3.Y, ref bounds);
+                    }
+                    last = p3;
+                    haveLast = true;
                 }
                     break;
                 case ClosePathCommand _:
@@ -114,22 +142,28 @@ public class SKPath
                 case AddRectPathCommand addRectPathCommand:
                 {
                     var rect = addRectPathCommand.Rect;
-                    ComputePointBounds(rect.Left, rect.Top, ref bounds);
-                    ComputePointBounds(rect.Right, rect.Bottom, ref bounds);
+                    SKPathBoundsHelper.ComputePointBounds(rect.Left, rect.Top, ref bounds);
+                    SKPathBoundsHelper.ComputePointBounds(rect.Right, rect.Bottom, ref bounds);
+                    last = rect.BottomRight;
+                    haveLast = true;
                 }
                     break;
                 case AddRoundRectPathCommand addRoundRectPathCommand:
                 {
                     var rect = addRoundRectPathCommand.Rect;
-                    ComputePointBounds(rect.Left, rect.Top, ref bounds);
-                    ComputePointBounds(rect.Right, rect.Bottom, ref bounds);
+                    SKPathBoundsHelper.ComputePointBounds(rect.Left, rect.Top, ref bounds);
+                    SKPathBoundsHelper.ComputePointBounds(rect.Right, rect.Bottom, ref bounds);
+                    last = rect.BottomRight;
+                    haveLast = true;
                 }
                     break;
                 case AddOvalPathCommand addOvalPathCommand:
                 {
                     var rect = addOvalPathCommand.Rect;
-                    ComputePointBounds(rect.Left, rect.Top, ref bounds);
-                    ComputePointBounds(rect.Right, rect.Bottom, ref bounds);
+                    SKPathBoundsHelper.ComputePointBounds(rect.Left, rect.Top, ref bounds);
+                    SKPathBoundsHelper.ComputePointBounds(rect.Right, rect.Bottom, ref bounds);
+                    last = rect.BottomRight;
+                    haveLast = true;
                 }
                     break;
                 case AddCirclePathCommand addCirclePathCommand:
@@ -137,8 +171,10 @@ public class SKPath
                     var x = addCirclePathCommand.X;
                     var y = addCirclePathCommand.Y;
                     var radius = addCirclePathCommand.Radius;
-                    ComputePointBounds(x - radius, y - radius, ref bounds);
-                    ComputePointBounds(x + radius, y + radius, ref bounds);
+                    SKPathBoundsHelper.ComputePointBounds(x - radius, y - radius, ref bounds);
+                    SKPathBoundsHelper.ComputePointBounds(x + radius, y + radius, ref bounds);
+                    last = new SKPoint(x + radius, y + radius);
+                    haveLast = true;
                 }
                     break;
                 case AddPolyPathCommand addPolyPathCommand:
@@ -148,7 +184,12 @@ public class SKPath
                         var points = addPolyPathCommand.Points;
                         foreach (var point in points)
                         {
-                            ComputePointBounds(point.X, point.Y, ref bounds);
+                            SKPathBoundsHelper.ComputePointBounds(point.X, point.Y, ref bounds);
+                        }
+                        if (points.Count > 0)
+                        {
+                            last = points[points.Count - 1];
+                            haveLast = true;
                         }
                     }
                 }

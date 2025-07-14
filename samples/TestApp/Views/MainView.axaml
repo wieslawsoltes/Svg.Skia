@@ -12,7 +12,7 @@
     <vm:MainWindowViewModel />
   </Design.DataContext>
 
-  <Grid ColumnDefinitions="300,8,*" RowDefinitions="Auto,*,Auto">
+  <Grid ColumnDefinitions="300,8,*" RowDefinitions="Auto,*,Auto,Auto">
 
     <TextBox Grid.Column="0"
              Grid.Row="0"
@@ -29,7 +29,8 @@
              Grid.Row="1"
              Margin="6,0,6,0"
              ItemsSource="{Binding FilteredItems}"
-             SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+             SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+             SelectionChanged="SelectingItemsControl_OnSelectionChanged">
       <ListBox.Styles>
         <Style Selector="ListBoxItem">
           <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -137,6 +138,11 @@
                       OnContent="Cache Enabled"
                       OffContent="Cache Disabled"
                       Margin="6,0,6,0" />
+        <ToggleSwitch Name="ShowHitBoundsToggle"
+                      OnContent="Show Bounds"
+                      OffContent="Hide Bounds"
+                      Margin="6,0,6,0"
+                      Click="ShowHitBoundsToggle_OnToggled" />
         <Button Content="Export"
                 Command="{Binding ExportCommand}"
                 CommandParameter="{Binding #Svg}"
@@ -154,9 +160,15 @@
         <Svg Name="Svg"
              Stretch="{Binding #SvgStretch.SelectedItem}"
              Path="{Binding SelectedItem.Path, FallbackValue=''}"
-             EnableCache="True" />
+             EnableCache="True"
+             PointerPressed="Svg_OnPointerPressed" />
       </ScrollViewer>
     </DockPanel>
+
+    <ListBox Grid.Column="2"
+             Grid.Row="3"
+             Name="HitResults"
+             Margin="6" />
 
   </Grid>
 

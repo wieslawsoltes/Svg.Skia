@@ -170,6 +170,42 @@ using (var svg = new SKSvg())
 }
 ```
 
+### Hit Testing
+
+#### SKSvg
+
+The `SKSvg` class provides helpers for retrieving elements or drawables at a
+given point. The hit-testing methods expect coordinates in picture space:
+
+```C#
+using SkiaSharp;
+using Svg.Skia;
+
+var svg = new SKSvg();
+if (svg.Load("image.svg") is { })
+{
+    var element = svg.HitTestElements(new SKPoint(10, 10)).FirstOrDefault();
+    if (element is { })
+    {
+        Console.WriteLine(element.ID);
+    }
+}
+```
+
+When drawing on a transformed canvas you can convert canvas coordinates to
+picture coordinates using `TryGetPicturePoint` and then use the hit-testing
+methods.
+
+#### Svg control
+
+The `Svg` Avalonia control exposes a `HitTestElements` method that accepts
+a point in control coordinates and returns the matching SVG elements:
+
+```C#
+var hits = svgControl.HitTestElements(new Point(x, y));
+```
+
+
 ### Avalonia
 
 #### Install Package

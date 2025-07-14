@@ -12,4 +12,6 @@ public interface ISvgAssetLoader
 {
     SKImage LoadImage(Stream stream);
     List<TypefaceSpan> FindTypefaces(string? text, SKPaint paintPreferredTypeface);
+    SKFontMetrics GetFontMetrics(SKPaint paint);
+    float MeasureText(string? text, SKPaint paint, ref SKRect bounds);
 }

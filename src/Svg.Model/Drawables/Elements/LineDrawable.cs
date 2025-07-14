@@ -84,4 +84,45 @@ public sealed class LineDrawable : DrawablePath
 
         MarkerService.CreateMarkers(svgLine, Path, skViewport, this, AssetLoader, references);
     }
+
+    private static float DistanceToSegment(SKPoint p, SKPoint a, SKPoint b)
+    {
+        var vx = b.X - a.X;
+        var vy = b.Y - a.Y;
+        var ux = p.X - a.X;
+        var uy = p.Y - a.Y;
+        var lenSq = vx * vx + vy * vy;
+        if (lenSq <= float.Epsilon)
+        {
+            return (float)Math.Sqrt(ux * ux + uy * uy);
+        }
+
+        var t = (ux * vx + uy * vy) / lenSq;
+        if (t < 0f) t = 0f;
+        else if (t > 1f) t = 1f;
+
+        var px = a.X + t * vx;
+        var py = a.Y + t * vy;
+        var dx = p.X - px;
+        var dy = p.Y - py;
+        return (float)Math.Sqrt(dx * dx + dy * dy);
+    }
+
+    public override bool HitTest(SKPoint point)
+    {
+        if (Path?.Commands is { Count: >= 2 } commands &&
+            commands[0] is MoveToPathCommand move &&
+            commands[1] is LineToPathCommand line)
+        {
+            var start = TotalTransform.MapPoint(new SKPoint(move.X, move.Y));
+            var end = TotalTransform.MapPoint(new SKPoint(line.X, line.Y));
+            var distance = DistanceToSegment(point, start, end);
+            var tolerance = Stroke?.StrokeWidth / 2f ?? 1f;
+            if (tolerance <= 0f)
+                tolerance = 1f;
+            return distance <= tolerance;
+        }
+
+        return base.HitTest(point);
+    }
 }

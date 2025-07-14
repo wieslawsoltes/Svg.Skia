@@ -208,6 +208,16 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
         canvas.Restore();
     }
 
+    public virtual bool HitTest(SKPoint point)
+    {
+        return TransformedBounds.Contains(point);
+    }
+
+    public virtual bool HitTest(SKRect rect)
+    {
+        return HitTestService.IntersectsWith(TransformedBounds, rect);
+    }
+
     public virtual void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
     {
         var element = Element;
@@ -408,6 +418,11 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
         | DrawAttributes.Opacity
         | DrawAttributes.Filter;
 
+    // When a filter references 'SourceGraphic', we must draw the element
+    // without applying its filter again to avoid infinite recursion.
+    private const DrawAttributes FilterSourceInput =
+        DrawAttributes.Filter;
+
     protected virtual void PostProcessChildren(SKRect? clip, SKMatrix totalMatrix)
     {
     }
@@ -415,7 +430,9 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
     SKPicture? IFilterSource.SourceGraphic(SKRect? clip)
     {
         PostProcessChildren(clip, SKMatrix.Identity);
-        return RecordGraphic(this, clip, DrawAttributes.None);
+        // Ignore the element's filter when rendering the source graphic so
+        // that filter primitives do not recursively re-enter filtering.
+        return RecordGraphic(this, clip, FilterSourceInput);
     }
 
     SKPicture? IFilterSource.BackgroundImage(SKRect? clip) => RecordBackground(this, clip, FilterBackgroundInput);

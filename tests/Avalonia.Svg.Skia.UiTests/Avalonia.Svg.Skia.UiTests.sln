@@ -5,7 +5,7 @@ VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Svg.Skia.UiTests", "Avalonia.Svg.Skia.UiTests.csproj", "{C8D4CD79-3970-40E9-B561-DB3A184B1CD3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Svg.Skia", "..\..\src\Avalonia.Svg.Skia\Avalonia.Svg.Skia.csproj", "{2BAA6C99-A09D-4D75-AD15-2FC2E3E598A3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Svg.Controls.Skia.Avalonia", "..\..\src\Svg.Controls.Skia.Avalonia\Svg.Controls.Skia.Avalonia.csproj", "{EA05DA0E-88C1-430C-9781-0B2F63BF014E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{C8D4CD79-3970-40E9-B561-DB3A184B1CD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C8D4CD79-3970-40E9-B561-DB3A184B1CD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C8D4CD79-3970-40E9-B561-DB3A184B1CD3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2BAA6C99-A09D-4D75-AD15-2FC2E3E598A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2BAA6C99-A09D-4D75-AD15-2FC2E3E598A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2BAA6C99-A09D-4D75-AD15-2FC2E3E598A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2BAA6C99-A09D-4D75-AD15-2FC2E3E598A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA05DA0E-88C1-430C-9781-0B2F63BF014E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA05DA0E-88C1-430C-9781-0B2F63BF014E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA05DA0E-88C1-430C-9781-0B2F63BF014E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA05DA0E-88C1-430C-9781-0B2F63BF014E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

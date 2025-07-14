@@ -3,6 +3,7 @@
 using System;
 using Svg.Model;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
 using Svg.Model.Drawables;
 using ShimSkiaSharp;
@@ -11,7 +12,7 @@ using Svg.Model.Services;
 
 namespace Svg.Skia;
 
-public class SKSvg : IDisposable
+public partial class SKSvg : IDisposable
 {
     public static bool CacheOriginalStream { get; set; }
 
@@ -100,6 +101,13 @@ public class SKSvg : IDisposable
     public SKPicture? Model { get; private set; }
 
     public virtual SkiaSharp.SKPicture? Picture { get; protected set; }
+
+    public event EventHandler<SKSvgDrawEventArgs>? OnDraw;
+
+    protected virtual void RaiseOnDraw(SKSvgDrawEventArgs e)
+    {
+        OnDraw?.Invoke(this, e);
+    }
 
     public SvgParameters? Parameters => _originalParameters;
 
@@ -253,6 +261,21 @@ public class SKSvg : IDisposable
         return false;
     }
 
+    public void Draw(SkiaSharp.SKCanvas canvas)
+    {
+        var picture = Picture;
+        if (picture is null)
+        {
+            return;
+        }
+
+        canvas.Save();
+        canvas.DrawPicture(picture);
+        canvas.Restore();
+
+        RaiseOnDraw(new SKSvgDrawEventArgs(canvas));
+    }
+
     private void Reset()
     {
         lock (Sync)
@@ -268,6 +291,6 @@ public class SKSvg : IDisposable
     public void Dispose()
     {
         Reset();
-		_originalStream?.Dispose();
+        _originalStream?.Dispose();
     }
 }
