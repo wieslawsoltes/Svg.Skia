@@ -9,8 +9,12 @@ using System.Collections.Generic;
 
 namespace Avalonia.Svg;
 
+/// <summary>
+/// Asset loader implementation using Avalonia types.
+/// </summary>
 public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
 {
+    /// <inheritdoc />
     public SKImage LoadImage(Stream stream)
     {
         var data = SKImage.FromStream(stream);
@@ -18,6 +22,7 @@ public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
         return new SKImage {Data = data, Width = (float)image.Size.Width, Height = (float)image.Size.Height};
     }
 
+    /// <inheritdoc />
     public List<SM.TypefaceSpan> FindTypefaces(string? text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
         var ret = new List<SM.TypefaceSpan>();
@@ -123,6 +128,7 @@ public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
         return ret;
     }
 
+    /// <inheritdoc />
     public SKFontMetrics GetFontMetrics(SKPaint paint)
     {
         var typeface = paint.Typeface.ToTypeface() ?? Typeface.Default;
@@ -138,6 +144,7 @@ public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
         };
     }
 
+    /// <inheritdoc />
     public float MeasureText(string? text, SKPaint paint, ref SKRect bounds)
     {
         if (string.IsNullOrEmpty(text))

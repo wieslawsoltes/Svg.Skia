@@ -291,6 +291,6 @@ public partial class SKSvg : IDisposable
     public void Dispose()
     {
         Reset();
-		_originalStream?.Dispose();
+        _originalStream?.Dispose();
     }
 }

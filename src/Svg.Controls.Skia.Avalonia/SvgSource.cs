@@ -40,7 +40,16 @@ public sealed class SvgSource : IDisposable
 
     public string? Css { get; init; }
 
-    public SKSvg? Svg => _skSvg;
+    public SKSvg? Svg
+    {
+        get
+        {
+            lock (Sync)
+            {
+                return _skSvg;
+            }
+        }
+    }
 
     public SvgParameters? Parameters => _originalParameters;
 
@@ -50,7 +59,8 @@ public sealed class SvgSource : IDisposable
         {
             if (_picture is null && Path is not null)
             {
-                _picture = LoadImpl(this, Path, _baseUri, new SvgParameters(Entities, Css));
+                var entitiesCopy = Entities is null ? null : new Dictionary<string, string>(Entities);
+                _picture = LoadImpl(this, Path, _baseUri, new SvgParameters(entitiesCopy, Css));
             }
 
             return _picture;
@@ -114,7 +124,10 @@ public sealed class SvgSource : IDisposable
         
         var skSvg = new SKSvg();
         skSvg.Load(path, parameters);
-        source._skSvg = skSvg;
+        lock (source.Sync)
+        {
+            source._skSvg = skSvg;
+        }
         return skSvg.Picture;
     }
 
@@ -133,7 +146,10 @@ public sealed class SvgSource : IDisposable
 
         var skSvg = new SKSvg();
         skSvg.Load(source._originalStream, parameters);
-        source._skSvg = skSvg;
+        lock (source.Sync)
+        {
+            source._skSvg = skSvg;
+        }
         return skSvg.Picture;
     }
 
@@ -231,7 +247,10 @@ public sealed class SvgSource : IDisposable
         var source = new SvgSource(default(Uri));
         source._picture = FromSvg(svg);
         // loading from SVG string does not store SKSvg instance
-        source._skSvg = null;
+        lock (source.Sync)
+        {
+            source._skSvg = null;
+        }
         return source;
     }
 
@@ -257,7 +276,10 @@ public sealed class SvgSource : IDisposable
     {
         var source = new SvgSource(default(Uri));
         source._picture = FromSvgDocument(document);
-        source._skSvg = null;
+        lock (source.Sync)
+        {
+            source._skSvg = null;
+        }
         return source;
     }
 
