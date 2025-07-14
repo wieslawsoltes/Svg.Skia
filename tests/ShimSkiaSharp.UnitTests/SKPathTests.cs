@@ -36,4 +36,17 @@ public class SKPathTests
         path.LineTo(3, 4);
         Assert.Equal(new SKRect(1,2,3,4), path.Bounds);
     }
+
+    [Fact]
+    public void QuadTo_UpdatesBoundsPrecisely()
+    {
+        var path = new SKPath();
+        path.MoveTo(0, 0);
+        path.QuadTo(0.5f, 1f, 1f, 0f);
+        var expected = new SKRect(0f, 0f, 1f, 0.5f);
+        Assert.Equal(expected.Left, path.Bounds.Left, 3);
+        Assert.Equal(expected.Top, path.Bounds.Top, 3);
+        Assert.Equal(expected.Right, path.Bounds.Right, 3);
+        Assert.Equal(expected.Bottom, path.Bounds.Bottom, 3);
+    }
 }
