@@ -52,4 +52,14 @@ public class HitTestTests : SvgUnitTest
         var results = svg.HitTestElements(new SKPoint(12, 20)).Select(e => e.ID).ToList();
         Assert.Contains("hello", results);
     }
+
+    [Fact]
+    public void HitTest_Line_Point()
+    {
+        var svg = new SKSvg();
+        using var _ = svg.Load(GetSvgPath("HitTestLine.svg"));
+
+        var results = svg.HitTestElements(new SKPoint(50, 12)).Select(e => e.ID).ToList();
+        Assert.Contains("line", results);
+    }
 }
