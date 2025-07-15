@@ -112,7 +112,15 @@ internal static class PaintingService
         return svgGradientServers;
     }
 
-    private static void GetStopsImpl(SvgGradientServer svgGradientServer, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, DrawAttributes ignoreAttributes)
+    private static void GetStopsImpl(
+        SvgGradientServer svgGradientServer,
+        SKRect skBounds,
+        List<SKColor> colors,
+        List<float> colorPos,
+        SvgVisualElement svgVisualElement,
+        float opacity,
+        DrawAttributes ignoreAttributes,
+        bool isLinearRgb)
     {
         foreach (var child in svgGradientServer.Children)
         {
@@ -132,6 +140,10 @@ internal static class PaintingService
                 {
                     var stopOpacity = AdjustSvgOpacity(svgGradientStop.StopOpacity);
                     var stopColor = GetColor(stopColorSvgColourServer, opacity * stopOpacity, ignoreAttributes);
+                    if (isLinearRgb)
+                    {
+                        stopColor = ToLinear(stopColor);
+                    }
                     var offset = svgGradientStop.Offset.ToDeviceValue(UnitRenderingType.Horizontal, svgGradientServer, skBounds);
                     offset /= skBounds.Width;
                     colors.Add(stopColor);
@@ -141,13 +153,21 @@ internal static class PaintingService
         }
     }
 
-    internal static void GetStops(List<SvgGradientServer> svgReferencedGradientServers, SKRect skBounds, List<SKColor> colors, List<float> colorPos, SvgVisualElement svgVisualElement, float opacity, DrawAttributes ignoreAttributes)
+    internal static void GetStops(
+        List<SvgGradientServer> svgReferencedGradientServers,
+        SKRect skBounds,
+        List<SKColor> colors,
+        List<float> colorPos,
+        SvgVisualElement svgVisualElement,
+        float opacity,
+        DrawAttributes ignoreAttributes,
+        bool isLinearRgb)
     {
         foreach (var svgReferencedGradientServer in svgReferencedGradientServers)
         {
             if (colors.Count == 0)
             {
-                GetStopsImpl(svgReferencedGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
+                GetStopsImpl(svgReferencedGradientServer, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes, isLinearRgb);
                 if (colors.Count > 0)
                 {
                     return;
@@ -183,6 +203,14 @@ internal static class PaintingService
         }
 
         return skColorsF;
+    }
+
+    private static SKColor ToLinear(SKColor color)
+    {
+        byte r = (byte)Math.Round(FilterEffectsService.SRGBToLinear(color.Red / 255f) * 255f);
+        byte g = (byte)Math.Round(FilterEffectsService.SRGBToLinear(color.Green / 255f) * 255f);
+        byte b = (byte)Math.Round(FilterEffectsService.SRGBToLinear(color.Blue / 255f) * 255f);
+        return new SKColor(r, g, b, color.Alpha);
     }
 
     internal static SvgColourInterpolation GetColorInterpolation(SvgElement svgElement)
@@ -294,7 +322,8 @@ internal static class PaintingService
         var colors = new List<SKColor>();
         var colorPos = new List<float>();
 
-        GetStops(svgReferencedGradientServers, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
+        var isLinearRgb = skColorSpace == SKColorSpace.SrgbLinear;
+        GetStops(svgReferencedGradientServers, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes, isLinearRgb);
         AdjustStopColorPos(colorPos);
 
         var shaderTileMode = svgSpreadMethod switch
@@ -468,7 +497,8 @@ internal static class PaintingService
         var colors = new List<SKColor>();
         var colorPos = new List<float>();
 
-        GetStops(svgReferencedGradientServers, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes);
+        var isLinearRgb = skColorSpace == SKColorSpace.SrgbLinear;
+        GetStops(svgReferencedGradientServers, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes, isLinearRgb);
         AdjustStopColorPos(colorPos);
 
         var shaderTileMode = svgSpreadMethod switch
@@ -810,6 +840,10 @@ internal static class PaintingService
                     }
 
                     var skColorSpace = isLinearRgb ? SKColorSpace.SrgbLinear : SKColorSpace.Srgb;
+                    if (isLinearRgb)
+                    {
+                        skColor = ToLinear(skColor);
+                    }
                     var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
                     if (skColorShader is { })
                     {
@@ -843,7 +877,10 @@ internal static class PaintingService
                                 skPaint.Shader = null;
                                 return true;
                             }
-
+                            if (skColorSpace == SKColorSpace.SrgbLinear)
+                            {
+                                skColor = ToLinear(skColor);
+                            }
                             var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
                             if (skColorShader is { })
                             {
@@ -926,6 +963,10 @@ internal static class PaintingService
                                 skPaint.Color = skColor;
                                 skPaint.Shader = null;
                                 return true;
+                            }
+                            if (skColorSpace == SKColorSpace.SrgbLinear)
+                            {
+                                skColor = ToLinear(skColor);
                             }
  
                             var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
