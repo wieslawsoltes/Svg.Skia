@@ -1,32 +1,44 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Svg.Controls.Skia.Avalonia"
+        xmlns:dgrid="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
         x:Class="HitTestEditorSample.MainWindow"
         Width="800" Height="600"
         Title="Hit Test Editor Sample">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*" />
-            <ColumnDefinition Width="2*" />
-        </Grid.ColumnDefinitions>
+    <Grid RowDefinitions="Auto,*">
+        <Menu Grid.Row="0">
+            <MenuItem Header="File">
+                <MenuItem Header="Open..." Click="OpenMenuItem_Click" />
+                <MenuItem Header="Save..." Click="SaveMenuItem_Click" />
+            </MenuItem>
+        </Menu>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
 
-        <svg:Svg x:Name="SvgView"
-                 Grid.Column="0"
-                 Stretch="Uniform"
-                 PointerPressed="SvgView_OnPointerPressed" />
+            <svg:Svg x:Name="SvgView"
+                     Grid.Column="0"
+                     Stretch="Uniform"
+                     PointerPressed="SvgView_OnPointerPressed" />
 
-        <StackPanel Grid.Column="1" Margin="10">
-            <TextBlock Text="ID:"/>
-            <TextBox x:Name="IdTextBox" />
+            <StackPanel Grid.Column="1" Margin="10">
+                <dgrid:DataGrid x:Name="PropertiesGrid"
+                                AutoGenerateColumns="False"
+                                HeadersVisibility="None"
+                                CanUserResizeColumns="False"
+                                CanUserSortColumns="False"
+                                ItemsSource="{Binding Properties}">
+                    <dgrid:DataGrid.Columns>
+                        <dgrid:DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True" Width="*"/>
+                        <dgrid:DataGridTextColumn Header="Value" Binding="{Binding Value, Mode=TwoWay}" Width="*"/>
+                    </dgrid:DataGrid.Columns>
+                </dgrid:DataGrid>
 
-            <TextBlock Text="Fill:" Margin="0,10,0,0"/>
-            <TextBox x:Name="FillTextBox" />
-
-            <TextBlock Text="Stroke:" Margin="0,10,0,0"/>
-            <TextBox x:Name="StrokeTextBox" />
-
-            <Button Content="Apply" Margin="0,10,0,0"
-                    Click="ApplyButton_OnClick"/>
-        </StackPanel>
+                <Button Content="Apply" Margin="0,10,0,0"
+                        Click="ApplyButton_OnClick"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

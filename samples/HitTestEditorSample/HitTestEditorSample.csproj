@@ -19,6 +19,10 @@
   <Import Project="..\..\build\SkiaSharp.props" />
 
   <ItemGroup>
+    <PackageReference Include="Avalonia.Controls.DataGrid" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Svg.Controls.Skia.Avalonia\Svg.Controls.Skia.Avalonia.csproj" />
   </ItemGroup>
 

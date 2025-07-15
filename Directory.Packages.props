@@ -13,6 +13,7 @@
     <PackageVersion Include="Avalonia.Browser" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Headless.XUnit" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Controls.DataGrid" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="ReactiveGenerator" Version="0.12.0" />
     <PackageVersion Include="Svg" Version="3.4.4" />
     <PackageVersion Include="ExCSS" Version="4.3.0" />
