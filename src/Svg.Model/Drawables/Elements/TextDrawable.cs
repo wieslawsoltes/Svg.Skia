@@ -303,8 +303,9 @@ public sealed class TextDrawable : DrawableBase
 
     internal void DrawTextString(SvgTextBase svgTextBase, string text, ref float x, ref float y, SKRect skViewport, DrawAttributes ignoreAttributes, SKCanvas skCanvas, DrawableBase? until)
     {
-        // TODO: Calculate correct bounds.
-        var skBounds = skViewport;
+        // Use element geometry for bounds so that paints relying on
+        // objectBoundingBox are calculated correctly.
+        var skBounds = GeometryBounds;
         var fillAdvance = 0f;
 
         if (PaintingService.IsValidFill(svgTextBase))
@@ -425,8 +426,9 @@ public sealed class TextDrawable : DrawableBase
                             points[i] = new SKPoint(x + dx, y + dy);
                         }
 
-                        // TODO: Calculate correct bounds.
-                        var skBounds = skViewport;
+                        // Use overall geometry bounds for paints applied to
+                        // positioned glyph runs.
+                        var skBounds = GeometryBounds;
                         int endingCodepointStart = text.Length - (char.IsLowSurrogate(text[text.Length - 1]) ? 2 : 1);
 
                         float DrawTextLocal(SKPaint? skPaint)
@@ -546,8 +548,9 @@ public sealed class TextDrawable : DrawableBase
         var hOffset = currentX + startOffset;
         var vOffset = currentY;
 
-        // TODO: Calculate correct bounds.
-        var skBounds = skViewport;
+        // Bounds are derived from the referenced path to correctly apply
+        // gradient and pattern paints.
+        var skBounds = skPath.Bounds;
 
         BeginDraw(svgTextPath, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
@@ -604,8 +607,9 @@ public sealed class TextDrawable : DrawableBase
             return;
         }
 
-        // TODO: Calculate correct bounds.
-        var skBounds = skViewport;
+        // Use geometry bounds of the current drawable when drawing
+        // referenced text elements.
+        var skBounds = GeometryBounds;
 
         BeginDraw(svgTextRef, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
@@ -621,8 +625,9 @@ public sealed class TextDrawable : DrawableBase
             return;
         }
 
-        // TODO: Calculate correct bounds.
-        var skBounds = skViewport;
+        // Use the drawable geometry bounds so paints based on
+        // objectBoundingBox work correctly for text spans.
+        var skBounds = GeometryBounds;
 
         BeginDraw(svgTextSpan, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
@@ -638,8 +643,8 @@ public sealed class TextDrawable : DrawableBase
             return;
         }
 
-        // TODO: Calculate correct bounds.
-        var skBounds = skViewport;
+        // Paints for the root <text> element depend on its geometry bounds.
+        var skBounds = GeometryBounds;
 
         BeginDraw(svgText, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
