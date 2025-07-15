@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -29,6 +30,7 @@ public partial class MainWindow : Window
 
     private ObservableCollection<PropertyEntry> Properties { get; } = new();
     private ObservableCollection<SvgNode> Nodes { get; } = new();
+    private readonly HashSet<string> _expandedIds = new();
 
     private readonly SKColor _boundsColor = SKColors.Red;
 
@@ -71,8 +73,8 @@ public partial class MainWindow : Window
         if (SvgView.SkSvg is { } skSvg2)
             skSvg2.OnDraw += SvgView_OnDraw;
 
+        SaveExpandedNodes();
         BuildTree();
-        Dispatcher.UIThread.Post(ExpandAll);
     }
 
     private async void OpenMenuItem_Click(object? sender, RoutedEventArgs e)
@@ -176,9 +178,11 @@ public partial class MainWindow : Window
         }
         SvgView.SkSvg!.FromSvgDocument(_document);
         UpdateSelectedDrawable();
+        SaveExpandedNodes();
         foreach (var entry in Properties)
             entry.PropertyChanged -= PropertyEntryOnPropertyChanged;
         Properties.Clear();
+        BuildTree();
         SelectNodeFromElement(_selectedElement);
         SvgView.InvalidateVisual();
     }
@@ -190,6 +194,7 @@ public partial class MainWindow : Window
             entry.Apply(_selectedElement);
             SvgView.SkSvg!.FromSvgDocument(_document);
             UpdateSelectedDrawable();
+            SaveExpandedNodes();
             BuildTree();
             SelectNodeFromElement(_selectedElement);
             SvgView.InvalidateVisual();
@@ -258,7 +263,15 @@ public partial class MainWindow : Window
         Nodes.Clear();
         if (_document is { })
             Nodes.Add(CreateNode(_document));
-        Dispatcher.UIThread.Post(ExpandAll);
+        Dispatcher.UIThread.Post(() =>
+        {
+            RestoreExpandedNodes();
+            if (_expandedIds.Count == 0)
+                ExpandAll();
+            if (_selectedElement is { })
+                UpdateSelectedDrawable();
+            SvgView.InvalidateVisual();
+        });
     }
 
     private SvgNode CreateNode(SvgElement element)
@@ -343,6 +356,43 @@ public partial class MainWindow : Window
     {
         if (DocumentTree.ContainerFromIndex(0) is TreeViewItem item)
             DocumentTree.ExpandSubTree(item);
+    }
+
+    private void SaveExpandedNodes()
+    {
+        _expandedIds.Clear();
+        if (DocumentTree.ContainerFromIndex(0) is TreeViewItem item && Nodes.Count > 0)
+            SaveExpandedNodes(item, Nodes[0]);
+    }
+
+    private void SaveExpandedNodes(TreeViewItem item, SvgNode node)
+    {
+        if (!string.IsNullOrEmpty(node.Element.ID) && item.IsExpanded)
+            _expandedIds.Add(node.Element.ID);
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            if (item.ItemContainerGenerator.ContainerFromIndex(i) is TreeViewItem child)
+                SaveExpandedNodes(child, node.Children[i]);
+        }
+    }
+
+    private void RestoreExpandedNodes()
+    {
+        if (_expandedIds.Count == 0)
+            return;
+        if (DocumentTree.ContainerFromIndex(0) is TreeViewItem item && Nodes.Count > 0)
+            RestoreExpandedNodes(item, Nodes[0]);
+    }
+
+    private void RestoreExpandedNodes(TreeViewItem item, SvgNode node)
+    {
+        if (!string.IsNullOrEmpty(node.Element.ID) && _expandedIds.Contains(node.Element.ID))
+            item.IsExpanded = true;
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            if (item.ItemContainerGenerator.ContainerFromIndex(i) is TreeViewItem child)
+                RestoreExpandedNodes(child, node.Children[i]);
+        }
     }
 }
 
