@@ -136,7 +136,19 @@ public sealed class UseDrawable : DrawableBase
 
     private void Initialize()
     {
-        // TODO: Initialize
+        if (Element is not SvgUse svgUse || ReferencedDrawable is null)
+        {
+            return;
+        }
+
+        IsDrawable = IsDrawable && ReferencedDrawable.IsDrawable;
+
+        IsAntialias = PaintingService.IsAntialias(svgUse);
+
+        GeometryBounds = ReferencedDrawable.GeometryBounds;
+
+        Fill = null;
+        Stroke = null;
     }
     
     public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)
