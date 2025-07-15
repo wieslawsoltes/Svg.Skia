@@ -185,6 +185,7 @@ public partial class MainWindow : Window
         {
             entry.Apply(_selectedElement);
             SvgView.SkSvg!.FromSvgDocument(_document);
+            BuildTree();
             SvgView.InvalidateVisual();
         }
     }
