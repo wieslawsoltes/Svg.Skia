@@ -4,11 +4,13 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.IO;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform;
 using Avalonia.Svg.Skia;
 using SkiaSharp;
 using Svg;
@@ -41,7 +43,22 @@ public partial class MainWindow : Window
 
     private void LoadDocument(string path)
     {
-        _document = SvgService.Open(path);
+        // try load from Avalonia resources first
+        var uri = new Uri($"avares://HitTestEditorSample/{path}");
+        if (AssetLoader.Exists(uri))
+        {
+            using var stream = AssetLoader.Open(uri);
+            _document = SvgService.Open(stream);
+        }
+        else if (File.Exists(path))
+        {
+            _document = SvgService.Open(path);
+        }
+        else
+        {
+            _document = null;
+            Console.WriteLine($"SVG document '{path}' not found.");
+        }
         if (_document is { })
         {
             SvgView.SkSvg!.FromSvgDocument(_document);
