@@ -133,15 +133,7 @@ public class Svg : Control
     public bool Wireframe
     {
         get { return _wireframe; }
-        set
-        {
-            SetAndRaise(WireframeProperty, ref _wireframe, value);
-            if (_svg?.Svg is { } skSvg)
-            {
-                skSvg.Wireframe = value;
-                skSvg.ClearWireframePicture();
-            }
-        }
+        set { SetAndRaise(WireframeProperty, ref _wireframe, value); }
     }
 
     /// <summary>
