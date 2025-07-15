@@ -1306,7 +1306,7 @@ public class SkiaModel
                 {
                     if (wireframe)
                     {
-                        var rectPath = new SKPath();
+                        var rectPath = new SkiaSharp.SKPath();
                         rectPath.AddRect(drawImageCanvasCommand.Dest);
                         skCanvas.DrawPath(rectPath, ToWireframePaint(null));
                     }
@@ -1393,11 +1393,11 @@ public class SkiaModel
         }
     }
 
-    private SKPaint ToWireframePaint(SKPaint? paint)
+    private SkiaSharp.SKPaint ToWireframePaint(SKPaint? paint)
     {
-        var result = new SKPaint
+        var result = new SkiaSharp.SKPaint
         {
-            Style = SKPaintStyle.Stroke,
+            Style = SkiaSharp.SKPaintStyle.Stroke,
             StrokeWidth = 1,
             Color = new SKColor(128, 128, 128, 255),
             IsAntialias = paint?.IsAntialias ?? false,
