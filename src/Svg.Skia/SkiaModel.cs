@@ -1378,7 +1378,7 @@ public class SkiaModel
     {
         var result = paint?.Clone() ?? new SKPaint();
         result.Style = SKPaintStyle.Stroke;
-        result.Color = new SKColor(0x80, 0x80, 0x80);
+        result.Color = SKColors.Gray;
         if (result.StrokeWidth == 0)
         {
             result.StrokeWidth = 1;
@@ -1429,7 +1429,7 @@ public class SkiaModel
                     break;
                 }
                 case DrawTextBlobCanvasCommand drawBlob when drawBlob.Paint is { }:
-                    canvas.DrawTextBlob(drawBlob.TextBlob!, drawBlob.X, drawBlob.Y, ToWireframePaint(drawBlob.Paint));
+                    canvas.DrawText(drawBlob.TextBlob!, drawBlob.X, drawBlob.Y, ToWireframePaint(drawBlob.Paint));
                     break;
                 case DrawTextCanvasCommand drawText when drawText.Paint is { }:
                     canvas.DrawText(drawText.Text, drawText.X, drawText.Y, ToWireframePaint(drawText.Paint));
