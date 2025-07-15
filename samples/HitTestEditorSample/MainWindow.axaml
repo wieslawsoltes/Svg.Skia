@@ -34,7 +34,9 @@
             <svg:Svg x:Name="SvgView"
                      Grid.Column="1"
                      Stretch="Uniform"
-                     PointerPressed="SvgView_OnPointerPressed" />
+                     PointerPressed="SvgView_OnPointerPressed"
+                     PointerMoved="SvgView_OnPointerMoved"
+                     PointerReleased="SvgView_OnPointerReleased" />
 
             <StackPanel Grid.Column="2" Margin="10">
                 <dgrid:DataGrid x:Name="PropertiesGrid"

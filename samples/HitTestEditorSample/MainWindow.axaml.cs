@@ -14,7 +14,8 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
 using Avalonia.Svg.Skia;
-using SkiaSharp;
+using SK = SkiaSharp;
+using Shim = ShimSkiaSharp;
 using Svg;
 using Svg.Skia;
 using Svg.Model.Drawables;
@@ -32,7 +33,12 @@ public partial class MainWindow : Window
     private ObservableCollection<SvgNode> Nodes { get; } = new();
     private readonly HashSet<string> _expandedIds = new();
 
-    private readonly SKColor _boundsColor = SKColors.Red;
+    private readonly SK.SKColor _boundsColor = SK.SKColors.Red;
+
+    private bool _isDragging;
+    private Shim.SKPoint _dragStart;
+    private SvgVisualElement? _dragElement;
+    private List<(PropertyInfo Prop, SvgUnit Unit, char Axis)>? _dragProps;
 
     public MainWindow()
     {
@@ -162,10 +168,43 @@ public partial class MainWindow : Window
             {
                 LoadProperties(_selectedElement);
                 SelectNodeFromElement(_selectedElement);
+                TryStartDrag(_selectedElement, pp, e);
             }
             UpdateSelectedDrawable();
             SvgView.InvalidateVisual();
         }
+    }
+
+    private void SvgView_OnPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (!_isDragging || _dragElement is null || _dragProps is null)
+            return;
+        var point = e.GetPosition(SvgView);
+        if (SvgView.TryGetPicturePoint(point, out var pp))
+        {
+            var dx = pp.X - _dragStart.X;
+            var dy = pp.Y - _dragStart.Y;
+            foreach (var (Prop, Unit, Axis) in _dragProps)
+            {
+                var delta = Axis == 'x' ? dx : dy;
+                Prop.SetValue(_dragElement, new SvgUnit(Unit.Type, Unit.Value + delta));
+            }
+            SvgView.SkSvg!.FromSvgDocument(_document);
+            UpdateSelectedDrawable();
+            SvgView.InvalidateVisual();
+        }
+    }
+
+    private void SvgView_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (!_isDragging)
+            return;
+        _isDragging = false;
+        if (_dragElement is { })
+        {
+            LoadProperties(_dragElement);
+        }
+        e.Pointer.Capture(null);
     }
 
     private void ApplyButton_OnClick(object? sender, RoutedEventArgs e)
@@ -198,14 +237,69 @@ public partial class MainWindow : Window
         }
     }
 
+    private void TryStartDrag(SvgVisualElement element, Shim.SKPoint start, PointerPressedEventArgs args)
+    {
+        if (!args.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
+            return;
+
+        if (!GetDragProperties(element, out var props))
+            return;
+
+        _dragProps = props;
+        _isDragging = true;
+        _dragStart = start;
+        _dragElement = element;
+        args.Pointer.Capture(SvgView);
+    }
+
+    private static bool GetDragProperties(SvgVisualElement element, out List<(PropertyInfo Prop, SvgUnit Unit, char Axis)> props)
+    {
+        var list = new List<(PropertyInfo Prop, SvgUnit Unit, char Axis)>();
+        switch (element)
+        {
+            case SvgRectangle rect:
+            case Svg.SvgImage img:
+            case SvgUse use:
+                Add("X", 'x');
+                Add("Y", 'y');
+                break;
+            case SvgCircle circle:
+            case SvgEllipse ellipse:
+                Add("CenterX", 'x');
+                Add("CenterY", 'y');
+                break;
+            case SvgLine line:
+                Add("StartX", 'x');
+                Add("StartY", 'y');
+                Add("EndX", 'x');
+                Add("EndY", 'y');
+                break;
+            default:
+                props = null!;
+                return false;
+        }
+        props = list;
+        return props.Count > 0;
+
+        void Add(string name, char axis)
+        {
+            var p = element.GetType().GetProperty(name);
+            if (p != null && p.PropertyType == typeof(SvgUnit))
+            {
+                var unit = (SvgUnit)p.GetValue(element)!;
+                list.Add((p, unit, axis));
+            }
+        }
+    }
+
     private void SvgView_OnDraw(object? sender, SKSvgDrawEventArgs e)
     {
         if (_selectedDrawable is null)
             return;
-        using var paint = new SKPaint
+        using var paint = new SK.SKPaint
         {
             IsAntialias = true,
-            Style = SKPaintStyle.Stroke,
+            Style = SK.SKPaintStyle.Stroke,
             Color = _boundsColor
         };
         var rect = SvgView.SkSvg!.SkiaModel.ToSKRect(_selectedDrawable.TransformedBounds);
