@@ -32,7 +32,7 @@
                                 ItemsSource="{Binding Properties}">
                     <dgrid:DataGrid.Columns>
                         <dgrid:DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True" Width="*"/>
-                        <dgrid:DataGridTextColumn Header="Value" Binding="{Binding Value, Mode=TwoWay}" Width="*"/>
+                        <dgrid:DataGridTextColumn Header="Value" Binding="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
                     </dgrid:DataGrid.Columns>
                 </dgrid:DataGrid>
 

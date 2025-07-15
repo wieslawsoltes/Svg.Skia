@@ -85,6 +85,8 @@ public partial class MainWindow : Window
         if (!string.IsNullOrEmpty(file))
         {
             LoadDocument(file);
+            foreach (var entry in Properties)
+                entry.PropertyChanged -= PropertyEntryOnPropertyChanged;
             Properties.Clear();
             _selectedDrawable = null;
             _selectedElement = null;
@@ -114,6 +116,8 @@ public partial class MainWindow : Window
 
     private void LoadProperties(SvgVisualElement element)
     {
+        foreach (var e in Properties)
+            e.PropertyChanged -= PropertyEntryOnPropertyChanged;
         Properties.Clear();
         var props = element.GetType()
             .GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -134,7 +138,9 @@ public partial class MainWindow : Window
                     str = value.ToString();
                 }
             }
-            Properties.Add(new PropertyEntry(prop.GetCustomAttribute<SvgAttributeAttribute>()!.Name, prop, str));
+            var entry = new PropertyEntry(prop.GetCustomAttribute<SvgAttributeAttribute>()!.Name, prop, str);
+            entry.PropertyChanged += PropertyEntryOnPropertyChanged;
+            Properties.Add(entry);
         }
     }
 
@@ -162,10 +168,22 @@ public partial class MainWindow : Window
             entry.Apply(_selectedElement);
         }
         SvgView.SkSvg!.FromSvgDocument(_document);
+        foreach (var entry in Properties)
+            entry.PropertyChanged -= PropertyEntryOnPropertyChanged;
         Properties.Clear();
         _selectedDrawable = null;
         _selectedElement = null;
         SvgView.InvalidateVisual();
+    }
+
+    private void PropertyEntryOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (sender is PropertyEntry entry && _selectedElement is { } && _document is { })
+        {
+            entry.Apply(_selectedElement);
+            SvgView.SkSvg!.FromSvgDocument(_document);
+            SvgView.InvalidateVisual();
+        }
     }
 
     private void SvgView_OnDraw(object? sender, SKSvgDrawEventArgs e)
@@ -182,11 +200,23 @@ public partial class MainWindow : Window
         e.Canvas.DrawRect(rect, paint);
     }
 
-    public class PropertyEntry
+    public class PropertyEntry : INotifyPropertyChanged
     {
         public string Name { get; }
         public PropertyInfo Property { get; }
-        public string? Value { get; set; }
+        private string? _value;
+        public string? Value
+        {
+            get => _value;
+            set
+            {
+                if (_value != value)
+                {
+                    _value = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Value)));
+                }
+            }
+        }
 
         private readonly TypeConverter _converter;
 
@@ -195,7 +225,7 @@ public partial class MainWindow : Window
             Name = name;
             Property = property;
             _converter = TypeDescriptor.GetConverter(property.PropertyType);
-            Value = value;
+            _value = value;
         }
 
         public void Apply(object target)
@@ -209,5 +239,7 @@ public partial class MainWindow : Window
             {
             }
         }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
     }
 }
