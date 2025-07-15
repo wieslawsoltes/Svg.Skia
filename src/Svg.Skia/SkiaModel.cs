@@ -1307,7 +1307,7 @@ public class SkiaModel
                     if (wireframe)
                     {
                         var rectPath = new SkiaSharp.SKPath();
-                        rectPath.AddRect(drawImageCanvasCommand.Dest);
+                        rectPath.AddRect(ToSKRect(drawImageCanvasCommand.Dest));
                         skCanvas.DrawPath(rectPath, ToWireframePaint(null));
                     }
                     else
@@ -1399,10 +1399,10 @@ public class SkiaModel
         {
             Style = SkiaSharp.SKPaintStyle.Stroke,
             StrokeWidth = 1,
-            Color = new SKColor(128, 128, 128, 255),
+            Color = new SkiaSharp.SKColor(128, 128, 128, 255),
             IsAntialias = paint?.IsAntialias ?? false,
-            StrokeCap = paint?.StrokeCap ?? SKStrokeCap.Butt,
-            StrokeJoin = paint?.StrokeJoin ?? SKStrokeJoin.Miter,
+            StrokeCap = paint is null ? SkiaSharp.SKStrokeCap.Butt : ToSKStrokeCap(paint.StrokeCap),
+            StrokeJoin = paint is null ? SkiaSharp.SKStrokeJoin.Miter : ToSKStrokeJoin(paint.StrokeJoin),
             StrokeMiter = paint?.StrokeMiter ?? 4
         };
         return result;
