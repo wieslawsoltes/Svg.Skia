@@ -1378,7 +1378,7 @@ public class SkiaModel
     {
         var result = paint?.Clone() ?? new SKPaint();
         result.Style = SKPaintStyle.Stroke;
-        result.Color = SKColors.Gray;
+        result.Color = new SKColor(128, 128, 128, 255);
         if (result.StrokeWidth == 0)
         {
             result.StrokeWidth = 1;
