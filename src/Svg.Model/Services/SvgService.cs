@@ -565,7 +565,8 @@ public static class SvgService
             }
             else
             {
-                // TODO: Calculate correct bounds using Children bounds.
+                var b = svgFragment.Bounds;
+                bounds = new SKRect(b.Left, b.Top, b.Right, b.Bottom);
             }
         }
 
