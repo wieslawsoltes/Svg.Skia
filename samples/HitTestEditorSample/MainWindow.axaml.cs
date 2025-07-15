@@ -52,7 +52,10 @@ public partial class MainWindow : Window
     private bool _isResizing;
     private bool _isRotating;
     private int _resizeHandle;
-    private SK.SKPoint _resizeStart;
+    private Shim.SKPoint _resizeStart;
+    private Shim.SKPoint _resizeStartLocal;
+    private Shim.SKMatrix _resizeMatrix;
+    private Shim.SKMatrix _resizeInverse;
     private SK.SKRect _startRect;
     private SvgVisualElement? _resizeElement;
     private SvgVisualElement? _rotateElement;
@@ -217,8 +220,8 @@ public partial class MainWindow : Window
             // check handles first
             if (_selectedDrawable is { } sel && _selectedElement is { })
             {
-                var rect = SvgView.SkSvg.SkiaModel.ToSKRect(sel.TransformedBounds);
-                var handle = HitHandle(rect, new SK.SKPoint(pp.X, pp.Y), out var center);
+                var bounds = GetBoundsInfo(sel);
+                var handle = HitHandle(bounds, new SK.SKPoint(pp.X, pp.Y), out var center);
                 if (handle >= 0)
                 {
                     if (handle == 8)
@@ -234,8 +237,12 @@ public partial class MainWindow : Window
                     _isResizing = true;
                     _resizeElement = _selectedElement;
                     _resizeHandle = handle;
-                    _resizeStart = new SK.SKPoint(pp.X, pp.Y);
-                    _startRect = rect;
+                    _resizeStart = new Shim.SKPoint(pp.X, pp.Y);
+                    _startRect = SvgView.SkSvg!.SkiaModel.ToSKRect(sel.GeometryBounds);
+                    _resizeMatrix = sel.TotalTransform;
+                    if (!_resizeMatrix.TryInvert(out _resizeInverse))
+                        _resizeInverse = Shim.SKMatrix.CreateIdentity();
+                    _resizeStartLocal = _resizeInverse.MapPoint(_resizeStart);
                     e.Pointer.Capture(SvgView);
                     return;
                 }
@@ -277,8 +284,9 @@ public partial class MainWindow : Window
             }
             else if (_isResizing && _resizeElement is { })
             {
-                var dx = skp.X - _resizeStart.X;
-                var dy = skp.Y - _resizeStart.Y;
+                var local = _resizeInverse.MapPoint(new Shim.SKPoint(skp.X, skp.Y));
+                var dx = local.X - _resizeStartLocal.X;
+                var dy = local.Y - _resizeStartLocal.Y;
                 ResizeElement(_resizeElement, _resizeHandle, dx, dy);
                 SvgView.SkSvg!.FromSvgDocument(_document);
                 UpdateSelectedDrawable();
@@ -417,26 +425,59 @@ public partial class MainWindow : Window
         }
     }
 
-    private int HitHandle(SK.SKRect rect, SK.SKPoint pt, out SK.SKPoint center)
+    private struct BoundsInfo
     {
-        center = new(rect.MidX, rect.MidY);
-        var hs = HandleSize / 2f;
-        var handles = new[]
+        public SK.SKPoint TL, TR, BR, BL;
+        public SK.SKPoint TopMid, RightMid, BottomMid, LeftMid;
+        public SK.SKPoint Center, RotHandle;
+    }
+
+    private static SK.SKPoint Mid(SK.SKPoint a, SK.SKPoint b) => new((a.X + b.X) / 2f, (a.Y + b.Y) / 2f);
+
+    private BoundsInfo GetBoundsInfo(DrawableBase drawable)
+    {
+        var rect = drawable.GeometryBounds;
+        var m = drawable.TotalTransform;
+        var tl = SvgView.SkSvg!.SkiaModel.ToSKPoint(m.MapPoint(new Shim.SKPoint(rect.Left, rect.Top)));
+        var tr = SvgView.SkSvg!.SkiaModel.ToSKPoint(m.MapPoint(new Shim.SKPoint(rect.Right, rect.Top)));
+        var br = SvgView.SkSvg!.SkiaModel.ToSKPoint(m.MapPoint(new Shim.SKPoint(rect.Right, rect.Bottom)));
+        var bl = SvgView.SkSvg!.SkiaModel.ToSKPoint(m.MapPoint(new Shim.SKPoint(rect.Left, rect.Bottom)));
+        var topMid = Mid(tl, tr);
+        var rightMid = Mid(tr, br);
+        var bottomMid = Mid(br, bl);
+        var leftMid = Mid(bl, tl);
+        var center = Mid(tl, br);
+        var edge = new SK.SKPoint(tr.X - tl.X, tr.Y - tl.Y);
+        var len = (float)Math.Sqrt(edge.X * edge.X + edge.Y * edge.Y);
+        var normal = len > 0 ? new SK.SKPoint(-edge.Y / len, edge.X / len) : new SK.SKPoint(0, -1);
+        var rotHandle = new SK.SKPoint(topMid.X + normal.X * 20f, topMid.Y + normal.Y * 20f);
+        return new BoundsInfo
         {
-            new SK.SKRect(rect.Left - hs, rect.Top - hs, rect.Left + hs, rect.Top + hs), // tl 0
-            new SK.SKRect(rect.MidX - hs, rect.Top - hs, rect.MidX + hs, rect.Top + hs), // t 1
-            new SK.SKRect(rect.Right - hs, rect.Top - hs, rect.Right + hs, rect.Top + hs), // tr 2
-            new SK.SKRect(rect.Right - hs, rect.MidY - hs, rect.Right + hs, rect.MidY + hs), // r 3
-            new SK.SKRect(rect.Right - hs, rect.Bottom - hs, rect.Right + hs, rect.Bottom + hs), // br 4
-            new SK.SKRect(rect.MidX - hs, rect.Bottom - hs, rect.MidX + hs, rect.Bottom + hs), // b 5
-            new SK.SKRect(rect.Left - hs, rect.Bottom - hs, rect.Left + hs, rect.Bottom + hs), // bl 6
-            new SK.SKRect(rect.Left - hs, rect.MidY - hs, rect.Left + hs, rect.MidY + hs) // l 7
+            TL = tl,
+            TR = tr,
+            BR = br,
+            BL = bl,
+            TopMid = topMid,
+            RightMid = rightMid,
+            BottomMid = bottomMid,
+            LeftMid = leftMid,
+            Center = center,
+            RotHandle = rotHandle
         };
-        for (var i = 0; i < handles.Length; i++)
-            if (handles[i].Contains(pt))
+    }
+
+    private int HitHandle(BoundsInfo b, SK.SKPoint pt, out SK.SKPoint center)
+    {
+        center = b.Center;
+        var hs = HandleSize / 2f;
+        var handlePts = new[] { b.TL, b.TopMid, b.TR, b.RightMid, b.BR, b.BottomMid, b.BL, b.LeftMid };
+        for (int i = 0; i < handlePts.Length; i++)
+        {
+            var r = new SK.SKRect(handlePts[i].X - hs, handlePts[i].Y - hs, handlePts[i].X + hs, handlePts[i].Y + hs);
+            if (r.Contains(pt))
                 return i;
-        var rot = new SK.SKPoint(rect.MidX, rect.Top - 20);
-        if (SK.SKPoint.Distance(rot, pt) <= HandleSize)
+        }
+        if (SK.SKPoint.Distance(b.RotHandle, pt) <= HandleSize)
             return 8;
         return -1;
     }
@@ -504,27 +545,24 @@ public partial class MainWindow : Window
             Style = SK.SKPaintStyle.Stroke,
             Color = _boundsColor
         };
-        var rect = SvgView.SkSvg!.SkiaModel.ToSKRect(_selectedDrawable.TransformedBounds);
-        e.Canvas.DrawRect(rect, paint);
+        var info = GetBoundsInfo(_selectedDrawable);
+        using (var path = new SK.SKPath())
+        {
+            path.MoveTo(info.TL);
+            path.LineTo(info.TR);
+            path.LineTo(info.BR);
+            path.LineTo(info.BL);
+            path.Close();
+            e.Canvas.DrawPath(path, paint);
+        }
 
         var hs = HandleSize / 2f;
-        var handles = new[]
-        {
-            new SK.SKRect(rect.Left - hs, rect.Top - hs, rect.Left + hs, rect.Top + hs),
-            new SK.SKRect(rect.MidX - hs, rect.Top - hs, rect.MidX + hs, rect.Top + hs),
-            new SK.SKRect(rect.Right - hs, rect.Top - hs, rect.Right + hs, rect.Top + hs),
-            new SK.SKRect(rect.Right - hs, rect.MidY - hs, rect.Right + hs, rect.MidY + hs),
-            new SK.SKRect(rect.Right - hs, rect.Bottom - hs, rect.Right + hs, rect.Bottom + hs),
-            new SK.SKRect(rect.MidX - hs, rect.Bottom - hs, rect.MidX + hs, rect.Bottom + hs),
-            new SK.SKRect(rect.Left - hs, rect.Bottom - hs, rect.Left + hs, rect.Bottom + hs),
-            new SK.SKRect(rect.Left - hs, rect.MidY - hs, rect.Left + hs, rect.MidY + hs)
-        };
-        foreach (var h in handles)
-            e.Canvas.DrawRect(h, paint);
+        var pts = new[] { info.TL, info.TopMid, info.TR, info.RightMid, info.BR, info.BottomMid, info.BL, info.LeftMid };
+        foreach (var pt in pts)
+            e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, HandleSize, HandleSize, paint);
 
-        var rot = new SK.SKPoint(rect.MidX, rect.Top - 20);
-        e.Canvas.DrawLine(rect.MidX, rect.Top, rot.X, rot.Y, paint);
-        e.Canvas.DrawCircle(rot, hs, paint);
+        e.Canvas.DrawLine(info.TopMid, info.RotHandle, paint);
+        e.Canvas.DrawCircle(info.RotHandle, hs, paint);
     }
 
     public class PropertyEntry : INotifyPropertyChanged
@@ -784,8 +822,10 @@ public partial class MainWindow : Window
             parent.Children.Remove(_selectedSvgElement);
             _selectedElement = null;
             _selectedSvgElement = null;
+            _selectedDrawable = null;
             SvgView.SkSvg!.FromSvgDocument(_document);
             BuildTree();
+            SvgView.InvalidateVisual();
         }
     }
 
