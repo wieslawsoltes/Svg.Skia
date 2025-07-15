@@ -14,13 +14,19 @@
       </Panel>
     </TabItem>
     <TabItem Header="Bitmap">
-      <!-- TODO: -->
+      <Panel Background="WhiteSmoke" Width="400" Height="400">
+        <SKBitmapControl Name="BitmapControl" Stretch="Uniform" />
+      </Panel>
     </TabItem>
     <TabItem Header="Path">
-      <!-- TODO: -->
+      <Panel Background="WhiteSmoke" Width="400" Height="400">
+        <SKPathControl Name="PathControl" Stretch="Uniform" />
+      </Panel>
     </TabItem>
     <TabItem Header="Picture">
-      <!-- TODO: -->
+      <Panel Background="WhiteSmoke" Width="400" Height="400">
+        <SKPictureControl Name="PictureControl" Stretch="Uniform" />
+      </Panel>
     </TabItem>
   </TabControl>
 </Window>
