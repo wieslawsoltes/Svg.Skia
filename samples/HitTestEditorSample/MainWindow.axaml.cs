@@ -122,7 +122,19 @@ public partial class MainWindow : Window
         {
             var converter = TypeDescriptor.GetConverter(prop.PropertyType);
             var value = prop.GetValue(element);
-            Properties.Add(new PropertyEntry(prop.GetCustomAttribute<SvgAttributeAttribute>()!.Name, prop, converter.ConvertToInvariantString(value)));
+            string? str = null;
+            if (value is not null)
+            {
+                try
+                {
+                    str = converter.ConvertToInvariantString(value);
+                }
+                catch (Exception)
+                {
+                    str = value.ToString();
+                }
+            }
+            Properties.Add(new PropertyEntry(prop.GetCustomAttribute<SvgAttributeAttribute>()!.Name, prop, str));
         }
     }
 
