@@ -1246,7 +1246,7 @@ public class SkiaModel
         return skPictureRecorder.EndRecording();
     }
 
-    public void Draw(CanvasCommand canvasCommand, SkiaSharp.SKCanvas skCanvas)
+    public void Draw(CanvasCommand canvasCommand, SkiaSharp.SKCanvas skCanvas, bool wireframe = false)
     {
         switch (canvasCommand)
         {
@@ -1289,7 +1289,9 @@ public class SkiaModel
             {
                 if (saveLayerCanvasCommand.Paint is { })
                 {
-                    var paint = ToSKPaint(saveLayerCanvasCommand.Paint);
+                    var paint = wireframe
+                        ? ToWireframePaint(saveLayerCanvasCommand.Paint)
+                        : ToSKPaint(saveLayerCanvasCommand.Paint);
                     skCanvas.SaveLayer(paint);
                 }
                 else
@@ -1302,11 +1304,20 @@ public class SkiaModel
             {
                 if (drawImageCanvasCommand.Image is { })
                 {
-                    var image = ToSKImage(drawImageCanvasCommand.Image);
-                    var source = ToSKRect(drawImageCanvasCommand.Source);
-                    var dest = ToSKRect(drawImageCanvasCommand.Dest);
-                    var paint = ToSKPaint(drawImageCanvasCommand.Paint);
-                    skCanvas.DrawImage(image, source, dest, paint);
+                    if (wireframe)
+                    {
+                        var rectPath = new SKPath();
+                        rectPath.AddRect(drawImageCanvasCommand.Dest);
+                        skCanvas.DrawPath(rectPath, ToWireframePaint(null));
+                    }
+                    else
+                    {
+                        var image = ToSKImage(drawImageCanvasCommand.Image);
+                        var source = ToSKRect(drawImageCanvasCommand.Source);
+                        var dest = ToSKRect(drawImageCanvasCommand.Dest);
+                        var paint = ToSKPaint(drawImageCanvasCommand.Paint);
+                        skCanvas.DrawImage(image, source, dest, paint);
+                    }
                 }
                 break;
             }
@@ -1315,7 +1326,9 @@ public class SkiaModel
                 if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })
                 {
                     var path = ToSKPath(drawPathCanvasCommand.Path);
-                    var paint = ToSKPaint(drawPathCanvasCommand.Paint);
+                    var paint = wireframe
+                        ? ToWireframePaint(drawPathCanvasCommand.Paint)
+                        : ToSKPaint(drawPathCanvasCommand.Paint);
                     skCanvas.DrawPath(path, paint);
                 }
                 break;
@@ -1326,7 +1339,9 @@ public class SkiaModel
                 {
                     var text = drawPositionedTextCanvasCommand.TextBlob.Text;
                     var points = ToSKPoints(drawPositionedTextCanvasCommand.TextBlob.Points);
-                    var paint = ToSKPaint(drawPositionedTextCanvasCommand.Paint);
+                    var paint = wireframe
+                        ? ToWireframePaint(drawPositionedTextCanvasCommand.Paint)
+                        : ToSKPaint(drawPositionedTextCanvasCommand.Paint);
                     var font = paint?.ToFont();
                     var textBlob = SkiaSharp.SKTextBlob.CreatePositioned(text, font, points);
                     skCanvas.DrawText(textBlob, 0, 0, paint);
@@ -1340,7 +1355,9 @@ public class SkiaModel
                     var text = drawTextCanvasCommand.Text;
                     var x = drawTextCanvasCommand.X;
                     var y = drawTextCanvasCommand.Y;
-                    var paint = ToSKPaint(drawTextCanvasCommand.Paint);
+                    var paint = wireframe
+                        ? ToWireframePaint(drawTextCanvasCommand.Paint)
+                        : ToSKPaint(drawTextCanvasCommand.Paint);
                     skCanvas.DrawText(text, x, y, paint);
                 }
                 break;
@@ -1353,7 +1370,9 @@ public class SkiaModel
                     var path = ToSKPath(drawTextOnPathCanvasCommand.Path);
                     var hOffset = drawTextOnPathCanvasCommand.HOffset;
                     var vOffset = drawTextOnPathCanvasCommand.VOffset;
-                    var paint = ToSKPaint(drawTextOnPathCanvasCommand.Paint);
+                    var paint = wireframe
+                        ? ToWireframePaint(drawTextOnPathCanvasCommand.Paint)
+                        : ToSKPaint(drawTextOnPathCanvasCommand.Paint);
                     skCanvas.DrawTextOnPath(text, path, hOffset, vOffset, paint);
                 }
                 break;
@@ -1361,7 +1380,7 @@ public class SkiaModel
         }
     }
 
-    public void Draw(SKPicture picture, SkiaSharp.SKCanvas skCanvas)
+    public void Draw(SKPicture picture, SkiaSharp.SKCanvas skCanvas, bool wireframe = false)
     {
         if (picture.Commands is null)
         {
@@ -1370,82 +1389,27 @@ public class SkiaModel
 
         foreach (var canvasCommand in picture.Commands)
         {
-            Draw(canvasCommand, skCanvas);
+            Draw(canvasCommand, skCanvas, wireframe);
         }
     }
 
     private SKPaint ToWireframePaint(SKPaint? paint)
     {
-        var result = paint?.Clone() ?? new SKPaint();
-        result.Style = SKPaintStyle.Stroke;
-        result.Color = new SKColor(128, 128, 128, 255);
-        if (result.StrokeWidth == 0)
+        var result = new SKPaint
         {
-            result.StrokeWidth = 1;
-        }
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = 1,
+            Color = new SKColor(128, 128, 128, 255),
+            IsAntialias = paint?.IsAntialias ?? false,
+            StrokeCap = paint?.StrokeCap ?? SKStrokeCap.Butt,
+            StrokeJoin = paint?.StrokeJoin ?? SKStrokeJoin.Miter,
+            StrokeMiter = paint?.StrokeMiter ?? 4
+        };
         return result;
-    }
-
-    private SKPicture ToWireframePicture(SKPicture picture)
-    {
-        if (picture.Commands is null)
-        {
-            return new SKPicture(picture.CullRect, null);
-        }
-
-        var recorder = new SKPictureRecorder();
-        var canvas = recorder.BeginRecording(picture.CullRect);
-
-        foreach (var cmd in picture.Commands)
-        {
-            switch (cmd)
-            {
-                case ClipPathCanvasCommand clipPath:
-                    canvas.ClipPath(clipPath.ClipPath!, clipPath.Operation, clipPath.Antialias);
-                    break;
-                case ClipRectCanvasCommand clipRect:
-                    canvas.ClipRect(clipRect.Rect, clipRect.Operation, clipRect.Antialias);
-                    break;
-                case SaveCanvasCommand:
-                    canvas.Save();
-                    break;
-                case RestoreCanvasCommand:
-                    canvas.Restore();
-                    break;
-                case SetMatrixCanvasCommand setMatrix:
-                    canvas.SetMatrix(setMatrix.DeltaMatrix);
-                    break;
-                case SaveLayerCanvasCommand saveLayer:
-                    canvas.SaveLayer(ToWireframePaint(saveLayer.Paint));
-                    break;
-                case DrawPathCanvasCommand drawPath when drawPath.Path is { }:
-                    canvas.DrawPath(drawPath.Path, ToWireframePaint(drawPath.Paint));
-                    break;
-                case DrawImageCanvasCommand drawImage:
-                {
-                    var rectPath = new SKPath();
-                    rectPath.AddRect(drawImage.Dest);
-                    canvas.DrawPath(rectPath, ToWireframePaint(null));
-                    break;
-                }
-                case DrawTextBlobCanvasCommand drawBlob when drawBlob.Paint is { }:
-                    canvas.DrawText(drawBlob.TextBlob!, drawBlob.X, drawBlob.Y, ToWireframePaint(drawBlob.Paint));
-                    break;
-                case DrawTextCanvasCommand drawText when drawText.Paint is { }:
-                    canvas.DrawText(drawText.Text, drawText.X, drawText.Y, ToWireframePaint(drawText.Paint));
-                    break;
-                case DrawTextOnPathCanvasCommand drawTextOnPath when drawTextOnPath.Paint is { } && drawTextOnPath.Path is { }:
-                    canvas.DrawTextOnPath(drawTextOnPath.Text, drawTextOnPath.Path, drawTextOnPath.HOffset, drawTextOnPath.VOffset, ToWireframePaint(drawTextOnPath.Paint));
-                    break;
-            }
-        }
-
-        return recorder.EndRecording();
     }
 
     public void DrawWireframe(SKPicture picture, SkiaSharp.SKCanvas skCanvas)
     {
-        var wfPicture = ToWireframePicture(picture);
-        Draw(wfPicture, skCanvas);
+        Draw(picture, skCanvas, true);
     }
 }

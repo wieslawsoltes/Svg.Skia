@@ -274,7 +274,7 @@ public partial class SKSvg : IDisposable
         canvas.Save();
         if (Wireframe && Model is { })
         {
-            SkiaModel.DrawWireframe(Model, canvas);
+            SkiaModel.Draw(Model, canvas, true);
         }
         else
         {
