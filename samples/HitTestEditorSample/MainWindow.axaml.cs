@@ -35,6 +35,12 @@ public partial class MainWindow : Window
 
     private readonly SK.SKColor _boundsColor = SK.SKColors.Red;
 
+    private readonly Stack<string> _undo = new();
+    private readonly Stack<string> _redo = new();
+    private readonly List<Type> _elementTypes = typeof(SvgElement).Assembly.GetTypes()
+        .Where(t => t.IsSubclassOf(typeof(SvgElement)) && !t.IsAbstract)
+        .OrderBy(t => t.Name).ToList();
+
     private bool _isDragging;
     private Shim.SKPoint _dragStart;
     private SvgVisualElement? _dragElement;
@@ -47,6 +53,8 @@ public partial class MainWindow : Window
         this.AttachDevTools();
 #endif
         DataContext = this;
+        AddHandler(DragDrop.DragOverEvent, Window_OnDragOver);
+        AddHandler(DragDrop.DropEvent, Window_OnDrop);
         LoadDocument("Assets/__tiger.svg");
     }
 
@@ -127,6 +135,31 @@ public partial class MainWindow : Window
         }
     }
 
+    private void Window_OnDragOver(object? sender, DragEventArgs e)
+    {
+        if (e.Data.Contains(DataFormats.FileNames))
+            e.DragEffects = DragDropEffects.Copy;
+    }
+
+    private async void Window_OnDrop(object? sender, DragEventArgs e)
+    {
+        if (e.Data.Contains(DataFormats.FileNames))
+        {
+            var files = e.Data.GetFileNames();
+            var file = files?.FirstOrDefault();
+            if (!string.IsNullOrEmpty(file))
+            {
+                LoadDocument(file);
+                foreach (var entry in Properties)
+                    entry.PropertyChanged -= PropertyEntryOnPropertyChanged;
+                Properties.Clear();
+                _selectedDrawable = null;
+                _selectedElement = null;
+                SvgView.InvalidateVisual();
+            }
+        }
+    }
+
     private void LoadProperties(SvgVisualElement element)
     {
         foreach (var e in Properties)
@@ -202,6 +235,7 @@ public partial class MainWindow : Window
         _isDragging = false;
         if (_dragElement is { })
         {
+            SaveUndoState();
             LoadProperties(_dragElement);
         }
         e.Pointer.Capture(null);
@@ -211,6 +245,7 @@ public partial class MainWindow : Window
     {
         if (_selectedElement is null || _document is null)
             return;
+        SaveUndoState();
         foreach (var entry in Properties)
         {
             entry.Apply(_selectedElement);
@@ -230,6 +265,7 @@ public partial class MainWindow : Window
     {
         if (sender is PropertyEntry entry && _selectedElement is { } && _document is { })
         {
+            SaveUndoState();
             entry.Apply(_selectedElement);
             SvgView.SkSvg!.FromSvgDocument(_document);
             UpdateSelectedDrawable();
@@ -508,6 +544,103 @@ public partial class MainWindow : Window
                 _expandedIds.Add(parent.Element.ID);
             parent = parent.Parent;
         }
+    }
+
+    private void SaveUndoState()
+    {
+        if (_document is null)
+            return;
+        _undo.Push(_document.GetXML());
+        _redo.Clear();
+    }
+
+    private void RestoreFromString(string xml)
+    {
+        _document = SvgService.FromSvg(xml);
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        SaveExpandedNodes();
+        BuildTree();
+    }
+
+    private void UndoMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_undo.Count == 0 || _document is null)
+            return;
+        _redo.Push(_document.GetXML());
+        var xml = _undo.Pop();
+        RestoreFromString(xml);
+    }
+
+    private void RedoMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_redo.Count == 0)
+            return;
+        if (_document is not null)
+            _undo.Push(_document.GetXML());
+        var xml = _redo.Pop();
+        RestoreFromString(xml);
+    }
+
+    private async void InsertElementMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        var names = _elementTypes.Select(t => t.Name).ToList();
+        var win = new InsertElementWindow(names);
+        var result = await win.ShowDialog<string?>(this);
+        if (result is null)
+            return;
+        var type = _elementTypes.FirstOrDefault(t => t.Name == result);
+        if (type is null || _document is null)
+            return;
+        SaveUndoState();
+        var element = (SvgElement)Activator.CreateInstance(type)!;
+        var parent = _selectedElement as SvgElement ?? _document;
+        parent.Children.Add(element);
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        BuildTree();
+    }
+
+    private void RemoveElementMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_selectedElement?.Parent is { } parent && _document is { })
+        {
+            SaveUndoState();
+            parent.Children.Remove(_selectedElement);
+            _selectedElement = null;
+            SvgView.SkSvg!.FromSvgDocument(_document);
+            BuildTree();
+        }
+    }
+
+    private void NewMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        SaveUndoState();
+        _document = new SvgDocument { Width = 100, Height = 100 };
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        SaveExpandedNodes();
+        BuildTree();
+    }
+
+    private async void EditTextMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_document is null)
+            return;
+        var win = new TextEditorWindow(_document.GetXML());
+        var result = await win.ShowDialog<string?>(this);
+        if (!string.IsNullOrEmpty(result))
+        {
+            SaveUndoState();
+            _document = SvgService.FromSvg(result);
+            SvgView.SkSvg!.FromSvgDocument(_document);
+            BuildTree();
+        }
+    }
+
+    private async void PreviewMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_document is null)
+            return;
+        var win = new PreviewWindow(_document);
+        await win.ShowDialog(this);
     }
 }
 

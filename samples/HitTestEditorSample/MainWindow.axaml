@@ -5,12 +5,23 @@
         xmlns:local="clr-namespace:HitTestEditorSample"
         x:Class="HitTestEditorSample.MainWindow"
         Width="800" Height="600"
+        DragDrop.AllowDrop="True"
         Title="Hit Test Editor Sample">
     <Grid RowDefinitions="Auto,*">
         <Menu Grid.Row="0">
             <MenuItem Header="File">
+                <MenuItem Header="New" Click="NewMenuItem_Click" />
                 <MenuItem Header="Open..." Click="OpenMenuItem_Click" />
                 <MenuItem Header="Save..." Click="SaveMenuItem_Click" />
+                <MenuItem Header="Preview" Click="PreviewMenuItem_Click" />
+                <MenuItem Header="Edit Text" Click="EditTextMenuItem_Click" />
+            </MenuItem>
+            <MenuItem Header="Edit">
+                <MenuItem Header="Insert Element" Click="InsertElementMenuItem_Click" />
+                <MenuItem Header="Remove Element" Click="RemoveElementMenuItem_Click" />
+                <Separator />
+                <MenuItem Header="Undo" Click="UndoMenuItem_Click" />
+                <MenuItem Header="Redo" Click="RedoMenuItem_Click" />
             </MenuItem>
         </Menu>
         <Grid Grid.Row="1">
@@ -31,12 +42,14 @@
                     </TreeDataTemplate>
                 </TreeView.ItemTemplate>
             </TreeView>
+            <GridSplitter Grid.Column="0" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
             <svg:Svg x:Name="SvgView"
                      Grid.Column="1"
                      Stretch="Uniform"
                      PointerPressed="SvgView_OnPointerPressed"
                      PointerMoved="SvgView_OnPointerMoved"
                      PointerReleased="SvgView_OnPointerReleased" />
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
 
             <StackPanel Grid.Column="2" Margin="10">
                 <dgrid:DataGrid x:Name="PropertiesGrid"
