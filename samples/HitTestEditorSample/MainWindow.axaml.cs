@@ -47,6 +47,10 @@ public partial class MainWindow : Window
     private Shim.SKPoint _dragStart;
     private SvgVisualElement? _dragElement;
     private List<(PropertyInfo Prop, SvgUnit Unit, char Axis)>? _dragProps;
+    private float _dragTextX;
+    private float _dragTextY;
+    private float _dragTransX;
+    private float _dragTransY;
 
     private const float HandleSize = 6f;
     private bool _isResizing;
@@ -269,14 +273,28 @@ public partial class MainWindow : Window
         if (SvgView.TryGetPicturePoint(point, out var pp))
         {
             var skp = new SK.SKPoint(pp.X, pp.Y);
-            if (_isDragging && _dragElement is { } dragEl && _dragProps is { })
+            if (_isDragging && _dragElement is { } dragEl)
             {
                 var dx = pp.X - _dragStart.X;
                 var dy = pp.Y - _dragStart.Y;
-                foreach (var (Prop, Unit, Axis) in _dragProps)
+                if (_dragProps is { })
                 {
-                    var delta = Axis == 'x' ? dx : dy;
-                    Prop.SetValue(dragEl, new SvgUnit(Unit.Type, Unit.Value + delta));
+                    foreach (var (Prop, Unit, Axis) in _dragProps)
+                    {
+                        var delta = Axis == 'x' ? dx : dy;
+                        Prop.SetValue(dragEl, new SvgUnit(Unit.Type, Unit.Value + delta));
+                    }
+                }
+                else if (dragEl is SvgTextBase txt)
+                {
+                    if (txt.X.Count > 0)
+                        txt.X[0] = new SvgUnit(txt.X[0].Type, _dragTextX + dx);
+                    if (txt.Y.Count > 0)
+                        txt.Y[0] = new SvgUnit(txt.Y[0].Type, _dragTextY + dy);
+                }
+                else
+                {
+                    SetTranslation(dragEl, _dragTransX + dx, _dragTransY + dy);
                 }
                 SvgView.SkSvg!.FromSvgDocument(_document);
                 UpdateSelectedDrawable();
@@ -375,13 +393,31 @@ public partial class MainWindow : Window
         if (!args.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
             return;
 
-        if (!GetDragProperties(element, out var props))
+        if (GetDragProperties(element, out var props))
+        {
+            _dragProps = props;
+            _isDragging = true;
+            _dragStart = start;
+            _dragElement = element;
+            args.Pointer.Capture(SvgView);
             return;
+        }
 
-        _dragProps = props;
+        _dragProps = null;
         _isDragging = true;
         _dragStart = start;
         _dragElement = element;
+        if (element is SvgTextBase txt)
+        {
+            _dragTextX = txt.X.Count > 0 ? txt.X[0].Value : 0f;
+            _dragTextY = txt.Y.Count > 0 ? txt.Y[0].Value : 0f;
+        }
+        else
+        {
+            var (tx, ty) = GetTranslation(element);
+            _dragTransX = tx;
+            _dragTransY = ty;
+        }
         args.Pointer.Capture(SvgView);
     }
 
@@ -407,6 +443,12 @@ public partial class MainWindow : Window
                 Add("EndX", 'x');
                 Add("EndY", 'y');
                 break;
+            case SvgTextBase:
+                props = null!;
+                return false;
+            case SvgPath:
+                props = null!;
+                return false;
             default:
                 props = null!;
                 return false;
@@ -497,6 +539,24 @@ public partial class MainWindow : Window
         var tr = new Svg.Transforms.SvgRotate(angle, center.X, center.Y);
         var col = new Svg.Transforms.SvgTransformCollection();
         col.Add(tr);
+        element.Transforms = col;
+    }
+
+    private (float X, float Y) GetTranslation(SvgVisualElement? element)
+    {
+        if (element?.Transforms is { } t)
+        {
+            var tr = t.OfType<Svg.Transforms.SvgTranslate>().FirstOrDefault();
+            if (tr is { })
+                return (tr.X, tr.Y);
+        }
+        return (0f, 0f);
+    }
+
+    private void SetTranslation(SvgVisualElement element, float x, float y)
+    {
+        var col = new Svg.Transforms.SvgTransformCollection();
+        col.Add(new Svg.Transforms.SvgTranslate(x, y));
         element.Transforms = col;
     }
 
