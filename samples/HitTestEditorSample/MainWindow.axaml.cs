@@ -28,6 +28,7 @@ public partial class MainWindow : Window
 {
     private DrawableBase? _selectedDrawable;
     private SvgVisualElement? _selectedElement;
+    private SvgElement? _selectedSvgElement;
     private SvgDocument? _document;
 
     private ObservableCollection<PropertyEntry> Properties { get; } = new();
@@ -98,7 +99,10 @@ public partial class MainWindow : Window
         }
 
         if (SvgView.SkSvg is { } skSvg2)
+        {
+            skSvg2.FromSvgDocument(_document);
             skSvg2.OnDraw += SvgView_OnDraw;
+        }
 
         SaveExpandedNodes();
         BuildTree();
@@ -124,6 +128,7 @@ public partial class MainWindow : Window
             Properties.Clear();
             _selectedDrawable = null;
             _selectedElement = null;
+            _selectedSvgElement = null;
             SvgView.InvalidateVisual();
         }
     }
@@ -168,12 +173,13 @@ public partial class MainWindow : Window
                 Properties.Clear();
                 _selectedDrawable = null;
                 _selectedElement = null;
+                _selectedSvgElement = null;
                 SvgView.InvalidateVisual();
             }
         }
     }
 
-    private void LoadProperties(SvgVisualElement element)
+    private void LoadProperties(SvgElement element)
     {
         foreach (var e in Properties)
             e.PropertyChanged -= PropertyEntryOnPropertyChanged;
@@ -237,11 +243,13 @@ public partial class MainWindow : Window
 
             _selectedDrawable = skSvg.HitTestDrawables(pp).FirstOrDefault();
             _selectedElement = skSvg.HitTestElements(pp).OfType<SvgVisualElement>().FirstOrDefault();
-            if (_selectedElement is { })
+            _selectedSvgElement = _selectedElement;
+            if (_selectedSvgElement is { })
             {
-                LoadProperties(_selectedElement);
-                SelectNodeFromElement(_selectedElement);
-                TryStartDrag(_selectedElement, new Shim.SKPoint(pp.X, pp.Y), e);
+                LoadProperties(_selectedSvgElement);
+                SelectNodeFromElement(_selectedSvgElement);
+                if (_selectedElement is { })
+                    TryStartDrag(_selectedElement, new Shim.SKPoint(pp.X, pp.Y), e);
             }
             UpdateSelectedDrawable();
             SvgView.InvalidateVisual();
@@ -323,12 +331,12 @@ public partial class MainWindow : Window
 
     private void ApplyButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (_selectedElement is null || _document is null)
+        if (_selectedSvgElement is null || _document is null)
             return;
         SaveUndoState();
         foreach (var entry in Properties)
         {
-            entry.Apply(_selectedElement);
+            entry.Apply(_selectedSvgElement);
         }
         SvgView.SkSvg!.FromSvgDocument(_document);
         UpdateSelectedDrawable();
@@ -337,16 +345,17 @@ public partial class MainWindow : Window
             entry.PropertyChanged -= PropertyEntryOnPropertyChanged;
         Properties.Clear();
         BuildTree();
-        SelectNodeFromElement(_selectedElement);
+        if (_selectedSvgElement is { })
+            SelectNodeFromElement(_selectedSvgElement);
         SvgView.InvalidateVisual();
     }
 
     private void PropertyEntryOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (sender is PropertyEntry entry && _selectedElement is { } && _document is { })
+        if (sender is PropertyEntry entry && _selectedSvgElement is { } && _document is { })
         {
             SaveUndoState();
-            entry.Apply(_selectedElement);
+            entry.Apply(_selectedSvgElement);
             SvgView.SkSvg!.FromSvgDocument(_document);
             UpdateSelectedDrawable();
             SvgView.InvalidateVisual();
@@ -569,7 +578,7 @@ public partial class MainWindow : Window
         Dispatcher.UIThread.Post(() =>
         {
             RestoreExpandedNodes();
-            if (_selectedElement is { } sel && Nodes.Count > 0)
+            if (_selectedSvgElement is { } sel && Nodes.Count > 0)
             {
                 var node = FindNode(Nodes[0], sel);
                 if (node is not null)
@@ -582,7 +591,7 @@ public partial class MainWindow : Window
             }
             if (_expandedIds.Count == 0)
                 ExpandAll();
-            if (_selectedElement is { })
+            if (_selectedSvgElement is SvgVisualElement)
                 UpdateSelectedDrawable();
             SvgView.InvalidateVisual();
         });
@@ -616,18 +625,10 @@ public partial class MainWindow : Window
     {
         if (e.AddedItems.Count > 0 && e.AddedItems[0] is SvgNode node)
         {
+            _selectedSvgElement = node.Element;
             _selectedElement = node.Element as SvgVisualElement;
             UpdateSelectedDrawable();
-            if (_selectedElement is { })
-            {
-                LoadProperties(_selectedElement);
-            }
-            else
-            {
-                foreach (var entry in Properties)
-                    entry.PropertyChanged -= PropertyEntryOnPropertyChanged;
-                Properties.Clear();
-            }
+            LoadProperties(_selectedSvgElement);
             DocumentTree.ScrollIntoView(node);
             SvgView.InvalidateVisual();
         }
@@ -769,7 +770,7 @@ public partial class MainWindow : Window
             return;
         SaveUndoState();
         var element = (SvgElement)Activator.CreateInstance(type)!;
-        var parent = _selectedElement as SvgElement ?? _document;
+        var parent = _selectedSvgElement ?? _document;
         parent.Children.Add(element);
         SvgView.SkSvg!.FromSvgDocument(_document);
         BuildTree();
@@ -777,11 +778,12 @@ public partial class MainWindow : Window
 
     private void RemoveElementMenuItem_Click(object? sender, RoutedEventArgs e)
     {
-        if (_selectedElement?.Parent is { } parent && _document is { })
+        if (_selectedSvgElement is SvgElement { Parent: { } parent } && _document is { })
         {
             SaveUndoState();
-            parent.Children.Remove(_selectedElement);
+            parent.Children.Remove(_selectedSvgElement);
             _selectedElement = null;
+            _selectedSvgElement = null;
             SvgView.SkSvg!.FromSvgDocument(_document);
             BuildTree();
         }
