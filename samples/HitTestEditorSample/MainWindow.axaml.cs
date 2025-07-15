@@ -20,6 +20,7 @@ using Svg;
 using Svg.Skia;
 using Svg.Model.Drawables;
 using Svg.Model.Services;
+using Svg.Transforms;
 
 namespace HitTestEditorSample;
 
@@ -45,6 +46,18 @@ public partial class MainWindow : Window
     private Shim.SKPoint _dragStart;
     private SvgVisualElement? _dragElement;
     private List<(PropertyInfo Prop, SvgUnit Unit, char Axis)>? _dragProps;
+
+    private const float HandleSize = 6f;
+    private bool _isResizing;
+    private bool _isRotating;
+    private int _resizeHandle;
+    private SK.SKPoint _resizeStart;
+    private SK.SKRect _startRect;
+    private SvgVisualElement? _resizeElement;
+    private SvgVisualElement? _rotateElement;
+    private SK.SKPoint _rotateStart;
+    private SK.SKPoint _rotateCenter;
+    private float _startAngle;
 
     public MainWindow()
     {
@@ -195,13 +208,40 @@ public partial class MainWindow : Window
         var point = e.GetPosition(SvgView);
         if (SvgView.SkSvg is { } skSvg && SvgView.TryGetPicturePoint(point, out var pp))
         {
+            // check handles first
+            if (_selectedDrawable is { } sel && _selectedElement is { })
+            {
+                var rect = SvgView.SkSvg.SkiaModel.ToSKRect(sel.TransformedBounds);
+                var handle = HitHandle(rect, new SK.SKPoint(pp.X, pp.Y), out var center);
+                if (handle >= 0)
+                {
+                    if (handle == 8)
+                    {
+                        _isRotating = true;
+                        _rotateElement = _selectedElement;
+                        _rotateStart = new SK.SKPoint(pp.X, pp.Y);
+                        _rotateCenter = center;
+                        _startAngle = GetRotation(_rotateElement);
+                        e.Pointer.Capture(SvgView);
+                        return;
+                    }
+                    _isResizing = true;
+                    _resizeElement = _selectedElement;
+                    _resizeHandle = handle;
+                    _resizeStart = new SK.SKPoint(pp.X, pp.Y);
+                    _startRect = rect;
+                    e.Pointer.Capture(SvgView);
+                    return;
+                }
+            }
+
             _selectedDrawable = skSvg.HitTestDrawables(pp).FirstOrDefault();
             _selectedElement = skSvg.HitTestElements(pp).OfType<SvgVisualElement>().FirstOrDefault();
             if (_selectedElement is { })
             {
                 LoadProperties(_selectedElement);
                 SelectNodeFromElement(_selectedElement);
-                TryStartDrag(_selectedElement, pp, e);
+                TryStartDrag(_selectedElement, new Shim.SKPoint(pp.X, pp.Y), e);
             }
             UpdateSelectedDrawable();
             SvgView.InvalidateVisual();
@@ -210,33 +250,73 @@ public partial class MainWindow : Window
 
     private void SvgView_OnPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (!_isDragging || _dragElement is null || _dragProps is null)
-            return;
         var point = e.GetPosition(SvgView);
         if (SvgView.TryGetPicturePoint(point, out var pp))
         {
-            var dx = pp.X - _dragStart.X;
-            var dy = pp.Y - _dragStart.Y;
-            foreach (var (Prop, Unit, Axis) in _dragProps)
+            var skp = new SK.SKPoint(pp.X, pp.Y);
+            if (_isDragging && _dragElement is { } dragEl && _dragProps is { })
             {
-                var delta = Axis == 'x' ? dx : dy;
-                Prop.SetValue(_dragElement, new SvgUnit(Unit.Type, Unit.Value + delta));
+                var dx = pp.X - _dragStart.X;
+                var dy = pp.Y - _dragStart.Y;
+                foreach (var (Prop, Unit, Axis) in _dragProps)
+                {
+                    var delta = Axis == 'x' ? dx : dy;
+                    Prop.SetValue(dragEl, new SvgUnit(Unit.Type, Unit.Value + delta));
+                }
+                SvgView.SkSvg!.FromSvgDocument(_document);
+                UpdateSelectedDrawable();
+                SvgView.InvalidateVisual();
             }
-            SvgView.SkSvg!.FromSvgDocument(_document);
-            UpdateSelectedDrawable();
-            SvgView.InvalidateVisual();
+            else if (_isResizing && _resizeElement is { })
+            {
+                var dx = skp.X - _resizeStart.X;
+                var dy = skp.Y - _resizeStart.Y;
+                ResizeElement(_resizeElement, _resizeHandle, dx, dy);
+                SvgView.SkSvg!.FromSvgDocument(_document);
+                UpdateSelectedDrawable();
+                SvgView.InvalidateVisual();
+            }
+            else if (_isRotating && _rotateElement is { })
+            {
+                var a1 = Math.Atan2(_rotateStart.Y - _rotateCenter.Y, _rotateStart.X - _rotateCenter.X);
+                var a2 = Math.Atan2(skp.Y - _rotateCenter.Y, skp.X - _rotateCenter.X);
+                var delta = (float)((a2 - a1) * 180.0 / Math.PI);
+                SetRotation(_rotateElement, _startAngle + delta, _rotateCenter);
+                SvgView.SkSvg!.FromSvgDocument(_document);
+                UpdateSelectedDrawable();
+                SvgView.InvalidateVisual();
+            }
         }
     }
 
     private void SvgView_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        if (!_isDragging)
-            return;
-        _isDragging = false;
-        if (_dragElement is { })
+        if (_isDragging)
         {
-            SaveUndoState();
-            LoadProperties(_dragElement);
+            _isDragging = false;
+            if (_dragElement is { })
+            {
+                SaveUndoState();
+                LoadProperties(_dragElement);
+            }
+        }
+        else if (_isResizing)
+        {
+            _isResizing = false;
+            if (_resizeElement is { })
+            {
+                SaveUndoState();
+                LoadProperties(_resizeElement);
+            }
+        }
+        else if (_isRotating)
+        {
+            _isRotating = false;
+            if (_rotateElement is { })
+            {
+                SaveUndoState();
+                LoadProperties(_rotateElement);
+            }
         }
         e.Pointer.Capture(null);
     }
@@ -328,6 +408,83 @@ public partial class MainWindow : Window
         }
     }
 
+    private int HitHandle(SK.SKRect rect, SK.SKPoint pt, out SK.SKPoint center)
+    {
+        center = new(rect.MidX, rect.MidY);
+        var hs = HandleSize / 2f;
+        var handles = new[]
+        {
+            new SK.SKRect(rect.Left - hs, rect.Top - hs, rect.Left + hs, rect.Top + hs), // tl 0
+            new SK.SKRect(rect.MidX - hs, rect.Top - hs, rect.MidX + hs, rect.Top + hs), // t 1
+            new SK.SKRect(rect.Right - hs, rect.Top - hs, rect.Right + hs, rect.Top + hs), // tr 2
+            new SK.SKRect(rect.Right - hs, rect.MidY - hs, rect.Right + hs, rect.MidY + hs), // r 3
+            new SK.SKRect(rect.Right - hs, rect.Bottom - hs, rect.Right + hs, rect.Bottom + hs), // br 4
+            new SK.SKRect(rect.MidX - hs, rect.Bottom - hs, rect.MidX + hs, rect.Bottom + hs), // b 5
+            new SK.SKRect(rect.Left - hs, rect.Bottom - hs, rect.Left + hs, rect.Bottom + hs), // bl 6
+            new SK.SKRect(rect.Left - hs, rect.MidY - hs, rect.Left + hs, rect.MidY + hs) // l 7
+        };
+        for (var i = 0; i < handles.Length; i++)
+            if (handles[i].Contains(pt))
+                return i;
+        var rot = new SK.SKPoint(rect.MidX, rect.Top - 20);
+        if (SK.SKPoint.Distance(rot, pt) <= HandleSize)
+            return 8;
+        return -1;
+    }
+
+    private float GetRotation(SvgVisualElement? element)
+    {
+        if (element?.Transforms is { } t)
+        {
+            var rot = t.OfType<Svg.Transforms.SvgRotate>().FirstOrDefault();
+            return rot?.Angle ?? 0f;
+        }
+        return 0f;
+    }
+
+    private void SetRotation(SvgVisualElement element, float angle, SK.SKPoint center)
+    {
+        var tr = new Svg.Transforms.SvgRotate(angle, center.X, center.Y);
+        var col = new Svg.Transforms.SvgTransformCollection();
+        col.Add(tr);
+        element.Transforms = col;
+    }
+
+    private void ResizeElement(SvgVisualElement element, int handle, float dx, float dy)
+    {
+        switch (element)
+        {
+            case SvgRectangle rect:
+            case Svg.SvgImage img:
+            case SvgUse use:
+                ResizeBox((dynamic)element, handle, dx, dy);
+                break;
+        }
+
+        void ResizeBox(dynamic el, int h, float ddx, float ddy)
+        {
+            float x = el.X.Value;
+            float y = el.Y.Value;
+            float w = el.Width.Value;
+            float hgt = el.Height.Value;
+            switch (h)
+            {
+                case 0: x = _startRect.Left + ddx; y = _startRect.Top + ddy; w = _startRect.Right - x; hgt = _startRect.Bottom - y; break;
+                case 1: y = _startRect.Top + ddy; hgt = _startRect.Bottom - y; break;
+                case 2: y = _startRect.Top + ddy; w = _startRect.Width + ddx; hgt = _startRect.Bottom - y; break;
+                case 3: w = _startRect.Width + ddx; break;
+                case 4: w = _startRect.Width + ddx; hgt = _startRect.Height + ddy; break;
+                case 5: hgt = _startRect.Height + ddy; break;
+                case 6: x = _startRect.Left + ddx; w = _startRect.Right - x; hgt = _startRect.Height + ddy; break;
+                case 7: x = _startRect.Left + ddx; w = _startRect.Right - x; break;
+            }
+            el.X = new SvgUnit(el.X.Type, x);
+            el.Y = new SvgUnit(el.Y.Type, y);
+            el.Width = new SvgUnit(el.Width.Type, w);
+            el.Height = new SvgUnit(el.Height.Type, hgt);
+        }
+    }
+
     private void SvgView_OnDraw(object? sender, SKSvgDrawEventArgs e)
     {
         if (_selectedDrawable is null)
@@ -340,6 +497,25 @@ public partial class MainWindow : Window
         };
         var rect = SvgView.SkSvg!.SkiaModel.ToSKRect(_selectedDrawable.TransformedBounds);
         e.Canvas.DrawRect(rect, paint);
+
+        var hs = HandleSize / 2f;
+        var handles = new[]
+        {
+            new SK.SKRect(rect.Left - hs, rect.Top - hs, rect.Left + hs, rect.Top + hs),
+            new SK.SKRect(rect.MidX - hs, rect.Top - hs, rect.MidX + hs, rect.Top + hs),
+            new SK.SKRect(rect.Right - hs, rect.Top - hs, rect.Right + hs, rect.Top + hs),
+            new SK.SKRect(rect.Right - hs, rect.MidY - hs, rect.Right + hs, rect.MidY + hs),
+            new SK.SKRect(rect.Right - hs, rect.Bottom - hs, rect.Right + hs, rect.Bottom + hs),
+            new SK.SKRect(rect.MidX - hs, rect.Bottom - hs, rect.MidX + hs, rect.Bottom + hs),
+            new SK.SKRect(rect.Left - hs, rect.Bottom - hs, rect.Left + hs, rect.Bottom + hs),
+            new SK.SKRect(rect.Left - hs, rect.MidY - hs, rect.Left + hs, rect.MidY + hs)
+        };
+        foreach (var h in handles)
+            e.Canvas.DrawRect(h, paint);
+
+        var rot = new SK.SKPoint(rect.MidX, rect.Top - 20);
+        e.Canvas.DrawLine(rect.MidX, rect.Top, rot.X, rot.Y, paint);
+        e.Canvas.DrawCircle(rot, hs, paint);
     }
 
     public class PropertyEntry : INotifyPropertyChanged
