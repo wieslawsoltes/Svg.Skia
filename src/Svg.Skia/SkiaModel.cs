@@ -1373,4 +1373,42 @@ public class SkiaModel
             Draw(canvasCommand, skCanvas);
         }
     }
+
+    public void DrawWireframe(SKPicture picture, SkiaSharp.SKCanvas skCanvas)
+    {
+        if (picture.Commands is null)
+        {
+            return;
+        }
+
+        using var paint = new SkiaSharp.SKPaint
+        {
+            IsAntialias = true,
+            Style = SkiaSharp.SKPaintStyle.Stroke,
+            Color = SkiaSharp.SKColors.Red,
+            StrokeWidth = 1
+        };
+
+        foreach (var canvasCommand in picture.Commands)
+        {
+            switch (canvasCommand)
+            {
+                case DrawPathCanvasCommand drawPathCanvasCommand when drawPathCanvasCommand.Path is { }:
+                {
+                    var path = ToSKPath(drawPathCanvasCommand.Path);
+                    skCanvas.DrawPath(path, paint);
+                    break;
+                }
+                case DrawImageCanvasCommand drawImageCanvasCommand:
+                {
+                    var dest = ToSKRect(drawImageCanvasCommand.Dest);
+                    skCanvas.DrawRect(dest, paint);
+                    break;
+                }
+                default:
+                    Draw(canvasCommand, skCanvas);
+                    break;
+            }
+        }
+    }
 }

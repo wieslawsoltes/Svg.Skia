@@ -102,6 +102,8 @@ public partial class SKSvg : IDisposable
 
     public virtual SkiaSharp.SKPicture? Picture { get; protected set; }
 
+    public bool Wireframe { get; set; }
+
     public event EventHandler<SKSvgDrawEventArgs>? OnDraw;
 
     protected virtual void RaiseOnDraw(SKSvgDrawEventArgs e)
@@ -270,7 +272,14 @@ public partial class SKSvg : IDisposable
         }
 
         canvas.Save();
-        canvas.DrawPicture(picture);
+        if (Wireframe && Model is { })
+        {
+            SkiaModel.DrawWireframe(Model, canvas);
+        }
+        else
+        {
+            canvas.DrawPicture(picture);
+        }
         canvas.Restore();
 
         RaiseOnDraw(new SKSvgDrawEventArgs(canvas));

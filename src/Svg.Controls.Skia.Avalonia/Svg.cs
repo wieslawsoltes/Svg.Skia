@@ -24,6 +24,7 @@ public class Svg : Control
     private readonly Uri _baseUri;
     private SvgSource? _svg;
     private bool _enableCache;
+    private bool _wireframe;
     private Dictionary<string, SvgSource>? _cache;
 
     /// <summary>
@@ -59,6 +60,14 @@ public class Svg : Control
         AvaloniaProperty.RegisterDirect<Svg, bool>(nameof(EnableCache),
             o => o.EnableCache,
             (o, v) => o.EnableCache = v);
+
+    /// <summary>
+    /// Defines the <see cref="Wireframe"/> property.
+    /// </summary>
+    public static readonly DirectProperty<Svg, bool> WireframeProperty =
+        AvaloniaProperty.RegisterDirect<Svg, bool>(nameof(Wireframe),
+            o => o.Wireframe,
+            (o, v) => o.Wireframe = v);
 
     /// <summary>
     /// Defines the Css property.
@@ -116,6 +125,15 @@ public class Svg : Control
     {
         get { return _enableCache; }
         set { SetAndRaise(EnableCacheProperty, ref _enableCache, value); }
+    }
+
+    /// <summary>
+    /// Gets or sets a value controlling wireframe rendering mode.
+    /// </summary>
+    public bool Wireframe
+    {
+        get { return _wireframe; }
+        set { SetAndRaise(WireframeProperty, ref _wireframe, value); }
     }
 
     /// <summary>
@@ -374,6 +392,15 @@ public class Svg : Control
                 _cache = new Dictionary<string, SvgSource>();
             }
         }
+
+        if (change.Property == WireframeProperty)
+        {
+            if (_svg?.Svg is { } skSvg)
+            {
+                skSvg.Wireframe = change.GetNewValue<bool>();
+            }
+            InvalidateVisual();
+        }
     }
 
     private void LoadFromPath(string? path, SvgParameters? parameters = null)
@@ -389,6 +416,10 @@ public class Svg : Control
         if (_enableCache && _cache is { } && _cache.TryGetValue(path, out var svg))
         {
             _svg = svg;
+            if (_svg.Svg is { } skSvg)
+            {
+                skSvg.Wireframe = _wireframe;
+            }
             return;
         }
 
@@ -401,6 +432,10 @@ public class Svg : Control
         try
         {
             _svg = SvgSource.Load(path, _baseUri, parameters);
+            if (_svg?.Svg is { } skSvg2)
+            {
+                skSvg2.Wireframe = _wireframe;
+            }
 
             if (_enableCache && _cache is { } && _svg is { })
             {
@@ -429,6 +464,10 @@ public class Svg : Control
             var bytes = Encoding.UTF8.GetBytes(source);
             using var ms = new MemoryStream(bytes);
             _svg = SvgSource.LoadFromStream(ms, parameters);
+            if (_svg?.Svg is { } skSvg)
+            {
+                skSvg.Wireframe = _wireframe;
+            }
         }
         catch (Exception e)
         {

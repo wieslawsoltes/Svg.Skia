@@ -143,6 +143,10 @@
                       OffContent="Hide Bounds"
                       Margin="6,0,6,0"
                       Click="ShowHitBoundsToggle_OnToggled" />
+        <ToggleSwitch IsChecked="{Binding #Svg.Wireframe}"
+                      OnContent="Wireframe On"
+                      OffContent="Wireframe Off"
+                      Margin="6,0,6,0" />
         <Button Content="Export"
                 Command="{Binding ExportCommand}"
                 CommandParameter="{Binding #Svg}"
