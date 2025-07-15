@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using Avalonia.Threading;
 using System.Reflection;
 using System.IO;
 using Avalonia;
@@ -71,6 +72,7 @@ public partial class MainWindow : Window
             skSvg2.OnDraw += SvgView_OnDraw;
 
         BuildTree();
+        Dispatcher.UIThread.Post(ExpandAll);
     }
 
     private async void OpenMenuItem_Click(object? sender, RoutedEventArgs e)
@@ -157,7 +159,9 @@ public partial class MainWindow : Window
             if (_selectedElement is { })
             {
                 LoadProperties(_selectedElement);
+                SelectNodeFromElement(_selectedElement);
             }
+            UpdateSelectedDrawable();
             SvgView.InvalidateVisual();
         }
     }
@@ -171,11 +175,11 @@ public partial class MainWindow : Window
             entry.Apply(_selectedElement);
         }
         SvgView.SkSvg!.FromSvgDocument(_document);
+        UpdateSelectedDrawable();
         foreach (var entry in Properties)
             entry.PropertyChanged -= PropertyEntryOnPropertyChanged;
         Properties.Clear();
-        _selectedDrawable = null;
-        _selectedElement = null;
+        SelectNodeFromElement(_selectedElement);
         SvgView.InvalidateVisual();
     }
 
@@ -185,7 +189,9 @@ public partial class MainWindow : Window
         {
             entry.Apply(_selectedElement);
             SvgView.SkSvg!.FromSvgDocument(_document);
+            UpdateSelectedDrawable();
             BuildTree();
+            SelectNodeFromElement(_selectedElement);
             SvgView.InvalidateVisual();
         }
     }
@@ -252,6 +258,7 @@ public partial class MainWindow : Window
         Nodes.Clear();
         if (_document is { })
             Nodes.Add(CreateNode(_document));
+        Dispatcher.UIThread.Post(ExpandAll);
     }
 
     private SvgNode CreateNode(SvgElement element)
@@ -283,20 +290,59 @@ public partial class MainWindow : Window
         if (e.AddedItems.Count > 0 && e.AddedItems[0] is SvgNode node)
         {
             _selectedElement = node.Element as SvgVisualElement;
-            if (SvgView.SkSvg?.Drawable is DrawableBase drawable)
-                _selectedDrawable = FindDrawable(drawable, node.Element);
-            else
-                _selectedDrawable = null;
+            UpdateSelectedDrawable();
             if (_selectedElement is { })
+            {
                 LoadProperties(_selectedElement);
+            }
             else
             {
                 foreach (var entry in Properties)
                     entry.PropertyChanged -= PropertyEntryOnPropertyChanged;
                 Properties.Clear();
             }
+            DocumentTree.ScrollIntoView(node);
             SvgView.InvalidateVisual();
         }
+    }
+
+    private void UpdateSelectedDrawable()
+    {
+        if (_selectedElement is { } element && SvgView.SkSvg?.Drawable is DrawableBase drawable)
+            _selectedDrawable = FindDrawable(drawable, element);
+        else
+            _selectedDrawable = null;
+    }
+
+    private SvgNode? FindNode(SvgNode node, SvgElement element)
+    {
+        if (node.Element == element)
+            return node;
+        foreach (var child in node.Children)
+        {
+            var found = FindNode(child, element);
+            if (found is not null)
+                return found;
+        }
+        return null;
+    }
+
+    private void SelectNodeFromElement(SvgElement element)
+    {
+        if (Nodes.Count == 0)
+            return;
+        var node = FindNode(Nodes[0], element);
+        if (node is not null)
+        {
+            DocumentTree.SelectedItem = node;
+            DocumentTree.ScrollIntoView(node);
+        }
+    }
+
+    private void ExpandAll()
+    {
+        if (DocumentTree.ContainerFromIndex(0) is TreeViewItem item)
+            DocumentTree.ExpandSubTree(item);
     }
 }
 
