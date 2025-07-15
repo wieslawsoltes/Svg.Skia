@@ -1,0 +1,32 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Svg.Controls.Skia.Avalonia"
+        x:Class="HitTestEditorSample.MainWindow"
+        Width="800" Height="600"
+        Title="Hit Test Editor Sample">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+
+        <svg:Svg x:Name="SvgView"
+                 Grid.Column="0"
+                 Stretch="Uniform"
+                 PointerPressed="SvgView_OnPointerPressed" />
+
+        <StackPanel Grid.Column="1" Margin="10">
+            <TextBlock Text="ID:"/>
+            <TextBox x:Name="IdTextBox" />
+
+            <TextBlock Text="Fill:" Margin="0,10,0,0"/>
+            <TextBox x:Name="FillTextBox" />
+
+            <TextBlock Text="Stroke:" Margin="0,10,0,0"/>
+            <TextBox x:Name="StrokeTextBox" />
+
+            <Button Content="Apply" Margin="0,10,0,0"
+                    Click="ApplyButton_OnClick"/>
+        </StackPanel>
+    </Grid>
+</Window>
