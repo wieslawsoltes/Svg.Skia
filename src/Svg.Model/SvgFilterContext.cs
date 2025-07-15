@@ -1393,6 +1393,14 @@ internal class SvgFilterContext
                     var location = GetPoint3(svgSpotLight.X, svgSpotLight.Y, svgSpotLight.Z);
                     var target = GetPoint3(svgSpotLight.PointsAtX, svgSpotLight.PointsAtY, svgSpotLight.PointsAtZ);
                     var specularExponentSpotLight = svgSpotLight.SpecularExponent;
+                    if (specularExponentSpotLight < 1f)
+                    {
+                        specularExponentSpotLight = 1f;
+                    }
+                    else if (specularExponentSpotLight > 128f)
+                    {
+                        specularExponentSpotLight = 128f;
+                    }
                     var limitingConeAngle = svgSpotLight.LimitingConeAngle;
                     if (float.IsNaN(limitingConeAngle) || limitingConeAngle > 90f || limitingConeAngle < -90f)
                     {
@@ -1607,7 +1615,19 @@ internal class SvgFilterContext
 
         var surfaceScale = svgSpecularLighting.SurfaceScale;
         var specularConstant = svgSpecularLighting.SpecularConstant;
+        if (specularConstant < 0f)
+        {
+            specularConstant = 0f;
+        }
         var specularExponent = svgSpecularLighting.SpecularExponent;
+        if (specularExponent < 1f)
+        {
+            specularExponent = 1f;
+        }
+        else if (specularExponent > 128f)
+        {
+            specularExponent = 128f;
+        }
         // TODO: svgSpecularLighting.KernelUnitLength
 
         switch (svgSpecularLighting.LightSource)
@@ -1627,6 +1647,14 @@ internal class SvgFilterContext
                     var location = GetPoint3(svgSpotLight.X, svgSpotLight.Y, svgSpotLight.Z);
                     var target = GetPoint3(svgSpotLight.PointsAtX, svgSpotLight.PointsAtY, svgSpotLight.PointsAtZ);
                     var specularExponentSpotLight = svgSpotLight.SpecularExponent;
+                    if (specularExponentSpotLight < 1f)
+                    {
+                        specularExponentSpotLight = 1f;
+                    }
+                    else if (specularExponentSpotLight > 128f)
+                    {
+                        specularExponentSpotLight = 128f;
+                    }
                     var limitingConeAngle = svgSpotLight.LimitingConeAngle;
                     if (float.IsNaN(limitingConeAngle) || limitingConeAngle > 90f || limitingConeAngle < -90f)
                     {
