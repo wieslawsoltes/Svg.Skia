@@ -38,31 +38,36 @@ public partial class MainWindow : Window
 #endif
         DataContext = this;
         LoadDocument("Assets/__tiger.svg");
-        SvgView.SkSvg!.OnDraw += SvgView_OnDraw;
     }
 
     private void LoadDocument(string path)
     {
         // try load from Avalonia resources first
         var uri = new Uri($"avares://HitTestEditorSample/{path}");
+
+        if (SvgView.SkSvg is { } skSvg)
+            skSvg.OnDraw -= SvgView_OnDraw;
+
         if (AssetLoader.Exists(uri))
         {
             using var stream = AssetLoader.Open(uri);
             _document = SvgService.Open(stream);
+            SvgView.Path = uri.ToString();
         }
         else if (File.Exists(path))
         {
             _document = SvgService.Open(path);
+            SvgView.Path = path;
         }
         else
         {
             _document = null;
+            SvgView.Path = null;
             Console.WriteLine($"SVG document '{path}' not found.");
         }
-        if (_document is { })
-        {
-            SvgView.SkSvg!.FromSvgDocument(_document);
-        }
+
+        if (SvgView.SkSvg is { } skSvg2)
+            skSvg2.OnDraw += SvgView_OnDraw;
     }
 
     private async void OpenMenuItem_Click(object? sender, RoutedEventArgs e)
