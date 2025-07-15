@@ -1374,41 +1374,78 @@ public class SkiaModel
         }
     }
 
-    public void DrawWireframe(SKPicture picture, SkiaSharp.SKCanvas skCanvas)
+    private SKPaint ToWireframePaint(SKPaint? paint)
+    {
+        var result = paint?.Clone() ?? new SKPaint();
+        result.Style = SKPaintStyle.Stroke;
+        result.Color = new SKColor(0x80, 0x80, 0x80);
+        if (result.StrokeWidth == 0)
+        {
+            result.StrokeWidth = 1;
+        }
+        return result;
+    }
+
+    private SKPicture ToWireframePicture(SKPicture picture)
     {
         if (picture.Commands is null)
         {
-            return;
+            return new SKPicture(picture.CullRect, null);
         }
 
-        using var paint = new SkiaSharp.SKPaint
-        {
-            IsAntialias = true,
-            Style = SkiaSharp.SKPaintStyle.Stroke,
-            Color = SkiaSharp.SKColors.Red,
-            StrokeWidth = 1
-        };
+        var recorder = new SKPictureRecorder();
+        var canvas = recorder.BeginRecording(picture.CullRect);
 
-        foreach (var canvasCommand in picture.Commands)
+        foreach (var cmd in picture.Commands)
         {
-            switch (canvasCommand)
+            switch (cmd)
             {
-                case DrawPathCanvasCommand drawPathCanvasCommand when drawPathCanvasCommand.Path is { }:
+                case ClipPathCanvasCommand clipPath:
+                    canvas.ClipPath(clipPath.ClipPath!, clipPath.Operation, clipPath.Antialias);
+                    break;
+                case ClipRectCanvasCommand clipRect:
+                    canvas.ClipRect(clipRect.Rect, clipRect.Operation, clipRect.Antialias);
+                    break;
+                case SaveCanvasCommand:
+                    canvas.Save();
+                    break;
+                case RestoreCanvasCommand:
+                    canvas.Restore();
+                    break;
+                case SetMatrixCanvasCommand setMatrix:
+                    canvas.SetMatrix(setMatrix.DeltaMatrix);
+                    break;
+                case SaveLayerCanvasCommand saveLayer:
+                    canvas.SaveLayer(ToWireframePaint(saveLayer.Paint));
+                    break;
+                case DrawPathCanvasCommand drawPath when drawPath.Path is { }:
+                    canvas.DrawPath(drawPath.Path, ToWireframePaint(drawPath.Paint));
+                    break;
+                case DrawImageCanvasCommand drawImage:
                 {
-                    var path = ToSKPath(drawPathCanvasCommand.Path);
-                    skCanvas.DrawPath(path, paint);
+                    var rectPath = new SKPath();
+                    rectPath.AddRect(drawImage.Dest);
+                    canvas.DrawPath(rectPath, ToWireframePaint(null));
                     break;
                 }
-                case DrawImageCanvasCommand drawImageCanvasCommand:
-                {
-                    var dest = ToSKRect(drawImageCanvasCommand.Dest);
-                    skCanvas.DrawRect(dest, paint);
+                case DrawTextBlobCanvasCommand drawBlob when drawBlob.Paint is { }:
+                    canvas.DrawTextBlob(drawBlob.TextBlob!, drawBlob.X, drawBlob.Y, ToWireframePaint(drawBlob.Paint));
                     break;
-                }
-                default:
-                    Draw(canvasCommand, skCanvas);
+                case DrawTextCanvasCommand drawText when drawText.Paint is { }:
+                    canvas.DrawText(drawText.Text, drawText.X, drawText.Y, ToWireframePaint(drawText.Paint));
+                    break;
+                case DrawTextOnPathCanvasCommand drawTextOnPath when drawTextOnPath.Paint is { } && drawTextOnPath.Path is { }:
+                    canvas.DrawTextOnPath(drawTextOnPath.Text, drawTextOnPath.Path, drawTextOnPath.HOffset, drawTextOnPath.VOffset, ToWireframePaint(drawTextOnPath.Paint));
                     break;
             }
         }
+
+        return recorder.EndRecording();
+    }
+
+    public void DrawWireframe(SKPicture picture, SkiaSharp.SKCanvas skCanvas)
+    {
+        var wfPicture = ToWireframePicture(picture);
+        Draw(wfPicture, skCanvas);
     }
 }
