@@ -4,3 +4,6 @@
 [submodule "externals/resvg"]
 	path = externals/resvg
 	url = https://github.com/wieslawsoltes/resvg.git
+[submodule "externals/W3C_SVG_11_TestSuite"]
+	path = externals/W3C_SVG_11_TestSuite
+	url = https://github.com/wieslawsoltes/W3C_SVG_11_TestSuite.git
