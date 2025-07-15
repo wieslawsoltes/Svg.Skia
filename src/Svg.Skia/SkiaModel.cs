@@ -994,6 +994,15 @@ public class SkiaModel
         };
     }
 
+    public SKPathFillType FromSKPathFillType(SkiaSharp.SKPathFillType pathFillType)
+    {
+        return pathFillType switch
+        {
+            SkiaSharp.SKPathFillType.EvenOdd => SKPathFillType.EvenOdd,
+            _ => SKPathFillType.Winding
+        };
+    }
+
     public SkiaSharp.SKPathArcSize ToSKPathArcSize(SKPathArcSize pathArcSize)
     {
         return pathArcSize switch
@@ -1128,6 +1137,42 @@ public class SkiaModel
         }
 
         return skPath;
+    }
+
+    public SKPath FromSKPath(SkiaSharp.SKPath skPath)
+    {
+        var path = new SKPath
+        {
+            FillType = FromSKPathFillType(skPath.FillType)
+        };
+
+        using var iter = skPath.CreateRawIterator();
+        var pts = new SkiaSharp.SKPoint[4];
+        while (true)
+        {
+            var verb = iter.Next(pts);
+            switch (verb)
+            {
+                case SkiaSharp.SKPathVerb.Move:
+                    path.Commands?.Add(new MoveToPathCommand(pts[0].X, pts[0].Y));
+                    break;
+                case SkiaSharp.SKPathVerb.Line:
+                    path.Commands?.Add(new LineToPathCommand(pts[1].X, pts[1].Y));
+                    break;
+                case SkiaSharp.SKPathVerb.Quad:
+                case SkiaSharp.SKPathVerb.Conic:
+                    path.Commands?.Add(new QuadToPathCommand(pts[1].X, pts[1].Y, pts[2].X, pts[2].Y));
+                    break;
+                case SkiaSharp.SKPathVerb.Cubic:
+                    path.Commands?.Add(new CubicToPathCommand(pts[1].X, pts[1].Y, pts[2].X, pts[2].Y, pts[3].X, pts[3].Y));
+                    break;
+                case SkiaSharp.SKPathVerb.Close:
+                    path.Commands?.Add(new ClosePathCommand());
+                    break;
+                case SkiaSharp.SKPathVerb.Done:
+                    return path;
+            }
+        }
     }
 
     public SkiaSharp.SKPath? ToSKPath(ClipPath? clipPath)
