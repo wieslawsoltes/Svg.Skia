@@ -1276,12 +1276,6 @@ internal class SvgFilterContext
     {
         TransformsService.GetOptionalNumbers(svgConvolveMatrix.Order, 3f, 3f, out var orderX, out var orderY);
 
-        if (_primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
-        {
-            orderX *= _skBounds.Width;
-            orderY *= _skBounds.Height;
-        }
-
         if (orderX <= 0f || orderY <= 0f)
         {
             return default;
@@ -1323,7 +1317,19 @@ internal class SvgFilterContext
 
         var gain = 1f / divisor;
         var bias = svgConvolveMatrix.Bias * 255f;
-        var kernelOffset = new SKPointI(svgConvolveMatrix.TargetX, svgConvolveMatrix.TargetY);
+        var targetX = svgConvolveMatrix.TargetX;
+        var targetY = svgConvolveMatrix.TargetY;
+        if (!svgConvolveMatrix.ContainsAttribute("targetX"))
+        {
+            targetX = (int)Math.Floor(orderX / 2f);
+        }
+        if (!svgConvolveMatrix.ContainsAttribute("targetY"))
+        {
+            targetY = (int)Math.Floor(orderY / 2f);
+        }
+        targetX = Math.Max(0, Math.Min(targetX, (int)orderX - 1));
+        targetY = Math.Max(0, Math.Min(targetY, (int)orderY - 1));
+        var kernelOffset = new SKPointI(targetX, targetY);
         var tileMode = svgConvolveMatrix.EdgeMode switch
         {
             SvgEdgeMode.Duplicate => SKShaderTileMode.Clamp,
