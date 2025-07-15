@@ -27,6 +27,7 @@ public partial class MainWindow : Window
     private SvgDocument? _document;
 
     private ObservableCollection<PropertyEntry> Properties { get; } = new();
+    private ObservableCollection<SvgNode> Nodes { get; } = new();
 
     private readonly SKColor _boundsColor = SKColors.Red;
 
@@ -68,6 +69,8 @@ public partial class MainWindow : Window
 
         if (SvgView.SkSvg is { } skSvg2)
             skSvg2.OnDraw += SvgView_OnDraw;
+
+        BuildTree();
     }
 
     private async void OpenMenuItem_Click(object? sender, RoutedEventArgs e)
@@ -241,5 +244,73 @@ public partial class MainWindow : Window
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
+    }
+
+    private void BuildTree()
+    {
+        Nodes.Clear();
+        if (_document is { })
+            Nodes.Add(CreateNode(_document));
+    }
+
+    private SvgNode CreateNode(SvgElement element)
+    {
+        var node = new SvgNode(element);
+        foreach (var child in element.Children.OfType<SvgElement>())
+            node.Children.Add(CreateNode(child));
+        return node;
+    }
+
+    private DrawableBase? FindDrawable(DrawableBase drawable, SvgElement element)
+    {
+        if (drawable.Element == element)
+            return drawable;
+        if (drawable is DrawableContainer container)
+        {
+            foreach (var child in container.ChildrenDrawables)
+            {
+                var found = FindDrawable(child, element);
+                if (found is { })
+                    return found;
+            }
+        }
+        return null;
+    }
+
+    private void DocumentTree_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is SvgNode node)
+        {
+            _selectedElement = node.Element as SvgVisualElement;
+            if (SvgView.SkSvg?.Drawable is DrawableBase drawable)
+                _selectedDrawable = FindDrawable(drawable, node.Element);
+            else
+                _selectedDrawable = null;
+            if (_selectedElement is { })
+                LoadProperties(_selectedElement);
+            else
+            {
+                foreach (var entry in Properties)
+                    entry.PropertyChanged -= PropertyEntryOnPropertyChanged;
+                Properties.Clear();
+            }
+            SvgView.InvalidateVisual();
+        }
+    }
+}
+
+public class SvgNode
+{
+    public SvgElement Element { get; }
+    public ObservableCollection<SvgNode> Children { get; } = new();
+    public string Label { get; }
+
+    public SvgNode(SvgElement element)
+    {
+        Element = element;
+        var name = element.GetType().Name;
+        Label = string.IsNullOrEmpty(element.ID)
+            ? name
+            : $"{name} ({element.ID})";
     }
 }

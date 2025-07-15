@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Svg.Controls.Skia.Avalonia"
         xmlns:dgrid="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
+        xmlns:local="clr-namespace:HitTestEditorSample"
         x:Class="HitTestEditorSample.MainWindow"
         Width="800" Height="600"
         Title="Hit Test Editor Sample">
@@ -14,16 +15,28 @@
         </Menu>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
                 <ColumnDefinition Width="3*" />
                 <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
 
+            <TreeView x:Name="DocumentTree"
+                      Grid.Column="0"
+                      ItemsSource="{Binding Nodes}"
+                      SelectionChanged="DocumentTree_OnSelectionChanged">
+                <TreeView.ItemTemplate>
+                    <TreeDataTemplate DataType="{x:Type local:SvgNode}"
+                                      ItemsSource="{Binding Children}">
+                        <TextBlock Text="{Binding Label}"/>
+                    </TreeDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
             <svg:Svg x:Name="SvgView"
-                     Grid.Column="0"
+                     Grid.Column="1"
                      Stretch="Uniform"
                      PointerPressed="SvgView_OnPointerPressed" />
 
-            <StackPanel Grid.Column="1" Margin="10">
+            <StackPanel Grid.Column="2" Margin="10">
                 <dgrid:DataGrid x:Name="PropertiesGrid"
                                 AutoGenerateColumns="False"
                                 HeadersVisibility="None"
