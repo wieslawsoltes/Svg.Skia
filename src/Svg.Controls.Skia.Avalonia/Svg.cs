@@ -133,7 +133,15 @@ public class Svg : Control
     public bool Wireframe
     {
         get { return _wireframe; }
-        set { SetAndRaise(WireframeProperty, ref _wireframe, value); }
+        set
+        {
+            SetAndRaise(WireframeProperty, ref _wireframe, value);
+            if (_svg?.Svg is { } skSvg)
+            {
+                skSvg.Wireframe = value;
+                skSvg.ClearWireframePicture();
+            }
+        }
     }
 
     /// <summary>
@@ -398,6 +406,7 @@ public class Svg : Control
             if (_svg?.Svg is { } skSvg)
             {
                 skSvg.Wireframe = change.GetNewValue<bool>();
+                skSvg.ClearWireframePicture();
             }
             InvalidateVisual();
         }
@@ -419,6 +428,7 @@ public class Svg : Control
             if (_svg.Svg is { } skSvg)
             {
                 skSvg.Wireframe = _wireframe;
+                skSvg.ClearWireframePicture();
             }
             return;
         }
@@ -435,6 +445,7 @@ public class Svg : Control
             if (_svg?.Svg is { } skSvg2)
             {
                 skSvg2.Wireframe = _wireframe;
+                skSvg2.ClearWireframePicture();
             }
 
             if (_enableCache && _cache is { } && _svg is { })
@@ -467,6 +478,7 @@ public class Svg : Control
             if (_svg?.Svg is { } skSvg)
             {
                 skSvg.Wireframe = _wireframe;
+                skSvg.ClearWireframePicture();
             }
         }
         catch (Exception e)

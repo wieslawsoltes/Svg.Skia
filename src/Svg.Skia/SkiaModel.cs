@@ -1246,6 +1246,22 @@ public class SkiaModel
         return skPictureRecorder.EndRecording();
     }
 
+    public SkiaSharp.SKPicture? ToWireframePicture(SKPicture? picture)
+    {
+        if (picture is null)
+        {
+            return null;
+        }
+
+        var skRect = ToSKRect(picture.CullRect);
+        using var skPictureRecorder = new SkiaSharp.SKPictureRecorder();
+        using var skCanvas = skPictureRecorder.BeginRecording(skRect);
+
+        Draw(picture, skCanvas, true);
+
+        return skPictureRecorder.EndRecording();
+    }
+
     public void Draw(CanvasCommand canvasCommand, SkiaSharp.SKCanvas skCanvas, bool wireframe = false)
     {
         switch (canvasCommand)

@@ -102,7 +102,24 @@ public partial class SKSvg : IDisposable
 
     public virtual SkiaSharp.SKPicture? Picture { get; protected set; }
 
-    public bool Wireframe { get; set; }
+    public SkiaSharp.SKPicture? WireframePicture { get; protected set; }
+
+    private bool _wireframe;
+    public bool Wireframe
+    {
+        get => _wireframe;
+        set
+        {
+            _wireframe = value;
+            ClearWireframePicture();
+        }
+    }
+
+    public void ClearWireframePicture()
+    {
+        WireframePicture?.Dispose();
+        WireframePicture = null;
+    }
 
     public event EventHandler<SKSvgDrawEventArgs>? OnDraw;
 
@@ -155,6 +172,8 @@ public partial class SKSvg : IDisposable
         Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
         Drawable = drawable;
         Picture = SkiaModel.ToSKPicture(Model);
+        WireframePicture?.Dispose();
+        WireframePicture = null;
 
         return Picture;
     }
@@ -176,6 +195,8 @@ public partial class SKSvg : IDisposable
         Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
         Drawable = drawable;
         Picture = SkiaModel.ToSKPicture(Model);
+        WireframePicture?.Dispose();
+        WireframePicture = null;
 
         return Picture;
     }
@@ -190,6 +211,8 @@ public partial class SKSvg : IDisposable
             Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
             Drawable = drawable;
             Picture = SkiaModel.ToSKPicture(Model);
+            WireframePicture?.Dispose();
+            WireframePicture = null;
             return Picture;
         }
         return null;
@@ -227,6 +250,8 @@ public partial class SKSvg : IDisposable
             Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
             Drawable = drawable;
             Picture = SkiaModel.ToSKPicture(Model);
+            WireframePicture?.Dispose();
+            WireframePicture = null;
             return Picture;
         }
         return null;
@@ -239,6 +264,8 @@ public partial class SKSvg : IDisposable
             Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
             Drawable = drawable;
             Picture = SkiaModel.ToSKPicture(Model);
+            WireframePicture?.Dispose();
+            WireframePicture = null;
             return Picture;
         }
         return null;
@@ -274,7 +301,11 @@ public partial class SKSvg : IDisposable
         canvas.Save();
         if (Wireframe && Model is { })
         {
-            SkiaModel.Draw(Model, canvas, true);
+            WireframePicture ??= SkiaModel.ToWireframePicture(Model);
+            if (WireframePicture is { })
+            {
+                canvas.DrawPicture(WireframePicture);
+            }
         }
         else
         {
@@ -294,6 +325,9 @@ public partial class SKSvg : IDisposable
 
             Picture?.Dispose();
             Picture = null;
+
+            WireframePicture?.Dispose();
+            WireframePicture = null;
         }
     }
 
