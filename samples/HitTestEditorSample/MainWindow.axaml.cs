@@ -259,10 +259,21 @@ public partial class MainWindow : Window
     {
         Nodes.Clear();
         if (_document is { })
-            Nodes.Add(CreateNode(_document));
+            Nodes.Add(CreateNode(_document, null));
         Dispatcher.UIThread.Post(() =>
         {
             RestoreExpandedNodes();
+            if (_selectedElement is { } sel && Nodes.Count > 0)
+            {
+                var node = FindNode(Nodes[0], sel);
+                if (node is not null)
+                {
+                    AddAncestorIds(node);
+                    RestoreExpandedNodes();
+                    DocumentTree.SelectedItem = node;
+                    DocumentTree.ScrollIntoView(node);
+                }
+            }
             if (_expandedIds.Count == 0)
                 ExpandAll();
             if (_selectedElement is { })
@@ -271,11 +282,11 @@ public partial class MainWindow : Window
         });
     }
 
-    private SvgNode CreateNode(SvgElement element)
+    private SvgNode CreateNode(SvgElement element, SvgNode? parent = null)
     {
-        var node = new SvgNode(element);
+        var node = new SvgNode(element, parent);
         foreach (var child in element.Children.OfType<SvgElement>())
-            node.Children.Add(CreateNode(child));
+            node.Children.Add(CreateNode(child, node));
         return node;
     }
 
@@ -344,6 +355,8 @@ public partial class MainWindow : Window
         var node = FindNode(Nodes[0], element);
         if (node is not null)
         {
+            AddAncestorIds(node);
+            RestoreExpandedNodes();
             DocumentTree.SelectedItem = node;
             DocumentTree.ScrollIntoView(node);
         }
@@ -391,17 +404,30 @@ public partial class MainWindow : Window
                 RestoreExpandedNodes(child, node.Children[i]);
         }
     }
+
+    private void AddAncestorIds(SvgNode node)
+    {
+        var parent = node.Parent;
+        while (parent is not null)
+        {
+            if (!string.IsNullOrEmpty(parent.Element.ID))
+                _expandedIds.Add(parent.Element.ID);
+            parent = parent.Parent;
+        }
+    }
 }
 
 public class SvgNode
 {
     public SvgElement Element { get; }
     public ObservableCollection<SvgNode> Children { get; } = new();
+    public SvgNode? Parent { get; }
     public string Label { get; }
 
-    public SvgNode(SvgElement element)
+    public SvgNode(SvgElement element, SvgNode? parent)
     {
         Element = element;
+        Parent = parent;
         var name = element.GetType().Name;
         Label = string.IsNullOrEmpty(element.ID)
             ? name
