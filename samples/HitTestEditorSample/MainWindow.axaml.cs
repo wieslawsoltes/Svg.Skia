@@ -194,9 +194,6 @@ public partial class MainWindow : Window
             entry.Apply(_selectedElement);
             SvgView.SkSvg!.FromSvgDocument(_document);
             UpdateSelectedDrawable();
-            SaveExpandedNodes();
-            BuildTree();
-            SelectNodeFromElement(_selectedElement);
             SvgView.InvalidateVisual();
         }
     }
