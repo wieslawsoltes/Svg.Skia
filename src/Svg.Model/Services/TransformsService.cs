@@ -130,7 +130,7 @@ internal static class TransformsService
 
     internal static float CalculateOtherPercentageValue(this SKRect skBounds)
     {
-        return (float)(Math.Sqrt(skBounds.Width * skBounds.Width + skBounds.Width * skBounds.Height) / Math.Sqrt(2.0));
+        return (float)(Math.Sqrt(skBounds.Width * skBounds.Width + skBounds.Height * skBounds.Height) / Math.Sqrt(2.0));
     }
 
     internal static SvgUnit Normalize(this SvgUnit svgUnit, SvgCoordinateUnits svgCoordinateUnits)
