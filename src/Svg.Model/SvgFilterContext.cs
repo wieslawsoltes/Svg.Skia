@@ -1343,7 +1343,9 @@ internal class SvgFilterContext
         var azimuthRad = SvgService.DegreeToRadian(azimuth);
         var elevationRad = SvgService.DegreeToRadian(elevation);
         var x = (float)(Math.Cos(azimuthRad) * Math.Cos(elevationRad));
-        var y = (float)(Math.Sin(azimuthRad) * Math.Cos(elevationRad));
+        // SVG defines azimuth clockwise on the XY plane, but Math.Sin assumes
+        // counter-clockwise rotation, so flip the sign to match the spec.
+        var y = (float)(-Math.Sin(azimuthRad) * Math.Cos(elevationRad));
         var z = (float)Math.Sin(elevationRad);
         return new SKPoint3(x, y, z);
     }
