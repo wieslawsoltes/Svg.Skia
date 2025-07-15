@@ -867,7 +867,6 @@ public class resvgTests : SvgUnitTest
     public void e_feComposite(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
     [Theory]
-    [InlineData("e-feConvolveMatrix-001", 0.022, Skip = "TODO")]
     [InlineData("e-feConvolveMatrix-002", 0.022, Skip = "TODO")]
     [InlineData("e-feConvolveMatrix-003", 0.022, Skip = "TODO")]
     [InlineData("e-feConvolveMatrix-004", 0.022)]
