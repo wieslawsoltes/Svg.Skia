@@ -7,7 +7,7 @@ namespace Svg.Model.Services;
 
 internal static class FilterEffectsService
 {
-    internal static SKColor s_transparentBlack = new(0, 0, 0, 255);
+    internal static SKColor s_transparentBlack = new(0, 0, 0, 0);
 
     internal static bool IsNone(this Uri uri)
     {
