@@ -430,7 +430,7 @@ internal class SvgFilterContext
 
                 var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, input1FilterResult, input2FilterResult, input1Key, input2Key);
                 var skCropRect = skFilterPrimitiveRegion;
-                var displacement = ApplyColourInterpolation(input2FilterResult, input2FilterResult.ColorSpace)!;
+                var displacement = ApplyColourInterpolation(input2FilterResult, colorInterpolationFilters)!;
                 var input = ApplyColourInterpolation(input1FilterResult, colorInterpolationFilters);
                 var skImageFilter = CreateDisplacementMap(svgDisplacementMap, displacement, input, skCropRect);
                 _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
