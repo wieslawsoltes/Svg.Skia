@@ -255,7 +255,21 @@ internal static class MaskingService
 
             case SvgText svgText:
                 {
-                    // TODO: Get path from SvgText.
+                    var skPath = new SKPath();
+                    skPath.AddRect(skBounds);
+
+                    var pathClip = new PathClip
+                    {
+                        Path = skPath,
+                        Transform = TransformsService.ToMatrix(svgText.Transforms),
+                        Clip = new ClipPath
+                        {
+                            Clip = new ClipPath()
+                        }
+                    };
+                    clipPath.Clips?.Add(pathClip);
+
+                    GetSvgVisualElementClipPath(svgText, skPath.Bounds, uris, pathClip.Clip);
                 }
                 break;
         }
