@@ -1395,17 +1395,38 @@ public class SkiaModel
 
     private SkiaSharp.SKPaint ToWireframePaint(SKPaint? paint)
     {
-        var result = new SkiaSharp.SKPaint
+        var strokeCap = paint is null ? SkiaSharp.SKStrokeCap.Butt : ToSKStrokeCap(paint.StrokeCap);
+        var strokeJoin = paint is null ? SkiaSharp.SKStrokeJoin.Miter : ToSKStrokeJoin(paint.StrokeJoin);
+        var textAlign = paint is null ? SkiaSharp.SKTextAlign.Left : ToSKTextAlign(paint.TextAlign);
+        var typeface = paint is null ? null : ToSKTypeface(paint.Typeface);
+        var textEncoding = paint is null ? SkiaSharp.SKTextEncoding.Utf8 : ToSKTextEncoding(paint.TextEncoding);
+        var colorFilter = paint is null ? null : ToSKColorFilter(paint.ColorFilter);
+        var imageFilter = paint is null ? null : ToSKImageFilter(paint.ImageFilter);
+        var pathEffect = paint is null ? null : ToSKPathEffect(paint.PathEffect);
+        var blendMode = paint is null ? SkiaSharp.SKBlendMode.SrcOver : ToSKBlendMode(paint.BlendMode);
+        var filterQuality = paint is null ? SkiaSharp.SKFilterQuality.None : ToSKFilterQuality(paint.FilterQuality);
+
+        return new SkiaSharp.SKPaint
         {
             Style = SkiaSharp.SKPaintStyle.Stroke,
-            StrokeWidth = 1,
-            Color = new SkiaSharp.SKColor(128, 128, 128, 255),
             IsAntialias = paint?.IsAntialias ?? false,
-            StrokeCap = paint is null ? SkiaSharp.SKStrokeCap.Butt : ToSKStrokeCap(paint.StrokeCap),
-            StrokeJoin = paint is null ? SkiaSharp.SKStrokeJoin.Miter : ToSKStrokeJoin(paint.StrokeJoin),
-            StrokeMiter = paint?.StrokeMiter ?? 4
+            StrokeWidth = 0,
+            StrokeCap = strokeCap,
+            StrokeJoin = strokeJoin,
+            StrokeMiter = paint?.StrokeMiter ?? 4,
+            TextSize = paint?.TextSize ?? 0,
+            TextAlign = textAlign,
+            Typeface = typeface,
+            LcdRenderText = paint?.LcdRenderText ?? false,
+            SubpixelText = paint?.SubpixelText ?? false,
+            TextEncoding = textEncoding,
+            Color = new SkiaSharp.SKColor(128, 128, 128, 255),
+            ColorFilter = colorFilter,
+            ImageFilter = imageFilter,
+            PathEffect = pathEffect,
+            BlendMode = blendMode,
+            FilterQuality = filterQuality
         };
-        return result;
     }
 
     public void DrawWireframe(SKPicture picture, SkiaSharp.SKCanvas skCanvas)
