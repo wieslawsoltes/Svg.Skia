@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Svg;
 
-namespace HitTestEditorSample;
+namespace AvalonDraw;
 
 public partial class PreviewWindow : Window
 {

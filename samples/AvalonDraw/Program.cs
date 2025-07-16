@@ -2,7 +2,7 @@
 using Avalonia;
 using Avalonia.Svg.Skia;
 
-namespace HitTestEditorSample;
+namespace AvalonDraw;
 
 internal class Program
 {

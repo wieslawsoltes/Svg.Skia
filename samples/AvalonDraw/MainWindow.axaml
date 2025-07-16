@@ -2,11 +2,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Svg.Controls.Skia.Avalonia"
         xmlns:dgrid="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
-        xmlns:local="clr-namespace:HitTestEditorSample"
-        x:Class="HitTestEditorSample.MainWindow"
+        xmlns:local="clr-namespace:AvalonDraw"
+        x:Class="AvalonDraw.MainWindow"
         Width="800" Height="600"
         DragDrop.AllowDrop="True"
-        Title="Hit Test Editor Sample">
+        Title="AvalonDraw">
     <Window.Resources>
         <DrawingBrush x:Key="CheckerBrush"
                        TileMode="Tile"

@@ -4,7 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace HitTestEditorSample;
+namespace AvalonDraw;
 
 public partial class InsertElementWindow : Window
 {

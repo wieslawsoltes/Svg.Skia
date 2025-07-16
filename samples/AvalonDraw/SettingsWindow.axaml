@@ -1,6 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="HitTestEditorSample.SettingsWindow"
+        x:Class="AvalonDraw.SettingsWindow"
         Width="250" Height="150"
         Title="Settings">
     <StackPanel Margin="10" Spacing="4">

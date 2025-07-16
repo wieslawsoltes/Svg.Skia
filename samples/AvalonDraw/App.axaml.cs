@@ -2,7 +2,7 @@
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
-namespace HitTestEditorSample;
+namespace AvalonDraw;
 
 public class App : Application
 {

@@ -23,7 +23,7 @@ using Svg.Model.Drawables;
 using Svg.Model.Services;
 using Svg.Transforms;
 
-namespace HitTestEditorSample;
+namespace AvalonDraw;
 
 public partial class MainWindow : Window
 {
@@ -118,7 +118,7 @@ public partial class MainWindow : Window
     private void LoadDocument(string path)
     {
         // try load from Avalonia resources first
-        var uri = new Uri($"avares://HitTestEditorSample/{path}");
+        var uri = new Uri($"avares://AvalonDraw/{path}");
 
         if (SvgView.SkSvg is { } skSvg)
             skSvg.OnDraw -= SvgView_OnDraw;

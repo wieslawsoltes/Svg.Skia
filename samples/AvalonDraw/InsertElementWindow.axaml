@@ -1,10 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="HitTestEditorSample.TextEditorWindow"
-        Width="600" Height="400"
-        Title="Edit SVG Text">
+        x:Class="AvalonDraw.InsertElementWindow"
+        Width="300" Height="200"
+        Title="Insert Element">
     <StackPanel Margin="10" Spacing="4">
-        <TextBox x:Name="Editor" AcceptsReturn="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+        <ComboBox x:Name="ElementList" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4">
             <Button Content="OK" Click="OkButton_OnClick" Width="80"/>
             <Button Content="Cancel" Click="CancelButton_OnClick" Width="80"/>
