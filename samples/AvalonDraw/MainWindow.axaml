@@ -47,6 +47,7 @@
                 <MenuItem Header="Remove Element" Click="RemoveElementMenuItem_Click" InputGesture="Delete"/>
                 <MenuItem Header="Copy Element" Click="CopyElementMenuItem_Click" InputGesture="Ctrl+C"/>
                 <MenuItem Header="Paste Element" Click="PasteElementMenuItem_Click" InputGesture="Ctrl+V"/>
+                <MenuItem Header="Edit Content..." Click="EditContentMenuItem_Click"/>
                 <Separator />
                 <MenuItem Header="Undo" Click="UndoMenuItem_Click" InputGesture="Ctrl+Z"/>
                 <MenuItem Header="Redo" Click="RedoMenuItem_Click" InputGesture="Ctrl+Y"/>
@@ -124,6 +125,7 @@
                     <dgrid:DataGrid x:Name="PropertiesGrid"
                                     AutoGenerateColumns="False"
                                     HeadersVisibility="None"
+                                    GridLinesVisibility="None"
                                     CanUserResizeColumns="False"
                                     CanUserSortColumns="False"
                                     ItemsSource="{Binding Properties}">

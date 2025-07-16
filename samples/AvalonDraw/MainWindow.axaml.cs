@@ -85,6 +85,10 @@ public partial class MainWindow : Window
     private Shim.SKMatrix _resizeMatrix;
     private Shim.SKMatrix _resizeInverse;
     private SK.SKRect _startRect;
+    private float _startTransX;
+    private float _startTransY;
+    private float _startScaleX = 1f;
+    private float _startScaleY = 1f;
     private SvgVisualElement? _resizeElement;
     private SvgVisualElement? _rotateElement;
     private SK.SKPoint _rotateStart;
@@ -102,6 +106,7 @@ public partial class MainWindow : Window
     private Shim.SKPoint _pressPoint;
     private List<SvgVisualElement> _pressHits = new();
     private SvgVisualElement? _pressElement;
+    private bool _pressRightButton;
     private const float DragThreshold = 2f;
 
     private enum Tool
@@ -470,6 +475,8 @@ public partial class MainWindow : Window
                     if (!_resizeMatrix.TryInvert(out _resizeInverse))
                         _resizeInverse = Shim.SKMatrix.CreateIdentity();
                     _resizeStartLocal = _resizeInverse.MapPoint(_resizeStart);
+                    (_startTransX, _startTransY) = GetTranslation(_resizeElement);
+                    (_startScaleX, _startScaleY) = GetScale(_resizeElement);
                     e.Pointer.Capture(SvgView);
                     return;
                 }
@@ -483,6 +490,7 @@ public partial class MainWindow : Window
                 _pressElement = _selectedElement != null && hits.Contains(_selectedElement)
                     ? _selectedElement
                     : hits[0];
+                _pressRightButton = e.GetCurrentPoint(SvgView).Properties.IsRightButtonPressed;
                 _pendingPress = true;
             }
             else
@@ -619,7 +627,10 @@ public partial class MainWindow : Window
                 if (Math.Abs(_pressPoint.X - _lastHitPoint.X) < 1 && Math.Abs(_pressPoint.Y - _lastHitPoint.Y) < 1)
                 {
                     var idx = hits.IndexOf(_selectedElement!);
-                    _hitIndex = idx >= 0 ? (idx + 1) % hits.Count : 0;
+                    if (_pressRightButton)
+                        _hitIndex = idx >= 0 ? (idx - 1 + hits.Count) % hits.Count : hits.Count - 1;
+                    else
+                        _hitIndex = idx >= 0 ? (idx + 1) % hits.Count : 0;
                 }
                 else
                 {
@@ -967,6 +978,33 @@ public partial class MainWindow : Window
         }
     }
 
+    private (float X, float Y) GetScale(SvgVisualElement? element)
+    {
+        if (element?.Transforms is { } t)
+        {
+            var sc = t.OfType<SvgScale>().FirstOrDefault();
+            if (sc is { })
+                return (sc.X, sc.Y);
+        }
+        return (1f, 1f);
+    }
+
+    private void SetScale(SvgVisualElement element, float x, float y)
+    {
+        if (element.Transforms == null)
+            element.Transforms = new SvgTransformCollection();
+        var sc = element.Transforms.OfType<SvgScale>().FirstOrDefault();
+        if (sc != null)
+        {
+            sc.X = x;
+            sc.Y = y;
+        }
+        else
+        {
+            element.Transforms.Add(new SvgScale(x, y));
+        }
+    }
+
     private float Snap(float value)
     {
         if (!_snapToGrid || _gridSize <= 0)
@@ -1000,6 +1038,9 @@ public partial class MainWindow : Window
                 break;
             case SvgCircle circle:
                 ResizeCircle(circle, handle, dx, dy);
+                break;
+            case SvgPath path:
+                ResizePath(path, handle, dx, dy);
                 break;
         }
 
@@ -1062,6 +1103,36 @@ public partial class MainWindow : Window
             c.CenterX = new SvgUnit(c.CenterX.Type, cx);
             c.CenterY = new SvgUnit(c.CenterY.Type, cy);
             c.Radius = new SvgUnit(c.Radius.Type, r);
+        }
+
+        void ResizePath(SvgPath p, int h, float ddx, float ddy)
+        {
+            float x = _startRect.Left;
+            float y = _startRect.Top;
+            float w = _startRect.Width;
+            float hgt = _startRect.Height;
+            switch (h)
+            {
+                case 0: x += ddx; y += ddy; w = _startRect.Right - x; hgt = _startRect.Bottom - y; break;
+                case 1: y += ddy; hgt = _startRect.Bottom - y; break;
+                case 2: y += ddy; w += ddx; hgt = _startRect.Bottom - y; break;
+                case 3: w += ddx; break;
+                case 4: w += ddx; hgt += ddy; break;
+                case 5: hgt += ddy; break;
+                case 6: x += ddx; w = _startRect.Right - x; hgt += ddy; break;
+                case 7: x += ddx; w = _startRect.Right - x; break;
+            }
+            if (_snapToGrid)
+            {
+                x = Snap(x); y = Snap(y); w = Snap(w); hgt = Snap(hgt);
+            }
+            if (w == 0) w = 0.01f; if (hgt == 0) hgt = 0.01f;
+            var sx = w / _startRect.Width;
+            var sy = hgt / _startRect.Height;
+            var tx = x - _startRect.Left;
+            var ty = y - _startRect.Top;
+            SetScale(p, _startScaleX * sx, _startScaleY * sy);
+            SetTranslation(p, _startTransX + tx, _startTransY + ty);
         }
     }
 
@@ -1602,6 +1673,24 @@ public partial class MainWindow : Window
             _document = SvgService.FromSvg(result);
             SvgView.SkSvg!.FromSvgDocument(_document);
             BuildTree();
+        }
+    }
+
+    private async void EditContentMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_selectedSvgElement is SvgTextBase txt && _document is { })
+        {
+            var win = new TextEditorWindow(txt.Text);
+            var result = await win.ShowDialog<string?>(this);
+            if (result is not null)
+            {
+                SaveUndoState();
+                txt.Text = result;
+                SvgView.SkSvg!.FromSvgDocument(_document);
+                UpdateSelectedDrawable();
+                LoadProperties(txt);
+                SvgView.InvalidateVisual();
+            }
         }
     }
 
