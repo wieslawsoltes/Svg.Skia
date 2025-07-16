@@ -466,10 +466,22 @@ public partial class MainWindow : Window
     private void SvgView_OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
     {
         var zoom = SvgView.Zoom;
-        zoom *= e.Delta.Y > 0 ? 1.1 : 0.9;
-        if (zoom < 0.1) zoom = 0.1;
-        if (zoom > 10) zoom = 10;
-        SvgView.Zoom = zoom;
+        var newZoom = zoom * (e.Delta.Y > 0 ? 1.1 : 0.9);
+        if (newZoom < 0.1) newZoom = 0.1;
+        if (newZoom > 10) newZoom = 10;
+
+        var position = e.GetPosition(SvgView);
+        if (SvgView.TryGetPicturePoint(position, out var pp))
+        {
+            SvgView.Zoom = newZoom;
+            SvgView.PanX += pp.X * (zoom - newZoom);
+            SvgView.PanY += pp.Y * (zoom - newZoom);
+        }
+        else
+        {
+            SvgView.Zoom = newZoom;
+        }
+
         SvgView.InvalidateVisual();
     }
 
