@@ -35,6 +35,7 @@ public partial class MainWindow : Window
     private ObservableCollection<PropertyEntry> Properties { get; } = new();
     private ObservableCollection<SvgNode> Nodes { get; } = new();
     private readonly HashSet<string> _expandedIds = new();
+    private HashSet<string> _filterBackup = new();
 
     private SvgElement? _clipboard;
     private string? _clipboardXml;
@@ -54,6 +55,8 @@ public partial class MainWindow : Window
 
     private string _filter = string.Empty;
     private SvgNode? _dragNode;
+    private Point _treeDragStart;
+    private bool _treeDragging;
 
     private bool _isDragging;
     private Shim.SKPoint _dragStart;
@@ -95,6 +98,7 @@ public partial class MainWindow : Window
         SvgView.PointerWheelChanged += SvgView_OnPointerWheelChanged;
         DocumentTree.AddHandler(PointerPressedEvent, DocumentTree_OnPointerPressed, RoutingStrategies.Tunnel);
         DocumentTree.AddHandler(PointerMovedEvent, DocumentTree_OnPointerMoved, RoutingStrategies.Tunnel);
+        DocumentTree.AddHandler(PointerReleasedEvent, DocumentTree_OnPointerReleased, RoutingStrategies.Tunnel);
         DocumentTree.AddHandler(DragDrop.DropEvent, DocumentTree_OnDrop);
         DocumentTree.AddHandler(DragDrop.DragOverEvent, DocumentTree_OnDragOver);
         _wireframeEnabled = false;
@@ -1190,8 +1194,30 @@ public partial class MainWindow : Window
     {
         if (sender is TextBox tb)
         {
-            _filter = tb.Text ?? string.Empty;
-            SaveExpandedNodes();
+            var newFilter = tb.Text ?? string.Empty;
+            var wasFiltered = !string.IsNullOrEmpty(_filter);
+            var willBeFiltered = !string.IsNullOrEmpty(newFilter);
+
+            if (!wasFiltered && willBeFiltered)
+            {
+                _filterBackup = new HashSet<string>(_expandedIds);
+                SaveExpandedNodes();
+            }
+            else if (wasFiltered && !willBeFiltered)
+            {
+                _filter = newFilter;
+                _expandedIds.Clear();
+                foreach (var id in _filterBackup)
+                    _expandedIds.Add(id);
+                BuildTree();
+                return;
+            }
+            else
+            {
+                SaveExpandedNodes();
+            }
+
+            _filter = newFilter;
             BuildTree();
         }
     }
@@ -1199,16 +1225,33 @@ public partial class MainWindow : Window
     private void DocumentTree_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         _dragNode = DocumentTree.SelectedItem as SvgNode;
+        _treeDragStart = e.GetCurrentPoint(DocumentTree).Position;
+        _treeDragging = false;
     }
 
     private async void DocumentTree_OnPointerMoved(object? sender, PointerEventArgs e)
     {
         if (_dragNode is { } node && e.GetCurrentPoint(DocumentTree).Properties.IsLeftButtonPressed)
         {
+            var pos = e.GetCurrentPoint(DocumentTree).Position;
+            if (!_treeDragging)
+            {
+                if (Math.Abs(pos.X - _treeDragStart.X) < 4 && Math.Abs(pos.Y - _treeDragStart.Y) < 4)
+                    return;
+                _treeDragging = true;
+            }
             var data = new DataObject();
             data.Set("SvgNode", node);
             await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+            _dragNode = null;
+            _treeDragging = false;
         }
+    }
+
+    private void DocumentTree_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        _dragNode = null;
+        _treeDragging = false;
     }
 
     private void DocumentTree_OnDragOver(object? sender, DragEventArgs e)

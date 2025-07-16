@@ -10,21 +10,21 @@
     <Grid RowDefinitions="Auto,*">
         <Menu Grid.Row="0">
             <MenuItem Header="File">
-                <MenuItem Header="New (Ctrl+N)" Click="NewMenuItem_Click" HotKey="Ctrl+N"/>
-                <MenuItem Header="Open... (Ctrl+O)" Click="OpenMenuItem_Click" HotKey="Ctrl+O"/>
-                <MenuItem Header="Save... (Ctrl+S)" Click="SaveMenuItem_Click" HotKey="Ctrl+S"/>
-                <MenuItem Header="Export Element... (Ctrl+E)" Click="ExportElementMenuItem_Click" HotKey="Ctrl+E"/>
-                <MenuItem Header="Preview (F5)" Click="PreviewMenuItem_Click" HotKey="F5"/>
-                <MenuItem Header="Edit Text (Ctrl+T)" Click="EditTextMenuItem_Click" HotKey="Ctrl+T"/>
+                <MenuItem Header="New" Click="NewMenuItem_Click" InputGesture="Ctrl+N"/>
+                <MenuItem Header="Open..." Click="OpenMenuItem_Click" InputGesture="Ctrl+O"/>
+                <MenuItem Header="Save..." Click="SaveMenuItem_Click" InputGesture="Ctrl+S"/>
+                <MenuItem Header="Export Element..." Click="ExportElementMenuItem_Click" InputGesture="Ctrl+E"/>
+                <MenuItem Header="Preview" Click="PreviewMenuItem_Click" InputGesture="F5"/>
+                <MenuItem Header="Edit Text" Click="EditTextMenuItem_Click" InputGesture="Ctrl+T"/>
             </MenuItem>
             <MenuItem Header="Edit">
-                <MenuItem Header="Insert Element (Ctrl+I)" Click="InsertElementMenuItem_Click" HotKey="Ctrl+I"/>
-                <MenuItem Header="Remove Element (Del)" Click="RemoveElementMenuItem_Click" HotKey="Delete"/>
-                <MenuItem Header="Copy Element (Ctrl+C)" Click="CopyElementMenuItem_Click" HotKey="Ctrl+C"/>
-                <MenuItem Header="Paste Element (Ctrl+V)" Click="PasteElementMenuItem_Click" HotKey="Ctrl+V"/>
+                <MenuItem Header="Insert Element" Click="InsertElementMenuItem_Click" InputGesture="Ctrl+I"/>
+                <MenuItem Header="Remove Element" Click="RemoveElementMenuItem_Click" InputGesture="Delete"/>
+                <MenuItem Header="Copy Element" Click="CopyElementMenuItem_Click" InputGesture="Ctrl+C"/>
+                <MenuItem Header="Paste Element" Click="PasteElementMenuItem_Click" InputGesture="Ctrl+V"/>
                 <Separator />
-                <MenuItem Header="Undo (Ctrl+Z)" Click="UndoMenuItem_Click" HotKey="Ctrl+Z"/>
-                <MenuItem Header="Redo (Ctrl+Y)" Click="RedoMenuItem_Click" HotKey="Ctrl+Y"/>
+                <MenuItem Header="Undo" Click="UndoMenuItem_Click" InputGesture="Ctrl+Z"/>
+                <MenuItem Header="Redo" Click="RedoMenuItem_Click" InputGesture="Ctrl+Y"/>
             </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Wireframe" Click="WireframeMenuItem_Click"/>
