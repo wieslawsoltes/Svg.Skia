@@ -521,8 +521,8 @@ public partial class MainWindow : Window
         if (SvgView.TryGetPicturePoint(position, out var pp))
         {
             SvgView.Zoom = newZoom;
-            SvgView.PanX += pp.X * (zoom - newZoom);
-            SvgView.PanY += pp.Y * (zoom - newZoom);
+            SvgView.PanX = position.X - pp.X * newZoom;
+            SvgView.PanY = position.Y - pp.Y * newZoom;
         }
         else
         {

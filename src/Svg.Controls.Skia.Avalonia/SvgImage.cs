@@ -87,8 +87,8 @@ public class SvgImage : AvaloniaObject, IImage
             destRect.Width / sourceRect.Width,
             destRect.Height / sourceRect.Height);
         var translateMatrix = Matrix.CreateTranslation(
-            -sourceRect.X + destRect.X - bounds.Top,
-            -sourceRect.Y + destRect.Y - bounds.Left);
+            -sourceRect.X + destRect.X - bounds.Left,
+            -sourceRect.Y + destRect.Y - bounds.Top);
         using (context.PushClip(destRect))
         using (context.PushTransform(scaleMatrix * translateMatrix))
         {

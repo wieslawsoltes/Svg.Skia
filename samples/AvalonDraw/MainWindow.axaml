@@ -78,8 +78,13 @@
             </DockPanel>
             <GridSplitter Grid.Column="0" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
             <!-- BoxShadow string parsed by Avalonia requires space separated values -->
-            <Border Grid.Column="1" Background="{StaticResource CheckerBrush}" BoxShadow="0 0 5 0 #80000000" Margin="10">
+            <Border Grid.Column="1"
+                    Background="{StaticResource CheckerBrush}"
+                    BoxShadow="0 0 5 0 #80000000"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
                 <svg:Svg x:Name="SvgView"
+                         Margin="10"
                          Stretch="Uniform"
                          PointerPressed="SvgView_OnPointerPressed"
                          PointerMoved="SvgView_OnPointerMoved"

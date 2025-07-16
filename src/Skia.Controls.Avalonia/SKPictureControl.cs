@@ -116,8 +116,8 @@ public class SKPictureControl : Control
             destRect.Width / sourceRect.Width,
             destRect.Height / sourceRect.Height);
         var translateMatrix = Matrix.CreateTranslation(
-            -sourceRect.X + destRect.X - bounds.Top,
-            -sourceRect.Y + destRect.Y - bounds.Left);
+            -sourceRect.X + destRect.X - bounds.Left,
+            -sourceRect.Y + destRect.Y - bounds.Top);
 
         if (bounds.IsEmpty || destRect == default)
         {
