@@ -9,11 +9,13 @@ using System.Reflection;
 using System.IO;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
 using Avalonia.Data;
+using Avalonia.Data.Converters;
 using Avalonia.Controls.Templates;
 using Avalonia.Media;
 using Avalonia.Svg.Skia;
@@ -138,6 +140,7 @@ public partial class MainWindow : Window
             tb[!TextBox.TextProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };
             return tb;
         }, true);
+        Resources["EyeIconConverter"] = new EyeIconConverter();
         InitializeComponent();
 #if DEBUG
         this.AttachDevTools();
@@ -724,6 +727,17 @@ public partial class MainWindow : Window
             SvgView.SkSvg!.FromSvgDocument(_document);
             UpdateSelectedDrawable();
             UpdateIdList();
+            SvgView.InvalidateVisual();
+        }
+    }
+
+    private void VisibilityToggle_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is ToggleButton { DataContext: SvgNode node } btn && _document is { })
+        {
+            node.IsVisible = btn.IsChecked == true;
+            SvgView.SkSvg!.FromSvgDocument(_document);
+            UpdateSelectedDrawable();
             SvgView.InvalidateVisual();
         }
     }
@@ -1815,6 +1829,22 @@ public class SvgNode
     public ObservableCollection<SvgNode> Children { get; } = new();
     public SvgNode? Parent { get; }
     public string Label { get; }
+    private bool _isVisible;
+
+    public bool IsVisible
+    {
+        get => _isVisible;
+        set
+        {
+            if (_isVisible == value)
+                return;
+            _isVisible = value;
+            Element.Visibility = value ? "visible" : "hidden";
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsVisible)));
+        }
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     public SvgNode(SvgElement element, SvgNode? parent)
     {
@@ -1824,5 +1854,18 @@ public class SvgNode
         Label = string.IsNullOrEmpty(element.ID)
             ? name
             : $"{name} ({element.ID})";
+        _isVisible = !string.Equals(element.Visibility, "hidden", StringComparison.OrdinalIgnoreCase) &&
+                     !string.Equals(element.Visibility, "collapse", StringComparison.OrdinalIgnoreCase);
     }
+}
+
+public class EyeIconConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var vis = value as bool? ?? false;
+        return Application.Current?.FindResource(vis ? "EyeOpen" : "EyeClosed");
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => null;
 }

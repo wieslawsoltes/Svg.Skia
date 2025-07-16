@@ -29,6 +29,8 @@
                 </DrawingGroup>
             </DrawingBrush.Drawing>
         </DrawingBrush>
+        <Geometry x:Key="EyeOpen">M1,8 C3,4 13,4 15,8 C13,12 3,12 1,8 Z M8,8 A3,3 0 1 1 7.99,8 Z</Geometry>
+        <Geometry x:Key="EyeClosed">M1,8 C3,4 13,4 15,8 C13,12 3,12 1,8 Z M0,0 L16,16 M16,0 L0,16</Geometry>
     </Window.Resources>
     <Grid RowDefinitions="Auto,Auto,*">
         <Menu Grid.Row="0">
@@ -82,7 +84,15 @@
                         <TreeView.ItemTemplate>
                             <TreeDataTemplate DataType="{x:Type local:SvgNode}"
                                               ItemsSource="{Binding Children}">
-                                <TextBlock Text="{Binding Label}"/>
+                                <DockPanel>
+                                    <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
+                                    <ToggleButton DockPanel.Dock="Right"
+                                                  IsChecked="{Binding IsVisible}"
+                                                  Click="VisibilityToggle_Click"
+                                                  Width="16" Height="16" Margin="4,0,0,0">
+                                        <Path Fill="Black" Data="{Binding IsVisible, Converter={StaticResource EyeIconConverter}}"/>
+                                    </ToggleButton>
+                                </DockPanel>
                             </TreeDataTemplate>
                         </TreeView.ItemTemplate>
                     </TreeView>
