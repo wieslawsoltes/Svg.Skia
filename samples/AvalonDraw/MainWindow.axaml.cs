@@ -280,6 +280,28 @@ public partial class MainWindow : Window
             entry.PropertyChanged += PropertyEntryOnPropertyChanged;
             Properties.Add(entry);
         }
+
+        if (element.TryGetAttribute("class", out var cls))
+        {
+            var entry = PropertyEntry.CreateAttribute("class", cls, (target, value) =>
+            {
+                if (target is SvgElement el)
+                    el.CustomAttributes["class"] = value ?? string.Empty;
+            });
+            entry.PropertyChanged += PropertyEntryOnPropertyChanged;
+            Properties.Add(entry);
+        }
+
+        if (element.TryGetAttribute("style", out var style))
+        {
+            var entry = PropertyEntry.CreateAttribute("style", style, (target, value) =>
+            {
+                if (target is SvgElement el)
+                    el.CustomAttributes["style"] = value ?? string.Empty;
+            });
+            entry.PropertyChanged += PropertyEntryOnPropertyChanged;
+            Properties.Add(entry);
+        }
         if (element is SvgTextBase txt)
         {
             var prop = element.GetType().GetProperty(nameof(SvgTextBase.Text));
@@ -835,8 +857,11 @@ public partial class MainWindow : Window
     public class PropertyEntry : INotifyPropertyChanged
     {
         public string Name { get; }
-        public PropertyInfo Property { get; }
+        public PropertyInfo? Property { get; }
+        private readonly Action<object, string?>? _setter;
+        private readonly TypeConverter? _converter;
         private string? _value;
+
         public string? Value
         {
             get => _value;
@@ -850,8 +875,6 @@ public partial class MainWindow : Window
             }
         }
 
-        private readonly TypeConverter _converter;
-
         public PropertyEntry(string name, PropertyInfo property, string? value)
         {
             Name = name;
@@ -860,12 +883,29 @@ public partial class MainWindow : Window
             _value = value;
         }
 
+        private PropertyEntry(string name, string? value, Action<object, string?> setter)
+        {
+            Name = name;
+            _setter = setter;
+            _value = value;
+        }
+
+        public static PropertyEntry CreateAttribute(string name, string? value, Action<object, string?> setter)
+            => new PropertyEntry(name, value, setter);
+
         public void Apply(object target)
         {
             try
             {
-                var converted = _converter.ConvertFromInvariantString(Value);
-                Property.SetValue(target, converted);
+                if (Property is { } prop)
+                {
+                    var converted = _converter!.ConvertFromInvariantString(Value);
+                    prop.SetValue(target, converted);
+                }
+                else
+                {
+                    _setter?.Invoke(target, Value);
+                }
             }
             catch
             {
