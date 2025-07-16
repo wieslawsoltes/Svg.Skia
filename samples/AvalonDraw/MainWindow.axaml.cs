@@ -51,7 +51,7 @@ public partial class MainWindow : Window
     private readonly Stack<string> _redo = new();
     private readonly List<Type> _elementTypes = typeof(SvgElement).Assembly.GetTypes()
         .Where(t => t.IsSubclassOf(typeof(SvgElement)) && !t.IsAbstract)
-        .OrderBy(t => t.Name).ToList();
+        .OrderBy(t => GetElementName(t)).ToList();
 
     private ContextMenu? _treeMenu;
 
@@ -961,7 +961,7 @@ public partial class MainWindow : Window
             if (string.IsNullOrEmpty(_filter))
                 return true;
             return (!string.IsNullOrEmpty(el.ID) && el.ID.Contains(_filter, StringComparison.OrdinalIgnoreCase)) ||
-                   el.GetType().Name.Contains(_filter, StringComparison.OrdinalIgnoreCase);
+                   GetElementName(el.GetType()).Contains(_filter, StringComparison.OrdinalIgnoreCase);
         }
 
         var node = new SvgNode(element, parent);
@@ -1123,6 +1123,12 @@ public partial class MainWindow : Window
         BuildTree();
     }
 
+    internal static string GetElementName(Type type)
+    {
+        var attr = type.GetCustomAttribute<SvgElementAttribute>();
+        return attr?.ElementName ?? type.Name;
+    }
+
     private void UndoMenuItem_Click(object? sender, RoutedEventArgs e)
     {
         if (_undo.Count == 0 || _document is null)
@@ -1144,12 +1150,12 @@ public partial class MainWindow : Window
 
     private async void InsertElementMenuItem_Click(object? sender, RoutedEventArgs e)
     {
-        var names = _elementTypes.Select(t => t.Name).ToList();
+        var names = _elementTypes.Select(GetElementName).ToList();
         var win = new InsertElementWindow(names);
         var result = await win.ShowDialog<string?>(this);
         if (result is null)
             return;
-        var type = _elementTypes.FirstOrDefault(t => t.Name == result);
+        var type = _elementTypes.FirstOrDefault(t => GetElementName(t) == result);
         if (type is null || _document is null)
             return;
         SaveUndoState();
@@ -1174,9 +1180,9 @@ public partial class MainWindow : Window
         foreach (var group in _elementTypes.GroupBy(t => t.Namespace ?? string.Empty).OrderBy(g => g.Key))
         {
             var groupItem = new MenuItem { Header = string.IsNullOrEmpty(group.Key) ? "Svg" : group.Key };
-            foreach (var type in group.OrderBy(t => t.Name))
+            foreach (var type in group.OrderBy(t => GetElementName(t)))
             {
-                var item = new MenuItem { Header = type.Name, Tag = type };
+                var item = new MenuItem { Header = GetElementName(type), Tag = type };
                 item.Click += InsertElementFromMenu_Click;
                 groupItem.Items.Add(item);
             }
@@ -1416,7 +1422,7 @@ public class SvgNode
     {
         Element = element;
         Parent = parent;
-        var name = element.GetType().Name;
+        var name = MainWindow.GetElementName(element.GetType());
         Label = string.IsNullOrEmpty(element.ID)
             ? name
             : $"{name} ({element.ID})";
