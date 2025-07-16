@@ -379,7 +379,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void SvgView_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    private async void SvgView_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var point = e.GetPosition(SvgView);
         if (_tool != Tool.Select && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
@@ -485,6 +485,25 @@ public partial class MainWindow : Window
             var hits = skSvg.HitTestElements(pp).OfType<SvgVisualElement>().ToList();
             if (hits.Count > 0)
             {
+                if (e.ClickCount > 1)
+                {
+                    var pathEl = hits.OfType<SvgPath>().FirstOrDefault();
+                    if (pathEl is not null)
+                    {
+                        var win = new PathEditorWindow(pathEl);
+                        var result = await win.ShowDialog<string?>(this);
+                        if (result is not null)
+                        {
+                            SaveUndoState();
+                            pathEl.PathData = SvgPathBuilder.Parse(result);
+                            SvgView.SkSvg!.FromSvgDocument(_document);
+                            UpdateSelectedDrawable();
+                            LoadProperties(pathEl);
+                            SvgView.InvalidateVisual();
+                        }
+                        return;
+                    }
+                }
                 _pressHits = hits;
                 _pressPoint = new Shim.SKPoint(pp.X, pp.Y);
                 _pressElement = _selectedElement != null && hits.Contains(_selectedElement)
