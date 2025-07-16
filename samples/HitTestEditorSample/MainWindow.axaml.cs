@@ -310,6 +310,7 @@ public partial class MainWindow : Window
                 {
                     if (handle == 8)
                     {
+                        SaveUndoState();
                         _isRotating = true;
                         _rotateElement = _selectedElement;
                         _rotateStart = new SK.SKPoint(pp.X, pp.Y);
@@ -318,6 +319,7 @@ public partial class MainWindow : Window
                         e.Pointer.Capture(SvgView);
                         return;
                     }
+                    SaveUndoState();
                     _isResizing = true;
                     _resizeElement = _selectedElement;
                     _resizeHandle = handle;
@@ -511,6 +513,7 @@ public partial class MainWindow : Window
 
         if (GetDragProperties(element, out var props))
         {
+            SaveUndoState();
             _dragProps = props;
             _isDragging = true;
             _dragStart = start;
@@ -519,6 +522,7 @@ public partial class MainWindow : Window
             return;
         }
 
+        SaveUndoState();
         _dragProps = null;
         _isDragging = true;
         _dragStart = start;
@@ -652,10 +656,19 @@ public partial class MainWindow : Window
 
     private void SetRotation(SvgVisualElement element, float angle, SK.SKPoint center)
     {
-        var tr = new Svg.Transforms.SvgRotate(angle, center.X, center.Y);
-        var col = new Svg.Transforms.SvgTransformCollection();
-        col.Add(tr);
-        element.Transforms = col;
+        if (element.Transforms == null)
+            element.Transforms = new SvgTransformCollection();
+        var rot = element.Transforms.OfType<SvgRotate>().FirstOrDefault();
+        if (rot != null)
+        {
+            rot.Angle = angle;
+            rot.CenterX = center.X;
+            rot.CenterY = center.Y;
+        }
+        else
+        {
+            element.Transforms.Add(new SvgRotate(angle, center.X, center.Y));
+        }
     }
 
     private (float X, float Y) GetTranslation(SvgVisualElement? element)
@@ -676,9 +689,18 @@ public partial class MainWindow : Window
             x = Snap(x);
             y = Snap(y);
         }
-        var col = new Svg.Transforms.SvgTransformCollection();
-        col.Add(new Svg.Transforms.SvgTranslate(x, y));
-        element.Transforms = col;
+        if (element.Transforms == null)
+            element.Transforms = new SvgTransformCollection();
+        var tr = element.Transforms.OfType<SvgTranslate>().FirstOrDefault();
+        if (tr != null)
+        {
+            tr.X = x;
+            tr.Y = y;
+        }
+        else
+        {
+            element.Transforms.Add(new SvgTranslate(x, y));
+        }
     }
 
     private float Snap(float value)
