@@ -53,6 +53,8 @@ public partial class MainWindow : Window
         .Where(t => t.IsSubclassOf(typeof(SvgElement)) && !t.IsAbstract)
         .OrderBy(t => t.Name).ToList();
 
+    private ContextMenu? _treeMenu;
+
     private string _filter = string.Empty;
     private SvgNode? _dragNode;
     private Point _treeDragStart;
@@ -101,6 +103,8 @@ public partial class MainWindow : Window
         DocumentTree.AddHandler(PointerReleasedEvent, DocumentTree_OnPointerReleased, RoutingStrategies.Tunnel);
         DocumentTree.AddHandler(DragDrop.DropEvent, DocumentTree_OnDrop);
         DocumentTree.AddHandler(DragDrop.DragOverEvent, DocumentTree_OnDragOver);
+        _treeMenu = BuildTreeContextMenu();
+        DocumentTree.ContextMenu = _treeMenu;
         _wireframeEnabled = false;
         _filtersDisabled = false;
         _snapToGrid = false;
@@ -1116,6 +1120,43 @@ public partial class MainWindow : Window
         BuildTree();
     }
 
+    private void InsertElementFromMenu_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem { Tag: Type type } && DocumentTree.SelectedItem is SvgNode node)
+        {
+            InsertElement(node.Element, type);
+        }
+    }
+
+    private ContextMenu BuildTreeContextMenu()
+    {
+        var menu = new ContextMenu();
+        foreach (var group in _elementTypes.GroupBy(t => t.Namespace ?? string.Empty).OrderBy(g => g.Key))
+        {
+            var groupItem = new MenuItem { Header = string.IsNullOrEmpty(group.Key) ? "Svg" : group.Key };
+            foreach (var type in group.OrderBy(t => t.Name))
+            {
+                var item = new MenuItem { Header = type.Name, Tag = type };
+                item.Click += InsertElementFromMenu_Click;
+                groupItem.Items.Add(item);
+            }
+            menu.Items.Add(groupItem);
+        }
+        return menu;
+    }
+
+    private void InsertElement(SvgElement parent, Type type)
+    {
+        if (_document is null)
+            return;
+        SaveUndoState();
+        var element = (SvgElement)Activator.CreateInstance(type)!;
+        parent.Children.Add(element);
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        BuildTree();
+        SelectNodeFromElement(element);
+    }
+
     private void RemoveElementMenuItem_Click(object? sender, RoutedEventArgs e)
     {
         if (_selectedSvgElement is SvgElement { Parent: { } parent } && _document is { })
@@ -1258,6 +1299,19 @@ public partial class MainWindow : Window
 
     private void DocumentTree_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
+        var pos = e.GetPosition(DocumentTree);
+        if (e.GetCurrentPoint(DocumentTree).Properties.IsRightButtonPressed)
+        {
+            if (DocumentTree.InputHitTest(pos) is StyledElement c)
+            {
+                while (c != null && c.DataContext is not SvgNode && c.Parent is StyledElement p)
+                    c = p;
+                if (c?.DataContext is SvgNode node)
+                    DocumentTree.SelectedItem = node;
+            }
+            return;
+        }
+
         _dragNode = DocumentTree.SelectedItem as SvgNode;
         _treeDragStart = e.GetCurrentPoint(DocumentTree).Position;
         _treeDragging = false;
