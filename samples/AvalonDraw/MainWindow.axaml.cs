@@ -102,6 +102,20 @@ public partial class MainWindow : Window
     private SvgVisualElement? _pressElement;
     private const float DragThreshold = 2f;
 
+    private enum Tool
+    {
+        Select,
+        Line,
+        Rect,
+        Circle,
+        Ellipse
+    }
+
+    private Tool _tool = Tool.Select;
+    private SvgVisualElement? _newElement;
+    private Shim.SKPoint _newStart;
+    private bool _creating;
+
     public MainWindow()
     {
         Resources["PropertyEditorTemplate"] = new FuncDataTemplate<PropertyEntry>((entry, ns) =>
@@ -138,6 +152,7 @@ public partial class MainWindow : Window
         DocumentTree.AddHandler(PointerReleasedEvent, DocumentTree_OnPointerReleased, RoutingStrategies.Tunnel);
         DocumentTree.AddHandler(DragDrop.DropEvent, DocumentTree_OnDrop);
         DocumentTree.AddHandler(DragDrop.DragOverEvent, DocumentTree_OnDragOver);
+        _tool = Tool.Select;
         _treeMenu = BuildTreeContextMenu();
         DocumentTree.ContextMenu = _treeMenu;
         _wireframeEnabled = false;
@@ -359,6 +374,62 @@ public partial class MainWindow : Window
     private void SvgView_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var point = e.GetPosition(SvgView);
+        if (_tool != Tool.Select && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
+        {
+            if (SvgView.SkSvg is { } && SvgView.TryGetPicturePoint(point, out var sp) && _document is { })
+            {
+                SaveUndoState();
+                SvgElement parent = _selectedSvgElement is SvgGroup grp ? grp : _document!;
+                _newStart = new Shim.SKPoint(sp.X, sp.Y);
+                _newElement = _tool switch
+                {
+                    Tool.Line => new SvgLine
+                    {
+                        StartX = new SvgUnit(SvgUnitType.User, sp.X),
+                        StartY = new SvgUnit(SvgUnitType.User, sp.Y),
+                        EndX = new SvgUnit(SvgUnitType.User, sp.X),
+                        EndY = new SvgUnit(SvgUnitType.User, sp.Y)
+                    },
+                    Tool.Rect => new SvgRectangle
+                    {
+                        X = new SvgUnit(SvgUnitType.User, sp.X),
+                        Y = new SvgUnit(SvgUnitType.User, sp.Y),
+                        Width = new SvgUnit(SvgUnitType.User, 0),
+                        Height = new SvgUnit(SvgUnitType.User, 0)
+                    },
+                    Tool.Circle => new SvgCircle
+                    {
+                        CenterX = new SvgUnit(SvgUnitType.User, sp.X),
+                        CenterY = new SvgUnit(SvgUnitType.User, sp.Y),
+                        Radius = new SvgUnit(SvgUnitType.User, 0)
+                    },
+                    Tool.Ellipse => new SvgEllipse
+                    {
+                        CenterX = new SvgUnit(SvgUnitType.User, sp.X),
+                        CenterY = new SvgUnit(SvgUnitType.User, sp.Y),
+                        RadiusX = new SvgUnit(SvgUnitType.User, 0),
+                        RadiusY = new SvgUnit(SvgUnitType.User, 0)
+                    },
+                    _ => null!
+                };
+                if (_newElement is { })
+                {
+                    parent.Children.Add(_newElement);
+                    SvgView.SkSvg!.FromSvgDocument(_document);
+                    SaveExpandedNodes();
+                    BuildTree();
+                    SelectNodeFromElement(_newElement);
+                    _selectedElement = _newElement;
+                    _selectedSvgElement = _newElement;
+                    UpdateSelectedDrawable();
+                    LoadProperties(_newElement);
+                    SvgView.InvalidateVisual();
+                    _creating = true;
+                    e.Pointer.Capture(SvgView);
+                    return;
+                }
+            }
+        }
         if (e.GetCurrentPoint(SvgView).Properties.IsMiddleButtonPressed)
         {
             _isPanning = true;
@@ -425,6 +496,16 @@ public partial class MainWindow : Window
     private void SvgView_OnPointerMoved(object? sender, PointerEventArgs e)
     {
         var point = e.GetPosition(SvgView);
+
+        if (_creating && SvgView.TryGetPicturePoint(point, out var cp) && _newElement is { })
+        {
+            var cur = new Shim.SKPoint(cp.X, cp.Y);
+            UpdateNewElement(cur);
+            SvgView.SkSvg!.FromSvgDocument(_document);
+            UpdateSelectedDrawable();
+            SvgView.InvalidateVisual();
+            return;
+        }
 
         if (_pendingPress && SvgView.SkSvg is { } hitSvg && SvgView.TryGetPicturePoint(point, out var ppp))
         {
@@ -568,6 +649,18 @@ public partial class MainWindow : Window
                 SaveUndoState();
                 LoadProperties(_dragElement);
             }
+        }
+        else if (_creating)
+        {
+            _creating = false;
+            if (_newElement is { })
+            {
+                LoadProperties(_newElement);
+                _selectedElement = _newElement;
+                _selectedSvgElement = _newElement;
+                UpdateSelectedDrawable();
+            }
+            _newElement = null;
         }
         else if (_isResizing)
         {
@@ -955,6 +1048,71 @@ public partial class MainWindow : Window
             c.CenterX = new SvgUnit(c.CenterX.Type, cx);
             c.CenterY = new SvgUnit(c.CenterY.Type, cy);
             c.Radius = new SvgUnit(c.Radius.Type, r);
+        }
+    }
+
+    private void UpdateNewElement(Shim.SKPoint current)
+    {
+        if (_newElement is null)
+            return;
+        switch (_tool)
+        {
+            case Tool.Line:
+                if (_newElement is SvgLine ln)
+                {
+                    ln.EndX = new SvgUnit(ln.EndX.Type, _snapToGrid ? Snap(current.X) : current.X);
+                    ln.EndY = new SvgUnit(ln.EndY.Type, _snapToGrid ? Snap(current.Y) : current.Y);
+                }
+                break;
+            case Tool.Rect:
+                if (_newElement is SvgRectangle r)
+                {
+                    var x = Math.Min(_newStart.X, current.X);
+                    var y = Math.Min(_newStart.Y, current.Y);
+                    var w = Math.Abs(current.X - _newStart.X);
+                    var h = Math.Abs(current.Y - _newStart.Y);
+                    if (_snapToGrid)
+                    {
+                        x = Snap(x); y = Snap(y); w = Snap(w); h = Snap(h);
+                    }
+                    r.X = new SvgUnit(r.X.Type, x);
+                    r.Y = new SvgUnit(r.Y.Type, y);
+                    r.Width = new SvgUnit(r.Width.Type, w);
+                    r.Height = new SvgUnit(r.Height.Type, h);
+                }
+                break;
+            case Tool.Circle:
+                if (_newElement is SvgCircle c)
+                {
+                    var cx = (_newStart.X + current.X) / 2f;
+                    var cy = (_newStart.Y + current.Y) / 2f;
+                    var rVal = Math.Max(Math.Abs(current.X - _newStart.X), Math.Abs(current.Y - _newStart.Y)) / 2f;
+                    if (_snapToGrid)
+                    {
+                        cx = Snap(cx); cy = Snap(cy); rVal = Snap(rVal);
+                    }
+                    c.CenterX = new SvgUnit(c.CenterX.Type, cx);
+                    c.CenterY = new SvgUnit(c.CenterY.Type, cy);
+                    c.Radius = new SvgUnit(c.Radius.Type, rVal);
+                }
+                break;
+            case Tool.Ellipse:
+                if (_newElement is SvgEllipse el)
+                {
+                    var cx = (_newStart.X + current.X) / 2f;
+                    var cy = (_newStart.Y + current.Y) / 2f;
+                    var rx = Math.Abs(current.X - _newStart.X) / 2f;
+                    var ry = Math.Abs(current.Y - _newStart.Y) / 2f;
+                    if (_snapToGrid)
+                    {
+                        cx = Snap(cx); cy = Snap(cy); rx = Snap(rx); ry = Snap(ry);
+                    }
+                    el.CenterX = new SvgUnit(el.CenterX.Type, cx);
+                    el.CenterY = new SvgUnit(el.CenterY.Type, cy);
+                    el.RadiusX = new SvgUnit(el.RadiusX.Type, rx);
+                    el.RadiusY = new SvgUnit(el.RadiusY.Type, ry);
+                }
+                break;
         }
     }
 
@@ -1456,6 +1614,12 @@ public partial class MainWindow : Window
             skSvg.FromSvgDocument(_document);
         SvgView.InvalidateVisual();
     }
+
+    private void SelectToolButton_Click(object? sender, RoutedEventArgs e) => _tool = Tool.Select;
+    private void LineToolButton_Click(object? sender, RoutedEventArgs e) => _tool = Tool.Line;
+    private void RectToolButton_Click(object? sender, RoutedEventArgs e) => _tool = Tool.Rect;
+    private void CircleToolButton_Click(object? sender, RoutedEventArgs e) => _tool = Tool.Circle;
+    private void EllipseToolButton_Click(object? sender, RoutedEventArgs e) => _tool = Tool.Ellipse;
 
     private async void SettingsMenuItem_Click(object? sender, RoutedEventArgs e)
     {

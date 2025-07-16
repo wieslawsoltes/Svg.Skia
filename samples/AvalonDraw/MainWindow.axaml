@@ -30,7 +30,7 @@
             </DrawingBrush.Drawing>
         </DrawingBrush>
     </Window.Resources>
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,Auto,*">
         <Menu Grid.Row="0">
             <MenuItem Header="File">
                 <MenuItem Header="New" Click="NewMenuItem_Click" InputGesture="Ctrl+N"/>
@@ -55,7 +55,14 @@
                 <MenuItem Header="Settings..." Click="SettingsMenuItem_Click"/>
             </MenuItem>
         </Menu>
-        <Grid Grid.Row="1">
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="4">
+            <RadioButton Content="Select" GroupName="tools" IsChecked="True" Click="SelectToolButton_Click" />
+            <RadioButton Content="Line" GroupName="tools" Margin="4,0" Click="LineToolButton_Click" />
+            <RadioButton Content="Rect" GroupName="tools" Margin="4,0" Click="RectToolButton_Click" />
+            <RadioButton Content="Circle" GroupName="tools" Margin="4,0" Click="CircleToolButton_Click" />
+            <RadioButton Content="Ellipse" GroupName="tools" Margin="4,0" Click="EllipseToolButton_Click" />
+        </StackPanel>
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*" />
                 <ColumnDefinition Width="3*" />
