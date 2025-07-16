@@ -67,6 +67,11 @@ public partial class MainWindow : Window
     private Point _treeDragStart;
     private bool _treeDragging;
 
+    private enum DropPosition { None, Inside, Before, After }
+    private Border? _dropIndicator;
+    private SvgNode? _dropTarget;
+    private DropPosition _dropPosition;
+
     private bool _isDragging;
     private Shim.SKPoint _dragStart;
     private SvgVisualElement? _dragElement;
@@ -171,9 +176,11 @@ public partial class MainWindow : Window
         DocumentTree.AddHandler(PointerReleasedEvent, DocumentTree_OnPointerReleased, RoutingStrategies.Tunnel);
         DocumentTree.AddHandler(DragDrop.DropEvent, DocumentTree_OnDrop);
         DocumentTree.AddHandler(DragDrop.DragOverEvent, DocumentTree_OnDragOver);
+        DocumentTree.AddHandler(DragDrop.DragLeaveEvent, DocumentTree_OnDragLeave);
         _tool = Tool.Select;
         _treeMenu = BuildTreeContextMenu();
         DocumentTree.ContextMenu = _treeMenu;
+        _dropIndicator = this.FindControl<Border>("DropIndicator");
         _wireframeEnabled = false;
         _filtersDisabled = false;
         _snapToGrid = false;
@@ -2167,24 +2174,122 @@ public partial class MainWindow : Window
 
     private void DocumentTree_OnDragOver(object? sender, DragEventArgs e)
     {
-        if (e.Data.Contains("SvgNode"))
-            e.DragEffects = DragDropEffects.Move;
+        if (!e.Data.Contains("SvgNode"))
+        {
+            HideDropIndicator();
+            return;
+        }
+
+        e.DragEffects = DragDropEffects.Move;
+
+        var pos = e.GetPosition(DocumentTree);
+        if (DocumentTree.InputHitTest(pos) is Control c)
+        {
+            while (c != null && c.DataContext is not SvgNode && c.Parent is Control p)
+                c = p;
+            if (c is { DataContext: SvgNode node })
+            {
+                var topLeft = c.TranslatePoint(new Point(0, 0), DocumentTree) ?? new Point();
+                var h = c.Bounds.Height;
+                var localY = pos.Y - topLeft.Y;
+                _dropTarget = node;
+                if (localY < h * 0.25)
+                {
+                    _dropPosition = DropPosition.Before;
+                    ShowDropIndicator(topLeft.Y);
+                }
+                else if (localY > h * 0.75)
+                {
+                    _dropPosition = DropPosition.After;
+                    ShowDropIndicator(topLeft.Y + h);
+                }
+                else
+                {
+                    _dropPosition = DropPosition.Inside;
+                    HideDropIndicator();
+                }
+            }
+            else
+            {
+                HideDropIndicator();
+            }
+        }
+        else
+        {
+            HideDropIndicator();
+        }
+    }
+
+    private void DocumentTree_OnDragLeave(object? sender, RoutedEventArgs e)
+    {
+        HideDropIndicator();
+        _dropTarget = null;
+        _dropPosition = DropPosition.None;
     }
 
     private void DocumentTree_OnDrop(object? sender, DragEventArgs e)
     {
-        if (!e.Data.Contains("SvgNode"))
-            return;
-        if (e.Source is Control { DataContext: SvgNode target } && e.Data.Get("SvgNode") is SvgNode node)
+        if (!e.Data.Contains("SvgNode") || _dropTarget is null)
         {
+            HideDropIndicator();
+            return;
+        }
+
+        if (e.Data.Get("SvgNode") is SvgNode node)
+        {
+            var target = _dropTarget;
             if (node == target || IsAncestor(node, target) || node.Parent is null)
+            {
+                HideDropIndicator();
                 return;
+            }
+
             SaveUndoState();
             node.Parent.Element.Children.Remove(node.Element);
-            target.Element.Children.Add(node.Element);
+
+            switch (_dropPosition)
+            {
+                case DropPosition.Before:
+                    if (target.Parent?.Element is SvgElement parentBefore)
+                    {
+                        var index = parentBefore.Children.IndexOf(target.Element);
+                        parentBefore.Children.Insert(index, node.Element);
+                    }
+                    break;
+                case DropPosition.After:
+                    if (target.Parent?.Element is SvgElement parentAfter)
+                    {
+                        var index = parentAfter.Children.IndexOf(target.Element);
+                        parentAfter.Children.Insert(index + 1, node.Element);
+                    }
+                    break;
+                default:
+                    target.Element.Children.Add(node.Element);
+                    break;
+            }
+
             BuildTree();
             SelectNodeFromElement(node.Element);
         }
+
+        HideDropIndicator();
+        _dropTarget = null;
+        _dropPosition = DropPosition.None;
+    }
+
+    private void ShowDropIndicator(double y)
+    {
+        if (_dropIndicator is null)
+            return;
+        _dropIndicator.Margin = new Thickness(0, y - 1, 0, 0);
+        _dropIndicator.IsVisible = true;
+    }
+
+    private void HideDropIndicator()
+    {
+        if (_dropIndicator is null)
+            return;
+        _dropIndicator.IsVisible = false;
     }
 
 }

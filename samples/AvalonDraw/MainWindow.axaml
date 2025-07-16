@@ -78,16 +78,17 @@
                     BorderThickness="0,0,1,0">
                 <DockPanel>
                     <TextBox x:Name="FilterBox" Margin="4" Watermark="Filter" KeyUp="FilterBox_OnKeyUp" DockPanel.Dock="Top" />
-                    <TreeView x:Name="DocumentTree"
-                              Margin="0,4,0,0"
-                              ItemsSource="{Binding Nodes}"
-                              SelectionChanged="DocumentTree_OnSelectionChanged">
-                        <TreeView.ItemTemplate>
-                            <TreeDataTemplate DataType="{x:Type local:SvgNode}"
-                                              ItemsSource="{Binding Children}">
-                                <DockPanel>
-                                    <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
-                                    <ToggleButton DockPanel.Dock="Right"
+                    <Grid>
+                        <TreeView x:Name="DocumentTree"
+                                  Margin="0,4,0,0"
+                                  ItemsSource="{Binding Nodes}"
+                                  SelectionChanged="DocumentTree_OnSelectionChanged">
+                            <TreeView.ItemTemplate>
+                                <TreeDataTemplate DataType="{x:Type local:SvgNode}"
+                                                  ItemsSource="{Binding Children}">
+                                    <DockPanel>
+                                        <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
+                                        <ToggleButton DockPanel.Dock="Right"
                                                   IsChecked="{Binding IsVisible}"
                                                   Click="VisibilityToggle_Click"
                                                   Width="16" Height="16" Margin="4,0,0,0">
@@ -96,7 +97,15 @@
                                 </DockPanel>
                             </TreeDataTemplate>
                         </TreeView.ItemTemplate>
-                    </TreeView>
+                        </TreeView>
+                        <Border x:Name="DropIndicator"
+                                Background="#0078D7"
+                                Height="2"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Top"
+                                IsHitTestVisible="False"
+                                IsVisible="False"/>
+                    </Grid>
                 </DockPanel>
             </Border>
             <GridSplitter Grid.Column="0" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
