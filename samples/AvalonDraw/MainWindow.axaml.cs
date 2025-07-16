@@ -107,15 +107,17 @@ public partial class MainWindow : Window
         {
             if (entry.Options is { } opts)
             {
-                var combo = new ComboBox { ItemsSource = opts };
-                combo[!ComboBox.SelectedItemProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };
-                return combo;
+                var box = new AutoCompleteBox { ItemsSource = opts, MinimumPrefixLength = 0 };
+                box[!AutoCompleteBox.TextProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };
+                box.GotFocus += (_, _) => box.IsDropDownOpen = true;
+                return box;
             }
             if (entry.Suggestions is { } sugg)
             {
-                var combo = new ComboBox { ItemsSource = sugg };
-                combo[!ComboBox.SelectedItemProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };
-                return combo;
+                var box = new AutoCompleteBox { ItemsSource = sugg, MinimumPrefixLength = 0 };
+                box[!AutoCompleteBox.TextProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };
+                box.GotFocus += (_, _) => box.IsDropDownOpen = true;
+                return box;
             }
             var tb = new TextBox();
             tb[!TextBox.TextProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Interactivity;
 
 namespace AvalonDraw;
 
@@ -30,5 +31,11 @@ public partial class InsertElementWindow : Window
     private void CancelButton_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         Close(null);
+    }
+
+    private void ElementList_OnGotFocus(object? sender, Avalonia.Input.GotFocusEventArgs e)
+    {
+        if (ElementList is AutoCompleteBox box)
+            box.IsDropDownOpen = true;
     }
 }
