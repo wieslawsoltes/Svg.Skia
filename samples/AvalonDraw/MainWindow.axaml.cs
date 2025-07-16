@@ -1379,6 +1379,70 @@ public partial class MainWindow : Window
             _selectedSvgElement = null;
             DocumentTree.SelectedItem = null;
             SvgView.InvalidateVisual();
+            e.Handled = true;
+            return;
+        }
+
+        var ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control);
+        if (ctrl)
+        {
+            switch (e.Key)
+            {
+                case Key.N:
+                    NewMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.O:
+                    OpenMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.S:
+                    SaveMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.E:
+                    ExportElementMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.T:
+                    EditTextMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.I:
+                    InsertElementMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.C:
+                    CopyElementMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.V:
+                    PasteElementMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.Z:
+                    UndoMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.Y:
+                    RedoMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+            }
+        }
+        else
+        {
+            switch (e.Key)
+            {
+                case Key.Delete:
+                    RemoveElementMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.F5:
+                    PreviewMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+            }
         }
     }
 
