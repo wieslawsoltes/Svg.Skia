@@ -316,7 +316,7 @@ public partial class MainWindow : Window
                 }
             }
             var entry = new PropertyEntry(prop.GetCustomAttribute<SvgAttributeAttribute>()!.Name, prop, str);
-            if (converter is UriTypeConverter || prop.PropertyType == typeof(Uri))
+            if (IsUriProperty(prop))
                 entry.Suggestions = Ids;
             entry.PropertyChanged += PropertyEntryOnPropertyChanged;
             Properties.Add(entry);
@@ -867,6 +867,21 @@ public partial class MainWindow : Window
         return (float)(Math.Round(value / _gridSize) * _gridSize);
     }
 
+    private static bool IsUriProperty(PropertyInfo prop)
+    {
+        if (prop.PropertyType == typeof(Uri) || typeof(SvgPaintServer).IsAssignableFrom(prop.PropertyType))
+            return true;
+        var tc = prop.GetCustomAttribute<TypeConverterAttribute>();
+        if (tc != null && tc.ConverterTypeName == typeof(UriTypeConverter).FullName)
+            return true;
+        if (prop.Name.Contains("Href", StringComparison.OrdinalIgnoreCase))
+            return true;
+        var svgAttr = prop.GetCustomAttribute<SvgAttributeAttribute>();
+        if (svgAttr != null && svgAttr.Name.Contains("href", StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
     private void ResizeElement(SvgVisualElement element, int handle, float dx, float dy)
     {
         switch (element)
@@ -1013,7 +1028,7 @@ public partial class MainWindow : Window
             _value = value;
             if (property.PropertyType.IsEnum)
                 Options = Enum.GetNames(property.PropertyType);
-            else if (_converter is UriTypeConverter || property.PropertyType == typeof(Uri))
+            else if (IsUriProperty(property))
                 Suggestions = null; // filled later
         }
 
