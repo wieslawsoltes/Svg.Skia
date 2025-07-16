@@ -13,6 +13,7 @@
                 <MenuItem Header="New" Click="NewMenuItem_Click" />
                 <MenuItem Header="Open..." Click="OpenMenuItem_Click" />
                 <MenuItem Header="Save..." Click="SaveMenuItem_Click" />
+                <MenuItem Header="Export Element..." Click="ExportElementMenuItem_Click" />
                 <MenuItem Header="Preview" Click="PreviewMenuItem_Click" />
                 <MenuItem Header="Edit Text" Click="EditTextMenuItem_Click" />
             </MenuItem>

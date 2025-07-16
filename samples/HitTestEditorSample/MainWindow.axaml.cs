@@ -160,6 +160,36 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void ExportElementMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_selectedDrawable is null || SvgView.SkSvg is null)
+            return;
+        var dialog = new SaveFileDialog
+        {
+            Filters = new()
+            {
+                new FileDialogFilter { Name = "PNG", Extensions = { "png" } },
+                new FileDialogFilter { Name = "All", Extensions = { "*" } }
+            },
+            DefaultExtension = "png"
+        };
+        var path = await dialog.ShowAsync(this);
+        if (string.IsNullOrEmpty(path))
+            return;
+
+        var bounds = _selectedDrawable.TransformedBounds;
+        if (!(bounds.Width > 0) || !(bounds.Height > 0))
+            return;
+
+        var picture = _selectedDrawable.Snapshot(bounds);
+        var skPicture = SvgView.SkSvg!.SkiaModel.ToSKPicture(picture);
+        if (skPicture is null)
+            return;
+        using var stream = File.OpenWrite(path);
+        skPicture.ToImage(stream, SK.SKColors.Transparent, SK.SKEncodedImageFormat.Png, 100, 1f, 1f,
+            SK.SKColorType.Rgba8888, SK.SKAlphaType.Premul, SvgView.SkSvg.Settings.Srgb);
+    }
+
     private void Window_OnDragOver(object? sender, DragEventArgs e)
     {
         if (e.Data.Contains(DataFormats.FileNames))
