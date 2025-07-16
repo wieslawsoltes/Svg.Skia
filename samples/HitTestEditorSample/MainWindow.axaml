@@ -26,6 +26,10 @@
                 <MenuItem Header="Undo" Click="UndoMenuItem_Click" HotKey="Ctrl+Z"/>
                 <MenuItem Header="Redo" Click="RedoMenuItem_Click" HotKey="Ctrl+Y"/>
             </MenuItem>
+            <MenuItem Header="View">
+                <MenuItem Header="Wireframe" Click="WireframeMenuItem_Click"/>
+                <MenuItem Header="Disable Filters" Click="FiltersMenuItem_Click"/>
+            </MenuItem>
         </Menu>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>

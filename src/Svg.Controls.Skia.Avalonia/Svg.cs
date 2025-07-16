@@ -25,6 +25,7 @@ public class Svg : Control
     private SvgSource? _svg;
     private bool _enableCache;
     private bool _wireframe;
+    private bool _disableFilters;
     private Dictionary<string, SvgSource>? _cache;
 
     /// <summary>
@@ -68,6 +69,14 @@ public class Svg : Control
         AvaloniaProperty.RegisterDirect<Svg, bool>(nameof(Wireframe),
             o => o.Wireframe,
             (o, v) => o.Wireframe = v);
+
+    /// <summary>
+    /// Defines the <see cref="DisableFilters"/> property.
+    /// </summary>
+    public static readonly DirectProperty<Svg, bool> DisableFiltersProperty =
+        AvaloniaProperty.RegisterDirect<Svg, bool>(nameof(DisableFilters),
+            o => o.DisableFilters,
+            (o, v) => o.DisableFilters = v);
 
     /// <summary>
     /// Defines the Css property.
@@ -134,6 +143,15 @@ public class Svg : Control
     {
         get { return _wireframe; }
         set { SetAndRaise(WireframeProperty, ref _wireframe, value); }
+    }
+
+    /// <summary>
+    /// Gets or sets a value controlling whether SVG filters are rendered.
+    /// </summary>
+    public bool DisableFilters
+    {
+        get { return _disableFilters; }
+        set { SetAndRaise(DisableFiltersProperty, ref _disableFilters, value); }
     }
 
     /// <summary>
@@ -402,6 +420,15 @@ public class Svg : Control
             }
             InvalidateVisual();
         }
+
+        if (change.Property == DisableFiltersProperty)
+        {
+            if (_svg?.Svg is { } skSvg)
+            {
+                skSvg.IgnoreAttributes = change.GetNewValue<bool>() ? DrawAttributes.Filter : DrawAttributes.None;
+            }
+            InvalidateVisual();
+        }
     }
 
     private void LoadFromPath(string? path, SvgParameters? parameters = null)
@@ -420,6 +447,7 @@ public class Svg : Control
             if (_svg.Svg is { } skSvg)
             {
                 skSvg.Wireframe = _wireframe;
+                skSvg.IgnoreAttributes = _disableFilters ? DrawAttributes.Filter : DrawAttributes.None;
                 skSvg.ClearWireframePicture();
             }
             return;
@@ -437,6 +465,7 @@ public class Svg : Control
             if (_svg?.Svg is { } skSvg2)
             {
                 skSvg2.Wireframe = _wireframe;
+                skSvg2.IgnoreAttributes = _disableFilters ? DrawAttributes.Filter : DrawAttributes.None;
                 skSvg2.ClearWireframePicture();
             }
 
@@ -470,6 +499,7 @@ public class Svg : Control
             if (_svg?.Svg is { } skSvg)
             {
                 skSvg.Wireframe = _wireframe;
+                skSvg.IgnoreAttributes = _disableFilters ? DrawAttributes.Filter : DrawAttributes.None;
                 skSvg.ClearWireframePicture();
             }
         }

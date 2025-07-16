@@ -18,6 +18,7 @@ using SK = SkiaSharp;
 using Shim = ShimSkiaSharp;
 using Svg;
 using Svg.Skia;
+using Svg.Model;
 using Svg.Model.Drawables;
 using Svg.Model.Services;
 using Svg.Transforms;
@@ -37,6 +38,9 @@ public partial class MainWindow : Window
 
     private SvgElement? _clipboard;
     private string? _clipboardXml;
+
+    private bool _wireframeEnabled;
+    private bool _filtersDisabled;
 
     private readonly SK.SKColor _boundsColor = SK.SKColors.Red;
 
@@ -87,6 +91,11 @@ public partial class MainWindow : Window
         DocumentTree.AddHandler(PointerMovedEvent, DocumentTree_OnPointerMoved, RoutingStrategies.Tunnel);
         DocumentTree.AddHandler(DragDrop.DropEvent, DocumentTree_OnDrop);
         DocumentTree.AddHandler(DragDrop.DragOverEvent, DocumentTree_OnDragOver);
+        _wireframeEnabled = false;
+        _filtersDisabled = false;
+        SvgView.Wireframe = false;
+        if (SvgView.SkSvg is { } initSvg)
+            initSvg.IgnoreAttributes = DrawAttributes.None;
         LoadDocument("Assets/__tiger.svg");
     }
 
@@ -1060,6 +1069,25 @@ public partial class MainWindow : Window
             return;
         var win = new PreviewWindow(_document);
         await win.ShowDialog(this);
+    }
+
+    private void WireframeMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        _wireframeEnabled = !_wireframeEnabled;
+        SvgView.Wireframe = _wireframeEnabled;
+        SvgView.InvalidateVisual();
+    }
+
+    private void FiltersMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        _filtersDisabled = !_filtersDisabled;
+        if (SvgView.SkSvg is { } skSvg)
+        {
+            skSvg.IgnoreAttributes = _filtersDisabled ? DrawAttributes.Filter : DrawAttributes.None;
+            if (_document is { })
+                skSvg.FromSvgDocument(_document);
+        }
+        SvgView.InvalidateVisual();
     }
 
     private void MainWindow_OnKeyDown(object? sender, KeyEventArgs e)
