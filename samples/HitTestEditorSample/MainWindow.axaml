@@ -20,6 +20,8 @@
             <MenuItem Header="Edit">
                 <MenuItem Header="Insert Element" Click="InsertElementMenuItem_Click" HotKey="Ctrl+I"/>
                 <MenuItem Header="Remove Element" Click="RemoveElementMenuItem_Click" HotKey="Delete"/>
+                <MenuItem Header="Copy Element" Click="CopyElementMenuItem_Click" HotKey="Ctrl+C"/>
+                <MenuItem Header="Paste Element" Click="PasteElementMenuItem_Click" HotKey="Ctrl+V"/>
                 <Separator />
                 <MenuItem Header="Undo" Click="UndoMenuItem_Click" HotKey="Ctrl+Z"/>
                 <MenuItem Header="Redo" Click="RedoMenuItem_Click" HotKey="Ctrl+Y"/>

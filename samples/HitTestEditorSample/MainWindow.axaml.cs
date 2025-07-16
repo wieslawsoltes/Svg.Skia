@@ -35,6 +35,9 @@ public partial class MainWindow : Window
     private ObservableCollection<SvgNode> Nodes { get; } = new();
     private readonly HashSet<string> _expandedIds = new();
 
+    private SvgElement? _clipboard;
+    private string? _clipboardXml;
+
     private readonly SK.SKColor _boundsColor = SK.SKColors.Red;
 
     private readonly Stack<string> _undo = new();
@@ -1003,6 +1006,28 @@ public partial class MainWindow : Window
             BuildTree();
             SvgView.InvalidateVisual();
         }
+    }
+
+    private void CopyElementMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_selectedSvgElement is null)
+            return;
+        _clipboard = (SvgElement)_selectedSvgElement.DeepCopy();
+        _clipboardXml = _selectedSvgElement.GetXML();
+    }
+
+    private void PasteElementMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_document is null || _clipboard is null)
+            return;
+
+        SaveUndoState();
+        var parent = _selectedSvgElement?.Parent as SvgElement ?? _document;
+        var clone = (SvgElement)_clipboard.DeepCopy();
+        parent.Children.Add(clone);
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        BuildTree();
+        SelectNodeFromElement(clone);
     }
 
     private void NewMenuItem_Click(object? sender, RoutedEventArgs e)
