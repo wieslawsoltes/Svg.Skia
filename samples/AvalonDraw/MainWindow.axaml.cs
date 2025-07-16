@@ -103,11 +103,6 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
-        InitializeComponent();
-#if DEBUG
-        this.AttachDevTools();
-#endif
-        DataContext = this;
         Resources["PropertyEditorTemplate"] = new FuncDataTemplate<PropertyEntry>((entry, ns) =>
         {
             if (entry.Options is { } opts)
@@ -126,6 +121,11 @@ public partial class MainWindow : Window
             tb[!TextBox.TextProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };
             return tb;
         }, true);
+        InitializeComponent();
+#if DEBUG
+        this.AttachDevTools();
+#endif
+        DataContext = this;
         AddHandler(DragDrop.DragOverEvent, Window_OnDragOver);
         AddHandler(DragDrop.DropEvent, Window_OnDrop);
         KeyDown += MainWindow_OnKeyDown;
