@@ -87,6 +87,10 @@ public partial class MainWindow : Window
     private bool _isPanning;
     private Point _panStart;
 
+    private List<SvgVisualElement> _hitElements = new();
+    private SK.SKPoint _lastHitPoint;
+    private int _hitIndex;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -360,15 +364,32 @@ public partial class MainWindow : Window
                 }
             }
 
-            _selectedDrawable = skSvg.HitTestDrawables(pp).FirstOrDefault();
-            _selectedElement = skSvg.HitTestElements(pp).OfType<SvgVisualElement>().FirstOrDefault();
-            _selectedSvgElement = _selectedElement;
-            if (_selectedSvgElement is { })
+            var hits = skSvg.HitTestElements(pp).OfType<SvgVisualElement>().ToList();
+            if (hits.Count > 0)
             {
+                if (Math.Abs(pp.X - _lastHitPoint.X) < 1 && Math.Abs(pp.Y - _lastHitPoint.Y) < 1)
+                {
+                    var idx = hits.IndexOf(_selectedElement!);
+                    _hitIndex = idx >= 0 ? (idx + 1) % hits.Count : 0;
+                }
+                else
+                {
+                    _hitIndex = 0;
+                    _lastHitPoint = new SK.SKPoint(pp.X, pp.Y);
+                }
+                _hitElements = hits;
+                _selectedElement = _hitElements[_hitIndex];
+                _selectedDrawable = skSvg.HitTestDrawables(pp).FirstOrDefault(d => d.Element == _selectedElement);
+                _selectedSvgElement = _selectedElement;
                 LoadProperties(_selectedSvgElement);
                 SelectNodeFromElement(_selectedSvgElement);
-                if (_selectedElement is { })
-                    TryStartDrag(_selectedElement, new Shim.SKPoint(pp.X, pp.Y), e);
+                TryStartDrag(_selectedElement, new Shim.SKPoint(pp.X, pp.Y), e);
+            }
+            else
+            {
+                _selectedDrawable = skSvg.HitTestDrawables(pp).FirstOrDefault();
+                _selectedElement = null;
+                _selectedSvgElement = null;
             }
             UpdateSelectedDrawable();
             SvgView.InvalidateVisual();
