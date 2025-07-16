@@ -112,7 +112,16 @@
                                     ItemsSource="{Binding Properties}">
                         <dgrid:DataGrid.Columns>
                             <dgrid:DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True" Width="*"/>
-                            <dgrid:DataGridTextColumn Header="Value" Binding="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                            <dgrid:DataGridTemplateColumn Header="Value" Width="*">
+                                <dgrid:DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Value}"/>
+                                    </DataTemplate>
+                                </dgrid:DataGridTemplateColumn.CellTemplate>
+                                <dgrid:DataGridTemplateColumn.CellEditingTemplate>
+                                    <StaticResource ResourceKey="PropertyEditorTemplate"/>
+                                </dgrid:DataGridTemplateColumn.CellEditingTemplate>
+                            </dgrid:DataGridTemplateColumn>
                         </dgrid:DataGrid.Columns>
                     </dgrid:DataGrid>
                 </DockPanel>

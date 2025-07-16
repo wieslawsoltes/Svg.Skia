@@ -13,6 +13,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
+using Avalonia.Data;
+using Avalonia.Controls.Templates;
 using Avalonia.Media;
 using Avalonia.Svg.Skia;
 using SK = SkiaSharp;
@@ -35,6 +37,7 @@ public partial class MainWindow : Window
 
     private ObservableCollection<PropertyEntry> Properties { get; } = new();
     private ObservableCollection<SvgNode> Nodes { get; } = new();
+    private ObservableCollection<string> Ids { get; } = new();
     private readonly HashSet<string> _expandedIds = new();
     private HashSet<string> _filterBackup = new();
 
@@ -105,6 +108,24 @@ public partial class MainWindow : Window
         this.AttachDevTools();
 #endif
         DataContext = this;
+        Resources["PropertyEditorTemplate"] = new FuncDataTemplate<PropertyEntry>((entry, ns) =>
+        {
+            if (entry.Options is { } opts)
+            {
+                var combo = new ComboBox { ItemsSource = opts };
+                combo[!ComboBox.SelectedItemProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };
+                return combo;
+            }
+            if (entry.Suggestions is { } sugg)
+            {
+                var combo = new ComboBox { ItemsSource = sugg };
+                combo[!ComboBox.SelectedItemProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };
+                return combo;
+            }
+            var tb = new TextBox();
+            tb[!TextBox.TextProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };
+            return tb;
+        }, true);
         AddHandler(DragDrop.DragOverEvent, Window_OnDragOver);
         AddHandler(DragDrop.DropEvent, Window_OnDrop);
         KeyDown += MainWindow_OnKeyDown;
@@ -292,6 +313,8 @@ public partial class MainWindow : Window
                 }
             }
             var entry = new PropertyEntry(prop.GetCustomAttribute<SvgAttributeAttribute>()!.Name, prop, str);
+            if (converter is UriTypeConverter || prop.PropertyType == typeof(Uri))
+                entry.Suggestions = Ids;
             entry.PropertyChanged += PropertyEntryOnPropertyChanged;
             Properties.Add(entry);
         }
@@ -604,6 +627,7 @@ public partial class MainWindow : Window
             entry.Apply(_selectedSvgElement);
             SvgView.SkSvg!.FromSvgDocument(_document);
             UpdateSelectedDrawable();
+            UpdateIdList();
             SvgView.InvalidateVisual();
         }
     }
@@ -956,6 +980,9 @@ public partial class MainWindow : Window
         private readonly TypeConverter? _converter;
         private string? _value;
 
+        public IEnumerable<string>? Options { get; init; }
+        public IEnumerable<string>? Suggestions { get; set; }
+
         public string? Value
         {
             get => _value;
@@ -975,6 +1002,10 @@ public partial class MainWindow : Window
             Property = property;
             _converter = TypeDescriptor.GetConverter(property.PropertyType);
             _value = value;
+            if (property.PropertyType.IsEnum)
+                Options = Enum.GetNames(property.PropertyType);
+            else if (_converter is UriTypeConverter || property.PropertyType == typeof(Uri))
+                Suggestions = null; // filled later
         }
 
         private PropertyEntry(string name, string? value, Action<object, string?> setter)
@@ -1011,6 +1042,7 @@ public partial class MainWindow : Window
 
     private void BuildTree()
     {
+        UpdateIdList();
         Nodes.Clear();
         if (_document is { })
         {
@@ -1038,6 +1070,18 @@ public partial class MainWindow : Window
                 UpdateSelectedDrawable();
             SvgView.InvalidateVisual();
         });
+    }
+
+    private void UpdateIdList()
+    {
+        Ids.Clear();
+        if (_document is null)
+            return;
+        foreach (var el in _document.Descendants().OfType<SvgElement>())
+        {
+            if (!string.IsNullOrEmpty(el.ID))
+                Ids.Add($"url(#{el.ID})");
+        }
     }
 
     private SvgNode CreateNode(SvgElement element, SvgNode? parent = null)
@@ -1574,6 +1618,7 @@ public partial class MainWindow : Window
             SelectNodeFromElement(node.Element);
         }
     }
+
 }
 
 public class SvgNode
