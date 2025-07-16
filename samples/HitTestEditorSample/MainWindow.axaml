@@ -10,19 +10,19 @@
     <Grid RowDefinitions="Auto,*">
         <Menu Grid.Row="0">
             <MenuItem Header="File">
-                <MenuItem Header="New" Click="NewMenuItem_Click" />
-                <MenuItem Header="Open..." Click="OpenMenuItem_Click" />
-                <MenuItem Header="Save..." Click="SaveMenuItem_Click" />
-                <MenuItem Header="Export Element..." Click="ExportElementMenuItem_Click" />
-                <MenuItem Header="Preview" Click="PreviewMenuItem_Click" />
-                <MenuItem Header="Edit Text" Click="EditTextMenuItem_Click" />
+                <MenuItem Header="New" Click="NewMenuItem_Click" HotKey="Ctrl+N"/>
+                <MenuItem Header="Open..." Click="OpenMenuItem_Click" HotKey="Ctrl+O"/>
+                <MenuItem Header="Save..." Click="SaveMenuItem_Click" HotKey="Ctrl+S"/>
+                <MenuItem Header="Export Element..." Click="ExportElementMenuItem_Click" HotKey="Ctrl+E"/>
+                <MenuItem Header="Preview" Click="PreviewMenuItem_Click" HotKey="F5"/>
+                <MenuItem Header="Edit Text" Click="EditTextMenuItem_Click" HotKey="Ctrl+T"/>
             </MenuItem>
             <MenuItem Header="Edit">
-                <MenuItem Header="Insert Element" Click="InsertElementMenuItem_Click" />
-                <MenuItem Header="Remove Element" Click="RemoveElementMenuItem_Click" />
+                <MenuItem Header="Insert Element" Click="InsertElementMenuItem_Click" HotKey="Ctrl+I"/>
+                <MenuItem Header="Remove Element" Click="RemoveElementMenuItem_Click" HotKey="Delete"/>
                 <Separator />
-                <MenuItem Header="Undo" Click="UndoMenuItem_Click" />
-                <MenuItem Header="Redo" Click="RedoMenuItem_Click" />
+                <MenuItem Header="Undo" Click="UndoMenuItem_Click" HotKey="Ctrl+Z"/>
+                <MenuItem Header="Redo" Click="RedoMenuItem_Click" HotKey="Ctrl+Y"/>
             </MenuItem>
         </Menu>
         <Grid Grid.Row="1">
@@ -32,17 +32,20 @@
                 <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
 
-            <TreeView x:Name="DocumentTree"
-                      Grid.Column="0"
-                      ItemsSource="{Binding Nodes}"
-                      SelectionChanged="DocumentTree_OnSelectionChanged">
-                <TreeView.ItemTemplate>
-                    <TreeDataTemplate DataType="{x:Type local:SvgNode}"
-                                      ItemsSource="{Binding Children}">
-                        <TextBlock Text="{Binding Label}"/>
-                    </TreeDataTemplate>
-                </TreeView.ItemTemplate>
-            </TreeView>
+            <StackPanel Grid.Column="0">
+                <TextBox x:Name="FilterBox" Margin="2" Watermark="Filter" KeyUp="FilterBox_OnKeyUp" />
+                <TreeView x:Name="DocumentTree"
+                          Margin="0,4,0,0"
+                          ItemsSource="{Binding Nodes}"
+                          SelectionChanged="DocumentTree_OnSelectionChanged">
+                    <TreeView.ItemTemplate>
+                        <TreeDataTemplate DataType="{x:Type local:SvgNode}"
+                                          ItemsSource="{Binding Children}">
+                            <TextBlock Text="{Binding Label}"/>
+                        </TreeDataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
+            </StackPanel>
             <GridSplitter Grid.Column="0" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
             <svg:Svg x:Name="SvgView"
                      Grid.Column="1"

@@ -43,6 +43,9 @@ public partial class MainWindow : Window
         .Where(t => t.IsSubclassOf(typeof(SvgElement)) && !t.IsAbstract)
         .OrderBy(t => t.Name).ToList();
 
+    private string _filter = string.Empty;
+    private SvgNode? _dragNode;
+
     private bool _isDragging;
     private Shim.SKPoint _dragStart;
     private SvgVisualElement? _dragElement;
@@ -76,6 +79,11 @@ public partial class MainWindow : Window
         DataContext = this;
         AddHandler(DragDrop.DragOverEvent, Window_OnDragOver);
         AddHandler(DragDrop.DropEvent, Window_OnDrop);
+        KeyDown += MainWindow_OnKeyDown;
+        DocumentTree.AddHandler(PointerPressedEvent, DocumentTree_OnPointerPressed, RoutingStrategies.Tunnel);
+        DocumentTree.AddHandler(PointerMovedEvent, DocumentTree_OnPointerMoved, RoutingStrategies.Tunnel);
+        DocumentTree.AddHandler(DragDrop.DropEvent, DocumentTree_OnDrop);
+        DocumentTree.AddHandler(DragDrop.DragOverEvent, DocumentTree_OnDragOver);
         LoadDocument("Assets/__tiger.svg");
     }
 
@@ -243,6 +251,17 @@ public partial class MainWindow : Window
             var entry = new PropertyEntry(prop.GetCustomAttribute<SvgAttributeAttribute>()!.Name, prop, str);
             entry.PropertyChanged += PropertyEntryOnPropertyChanged;
             Properties.Add(entry);
+        }
+        if (element is SvgTextBase txt)
+        {
+            var prop = element.GetType().GetProperty(nameof(SvgTextBase.Text));
+            if (prop is { })
+            {
+                var value = txt.Text;
+                var entry = new PropertyEntry("Text", prop, value);
+                entry.PropertyChanged += PropertyEntryOnPropertyChanged;
+                Properties.Add(entry);
+            }
         }
     }
 
@@ -599,6 +618,9 @@ public partial class MainWindow : Window
             case SvgUse use:
                 ResizeBox((dynamic)element, handle, dx, dy);
                 break;
+            case SvgCircle circle:
+                ResizeCircle(circle, handle, dx, dy);
+                break;
         }
 
         void ResizeBox(dynamic el, int h, float ddx, float ddy)
@@ -622,6 +644,31 @@ public partial class MainWindow : Window
             el.Y = new SvgUnit(el.Y.Type, y);
             el.Width = new SvgUnit(el.Width.Type, w);
             el.Height = new SvgUnit(el.Height.Type, hgt);
+        }
+
+        void ResizeCircle(SvgCircle c, int h, float ddx, float ddy)
+        {
+            float x = _startRect.Left;
+            float y = _startRect.Top;
+            float w = _startRect.Width;
+            float hgt = _startRect.Height;
+            switch (h)
+            {
+                case 0: x += ddx; y += ddy; w = _startRect.Right - x; hgt = _startRect.Bottom - y; break;
+                case 1: y += ddy; hgt = _startRect.Bottom - y; break;
+                case 2: y += ddy; w += ddx; hgt = _startRect.Bottom - y; break;
+                case 3: w += ddx; break;
+                case 4: w += ddx; hgt += ddy; break;
+                case 5: hgt += ddy; break;
+                case 6: x += ddx; w = _startRect.Right - x; hgt += ddy; break;
+                case 7: x += ddx; w = _startRect.Right - x; break;
+            }
+            var cx = x + w / 2f;
+            var cy = y + hgt / 2f;
+            var r = Math.Max(w, hgt) / 2f;
+            c.CenterX = new SvgUnit(c.CenterX.Type, cx);
+            c.CenterY = new SvgUnit(c.CenterY.Type, cy);
+            c.Radius = new SvgUnit(c.Radius.Type, r);
         }
     }
 
@@ -702,7 +749,11 @@ public partial class MainWindow : Window
     {
         Nodes.Clear();
         if (_document is { })
-            Nodes.Add(CreateNode(_document, null));
+        {
+            var node = CreateNodeFiltered(_document, null);
+            if (node is not null)
+                Nodes.Add(node);
+        }
         Dispatcher.UIThread.Post(() =>
         {
             RestoreExpandedNodes();
@@ -731,6 +782,29 @@ public partial class MainWindow : Window
         foreach (var child in element.Children.OfType<SvgElement>())
             node.Children.Add(CreateNode(child, node));
         return node;
+    }
+
+    private SvgNode? CreateNodeFiltered(SvgElement element, SvgNode? parent)
+    {
+        bool Match(SvgElement el)
+        {
+            if (string.IsNullOrEmpty(_filter))
+                return true;
+            return (!string.IsNullOrEmpty(el.ID) && el.ID.Contains(_filter, StringComparison.OrdinalIgnoreCase)) ||
+                   el.GetType().Name.Contains(_filter, StringComparison.OrdinalIgnoreCase);
+        }
+
+        var node = new SvgNode(element, parent);
+        foreach (var child in element.Children.OfType<SvgElement>())
+        {
+            var childNode = CreateNodeFiltered(child, node);
+            if (childNode is not null)
+                node.Children.Add(childNode);
+        }
+
+        if (Match(element) || node.Children.Count > 0)
+            return node;
+        return null;
     }
 
     private DrawableBase? FindDrawable(DrawableBase drawable, SvgElement element)
@@ -851,6 +925,18 @@ public partial class MainWindow : Window
         }
     }
 
+    private static bool IsAncestor(SvgNode parent, SvgNode child)
+    {
+        var p = child.Parent;
+        while (p is not null)
+        {
+            if (p == parent)
+                return true;
+            p = p.Parent;
+        }
+        return false;
+    }
+
     private void SaveUndoState()
     {
         if (_document is null)
@@ -949,6 +1035,65 @@ public partial class MainWindow : Window
             return;
         var win = new PreviewWindow(_document);
         await win.ShowDialog(this);
+    }
+
+    private void MainWindow_OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            _selectedDrawable = null;
+            _selectedElement = null;
+            _selectedSvgElement = null;
+            DocumentTree.SelectedItem = null;
+            SvgView.InvalidateVisual();
+        }
+    }
+
+    private void FilterBox_OnKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (sender is TextBox tb)
+        {
+            _filter = tb.Text ?? string.Empty;
+            SaveExpandedNodes();
+            BuildTree();
+        }
+    }
+
+    private void DocumentTree_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        _dragNode = DocumentTree.SelectedItem as SvgNode;
+    }
+
+    private async void DocumentTree_OnPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_dragNode is { } node && e.GetCurrentPoint(DocumentTree).Properties.IsLeftButtonPressed)
+        {
+            var data = new DataObject();
+            data.Set("SvgNode", node);
+            await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+        }
+    }
+
+    private void DocumentTree_OnDragOver(object? sender, DragEventArgs e)
+    {
+        if (e.Data.Contains("SvgNode"))
+            e.DragEffects = DragDropEffects.Move;
+    }
+
+    private void DocumentTree_OnDrop(object? sender, DragEventArgs e)
+    {
+        if (!e.Data.Contains("SvgNode"))
+            return;
+        if (e.Source is Control { DataContext: SvgNode target } && e.Data.Get("SvgNode") is SvgNode node)
+        {
+            if (node == target || IsAncestor(node, target) || node.Parent is null)
+                return;
+            SaveUndoState();
+            node.Parent.Element.Children.Remove(node.Element);
+            target.Element.Children.Add(node.Element);
+            BuildTree();
+            SelectNodeFromElement(node.Element);
+        }
     }
 }
 
