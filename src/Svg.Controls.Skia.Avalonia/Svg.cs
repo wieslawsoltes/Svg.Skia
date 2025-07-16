@@ -217,14 +217,17 @@ public class Svg : Control
     public void ZoomToPoint(double newZoom, Point point)
     {
         var oldZoom = _zoom;
+
         if (newZoom < 0.1)
             newZoom = 0.1;
         if (newZoom > 10)
             newZoom = 10;
 
+        var zoomFactor = newZoom / oldZoom;
+
         // adjust pan so that the supplied point remains under the cursor
-        _panX += point.X * (1.0 / newZoom - 1.0 / oldZoom);
-        _panY += point.Y * (1.0 / newZoom - 1.0 / oldZoom);
+        _panX = point.X - (point.X - _panX) * zoomFactor;
+        _panY = point.Y - (point.Y - _panY) * zoomFactor;
 
         SetAndRaise(PanXProperty, ref _panX, _panX);
         SetAndRaise(PanYProperty, ref _panY, _panY);
