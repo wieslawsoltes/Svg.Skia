@@ -13,6 +13,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
+using Avalonia.Media;
 using Avalonia.Svg.Skia;
 using SK = SkiaSharp;
 using Shim = ShimSkiaSharp;
@@ -156,6 +157,10 @@ public partial class MainWindow : Window
             skSvg2.FromSvgDocument(_document);
             skSvg2.OnDraw += SvgView_OnDraw;
         }
+
+        SvgView.Zoom = 1.0;
+        SvgView.PanX = 0;
+        SvgView.PanY = 0;
 
         SaveExpandedNodes();
         BuildTree();
@@ -688,6 +693,23 @@ public partial class MainWindow : Window
         public SK.SKPoint Center, RotHandle;
     }
 
+    private float GetCanvasScale()
+    {
+        if (SvgView.SkSvg?.Picture is { } pic)
+        {
+            var viewPort = new Rect(SvgView.Bounds.Size);
+            var sourceSize = new Size(pic.CullRect.Width, pic.CullRect.Height);
+            var scale = SvgView.Stretch.CalculateScaling(SvgView.Bounds.Size, sourceSize, SvgView.StretchDirection);
+            var scaledSize = sourceSize * scale;
+            var destRect = viewPort.CenterRect(new Rect(scaledSize)).Intersect(viewPort);
+            var sourceRect = new Rect(sourceSize).CenterRect(new Rect(destRect.Size / scale));
+            var sx = destRect.Width / sourceRect.Width;
+            return (float)(sx * SvgView.Zoom);
+        }
+
+        return (float)SvgView.Zoom;
+    }
+
     private static SK.SKPoint Mid(SK.SKPoint a, SK.SKPoint b) => new((a.X + b.X) / 2f, (a.Y + b.Y) / 2f);
 
     private BoundsInfo GetBoundsInfo(DrawableBase drawable)
@@ -706,7 +728,8 @@ public partial class MainWindow : Window
         var edge = new SK.SKPoint(tr.X - tl.X, tr.Y - tl.Y);
         var len = (float)Math.Sqrt(edge.X * edge.X + edge.Y * edge.Y);
         var normal = len > 0 ? new SK.SKPoint(-edge.Y / len, edge.X / len) : new SK.SKPoint(0, -1);
-        var rotHandle = new SK.SKPoint(topMid.X - normal.X * 20f, topMid.Y - normal.Y * 20f);
+        var scale = GetCanvasScale();
+        var rotHandle = new SK.SKPoint(topMid.X - normal.X * 20f / scale, topMid.Y - normal.Y * 20f / scale);
         return new BoundsInfo
         {
             TL = tl,
@@ -725,7 +748,8 @@ public partial class MainWindow : Window
     private int HitHandle(BoundsInfo b, SK.SKPoint pt, out SK.SKPoint center)
     {
         center = b.Center;
-        var hs = HandleSize / 2f;
+        var scale = GetCanvasScale();
+        var hs = HandleSize / 2f / scale;
         var handlePts = new[] { b.TL, b.TopMid, b.TR, b.RightMid, b.BR, b.BottomMid, b.BL, b.LeftMid };
         for (int i = 0; i < handlePts.Length; i++)
         {
@@ -733,7 +757,7 @@ public partial class MainWindow : Window
             if (r.Contains(pt))
                 return i;
         }
-        if (SK.SKPoint.Distance(b.RotHandle, pt) <= HandleSize)
+        if (SK.SKPoint.Distance(b.RotHandle, pt) <= HandleSize / scale)
             return 8;
         return -1;
     }
@@ -901,10 +925,12 @@ public partial class MainWindow : Window
             e.Canvas.DrawPath(path, paint);
         }
 
-        var hs = HandleSize / 2f;
+        var scale = GetCanvasScale();
+        var hs = HandleSize / 2f / scale;
+        var size = HandleSize / scale;
         var pts = new[] { info.TL, info.TopMid, info.TR, info.RightMid, info.BR, info.BottomMid, info.BL, info.LeftMid };
         foreach (var pt in pts)
-            e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, HandleSize, HandleSize, paint);
+            e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, paint);
 
         e.Canvas.DrawLine(info.TopMid, info.RotHandle, paint);
         e.Canvas.DrawCircle(info.RotHandle, hs, paint);
@@ -1181,8 +1207,15 @@ public partial class MainWindow : Window
 
     internal static string GetElementName(Type type)
     {
-        var attr = type.GetCustomAttribute<SvgElementAttribute>();
-        return attr?.ElementName ?? type.Name;
+        var t = type;
+        while (t != null)
+        {
+            var attr = t.GetCustomAttribute<SvgElementAttribute>();
+            if (attr is not null)
+                return attr.ElementName;
+            t = t.BaseType;
+        }
+        return type.Name;
     }
 
     private void UndoMenuItem_Click(object? sender, RoutedEventArgs e)
