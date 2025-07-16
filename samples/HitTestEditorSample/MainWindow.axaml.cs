@@ -41,6 +41,8 @@ public partial class MainWindow : Window
 
     private bool _wireframeEnabled;
     private bool _filtersDisabled;
+    private bool _snapToGrid;
+    private double _gridSize = 10.0;
 
     private readonly SK.SKColor _boundsColor = SK.SKColors.Red;
 
@@ -93,6 +95,8 @@ public partial class MainWindow : Window
         DocumentTree.AddHandler(DragDrop.DragOverEvent, DocumentTree_OnDragOver);
         _wireframeEnabled = false;
         _filtersDisabled = false;
+        _snapToGrid = false;
+        _gridSize = 10.0;
         SvgView.Wireframe = false;
         if (SvgView.SkSvg is { } initSvg)
             initSvg.IgnoreAttributes = DrawAttributes.None;
@@ -343,19 +347,29 @@ public partial class MainWindow : Window
                     foreach (var (Prop, Unit, Axis) in _dragProps)
                     {
                         var delta = Axis == 'x' ? dx : dy;
-                        Prop.SetValue(dragEl, new SvgUnit(Unit.Type, Unit.Value + delta));
+                        var val = Unit.Value + delta;
+                        if (_snapToGrid)
+                            val = Snap(val);
+                        Prop.SetValue(dragEl, new SvgUnit(Unit.Type, val));
                     }
                 }
                 else if (dragEl is SvgTextBase txt)
                 {
                     if (txt.X.Count > 0)
-                        txt.X[0] = new SvgUnit(txt.X[0].Type, _dragTextX + dx);
+                        txt.X[0] = new SvgUnit(txt.X[0].Type, _snapToGrid ? Snap(_dragTextX + dx) : _dragTextX + dx);
                     if (txt.Y.Count > 0)
-                        txt.Y[0] = new SvgUnit(txt.Y[0].Type, _dragTextY + dy);
+                        txt.Y[0] = new SvgUnit(txt.Y[0].Type, _snapToGrid ? Snap(_dragTextY + dy) : _dragTextY + dy);
                 }
                 else
                 {
-                    SetTranslation(dragEl, _dragTransX + dx, _dragTransY + dy);
+                    var tx = _dragTransX + dx;
+                    var ty = _dragTransY + dy;
+                    if (_snapToGrid)
+                    {
+                        tx = Snap(tx);
+                        ty = Snap(ty);
+                    }
+                    SetTranslation(dragEl, tx, ty);
                 }
                 SvgView.SkSvg!.FromSvgDocument(_document);
                 UpdateSelectedDrawable();
@@ -616,9 +630,21 @@ public partial class MainWindow : Window
 
     private void SetTranslation(SvgVisualElement element, float x, float y)
     {
+        if (_snapToGrid)
+        {
+            x = Snap(x);
+            y = Snap(y);
+        }
         var col = new Svg.Transforms.SvgTransformCollection();
         col.Add(new Svg.Transforms.SvgTranslate(x, y));
         element.Transforms = col;
+    }
+
+    private float Snap(float value)
+    {
+        if (!_snapToGrid || _gridSize <= 0)
+            return value;
+        return (float)(Math.Round(value / _gridSize) * _gridSize);
     }
 
     private void ResizeElement(SvgVisualElement element, int handle, float dx, float dy)
@@ -652,6 +678,13 @@ public partial class MainWindow : Window
                 case 6: x = _startRect.Left + ddx; w = _startRect.Right - x; hgt = _startRect.Height + ddy; break;
                 case 7: x = _startRect.Left + ddx; w = _startRect.Right - x; break;
             }
+            if (_snapToGrid)
+            {
+                x = Snap(x);
+                y = Snap(y);
+                w = Snap(w);
+                hgt = Snap(hgt);
+            }
             el.X = new SvgUnit(el.X.Type, x);
             el.Y = new SvgUnit(el.Y.Type, y);
             el.Width = new SvgUnit(el.Width.Type, w);
@@ -678,6 +711,12 @@ public partial class MainWindow : Window
             var cx = x + w / 2f;
             var cy = y + hgt / 2f;
             var r = Math.Max(w, hgt) / 2f;
+            if (_snapToGrid)
+            {
+                cx = Snap(cx);
+                cy = Snap(cy);
+                r = Snap(r);
+            }
             c.CenterX = new SvgUnit(c.CenterX.Type, cx);
             c.CenterY = new SvgUnit(c.CenterY.Type, cy);
             c.Radius = new SvgUnit(c.Radius.Type, r);
@@ -1088,6 +1127,17 @@ public partial class MainWindow : Window
                 skSvg.FromSvgDocument(_document);
         }
         SvgView.InvalidateVisual();
+    }
+
+    private async void SettingsMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        var win = new SettingsWindow(_snapToGrid, _gridSize);
+        var result = await win.ShowDialog<bool>(this);
+        if (result)
+        {
+            _snapToGrid = win.SnapToGrid;
+            _gridSize = win.GridSize;
+        }
     }
 
     private void MainWindow_OnKeyDown(object? sender, KeyEventArgs e)

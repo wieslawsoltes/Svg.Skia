@@ -29,6 +29,7 @@
             <MenuItem Header="View">
                 <MenuItem Header="Wireframe" Click="WireframeMenuItem_Click"/>
                 <MenuItem Header="Disable Filters" Click="FiltersMenuItem_Click"/>
+                <MenuItem Header="Settings..." Click="SettingsMenuItem_Click"/>
             </MenuItem>
         </Menu>
         <Grid Grid.Row="1">

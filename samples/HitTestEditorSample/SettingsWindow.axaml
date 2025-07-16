@@ -1,0 +1,17 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="HitTestEditorSample.SettingsWindow"
+        Width="250" Height="150"
+        Title="Settings">
+    <StackPanel Margin="10" Spacing="4">
+        <CheckBox x:Name="SnapCheckBox" Content="Enable Snap To Grid"/>
+        <StackPanel Orientation="Horizontal" Spacing="4">
+            <TextBlock Text="Grid Size:" VerticalAlignment="Center"/>
+            <TextBox x:Name="GridSizeBox" Width="80"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4">
+            <Button Content="OK" Width="80" Click="OkButton_OnClick"/>
+            <Button Content="Cancel" Width="80" Click="CancelButton_OnClick"/>
+        </StackPanel>
+    </StackPanel>
+</Window>
