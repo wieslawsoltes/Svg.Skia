@@ -7,6 +7,29 @@
         Width="800" Height="600"
         DragDrop.AllowDrop="True"
         Title="Hit Test Editor Sample">
+    <Window.Resources>
+        <DrawingBrush x:Key="CheckerBrush"
+                       TileMode="Tile"
+                       DestinationRect="0,0,20,20">
+            <DrawingBrush.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="#FFF">
+                        <GeometryDrawing.Geometry>
+                            <RectangleGeometry Rect="0,0,20,20" />
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                    <GeometryDrawing Brush="#CCC">
+                        <GeometryDrawing.Geometry>
+                            <GeometryGroup>
+                                <RectangleGeometry Rect="0,0,10,10" />
+                                <RectangleGeometry Rect="10,10,10,10" />
+                            </GeometryGroup>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+    </Window.Resources>
     <Grid RowDefinitions="Auto,*">
         <Menu Grid.Row="0">
             <MenuItem Header="File">
@@ -54,12 +77,13 @@
                 </TreeView>
             </DockPanel>
             <GridSplitter Grid.Column="0" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
-            <svg:Svg x:Name="SvgView"
-                     Grid.Column="1"
-                     Stretch="Uniform"
-                     PointerPressed="SvgView_OnPointerPressed"
-                     PointerMoved="SvgView_OnPointerMoved"
-                     PointerReleased="SvgView_OnPointerReleased" />
+            <Border Grid.Column="1" Background="{StaticResource CheckerBrush}" BoxShadow="0,0,5,0,#80000000">
+                <svg:Svg x:Name="SvgView"
+                         Stretch="Uniform"
+                         PointerPressed="SvgView_OnPointerPressed"
+                         PointerMoved="SvgView_OnPointerMoved"
+                         PointerReleased="SvgView_OnPointerReleased" />
+            </Border>
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
 
             <DockPanel Grid.Column="2" Margin="10">
