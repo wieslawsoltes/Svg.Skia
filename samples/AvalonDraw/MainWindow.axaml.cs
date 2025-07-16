@@ -693,8 +693,20 @@ public partial class MainWindow : Window
         public SK.SKPoint Center, RotHandle;
     }
 
-    private float GetCanvasScale()
+    private float GetCanvasScale(SkiaSharp.SKCanvas? canvas = null)
     {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            if (canvas is { })
+            {
+                // The canvas has the transformation matrix already applied.
+                // Assume uniform scaling and use the X scale to determine the
+                // current draw scale.
+                return canvas.TotalMatrix.ScaleX;
+            }
+            return 1f;
+        }
+
         if (SvgView.SkSvg?.Picture is { } pic)
         {
             var viewPort = new Rect(SvgView.Bounds.Size);
@@ -925,7 +937,7 @@ public partial class MainWindow : Window
             e.Canvas.DrawPath(path, paint);
         }
 
-        var scale = GetCanvasScale();
+        var scale = GetCanvasScale(e.Canvas);
         var hs = HandleSize / 2f / scale;
         var size = HandleSize / scale;
         var pts = new[] { info.TL, info.TopMid, info.TR, info.RightMid, info.BR, info.BottomMid, info.BL, info.LeftMid };
