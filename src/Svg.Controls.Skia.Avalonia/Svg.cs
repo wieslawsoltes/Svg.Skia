@@ -26,6 +26,9 @@ public class Svg : Control
     private bool _enableCache;
     private bool _wireframe;
     private bool _disableFilters;
+    private double _zoom = 1.0;
+    private double _panX;
+    private double _panY;
     private Dictionary<string, SvgSource>? _cache;
 
     /// <summary>
@@ -77,6 +80,30 @@ public class Svg : Control
         AvaloniaProperty.RegisterDirect<Svg, bool>(nameof(DisableFilters),
             o => o.DisableFilters,
             (o, v) => o.DisableFilters = v);
+
+    /// <summary>
+    /// Defines the <see cref="Zoom"/> property.
+    /// </summary>
+    public static readonly DirectProperty<Svg, double> ZoomProperty =
+        AvaloniaProperty.RegisterDirect<Svg, double>(nameof(Zoom),
+            o => o.Zoom,
+            (o, v) => o.Zoom = v);
+
+    /// <summary>
+    /// Defines the <see cref="PanX"/> property.
+    /// </summary>
+    public static readonly DirectProperty<Svg, double> PanXProperty =
+        AvaloniaProperty.RegisterDirect<Svg, double>(nameof(PanX),
+            o => o.PanX,
+            (o, v) => o.PanX = v);
+
+    /// <summary>
+    /// Defines the <see cref="PanY"/> property.
+    /// </summary>
+    public static readonly DirectProperty<Svg, double> PanYProperty =
+        AvaloniaProperty.RegisterDirect<Svg, double>(nameof(PanY),
+            o => o.PanY,
+            (o, v) => o.PanY = v);
 
     /// <summary>
     /// Defines the Css property.
@@ -155,6 +182,33 @@ public class Svg : Control
     }
 
     /// <summary>
+    /// Gets or sets the zoom factor.
+    /// </summary>
+    public double Zoom
+    {
+        get { return _zoom; }
+        set { SetAndRaise(ZoomProperty, ref _zoom, value); }
+    }
+
+    /// <summary>
+    /// Gets or sets the horizontal pan offset.
+    /// </summary>
+    public double PanX
+    {
+        get { return _panX; }
+        set { SetAndRaise(PanXProperty, ref _panX, value); }
+    }
+
+    /// <summary>
+    /// Gets or sets the vertical pan offset.
+    /// </summary>
+    public double PanY
+    {
+        get { return _panY; }
+        set { SetAndRaise(PanYProperty, ref _panY, value); }
+    }
+
+    /// <summary>
     /// Gets svg picture.
     /// </summary>
     public SkiaSharp.SKPicture? Picture => _svg?.Picture;
@@ -186,7 +240,8 @@ public class Svg : Control
         var bounds = picture.CullRect;
         var scaleMatrix = Matrix.CreateScale(destRect.Width / sourceRect.Width, destRect.Height / sourceRect.Height);
         var translateMatrix = Matrix.CreateTranslation(-sourceRect.X + destRect.X - bounds.Top, -sourceRect.Y + destRect.Y - bounds.Left);
-        var matrix = scaleMatrix * translateMatrix;
+        var userMatrix = Matrix.CreateScale(Zoom, Zoom) * Matrix.CreateTranslation(PanX, PanY);
+        var matrix = scaleMatrix * translateMatrix * userMatrix;
         var inverse = matrix.Invert();
         var local = inverse.Transform(point);
 
@@ -323,8 +378,10 @@ public class Svg : Control
             -sourceRect.X + destRect.X - bounds.Top,
             -sourceRect.Y + destRect.Y - bounds.Left);
 
+        var userMatrix = Matrix.CreateScale(Zoom, Zoom) * Matrix.CreateTranslation(PanX, PanY);
+
         using (context.PushClip(destRect))
-        using (context.PushTransform(scaleMatrix * translateMatrix))
+        using (context.PushTransform(scaleMatrix * translateMatrix * userMatrix))
         {
             context.Custom(
                 new SvgSourceCustomDrawOperation(
@@ -427,6 +484,13 @@ public class Svg : Control
             {
                 skSvg.IgnoreAttributes = change.GetNewValue<bool>() ? DrawAttributes.Filter : DrawAttributes.None;
             }
+            InvalidateVisual();
+        }
+
+        if (change.Property == ZoomProperty ||
+            change.Property == PanXProperty ||
+            change.Property == PanYProperty)
+        {
             InvalidateVisual();
         }
     }

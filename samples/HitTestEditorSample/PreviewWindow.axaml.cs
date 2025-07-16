@@ -11,7 +11,10 @@ public partial class PreviewWindow : Window
     {
         InitializeComponent();
         if (PreviewSvg?.SkSvg != null)
+        {
             PreviewSvg.SkSvg.FromSvgDocument(doc);
+            PreviewSvg.InvalidateVisual();
+        }
     }
 
     private void InitializeComponent()

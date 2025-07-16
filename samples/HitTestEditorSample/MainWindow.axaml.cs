@@ -79,6 +79,9 @@ public partial class MainWindow : Window
     private SK.SKPoint _rotateCenter;
     private float _startAngle;
 
+    private bool _isPanning;
+    private Point _panStart;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -89,6 +92,7 @@ public partial class MainWindow : Window
         AddHandler(DragDrop.DragOverEvent, Window_OnDragOver);
         AddHandler(DragDrop.DropEvent, Window_OnDrop);
         KeyDown += MainWindow_OnKeyDown;
+        SvgView.PointerWheelChanged += SvgView_OnPointerWheelChanged;
         DocumentTree.AddHandler(PointerPressedEvent, DocumentTree_OnPointerPressed, RoutingStrategies.Tunnel);
         DocumentTree.AddHandler(PointerMovedEvent, DocumentTree_OnPointerMoved, RoutingStrategies.Tunnel);
         DocumentTree.AddHandler(DragDrop.DropEvent, DocumentTree_OnDrop);
@@ -284,6 +288,13 @@ public partial class MainWindow : Window
     private void SvgView_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var point = e.GetPosition(SvgView);
+        if (e.GetCurrentPoint(SvgView).Properties.IsMiddleButtonPressed)
+        {
+            _isPanning = true;
+            _panStart = point;
+            e.Pointer.Capture(SvgView);
+            return;
+        }
         if (SvgView.SkSvg is { } skSvg && SvgView.TryGetPicturePoint(point, out var pp))
         {
             // check handles first
@@ -335,6 +346,18 @@ public partial class MainWindow : Window
     private void SvgView_OnPointerMoved(object? sender, PointerEventArgs e)
     {
         var point = e.GetPosition(SvgView);
+
+        if (_isPanning)
+        {
+            var dx = point.X - _panStart.X;
+            var dy = point.Y - _panStart.Y;
+            _panStart = point;
+            SvgView.PanX += dx;
+            SvgView.PanY += dy;
+            SvgView.InvalidateVisual();
+            return;
+        }
+
         if (SvgView.TryGetPicturePoint(point, out var pp))
         {
             var skp = new SK.SKPoint(pp.X, pp.Y);
@@ -427,7 +450,21 @@ public partial class MainWindow : Window
                 LoadProperties(_rotateElement);
             }
         }
+        else if (_isPanning)
+        {
+            _isPanning = false;
+        }
         e.Pointer.Capture(null);
+    }
+
+    private void SvgView_OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        var zoom = SvgView.Zoom;
+        zoom *= e.Delta.Y > 0 ? 1.1 : 0.9;
+        if (zoom < 0.1) zoom = 0.1;
+        if (zoom > 10) zoom = 10;
+        SvgView.Zoom = zoom;
+        SvgView.InvalidateVisual();
     }
 
     private void ApplyButton_OnClick(object? sender, RoutedEventArgs e)
@@ -567,7 +604,7 @@ public partial class MainWindow : Window
         var edge = new SK.SKPoint(tr.X - tl.X, tr.Y - tl.Y);
         var len = (float)Math.Sqrt(edge.X * edge.X + edge.Y * edge.Y);
         var normal = len > 0 ? new SK.SKPoint(-edge.Y / len, edge.X / len) : new SK.SKPoint(0, -1);
-        var rotHandle = new SK.SKPoint(topMid.X + normal.X * 20f, topMid.Y + normal.Y * 20f);
+        var rotHandle = new SK.SKPoint(topMid.X - normal.X * 20f, topMid.Y - normal.Y * 20f);
         return new BoundsInfo
         {
             TL = tl,
@@ -1120,20 +1157,17 @@ public partial class MainWindow : Window
     private void FiltersMenuItem_Click(object? sender, RoutedEventArgs e)
     {
         _filtersDisabled = !_filtersDisabled;
-        if (SvgView.SkSvg is { } skSvg)
-        {
-            skSvg.IgnoreAttributes = _filtersDisabled ? DrawAttributes.Filter : DrawAttributes.None;
-            if (_document is { })
-                skSvg.FromSvgDocument(_document);
-        }
+        SvgView.DisableFilters = _filtersDisabled;
+        if (SvgView.SkSvg is { } skSvg && _document is { })
+            skSvg.FromSvgDocument(_document);
         SvgView.InvalidateVisual();
     }
 
     private async void SettingsMenuItem_Click(object? sender, RoutedEventArgs e)
     {
         var win = new SettingsWindow(_snapToGrid, _gridSize);
-        var result = await win.ShowDialog<bool>(this);
-        if (result)
+        var result = await win.ShowDialog<bool?>(this);
+        if (result == true)
         {
             _snapToGrid = win.SnapToGrid;
             _gridSize = win.GridSize;

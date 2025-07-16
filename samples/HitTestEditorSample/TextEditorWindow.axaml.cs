@@ -10,7 +10,8 @@ public partial class TextEditorWindow : Window
     public TextEditorWindow(string text)
     {
         InitializeComponent();
-        Editor.Text = text;
+        if (Editor != null)
+            Editor.Text = text;
     }
 
     private void InitializeComponent()
@@ -22,7 +23,7 @@ public partial class TextEditorWindow : Window
 
     private void OkButton_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        Result = Editor.Text ?? string.Empty;
+        Result = Editor?.Text ?? string.Empty;
         Close(Result);
     }
 
