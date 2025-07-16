@@ -209,6 +209,29 @@ public class Svg : Control
     }
 
     /// <summary>
+    /// Adjusts <see cref="Zoom"/> and pan offsets so that zooming keeps the
+    /// specified control point fixed.
+    /// </summary>
+    /// <param name="newZoom">The new zoom factor.</param>
+    /// <param name="point">Point in control coordinates that should stay in place.</param>
+    public void ZoomToPoint(double newZoom, Point point)
+    {
+        var oldZoom = _zoom;
+        if (newZoom < 0.1)
+            newZoom = 0.1;
+        if (newZoom > 10)
+            newZoom = 10;
+
+        // adjust pan so that the supplied point remains under the cursor
+        _panX += point.X * (1.0 / newZoom - 1.0 / oldZoom);
+        _panY += point.Y * (1.0 / newZoom - 1.0 / oldZoom);
+
+        SetAndRaise(PanXProperty, ref _panX, _panX);
+        SetAndRaise(PanYProperty, ref _panY, _panY);
+        SetAndRaise(ZoomProperty, ref _zoom, newZoom);
+    }
+
+    /// <summary>
     /// Gets svg picture.
     /// </summary>
     public SkiaSharp.SKPicture? Picture => _svg?.Picture;
