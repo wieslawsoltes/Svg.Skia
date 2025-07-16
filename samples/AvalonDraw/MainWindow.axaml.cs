@@ -88,8 +88,14 @@ public partial class MainWindow : Window
     private Point _panStart;
 
     private List<SvgVisualElement> _hitElements = new();
-    private SK.SKPoint _lastHitPoint;
+    private Shim.SKPoint _lastHitPoint;
     private int _hitIndex;
+
+    private bool _pendingPress;
+    private Shim.SKPoint _pressPoint;
+    private List<SvgVisualElement> _pressHits = new();
+    private SvgVisualElement? _pressElement;
+    private const float DragThreshold = 2f;
 
     public MainWindow()
     {
@@ -367,38 +373,51 @@ public partial class MainWindow : Window
             var hits = skSvg.HitTestElements(pp).OfType<SvgVisualElement>().ToList();
             if (hits.Count > 0)
             {
-                if (Math.Abs(pp.X - _lastHitPoint.X) < 1 && Math.Abs(pp.Y - _lastHitPoint.Y) < 1)
-                {
-                    var idx = hits.IndexOf(_selectedElement!);
-                    _hitIndex = idx >= 0 ? (idx + 1) % hits.Count : 0;
-                }
-                else
-                {
-                    _hitIndex = 0;
-                    _lastHitPoint = new SK.SKPoint(pp.X, pp.Y);
-                }
-                _hitElements = hits;
-                _selectedElement = _hitElements[_hitIndex];
-                _selectedDrawable = skSvg.HitTestDrawables(pp).FirstOrDefault(d => d.Element == _selectedElement);
-                _selectedSvgElement = _selectedElement;
-                LoadProperties(_selectedSvgElement);
-                SelectNodeFromElement(_selectedSvgElement);
-                TryStartDrag(_selectedElement, new Shim.SKPoint(pp.X, pp.Y), e);
+                _pressHits = hits;
+                _pressPoint = new Shim.SKPoint(pp.X, pp.Y);
+                _pressElement = _selectedElement != null && hits.Contains(_selectedElement)
+                    ? _selectedElement
+                    : hits[0];
+                _pendingPress = true;
             }
             else
             {
                 _selectedDrawable = skSvg.HitTestDrawables(pp).FirstOrDefault();
                 _selectedElement = null;
                 _selectedSvgElement = null;
+                UpdateSelectedDrawable();
+                SvgView.InvalidateVisual();
             }
-            UpdateSelectedDrawable();
-            SvgView.InvalidateVisual();
         }
     }
 
     private void SvgView_OnPointerMoved(object? sender, PointerEventArgs e)
     {
         var point = e.GetPosition(SvgView);
+
+        if (_pendingPress && SvgView.SkSvg is { } hitSvg && SvgView.TryGetPicturePoint(point, out var ppp))
+        {
+            var dx = Math.Abs(ppp.X - _pressPoint.X);
+            var dy = Math.Abs(ppp.Y - _pressPoint.Y);
+            if (dx > DragThreshold || dy > DragThreshold)
+            {
+                _pendingPress = false;
+                if (_pressElement is { })
+                {
+                    if (_selectedElement != _pressElement)
+                    {
+                        _selectedElement = _pressElement;
+                        _selectedDrawable = hitSvg.HitTestDrawables(_pressPoint).FirstOrDefault(d => d.Element == _selectedElement);
+                        _selectedSvgElement = _pressElement;
+                        LoadProperties(_selectedSvgElement);
+                        SelectNodeFromElement(_selectedSvgElement);
+                        UpdateSelectedDrawable();
+                    }
+                    StartDrag(_pressElement, new Shim.SKPoint(ppp.X, ppp.Y), e.Pointer);
+                    SvgView.InvalidateVisual();
+                }
+            }
+        }
 
         if (_isPanning)
         {
@@ -476,7 +495,41 @@ public partial class MainWindow : Window
 
     private void SvgView_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        if (_isDragging)
+        if (_pendingPress && SvgView.SkSvg is { } skSvg)
+        {
+            _pendingPress = false;
+            if (_pressHits.Count > 0)
+            {
+                var hits = _pressHits;
+                if (Math.Abs(_pressPoint.X - _lastHitPoint.X) < 1 && Math.Abs(_pressPoint.Y - _lastHitPoint.Y) < 1)
+                {
+                    var idx = hits.IndexOf(_selectedElement!);
+                    _hitIndex = idx >= 0 ? (idx + 1) % hits.Count : 0;
+                }
+                else
+                {
+                    _hitIndex = 0;
+                    _lastHitPoint = _pressPoint;
+                }
+                _hitElements = hits;
+                _selectedElement = _hitElements[_hitIndex];
+                _selectedDrawable = skSvg.HitTestDrawables(_pressPoint).FirstOrDefault(d => d.Element == _selectedElement);
+                _selectedSvgElement = _selectedElement;
+                LoadProperties(_selectedSvgElement);
+                SelectNodeFromElement(_selectedSvgElement);
+                UpdateSelectedDrawable();
+                SvgView.InvalidateVisual();
+            }
+            else
+            {
+                _selectedDrawable = null;
+                _selectedElement = null;
+                _selectedSvgElement = null;
+                UpdateSelectedDrawable();
+                SvgView.InvalidateVisual();
+            }
+        }
+        else if (_isDragging)
         {
             _isDragging = false;
             if (_dragElement is { })
@@ -565,11 +618,8 @@ public partial class MainWindow : Window
         }
     }
 
-    private void TryStartDrag(SvgVisualElement element, Shim.SKPoint start, PointerPressedEventArgs args)
+    private void StartDrag(SvgVisualElement element, Shim.SKPoint start, IPointer pointer)
     {
-        if (!args.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
-            return;
-
         if (GetDragProperties(element, out var props))
         {
             SaveUndoState();
@@ -577,7 +627,7 @@ public partial class MainWindow : Window
             _isDragging = true;
             _dragStart = start;
             _dragElement = element;
-            args.Pointer.Capture(SvgView);
+            pointer.Capture(SvgView);
             return;
         }
 
@@ -597,7 +647,7 @@ public partial class MainWindow : Window
             _dragTransX = tx;
             _dragTransY = ty;
         }
-        args.Pointer.Capture(SvgView);
+        pointer.Capture(SvgView);
     }
 
     private static bool GetDragProperties(SvgVisualElement element, out List<(PropertyInfo Prop, SvgUnit Unit, char Axis)> props)
