@@ -7,10 +7,13 @@ namespace HitTestEditorSample;
 
 public partial class TextEditorWindow : Window
 {
+    private readonly TextBox _editor;
+
     public TextEditorWindow(string text)
     {
         InitializeComponent();
-        Editor.Text = text;
+        _editor = this.FindControl<TextBox>("Editor");
+        _editor.Text = text;
     }
 
     private void InitializeComponent()
@@ -22,7 +25,7 @@ public partial class TextEditorWindow : Window
 
     private void OkButton_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        Result = Editor.Text;
+        Result = _editor.Text;
         Close(Result);
     }
 
