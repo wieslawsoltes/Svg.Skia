@@ -73,7 +73,8 @@ public partial class MainWindow : Window
     private float _dragTransX;
     private float _dragTransY;
 
-    private const float HandleSize = 6f;
+    // Size of resize/rotate handles in device-independent pixels
+    private const float HandleSize = 10f;
     private bool _isResizing;
     private bool _isRotating;
     private int _resizeHandle;
@@ -946,11 +947,13 @@ public partial class MainWindow : Window
     {
         if (_selectedDrawable is null)
             return;
+        var scale = GetCanvasScale(e.Canvas);
         using var paint = new SK.SKPaint
         {
             IsAntialias = true,
             Style = SK.SKPaintStyle.Stroke,
-            Color = _boundsColor
+            Color = _boundsColor,
+            StrokeWidth = 1f / scale
         };
         var info = GetBoundsInfo(_selectedDrawable);
         using (var path = new SK.SKPath())
@@ -963,14 +966,18 @@ public partial class MainWindow : Window
             e.Canvas.DrawPath(path, paint);
         }
 
-        var scale = GetCanvasScale(e.Canvas);
         var hs = HandleSize / 2f / scale;
         var size = HandleSize / scale;
+        using var fill = new SK.SKPaint { IsAntialias = true, Style = SK.SKPaintStyle.Fill, Color = SK.SKColors.White };
         var pts = new[] { info.TL, info.TopMid, info.TR, info.RightMid, info.BR, info.BottomMid, info.BL, info.LeftMid };
         foreach (var pt in pts)
+        {
+            e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, fill);
             e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, paint);
+        }
 
         e.Canvas.DrawLine(info.TopMid, info.RotHandle, paint);
+        e.Canvas.DrawCircle(info.RotHandle, hs, fill);
         e.Canvas.DrawCircle(info.RotHandle, hs, paint);
     }
 
