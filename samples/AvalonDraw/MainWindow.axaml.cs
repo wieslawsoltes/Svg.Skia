@@ -27,6 +27,7 @@ using Svg.Model;
 using Svg.Model.Drawables;
 using Svg.Model.Services;
 using Svg.Transforms;
+using Svg.Pathing;
 
 namespace AvalonDraw;
 
@@ -122,6 +123,16 @@ public partial class MainWindow : Window
     private SvgVisualElement? _newElement;
     private Shim.SKPoint _newStart;
     private bool _creating;
+
+    private bool _pathEditing;
+    private SvgPath? _editPath;
+    private DrawableBase? _editDrawable;
+    private readonly List<PathPoint> _pathPoints = new();
+    private int _activePathPoint = -1;
+    private Shim.SKMatrix _pathMatrix;
+    private Shim.SKMatrix _pathInverse;
+    private Shim.SKPoint _activeStart;
+    private Shim.SKPoint _activeStartLocal;
 
     public MainWindow()
     {
@@ -445,6 +456,20 @@ public partial class MainWindow : Window
             e.Pointer.Capture(SvgView);
             return;
         }
+        if (_pathEditing && SvgView.SkSvg is { } skSvgEdit && SvgView.TryGetPicturePoint(point, out var ep))
+        {
+            var skp = new SK.SKPoint(ep.X, ep.Y);
+            var idx = HitPathPoint(skp);
+            if (idx >= 0)
+            {
+                _activePathPoint = idx;
+                _activeStart = new Shim.SKPoint(skp.X, skp.Y);
+                _activeStartLocal = _pathInverse.MapPoint(_activeStart);
+                e.Pointer.Capture(SvgView);
+                return;
+            }
+        }
+
         if (SvgView.SkSvg is { } skSvg && SvgView.TryGetPicturePoint(point, out var pp))
         {
             // check handles first
@@ -488,20 +513,17 @@ public partial class MainWindow : Window
                 if (e.ClickCount > 1)
                 {
                     var pathEl = hits.OfType<SvgPath>().FirstOrDefault();
-                    if (pathEl is not null)
+                    if (pathEl is not null && _document is { })
                     {
-                        var win = new PathEditorWindow(pathEl);
-                        var result = await win.ShowDialog<string?>(this);
-                        if (result is not null)
+                        SaveUndoState();
+                        var drawable = skSvg.HitTestDrawables(pp).FirstOrDefault(d => d.Element == pathEl);
+                        if (drawable is { })
                         {
-                            SaveUndoState();
-                            pathEl.PathData = SvgPathBuilder.Parse(result);
-                            SvgView.SkSvg!.FromSvgDocument(_document);
+                            StartPathEditing(pathEl, drawable);
                             UpdateSelectedDrawable();
-                            LoadProperties(pathEl);
                             SvgView.InvalidateVisual();
+                            return;
                         }
-                        return;
                     }
                 }
                 _pressHits = hits;
@@ -511,12 +533,16 @@ public partial class MainWindow : Window
                     : hits[0];
                 _pressRightButton = e.GetCurrentPoint(SvgView).Properties.IsRightButtonPressed;
                 _pendingPress = true;
+                if (_pathEditing && _editPath != _pressElement)
+                    StopPathEditing();
             }
             else
             {
                 _selectedDrawable = skSvg.HitTestDrawables(pp).FirstOrDefault();
                 _selectedElement = null;
                 _selectedSvgElement = null;
+                if (_pathEditing)
+                    StopPathEditing();
                 UpdateSelectedDrawable();
                 SvgView.InvalidateVisual();
             }
@@ -568,6 +594,20 @@ public partial class MainWindow : Window
             _panStart = point;
             SvgView.PanX += dx;
             SvgView.PanY += dy;
+            SvgView.InvalidateVisual();
+            return;
+        }
+
+        if (_activePathPoint >= 0 && SvgView.TryGetPicturePoint(point, out var ppe))
+        {
+            var loc = _pathInverse.MapPoint(new Shim.SKPoint((float)ppe.X, (float)ppe.Y));
+            if (_snapToGrid)
+                loc = new Shim.SKPoint(Snap(loc.X), Snap(loc.Y));
+            _pathPoints[_activePathPoint] = new PathPoint { Segment = _pathPoints[_activePathPoint].Segment, Type = _pathPoints[_activePathPoint].Type, Point = loc };
+            UpdatePathPoint(_pathPoints[_activePathPoint]);
+            _editPath!.OnPathUpdated();
+            SvgView.SkSvg!.FromSvgDocument(_document);
+            UpdateSelectedDrawable();
             SvgView.InvalidateVisual();
             return;
         }
@@ -702,6 +742,15 @@ public partial class MainWindow : Window
             {
                 SaveUndoState();
                 LoadProperties(_resizeElement);
+            }
+        }
+        else if (_activePathPoint >= 0)
+        {
+            _activePathPoint = -1;
+            if (_pathEditing && _editPath is { })
+            {
+                SaveUndoState();
+                LoadProperties(_editPath);
             }
         }
         else if (_isRotating)
@@ -857,6 +906,13 @@ public partial class MainWindow : Window
         public SK.SKPoint Center, RotHandle;
     }
 
+    private struct PathPoint
+    {
+        public SvgPathSegment Segment;
+        public int Type; // 0=end,1=ctrl1,2=ctrl2
+        public Shim.SKPoint Point;
+    }
+
     private float GetCanvasScale(SkiaSharp.SKCanvas? canvas = null)
     {
         if (!Dispatcher.UIThread.CheckAccess())
@@ -935,6 +991,20 @@ public partial class MainWindow : Window
         }
         if (SK.SKPoint.Distance(b.RotHandle, pt) <= HandleSize / scale)
             return 8;
+        return -1;
+    }
+
+    private int HitPathPoint(SK.SKPoint pt)
+    {
+        var scale = GetCanvasScale();
+        var hs = HandleSize / 2f / scale;
+        for (int i = 0; i < _pathPoints.Count; i++)
+        {
+            var p = _pathMatrix.MapPoint(_pathPoints[i].Point);
+            var r = new SK.SKRect(p.X - hs, p.Y - hs, p.X + hs, p.Y + hs);
+            if (r.Contains(pt))
+                return i;
+        }
         return -1;
     }
 
@@ -1256,6 +1326,16 @@ public partial class MainWindow : Window
         e.Canvas.DrawLine(info.TopMid, info.RotHandle, paint);
         e.Canvas.DrawCircle(info.RotHandle, hs, fill);
         e.Canvas.DrawCircle(info.RotHandle, hs, paint);
+
+        if (_pathEditing && _editDrawable == _selectedDrawable)
+        {
+            foreach (var p in _pathPoints)
+            {
+                var pt = _pathMatrix.MapPoint(p.Point);
+                e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, fill);
+                e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, paint);
+            }
+        }
     }
 
     public class PropertyEntry : INotifyPropertyChanged
@@ -1423,6 +1503,8 @@ public partial class MainWindow : Window
         {
             _selectedSvgElement = node.Element;
             _selectedElement = node.Element as SvgVisualElement;
+            if (_pathEditing && _editPath != _selectedElement)
+                StopPathEditing();
             UpdateSelectedDrawable();
             LoadProperties(_selectedSvgElement);
             DocumentTree.ScrollIntoView(node);
@@ -1517,6 +1599,172 @@ public partial class MainWindow : Window
                 _expandedIds.Add(parent.Element.ID);
             parent = parent.Parent;
         }
+    }
+
+    private void StartPathEditing(SvgPath path, DrawableBase drawable)
+    {
+        _pathEditing = true;
+        _editPath = path;
+        _editDrawable = drawable;
+        _selectedElement = path;
+        _selectedSvgElement = path;
+        _pathPoints.Clear();
+        MakePathAbsolute(path);
+        var segs = path.PathData;
+        var cur = new Shim.SKPoint(0, 0);
+        foreach (var seg in segs)
+        {
+            switch (seg)
+            {
+                case SvgMoveToSegment mv:
+                    cur = new Shim.SKPoint(mv.End.X, mv.End.Y);
+                    _pathPoints.Add(new PathPoint { Segment = mv, Type = 0, Point = cur });
+                    break;
+                case SvgLineSegment ln:
+                    cur = new Shim.SKPoint(ln.End.X, ln.End.Y);
+                    _pathPoints.Add(new PathPoint { Segment = ln, Type = 0, Point = cur });
+                    break;
+                case SvgCubicCurveSegment c:
+                    var p1 = new Shim.SKPoint(c.FirstControlPoint.X, c.FirstControlPoint.Y);
+                    var p2 = new Shim.SKPoint(c.SecondControlPoint.X, c.SecondControlPoint.Y);
+                    var end = new Shim.SKPoint(c.End.X, c.End.Y);
+                    _pathPoints.Add(new PathPoint { Segment = c, Type = 1, Point = p1 });
+                    _pathPoints.Add(new PathPoint { Segment = c, Type = 2, Point = p2 });
+                    _pathPoints.Add(new PathPoint { Segment = c, Type = 0, Point = end });
+                    cur = end;
+                    break;
+                case SvgQuadraticCurveSegment q:
+                    var cp = new Shim.SKPoint(q.ControlPoint.X, q.ControlPoint.Y);
+                    var qe = new Shim.SKPoint(q.End.X, q.End.Y);
+                    _pathPoints.Add(new PathPoint { Segment = q, Type = 1, Point = cp });
+                    _pathPoints.Add(new PathPoint { Segment = q, Type = 0, Point = qe });
+                    cur = qe;
+                    break;
+                case SvgArcSegment a:
+                    var ae = new Shim.SKPoint(a.End.X, a.End.Y);
+                    _pathPoints.Add(new PathPoint { Segment = a, Type = 0, Point = ae });
+                    cur = ae;
+                    break;
+                case SvgClosePathSegment _:
+                    break;
+            }
+        }
+        _pathMatrix = drawable.TotalTransform;
+        if (!_pathMatrix.TryInvert(out _pathInverse))
+            _pathInverse = Shim.SKMatrix.CreateIdentity();
+        UpdateSelectedDrawable();
+        LoadProperties(path);
+    }
+
+    private void StopPathEditing()
+    {
+        _pathEditing = false;
+        _editPath = null;
+        _editDrawable = null;
+        _activePathPoint = -1;
+        _pathPoints.Clear();
+        UpdateSelectedDrawable();
+    }
+
+    private void UpdatePathPoint(PathPoint pp)
+    {
+        switch (pp.Segment)
+        {
+            case SvgMoveToSegment mv:
+                mv.End = new System.Drawing.PointF(pp.Point.X, pp.Point.Y);
+                break;
+            case SvgLineSegment ln:
+                ln.End = new System.Drawing.PointF(pp.Point.X, pp.Point.Y);
+                break;
+            case SvgCubicCurveSegment c:
+                if (pp.Type == 1)
+                    c.FirstControlPoint = new System.Drawing.PointF(pp.Point.X, pp.Point.Y);
+                else if (pp.Type == 2)
+                    c.SecondControlPoint = new System.Drawing.PointF(pp.Point.X, pp.Point.Y);
+                else
+                    c.End = new System.Drawing.PointF(pp.Point.X, pp.Point.Y);
+                break;
+            case SvgQuadraticCurveSegment q:
+                if (pp.Type == 1)
+                    q.ControlPoint = new System.Drawing.PointF(pp.Point.X, pp.Point.Y);
+                else
+                    q.End = new System.Drawing.PointF(pp.Point.X, pp.Point.Y);
+                break;
+            case SvgArcSegment a:
+                a.End = new System.Drawing.PointF(pp.Point.X, pp.Point.Y);
+                break;
+        }
+    }
+
+    private static void MakePathAbsolute(SvgPath path)
+    {
+        var segs = path.PathData;
+        var cur = System.Drawing.PointF.Empty;
+        for (int i = 0; i < segs.Count; i++)
+        {
+            switch (segs[i])
+            {
+                case SvgMoveToSegment mv:
+                    var endM = ToAbs(mv.End, mv.IsRelative, cur);
+                    mv.End = endM;
+                    mv.IsRelative = false;
+                    cur = endM;
+                    break;
+                case SvgLineSegment ln:
+                    var endL = ToAbs(ln.End, ln.IsRelative, cur);
+                    ln.End = endL;
+                    ln.IsRelative = false;
+                    cur = endL;
+                    break;
+                case SvgCubicCurveSegment c:
+                    var p1 = c.FirstControlPoint;
+                    if (!float.IsNaN(p1.X) && !float.IsNaN(p1.Y))
+                        p1 = ToAbs(p1, c.IsRelative, cur);
+                    var p2 = ToAbs(c.SecondControlPoint, c.IsRelative, cur);
+                    var e = ToAbs(c.End, c.IsRelative, cur);
+                    c.FirstControlPoint = p1;
+                    c.SecondControlPoint = p2;
+                    c.End = e;
+                    c.IsRelative = false;
+                    cur = e;
+                    break;
+                case SvgQuadraticCurveSegment q:
+                    var cp = q.ControlPoint;
+                    if (!float.IsNaN(cp.X) && !float.IsNaN(cp.Y))
+                        cp = ToAbs(cp, q.IsRelative, cur);
+                    var qe = ToAbs(q.End, q.IsRelative, cur);
+                    q.ControlPoint = cp;
+                    q.End = qe;
+                    q.IsRelative = false;
+                    cur = qe;
+                    break;
+                case SvgArcSegment a:
+                    var ae = ToAbs(a.End, a.IsRelative, cur);
+                    a.End = ae;
+                    a.IsRelative = false;
+                    cur = ae;
+                    break;
+                case SvgClosePathSegment _:
+                    break;
+            }
+        }
+        path.PathData.Owner = path;
+        path.OnPathUpdated();
+    }
+
+    private static System.Drawing.PointF ToAbs(System.Drawing.PointF point, bool isRelative, System.Drawing.PointF start)
+    {
+        if (float.IsNaN(point.X))
+            point.X = start.X;
+        else if (isRelative)
+            point.X += start.X;
+
+        if (float.IsNaN(point.Y))
+            point.Y = start.Y;
+        else if (isRelative)
+            point.Y += start.Y;
+
+        return point;
     }
 
     private static bool IsAncestor(SvgNode parent, SvgNode child)
@@ -1758,11 +2006,21 @@ public partial class MainWindow : Window
     {
         if (e.Key == Key.Escape)
         {
-            _selectedDrawable = null;
-            _selectedElement = null;
-            _selectedSvgElement = null;
-            DocumentTree.SelectedItem = null;
-            SvgView.InvalidateVisual();
+            if (_pathEditing)
+            {
+                StopPathEditing();
+                SvgView.SkSvg!.FromSvgDocument(_document);
+                UpdateSelectedDrawable();
+                SvgView.InvalidateVisual();
+            }
+            else
+            {
+                _selectedDrawable = null;
+                _selectedElement = null;
+                _selectedSvgElement = null;
+                DocumentTree.SelectedItem = null;
+                SvgView.InvalidateVisual();
+            }
             e.Handled = true;
             return;
         }
