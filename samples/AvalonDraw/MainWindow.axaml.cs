@@ -59,9 +59,6 @@ public partial class MainWindow : Window
     private bool _showGrid;
     private double _gridSize = 10.0;
 
-    private readonly SK.SKColor _boundsColor = SK.SKColors.Red;
-    private readonly SK.SKColor _segmentColor = SK.SKColors.OrangeRed;
-    private readonly SK.SKColor _controlColor = SK.SKColors.SkyBlue;
 
     private readonly Stack<string> _undo = new();
     private readonly Stack<string> _redo = new();
@@ -135,6 +132,7 @@ public partial class MainWindow : Window
     private bool _creating;
 
     private readonly PathService _pathService = new();
+    private readonly RenderingService _renderingService;
 
     private bool _polyEditing;
     private SvgVisualElement? _editPolyElement;
@@ -147,6 +145,7 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
+        _renderingService = new RenderingService(_pathService, _toolService);
         Resources["PropertyEditorTemplate"] = new FuncDataTemplate<PropertyEntry>((entry, ns) =>
         {
             if (entry.Options is { } opts)
@@ -1024,12 +1023,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private struct BoundsInfo
-    {
-        public SK.SKPoint TL, TR, BR, BL;
-        public SK.SKPoint TopMid, RightMid, BottomMid, LeftMid;
-        public SK.SKPoint Center, RotHandle;
-    }
 
 
     private float GetCanvasScale(SkiaSharp.SKCanvas? canvas = null)
@@ -1063,7 +1056,7 @@ public partial class MainWindow : Window
 
     private static SK.SKPoint Mid(SK.SKPoint a, SK.SKPoint b) => new((a.X + b.X) / 2f, (a.Y + b.Y) / 2f);
 
-    private BoundsInfo GetBoundsInfo(DrawableBase drawable)
+    private RenderingService.BoundsInfo GetBoundsInfo(DrawableBase drawable)
     {
         var rect = drawable.GeometryBounds;
         var m = drawable.TotalTransform;
@@ -1083,7 +1076,7 @@ public partial class MainWindow : Window
             : new SK.SKPoint(0, -1);
         var scale = GetCanvasScale();
         var rotHandle = new SK.SKPoint(topMid.X + normal.X * 20f / scale, topMid.Y + normal.Y * 20f / scale);
-        return new BoundsInfo
+        return new RenderingService.BoundsInfo
         {
             TL = tl,
             TR = tr,
@@ -1098,9 +1091,9 @@ public partial class MainWindow : Window
         };
     }
 
-    private int HitHandle(BoundsInfo b, SK.SKPoint pt, out SK.SKPoint center)
+    private int HitHandle(RenderingService.BoundsInfo b, SK.SKPoint pt, out SK.SKPoint center)
     {
-        center = b.Center;
+        center = new SK.SKPoint(b.Center.X, b.Center.Y);
         var scale = GetCanvasScale();
         var hs = HandleSize / 2f / scale;
         var handlePts = new[] { b.TL, b.TopMid, b.TR, b.RightMid, b.BR, b.BottomMid, b.BL, b.LeftMid };
@@ -1330,189 +1323,19 @@ public partial class MainWindow : Window
     private void SvgView_OnDraw(object? sender, SKSvgDrawEventArgs e)
     {
         var scale = GetCanvasScale(e.Canvas);
-
-        if (_snapToGrid && _showGrid && _gridSize > 0 && SvgView.SkSvg?.Picture is { } pic)
-        {
-            using var gridPaint = new SK.SKPaint
-            {
-                IsAntialias = false,
-                Style = SK.SKPaintStyle.Stroke,
-                Color = SK.SKColors.LightGray,
-                StrokeWidth = 1f / scale
-            };
-            var bounds = pic.CullRect;
-            for (float x = 0; x <= bounds.Width; x += (float)_gridSize)
-                e.Canvas.DrawLine(x, 0, x, bounds.Height, gridPaint);
-            for (float y = 0; y <= bounds.Height; y += (float)_gridSize)
-                e.Canvas.DrawLine(0, y, bounds.Width, y, gridPaint);
-        }
-
-        if (_selectedDrawable is null)
-            return;
-        using var paint = new SK.SKPaint
-        {
-            IsAntialias = true,
-            Style = SK.SKPaintStyle.Stroke,
-            Color = _boundsColor,
-            StrokeWidth = 1f / scale
-        };
-        var hs = HandleSize / 2f / scale;
-        var size = HandleSize / scale;
-        using var fill = new SK.SKPaint { IsAntialias = true, Style = SK.SKPaintStyle.Fill, Color = SK.SKColors.White };
-        var info = GetBoundsInfo(_selectedDrawable);
-        if ( _toolService.CurrentTool != Tool.PathSelect &&  _toolService.CurrentTool != Tool.PolygonSelect &&  _toolService.CurrentTool != Tool.PolylineSelect)
-        {
-            using (var path = new SK.SKPath())
-            {
-                path.MoveTo(info.TL);
-                path.LineTo(info.TR);
-                path.LineTo(info.BR);
-                path.LineTo(info.BL);
-                path.Close();
-                e.Canvas.DrawPath(path, paint);
-            }
-
-            var pts = new[] { info.TL, info.TopMid, info.TR, info.RightMid, info.BR, info.BottomMid, info.BL, info.LeftMid };
-            foreach (var pt in pts)
-            {
-                e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, fill);
-                e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, paint);
-            }
-
-            e.Canvas.DrawLine(info.TopMid, info.RotHandle, paint);
-            e.Canvas.DrawCircle(info.RotHandle, hs, fill);
-            e.Canvas.DrawCircle(info.RotHandle, hs, paint);
-        }
-
-        if (_pathService.IsEditing && _pathService.EditDrawable == _selectedDrawable)
-        {
-            using var segPaint = new SK.SKPaint
-            {
-                IsAntialias = true,
-                Style = SK.SKPaintStyle.Stroke,
-                Color = _segmentColor,
-                StrokeWidth = 2f / scale,
-                PathEffect = SK.SKPathEffect.CreateDash(new float[] { 6f / scale, 4f / scale }, 0)
-            };
-            using var ctrlPaint = new SK.SKPaint
-            {
-                IsAntialias = true,
-                Style = SK.SKPaintStyle.Stroke,
-                Color = _controlColor,
-                StrokeWidth = 1f / scale,
-                PathEffect = SK.SKPathEffect.CreateDash(new float[] { 4f / scale, 4f / scale }, 0)
-            };
-
-            if (_pathService.EditPath is { } path)
-            {
-                var segs = path.PathData;
-                var cur = new Shim.SKPoint();
-                var start = new Shim.SKPoint();
-                bool haveStart = false;
-                foreach (var seg in segs)
-                {
-                    switch (seg)
-                    {
-                        case SvgMoveToSegment mv:
-                            cur = new Shim.SKPoint(mv.End.X, mv.End.Y);
-                            if (!haveStart)
-                            {
-                                start = cur;
-                                haveStart = true;
-                            }
-                            else
-                            {
-                                start = cur;
-                            }
-                            break;
-                        case SvgLineSegment ln:
-                            var lnEnd = new Shim.SKPoint(ln.End.X, ln.End.Y);
-                            var scur = _pathService.PathMatrix.MapPoint(cur);
-                            var sln = _pathService.PathMatrix.MapPoint(lnEnd);
-                            e.Canvas.DrawLine(scur.X, scur.Y, sln.X, sln.Y, segPaint);
-                            cur = lnEnd;
-                            break;
-                        case SvgCubicCurveSegment c:
-                            var c1 = new Shim.SKPoint(c.FirstControlPoint.X, c.FirstControlPoint.Y);
-                            var c2 = new Shim.SKPoint(c.SecondControlPoint.X, c.SecondControlPoint.Y);
-                            var ce = new Shim.SKPoint(c.End.X, c.End.Y);
-                            scur = _pathService.PathMatrix.MapPoint(cur);
-                            var sc1 = _pathService.PathMatrix.MapPoint(c1);
-                            var sc2 = _pathService.PathMatrix.MapPoint(c2);
-                            var sce = _pathService.PathMatrix.MapPoint(ce);
-                            e.Canvas.DrawLine(scur.X, scur.Y, sc1.X, sc1.Y, ctrlPaint);
-                            e.Canvas.DrawLine(sce.X, sce.Y, sc2.X, sc2.Y, ctrlPaint);
-                            e.Canvas.DrawLine(scur.X, scur.Y, sc1.X, sc1.Y, segPaint);
-                            e.Canvas.DrawLine(sc1.X, sc1.Y, sc2.X, sc2.Y, segPaint);
-                            e.Canvas.DrawLine(sc2.X, sc2.Y, sce.X, sce.Y, segPaint);
-                            cur = ce;
-                            break;
-                        case SvgQuadraticCurveSegment q:
-                            var qp = new Shim.SKPoint(q.ControlPoint.X, q.ControlPoint.Y);
-                            var qe = new Shim.SKPoint(q.End.X, q.End.Y);
-                            scur = _pathService.PathMatrix.MapPoint(cur);
-                            var sqp = _pathService.PathMatrix.MapPoint(qp);
-                            var sqe = _pathService.PathMatrix.MapPoint(qe);
-                            e.Canvas.DrawLine(scur.X, scur.Y, sqp.X, sqp.Y, ctrlPaint);
-                            e.Canvas.DrawLine(sqe.X, sqe.Y, sqp.X, sqp.Y, ctrlPaint);
-                            e.Canvas.DrawLine(scur.X, scur.Y, sqp.X, sqp.Y, segPaint);
-                            e.Canvas.DrawLine(sqp.X, sqp.Y, sqe.X, sqe.Y, segPaint);
-                            cur = qe;
-                            break;
-                        case SvgArcSegment a:
-                            var ae = new Shim.SKPoint(a.End.X, a.End.Y);
-                            scur = _pathService.PathMatrix.MapPoint(cur);
-                            var sae = _pathService.PathMatrix.MapPoint(ae);
-                            e.Canvas.DrawLine(scur.X, scur.Y, sae.X, sae.Y, segPaint);
-                            cur = ae;
-                            break;
-                        case SvgClosePathSegment _:
-                            scur = _pathService.PathMatrix.MapPoint(cur);
-                            var sstart = _pathService.PathMatrix.MapPoint(start);
-                            e.Canvas.DrawLine(scur.X, scur.Y, sstart.X, sstart.Y, segPaint);
-                            cur = start;
-                            break;
-                    }
-                }
-            }
-
-            foreach (var p in _pathService.PathPoints)
-            {
-                var pt = _pathService.PathMatrix.MapPoint(p.Point);
-                e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, fill);
-                e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, paint);
-            }
-        }
-        if (_polyEditing && _editPolyDrawable == _selectedDrawable)
-        {
-            using var segPaint = new SK.SKPaint
-            {
-                IsAntialias = true,
-                Style = SK.SKPaintStyle.Stroke,
-                Color = _segmentColor,
-                StrokeWidth = 2f / scale,
-                PathEffect = SK.SKPathEffect.CreateDash(new float[] { 6f / scale, 4f / scale }, 0)
-            };
-            var last = _polyPoints.Count - 1;
-            for (int i = 0; i < last; i++)
-            {
-                var a = _polyMatrix.MapPoint(_polyPoints[i]);
-                var b = _polyMatrix.MapPoint(_polyPoints[i + 1]);
-                e.Canvas.DrawLine(a.X, a.Y, b.X, b.Y, segPaint);
-            }
-            if (!_editPolyline && _polyPoints.Count > 2)
-            {
-                var a = _polyMatrix.MapPoint(_polyPoints[^1]);
-                var b = _polyMatrix.MapPoint(_polyPoints[0]);
-                e.Canvas.DrawLine(a.X, a.Y, b.X, b.Y, segPaint);
-            }
-            foreach (var p in _polyPoints)
-            {
-                var pt = _polyMatrix.MapPoint(p);
-                e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, fill);
-                e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, paint);
-            }
-        }
+        _renderingService.Draw(e.Canvas,
+            SvgView.SkSvg?.Picture,
+            scale,
+            _snapToGrid,
+            _showGrid,
+            _gridSize,
+            _selectedDrawable,
+            GetBoundsInfo,
+            _polyEditing,
+            _editPolyDrawable,
+            _editPolyline,
+            _polyPoints,
+            _polyMatrix);
     }
 
 
