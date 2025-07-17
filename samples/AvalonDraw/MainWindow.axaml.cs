@@ -162,6 +162,7 @@ public partial class MainWindow : Window
     private SK.SKPoint _boxEndPicture;
     private readonly List<SvgVisualElement> _multiSelected = new();
     private readonly List<DrawableBase> _multiDrawables = new();
+    private SK.SKRect _multiBounds = SK.SKRect.Empty;
 
     public MainWindow()
     {
@@ -677,6 +678,16 @@ public partial class MainWindow : Window
             }
             else
             {
+                if (_toolService.CurrentTool == Tool.MultiSelect && _multiSelected.Count > 0 && !_multiBounds.IsEmpty)
+                {
+                    if (_multiBounds.Contains(pp.X, pp.Y))
+                    {
+                        StartDrag(_multiSelected[0], new Shim.SKPoint(pp.X, pp.Y), e.Pointer);
+                        SvgView.InvalidateVisual();
+                        return;
+                    }
+                }
+
                 _selectedDrawable = skSvg.HitTestDrawables(pp).FirstOrDefault();
                 _selectedElement = null;
                 _selectedSvgElement = null;
@@ -1673,23 +1684,40 @@ public partial class MainWindow : Window
         if (_multiSelected.Count > 0 && SvgView.SkSvg?.Drawable is DrawableBase root)
         {
             _multiDrawables.Clear();
+            _multiBounds = SK.SKRect.Empty;
             foreach (var el in _multiSelected)
             {
                 var d = FindDrawable(root, el);
                 if (d is { })
+                {
                     _multiDrawables.Add(d);
+                    var b = GetBoundsRect(GetBoundsInfo(d));
+                    _multiBounds = _multiBounds.IsEmpty ? b : SK.SKRect.Union(_multiBounds, b);
+                }
             }
             _selectedDrawable = _multiDrawables.FirstOrDefault();
         }
         else if (_selectedElement is { } element && SvgView.SkSvg?.Drawable is DrawableBase drawable)
         {
             _selectedDrawable = FindDrawable(drawable, element);
+            _multiDrawables.Clear();
+            _multiBounds = SK.SKRect.Empty;
         }
         else
         {
             _selectedDrawable = null;
             _multiDrawables.Clear();
+            _multiBounds = SK.SKRect.Empty;
         }
+    }
+
+    private static SK.SKRect GetBoundsRect(RenderingService.BoundsInfo b)
+    {
+        var left = Math.Min(Math.Min(b.TL.X, b.TR.X), Math.Min(b.BL.X, b.BR.X));
+        var top = Math.Min(Math.Min(b.TL.Y, b.TR.Y), Math.Min(b.BL.Y, b.BR.Y));
+        var right = Math.Max(Math.Max(b.TL.X, b.TR.X), Math.Max(b.BL.X, b.BR.X));
+        var bottom = Math.Max(Math.Max(b.TL.Y, b.TR.Y), Math.Max(b.BL.Y, b.BR.Y));
+        return new SK.SKRect(left, top, right, bottom);
     }
 
     private SvgNode? FindNode(SvgNode node, SvgElement element)
@@ -1975,7 +2003,30 @@ public partial class MainWindow : Window
 
     private void RemoveElementMenuItem_Click(object? sender, RoutedEventArgs e)
     {
-        if (_selectedSvgElement is SvgElement { Parent: { } parent } && _document is { })
+        if (_document is null)
+            return;
+
+        if (_toolService.CurrentTool == Tool.MultiSelect && _multiSelected.Count > 1)
+        {
+            SaveUndoState();
+            foreach (var el in _multiSelected.ToList())
+            {
+                if (el.Parent is SvgElement p)
+                    p.Children.Remove(el);
+            }
+            _multiSelected.Clear();
+            _multiDrawables.Clear();
+            _multiBounds = SK.SKRect.Empty;
+            _selectedElement = null;
+            _selectedSvgElement = null;
+            _selectedDrawable = null;
+            SvgView.SkSvg!.FromSvgDocument(_document);
+            BuildTree();
+            SvgView.InvalidateVisual();
+            return;
+        }
+
+        if (_selectedSvgElement is SvgElement { Parent: { } parent })
         {
             SaveUndoState();
             parent.Children.Remove(_selectedSvgElement);
@@ -2532,20 +2583,21 @@ public partial class MainWindow : Window
                 var h = c.Bounds.Height;
                 var localY = pos.Y - topLeft.Y;
                 _dropTarget = node;
+                var w = c.Bounds.Width;
                 if (localY < h * 0.25)
                 {
                     _dropPosition = DropPosition.Before;
-                    ShowDropIndicator(topLeft.Y, topLeft.X, _dropPosition);
+                    ShowDropIndicator(topLeft.Y, topLeft.X, w, _dropPosition);
                 }
                 else if (localY > h * 0.75)
                 {
                     _dropPosition = DropPosition.After;
-                    ShowDropIndicator(topLeft.Y + h, topLeft.X, _dropPosition);
+                    ShowDropIndicator(topLeft.Y + h, topLeft.X, w, _dropPosition);
                 }
                 else
                 {
                     _dropPosition = DropPosition.Inside;
-                    ShowDropIndicator(topLeft.Y + h / 2, topLeft.X, _dropPosition);
+                    ShowDropIndicator(topLeft.Y + h / 2, topLeft.X, w, _dropPosition);
                 }
             }
             else
@@ -2627,11 +2679,12 @@ public partial class MainWindow : Window
         _dropPosition = DropPosition.None;
     }
 
-    private void ShowDropIndicator(double y, double left, DropPosition pos)
+    private void ShowDropIndicator(double y, double left, double width, DropPosition pos)
     {
         if (_dropIndicator is null)
             return;
         _dropIndicator.Margin = new Thickness(left, y - 1, 0, 0);
+        _dropIndicator.Width = width;
         _dropIndicator.Background = pos switch
         {
             DropPosition.Inside => _dropInsideBrush,
