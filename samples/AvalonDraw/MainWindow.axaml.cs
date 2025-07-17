@@ -1103,7 +1103,10 @@ public partial class MainWindow : Window
             var destRect = viewPort.CenterRect(new Rect(scaledSize)).Intersect(viewPort);
             var sourceRect = new Rect(sourceSize).CenterRect(new Rect(destRect.Size / scale));
             var sx = destRect.Width / sourceRect.Width;
-            return (float)(sx * SvgView.Zoom);
+            var sc = (float)(sx * SvgView.Zoom);
+            if (float.IsNaN(sc) || float.IsInfinity(sc) || sc <= 0f)
+                sc = 1f;
+            return sc;
         }
 
         return (float)SvgView.Zoom;

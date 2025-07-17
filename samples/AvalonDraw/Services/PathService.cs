@@ -488,8 +488,11 @@ public class PathService
         path.Stroke = element.Stroke;
         path.StrokeWidth = element.StrokeWidth;
         path.Transforms = new SvgTransformCollection();
-        foreach (var t in element.Transforms)
-            path.Transforms.Add(t);
+        if (element.Transforms is { } tx)
+        {
+            foreach (var t in tx)
+                path.Transforms.Add(t);
+        }
         if (!string.IsNullOrEmpty(element.ID))
             path.ID = element.ID;
 
