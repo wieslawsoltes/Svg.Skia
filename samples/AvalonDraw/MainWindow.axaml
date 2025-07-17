@@ -55,11 +55,15 @@
             </MenuItem>
             <MenuItem Header="Tools">
                 <MenuItem Header="Select" Click="SelectToolMenuItem_Click" InputGesture="1"/>
-                <MenuItem Header="Path" Click="PathToolMenuItem_Click" InputGesture="2"/>
-                <MenuItem Header="Line" Click="LineToolMenuItem_Click" InputGesture="3"/>
-                <MenuItem Header="Rect" Click="RectToolMenuItem_Click" InputGesture="4"/>
-                <MenuItem Header="Circle" Click="CircleToolMenuItem_Click" InputGesture="5"/>
-                <MenuItem Header="Ellipse" Click="EllipseToolMenuItem_Click" InputGesture="6"/>
+                <MenuItem Header="Path Select" Click="PathToolMenuItem_Click" InputGesture="2"/>
+                <MenuItem Header="Polygon Select" Click="PolygonSelectToolMenuItem_Click" InputGesture="3"/>
+                <MenuItem Header="Polyline Select" Click="PolylineSelectToolMenuItem_Click" InputGesture="4"/>
+                <MenuItem Header="Line" Click="LineToolMenuItem_Click" InputGesture="5"/>
+                <MenuItem Header="Rect" Click="RectToolMenuItem_Click" InputGesture="6"/>
+                <MenuItem Header="Circle" Click="CircleToolMenuItem_Click" InputGesture="7"/>
+                <MenuItem Header="Ellipse" Click="EllipseToolMenuItem_Click" InputGesture="8"/>
+                <MenuItem Header="Polygon" Click="PolygonToolMenuItem_Click" InputGesture="9"/>
+                <MenuItem Header="Polyline" Click="PolylineToolMenuItem_Click" InputGesture="0"/>
             </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Wireframe" Click="WireframeMenuItem_Click"/>
@@ -69,11 +73,15 @@
         </Menu>
         <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="4">
             <RadioButton Content="Select" GroupName="tools" IsChecked="True" Click="SelectToolButton_Click" />
-            <RadioButton Content="Path" GroupName="tools" Margin="4,0" Click="PathToolButton_Click" />
+            <RadioButton Content="Path Sel" GroupName="tools" Margin="4,0" Click="PathToolButton_Click" />
+            <RadioButton Content="Poly Sel" GroupName="tools" Margin="4,0" Click="PolygonSelectToolButton_Click" />
+            <RadioButton Content="PolyLine Sel" GroupName="tools" Margin="4,0" Click="PolylineSelectToolButton_Click" />
             <RadioButton Content="Line" GroupName="tools" Margin="4,0" Click="LineToolButton_Click" />
             <RadioButton Content="Rect" GroupName="tools" Margin="4,0" Click="RectToolButton_Click" />
             <RadioButton Content="Circle" GroupName="tools" Margin="4,0" Click="CircleToolButton_Click" />
             <RadioButton Content="Ellipse" GroupName="tools" Margin="4,0" Click="EllipseToolButton_Click" />
+            <RadioButton Content="Polygon" GroupName="tools" Margin="4,0" Click="PolygonToolButton_Click" />
+            <RadioButton Content="Polyline" GroupName="tools" Margin="4,0" Click="PolylineToolButton_Click" />
         </StackPanel>
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
