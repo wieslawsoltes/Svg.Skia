@@ -475,7 +475,98 @@ public partial class MainWindow : Window
             SvgView.InvalidateVisual();
             return;
         }
-        if ((_tool == Tool.Line || _tool == Tool.Rect || _tool == Tool.Circle || _tool == Tool.Ellipse || _tool == Tool.Polygon || _tool == Tool.Polyline) &&
+        if ((_tool == Tool.Polygon || _tool == Tool.Polyline) && e.GetCurrentPoint(SvgView).Properties.IsRightButtonPressed)
+        {
+            if (_creating && _newElement is { })
+            {
+                SaveUndoState();
+                var pts = _tool == Tool.Polygon
+                    ? ((SvgPolygon)_newElement).Points
+                    : ((SvgPolyline)_newElement).Points;
+                if (pts.Count >= 4)
+                {
+                    pts.RemoveAt(pts.Count - 1);
+                    pts.RemoveAt(pts.Count - 1);
+                }
+                _creating = false;
+                LoadProperties(_newElement);
+                _selectedElement = _newElement;
+                _selectedSvgElement = _newElement;
+                UpdateSelectedDrawable();
+                SvgView.SkSvg!.FromSvgDocument(_document);
+                SvgView.InvalidateVisual();
+                _newElement = null;
+            }
+            return;
+        }
+
+        if ((_tool == Tool.Polygon || _tool == Tool.Polyline) && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
+        {
+            if (SvgView.SkSvg is { } && SvgView.TryGetPicturePoint(point, out var p) && _document is { })
+            {
+                SvgElement parent = _selectedSvgElement is SvgGroup grp ? grp : _document!;
+                if (!_creating)
+                {
+                    SaveUndoState();
+                    _newStart = new Shim.SKPoint(p.X, p.Y);
+                    _newElement = _tool switch
+                    {
+                        Tool.Polygon => new SvgPolygon
+                        {
+                            Points = new SvgPointCollection
+                            {
+                                new SvgUnit(SvgUnitType.User, p.X), new SvgUnit(SvgUnitType.User, p.Y),
+                                new SvgUnit(SvgUnitType.User, p.X), new SvgUnit(SvgUnitType.User, p.Y)
+                            },
+                            Stroke = new SvgColourServer(System.Drawing.Color.Black),
+                            StrokeWidth = new SvgUnit(1f)
+                        },
+                        Tool.Polyline => new SvgPolyline
+                        {
+                            Points = new SvgPointCollection
+                            {
+                                new SvgUnit(SvgUnitType.User, p.X), new SvgUnit(SvgUnitType.User, p.Y),
+                                new SvgUnit(SvgUnitType.User, p.X), new SvgUnit(SvgUnitType.User, p.Y)
+                            },
+                            Stroke = new SvgColourServer(System.Drawing.Color.Black),
+                            StrokeWidth = new SvgUnit(1f)
+                        },
+                        _ => null!
+                    };
+                    if (_newElement is { })
+                    {
+                        parent.Children.Add(_newElement);
+                        SvgView.SkSvg!.FromSvgDocument(_document);
+                        SaveExpandedNodes();
+                        BuildTree();
+                        SelectNodeFromElement(_newElement);
+                        _selectedElement = _newElement as SvgVisualElement;
+                        _selectedSvgElement = _newElement;
+                        UpdateSelectedDrawable();
+                        LoadProperties(_newElement);
+                        SvgView.InvalidateVisual();
+                        _creating = true;
+                    }
+                }
+                else if (_newElement is { })
+                {
+                    SaveUndoState();
+                    var pts = _tool == Tool.Polygon
+                        ? ((SvgPolygon)_newElement).Points
+                        : ((SvgPolyline)_newElement).Points;
+                    var x = _snapToGrid ? Snap(p.X) : p.X;
+                    var y = _snapToGrid ? Snap(p.Y) : p.Y;
+                    pts.Insert(pts.Count - 2, new SvgUnit(SvgUnitType.User, x));
+                    pts.Insert(pts.Count - 2 + 1, new SvgUnit(SvgUnitType.User, y));
+                    SvgView.SkSvg!.FromSvgDocument(_document);
+                    UpdateSelectedDrawable();
+                    SvgView.InvalidateVisual();
+                }
+            }
+            return;
+        }
+
+        if ((_tool == Tool.Line || _tool == Tool.Rect || _tool == Tool.Circle || _tool == Tool.Ellipse) &&
             e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
         {
             if (SvgView.SkSvg is { } && SvgView.TryGetPicturePoint(point, out var sp) && _document is { })
@@ -514,14 +605,8 @@ public partial class MainWindow : Window
                         RadiusX = new SvgUnit(SvgUnitType.User, 0),
                         RadiusY = new SvgUnit(SvgUnitType.User, 0)
                     },
-                    Tool.Polygon => new SvgPolygon
-                    {
-                        Points = new SvgPointCollection { new SvgUnit(SvgUnitType.User, sp.X), new SvgUnit(SvgUnitType.User, sp.Y), new SvgUnit(SvgUnitType.User, sp.X), new SvgUnit(SvgUnitType.User, sp.Y) }
-                    },
-                    Tool.Polyline => new SvgPolyline
-                    {
-                        Points = new SvgPointCollection { new SvgUnit(SvgUnitType.User, sp.X), new SvgUnit(SvgUnitType.User, sp.Y), new SvgUnit(SvgUnitType.User, sp.X), new SvgUnit(SvgUnitType.User, sp.Y) }
-                    },
+                    Tool.Polygon => null!,
+                    Tool.Polyline => null!,
                     _ => null!
                 };
                 if (_newElement is { })
@@ -891,15 +976,22 @@ public partial class MainWindow : Window
         }
         else if (_creating)
         {
-            _creating = false;
-            if (_newElement is { })
+            if (_tool == Tool.Polygon || _tool == Tool.Polyline)
             {
-                LoadProperties(_newElement);
-                _selectedElement = _newElement;
-                _selectedSvgElement = _newElement;
-                UpdateSelectedDrawable();
+                // ignore regular release while drawing polygons
             }
-            _newElement = null;
+            else
+            {
+                _creating = false;
+                if (_newElement is { })
+                {
+                    LoadProperties(_newElement);
+                    _selectedElement = _newElement;
+                    _selectedSvgElement = _newElement;
+                    UpdateSelectedDrawable();
+                }
+                _newElement = null;
+            }
         }
         else if (_isResizing)
         {
@@ -1467,41 +1559,21 @@ public partial class MainWindow : Window
                 }
                 break;
             case Tool.Polygon:
-                if (_newElement is SvgPolygon pg)
+                if (_newElement is SvgPolygon pg && pg.Points.Count >= 2)
                 {
-                    var x1 = Math.Min(_newStart.X, current.X);
-                    var y1 = Math.Min(_newStart.Y, current.Y);
-                    var x2 = Math.Max(_newStart.X, current.X);
-                    var y2 = Math.Max(_newStart.Y, current.Y);
-                    if (_snapToGrid)
-                    {
-                        x1 = Snap(x1); y1 = Snap(y1); x2 = Snap(x2); y2 = Snap(y2);
-                    }
-                    pg.Points = new SvgPointCollection
-                    {
-                        new SvgUnit(SvgUnitType.User, x1), new SvgUnit(SvgUnitType.User, y1),
-                        new SvgUnit(SvgUnitType.User, x2), new SvgUnit(SvgUnitType.User, y1),
-                        new SvgUnit(SvgUnitType.User, x2), new SvgUnit(SvgUnitType.User, y2),
-                        new SvgUnit(SvgUnitType.User, x1), new SvgUnit(SvgUnitType.User, y2)
-                    };
+                    var x = _snapToGrid ? Snap(current.X) : current.X;
+                    var y = _snapToGrid ? Snap(current.Y) : current.Y;
+                    pg.Points[pg.Points.Count - 2] = new SvgUnit(pg.Points[0].Type, x);
+                    pg.Points[pg.Points.Count - 1] = new SvgUnit(pg.Points[1].Type, y);
                 }
                 break;
             case Tool.Polyline:
-                if (_newElement is SvgPolyline pl)
+                if (_newElement is SvgPolyline pl && pl.Points.Count >= 2)
                 {
-                    var x1 = _newStart.X;
-                    var y1 = _newStart.Y;
-                    var x2 = current.X;
-                    var y2 = current.Y;
-                    if (_snapToGrid)
-                    {
-                        x1 = Snap(x1); y1 = Snap(y1); x2 = Snap(x2); y2 = Snap(y2);
-                    }
-                    pl.Points = new SvgPointCollection
-                    {
-                        new SvgUnit(SvgUnitType.User, x1), new SvgUnit(SvgUnitType.User, y1),
-                        new SvgUnit(SvgUnitType.User, x2), new SvgUnit(SvgUnitType.User, y2)
-                    };
+                    var x = _snapToGrid ? Snap(current.X) : current.X;
+                    var y = _snapToGrid ? Snap(current.Y) : current.Y;
+                    pl.Points[pl.Points.Count - 2] = new SvgUnit(pl.Points[0].Type, x);
+                    pl.Points[pl.Points.Count - 1] = new SvgUnit(pl.Points[1].Type, y);
                 }
                 break;
         }
