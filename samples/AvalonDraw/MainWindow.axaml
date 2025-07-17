@@ -131,13 +131,16 @@
                     Padding="4">
                 <DockPanel>
                     <Button Content="Apply" Margin="0,10,0,0" Click="ApplyButton_OnClick" DockPanel.Dock="Bottom"/>
+                    <TextBox x:Name="PropertyFilterBox" DockPanel.Dock="Top" Margin="0,0,0,4"
+                             Watermark="Filter properties"
+                             KeyUp="PropertyFilterBox_OnKeyUp" />
                     <dgrid:DataGrid x:Name="PropertiesGrid"
                                     AutoGenerateColumns="False"
                                     HeadersVisibility="None"
                                     GridLinesVisibility="None"
                                     CanUserResizeColumns="False"
                                     CanUserSortColumns="False"
-                                    ItemsSource="{Binding Properties}">
+                                    ItemsSource="{Binding FilteredProperties}">
                         <dgrid:DataGrid.Columns>
                             <dgrid:DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True" Width="*"/>
                             <dgrid:DataGridTemplateColumn Header="Value" Width="*">

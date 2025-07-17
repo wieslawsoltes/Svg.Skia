@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Controls.DataGrid" />
+    <PackageReference Include="Avalonia.Controls.ColorPicker" />
   </ItemGroup>
 
   <ItemGroup>

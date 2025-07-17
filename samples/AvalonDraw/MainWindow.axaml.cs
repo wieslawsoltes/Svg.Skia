@@ -39,6 +39,7 @@ public partial class MainWindow : Window
     private SvgDocument? _document;
 
     private ObservableCollection<PropertyEntry> Properties { get; } = new();
+    private ObservableCollection<PropertyEntry> FilteredProperties { get; } = new();
     private ObservableCollection<SvgNode> Nodes { get; } = new();
     private ObservableCollection<string> Ids { get; } = new();
     private readonly HashSet<string> _expandedIds = new();
@@ -63,6 +64,7 @@ public partial class MainWindow : Window
     private ContextMenu? _treeMenu;
 
     private string _filter = string.Empty;
+    private string _propertyFilter = string.Empty;
     private SvgNode? _dragNode;
     private Point _treeDragStart;
     private bool _treeDragging;
@@ -157,6 +159,26 @@ public partial class MainWindow : Window
                 box.GotFocus += (_, _) => box.IsDropDownOpen = true;
                 return box;
             }
+            if (entry.Property?.PropertyType == typeof(bool))
+            {
+                var cb = new CheckBox();
+                cb[!ToggleButton.IsCheckedProperty] = new Binding("Value")
+                {
+                    Mode = BindingMode.TwoWay,
+                    Converter = new BooleanStringConverter()
+                };
+                return cb;
+            }
+            if (entry.Property?.PropertyType == typeof(SK.SKColor) || entry.Property?.PropertyType == typeof(Color))
+            {
+                var picker = new ColorPicker { Width = 120 };
+                picker[!ColorPicker.ColorProperty] = new Binding("Value")
+                {
+                    Mode = BindingMode.TwoWay,
+                    Converter = new ColorStringConverter()
+                };
+                return picker;
+            }
             var tb = new TextBox();
             tb[!TextBox.TextProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };
             return tb;
@@ -167,6 +189,7 @@ public partial class MainWindow : Window
         this.AttachDevTools();
 #endif
         DataContext = this;
+        ApplyPropertyFilter();
         AddHandler(DragDrop.DragOverEvent, Window_OnDragOver);
         AddHandler(DragDrop.DropEvent, Window_OnDrop);
         KeyDown += MainWindow_OnKeyDown;
@@ -395,6 +418,8 @@ public partial class MainWindow : Window
                 Properties.Add(entry);
             }
         }
+
+        ApplyPropertyFilter();
     }
 
     private async void SvgView_OnPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -814,6 +839,7 @@ public partial class MainWindow : Window
             UpdateSelectedDrawable();
             UpdateIdList();
             SvgView.InvalidateVisual();
+            ApplyPropertyFilter();
         }
     }
 
@@ -1443,6 +1469,19 @@ public partial class MainWindow : Window
                 UpdateSelectedDrawable();
             SvgView.InvalidateVisual();
         });
+    }
+
+    private void ApplyPropertyFilter()
+    {
+        FilteredProperties.Clear();
+        foreach (var entry in Properties)
+        {
+            if (string.IsNullOrEmpty(_propertyFilter) ||
+                entry.Name.Contains(_propertyFilter, StringComparison.OrdinalIgnoreCase))
+            {
+                FilteredProperties.Add(entry);
+            }
+        }
     }
 
     private void UpdateIdList()
@@ -2127,6 +2166,15 @@ public partial class MainWindow : Window
         }
     }
 
+    private void PropertyFilterBox_OnKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (sender is TextBox tb)
+        {
+            _propertyFilter = tb.Text ?? string.Empty;
+            ApplyPropertyFilter();
+        }
+    }
+
     private void DocumentTree_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var pos = e.GetPosition(DocumentTree);
@@ -2339,4 +2387,26 @@ public class EyeIconConverter : IValueConverter
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => null;
+}
+
+public class BooleanStringConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => bool.TryParse(value as string, out var b) ? b : (object?)false;
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is bool b ? b.ToString() : null;
+}
+
+public class ColorStringConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string s && Color.TryParse(s, out var c))
+            return c;
+        return Colors.Transparent;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is Color c ? c.ToString() : null;
 }
