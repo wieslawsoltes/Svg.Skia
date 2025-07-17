@@ -2517,12 +2517,36 @@ public partial class MainWindow : Window
 
     private void ApplyPathOp(SK.SKPathOp op)
     {
-        if (_selectedElement is not SvgVisualElement target || _clipboard is not SvgVisualElement clip || _document is null)
+        if (_document is null)
             return;
 
-        var result = _pathService.ApplyPathOp(target, clip, op);
-        if (result is null)
+        var elements = new List<SvgVisualElement>();
+        if (_multiSelected.Count >= 2)
+        {
+            foreach (var el in _multiSelected)
+                if (el is SvgVisualElement ve)
+                    elements.Add(ve);
+        }
+        else if (_selectedElement is SvgVisualElement target && _clipboard is SvgVisualElement clip)
+        {
+            elements.Add(target);
+            elements.Add(clip);
+        }
+        else
+        {
             return;
+        }
+
+        SaveUndoState();
+
+        var result = elements[0];
+        for (int i = 1; i < elements.Count; i++)
+        {
+            var r = _pathService.ApplyPathOp(result, elements[i], op);
+            if (r is null)
+                return;
+            result = r;
+        }
 
         SvgView.SkSvg!.FromSvgDocument(_document);
         BuildTree();
