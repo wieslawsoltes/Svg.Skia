@@ -2184,10 +2184,11 @@ public partial class MainWindow : Window
         if (_editPolyElement is null)
             return;
         SaveUndoState();
+        var local = _polyInverse.MapPoint(pt);
         var pts = _editPolyline ? ((SvgPolyline)_editPolyElement).Points : ((SvgPolygon)_editPolyElement).Points;
-        pts.Add(new SvgUnit(SvgUnitType.User, pt.X));
-        pts.Add(new SvgUnit(SvgUnitType.User, pt.Y));
-        _polyPoints.Add(pt);
+        pts.Add(new SvgUnit(SvgUnitType.User, local.X));
+        pts.Add(new SvgUnit(SvgUnitType.User, local.Y));
+        _polyPoints.Add(local);
     }
 
     private void RemoveActivePolyPoint()
