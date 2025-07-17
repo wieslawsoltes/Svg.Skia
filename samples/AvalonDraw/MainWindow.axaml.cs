@@ -541,6 +541,10 @@ public partial class MainWindow : Window
                     _resizeHandle = handle;
                     _resizeStart = new Shim.SKPoint(pp.X, pp.Y);
                     _startRect = SvgView.SkSvg!.SkiaModel.ToSKRect(sel.GeometryBounds);
+                    if (_startRect.Width == 0)
+                        _startRect.Right = _startRect.Left + 0.01f;
+                    if (_startRect.Height == 0)
+                        _startRect.Bottom = _startRect.Top + 0.01f;
                     _resizeMatrix = sel.TotalTransform;
                     if (!_resizeMatrix.TryInvert(out _resizeInverse))
                         _resizeInverse = Shim.SKMatrix.CreateIdentity();
@@ -1025,7 +1029,9 @@ public partial class MainWindow : Window
         var center = Mid(tl, br);
         var edge = new SK.SKPoint(tr.X - tl.X, tr.Y - tl.Y);
         var len = (float)Math.Sqrt(edge.X * edge.X + edge.Y * edge.Y);
-        var normal = len > 0 ? new SK.SKPoint(-edge.Y / len, edge.X / len) : new SK.SKPoint(0, -1);
+        var normal = len > 0
+            ? new SK.SKPoint(edge.Y / len, -edge.X / len)
+            : new SK.SKPoint(0, -1);
         var scale = GetCanvasScale();
         var rotHandle = new SK.SKPoint(topMid.X - normal.X * 20f / scale, topMid.Y - normal.Y * 20f / scale);
         return new BoundsInfo
