@@ -60,6 +60,7 @@
         </Menu>
         <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="4">
             <RadioButton Content="Select" GroupName="tools" IsChecked="True" Click="SelectToolButton_Click" />
+            <RadioButton Content="Path" GroupName="tools" Margin="4,0" Click="PathToolButton_Click" />
             <RadioButton Content="Line" GroupName="tools" Margin="4,0" Click="LineToolButton_Click" />
             <RadioButton Content="Rect" GroupName="tools" Margin="4,0" Click="RectToolButton_Click" />
             <RadioButton Content="Circle" GroupName="tools" Margin="4,0" Click="CircleToolButton_Click" />

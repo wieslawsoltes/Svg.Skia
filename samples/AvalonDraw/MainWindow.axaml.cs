@@ -121,6 +121,7 @@ public partial class MainWindow : Window
     private enum Tool
     {
         Select,
+        Path,
         Line,
         Rect,
         Circle,
@@ -426,7 +427,8 @@ public partial class MainWindow : Window
     private async void SvgView_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var point = e.GetPosition(SvgView);
-        if (_tool != Tool.Select && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
+        if ((_tool == Tool.Line || _tool == Tool.Rect || _tool == Tool.Circle || _tool == Tool.Ellipse) &&
+            e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
         {
             if (SvgView.SkSvg is { } && SvgView.TryGetPicturePoint(point, out var sp) && _document is { })
             {
@@ -543,7 +545,7 @@ public partial class MainWindow : Window
             var hits = skSvg.HitTestElements(pp).OfType<SvgVisualElement>().ToList();
             if (hits.Count > 0)
             {
-                if (e.ClickCount > 1)
+                if (_tool == Tool.Path && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
                 {
                     var pathEl = hits.OfType<SvgPath>().FirstOrDefault();
                     if (pathEl is not null && _document is { })
@@ -2111,11 +2113,39 @@ public partial class MainWindow : Window
         SvgView.InvalidateVisual();
     }
 
-    private void SelectToolButton_Click(object? sender, RoutedEventArgs e) => _tool = Tool.Select;
-    private void LineToolButton_Click(object? sender, RoutedEventArgs e) => _tool = Tool.Line;
-    private void RectToolButton_Click(object? sender, RoutedEventArgs e) => _tool = Tool.Rect;
-    private void CircleToolButton_Click(object? sender, RoutedEventArgs e) => _tool = Tool.Circle;
-    private void EllipseToolButton_Click(object? sender, RoutedEventArgs e) => _tool = Tool.Ellipse;
+    private void SelectToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathEditing)
+            StopPathEditing();
+        _tool = Tool.Select;
+    }
+
+    private void PathToolButton_Click(object? sender, RoutedEventArgs e) => _tool = Tool.Path;
+
+    private void LineToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathEditing)
+            StopPathEditing();
+        _tool = Tool.Line;
+    }
+    private void RectToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathEditing)
+            StopPathEditing();
+        _tool = Tool.Rect;
+    }
+    private void CircleToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathEditing)
+            StopPathEditing();
+        _tool = Tool.Circle;
+    }
+    private void EllipseToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathEditing)
+            StopPathEditing();
+        _tool = Tool.Ellipse;
+    }
 
     private async void SettingsMenuItem_Click(object? sender, RoutedEventArgs e)
     {
