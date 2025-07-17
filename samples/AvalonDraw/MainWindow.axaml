@@ -70,6 +70,12 @@
                 <MenuItem Header="Ellipse" Click="EllipseToolMenuItem_Click" InputGesture="E"/>
                 <MenuItem Header="Polygon" Click="PolygonToolMenuItem_Click" InputGesture="P"/>
                 <MenuItem Header="Polyline" Click="PolylineToolMenuItem_Click" InputGesture="O"/>
+                <Separator/>
+                <MenuItem Header="Path Line" Click="PathLineToolMenuItem_Click" InputGesture="B"/>
+                <MenuItem Header="Path Cubic" Click="PathCubicToolMenuItem_Click" InputGesture="J"/>
+                <MenuItem Header="Path Quadratic" Click="PathQuadraticToolMenuItem_Click" InputGesture="Q"/>
+                <MenuItem Header="Path Arc" Click="PathArcToolMenuItem_Click" InputGesture="A"/>
+                <MenuItem Header="Path Move" Click="PathMoveToolMenuItem_Click" InputGesture="M"/>
             </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Wireframe" Click="WireframeMenuItem_Click"/>
@@ -88,6 +94,11 @@
             <RadioButton Content="Ellipse" GroupName="tools" Margin="4,0" Click="EllipseToolButton_Click" />
             <RadioButton Content="Polygon" GroupName="tools" Margin="4,0" Click="PolygonToolButton_Click" />
             <RadioButton Content="Polyline" GroupName="tools" Margin="4,0" Click="PolylineToolButton_Click" />
+            <RadioButton Content="PLine" GroupName="tools" Margin="4,0" Click="PathLineToolButton_Click" />
+            <RadioButton Content="PCubic" GroupName="tools" Margin="4,0" Click="PathCubicToolButton_Click" />
+            <RadioButton Content="PQuad" GroupName="tools" Margin="4,0" Click="PathQuadraticToolButton_Click" />
+            <RadioButton Content="PArc" GroupName="tools" Margin="4,0" Click="PathArcToolButton_Click" />
+            <RadioButton Content="PMove" GroupName="tools" Margin="4,0" Click="PathMoveToolButton_Click" />
         </StackPanel>
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>

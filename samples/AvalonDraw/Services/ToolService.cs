@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Svg;
+using Svg.Pathing;
 
 namespace AvalonDraw.Services;
 
@@ -17,7 +18,12 @@ public class ToolService
         Circle,
         Ellipse,
         Polygon,
-        Polyline
+        Polyline,
+        PathLine,
+        PathCubic,
+        PathQuadratic,
+        PathArc,
+        PathMove
     }
 
     public Tool CurrentTool { get; private set; } = Tool.Select;
@@ -80,8 +86,43 @@ public class ToolService
                 Stroke = new SvgColourServer(System.Drawing.Color.Black),
                 StrokeWidth = new SvgUnit(1f)
             },
+            Tool.PathLine => CreatePath(start, Tool.PathLine),
+            Tool.PathCubic => CreatePath(start, Tool.PathCubic),
+            Tool.PathQuadratic => CreatePath(start, Tool.PathQuadratic),
+            Tool.PathArc => CreatePath(start, Tool.PathArc),
+            Tool.PathMove => CreatePath(start, Tool.PathMove),
             _ => null!
         };
+    }
+
+    private static SvgPath CreatePath(ShimSkiaSharp.SKPoint start, Tool tool)
+    {
+        var path = new SvgPath
+        {
+            Stroke = new SvgColourServer(System.Drawing.Color.Black),
+            StrokeWidth = new SvgUnit(1f)
+        };
+        var list = new SvgPathSegmentList
+        {
+            new SvgMoveToSegment(false, new System.Drawing.PointF(start.X, start.Y))
+        };
+        SvgPathSegment seg = tool switch
+        {
+            Tool.PathCubic => new SvgCubicCurveSegment(false,
+                new System.Drawing.PointF(start.X, start.Y),
+                new System.Drawing.PointF(start.X, start.Y),
+                new System.Drawing.PointF(start.X, start.Y)),
+            Tool.PathQuadratic => new SvgQuadraticCurveSegment(false,
+                new System.Drawing.PointF(start.X, start.Y),
+                new System.Drawing.PointF(start.X, start.Y)),
+            Tool.PathArc => new SvgArcSegment(10, 10, 0, SvgArcSize.Small, SvgArcSweep.Positive, false,
+                new System.Drawing.PointF(start.X, start.Y)),
+            Tool.PathMove => new SvgMoveToSegment(false, new System.Drawing.PointF(start.X, start.Y)),
+            _ => new SvgLineSegment(false, new System.Drawing.PointF(start.X, start.Y))
+        };
+        list.Add(seg);
+        path.PathData = list;
+        return path;
     }
 
     public void UpdateElement(SvgVisualElement element, Tool tool, ShimSkiaSharp.SKPoint start, ShimSkiaSharp.SKPoint current, bool snapToGrid, Func<float, float> snap)
@@ -150,6 +191,36 @@ public class ToolService
                     pl.Points[pl.Points.Count - 1] = new SvgUnit(pl.Points[1].Type, ply);
                 }
                 break;
+            case Tool.PathLine when element is SvgPath p:
+                if (p.PathData.Count >= 2 && p.PathData[1] is SvgLineSegment lnSeg)
+                {
+                    var px = snapToGrid ? snap(current.X) : current.X;
+                    var py = snapToGrid ? snap(current.Y) : current.Y;
+                    lnSeg.End = new System.Drawing.PointF(px, py);
+                }
+                break;
+            case Tool.PathCubic when element is SvgPath pc && pc.PathData[1] is SvgCubicCurveSegment cc:
+                var cx1 = snapToGrid ? snap(current.X) : current.X;
+                var cy1 = snapToGrid ? snap(current.Y) : current.Y;
+                cc.SecondControlPoint = new System.Drawing.PointF(cx1, cy1);
+                cc.End = new System.Drawing.PointF(cx1, cy1);
+                break;
+            case Tool.PathQuadratic when element is SvgPath pq && pq.PathData[1] is SvgQuadraticCurveSegment qc:
+                var qx = snapToGrid ? snap(current.X) : current.X;
+                var qy = snapToGrid ? snap(current.Y) : current.Y;
+                qc.ControlPoint = new System.Drawing.PointF(qx, qy);
+                qc.End = new System.Drawing.PointF(qx, qy);
+                break;
+            case Tool.PathArc when element is SvgPath pa && pa.PathData[1] is SvgArcSegment ac:
+                var ax = snapToGrid ? snap(current.X) : current.X;
+                var ay = snapToGrid ? snap(current.Y) : current.Y;
+                ac.End = new System.Drawing.PointF(ax, ay);
+                break;
+            case Tool.PathMove when element is SvgPath pm && pm.PathData[1] is SvgMoveToSegment mv:
+                var mx = snapToGrid ? snap(current.X) : current.X;
+                var my = snapToGrid ? snap(current.Y) : current.Y;
+                mv.End = new System.Drawing.PointF(mx, my);
+                break;
         }
     }
 
@@ -161,15 +232,17 @@ public class ToolService
         {
             var x = snapToGrid ? snap(point.X) : point.X;
             var y = snapToGrid ? snap(point.Y) : point.Y;
-            pg.Points.Insert(pg.Points.Count - 2, new SvgUnit(SvgUnitType.User, x));
-            pg.Points.Insert(pg.Points.Count - 2 + 1, new SvgUnit(SvgUnitType.User, y));
+            var idx = pg.Points.Count - 2;
+            pg.Points.Insert(idx, new SvgUnit(SvgUnitType.User, x));
+            pg.Points.Insert(idx + 1, new SvgUnit(SvgUnitType.User, y));
         }
         else if (element is SvgPolyline pl)
         {
             var x = snapToGrid ? snap(point.X) : point.X;
             var y = snapToGrid ? snap(point.Y) : point.Y;
-            pl.Points.Insert(pl.Points.Count - 2, new SvgUnit(SvgUnitType.User, x));
-            pl.Points.Insert(pl.Points.Count - 2 + 1, new SvgUnit(SvgUnitType.User, y));
+            var idx = pl.Points.Count - 2;
+            pl.Points.Insert(idx, new SvgUnit(SvgUnitType.User, x));
+            pl.Points.Insert(idx + 1, new SvgUnit(SvgUnitType.User, y));
         }
     }
 

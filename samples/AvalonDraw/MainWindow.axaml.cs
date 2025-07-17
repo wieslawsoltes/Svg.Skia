@@ -465,7 +465,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        if ((_toolService.CurrentTool == Tool.Line || _toolService.CurrentTool == Tool.Rect || _toolService.CurrentTool == Tool.Circle || _toolService.CurrentTool == Tool.Ellipse) &&
+        if ((_toolService.CurrentTool == Tool.Line || _toolService.CurrentTool == Tool.Rect || _toolService.CurrentTool == Tool.Circle || _toolService.CurrentTool == Tool.Ellipse ||
+             _toolService.CurrentTool == Tool.PathLine || _toolService.CurrentTool == Tool.PathCubic || _toolService.CurrentTool == Tool.PathQuadratic || _toolService.CurrentTool == Tool.PathArc || _toolService.CurrentTool == Tool.PathMove) &&
             e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
         {
             if (SvgView.SkSvg is { } && SvgView.TryGetPicturePoint(point, out var sp) && _document is { })
@@ -1944,6 +1945,42 @@ public partial class MainWindow : Window
         _toolService.SetTool(Tool.Polyline);
     }
 
+    private void PathLineToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathService.IsEditing)
+            _pathService.Stop();
+        _toolService.SetTool(Tool.PathLine);
+        _pathService.CurrentSegmentTool = PathService.SegmentTool.Line;
+    }
+    private void PathCubicToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathService.IsEditing)
+            _pathService.Stop();
+        _toolService.SetTool(Tool.PathCubic);
+        _pathService.CurrentSegmentTool = PathService.SegmentTool.Cubic;
+    }
+    private void PathQuadraticToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathService.IsEditing)
+            _pathService.Stop();
+        _toolService.SetTool(Tool.PathQuadratic);
+        _pathService.CurrentSegmentTool = PathService.SegmentTool.Quadratic;
+    }
+    private void PathArcToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathService.IsEditing)
+            _pathService.Stop();
+        _toolService.SetTool(Tool.PathArc);
+        _pathService.CurrentSegmentTool = PathService.SegmentTool.Arc;
+    }
+    private void PathMoveToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathService.IsEditing)
+            _pathService.Stop();
+        _toolService.SetTool(Tool.PathMove);
+        _pathService.CurrentSegmentTool = PathService.SegmentTool.Move;
+    }
+
     private void SelectToolMenuItem_Click(object? sender, RoutedEventArgs e) => SelectToolButton_Click(sender, e);
     private void PathToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathToolButton_Click(sender, e);
     private void PolygonSelectToolMenuItem_Click(object? sender, RoutedEventArgs e) => PolygonSelectToolButton_Click(sender, e);
@@ -1954,6 +1991,11 @@ public partial class MainWindow : Window
     private void EllipseToolMenuItem_Click(object? sender, RoutedEventArgs e) => EllipseToolButton_Click(sender, e);
     private void PolygonToolMenuItem_Click(object? sender, RoutedEventArgs e) => PolygonToolButton_Click(sender, e);
     private void PolylineToolMenuItem_Click(object? sender, RoutedEventArgs e) => PolylineToolButton_Click(sender, e);
+    private void PathLineToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathLineToolButton_Click(sender, e);
+    private void PathCubicToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathCubicToolButton_Click(sender, e);
+    private void PathQuadraticToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathQuadraticToolButton_Click(sender, e);
+    private void PathArcToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathArcToolButton_Click(sender, e);
+    private void PathMoveToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathMoveToolButton_Click(sender, e);
 
     private async void SettingsMenuItem_Click(object? sender, RoutedEventArgs e)
     {
@@ -2108,12 +2150,32 @@ public partial class MainWindow : Window
                     PolylineToolButton_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
-                case Key.S:
-                    SmoothPointMenuItem_Click(this, new RoutedEventArgs());
+                case Key.B:
+                    PathLineToolButton_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
-                case Key.B:
+                case Key.M:
+                    PathMoveToolButton_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.Q:
+                    PathQuadraticToolButton_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.A:
+                    PathArcToolButton_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.J:
+                    PathCubicToolButton_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.K:
                     CornerPointMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.S:
+                    SmoothPointMenuItem_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
                 case Key.U:

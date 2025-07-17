@@ -16,6 +16,15 @@ public class PathService
         public SKPoint Point;
     }
 
+    public enum SegmentTool
+    {
+        Line,
+        Cubic,
+        Quadratic,
+        Arc,
+        Move
+    }
+
     private bool _editing;
     private SvgPath? _path;
     private DrawableBase? _drawable;
@@ -23,6 +32,7 @@ public class PathService
     private int _activeIndex = -1;
     private SKMatrix _matrix;
     private SKMatrix _inverse;
+    private SegmentTool _segmentTool = SegmentTool.Line;
 
     public bool IsEditing => _editing;
     public SvgPath? EditPath => _path;
@@ -31,6 +41,7 @@ public class PathService
     public int ActivePoint { get => _activeIndex; set => _activeIndex = value; }
     public SKMatrix PathMatrix => _matrix;
     public SKMatrix PathInverse => _inverse;
+    public SegmentTool CurrentSegmentTool { get => _segmentTool; set => _segmentTool = value; }
 
     public void Start(SvgPath path, DrawableBase drawable)
     {
@@ -94,9 +105,37 @@ public class PathService
     {
         if (_path == null)
             return;
-        var seg = new SvgLineSegment(false, new System.Drawing.PointF(point.X, point.Y));
+        SvgPathSegment seg = _segmentTool switch
+        {
+            SegmentTool.Line => new SvgLineSegment(false, new System.Drawing.PointF(point.X, point.Y)),
+            SegmentTool.Cubic => new SvgCubicCurveSegment(false,
+                new System.Drawing.PointF(float.NaN, float.NaN),
+                new System.Drawing.PointF(point.X, point.Y),
+                new System.Drawing.PointF(point.X, point.Y)),
+            SegmentTool.Quadratic => new SvgQuadraticCurveSegment(false,
+                new System.Drawing.PointF(point.X, point.Y),
+                new System.Drawing.PointF(point.X, point.Y)),
+            SegmentTool.Arc => new SvgArcSegment(10,10,0,SvgArcSize.Small,SvgArcSweep.Positive,false,
+                new System.Drawing.PointF(point.X, point.Y)),
+            SegmentTool.Move => new SvgMoveToSegment(false, new System.Drawing.PointF(point.X, point.Y)),
+            _ => new SvgLineSegment(false, new System.Drawing.PointF(point.X, point.Y))
+        };
         _path.PathData.Add(seg);
-        _points.Add(new PathPoint { Segment = seg, Type = 0, Point = point });
+        if (seg is SvgCubicCurveSegment cc)
+        {
+            _points.Add(new PathPoint { Segment = cc, Type = 1, Point = new SKPoint(float.IsNaN(cc.FirstControlPoint.X) ? point.X : cc.FirstControlPoint.X, float.IsNaN(cc.FirstControlPoint.Y) ? point.Y : cc.FirstControlPoint.Y) });
+            _points.Add(new PathPoint { Segment = cc, Type = 2, Point = new SKPoint(cc.SecondControlPoint.X, cc.SecondControlPoint.Y) });
+            _points.Add(new PathPoint { Segment = cc, Type = 0, Point = point });
+        }
+        else if (seg is SvgQuadraticCurveSegment qc)
+        {
+            _points.Add(new PathPoint { Segment = qc, Type = 1, Point = new SKPoint(qc.ControlPoint.X, qc.ControlPoint.Y) });
+            _points.Add(new PathPoint { Segment = qc, Type = 0, Point = point });
+        }
+        else
+        {
+            _points.Add(new PathPoint { Segment = seg, Type = 0, Point = point });
+        }
         _path.OnPathUpdated();
     }
 
