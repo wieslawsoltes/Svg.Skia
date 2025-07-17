@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Svg;
 using Svg.Model.Drawables;
@@ -121,6 +122,69 @@ public class PathService
         _path.OnPathUpdated();
     }
 
+    public void MakeSmooth(int index)
+    {
+        if (_path == null || index < 0 || index >= _points.Count)
+            return;
+        if (_points[index].Type != 0)
+            return;
+
+        var anchor = _points[index].Point;
+        int prev = index - 1;
+        int next = index + 1;
+        if (prev >= 0 && _points[prev].Type != 0)
+        {
+            var pPrev = _points[prev];
+            if (next < _points.Count && _points[next].Type != 0)
+            {
+                var reflected = Reflect(pPrev.Point, anchor);
+                var pNext = _points[next];
+                pNext.Point = reflected;
+                _points[next] = pNext;
+                UpdatePathPoint(pNext);
+            }
+        }
+        else if (next < _points.Count && _points[next].Type != 0)
+        {
+            var pNext = _points[next];
+            var reflected = Reflect(pNext.Point, anchor);
+            if (prev >= 0 && _points[prev].Type != 0)
+            {
+                var pPrev = _points[prev];
+                pPrev.Point = reflected;
+                _points[prev] = pPrev;
+                UpdatePathPoint(pPrev);
+            }
+        }
+        _path.OnPathUpdated();
+    }
+
+    public void MakeCorner(int index)
+    {
+        if (_path == null || index < 0 || index >= _points.Count)
+            return;
+        if (_points[index].Type != 0)
+            return;
+
+        int prev = index - 1;
+        int next = index + 1;
+        if (prev >= 0 && _points[prev].Type != 0)
+        {
+            var pPrev = _points[prev];
+            pPrev.Point = _points[index].Point;
+            _points[prev] = pPrev;
+            UpdatePathPoint(pPrev);
+        }
+        if (next < _points.Count && _points[next].Type != 0)
+        {
+            var pNext = _points[next];
+            pNext.Point = _points[index].Point;
+            _points[next] = pNext;
+            UpdatePathPoint(pNext);
+        }
+        _path.OnPathUpdated();
+    }
+
     public int HitPoint(SkiaSharp.SKPoint pt, float handleSize, float scale)
     {
         var hs = handleSize / 2f / scale;
@@ -162,6 +226,15 @@ public class PathService
                 a.End = new System.Drawing.PointF(pp.Point.X, pp.Point.Y);
                 break;
         }
+    }
+
+    private static SKPoint Reflect(SKPoint point, SKPoint mirror)
+    {
+        var dx = Math.Abs(mirror.X - point.X);
+        var dy = Math.Abs(mirror.Y - point.Y);
+        var x = mirror.X + (mirror.X >= point.X ? dx : -dx);
+        var y = mirror.Y + (mirror.Y >= point.Y ? dy : -dy);
+        return new SKPoint(x, y);
     }
 
     private static void MakePathAbsolute(SvgPath path)

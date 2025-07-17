@@ -7,6 +7,7 @@ using System.Linq;
 using Avalonia.Threading;
 using System.Reflection;
 using System.IO;
+using System.Text;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -2107,6 +2108,26 @@ public partial class MainWindow : Window
                     PolylineToolButton_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
+                case Key.S:
+                    SmoothPointMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.B:
+                    CornerPointMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.U:
+                    UniteMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.D:
+                    SubtractMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.I:
+                    IntersectMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
             }
         }
     }
@@ -2334,6 +2355,172 @@ public partial class MainWindow : Window
             return;
         _dropIndicator.IsVisible = false;
     }
+
+    private static string ToSvgPathData(SK.SKPath skPath)
+    {
+        var sb = new System.Text.StringBuilder();
+        using var iter = skPath.CreateRawIterator();
+        var pts = new SK.SKPoint[4];
+        while (true)
+        {
+            var verb = iter.Next(pts);
+            switch (verb)
+            {
+                case SK.SKPathVerb.Move:
+                    sb.AppendFormat(CultureInfo.InvariantCulture, "M{0},{1} ", pts[0].X, pts[0].Y);
+                    break;
+                case SK.SKPathVerb.Line:
+                    sb.AppendFormat(CultureInfo.InvariantCulture, "L{0},{1} ", pts[1].X, pts[1].Y);
+                    break;
+                case SK.SKPathVerb.Quad:
+                case SK.SKPathVerb.Conic:
+                    sb.AppendFormat(CultureInfo.InvariantCulture, "Q{0},{1} {2},{3} ",
+                        pts[1].X, pts[1].Y, pts[2].X, pts[2].Y);
+                    break;
+                case SK.SKPathVerb.Cubic:
+                    sb.AppendFormat(CultureInfo.InvariantCulture, "C{0},{1} {2},{3} {4},{5} ",
+                        pts[1].X, pts[1].Y, pts[2].X, pts[2].Y, pts[3].X, pts[3].Y);
+                    break;
+                case SK.SKPathVerb.Close:
+                    sb.Append("Z ");
+                    break;
+                case SK.SKPathVerb.Done:
+                    return sb.ToString().Trim();
+            }
+        }
+    }
+
+    private static SK.SKPoint[] ConvertPoints(SvgPointCollection pc)
+    {
+        var pts = new SK.SKPoint[pc.Count / 2];
+        for (int i = 0; i + 1 < pc.Count; i += 2)
+            pts[i / 2] = new SK.SKPoint((float)pc[i].Value, (float)pc[i + 1].Value);
+        return pts;
+    }
+
+    private static void AddPathSegments(SK.SKPath path, SvgPathSegmentList segments)
+    {
+        var cur = new SK.SKPoint();
+        foreach (var seg in segments)
+        {
+            switch (seg)
+            {
+                case SvgMoveToSegment mv:
+                    cur = new SK.SKPoint(mv.End.X, mv.End.Y);
+                    path.MoveTo(cur);
+                    break;
+                case SvgLineSegment ln:
+                    cur = new SK.SKPoint(ln.End.X, ln.End.Y);
+                    path.LineTo(cur);
+                    break;
+                case SvgCubicCurveSegment c:
+                    path.CubicTo(new SK.SKPoint(c.FirstControlPoint.X, c.FirstControlPoint.Y),
+                        new SK.SKPoint(c.SecondControlPoint.X, c.SecondControlPoint.Y),
+                        new SK.SKPoint(c.End.X, c.End.Y));
+                    cur = new SK.SKPoint(c.End.X, c.End.Y);
+                    break;
+                case SvgQuadraticCurveSegment q:
+                    path.QuadTo(new SK.SKPoint(q.ControlPoint.X, q.ControlPoint.Y),
+                        new SK.SKPoint(q.End.X, q.End.Y));
+                    cur = new SK.SKPoint(q.End.X, q.End.Y);
+                    break;
+                case SvgArcSegment a:
+                    path.LineTo(a.End.X, a.End.Y);
+                    cur = new SK.SKPoint(a.End.X, a.End.Y);
+                    break;
+                case SvgClosePathSegment _:
+                    path.Close();
+                    break;
+            }
+        }
+    }
+
+    private SK.SKPath? ElementToPath(SvgVisualElement element)
+    {
+        var path = new SK.SKPath
+        {
+            FillType = element.FillRule == SvgFillRule.EvenOdd ? SK.SKPathFillType.EvenOdd : SK.SKPathFillType.Winding
+        };
+        switch (element)
+        {
+            case SvgPath sp when sp.PathData is { } d:
+                AddPathSegments(path, d);
+                return path;
+            case SvgRectangle r:
+                path.AddRect(SK.SKRect.Create((float)r.X.Value, (float)r.Y.Value, (float)r.Width.Value, (float)r.Height.Value));
+                return path;
+            case SvgCircle c:
+                path.AddCircle((float)c.CenterX.Value, (float)c.CenterY.Value, (float)c.Radius.Value);
+                return path;
+            case SvgEllipse e:
+                path.AddOval(SK.SKRect.Create(
+                    (float)(e.CenterX.Value - e.RadiusX.Value),
+                    (float)(e.CenterY.Value - e.RadiusY.Value),
+                    (float)(e.RadiusX.Value * 2),
+                    (float)(e.RadiusY.Value * 2)));
+                return path;
+            case SvgPolyline pl:
+                path.AddPoly(ConvertPoints(pl.Points), false);
+                return path;
+            case SvgPolygon pg:
+                path.AddPoly(ConvertPoints(pg.Points), true);
+                return path;
+            case SvgLine ln:
+                path.MoveTo((float)ln.StartX.Value, (float)ln.StartY.Value);
+                path.LineTo((float)ln.EndX.Value, (float)ln.EndY.Value);
+                return path;
+            default:
+                return null;
+        }
+    }
+
+    private void ApplyPathOp(SK.SKPathOp op)
+    {
+        if (_selectedElement is not SvgPath pathEl || _clipboard is not SvgVisualElement clipEl || _document is null)
+            return;
+
+        var p1 = ElementToPath(pathEl);
+        var p2 = ElementToPath(clipEl);
+        if (p1 is null || p2 is null)
+            return;
+
+        var result = p1.Op(p2, op);
+        var data = ToSvgPathData(result);
+        var segs = SvgPathBuilder.Parse(data.AsSpan());
+        pathEl.PathData = segs;
+
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        BuildTree();
+        SelectNodeFromElement(pathEl);
+    }
+
+    private void SmoothPointMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathService.IsEditing && _pathService.ActivePoint >= 0 && _document is { })
+        {
+            SaveUndoState();
+            _pathService.MakeSmooth(_pathService.ActivePoint);
+            SvgView.SkSvg!.FromSvgDocument(_document);
+            UpdateSelectedDrawable();
+            SvgView.InvalidateVisual();
+        }
+    }
+
+    private void CornerPointMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathService.IsEditing && _pathService.ActivePoint >= 0 && _document is { })
+        {
+            SaveUndoState();
+            _pathService.MakeCorner(_pathService.ActivePoint);
+            SvgView.SkSvg!.FromSvgDocument(_document);
+            UpdateSelectedDrawable();
+            SvgView.InvalidateVisual();
+        }
+    }
+
+    private void UniteMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Union);
+    private void SubtractMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Difference);
+    private void IntersectMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Intersect);
 
 }
 

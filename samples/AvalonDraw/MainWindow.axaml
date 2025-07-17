@@ -52,6 +52,12 @@
                 <Separator />
                 <MenuItem Header="Undo" Click="UndoMenuItem_Click" InputGesture="Ctrl+Z"/>
                 <MenuItem Header="Redo" Click="RedoMenuItem_Click" InputGesture="Ctrl+Y"/>
+                <Separator />
+                <MenuItem Header="Smooth Point" Click="SmoothPointMenuItem_Click" InputGesture="S"/>
+                <MenuItem Header="Corner Point" Click="CornerPointMenuItem_Click" InputGesture="B"/>
+                <MenuItem Header="Unite" Click="UniteMenuItem_Click" InputGesture="Ctrl+Shift+U"/>
+                <MenuItem Header="Subtract" Click="SubtractMenuItem_Click" InputGesture="Ctrl+Shift+D"/>
+                <MenuItem Header="Intersect" Click="IntersectMenuItem_Click" InputGesture="Ctrl+Shift+I"/>
             </MenuItem>
             <MenuItem Header="Tools">
                 <MenuItem Header="Select" Click="SelectToolMenuItem_Click" InputGesture="V"/>
