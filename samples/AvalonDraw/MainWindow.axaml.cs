@@ -78,6 +78,9 @@ public partial class MainWindow : Window
     private Border? _dropIndicator;
     private SvgNode? _dropTarget;
     private DropPosition _dropPosition;
+    private readonly IBrush _dropBeforeBrush = Brushes.DodgerBlue;
+    private readonly IBrush _dropAfterBrush = Brushes.DodgerBlue;
+    private readonly IBrush _dropInsideBrush = Brushes.SeaGreen;
 
     private bool _isDragging;
     private Shim.SKPoint _dragStart;
@@ -466,7 +469,9 @@ public partial class MainWindow : Window
                         StartX = new SvgUnit(SvgUnitType.User, sp.X),
                         StartY = new SvgUnit(SvgUnitType.User, sp.Y),
                         EndX = new SvgUnit(SvgUnitType.User, sp.X),
-                        EndY = new SvgUnit(SvgUnitType.User, sp.Y)
+                        EndY = new SvgUnit(SvgUnitType.User, sp.Y),
+                        Stroke = new SvgColourServer(System.Drawing.Color.Black),
+                        StrokeWidth = new SvgUnit(1f)
                     },
                     Tool.Rect => new SvgRectangle
                     {
@@ -517,6 +522,8 @@ public partial class MainWindow : Window
         }
         if (SvgView.SkSvg is { } skSvg && SvgView.TryGetPicturePoint(point, out var pp))
         {
+            if (_selectedDrawable is null && _selectedElement is { })
+                UpdateSelectedDrawable();
             // check handles first
             if (_selectedDrawable is { } sel && _selectedElement is { })
             {
@@ -2520,17 +2527,17 @@ public partial class MainWindow : Window
                 if (localY < h * 0.25)
                 {
                     _dropPosition = DropPosition.Before;
-                    ShowDropIndicator(topLeft.Y);
+                    ShowDropIndicator(topLeft.Y, topLeft.X, _dropPosition);
                 }
                 else if (localY > h * 0.75)
                 {
                     _dropPosition = DropPosition.After;
-                    ShowDropIndicator(topLeft.Y + h);
+                    ShowDropIndicator(topLeft.Y + h, topLeft.X, _dropPosition);
                 }
                 else
                 {
                     _dropPosition = DropPosition.Inside;
-                    HideDropIndicator();
+                    ShowDropIndicator(topLeft.Y + h / 2, topLeft.X, _dropPosition);
                 }
             }
             else
@@ -2578,14 +2585,22 @@ public partial class MainWindow : Window
                     if (target.Parent?.Element is SvgElement parentBefore)
                     {
                         var index = parentBefore.Children.IndexOf(target.Element);
-                        parentBefore.Children.Insert(index, node.Element);
+                        if (index < 0) index = parentBefore.Children.Count;
+                        if (index >= parentBefore.Children.Count)
+                            parentBefore.Children.Add(node.Element);
+                        else
+                            parentBefore.Children.Insert(index, node.Element);
                     }
                     break;
                 case DropPosition.After:
                     if (target.Parent?.Element is SvgElement parentAfter)
                     {
                         var index = parentAfter.Children.IndexOf(target.Element);
-                        parentAfter.Children.Insert(index + 1, node.Element);
+                        if (index < 0) index = parentAfter.Children.Count - 1;
+                        if (index + 1 >= parentAfter.Children.Count)
+                            parentAfter.Children.Add(node.Element);
+                        else
+                            parentAfter.Children.Insert(index + 1, node.Element);
                     }
                     break;
                 default:
@@ -2604,11 +2619,18 @@ public partial class MainWindow : Window
         _dropPosition = DropPosition.None;
     }
 
-    private void ShowDropIndicator(double y)
+    private void ShowDropIndicator(double y, double left, DropPosition pos)
     {
         if (_dropIndicator is null)
             return;
-        _dropIndicator.Margin = new Thickness(0, y - 1, 0, 0);
+        _dropIndicator.Margin = new Thickness(left, y - 1, 0, 0);
+        _dropIndicator.Background = pos switch
+        {
+            DropPosition.Inside => _dropInsideBrush,
+            DropPosition.Before => _dropBeforeBrush,
+            DropPosition.After => _dropAfterBrush,
+            _ => _dropBeforeBrush
+        };
         _dropIndicator.IsVisible = true;
     }
 
