@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using SK = SkiaSharp;
+using Svg.Transforms;
 using Svg;
 using Svg.Model.Drawables;
 using Svg.Pathing;
-using ShimSkiaSharp;
+using Shim = ShimSkiaSharp;
 
 namespace AvalonDraw.Services;
 
@@ -13,7 +16,7 @@ public class PathService
     {
         public SvgPathSegment Segment;
         public int Type; // 0=end,1=ctrl1,2=ctrl2
-        public SKPoint Point;
+        public Shim.SKPoint Point;
     }
 
     public enum SegmentTool
@@ -30,8 +33,8 @@ public class PathService
     private DrawableBase? _drawable;
     private readonly List<PathPoint> _points = new();
     private int _activeIndex = -1;
-    private SKMatrix _matrix;
-    private SKMatrix _inverse;
+    private Shim.SKMatrix _matrix;
+    private Shim.SKMatrix _inverse;
     private SegmentTool _segmentTool = SegmentTool.Line;
 
     public bool IsEditing => _editing;
@@ -39,8 +42,8 @@ public class PathService
     public DrawableBase? EditDrawable { get => _drawable; set => _drawable = value; }
     public IReadOnlyList<PathPoint> PathPoints => _points;
     public int ActivePoint { get => _activeIndex; set => _activeIndex = value; }
-    public SKMatrix PathMatrix => _matrix;
-    public SKMatrix PathInverse => _inverse;
+    public Shim.SKMatrix PathMatrix => _matrix;
+    public Shim.SKMatrix PathInverse => _inverse;
     public SegmentTool CurrentSegmentTool { get => _segmentTool; set => _segmentTool = value; }
 
     public void Start(SvgPath path, DrawableBase drawable)
@@ -51,37 +54,37 @@ public class PathService
         _points.Clear();
         MakePathAbsolute(path);
         var segs = path.PathData;
-        var cur = new SKPoint(0,0);
+        var cur = new Shim.SKPoint(0,0);
         foreach (var seg in segs)
         {
             switch (seg)
             {
                 case SvgMoveToSegment mv:
-                    cur = new SKPoint(mv.End.X, mv.End.Y);
+                    cur = new Shim.SKPoint(mv.End.X, mv.End.Y);
                     _points.Add(new PathPoint { Segment = mv, Type = 0, Point = cur });
                     break;
                 case SvgLineSegment ln:
-                    cur = new SKPoint(ln.End.X, ln.End.Y);
+                    cur = new Shim.SKPoint(ln.End.X, ln.End.Y);
                     _points.Add(new PathPoint { Segment = ln, Type = 0, Point = cur });
                     break;
                 case SvgCubicCurveSegment c:
-                    var p1 = new SKPoint(c.FirstControlPoint.X, c.FirstControlPoint.Y);
-                    var p2 = new SKPoint(c.SecondControlPoint.X, c.SecondControlPoint.Y);
-                    var end = new SKPoint(c.End.X, c.End.Y);
+                    var p1 = new Shim.SKPoint(c.FirstControlPoint.X, c.FirstControlPoint.Y);
+                    var p2 = new Shim.SKPoint(c.SecondControlPoint.X, c.SecondControlPoint.Y);
+                    var end = new Shim.SKPoint(c.End.X, c.End.Y);
                     _points.Add(new PathPoint { Segment = c, Type = 1, Point = p1 });
                     _points.Add(new PathPoint { Segment = c, Type = 2, Point = p2 });
                     _points.Add(new PathPoint { Segment = c, Type = 0, Point = end });
                     cur = end;
                     break;
                 case SvgQuadraticCurveSegment q:
-                    var cp = new SKPoint(q.ControlPoint.X, q.ControlPoint.Y);
-                    var qe = new SKPoint(q.End.X, q.End.Y);
+                    var cp = new Shim.SKPoint(q.ControlPoint.X, q.ControlPoint.Y);
+                    var qe = new Shim.SKPoint(q.End.X, q.End.Y);
                     _points.Add(new PathPoint { Segment = q, Type = 1, Point = cp });
                     _points.Add(new PathPoint { Segment = q, Type = 0, Point = qe });
                     cur = qe;
                     break;
                 case SvgArcSegment a:
-                    var ae = new SKPoint(a.End.X, a.End.Y);
+                    var ae = new Shim.SKPoint(a.End.X, a.End.Y);
                     _points.Add(new PathPoint { Segment = a, Type = 0, Point = ae });
                     cur = ae;
                     break;
@@ -89,7 +92,7 @@ public class PathService
         }
         _matrix = drawable.TotalTransform;
         if (!_matrix.TryInvert(out _inverse))
-            _inverse = SKMatrix.CreateIdentity();
+            _inverse = Shim.SKMatrix.CreateIdentity();
     }
 
     public void Stop()
@@ -101,7 +104,7 @@ public class PathService
         _activeIndex = -1;
     }
 
-    public void AddPoint(SKPoint point)
+    public void AddPoint(Shim.SKPoint point)
     {
         if (_path == null)
             return;
@@ -123,13 +126,13 @@ public class PathService
         _path.PathData.Add(seg);
         if (seg is SvgCubicCurveSegment cc)
         {
-            _points.Add(new PathPoint { Segment = cc, Type = 1, Point = new SKPoint(float.IsNaN(cc.FirstControlPoint.X) ? point.X : cc.FirstControlPoint.X, float.IsNaN(cc.FirstControlPoint.Y) ? point.Y : cc.FirstControlPoint.Y) });
-            _points.Add(new PathPoint { Segment = cc, Type = 2, Point = new SKPoint(cc.SecondControlPoint.X, cc.SecondControlPoint.Y) });
+            _points.Add(new PathPoint { Segment = cc, Type = 1, Point = new Shim.SKPoint(float.IsNaN(cc.FirstControlPoint.X) ? point.X : cc.FirstControlPoint.X, float.IsNaN(cc.FirstControlPoint.Y) ? point.Y : cc.FirstControlPoint.Y) });
+            _points.Add(new PathPoint { Segment = cc, Type = 2, Point = new Shim.SKPoint(cc.SecondControlPoint.X, cc.SecondControlPoint.Y) });
             _points.Add(new PathPoint { Segment = cc, Type = 0, Point = point });
         }
         else if (seg is SvgQuadraticCurveSegment qc)
         {
-            _points.Add(new PathPoint { Segment = qc, Type = 1, Point = new SKPoint(qc.ControlPoint.X, qc.ControlPoint.Y) });
+            _points.Add(new PathPoint { Segment = qc, Type = 1, Point = new Shim.SKPoint(qc.ControlPoint.X, qc.ControlPoint.Y) });
             _points.Add(new PathPoint { Segment = qc, Type = 0, Point = point });
         }
         else
@@ -150,7 +153,7 @@ public class PathService
         _path.OnPathUpdated();
     }
 
-    public void MoveActivePoint(SKPoint local)
+    public void MoveActivePoint(Shim.SKPoint local)
     {
         if (_path == null || _activeIndex < 0)
             return;
@@ -267,13 +270,13 @@ public class PathService
         }
     }
 
-    private static SKPoint Reflect(SKPoint point, SKPoint mirror)
+    private static Shim.SKPoint Reflect(Shim.SKPoint point, Shim.SKPoint mirror)
     {
         var dx = Math.Abs(mirror.X - point.X);
         var dy = Math.Abs(mirror.Y - point.Y);
         var x = mirror.X + (mirror.X >= point.X ? dx : -dx);
         var y = mirror.Y + (mirror.Y >= point.Y ? dy : -dy);
-        return new SKPoint(x, y);
+        return new Shim.SKPoint(x, y);
     }
 
     private static void MakePathAbsolute(SvgPath path)
@@ -345,5 +348,160 @@ public class PathService
             point.Y += start.Y;
 
         return point;
+    }
+
+    public static SK.SKPoint[] ConvertPoints(SvgPointCollection pc)
+    {
+        var pts = new SK.SKPoint[pc.Count / 2];
+        for (int i = 0; i + 1 < pc.Count; i += 2)
+            pts[i / 2] = new SK.SKPoint((float)pc[i].Value, (float)pc[i + 1].Value);
+        return pts;
+    }
+
+    public static void AddPathSegments(SK.SKPath path, SvgPathSegmentList segments)
+    {
+        var cur = new SK.SKPoint();
+        foreach (var seg in segments)
+        {
+            switch (seg)
+            {
+                case SvgMoveToSegment mv:
+                    cur = new SK.SKPoint(mv.End.X, mv.End.Y);
+                    path.MoveTo(cur);
+                    break;
+                case SvgLineSegment ln:
+                    cur = new SK.SKPoint(ln.End.X, ln.End.Y);
+                    path.LineTo(cur);
+                    break;
+                case SvgCubicCurveSegment c:
+                    path.CubicTo(new SK.SKPoint(c.FirstControlPoint.X, c.FirstControlPoint.Y),
+                        new SK.SKPoint(c.SecondControlPoint.X, c.SecondControlPoint.Y),
+                        new SK.SKPoint(c.End.X, c.End.Y));
+                    cur = new SK.SKPoint(c.End.X, c.End.Y);
+                    break;
+                case SvgQuadraticCurveSegment q:
+                    path.QuadTo(new SK.SKPoint(q.ControlPoint.X, q.ControlPoint.Y),
+                        new SK.SKPoint(q.End.X, q.End.Y));
+                    cur = new SK.SKPoint(q.End.X, q.End.Y);
+                    break;
+                case SvgArcSegment a:
+                    path.LineTo(a.End.X, a.End.Y);
+                    cur = new SK.SKPoint(a.End.X, a.End.Y);
+                    break;
+                case SvgClosePathSegment _:
+                    path.Close();
+                    break;
+            }
+        }
+    }
+
+    public static SK.SKPath? ElementToPath(SvgVisualElement element)
+    {
+        var path = new SK.SKPath
+        {
+            FillType = element.FillRule == SvgFillRule.EvenOdd ? SK.SKPathFillType.EvenOdd : SK.SKPathFillType.Winding
+        };
+        switch (element)
+        {
+            case SvgPath sp when sp.PathData is { } d:
+                AddPathSegments(path, d);
+                return path;
+            case SvgRectangle r:
+                path.AddRect(SK.SKRect.Create((float)r.X.Value, (float)r.Y.Value, (float)r.Width.Value, (float)r.Height.Value));
+                return path;
+            case SvgCircle c:
+                path.AddCircle((float)c.CenterX.Value, (float)c.CenterY.Value, (float)c.Radius.Value);
+                return path;
+            case SvgEllipse e:
+                path.AddOval(SK.SKRect.Create(
+                    (float)(e.CenterX.Value - e.RadiusX.Value),
+                    (float)(e.CenterY.Value - e.RadiusY.Value),
+                    (float)(e.RadiusX.Value * 2),
+                    (float)(e.RadiusY.Value * 2)));
+                return path;
+            case SvgPolyline pl:
+                path.AddPoly(ConvertPoints(pl.Points), false);
+                return path;
+            case SvgPolygon pg:
+                path.AddPoly(ConvertPoints(pg.Points), true);
+                return path;
+            case SvgLine ln:
+                path.MoveTo((float)ln.StartX.Value, (float)ln.StartY.Value);
+                path.LineTo((float)ln.EndX.Value, (float)ln.EndY.Value);
+                return path;
+            default:
+                return null;
+        }
+    }
+
+    public static string ToSvgPathData(SK.SKPath skPath)
+    {
+        var sb = new System.Text.StringBuilder();
+        using var iter = skPath.CreateRawIterator();
+        var pts = new SK.SKPoint[4];
+        while (true)
+        {
+            var verb = iter.Next(pts);
+            switch (verb)
+            {
+                case SK.SKPathVerb.Move:
+                    sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "M{0},{1} ", pts[0].X, pts[0].Y);
+                    break;
+                case SK.SKPathVerb.Line:
+                    sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "L{0},{1} ", pts[1].X, pts[1].Y);
+                    break;
+                case SK.SKPathVerb.Quad:
+                case SK.SKPathVerb.Conic:
+                    sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "Q{0},{1} {2},{3} ", pts[1].X, pts[1].Y, pts[2].X, pts[2].Y);
+                    break;
+                case SK.SKPathVerb.Cubic:
+                    sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "C{0},{1} {2},{3} {4},{5} ", pts[1].X, pts[1].Y, pts[2].X, pts[2].Y, pts[3].X, pts[3].Y);
+                    break;
+                case SK.SKPathVerb.Close:
+                    sb.Append("Z ");
+                    break;
+                case SK.SKPathVerb.Done:
+                    return sb.ToString().Trim();
+            }
+        }
+    }
+
+    public SvgPath? ApplyPathOp(SvgVisualElement element, SvgVisualElement clip, SK.SKPathOp op)
+    {
+        var p1 = ElementToPath(element);
+        var p2 = ElementToPath(clip);
+        if (p1 is null || p2 is null)
+            return null;
+
+        var result = p1.Op(p2, op);
+        var data = ToSvgPathData(result);
+        var segs = SvgPathBuilder.Parse(data.AsSpan());
+
+        if (element is SvgPath sp)
+        {
+            sp.PathData = segs;
+            return sp;
+        }
+
+        var path = new SvgPath { PathData = segs };
+        path.Fill = element.Fill;
+        path.Stroke = element.Stroke;
+        path.StrokeWidth = element.StrokeWidth;
+        path.Transforms = new SvgTransformCollection();
+        foreach (var t in element.Transforms)
+            path.Transforms.Add(t);
+        if (!string.IsNullOrEmpty(element.ID))
+            path.ID = element.ID;
+
+        if (element.Parent is SvgElement parent)
+        {
+            var index = parent.Children.IndexOf(element);
+            if (index >= 0)
+                parent.Children[index] = path;
+            else
+                parent.Children.Add(path);
+        }
+
+        return path;
     }
 }

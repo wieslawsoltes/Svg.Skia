@@ -61,6 +61,7 @@
             </MenuItem>
             <MenuItem Header="Tools">
                 <MenuItem Header="Select" Click="SelectToolMenuItem_Click" InputGesture="V"/>
+                <MenuItem Header="Multi Select" Click="MultiSelectToolMenuItem_Click" InputGesture="X"/>
                 <MenuItem Header="Path Select" Click="PathToolMenuItem_Click" InputGesture="N"/>
                 <MenuItem Header="Polygon Select" Click="PolygonSelectToolMenuItem_Click" InputGesture="G"/>
                 <MenuItem Header="Polyline Select" Click="PolylineSelectToolMenuItem_Click" InputGesture="Y"/>
@@ -85,6 +86,7 @@
         </Menu>
         <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="4">
             <RadioButton Content="Select" GroupName="tools" IsChecked="True" Click="SelectToolButton_Click" />
+            <RadioButton Content="Multi Sel" GroupName="tools" Margin="4,0" Click="MultiSelectToolButton_Click" />
             <RadioButton Content="Path Sel" GroupName="tools" Margin="4,0" Click="PathToolButton_Click" />
             <RadioButton Content="Poly Sel" GroupName="tools" Margin="4,0" Click="PolygonSelectToolButton_Click" />
             <RadioButton Content="PolyLine Sel" GroupName="tools" Margin="4,0" Click="PolylineSelectToolButton_Click" />

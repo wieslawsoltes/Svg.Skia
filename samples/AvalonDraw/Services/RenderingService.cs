@@ -41,7 +41,7 @@ public class RenderingService
         bool snapToGrid,
         bool showGrid,
         double gridSize,
-        DrawableBase? selectedDrawable,
+        IList<DrawableBase> selectedDrawables,
         System.Func<DrawableBase, BoundsInfo> getBounds,
         bool polyEditing,
         DrawableBase? editPolyDrawable,
@@ -65,7 +65,7 @@ public class RenderingService
                 canvas.DrawLine(0, y, bounds.Width, y, gridPaint);
         }
 
-        if (selectedDrawable is null)
+        if (selectedDrawables is null || selectedDrawables.Count == 0)
             return;
 
         using var paint = new SK.SKPaint
@@ -78,36 +78,38 @@ public class RenderingService
         var hs = HandleSize / 2f / scale;
         var size = HandleSize / scale;
         using var fill = new SK.SKPaint { IsAntialias = true, Style = SK.SKPaintStyle.Fill, Color = SK.SKColors.White };
-        var info = getBounds(selectedDrawable);
-
-        if (_toolService.CurrentTool != ToolService.Tool.PathSelect &&
-            _toolService.CurrentTool != ToolService.Tool.PolygonSelect &&
-            _toolService.CurrentTool != ToolService.Tool.PolylineSelect)
+        foreach (var selectedDrawable in selectedDrawables)
         {
-            using (var path = new SK.SKPath())
+            var info = getBounds(selectedDrawable);
+
+            if (_toolService.CurrentTool != ToolService.Tool.PathSelect &&
+                _toolService.CurrentTool != ToolService.Tool.PolygonSelect &&
+                _toolService.CurrentTool != ToolService.Tool.PolylineSelect)
             {
-                path.MoveTo(info.TL);
-                path.LineTo(info.TR);
-                path.LineTo(info.BR);
-                path.LineTo(info.BL);
-                path.Close();
-                canvas.DrawPath(path, paint);
+                using (var path = new SK.SKPath())
+                {
+                    path.MoveTo(info.TL);
+                    path.LineTo(info.TR);
+                    path.LineTo(info.BR);
+                    path.LineTo(info.BL);
+                    path.Close();
+                    canvas.DrawPath(path, paint);
+                }
+
+                var pts = new[] { info.TL, info.TopMid, info.TR, info.RightMid, info.BR, info.BottomMid, info.BL, info.LeftMid };
+                foreach (var pt in pts)
+                {
+                    canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, fill);
+                    canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, paint);
+                }
+
+                canvas.DrawLine(info.TopMid, info.RotHandle, paint);
+                canvas.DrawCircle(info.RotHandle, hs, fill);
+                canvas.DrawCircle(info.RotHandle, hs, paint);
             }
 
-            var pts = new[] { info.TL, info.TopMid, info.TR, info.RightMid, info.BR, info.BottomMid, info.BL, info.LeftMid };
-            foreach (var pt in pts)
+            if (_pathService.IsEditing && _pathService.EditDrawable == selectedDrawable)
             {
-                canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, fill);
-                canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, paint);
-            }
-
-            canvas.DrawLine(info.TopMid, info.RotHandle, paint);
-            canvas.DrawCircle(info.RotHandle, hs, fill);
-            canvas.DrawCircle(info.RotHandle, hs, paint);
-        }
-
-        if (_pathService.IsEditing && _pathService.EditDrawable == selectedDrawable)
-        {
             using var segPaint = new SK.SKPaint
             {
                 IsAntialias = true,
@@ -237,4 +239,6 @@ public class RenderingService
             }
         }
     }
+}
+
 }

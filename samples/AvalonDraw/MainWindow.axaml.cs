@@ -144,6 +144,12 @@ public partial class MainWindow : Window
     private Shim.SKMatrix _polyMatrix;
     private Shim.SKMatrix _polyInverse;
 
+    private bool _boxSelecting;
+    private Point _boxStart;
+    private Point _boxEnd;
+    private readonly List<SvgVisualElement> _multiSelected = new();
+    private readonly List<DrawableBase> _multiDrawables = new();
+
     public MainWindow()
     {
         _renderingService = new RenderingService(_pathService, _toolService);
@@ -378,6 +384,16 @@ public partial class MainWindow : Window
     private async void SvgView_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var point = e.GetPosition(SvgView);
+        if (_toolService.CurrentTool == Tool.MultiSelect && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
+        {
+            if (_pathService.IsEditing)
+                _pathService.Stop();
+            _boxSelecting = true;
+            _boxStart = point;
+            _boxEnd = point;
+            e.Pointer.Capture(SvgView);
+            return;
+        }
         if (_toolService.CurrentTool == Tool.PathSelect && _pathService.IsEditing && e.ClickCount == 2 && SvgView.TryGetPicturePoint(point, out var addp))
         {
             SaveUndoState();
@@ -647,6 +663,13 @@ public partial class MainWindow : Window
     {
         var point = e.GetPosition(SvgView);
 
+        if (_boxSelecting)
+        {
+            _boxEnd = point;
+            SvgView.InvalidateVisual();
+            return;
+        }
+
         if (_creating && SvgView.TryGetPicturePoint(point, out var cp) && _newElement is { })
         {
             var cur = new Shim.SKPoint(cp.X, cp.Y);
@@ -791,6 +814,36 @@ public partial class MainWindow : Window
 
     private void SvgView_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
+        if (_boxSelecting)
+        {
+            _boxSelecting = false;
+            e.Pointer.Capture(null);
+            if (SvgView.SkSvg is { } svg &&
+                SvgView.TryGetPicturePoint(_boxStart, out var p1) &&
+                SvgView.TryGetPicturePoint(_boxEnd, out var p2))
+            {
+                var rect = new Shim.SKRect(Math.Min(p1.X, p2.X), Math.Min(p1.Y, p2.Y), Math.Max(p1.X, p2.X), Math.Max(p1.Y, p2.Y));
+                _multiSelected.Clear();
+                _multiDrawables.Clear();
+                foreach (var el in svg.HitTestElements(rect).OfType<SvgVisualElement>())
+                {
+                    _multiSelected.Add(el);
+                    var dr = svg.HitTestDrawables(rect).FirstOrDefault(d => d.Element == el);
+                    if (dr is { }) _multiDrawables.Add(dr);
+                }
+                if (_multiSelected.Count > 0)
+                {
+                    _selectedElement = _multiSelected[0];
+                    _selectedDrawable = _multiDrawables.FirstOrDefault();
+                    _selectedSvgElement = _selectedElement;
+                    LoadProperties(_selectedSvgElement);
+                    SelectNodeFromElement(_selectedSvgElement);
+                    UpdateSelectedDrawable();
+                }
+                SvgView.InvalidateVisual();
+            }
+            return;
+        }
         if (_pendingPress && SvgView.SkSvg is { } skSvg)
         {
             _pendingPress = false;
@@ -1331,13 +1384,27 @@ public partial class MainWindow : Window
             _snapToGrid,
             _showGrid,
             _gridSize,
-            _selectedDrawable,
+            _multiDrawables.Count > 0 ? (IList<DrawableBase>)_multiDrawables : (_selectedDrawable is { } d ? new List<DrawableBase> { d } : new List<DrawableBase>()),
             GetBoundsInfo,
             _polyEditing,
             _editPolyDrawable,
             _editPolyline,
             _polyPoints,
             _polyMatrix);
+
+        if (_boxSelecting && SvgView.TryGetPicturePoint(_boxStart, out var sp1) && SvgView.TryGetPicturePoint(_boxEnd, out var sp2))
+        {
+            using var paint = new SK.SKPaint
+            {
+                IsAntialias = true,
+                Style = SK.SKPaintStyle.Stroke,
+                Color = SK.SKColors.SkyBlue,
+                StrokeWidth = 1f / scale,
+                PathEffect = SK.SKPathEffect.CreateDash(new float[] { 4f / scale, 4f / scale }, 0)
+            };
+            var r = SK.SKRect.Create(Math.Min(sp1.X, sp2.X), Math.Min(sp1.Y, sp2.Y), Math.Abs(sp2.X - sp1.X), Math.Abs(sp2.Y - sp1.Y));
+            e.Canvas.DrawRect(r, paint);
+        }
     }
 
 
@@ -1468,10 +1535,26 @@ public partial class MainWindow : Window
 
     private void UpdateSelectedDrawable()
     {
-        if (_selectedElement is { } element && SvgView.SkSvg?.Drawable is DrawableBase drawable)
+        if (_multiSelected.Count > 0 && SvgView.SkSvg?.Drawable is DrawableBase root)
+        {
+            _multiDrawables.Clear();
+            foreach (var el in _multiSelected)
+            {
+                var d = FindDrawable(root, el);
+                if (d is { })
+                    _multiDrawables.Add(d);
+            }
+            _selectedDrawable = _multiDrawables.FirstOrDefault();
+        }
+        else if (_selectedElement is { } element && SvgView.SkSvg?.Drawable is DrawableBase drawable)
+        {
             _selectedDrawable = FindDrawable(drawable, element);
+        }
         else
+        {
             _selectedDrawable = null;
+            _multiDrawables.Clear();
+        }
     }
 
     private SvgNode? FindNode(SvgNode node, SvgElement element)
@@ -1873,6 +1956,13 @@ public partial class MainWindow : Window
         _toolService.SetTool(Tool.Select);
     }
 
+    private void MultiSelectToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathService.IsEditing)
+            _pathService.Stop();
+        _toolService.SetTool(Tool.MultiSelect);
+    }
+
     private void PathToolButton_Click(object? sender, RoutedEventArgs e)
     {
         _toolService.SetTool(Tool.PathSelect);
@@ -1980,6 +2070,8 @@ public partial class MainWindow : Window
         _toolService.SetTool(Tool.PathMove);
         _pathService.CurrentSegmentTool = PathService.SegmentTool.Move;
     }
+
+    private void MultiSelectToolMenuItem_Click(object? sender, RoutedEventArgs e) => MultiSelectToolButton_Click(sender, e);
 
     private void SelectToolMenuItem_Click(object? sender, RoutedEventArgs e) => SelectToolButton_Click(sender, e);
     private void PathToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathToolButton_Click(sender, e);
@@ -2112,6 +2204,10 @@ public partial class MainWindow : Window
                     break;
                 case Key.V:
                     SelectToolButton_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.X:
+                    MultiSelectToolButton_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
                 case Key.N:
@@ -2418,142 +2514,19 @@ public partial class MainWindow : Window
         _dropIndicator.IsVisible = false;
     }
 
-    private static string ToSvgPathData(SK.SKPath skPath)
-    {
-        var sb = new System.Text.StringBuilder();
-        using var iter = skPath.CreateRawIterator();
-        var pts = new SK.SKPoint[4];
-        while (true)
-        {
-            var verb = iter.Next(pts);
-            switch (verb)
-            {
-                case SK.SKPathVerb.Move:
-                    sb.AppendFormat(CultureInfo.InvariantCulture, "M{0},{1} ", pts[0].X, pts[0].Y);
-                    break;
-                case SK.SKPathVerb.Line:
-                    sb.AppendFormat(CultureInfo.InvariantCulture, "L{0},{1} ", pts[1].X, pts[1].Y);
-                    break;
-                case SK.SKPathVerb.Quad:
-                case SK.SKPathVerb.Conic:
-                    sb.AppendFormat(CultureInfo.InvariantCulture, "Q{0},{1} {2},{3} ",
-                        pts[1].X, pts[1].Y, pts[2].X, pts[2].Y);
-                    break;
-                case SK.SKPathVerb.Cubic:
-                    sb.AppendFormat(CultureInfo.InvariantCulture, "C{0},{1} {2},{3} {4},{5} ",
-                        pts[1].X, pts[1].Y, pts[2].X, pts[2].Y, pts[3].X, pts[3].Y);
-                    break;
-                case SK.SKPathVerb.Close:
-                    sb.Append("Z ");
-                    break;
-                case SK.SKPathVerb.Done:
-                    return sb.ToString().Trim();
-            }
-        }
-    }
-
-    private static SK.SKPoint[] ConvertPoints(SvgPointCollection pc)
-    {
-        var pts = new SK.SKPoint[pc.Count / 2];
-        for (int i = 0; i + 1 < pc.Count; i += 2)
-            pts[i / 2] = new SK.SKPoint((float)pc[i].Value, (float)pc[i + 1].Value);
-        return pts;
-    }
-
-    private static void AddPathSegments(SK.SKPath path, SvgPathSegmentList segments)
-    {
-        var cur = new SK.SKPoint();
-        foreach (var seg in segments)
-        {
-            switch (seg)
-            {
-                case SvgMoveToSegment mv:
-                    cur = new SK.SKPoint(mv.End.X, mv.End.Y);
-                    path.MoveTo(cur);
-                    break;
-                case SvgLineSegment ln:
-                    cur = new SK.SKPoint(ln.End.X, ln.End.Y);
-                    path.LineTo(cur);
-                    break;
-                case SvgCubicCurveSegment c:
-                    path.CubicTo(new SK.SKPoint(c.FirstControlPoint.X, c.FirstControlPoint.Y),
-                        new SK.SKPoint(c.SecondControlPoint.X, c.SecondControlPoint.Y),
-                        new SK.SKPoint(c.End.X, c.End.Y));
-                    cur = new SK.SKPoint(c.End.X, c.End.Y);
-                    break;
-                case SvgQuadraticCurveSegment q:
-                    path.QuadTo(new SK.SKPoint(q.ControlPoint.X, q.ControlPoint.Y),
-                        new SK.SKPoint(q.End.X, q.End.Y));
-                    cur = new SK.SKPoint(q.End.X, q.End.Y);
-                    break;
-                case SvgArcSegment a:
-                    path.LineTo(a.End.X, a.End.Y);
-                    cur = new SK.SKPoint(a.End.X, a.End.Y);
-                    break;
-                case SvgClosePathSegment _:
-                    path.Close();
-                    break;
-            }
-        }
-    }
-
-    private SK.SKPath? ElementToPath(SvgVisualElement element)
-    {
-        var path = new SK.SKPath
-        {
-            FillType = element.FillRule == SvgFillRule.EvenOdd ? SK.SKPathFillType.EvenOdd : SK.SKPathFillType.Winding
-        };
-        switch (element)
-        {
-            case SvgPath sp when sp.PathData is { } d:
-                AddPathSegments(path, d);
-                return path;
-            case SvgRectangle r:
-                path.AddRect(SK.SKRect.Create((float)r.X.Value, (float)r.Y.Value, (float)r.Width.Value, (float)r.Height.Value));
-                return path;
-            case SvgCircle c:
-                path.AddCircle((float)c.CenterX.Value, (float)c.CenterY.Value, (float)c.Radius.Value);
-                return path;
-            case SvgEllipse e:
-                path.AddOval(SK.SKRect.Create(
-                    (float)(e.CenterX.Value - e.RadiusX.Value),
-                    (float)(e.CenterY.Value - e.RadiusY.Value),
-                    (float)(e.RadiusX.Value * 2),
-                    (float)(e.RadiusY.Value * 2)));
-                return path;
-            case SvgPolyline pl:
-                path.AddPoly(ConvertPoints(pl.Points), false);
-                return path;
-            case SvgPolygon pg:
-                path.AddPoly(ConvertPoints(pg.Points), true);
-                return path;
-            case SvgLine ln:
-                path.MoveTo((float)ln.StartX.Value, (float)ln.StartY.Value);
-                path.LineTo((float)ln.EndX.Value, (float)ln.EndY.Value);
-                return path;
-            default:
-                return null;
-        }
-    }
 
     private void ApplyPathOp(SK.SKPathOp op)
     {
-        if (_selectedElement is not SvgPath pathEl || _clipboard is not SvgVisualElement clipEl || _document is null)
+        if (_selectedElement is not SvgVisualElement target || _clipboard is not SvgVisualElement clip || _document is null)
             return;
 
-        var p1 = ElementToPath(pathEl);
-        var p2 = ElementToPath(clipEl);
-        if (p1 is null || p2 is null)
+        var result = _pathService.ApplyPathOp(target, clip, op);
+        if (result is null)
             return;
-
-        var result = p1.Op(p2, op);
-        var data = ToSvgPathData(result);
-        var segs = SvgPathBuilder.Parse(data.AsSpan());
-        pathEl.PathData = segs;
 
         SvgView.SkSvg!.FromSvgDocument(_document);
         BuildTree();
-        SelectNodeFromElement(pathEl);
+        SelectNodeFromElement(result);
     }
 
     private void SmoothPointMenuItem_Click(object? sender, RoutedEventArgs e)

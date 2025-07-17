@@ -10,6 +10,7 @@ public class ToolService
     public enum Tool
     {
         Select,
+        MultiSelect,
         PathSelect,
         PolygonSelect,
         PolylineSelect,
