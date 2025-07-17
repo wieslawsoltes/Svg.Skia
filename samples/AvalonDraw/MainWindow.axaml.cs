@@ -53,10 +53,12 @@ public partial class MainWindow : Window
     private bool _wireframeEnabled;
     private bool _filtersDisabled;
     private bool _snapToGrid;
+    private bool _showGrid;
     private double _gridSize = 10.0;
 
     private readonly SK.SKColor _boundsColor = SK.SKColors.Red;
     private readonly SK.SKColor _segmentColor = SK.SKColors.OrangeRed;
+    private readonly SK.SKColor _controlColor = SK.SKColors.SkyBlue;
 
     private readonly Stack<string> _undo = new();
     private readonly Stack<string> _redo = new();
@@ -221,6 +223,7 @@ public partial class MainWindow : Window
         _wireframeEnabled = false;
         _filtersDisabled = false;
         _snapToGrid = false;
+        _showGrid = false;
         _gridSize = 10.0;
         SvgView.Wireframe = false;
         if (SvgView.SkSvg is { } initSvg)
@@ -609,6 +612,8 @@ public partial class MainWindow : Window
             UpdateNewElement(cur);
             SvgView.SkSvg!.FromSvgDocument(_document);
             UpdateSelectedDrawable();
+            if (_pathEditing)
+                _editDrawable = _selectedDrawable;
             SvgView.InvalidateVisual();
             return;
         }
@@ -658,6 +663,8 @@ public partial class MainWindow : Window
             _editPath!.OnPathUpdated();
             SvgView.SkSvg!.FromSvgDocument(_document);
             UpdateSelectedDrawable();
+            if (_pathEditing)
+                _editDrawable = _selectedDrawable;
             SvgView.InvalidateVisual();
             return;
         }
@@ -1348,6 +1355,22 @@ public partial class MainWindow : Window
         if (_selectedDrawable is null)
             return;
         var scale = GetCanvasScale(e.Canvas);
+
+        if (_snapToGrid && _showGrid && _gridSize > 0 && SvgView.SkSvg?.Picture is { } pic)
+        {
+            using var gridPaint = new SK.SKPaint
+            {
+                IsAntialias = false,
+                Style = SK.SKPaintStyle.Stroke,
+                Color = SK.SKColors.LightGray,
+                StrokeWidth = 1f / scale
+            };
+            var bounds = pic.CullRect;
+            for (float x = 0; x <= bounds.Width; x += (float)_gridSize)
+                e.Canvas.DrawLine(x, 0, x, bounds.Height, gridPaint);
+            for (float y = 0; y <= bounds.Height; y += (float)_gridSize)
+                e.Canvas.DrawLine(0, y, bounds.Width, y, gridPaint);
+        }
         using var paint = new SK.SKPaint
         {
             IsAntialias = true,
@@ -1355,30 +1378,33 @@ public partial class MainWindow : Window
             Color = _boundsColor,
             StrokeWidth = 1f / scale
         };
-        var info = GetBoundsInfo(_selectedDrawable);
-        using (var path = new SK.SKPath())
-        {
-            path.MoveTo(info.TL);
-            path.LineTo(info.TR);
-            path.LineTo(info.BR);
-            path.LineTo(info.BL);
-            path.Close();
-            e.Canvas.DrawPath(path, paint);
-        }
-
         var hs = HandleSize / 2f / scale;
         var size = HandleSize / scale;
         using var fill = new SK.SKPaint { IsAntialias = true, Style = SK.SKPaintStyle.Fill, Color = SK.SKColors.White };
-        var pts = new[] { info.TL, info.TopMid, info.TR, info.RightMid, info.BR, info.BottomMid, info.BL, info.LeftMid };
-        foreach (var pt in pts)
+        var info = GetBoundsInfo(_selectedDrawable);
+        if (_tool != Tool.Path)
         {
-            e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, fill);
-            e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, paint);
-        }
+            using (var path = new SK.SKPath())
+            {
+                path.MoveTo(info.TL);
+                path.LineTo(info.TR);
+                path.LineTo(info.BR);
+                path.LineTo(info.BL);
+                path.Close();
+                e.Canvas.DrawPath(path, paint);
+            }
 
-        e.Canvas.DrawLine(info.TopMid, info.RotHandle, paint);
-        e.Canvas.DrawCircle(info.RotHandle, hs, fill);
-        e.Canvas.DrawCircle(info.RotHandle, hs, paint);
+            var pts = new[] { info.TL, info.TopMid, info.TR, info.RightMid, info.BR, info.BottomMid, info.BL, info.LeftMid };
+            foreach (var pt in pts)
+            {
+                e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, fill);
+                e.Canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, paint);
+            }
+
+            e.Canvas.DrawLine(info.TopMid, info.RotHandle, paint);
+            e.Canvas.DrawCircle(info.RotHandle, hs, fill);
+            e.Canvas.DrawCircle(info.RotHandle, hs, paint);
+        }
 
         if (_pathEditing && _editDrawable == _selectedDrawable)
         {
@@ -1389,6 +1415,14 @@ public partial class MainWindow : Window
                 Color = _segmentColor,
                 StrokeWidth = 2f / scale,
                 PathEffect = SK.SKPathEffect.CreateDash(new float[] { 6f / scale, 4f / scale }, 0)
+            };
+            using var ctrlPaint = new SK.SKPaint
+            {
+                IsAntialias = true,
+                Style = SK.SKPaintStyle.Stroke,
+                Color = _controlColor,
+                StrokeWidth = 1f / scale,
+                PathEffect = SK.SKPathEffect.CreateDash(new float[] { 4f / scale, 4f / scale }, 0)
             };
 
             if (_editPath is { } path)
@@ -1428,6 +1462,8 @@ public partial class MainWindow : Window
                             var sc1 = _pathMatrix.MapPoint(c1);
                             var sc2 = _pathMatrix.MapPoint(c2);
                             var sce = _pathMatrix.MapPoint(ce);
+                            e.Canvas.DrawLine(scur.X, scur.Y, sc1.X, sc1.Y, ctrlPaint);
+                            e.Canvas.DrawLine(sce.X, sce.Y, sc2.X, sc2.Y, ctrlPaint);
                             e.Canvas.DrawLine(scur.X, scur.Y, sc1.X, sc1.Y, segPaint);
                             e.Canvas.DrawLine(sc1.X, sc1.Y, sc2.X, sc2.Y, segPaint);
                             e.Canvas.DrawLine(sc2.X, sc2.Y, sce.X, sce.Y, segPaint);
@@ -1439,6 +1475,8 @@ public partial class MainWindow : Window
                             scur = _pathMatrix.MapPoint(cur);
                             var sqp = _pathMatrix.MapPoint(qp);
                             var sqe = _pathMatrix.MapPoint(qe);
+                            e.Canvas.DrawLine(scur.X, scur.Y, sqp.X, sqp.Y, ctrlPaint);
+                            e.Canvas.DrawLine(sqe.X, sqe.Y, sqp.X, sqp.Y, ctrlPaint);
                             e.Canvas.DrawLine(scur.X, scur.Y, sqp.X, sqp.Y, segPaint);
                             e.Canvas.DrawLine(sqp.X, sqp.Y, sqe.X, sqe.Y, segPaint);
                             cur = qe;
@@ -2150,7 +2188,16 @@ public partial class MainWindow : Window
         _tool = Tool.Select;
     }
 
-    private void PathToolButton_Click(object? sender, RoutedEventArgs e) => _tool = Tool.Path;
+    private void PathToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        _tool = Tool.Path;
+        if (_selectedElement is SvgPath path && _selectedDrawable is { })
+        {
+            if (!_pathEditing || _editPath != path)
+                StartPathEditing(path, _selectedDrawable);
+            SvgView.InvalidateVisual();
+        }
+    }
 
     private void LineToolButton_Click(object? sender, RoutedEventArgs e)
     {
@@ -2186,11 +2233,12 @@ public partial class MainWindow : Window
 
     private async void SettingsMenuItem_Click(object? sender, RoutedEventArgs e)
     {
-        var win = new SettingsWindow(_snapToGrid, _gridSize);
+        var win = new SettingsWindow(_snapToGrid, _gridSize, _showGrid);
         var result = await win.ShowDialog<bool?>(this);
         if (result == true)
         {
             _snapToGrid = win.SnapToGrid;
+            _showGrid = win.ShowGrid;
             _gridSize = win.GridSize;
         }
     }

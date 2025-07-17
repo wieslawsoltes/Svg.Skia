@@ -5,6 +5,7 @@
         Title="Settings">
     <StackPanel Margin="10" Spacing="4">
         <CheckBox x:Name="SnapCheckBox" Content="Enable Snap To Grid"/>
+        <CheckBox x:Name="GridCheckBox" Content="Show Grid" Margin="0,4,0,0"/>
         <StackPanel Orientation="Horizontal" Spacing="4">
             <TextBlock Text="Grid Size:" VerticalAlignment="Center"/>
             <TextBox x:Name="GridSizeBox" Width="80"/>
