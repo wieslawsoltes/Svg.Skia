@@ -54,7 +54,7 @@ public partial class MainWindow : Window
     private double _gridSize = 10.0;
 
     private readonly SK.SKColor _boundsColor = SK.SKColors.Red;
-    private readonly SK.SKColor _segmentColor = SK.SKColors.SkyBlue;
+    private readonly SK.SKColor _segmentColor = SK.SKColors.OrangeRed;
 
     private readonly Stack<string> _undo = new();
     private readonly Stack<string> _redo = new();
@@ -491,20 +491,6 @@ public partial class MainWindow : Window
             e.Pointer.Capture(SvgView);
             return;
         }
-        if (_pathEditing && SvgView.SkSvg is { } skSvgEdit && SvgView.TryGetPicturePoint(point, out var ep))
-        {
-            var skp = new SK.SKPoint(ep.X, ep.Y);
-            var idx = HitPathPoint(skp);
-            if (idx >= 0)
-            {
-                _activePathPoint = idx;
-                _activeStart = new Shim.SKPoint(skp.X, skp.Y);
-                _activeStartLocal = _pathInverse.MapPoint(_activeStart);
-                e.Pointer.Capture(SvgView);
-                return;
-            }
-        }
-
         if (SvgView.SkSvg is { } skSvg && SvgView.TryGetPicturePoint(point, out var pp))
         {
             // check handles first
@@ -537,6 +523,19 @@ public partial class MainWindow : Window
                     _resizeStartLocal = _resizeInverse.MapPoint(_resizeStart);
                     (_startTransX, _startTransY) = GetTranslation(_resizeElement);
                     (_startScaleX, _startScaleY) = GetScale(_resizeElement);
+                    e.Pointer.Capture(SvgView);
+                    return;
+                }
+            }
+
+            if (_pathEditing)
+            {
+                var idx = HitPathPoint(new SK.SKPoint(pp.X, pp.Y));
+                if (idx >= 0)
+                {
+                    _activePathPoint = idx;
+                    _activeStart = new Shim.SKPoint(pp.X, pp.Y);
+                    _activeStartLocal = _pathInverse.MapPoint(_activeStart);
                     e.Pointer.Capture(SvgView);
                     return;
                 }
@@ -1372,7 +1371,8 @@ public partial class MainWindow : Window
                 IsAntialias = true,
                 Style = SK.SKPaintStyle.Stroke,
                 Color = _segmentColor,
-                StrokeWidth = 1f / scale
+                StrokeWidth = 2f / scale,
+                PathEffect = SK.SKPathEffect.CreateDash(new float[] { 6f / scale, 4f / scale }, 0)
             };
 
             if (_editPath is { } path)
