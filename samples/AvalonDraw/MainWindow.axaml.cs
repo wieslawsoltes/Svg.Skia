@@ -1352,8 +1352,6 @@ public partial class MainWindow : Window
 
     private void SvgView_OnDraw(object? sender, SKSvgDrawEventArgs e)
     {
-        if (_selectedDrawable is null)
-            return;
         var scale = GetCanvasScale(e.Canvas);
 
         if (_snapToGrid && _showGrid && _gridSize > 0 && SvgView.SkSvg?.Picture is { } pic)
@@ -1371,6 +1369,9 @@ public partial class MainWindow : Window
             for (float y = 0; y <= bounds.Height; y += (float)_gridSize)
                 e.Canvas.DrawLine(0, y, bounds.Width, y, gridPaint);
         }
+
+        if (_selectedDrawable is null)
+            return;
         using var paint = new SK.SKPaint
         {
             IsAntialias = true,
@@ -2565,7 +2566,7 @@ public partial class MainWindow : Window
 
 }
 
-public class SvgNode
+public class SvgNode : INotifyPropertyChanged
 {
     public SvgElement Element { get; }
     public ObservableCollection<SvgNode> Children { get; } = new();
