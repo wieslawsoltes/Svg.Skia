@@ -732,6 +732,8 @@ public partial class MainWindow : Window
                 _selectedElement = _hitElements[_hitIndex];
                 _selectedDrawable = skSvg.HitTestDrawables(_pressPoint).FirstOrDefault(d => d.Element == _selectedElement);
                 _selectedSvgElement = _selectedElement;
+                if (_pathEditing && _editPath != _selectedElement)
+                    StopPathEditing();
                 LoadProperties(_selectedSvgElement);
                 SelectNodeFromElement(_selectedSvgElement);
                 UpdateSelectedDrawable();
