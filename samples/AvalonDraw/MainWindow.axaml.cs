@@ -2386,7 +2386,7 @@ public partial class MainWindow : Window
         while (t != null)
         {
             var attr = t.GetCustomAttribute<SvgElementAttribute>();
-            if (attr is not null)
+            if (attr is not null && !string.IsNullOrEmpty(attr.ElementName))
                 return attr.ElementName;
             t = t.BaseType;
         }
