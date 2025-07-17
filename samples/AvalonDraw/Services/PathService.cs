@@ -477,6 +477,9 @@ public class PathService
             return null;
 
         var result = p1.Op(p2, op);
+        if (result is null)
+            return null;
+
         var data = ToSvgPathData(result);
         var segs = SvgPathBuilder.Parse(data.AsSpan());
 
