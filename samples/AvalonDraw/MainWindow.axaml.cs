@@ -29,6 +29,8 @@ using Svg.Model.Drawables;
 using Svg.Model.Services;
 using Svg.Transforms;
 using Svg.Pathing;
+using AvalonDraw.Services;
+using Tool = AvalonDraw.Services.ToolService.Tool;
 
 namespace AvalonDraw;
 
@@ -125,21 +127,8 @@ public partial class MainWindow : Window
     private bool _pressRightButton;
     private const float DragThreshold = 2f;
 
-    private enum Tool
-    {
-        Select,
-        PathSelect,
-        PolygonSelect,
-        PolylineSelect,
-        Line,
-        Rect,
-        Circle,
-        Ellipse,
-        Polygon,
-        Polyline
-    }
+    private readonly ToolService _toolService = new();
 
-    private Tool _tool = Tool.Select;
     private SvgVisualElement? _newElement;
     private Shim.SKPoint _newStart;
     private bool _creating;
@@ -232,7 +221,7 @@ public partial class MainWindow : Window
         DocumentTree.AddHandler(DragDrop.DropEvent, DocumentTree_OnDrop);
         DocumentTree.AddHandler(DragDrop.DragOverEvent, DocumentTree_OnDragOver);
         DocumentTree.AddHandler(DragDrop.DragLeaveEvent, DocumentTree_OnDragLeave);
-        _tool = Tool.Select;
+        _toolService.SetTool(Tool.Select);
         _treeMenu = BuildTreeContextMenu();
         DocumentTree.ContextMenu = _treeMenu;
         _dropIndicator = this.FindControl<Border>("DropIndicator");
@@ -462,12 +451,12 @@ public partial class MainWindow : Window
     private async void SvgView_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var point = e.GetPosition(SvgView);
-        if (_tool == Tool.PathSelect && _pathEditing && e.ClickCount == 2 && SvgView.TryGetPicturePoint(point, out var addp))
+        if (_toolService.CurrentTool == Tool.PathSelect && _pathEditing && e.ClickCount == 2 && SvgView.TryGetPicturePoint(point, out var addp))
         {
             AddPathPoint(new Shim.SKPoint((float)addp.X, (float)addp.Y));
             return;
         }
-        if ((_tool == Tool.PolygonSelect || _tool == Tool.PolylineSelect) && _polyEditing && e.ClickCount == 2 && SvgView.TryGetPicturePoint(point, out var addpp))
+        if ((_toolService.CurrentTool == Tool.PolygonSelect || _toolService.CurrentTool == Tool.PolylineSelect) && _polyEditing && e.ClickCount == 2 && SvgView.TryGetPicturePoint(point, out var addpp))
         {
             AddPolyPoint(new Shim.SKPoint((float)addpp.X, (float)addpp.Y));
             SvgView.SkSvg!.FromSvgDocument(_document);
@@ -475,12 +464,12 @@ public partial class MainWindow : Window
             SvgView.InvalidateVisual();
             return;
         }
-        if ((_tool == Tool.Polygon || _tool == Tool.Polyline) && e.GetCurrentPoint(SvgView).Properties.IsRightButtonPressed)
+        if ((_toolService.CurrentTool == Tool.Polygon || _toolService.CurrentTool == Tool.Polyline) && e.GetCurrentPoint(SvgView).Properties.IsRightButtonPressed)
         {
             if (_creating && _newElement is { } && SvgView.TryGetPicturePoint(point, out var rp))
             {
                 SaveUndoState();
-                var pts = _tool == Tool.Polygon
+                var pts = _toolService.CurrentTool == Tool.Polygon
                     ? ((SvgPolygon)_newElement).Points
                     : ((SvgPolyline)_newElement).Points;
                 var x = _snapToGrid ? Snap(rp.X) : rp.X;
@@ -502,7 +491,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if ((_tool == Tool.Polygon || _tool == Tool.Polyline) && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
+        if ((_toolService.CurrentTool == Tool.Polygon || _toolService.CurrentTool == Tool.Polyline) && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
         {
             if (SvgView.SkSvg is { } && SvgView.TryGetPicturePoint(point, out var p) && _document is { })
             {
@@ -513,7 +502,7 @@ public partial class MainWindow : Window
                     var sx = _snapToGrid ? Snap(p.X) : p.X;
                     var sy = _snapToGrid ? Snap(p.Y) : p.Y;
                     _newStart = new Shim.SKPoint(sx, sy);
-                    _newElement = _tool switch
+                    _newElement =  _toolService.CurrentTool switch
                     {
                         Tool.Polygon => new SvgPolygon
                         {
@@ -557,7 +546,7 @@ public partial class MainWindow : Window
                 else if (_newElement is { })
                 {
                     SaveUndoState();
-                    var pts = _tool == Tool.Polygon
+                    var pts = _toolService.CurrentTool == Tool.Polygon
                         ? ((SvgPolygon)_newElement).Points
                         : ((SvgPolyline)_newElement).Points;
                     var x = _snapToGrid ? Snap(p.X) : p.X;
@@ -576,7 +565,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if ((_tool == Tool.Line || _tool == Tool.Rect || _tool == Tool.Circle || _tool == Tool.Ellipse) &&
+        if ((_toolService.CurrentTool == Tool.Line || _toolService.CurrentTool == Tool.Rect || _toolService.CurrentTool == Tool.Circle || _toolService.CurrentTool == Tool.Ellipse) &&
             e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
         {
             if (SvgView.SkSvg is { } && SvgView.TryGetPicturePoint(point, out var sp) && _document is { })
@@ -584,7 +573,7 @@ public partial class MainWindow : Window
                 SaveUndoState();
                 SvgElement parent = _selectedSvgElement is SvgGroup grp ? grp : _document!;
                 _newStart = new Shim.SKPoint(sp.X, sp.Y);
-                _newElement = _tool switch
+                _newElement =  _toolService.CurrentTool switch
                 {
                     Tool.Line => new SvgLine
                     {
@@ -715,7 +704,7 @@ public partial class MainWindow : Window
             var hits = skSvg.HitTestElements(pp).OfType<SvgVisualElement>().ToList();
             if (hits.Count > 0)
             {
-                if (_tool == Tool.PathSelect && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
+                if (_toolService.CurrentTool == Tool.PathSelect && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
                 {
                     var pathEl = hits.OfType<SvgPath>().FirstOrDefault();
                     if (pathEl is not null && _document is { })
@@ -731,7 +720,7 @@ public partial class MainWindow : Window
                         }
                     }
                 }
-                else if (_tool == Tool.PolygonSelect && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
+                else if (_toolService.CurrentTool == Tool.PolygonSelect && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
                 {
                     var polyEl = hits.OfType<SvgPolygon>().FirstOrDefault();
                     if (polyEl is not null && _document is { })
@@ -747,7 +736,7 @@ public partial class MainWindow : Window
                         }
                     }
                 }
-                else if (_tool == Tool.PolylineSelect && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
+                else if (_toolService.CurrentTool == Tool.PolylineSelect && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
                 {
                     var polyEl = hits.OfType<SvgPolyline>().FirstOrDefault();
                     if (polyEl is not null && _document is { })
@@ -986,7 +975,7 @@ public partial class MainWindow : Window
         }
         else if (_creating)
         {
-            if (_tool == Tool.Polygon || _tool == Tool.Polyline)
+            if (_toolService.CurrentTool == Tool.Polygon || _toolService.CurrentTool == Tool.Polyline)
             {
                 // ignore regular release while drawing polygons
             }
@@ -1510,7 +1499,7 @@ public partial class MainWindow : Window
     {
         if (_newElement is null)
             return;
-        switch (_tool)
+        switch (_toolService.CurrentTool)
         {
             case Tool.Line:
                 if (_newElement is SvgLine ln)
@@ -1622,7 +1611,7 @@ public partial class MainWindow : Window
         var size = HandleSize / scale;
         using var fill = new SK.SKPaint { IsAntialias = true, Style = SK.SKPaintStyle.Fill, Color = SK.SKColors.White };
         var info = GetBoundsInfo(_selectedDrawable);
-        if (_tool != Tool.PathSelect && _tool != Tool.PolygonSelect && _tool != Tool.PolylineSelect)
+        if ( _toolService.CurrentTool != Tool.PathSelect &&  _toolService.CurrentTool != Tool.PolygonSelect &&  _toolService.CurrentTool != Tool.PolylineSelect)
         {
             using (var path = new SK.SKPath())
             {
@@ -1956,17 +1945,17 @@ public partial class MainWindow : Window
             _selectedSvgElement = node.Element;
             _selectedElement = node.Element as SvgVisualElement;
             UpdateSelectedDrawable();
-            if (_tool == Tool.PathSelect && _selectedElement is SvgPath path && _selectedDrawable is { })
+            if (_toolService.CurrentTool == Tool.PathSelect && _selectedElement is SvgPath path && _selectedDrawable is { })
             {
                 if (!_pathEditing || _editPath != path)
                     StartPathEditing(path, _selectedDrawable!);
             }
-            else if (_tool == Tool.PolygonSelect && _selectedElement is SvgPolygon pg && _selectedDrawable is { })
+            else if (_toolService.CurrentTool == Tool.PolygonSelect && _selectedElement is SvgPolygon pg && _selectedDrawable is { })
             {
                 if (!_polyEditing || _editPolyElement != pg)
                     StartPolyEditing(pg, _selectedDrawable!);
             }
-            else if (_tool == Tool.PolylineSelect && _selectedElement is SvgPolyline pl && _selectedDrawable is { })
+            else if (_toolService.CurrentTool == Tool.PolylineSelect && _selectedElement is SvgPolyline pl && _selectedDrawable is { })
             {
                 if (!_polyEditing || _editPolyElement != pl)
                     StartPolyEditing(pl, _selectedDrawable!);
@@ -2582,12 +2571,12 @@ public partial class MainWindow : Window
     {
         if (_pathEditing)
             StopPathEditing();
-        _tool = Tool.Select;
+        _toolService.SetTool(Tool.Select);
     }
 
     private void PathToolButton_Click(object? sender, RoutedEventArgs e)
     {
-        _tool = Tool.PathSelect;
+        _toolService.SetTool(Tool.PathSelect);
         if (_selectedElement is SvgPath path && _selectedDrawable is { })
         {
             if (!_pathEditing || _editPath != path)
@@ -2598,7 +2587,7 @@ public partial class MainWindow : Window
 
     private void PolygonSelectToolButton_Click(object? sender, RoutedEventArgs e)
     {
-        _tool = Tool.PolygonSelect;
+        _toolService.SetTool(Tool.PolygonSelect);
         if (_selectedElement is SvgPolygon poly && _selectedDrawable is { })
         {
             if (!_polyEditing || _editPolyElement != poly)
@@ -2609,7 +2598,7 @@ public partial class MainWindow : Window
 
     private void PolylineSelectToolButton_Click(object? sender, RoutedEventArgs e)
     {
-        _tool = Tool.PolylineSelect;
+        _toolService.SetTool(Tool.PolylineSelect);
         if (_selectedElement is SvgPolyline pl && _selectedDrawable is { })
         {
             if (!_polyEditing || _editPolyElement != pl)
@@ -2622,39 +2611,39 @@ public partial class MainWindow : Window
     {
         if (_pathEditing)
             StopPathEditing();
-        _tool = Tool.Line;
+        _toolService.SetTool(Tool.Line);
     }
     private void RectToolButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_pathEditing)
             StopPathEditing();
-        _tool = Tool.Rect;
+        _toolService.SetTool(Tool.Rect);
     }
     private void CircleToolButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_pathEditing)
             StopPathEditing();
-        _tool = Tool.Circle;
+        _toolService.SetTool(Tool.Circle);
     }
     private void EllipseToolButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_pathEditing)
             StopPathEditing();
-        _tool = Tool.Ellipse;
+        _toolService.SetTool(Tool.Ellipse);
     }
 
     private void PolygonToolButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_pathEditing)
             StopPathEditing();
-        _tool = Tool.Polygon;
+        _toolService.SetTool(Tool.Polygon);
     }
 
     private void PolylineToolButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_pathEditing)
             StopPathEditing();
-        _tool = Tool.Polyline;
+        _toolService.SetTool(Tool.Polyline);
     }
 
     private void SelectToolMenuItem_Click(object? sender, RoutedEventArgs e) => SelectToolButton_Click(sender, e);
