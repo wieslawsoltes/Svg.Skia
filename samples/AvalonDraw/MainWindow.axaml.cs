@@ -248,11 +248,19 @@ public partial class MainWindow : Window
         {
             using var stream = AssetLoader.Open(uri);
             _document = SvgService.Open(stream);
+            if (_document is null)
+            {
+                Console.WriteLine($"Failed to load SVG resource '{path}'.");
+            }
             SvgView.Path = uri.ToString();
         }
         else if (File.Exists(path))
         {
             _document = SvgService.Open(path);
+            if (_document is null)
+            {
+                Console.WriteLine($"Failed to load SVG file '{path}'.");
+            }
             SvgView.Path = path;
         }
         else
@@ -266,6 +274,10 @@ public partial class MainWindow : Window
         {
             skSvg2.FromSvgDocument(_document);
             skSvg2.OnDraw += SvgView_OnDraw;
+        }
+        else if (_document is null)
+        {
+            return;
         }
 
         SvgView.Zoom = 1.0;

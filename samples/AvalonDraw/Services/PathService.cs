@@ -466,8 +466,11 @@ public class PathService
         }
     }
 
-    public SvgPath? ApplyPathOp(SvgVisualElement element, SvgVisualElement clip, SK.SKPathOp op)
+    public SvgPath? ApplyPathOp(SvgVisualElement? element, SvgVisualElement? clip, SK.SKPathOp op)
     {
+        if (element is null || clip is null)
+            return null;
+
         var p1 = ElementToPath(element);
         var p2 = ElementToPath(clip);
         if (p1 is null || p2 is null)
