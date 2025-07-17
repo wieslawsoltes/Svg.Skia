@@ -147,6 +147,8 @@ public partial class MainWindow : Window
     private bool _boxSelecting;
     private Point _boxStart;
     private Point _boxEnd;
+    private SK.SKPoint _boxStartPicture;
+    private SK.SKPoint _boxEndPicture;
     private readonly List<SvgVisualElement> _multiSelected = new();
     private readonly List<DrawableBase> _multiDrawables = new();
 
@@ -403,6 +405,11 @@ public partial class MainWindow : Window
             _boxSelecting = true;
             _boxStart = point;
             _boxEnd = point;
+            if (SvgView.TryGetPicturePoint(point, out var sp))
+            {
+                _boxStartPicture = new SK.SKPoint((float)sp.X, (float)sp.Y);
+                _boxEndPicture = _boxStartPicture;
+            }
             e.Pointer.Capture(SvgView);
             return;
         }
@@ -678,6 +685,10 @@ public partial class MainWindow : Window
         if (_boxSelecting)
         {
             _boxEnd = point;
+            if (SvgView.TryGetPicturePoint(point, out var sp))
+            {
+                _boxEndPicture = new SK.SKPoint((float)sp.X, (float)sp.Y);
+            }
             SvgView.InvalidateVisual();
             return;
         }
@@ -830,10 +841,14 @@ public partial class MainWindow : Window
         {
             _boxSelecting = false;
             e.Pointer.Capture(null);
-            if (SvgView.SkSvg is { } svg &&
-                SvgView.TryGetPicturePoint(_boxStart, out var p1) &&
-                SvgView.TryGetPicturePoint(_boxEnd, out var p2))
+            if (SvgView.SkSvg is { } svg)
             {
+                if (SvgView.TryGetPicturePoint(_boxStart, out var tp1))
+                    _boxStartPicture = new SK.SKPoint((float)tp1.X, (float)tp1.Y);
+                if (SvgView.TryGetPicturePoint(_boxEnd, out var tp2))
+                    _boxEndPicture = new SK.SKPoint((float)tp2.X, (float)tp2.Y);
+                var p1 = _boxStartPicture;
+                var p2 = _boxEndPicture;
                 var rect = new Shim.SKRect(Math.Min(p1.X, p2.X), Math.Min(p1.Y, p2.Y), Math.Max(p1.X, p2.X), Math.Max(p1.Y, p2.Y));
                 _multiSelected.Clear();
                 _multiDrawables.Clear();
@@ -1407,7 +1422,7 @@ public partial class MainWindow : Window
             _polyPoints,
             _polyMatrix);
 
-        if (_boxSelecting && SvgView.TryGetPicturePoint(_boxStart, out var sp1) && SvgView.TryGetPicturePoint(_boxEnd, out var sp2))
+        if (_boxSelecting)
         {
             using var paint = new SK.SKPaint
             {
@@ -1417,6 +1432,8 @@ public partial class MainWindow : Window
                 StrokeWidth = 1f / scale,
                 PathEffect = SK.SKPathEffect.CreateDash(new float[] { 4f / scale, 4f / scale }, 0)
             };
+            var sp1 = _boxStartPicture;
+            var sp2 = _boxEndPicture;
             var r = SK.SKRect.Create(Math.Min(sp1.X, sp2.X), Math.Min(sp1.Y, sp2.Y), Math.Abs(sp2.X - sp1.X), Math.Abs(sp2.Y - sp1.Y));
             e.Canvas.DrawRect(r, paint);
         }
