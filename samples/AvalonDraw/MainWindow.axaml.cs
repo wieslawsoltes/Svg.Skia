@@ -2587,8 +2587,10 @@ public partial class MainWindow : Window
                     break;
             }
 
+            SvgView.SkSvg!.FromSvgDocument(_document);
             BuildTree();
             SelectNodeFromElement(node.Element);
+            SvgView.InvalidateVisual();
         }
 
         HideDropIndicator();
