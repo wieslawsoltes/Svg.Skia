@@ -42,10 +42,11 @@ public partial class MainWindow : Window
     private SvgDocument? _document;
     private string? _currentFile;
 
-    private ObservableCollection<PropertyEntry> Properties { get; } = new();
-    private ObservableCollection<PropertyEntry> FilteredProperties { get; } = new();
+    private readonly PropertiesService _propertiesService = new();
+    public ObservableCollection<PropertyEntry> Properties => _propertiesService.Properties;
+    public ObservableCollection<PropertyEntry> FilteredProperties => _propertiesService.FilteredProperties;
     private ObservableCollection<SvgNode> Nodes { get; } = new();
-    private ObservableCollection<string> Ids { get; } = new();
+    public ObservableCollection<string> Ids => _propertiesService.Ids;
     private readonly HashSet<string> _expandedIds = new();
     private HashSet<string> _filterBackup = new();
 
@@ -202,6 +203,7 @@ public partial class MainWindow : Window
         this.AttachDevTools();
 #endif
         DataContext = this;
+        _propertiesService.EntryChanged += PropertyEntryOnPropertyChanged;
         ApplyPropertyFilter();
         AddHandler(DragDrop.DragOverEvent, Window_OnDragOver);
         AddHandler(DragDrop.DropEvent, Window_OnDrop);
@@ -285,9 +287,6 @@ public partial class MainWindow : Window
         if (!string.IsNullOrEmpty(file))
         {
             LoadDocument(file);
-            foreach (var entry in Properties)
-                entry.PropertyChanged -= PropertyEntryOnPropertyChanged;
-            Properties.Clear();
             _selectedDrawable = null;
             _selectedElement = null;
             _selectedSvgElement = null;
@@ -362,9 +361,6 @@ public partial class MainWindow : Window
             if (!string.IsNullOrEmpty(file))
             {
                 LoadDocument(file);
-                foreach (var entry in Properties)
-                    entry.PropertyChanged -= PropertyEntryOnPropertyChanged;
-                Properties.Clear();
                 _selectedDrawable = null;
                 _selectedElement = null;
                 _selectedSvgElement = null;
@@ -375,69 +371,8 @@ public partial class MainWindow : Window
 
     private void LoadProperties(SvgElement element)
     {
-        foreach (var e in Properties)
-            e.PropertyChanged -= PropertyEntryOnPropertyChanged;
-        Properties.Clear();
-        var props = element.GetType()
-            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.CanRead && p.CanWrite && p.GetCustomAttribute<SvgAttributeAttribute>() != null);
-        foreach (var prop in props)
-        {
-            var converter = TypeDescriptor.GetConverter(prop.PropertyType);
-            var value = prop.GetValue(element);
-            string? str = null;
-            if (value is not null)
-            {
-                try
-                {
-                    str = converter.ConvertToInvariantString(value);
-                }
-                catch (Exception)
-                {
-                    str = value.ToString();
-                }
-            }
-            var entry = new PropertyEntry(prop.GetCustomAttribute<SvgAttributeAttribute>()!.Name, prop, str);
-            if (IsUriProperty(prop))
-                entry.Suggestions = Ids;
-            entry.PropertyChanged += PropertyEntryOnPropertyChanged;
-            Properties.Add(entry);
-        }
-
-        if (element.TryGetAttribute("class", out var cls))
-        {
-            var entry = PropertyEntry.CreateAttribute("class", cls, (target, value) =>
-            {
-                if (target is SvgElement el)
-                    el.CustomAttributes["class"] = value ?? string.Empty;
-            });
-            entry.PropertyChanged += PropertyEntryOnPropertyChanged;
-            Properties.Add(entry);
-        }
-
-        if (element.TryGetAttribute("style", out var style))
-        {
-            var entry = PropertyEntry.CreateAttribute("style", style, (target, value) =>
-            {
-                if (target is SvgElement el)
-                    el.CustomAttributes["style"] = value ?? string.Empty;
-            });
-            entry.PropertyChanged += PropertyEntryOnPropertyChanged;
-            Properties.Add(entry);
-        }
-        if (element is SvgTextBase txt)
-        {
-            var prop = element.GetType().GetProperty(nameof(SvgTextBase.Text));
-            if (prop is { })
-            {
-                var value = txt.Text;
-                var entry = new PropertyEntry("Text", prop, value);
-                entry.PropertyChanged += PropertyEntryOnPropertyChanged;
-                Properties.Add(entry);
-            }
-        }
-
-        ApplyPropertyFilter();
+        _propertiesService.LoadProperties(element);
+        _propertiesService.ApplyFilter(_propertyFilter);
     }
 
     private async void SvgView_OnPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -977,34 +912,26 @@ public partial class MainWindow : Window
         if (_selectedSvgElement is null || _document is null)
             return;
         SaveUndoState();
-        foreach (var entry in Properties)
-        {
-            entry.Apply(_selectedSvgElement);
-        }
+        _propertiesService.ApplyAll(_selectedSvgElement);
         SvgView.SkSvg!.FromSvgDocument(_document);
         UpdateSelectedDrawable();
         SaveExpandedNodes();
-        foreach (var entry in Properties)
-            entry.PropertyChanged -= PropertyEntryOnPropertyChanged;
-        Properties.Clear();
         BuildTree();
         if (_selectedSvgElement is { })
             SelectNodeFromElement(_selectedSvgElement);
         SvgView.InvalidateVisual();
     }
 
-    private void PropertyEntryOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void PropertyEntryOnPropertyChanged(PropertyEntry entry)
     {
-        if (sender is PropertyEntry entry && _selectedSvgElement is { } && _document is { })
+        if (_selectedSvgElement is { } && _document is { })
         {
             SaveUndoState();
             entry.Apply(_selectedSvgElement);
             SvgView.SkSvg!.FromSvgDocument(_document);
             UpdateSelectedDrawable();
-            UpdateIdList();
+            _propertiesService.UpdateIdList(_document);
             SvgView.InvalidateVisual();
-            // Avoid rebuilding the property list here so the editor
-            // keeps focus while typing.
         }
     }
 
@@ -1282,20 +1209,6 @@ public partial class MainWindow : Window
         return (float)(Math.Round(value / _gridSize) * _gridSize);
     }
 
-    private static bool IsUriProperty(PropertyInfo prop)
-    {
-        if (prop.PropertyType == typeof(Uri) || typeof(SvgPaintServer).IsAssignableFrom(prop.PropertyType))
-            return true;
-        var tc = prop.GetCustomAttribute<TypeConverterAttribute>();
-        if (tc != null && tc.ConverterTypeName == typeof(UriTypeConverter).FullName)
-            return true;
-        if (prop.Name.Contains("Href", StringComparison.OrdinalIgnoreCase))
-            return true;
-        var svgAttr = prop.GetCustomAttribute<SvgAttributeAttribute>();
-        if (svgAttr != null && svgAttr.Name.Contains("href", StringComparison.OrdinalIgnoreCase))
-            return true;
-        return false;
-    }
 
     private void ResizeElement(SvgVisualElement element, int handle, float dx, float dy)
     {
@@ -1602,73 +1515,6 @@ public partial class MainWindow : Window
         }
     }
 
-    public class PropertyEntry : INotifyPropertyChanged
-    {
-        public string Name { get; }
-        public PropertyInfo? Property { get; }
-        private readonly Action<object, string?>? _setter;
-        private readonly TypeConverter? _converter;
-        private string? _value;
-
-        public IEnumerable<string>? Options { get; init; }
-        public IEnumerable<string>? Suggestions { get; set; }
-
-        public string? Value
-        {
-            get => _value;
-            set
-            {
-                if (_value != value)
-                {
-                    _value = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Value)));
-                }
-            }
-        }
-
-        public PropertyEntry(string name, PropertyInfo property, string? value)
-        {
-            Name = name;
-            Property = property;
-            _converter = TypeDescriptor.GetConverter(property.PropertyType);
-            _value = value;
-            if (property.PropertyType.IsEnum)
-                Options = Enum.GetNames(property.PropertyType);
-            else if (IsUriProperty(property))
-                Suggestions = null; // filled later
-        }
-
-        private PropertyEntry(string name, string? value, Action<object, string?> setter)
-        {
-            Name = name;
-            _setter = setter;
-            _value = value;
-        }
-
-        public static PropertyEntry CreateAttribute(string name, string? value, Action<object, string?> setter)
-            => new PropertyEntry(name, value, setter);
-
-        public void Apply(object target)
-        {
-            try
-            {
-                if (Property is { } prop)
-                {
-                    var converted = _converter!.ConvertFromInvariantString(Value);
-                    prop.SetValue(target, converted);
-                }
-                else
-                {
-                    _setter?.Invoke(target, Value);
-                }
-            }
-            catch
-            {
-            }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-    }
 
     private void BuildTree()
     {
@@ -1704,27 +1550,12 @@ public partial class MainWindow : Window
 
     private void ApplyPropertyFilter()
     {
-        FilteredProperties.Clear();
-        foreach (var entry in Properties)
-        {
-            if (string.IsNullOrEmpty(_propertyFilter) ||
-                entry.Name.Contains(_propertyFilter, StringComparison.OrdinalIgnoreCase))
-            {
-                FilteredProperties.Add(entry);
-            }
-        }
+        _propertiesService.ApplyFilter(_propertyFilter);
     }
 
     private void UpdateIdList()
     {
-        Ids.Clear();
-        if (_document is null)
-            return;
-        foreach (var el in _document.Descendants().OfType<SvgElement>())
-        {
-            if (!string.IsNullOrEmpty(el.ID))
-                Ids.Add($"url(#{el.ID})");
-        }
+        _propertiesService.UpdateIdList(_document);
     }
 
     private SvgNode CreateNode(SvgElement element, SvgNode? parent = null)
