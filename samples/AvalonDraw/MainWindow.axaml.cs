@@ -54,6 +54,7 @@ public partial class MainWindow : Window
     private double _gridSize = 10.0;
 
     private readonly SK.SKColor _boundsColor = SK.SKColors.Red;
+    private readonly SK.SKColor _segmentColor = SK.SKColors.SkyBlue;
 
     private readonly Stack<string> _undo = new();
     private readonly Stack<string> _redo = new();
@@ -1364,6 +1365,83 @@ public partial class MainWindow : Window
 
         if (_pathEditing && _editDrawable == _selectedDrawable)
         {
+            using var segPaint = new SK.SKPaint
+            {
+                IsAntialias = true,
+                Style = SK.SKPaintStyle.Stroke,
+                Color = _segmentColor,
+                StrokeWidth = 1f / scale
+            };
+
+            if (_editPath is { } path)
+            {
+                var segs = path.PathData;
+                var cur = new Shim.SKPoint();
+                var start = new Shim.SKPoint();
+                bool haveStart = false;
+                foreach (var seg in segs)
+                {
+                    switch (seg)
+                    {
+                        case SvgMoveToSegment mv:
+                            cur = new Shim.SKPoint(mv.End.X, mv.End.Y);
+                            if (!haveStart)
+                            {
+                                start = cur;
+                                haveStart = true;
+                            }
+                            else
+                            {
+                                start = cur;
+                            }
+                            break;
+                        case SvgLineSegment ln:
+                            var lnEnd = new Shim.SKPoint(ln.End.X, ln.End.Y);
+                            var scur = _pathMatrix.MapPoint(cur);
+                            var sln = _pathMatrix.MapPoint(lnEnd);
+                            e.Canvas.DrawLine(scur.X, scur.Y, sln.X, sln.Y, segPaint);
+                            cur = lnEnd;
+                            break;
+                        case SvgCubicCurveSegment c:
+                            var c1 = new Shim.SKPoint(c.FirstControlPoint.X, c.FirstControlPoint.Y);
+                            var c2 = new Shim.SKPoint(c.SecondControlPoint.X, c.SecondControlPoint.Y);
+                            var ce = new Shim.SKPoint(c.End.X, c.End.Y);
+                            scur = _pathMatrix.MapPoint(cur);
+                            var sc1 = _pathMatrix.MapPoint(c1);
+                            var sc2 = _pathMatrix.MapPoint(c2);
+                            var sce = _pathMatrix.MapPoint(ce);
+                            e.Canvas.DrawLine(scur.X, scur.Y, sc1.X, sc1.Y, segPaint);
+                            e.Canvas.DrawLine(sc1.X, sc1.Y, sc2.X, sc2.Y, segPaint);
+                            e.Canvas.DrawLine(sc2.X, sc2.Y, sce.X, sce.Y, segPaint);
+                            cur = ce;
+                            break;
+                        case SvgQuadraticCurveSegment q:
+                            var qp = new Shim.SKPoint(q.ControlPoint.X, q.ControlPoint.Y);
+                            var qe = new Shim.SKPoint(q.End.X, q.End.Y);
+                            scur = _pathMatrix.MapPoint(cur);
+                            var sqp = _pathMatrix.MapPoint(qp);
+                            var sqe = _pathMatrix.MapPoint(qe);
+                            e.Canvas.DrawLine(scur.X, scur.Y, sqp.X, sqp.Y, segPaint);
+                            e.Canvas.DrawLine(sqp.X, sqp.Y, sqe.X, sqe.Y, segPaint);
+                            cur = qe;
+                            break;
+                        case SvgArcSegment a:
+                            var ae = new Shim.SKPoint(a.End.X, a.End.Y);
+                            scur = _pathMatrix.MapPoint(cur);
+                            var sae = _pathMatrix.MapPoint(ae);
+                            e.Canvas.DrawLine(scur.X, scur.Y, sae.X, sae.Y, segPaint);
+                            cur = ae;
+                            break;
+                        case SvgClosePathSegment _:
+                            scur = _pathMatrix.MapPoint(cur);
+                            var sstart = _pathMatrix.MapPoint(start);
+                            e.Canvas.DrawLine(scur.X, scur.Y, sstart.X, sstart.Y, segPaint);
+                            cur = start;
+                            break;
+                    }
+                }
+            }
+
             foreach (var p in _pathPoints)
             {
                 var pt = _pathMatrix.MapPoint(p.Point);
