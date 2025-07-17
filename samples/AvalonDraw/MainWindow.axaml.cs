@@ -2067,43 +2067,43 @@ public partial class MainWindow : Window
                     PreviewMenuItem_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
-                case Key.D1:
+                case Key.V:
                     SelectToolButton_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
-                case Key.D2:
+                case Key.N:
                     PathToolButton_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
-                case Key.D3:
+                case Key.G:
                     PolygonSelectToolButton_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
-                case Key.D4:
+                case Key.Y:
                     PolylineSelectToolButton_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
-                case Key.D5:
+                case Key.L:
                     LineToolButton_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
-                case Key.D6:
+                case Key.R:
                     RectToolButton_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
-                case Key.D7:
+                case Key.C:
                     CircleToolButton_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
-                case Key.D8:
+                case Key.E:
                     EllipseToolButton_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
-                case Key.D9:
+                case Key.P:
                     PolygonToolButton_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
-                case Key.D0:
+                case Key.O:
                     PolylineToolButton_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;

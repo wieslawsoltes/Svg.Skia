@@ -54,16 +54,16 @@
                 <MenuItem Header="Redo" Click="RedoMenuItem_Click" InputGesture="Ctrl+Y"/>
             </MenuItem>
             <MenuItem Header="Tools">
-                <MenuItem Header="Select" Click="SelectToolMenuItem_Click" InputGesture="1"/>
-                <MenuItem Header="Path Select" Click="PathToolMenuItem_Click" InputGesture="2"/>
-                <MenuItem Header="Polygon Select" Click="PolygonSelectToolMenuItem_Click" InputGesture="3"/>
-                <MenuItem Header="Polyline Select" Click="PolylineSelectToolMenuItem_Click" InputGesture="4"/>
-                <MenuItem Header="Line" Click="LineToolMenuItem_Click" InputGesture="5"/>
-                <MenuItem Header="Rect" Click="RectToolMenuItem_Click" InputGesture="6"/>
-                <MenuItem Header="Circle" Click="CircleToolMenuItem_Click" InputGesture="7"/>
-                <MenuItem Header="Ellipse" Click="EllipseToolMenuItem_Click" InputGesture="8"/>
-                <MenuItem Header="Polygon" Click="PolygonToolMenuItem_Click" InputGesture="9"/>
-                <MenuItem Header="Polyline" Click="PolylineToolMenuItem_Click" InputGesture="0"/>
+                <MenuItem Header="Select" Click="SelectToolMenuItem_Click" InputGesture="V"/>
+                <MenuItem Header="Path Select" Click="PathToolMenuItem_Click" InputGesture="N"/>
+                <MenuItem Header="Polygon Select" Click="PolygonSelectToolMenuItem_Click" InputGesture="G"/>
+                <MenuItem Header="Polyline Select" Click="PolylineSelectToolMenuItem_Click" InputGesture="Y"/>
+                <MenuItem Header="Line" Click="LineToolMenuItem_Click" InputGesture="L"/>
+                <MenuItem Header="Rect" Click="RectToolMenuItem_Click" InputGesture="R"/>
+                <MenuItem Header="Circle" Click="CircleToolMenuItem_Click" InputGesture="C"/>
+                <MenuItem Header="Ellipse" Click="EllipseToolMenuItem_Click" InputGesture="E"/>
+                <MenuItem Header="Polygon" Click="PolygonToolMenuItem_Click" InputGesture="P"/>
+                <MenuItem Header="Polyline" Click="PolylineToolMenuItem_Click" InputGesture="O"/>
             </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Wireframe" Click="WireframeMenuItem_Click"/>
