@@ -29,9 +29,15 @@ public class ToolService
 
     public Tool CurrentTool { get; private set; } = Tool.Select;
 
+    public event Action<Tool, Tool>? ToolChanged;
+
     public void SetTool(Tool tool)
     {
+        if (tool == CurrentTool)
+            return;
+        var old = CurrentTool;
         CurrentTool = tool;
+        ToolChanged?.Invoke(old, tool);
     }
 
     public SvgVisualElement? CreateElement(Tool tool, SvgElement parent, ShimSkiaSharp.SKPoint start)

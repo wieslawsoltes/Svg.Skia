@@ -37,6 +37,15 @@ namespace AvalonDraw;
 
 public partial class MainWindow : Window
 {
+    private struct DragInfo
+    {
+        public SvgVisualElement Element;
+        public List<(PropertyInfo Prop, SvgUnit Unit, char Axis)>? Props;
+        public float TextX;
+        public float TextY;
+        public float TransX;
+        public float TransY;
+    }
     private DrawableBase? _selectedDrawable;
     private SvgVisualElement? _selectedElement;
     private SvgElement? _selectedSvgElement;
@@ -91,6 +100,7 @@ public partial class MainWindow : Window
     private float _dragTextY;
     private float _dragTransX;
     private float _dragTransY;
+    private List<DragInfo>? _multiDragInfos;
 
     // Size of resize/rotate handles in device-independent pixels
     private const float HandleSize = 10f;
@@ -224,6 +234,7 @@ public partial class MainWindow : Window
         DocumentTree.AddHandler(DragDrop.DropEvent, DocumentTree_OnDrop);
         DocumentTree.AddHandler(DragDrop.DragOverEvent, DocumentTree_OnDragOver);
         DocumentTree.AddHandler(DragDrop.DragLeaveEvent, DocumentTree_OnDragLeave);
+        _toolService.ToolChanged += ToolServiceOnToolChanged;
         _toolService.SetTool(Tool.Select);
         _treeMenu = BuildTreeContextMenu();
         DocumentTree.ContextMenu = _treeMenu;
@@ -776,7 +787,47 @@ public partial class MainWindow : Window
         if (SvgView.TryGetPicturePoint(point, out var pp))
         {
             var skp = new SK.SKPoint(pp.X, pp.Y);
-            if (_isDragging && _dragElement is { } dragEl)
+            if (_isDragging && _multiDragInfos is { } infos)
+            {
+                var dx = pp.X - _dragStart.X;
+                var dy = pp.Y - _dragStart.Y;
+                foreach (var info in infos)
+                {
+                    if (info.Props is { } pr)
+                    {
+                        foreach (var (Prop, Unit, Axis) in pr)
+                        {
+                            var delta = Axis == 'x' ? dx : dy;
+                            var val = Unit.Value + delta;
+                            if (_snapToGrid)
+                                val = Snap(val);
+                            Prop.SetValue(info.Element, new SvgUnit(Unit.Type, val));
+                        }
+                    }
+                    else if (info.Element is SvgTextBase txt)
+                    {
+                        if (txt.X.Count > 0)
+                            txt.X[0] = new SvgUnit(txt.X[0].Type, _snapToGrid ? Snap(info.TextX + dx) : info.TextX + dx);
+                        if (txt.Y.Count > 0)
+                            txt.Y[0] = new SvgUnit(txt.Y[0].Type, _snapToGrid ? Snap(info.TextY + dy) : info.TextY + dy);
+                    }
+                    else
+                    {
+                        var tx = info.TransX + dx;
+                        var ty = info.TransY + dy;
+                        if (_snapToGrid)
+                        {
+                            tx = Snap(tx);
+                            ty = Snap(ty);
+                        }
+                        SetTranslation(info.Element, tx, ty);
+                    }
+                }
+                SvgView.SkSvg!.FromSvgDocument(_document);
+                UpdateSelectedDrawable();
+                SvgView.InvalidateVisual();
+            }
+            else if (_isDragging && _dragElement is { } dragEl)
             {
                 var dx = pp.X - _dragStart.X;
                 var dy = pp.Y - _dragStart.Y;
@@ -914,7 +965,14 @@ public partial class MainWindow : Window
         else if (_isDragging)
         {
             _isDragging = false;
-            if (_dragElement is { })
+            if (_multiDragInfos is { })
+            {
+                SaveUndoState();
+                if (_multiSelected.Count > 0)
+                    LoadProperties(_multiSelected[0]);
+                _multiDragInfos = null;
+            }
+            else if (_dragElement is { })
             {
                 SaveUndoState();
                 LoadProperties(_dragElement);
@@ -1030,6 +1088,50 @@ public partial class MainWindow : Window
 
     private void StartDrag(SvgVisualElement element, Shim.SKPoint start, IPointer pointer)
     {
+        if (_toolService.CurrentTool == Tool.MultiSelect && _multiSelected.Count > 1)
+        {
+            SaveUndoState();
+            _multiDragInfos = new List<DragInfo>();
+            foreach (var el in _multiSelected)
+            {
+                if (GetDragProperties(el, out var p))
+                {
+                    _multiDragInfos.Add(new DragInfo
+                    {
+                        Element = el,
+                        Props = p
+                    });
+                }
+                else if (el is SvgTextBase t)
+                {
+                    _multiDragInfos.Add(new DragInfo
+                    {
+                        Element = el,
+                        Props = null,
+                        TextX = t.X.Count > 0 ? t.X[0].Value : 0f,
+                        TextY = t.Y.Count > 0 ? t.Y[0].Value : 0f
+                    });
+                }
+                else
+                {
+                    var (tx, ty) = GetTranslation(el);
+                    _multiDragInfos.Add(new DragInfo
+                    {
+                        Element = el,
+                        Props = null,
+                        TransX = tx,
+                        TransY = ty
+                    });
+                }
+            }
+            _isDragging = true;
+            _dragStart = start;
+            _dragElement = null;
+            _dragProps = null;
+            pointer.Capture(SvgView);
+            return;
+        }
+
         if (GetDragProperties(element, out var props))
         {
             SaveUndoState();
@@ -2664,6 +2766,26 @@ public partial class MainWindow : Window
         _alignService.Distribute(list, type);
         SvgView.SkSvg!.FromSvgDocument(_document);
         UpdateSelectedDrawable();
+        SvgView.InvalidateVisual();
+    }
+
+    private void ToolServiceOnToolChanged(Tool oldTool, Tool newTool)
+    {
+        _boxSelecting = false;
+        _multiSelected.Clear();
+        _multiDrawables.Clear();
+        _multiDragInfos = null;
+        _isDragging = false;
+        _dragElement = null;
+        _dragProps = null;
+        _creating = false;
+        _newElement = null;
+        if (_pathService.IsEditing && newTool != Tool.PathSelect)
+            _pathService.Stop();
+        if (_polyEditing && newTool != Tool.PolygonSelect && newTool != Tool.PolylineSelect)
+            StopPolyEditing();
+        _isResizing = false;
+        _isRotating = false;
         SvgView.InvalidateVisual();
     }
 
