@@ -78,6 +78,17 @@
                 <MenuItem Header="Path Arc" Click="PathArcToolMenuItem_Click" InputGesture="A"/>
                 <MenuItem Header="Path Move" Click="PathMoveToolMenuItem_Click" InputGesture="M"/>
             </MenuItem>
+            <MenuItem Header="Arrange">
+                <MenuItem Header="Align Left" Click="AlignLeftMenuItem_Click"/>
+                <MenuItem Header="Align Center" Click="AlignHCenterMenuItem_Click"/>
+                <MenuItem Header="Align Right" Click="AlignRightMenuItem_Click"/>
+                <MenuItem Header="Align Top" Click="AlignTopMenuItem_Click"/>
+                <MenuItem Header="Align Middle" Click="AlignVCenterMenuItem_Click"/>
+                <MenuItem Header="Align Bottom" Click="AlignBottomMenuItem_Click"/>
+                <Separator/>
+                <MenuItem Header="Distribute Horizontal" Click="DistributeHMenuItem_Click"/>
+                <MenuItem Header="Distribute Vertical" Click="DistributeVMenuItem_Click"/>
+            </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Wireframe" Click="WireframeMenuItem_Click"/>
                 <MenuItem Header="Disable Filters" Click="FiltersMenuItem_Click"/>

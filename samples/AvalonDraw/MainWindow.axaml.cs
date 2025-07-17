@@ -134,6 +134,7 @@ public partial class MainWindow : Window
 
     private readonly PathService _pathService = new();
     private readonly RenderingService _renderingService;
+    private readonly AlignService _alignService = new();
 
     private bool _polyEditing;
     private SvgVisualElement? _editPolyElement;
@@ -2612,6 +2613,59 @@ public partial class MainWindow : Window
     private void UniteMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Union);
     private void SubtractMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Difference);
     private void IntersectMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Intersect);
+
+    private void AlignLeftMenuItem_Click(object? sender, RoutedEventArgs e) => AlignSelected(AlignService.AlignType.Left);
+    private void AlignHCenterMenuItem_Click(object? sender, RoutedEventArgs e) => AlignSelected(AlignService.AlignType.HCenter);
+    private void AlignRightMenuItem_Click(object? sender, RoutedEventArgs e) => AlignSelected(AlignService.AlignType.Right);
+    private void AlignTopMenuItem_Click(object? sender, RoutedEventArgs e) => AlignSelected(AlignService.AlignType.Top);
+    private void AlignVCenterMenuItem_Click(object? sender, RoutedEventArgs e) => AlignSelected(AlignService.AlignType.VCenter);
+    private void AlignBottomMenuItem_Click(object? sender, RoutedEventArgs e) => AlignSelected(AlignService.AlignType.Bottom);
+    private void DistributeHMenuItem_Click(object? sender, RoutedEventArgs e) => DistributeSelected(AlignService.DistributeType.Horizontal);
+    private void DistributeVMenuItem_Click(object? sender, RoutedEventArgs e) => DistributeSelected(AlignService.DistributeType.Vertical);
+
+    private void AlignSelected(AlignService.AlignType type)
+    {
+        if (_document is null)
+            return;
+        var list = new List<(SvgVisualElement Element, DrawableBase Drawable)>();
+        if (_multiSelected.Count >= 2)
+        {
+            for (int i = 0; i < _multiSelected.Count && i < _multiDrawables.Count; i++)
+                list.Add((_multiSelected[i], _multiDrawables[i]));
+        }
+        else if (_selectedElement is { } el && _selectedDrawable is { } dr)
+        {
+            return; // need at least two
+        }
+        if (list.Count < 2)
+            return;
+        SaveUndoState();
+        _alignService.Align(list, type);
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        UpdateSelectedDrawable();
+        SvgView.InvalidateVisual();
+    }
+
+    private void DistributeSelected(AlignService.DistributeType type)
+    {
+        if (_document is null)
+            return;
+        var list = new List<(SvgVisualElement Element, DrawableBase Drawable)>();
+        if (_multiSelected.Count >= 3)
+        {
+            for (int i = 0; i < _multiSelected.Count && i < _multiDrawables.Count; i++)
+                list.Add((_multiSelected[i], _multiDrawables[i]));
+        }
+        else
+        {
+            return; // need at least three
+        }
+        SaveUndoState();
+        _alignService.Distribute(list, type);
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        UpdateSelectedDrawable();
+        SvgView.InvalidateVisual();
+    }
 
 }
 
