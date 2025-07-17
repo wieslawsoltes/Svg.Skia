@@ -469,16 +469,8 @@ public partial class MainWindow : Window
             if (_creating && _newElement is { } && SvgView.TryGetPicturePoint(point, out var rp))
             {
                 SaveUndoState();
-                var pts = _toolService.CurrentTool == Tool.Polygon
-                    ? ((SvgPolygon)_newElement).Points
-                    : ((SvgPolyline)_newElement).Points;
-                var x = _snapToGrid ? Snap(rp.X) : rp.X;
-                var y = _snapToGrid ? Snap(rp.Y) : rp.Y;
-                if (pts.Count >= 2)
-                {
-                    pts[pts.Count - 2] = new SvgUnit(pts[0].Type, x);
-                    pts[pts.Count - 1] = new SvgUnit(pts[1].Type, y);
-                }
+                _toolService.FinalizePolygon(_newElement, _toolService.CurrentTool,
+                    new Shim.SKPoint((float)rp.X, (float)rp.Y), _snapToGrid, Snap);
                 _creating = false;
                 LoadProperties(_newElement);
                 _selectedElement = _newElement;
@@ -502,30 +494,7 @@ public partial class MainWindow : Window
                     var sx = _snapToGrid ? Snap(p.X) : p.X;
                     var sy = _snapToGrid ? Snap(p.Y) : p.Y;
                     _newStart = new Shim.SKPoint(sx, sy);
-                    _newElement =  _toolService.CurrentTool switch
-                    {
-                        Tool.Polygon => new SvgPolygon
-                        {
-                            Points = new SvgPointCollection
-                            {
-                                new SvgUnit(SvgUnitType.User, sx), new SvgUnit(SvgUnitType.User, sy),
-                                new SvgUnit(SvgUnitType.User, sx), new SvgUnit(SvgUnitType.User, sy)
-                            },
-                            Stroke = new SvgColourServer(System.Drawing.Color.Black),
-                            StrokeWidth = new SvgUnit(1f)
-                        },
-                        Tool.Polyline => new SvgPolyline
-                        {
-                            Points = new SvgPointCollection
-                            {
-                                new SvgUnit(SvgUnitType.User, sx), new SvgUnit(SvgUnitType.User, sy),
-                                new SvgUnit(SvgUnitType.User, sx), new SvgUnit(SvgUnitType.User, sy)
-                            },
-                            Stroke = new SvgColourServer(System.Drawing.Color.Black),
-                            StrokeWidth = new SvgUnit(1f)
-                        },
-                        _ => null!
-                    };
+                    _newElement = _toolService.CreateElement(_toolService.CurrentTool, parent, _newStart);
                     if (_newElement is { })
                     {
                         parent.Children.Add(_newElement);
@@ -538,7 +507,8 @@ public partial class MainWindow : Window
                         UpdateSelectedDrawable();
                         LoadProperties(_newElement);
                         SvgView.InvalidateVisual();
-                        UpdateNewElement(new Shim.SKPoint(sx, sy));
+                        _toolService.UpdateElement(_newElement, _toolService.CurrentTool,
+                            _newStart, _newStart, _snapToGrid, Snap);
                         SvgView.SkSvg!.FromSvgDocument(_document);
                         _creating = true;
                     }
@@ -546,17 +516,13 @@ public partial class MainWindow : Window
                 else if (_newElement is { })
                 {
                     SaveUndoState();
-                    var pts = _toolService.CurrentTool == Tool.Polygon
-                        ? ((SvgPolygon)_newElement).Points
-                        : ((SvgPolyline)_newElement).Points;
                     var x = _snapToGrid ? Snap(p.X) : p.X;
                     var y = _snapToGrid ? Snap(p.Y) : p.Y;
-                    pts[pts.Count - 2] = new SvgUnit(pts[0].Type, x);
-                    pts[pts.Count - 1] = new SvgUnit(pts[1].Type, y);
-                    pts.Insert(pts.Count - 2, new SvgUnit(SvgUnitType.User, x));
-                    pts.Insert(pts.Count - 2 + 1, new SvgUnit(SvgUnitType.User, y));
+                    _toolService.AddPolygonPoint(_newElement, _toolService.CurrentTool,
+                        new Shim.SKPoint((float)x, (float)y), _snapToGrid, Snap);
                     SvgView.SkSvg!.FromSvgDocument(_document);
-                    UpdateNewElement(new Shim.SKPoint(x, y));
+                    _toolService.UpdateElement(_newElement, _toolService.CurrentTool,
+                        _newStart, new Shim.SKPoint((float)x, (float)y), _snapToGrid, Snap);
                     SvgView.SkSvg!.FromSvgDocument(_document);
                     UpdateSelectedDrawable();
                     SvgView.InvalidateVisual();
@@ -573,41 +539,7 @@ public partial class MainWindow : Window
                 SaveUndoState();
                 SvgElement parent = _selectedSvgElement is SvgGroup grp ? grp : _document!;
                 _newStart = new Shim.SKPoint(sp.X, sp.Y);
-                _newElement =  _toolService.CurrentTool switch
-                {
-                    Tool.Line => new SvgLine
-                    {
-                        StartX = new SvgUnit(SvgUnitType.User, sp.X),
-                        StartY = new SvgUnit(SvgUnitType.User, sp.Y),
-                        EndX = new SvgUnit(SvgUnitType.User, sp.X),
-                        EndY = new SvgUnit(SvgUnitType.User, sp.Y),
-                        Stroke = new SvgColourServer(System.Drawing.Color.Black),
-                        StrokeWidth = new SvgUnit(1f)
-                    },
-                    Tool.Rect => new SvgRectangle
-                    {
-                        X = new SvgUnit(SvgUnitType.User, sp.X),
-                        Y = new SvgUnit(SvgUnitType.User, sp.Y),
-                        Width = new SvgUnit(SvgUnitType.User, 0),
-                        Height = new SvgUnit(SvgUnitType.User, 0)
-                    },
-                    Tool.Circle => new SvgCircle
-                    {
-                        CenterX = new SvgUnit(SvgUnitType.User, sp.X),
-                        CenterY = new SvgUnit(SvgUnitType.User, sp.Y),
-                        Radius = new SvgUnit(SvgUnitType.User, 0)
-                    },
-                    Tool.Ellipse => new SvgEllipse
-                    {
-                        CenterX = new SvgUnit(SvgUnitType.User, sp.X),
-                        CenterY = new SvgUnit(SvgUnitType.User, sp.Y),
-                        RadiusX = new SvgUnit(SvgUnitType.User, 0),
-                        RadiusY = new SvgUnit(SvgUnitType.User, 0)
-                    },
-                    Tool.Polygon => null!,
-                    Tool.Polyline => null!,
-                    _ => null!
-                };
+                _newElement = _toolService.CreateElement(_toolService.CurrentTool, parent, _newStart);
                 if (_newElement is { })
                 {
                     parent.Children.Add(_newElement);
@@ -786,7 +718,8 @@ public partial class MainWindow : Window
         if (_creating && SvgView.TryGetPicturePoint(point, out var cp) && _newElement is { })
         {
             var cur = new Shim.SKPoint(cp.X, cp.Y);
-            UpdateNewElement(cur);
+            _toolService.UpdateElement(_newElement, _toolService.CurrentTool,
+                _newStart, cur, _snapToGrid, Snap);
             SvgView.SkSvg!.FromSvgDocument(_document);
             UpdateSelectedDrawable();
             if (_pathEditing)
@@ -1499,83 +1432,8 @@ public partial class MainWindow : Window
     {
         if (_newElement is null)
             return;
-        switch (_toolService.CurrentTool)
-        {
-            case Tool.Line:
-                if (_newElement is SvgLine ln)
-                {
-                    ln.EndX = new SvgUnit(ln.EndX.Type, _snapToGrid ? Snap(current.X) : current.X);
-                    ln.EndY = new SvgUnit(ln.EndY.Type, _snapToGrid ? Snap(current.Y) : current.Y);
-                }
-                break;
-            case Tool.Rect:
-                if (_newElement is SvgRectangle r)
-                {
-                    var x = Math.Min(_newStart.X, current.X);
-                    var y = Math.Min(_newStart.Y, current.Y);
-                    var w = Math.Abs(current.X - _newStart.X);
-                    var h = Math.Abs(current.Y - _newStart.Y);
-                    if (_snapToGrid)
-                    {
-                        x = Snap(x); y = Snap(y); w = Snap(w); h = Snap(h);
-                    }
-                    r.X = new SvgUnit(r.X.Type, x);
-                    r.Y = new SvgUnit(r.Y.Type, y);
-                    r.Width = new SvgUnit(r.Width.Type, w);
-                    r.Height = new SvgUnit(r.Height.Type, h);
-                }
-                break;
-            case Tool.Circle:
-                if (_newElement is SvgCircle c)
-                {
-                    var cx = (_newStart.X + current.X) / 2f;
-                    var cy = (_newStart.Y + current.Y) / 2f;
-                    var rVal = Math.Max(Math.Abs(current.X - _newStart.X), Math.Abs(current.Y - _newStart.Y)) / 2f;
-                    if (_snapToGrid)
-                    {
-                        cx = Snap(cx); cy = Snap(cy); rVal = Snap(rVal);
-                    }
-                    c.CenterX = new SvgUnit(c.CenterX.Type, cx);
-                    c.CenterY = new SvgUnit(c.CenterY.Type, cy);
-                    c.Radius = new SvgUnit(c.Radius.Type, rVal);
-                }
-                break;
-            case Tool.Ellipse:
-                if (_newElement is SvgEllipse el)
-                {
-                    var cx = (_newStart.X + current.X) / 2f;
-                    var cy = (_newStart.Y + current.Y) / 2f;
-                    var rx = Math.Abs(current.X - _newStart.X) / 2f;
-                    var ry = Math.Abs(current.Y - _newStart.Y) / 2f;
-                    if (_snapToGrid)
-                    {
-                        cx = Snap(cx); cy = Snap(cy); rx = Snap(rx); ry = Snap(ry);
-                    }
-                    el.CenterX = new SvgUnit(el.CenterX.Type, cx);
-                    el.CenterY = new SvgUnit(el.CenterY.Type, cy);
-                    el.RadiusX = new SvgUnit(el.RadiusX.Type, rx);
-                    el.RadiusY = new SvgUnit(el.RadiusY.Type, ry);
-                }
-                break;
-            case Tool.Polygon:
-                if (_newElement is SvgPolygon pg && pg.Points.Count >= 2)
-                {
-                    var x = _snapToGrid ? Snap(current.X) : current.X;
-                    var y = _snapToGrid ? Snap(current.Y) : current.Y;
-                    pg.Points[pg.Points.Count - 2] = new SvgUnit(pg.Points[0].Type, x);
-                    pg.Points[pg.Points.Count - 1] = new SvgUnit(pg.Points[1].Type, y);
-                }
-                break;
-            case Tool.Polyline:
-                if (_newElement is SvgPolyline pl && pl.Points.Count >= 2)
-                {
-                    var x = _snapToGrid ? Snap(current.X) : current.X;
-                    var y = _snapToGrid ? Snap(current.Y) : current.Y;
-                    pl.Points[pl.Points.Count - 2] = new SvgUnit(pl.Points[0].Type, x);
-                    pl.Points[pl.Points.Count - 1] = new SvgUnit(pl.Points[1].Type, y);
-                }
-                break;
-        }
+        _toolService.UpdateElement(_newElement, _toolService.CurrentTool,
+            _newStart, current, _snapToGrid, Snap);
     }
 
     private void SvgView_OnDraw(object? sender, SKSvgDrawEventArgs e)
