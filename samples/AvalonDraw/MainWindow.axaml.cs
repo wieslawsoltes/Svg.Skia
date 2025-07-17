@@ -477,16 +477,18 @@ public partial class MainWindow : Window
         }
         if ((_tool == Tool.Polygon || _tool == Tool.Polyline) && e.GetCurrentPoint(SvgView).Properties.IsRightButtonPressed)
         {
-            if (_creating && _newElement is { })
+            if (_creating && _newElement is { } && SvgView.TryGetPicturePoint(point, out var rp))
             {
                 SaveUndoState();
                 var pts = _tool == Tool.Polygon
                     ? ((SvgPolygon)_newElement).Points
                     : ((SvgPolyline)_newElement).Points;
-                if (pts.Count >= 4)
+                var x = _snapToGrid ? Snap(rp.X) : rp.X;
+                var y = _snapToGrid ? Snap(rp.Y) : rp.Y;
+                if (pts.Count >= 2)
                 {
-                    pts.RemoveAt(pts.Count - 1);
-                    pts.RemoveAt(pts.Count - 1);
+                    pts[pts.Count - 2] = new SvgUnit(pts[0].Type, x);
+                    pts[pts.Count - 1] = new SvgUnit(pts[1].Type, y);
                 }
                 _creating = false;
                 LoadProperties(_newElement);
@@ -508,15 +510,17 @@ public partial class MainWindow : Window
                 if (!_creating)
                 {
                     SaveUndoState();
-                    _newStart = new Shim.SKPoint(p.X, p.Y);
+                    var sx = _snapToGrid ? Snap(p.X) : p.X;
+                    var sy = _snapToGrid ? Snap(p.Y) : p.Y;
+                    _newStart = new Shim.SKPoint(sx, sy);
                     _newElement = _tool switch
                     {
                         Tool.Polygon => new SvgPolygon
                         {
                             Points = new SvgPointCollection
                             {
-                                new SvgUnit(SvgUnitType.User, p.X), new SvgUnit(SvgUnitType.User, p.Y),
-                                new SvgUnit(SvgUnitType.User, p.X), new SvgUnit(SvgUnitType.User, p.Y)
+                                new SvgUnit(SvgUnitType.User, sx), new SvgUnit(SvgUnitType.User, sy),
+                                new SvgUnit(SvgUnitType.User, sx), new SvgUnit(SvgUnitType.User, sy)
                             },
                             Stroke = new SvgColourServer(System.Drawing.Color.Black),
                             StrokeWidth = new SvgUnit(1f)
@@ -525,8 +529,8 @@ public partial class MainWindow : Window
                         {
                             Points = new SvgPointCollection
                             {
-                                new SvgUnit(SvgUnitType.User, p.X), new SvgUnit(SvgUnitType.User, p.Y),
-                                new SvgUnit(SvgUnitType.User, p.X), new SvgUnit(SvgUnitType.User, p.Y)
+                                new SvgUnit(SvgUnitType.User, sx), new SvgUnit(SvgUnitType.User, sy),
+                                new SvgUnit(SvgUnitType.User, sx), new SvgUnit(SvgUnitType.User, sy)
                             },
                             Stroke = new SvgColourServer(System.Drawing.Color.Black),
                             StrokeWidth = new SvgUnit(1f)
@@ -556,6 +560,8 @@ public partial class MainWindow : Window
                         : ((SvgPolyline)_newElement).Points;
                     var x = _snapToGrid ? Snap(p.X) : p.X;
                     var y = _snapToGrid ? Snap(p.Y) : p.Y;
+                    pts[pts.Count - 2] = new SvgUnit(pts[0].Type, x);
+                    pts[pts.Count - 1] = new SvgUnit(pts[1].Type, y);
                     pts.Insert(pts.Count - 2, new SvgUnit(SvgUnitType.User, x));
                     pts.Insert(pts.Count - 2 + 1, new SvgUnit(SvgUnitType.User, y));
                     SvgView.SkSvg!.FromSvgDocument(_document);
