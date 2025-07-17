@@ -100,8 +100,8 @@
                                         <ToggleButton DockPanel.Dock="Right"
                                                       IsChecked="{Binding IsVisible}"
                                                       Click="VisibilityToggle_Click"
-                                                      Width="16" Height="16" Margin="4,0,4,0">
-                                            <Path Fill="Black" Data="{Binding IsVisible, Converter={StaticResource EyeIconConverter}}"/>
+                                                      Width="16" Height="16" Margin="4,0,20,0">
+                                           <Path Fill="Black" Data="{Binding IsVisible, Converter={StaticResource EyeIconConverter}}"/>
                                         </ToggleButton>
                                         <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
                                     </DockPanel>

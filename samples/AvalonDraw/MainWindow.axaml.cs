@@ -446,6 +446,11 @@ public partial class MainWindow : Window
     private async void SvgView_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var point = e.GetPosition(SvgView);
+        if (_tool == Tool.Path && _pathEditing && e.ClickCount == 2 && SvgView.TryGetPicturePoint(point, out var addp))
+        {
+            AddPathPoint(new Shim.SKPoint((float)addp.X, (float)addp.Y));
+            return;
+        }
         if ((_tool == Tool.Line || _tool == Tool.Rect || _tool == Tool.Circle || _tool == Tool.Ellipse) &&
             e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
         {
@@ -1686,9 +1691,16 @@ public partial class MainWindow : Window
         {
             _selectedSvgElement = node.Element;
             _selectedElement = node.Element as SvgVisualElement;
-            if (_pathEditing && _editPath != _selectedElement)
-                StopPathEditing();
             UpdateSelectedDrawable();
+            if (_tool == Tool.Path && _selectedElement is SvgPath path && _selectedDrawable is { })
+            {
+                if (!_pathEditing || _editPath != path)
+                    StartPathEditing(path, _selectedDrawable!);
+            }
+            else if (_pathEditing)
+            {
+                StopPathEditing();
+            }
             LoadProperties(_selectedSvgElement);
             DocumentTree.ScrollIntoView(node);
             SvgView.InvalidateVisual();
@@ -1847,6 +1859,35 @@ public partial class MainWindow : Window
         _activePathPoint = -1;
         _pathPoints.Clear();
         UpdateSelectedDrawable();
+    }
+
+    private void AddPathPoint(Shim.SKPoint point)
+    {
+        if (_editPath is null || _document is null)
+            return;
+        SaveUndoState();
+        var seg = new SvgLineSegment(false, new System.Drawing.PointF(point.X, point.Y));
+        _editPath.PathData.Add(seg);
+        _pathPoints.Add(new PathPoint { Segment = seg, Type = 0, Point = point });
+        _editPath.OnPathUpdated();
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        UpdateSelectedDrawable();
+        SvgView.InvalidateVisual();
+    }
+
+    private void RemoveActivePathPoint()
+    {
+        if (_editPath is null || _document is null || _activePathPoint < 0 || _activePathPoint >= _pathPoints.Count)
+            return;
+        SaveUndoState();
+        var seg = _pathPoints[_activePathPoint].Segment;
+        _editPath.PathData.Remove(seg);
+        _pathPoints.RemoveAt(_activePathPoint);
+        _activePathPoint = -1;
+        _editPath.OnPathUpdated();
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        UpdateSelectedDrawable();
+        SvgView.InvalidateVisual();
     }
 
     private void UpdatePathPoint(PathPoint pp)
@@ -2241,6 +2282,7 @@ public partial class MainWindow : Window
             _snapToGrid = win.SnapToGrid;
             _showGrid = win.ShowGrid;
             _gridSize = win.GridSize;
+            SvgView.InvalidateVisual();
         }
     }
 
@@ -2323,7 +2365,10 @@ public partial class MainWindow : Window
             switch (e.Key)
             {
                 case Key.Delete:
-                    RemoveElementMenuItem_Click(this, new RoutedEventArgs());
+                    if (_pathEditing && _activePathPoint >= 0)
+                        RemoveActivePathPoint();
+                    else
+                        RemoveElementMenuItem_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
                 case Key.F5:
