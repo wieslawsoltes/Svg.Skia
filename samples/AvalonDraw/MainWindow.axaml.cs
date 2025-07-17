@@ -18,6 +18,7 @@ using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Controls.Templates;
 using Avalonia.Media;
+using Avalonia.Layout;
 using Avalonia.Svg.Skia;
 using SK = SkiaSharp;
 using Shim = ShimSkiaSharp;
@@ -37,6 +38,7 @@ public partial class MainWindow : Window
     private SvgVisualElement? _selectedElement;
     private SvgElement? _selectedSvgElement;
     private SvgDocument? _document;
+    private string? _currentFile;
 
     private ObservableCollection<PropertyEntry> Properties { get; } = new();
     private ObservableCollection<PropertyEntry> FilteredProperties { get; } = new();
@@ -149,21 +151,31 @@ public partial class MainWindow : Window
         {
             if (entry.Options is { } opts)
             {
-                var box = new AutoCompleteBox { ItemsSource = opts, MinimumPrefixLength = 0 };
+                var box = new AutoCompleteBox
+                {
+                    ItemsSource = opts,
+                    MinimumPrefixLength = 0,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
                 box[!AutoCompleteBox.TextProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };
                 box.GotFocus += (_, _) => box.IsDropDownOpen = true;
                 return box;
             }
             if (entry.Suggestions is { } sugg)
             {
-                var box = new AutoCompleteBox { ItemsSource = sugg, MinimumPrefixLength = 0 };
+                var box = new AutoCompleteBox
+                {
+                    ItemsSource = sugg,
+                    MinimumPrefixLength = 0,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
                 box[!AutoCompleteBox.TextProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };
                 box.GotFocus += (_, _) => box.IsDropDownOpen = true;
                 return box;
             }
             if (entry.Property?.PropertyType == typeof(bool))
             {
-                var cb = new CheckBox();
+                var cb = new CheckBox { VerticalAlignment = VerticalAlignment.Center };
                 cb[!ToggleButton.IsCheckedProperty] = new Binding("Value")
                 {
                     Mode = BindingMode.TwoWay,
@@ -173,7 +185,7 @@ public partial class MainWindow : Window
             }
             if (entry.Property?.PropertyType == typeof(SK.SKColor) || entry.Property?.PropertyType == typeof(Color))
             {
-                var picker = new ColorPicker { Width = 120 };
+                var picker = new ColorPicker { Width = 120, VerticalAlignment = VerticalAlignment.Center };
                 picker[!ColorPicker.ColorProperty] = new Binding("Value")
                 {
                     Mode = BindingMode.TwoWay,
@@ -181,7 +193,7 @@ public partial class MainWindow : Window
                 };
                 return picker;
             }
-            var tb = new TextBox();
+            var tb = new TextBox { VerticalContentAlignment = VerticalAlignment.Center };
             tb[!TextBox.TextProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };
             return tb;
         }, true);
@@ -253,6 +265,8 @@ public partial class MainWindow : Window
         SvgView.PanY = 0;
 
         SaveExpandedNodes();
+        _currentFile = path;
+        UpdateTitle();
         BuildTree();
     }
 
@@ -298,6 +312,8 @@ public partial class MainWindow : Window
         if (!string.IsNullOrEmpty(path))
         {
             _document.Write(path);
+            _currentFile = path;
+            UpdateTitle();
         }
     }
 
@@ -1915,6 +1931,12 @@ public partial class MainWindow : Window
         _redo.Clear();
     }
 
+    private void UpdateTitle()
+    {
+        var name = string.IsNullOrEmpty(_currentFile) ? string.Empty : $" - {Path.GetFileName(_currentFile)}";
+        Title = $"AvalonDraw{name}";
+    }
+
     private void RestoreFromString(string xml)
     {
         _document = SvgService.FromSvg(xml);
@@ -2053,6 +2075,8 @@ public partial class MainWindow : Window
         _document = new SvgDocument { Width = 100, Height = 100 };
         SvgView.SkSvg!.FromSvgDocument(_document);
         SaveExpandedNodes();
+        _currentFile = null;
+        UpdateTitle();
         BuildTree();
     }
 
@@ -2095,6 +2119,12 @@ public partial class MainWindow : Window
             return;
         var win = new PreviewWindow(_document);
         await win.ShowDialog(this);
+    }
+
+    private void ResetFileMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(_currentFile))
+            LoadDocument(_currentFile);
     }
 
     private void WireframeMenuItem_Click(object? sender, RoutedEventArgs e)
@@ -2146,6 +2176,13 @@ public partial class MainWindow : Window
             StopPathEditing();
         _tool = Tool.Ellipse;
     }
+
+    private void SelectToolMenuItem_Click(object? sender, RoutedEventArgs e) => SelectToolButton_Click(sender, e);
+    private void PathToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathToolButton_Click(sender, e);
+    private void LineToolMenuItem_Click(object? sender, RoutedEventArgs e) => LineToolButton_Click(sender, e);
+    private void RectToolMenuItem_Click(object? sender, RoutedEventArgs e) => RectToolButton_Click(sender, e);
+    private void CircleToolMenuItem_Click(object? sender, RoutedEventArgs e) => CircleToolButton_Click(sender, e);
+    private void EllipseToolMenuItem_Click(object? sender, RoutedEventArgs e) => EllipseToolButton_Click(sender, e);
 
     private async void SettingsMenuItem_Click(object? sender, RoutedEventArgs e)
     {
@@ -2206,6 +2243,10 @@ public partial class MainWindow : Window
                     EditTextMenuItem_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
+                case Key.R:
+                    ResetFileMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
                 case Key.I:
                     InsertElementMenuItem_Click(this, new RoutedEventArgs());
                     e.Handled = true;
@@ -2238,6 +2279,30 @@ public partial class MainWindow : Window
                     break;
                 case Key.F5:
                     PreviewMenuItem_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.D1:
+                    SelectToolButton_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.D2:
+                    PathToolButton_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.D3:
+                    LineToolButton_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.D4:
+                    RectToolButton_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.D5:
+                    CircleToolButton_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.D6:
+                    EllipseToolButton_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
             }
@@ -2469,6 +2534,10 @@ public class SvgNode
                 return;
             _isVisible = value;
             Element.Visibility = value ? "visible" : "hidden";
+            if (value)
+                Element.Display = "inline";
+            else
+                Element.Display = "none";
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsVisible)));
         }
     }
@@ -2483,8 +2552,10 @@ public class SvgNode
         Label = string.IsNullOrEmpty(element.ID)
             ? name
             : $"{name} ({element.ID})";
-        _isVisible = !string.Equals(element.Visibility, "hidden", StringComparison.OrdinalIgnoreCase) &&
-                     !string.Equals(element.Visibility, "collapse", StringComparison.OrdinalIgnoreCase);
+        var vis = !string.Equals(element.Visibility, "hidden", StringComparison.OrdinalIgnoreCase) &&
+                  !string.Equals(element.Visibility, "collapse", StringComparison.OrdinalIgnoreCase);
+        var disp = !string.Equals(element.Display, "none", StringComparison.OrdinalIgnoreCase);
+        _isVisible = vis && disp;
     }
 }
 

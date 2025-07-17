@@ -48,9 +48,18 @@
                 <MenuItem Header="Copy Element" Click="CopyElementMenuItem_Click" InputGesture="Ctrl+C"/>
                 <MenuItem Header="Paste Element" Click="PasteElementMenuItem_Click" InputGesture="Ctrl+V"/>
                 <MenuItem Header="Edit Content..." Click="EditContentMenuItem_Click"/>
+                <MenuItem Header="Reset File" Click="ResetFileMenuItem_Click" InputGesture="Ctrl+R"/>
                 <Separator />
                 <MenuItem Header="Undo" Click="UndoMenuItem_Click" InputGesture="Ctrl+Z"/>
                 <MenuItem Header="Redo" Click="RedoMenuItem_Click" InputGesture="Ctrl+Y"/>
+            </MenuItem>
+            <MenuItem Header="Tools">
+                <MenuItem Header="Select" Click="SelectToolMenuItem_Click" InputGesture="1"/>
+                <MenuItem Header="Path" Click="PathToolMenuItem_Click" InputGesture="2"/>
+                <MenuItem Header="Line" Click="LineToolMenuItem_Click" InputGesture="3"/>
+                <MenuItem Header="Rect" Click="RectToolMenuItem_Click" InputGesture="4"/>
+                <MenuItem Header="Circle" Click="CircleToolMenuItem_Click" InputGesture="5"/>
+                <MenuItem Header="Ellipse" Click="EllipseToolMenuItem_Click" InputGesture="6"/>
             </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Wireframe" Click="WireframeMenuItem_Click"/>
@@ -87,16 +96,16 @@
                             <TreeView.ItemTemplate>
                                 <TreeDataTemplate DataType="{x:Type local:SvgNode}"
                                                   ItemsSource="{Binding Children}">
-                                    <DockPanel>
-                                        <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
+                                    <DockPanel LastChildFill="True">
                                         <ToggleButton DockPanel.Dock="Right"
-                                                  IsChecked="{Binding IsVisible}"
-                                                  Click="VisibilityToggle_Click"
-                                                  Width="16" Height="16" Margin="4,0,0,0">
-                                        <Path Fill="Black" Data="{Binding IsVisible, Converter={StaticResource EyeIconConverter}}"/>
-                                    </ToggleButton>
-                                </DockPanel>
-                            </TreeDataTemplate>
+                                                      IsChecked="{Binding IsVisible}"
+                                                      Click="VisibilityToggle_Click"
+                                                      Width="16" Height="16" Margin="4,0,0,0">
+                                            <Path Fill="Black" Data="{Binding IsVisible, Converter={StaticResource EyeIconConverter}}"/>
+                                        </ToggleButton>
+                                        <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
+                                    </DockPanel>
+                                </TreeDataTemplate>
                         </TreeView.ItemTemplate>
                         </TreeView>
                         <Border x:Name="DropIndicator"
@@ -147,7 +156,7 @@
                             <dgrid:DataGridTemplateColumn Header="Value" Width="*">
                                 <dgrid:DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Value}"/>
+                                        <TextBlock Text="{Binding Value}" VerticalAlignment="Center"/>
                                     </DataTemplate>
                                 </dgrid:DataGridTemplateColumn.CellTemplate>
                                 <dgrid:DataGridTemplateColumn.CellEditingTemplate>
