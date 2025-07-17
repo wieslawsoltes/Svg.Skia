@@ -549,6 +549,8 @@ public partial class MainWindow : Window
                         UpdateSelectedDrawable();
                         LoadProperties(_newElement);
                         SvgView.InvalidateVisual();
+                        UpdateNewElement(new Shim.SKPoint(sx, sy));
+                        SvgView.SkSvg!.FromSvgDocument(_document);
                         _creating = true;
                     }
                 }
@@ -564,6 +566,8 @@ public partial class MainWindow : Window
                     pts[pts.Count - 1] = new SvgUnit(pts[1].Type, y);
                     pts.Insert(pts.Count - 2, new SvgUnit(SvgUnitType.User, x));
                     pts.Insert(pts.Count - 2 + 1, new SvgUnit(SvgUnitType.User, y));
+                    SvgView.SkSvg!.FromSvgDocument(_document);
+                    UpdateNewElement(new Shim.SKPoint(x, y));
                     SvgView.SkSvg!.FromSvgDocument(_document);
                     UpdateSelectedDrawable();
                     SvgView.InvalidateVisual();
@@ -2382,15 +2386,10 @@ public partial class MainWindow : Window
 
     internal static string GetElementName(Type type)
     {
-        var t = type;
-        while (t != null)
-        {
-            var attr = t.GetCustomAttribute<SvgElementAttribute>();
-            if (attr is not null && !string.IsNullOrEmpty(attr.ElementName))
-                return attr.ElementName;
-            t = t.BaseType;
-        }
-        return type.Name;
+        var attr = type.GetCustomAttributes(typeof(SvgElementAttribute), true)
+            .OfType<SvgElementAttribute>()
+            .FirstOrDefault(a => !string.IsNullOrEmpty(a.ElementName));
+        return attr?.ElementName ?? type.Name;
     }
 
     private void UndoMenuItem_Click(object? sender, RoutedEventArgs e)
