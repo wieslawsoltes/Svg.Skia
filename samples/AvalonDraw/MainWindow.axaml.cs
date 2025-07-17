@@ -2563,6 +2563,7 @@ public partial class MainWindow : Window
             }
 
             SaveUndoState();
+            SaveExpandedNodes();
             node.Parent.Element.Children.Remove(node.Element);
 
             switch (_dropPosition)
