@@ -871,7 +871,8 @@ public partial class MainWindow : Window
             UpdateSelectedDrawable();
             UpdateIdList();
             SvgView.InvalidateVisual();
-            ApplyPropertyFilter();
+            // Avoid rebuilding the property list here so the editor
+            // keeps focus while typing.
         }
     }
 
