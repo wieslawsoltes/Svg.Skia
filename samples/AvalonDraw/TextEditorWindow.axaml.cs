@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -25,9 +26,9 @@ public partial class TextEditorWindow : Window
         _wordBox = this.FindControl<TextBox>("WordBox");
 
         _editor.Text = text;
-        _fontFamilyBox.Items = FontManager.Current?.InstalledFontFamilyNames;
+        _fontFamilyBox.ItemsSource = FontManager.Current?.SystemFonts;
         _fontFamilyBox.SelectedItem = fontFamily;
-        _fontWeightBox.Items = Enum.GetValues(typeof(FontWeight)).Cast<FontWeight>();
+        _fontWeightBox.ItemsSource = Enum.GetValues(typeof(FontWeight)).Cast<FontWeight>();
         _fontWeightBox.SelectedItem = ToFontWeight(weight);
         _letterBox.Text = letter.ToString();
         _wordBox.Text = word.ToString();
@@ -48,17 +49,17 @@ public partial class TextEditorWindow : Window
         _ => FontWeight.Normal
     };
 
-    private static SvgFontWeight FromFontWeight(FontWeight w) => w.Weight switch
+    private static SvgFontWeight FromFontWeight(FontWeight w) => w switch
     {
-        100 => SvgFontWeight.W100,
-        200 => SvgFontWeight.W200,
-        300 => SvgFontWeight.W300,
-        400 => SvgFontWeight.W400,
-        500 => SvgFontWeight.W500,
-        600 => SvgFontWeight.W600,
-        700 => SvgFontWeight.W700,
-        800 => SvgFontWeight.W800,
-        900 => SvgFontWeight.W900,
+        FontWeight.Thin => SvgFontWeight.W100,
+        FontWeight.ExtraLight => SvgFontWeight.W200,
+        FontWeight.Light => SvgFontWeight.W300,
+        FontWeight.Normal => SvgFontWeight.W400,
+        FontWeight.Medium => SvgFontWeight.W500,
+        FontWeight.SemiBold => SvgFontWeight.W600,
+        FontWeight.Bold => SvgFontWeight.W700,
+        FontWeight.ExtraBold => SvgFontWeight.W800,
+        FontWeight.Black => SvgFontWeight.W900,
         _ => SvgFontWeight.Normal
     };
 
