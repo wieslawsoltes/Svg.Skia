@@ -112,6 +112,9 @@
                 <Separator/>
                 <MenuItem Header="Flip Horizontal" Click="FlipHMenuItem_Click"/>
                 <MenuItem Header="Flip Vertical" Click="FlipVMenuItem_Click"/>
+                <Separator/>
+                <MenuItem Header="Bring Forward" Click="BringForwardMenuItem_Click" InputGesture="Ctrl+]"/>
+                <MenuItem Header="Send Backward" Click="SendBackwardMenuItem_Click" InputGesture="Ctrl+["/>
             </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Wireframe" Click="WireframeMenuItem_Click"/>
