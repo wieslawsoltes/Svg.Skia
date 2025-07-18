@@ -32,7 +32,7 @@
         <Geometry x:Key="EyeOpen">M1,8 C3,4 13,4 15,8 C13,12 3,12 1,8 Z M8,8 A3,3 0 1 1 7.99,8 Z</Geometry>
         <Geometry x:Key="EyeClosed">M1,8 C3,4 13,4 15,8 C13,12 3,12 1,8 Z M0,0 L16,16 M16,0 L0,16</Geometry>
     </Window.Resources>
-    <Grid RowDefinitions="Auto,Auto,*">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
         <Menu Grid.Row="0">
             <MenuItem Header="File">
                 <MenuItem Header="New" Click="NewMenuItem_Click" InputGesture="Ctrl+N"/>
@@ -208,5 +208,11 @@
                 </DockPanel>
             </Border>
         </Grid>
+        <Border Grid.Row="3" Background="#EEE" Padding="4">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="PanZoomLabel" Margin="4"/>
+                <Button Content="Reset" Margin="4,0" Click="ResetViewButton_Click"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

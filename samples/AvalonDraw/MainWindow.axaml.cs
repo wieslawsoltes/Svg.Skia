@@ -60,6 +60,8 @@ public partial class MainWindow : Window
     private readonly HashSet<string> _expandedIds = new();
     private HashSet<string> _filterBackup = new();
 
+    private TextBlock? _panZoomLabel;
+
     private SvgElement? _clipboard;
     private string? _clipboardXml;
 
@@ -241,6 +243,7 @@ public partial class MainWindow : Window
         _treeMenu = BuildTreeContextMenu();
         DocumentTree.ContextMenu = _treeMenu;
         _dropIndicator = this.FindControl<Border>("DropIndicator");
+        _panZoomLabel = this.FindControl<TextBlock>("PanZoomLabel");
         _wireframeEnabled = false;
         _filtersDisabled = false;
         _snapToGrid = false;
@@ -252,6 +255,7 @@ public partial class MainWindow : Window
         if (SvgView.SkSvg is { } initSvg)
             initSvg.IgnoreAttributes = DrawAttributes.None;
         LoadDocument("Assets/__tiger.svg");
+        UpdateStatusBar();
     }
 
     private void LoadDocument(string path)
@@ -301,6 +305,7 @@ public partial class MainWindow : Window
         SvgView.Zoom = 1.0;
         SvgView.PanX = 0;
         SvgView.PanY = 0;
+        UpdateStatusBar();
 
         SaveExpandedNodes();
         _currentFile = path;
@@ -764,6 +769,7 @@ public partial class MainWindow : Window
             _panStart = point;
             SvgView.PanX += dx;
             SvgView.PanY += dy;
+            UpdateStatusBar();
             SvgView.InvalidateVisual();
             return;
         }
@@ -1051,6 +1057,7 @@ public partial class MainWindow : Window
         else if (_isPanning)
         {
             _isPanning = false;
+            UpdateStatusBar();
         }
         e.Pointer.Capture(null);
     }
@@ -1059,6 +1066,7 @@ public partial class MainWindow : Window
     {
         var factor = e.Delta.Y > 0 ? 1.1 : 0.9;
         SvgView.ZoomToPoint(SvgView.Zoom * factor, e.GetPosition(SvgView));
+        UpdateStatusBar();
         SvgView.InvalidateVisual();
     }
 
@@ -1599,6 +1607,12 @@ public partial class MainWindow : Window
         Title = $"AvalonDraw{name}";
     }
 
+    private void UpdateStatusBar()
+    {
+        if (_panZoomLabel is { })
+            _panZoomLabel.Text = $"Zoom: {SvgView.Zoom * 100:0}%  Pan: {SvgView.PanX:0},{SvgView.PanY:0}";
+    }
+
     private void RestoreFromString(string xml)
     {
         _document = SvgService.FromSvg(xml);
@@ -1820,6 +1834,15 @@ public partial class MainWindow : Window
         SvgView.DisableFilters = _filtersDisabled;
         if (SvgView.SkSvg is { } skSvg && _document is { })
             skSvg.FromSvgDocument(_document);
+        SvgView.InvalidateVisual();
+    }
+
+    private void ResetViewButton_Click(object? sender, RoutedEventArgs e)
+    {
+        SvgView.Zoom = 1.0;
+        SvgView.PanX = 0;
+        SvgView.PanY = 0;
+        UpdateStatusBar();
         SvgView.InvalidateVisual();
     }
 
