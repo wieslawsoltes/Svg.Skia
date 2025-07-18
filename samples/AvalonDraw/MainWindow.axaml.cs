@@ -139,6 +139,10 @@ public partial class MainWindow : Window
     private SK.SKPoint _rotateStart;
     private SK.SKPoint _rotateCenter;
     private float _startAngle;
+    private bool _isSkewing;
+    private float _startSkewX;
+    private float _startSkewY;
+    private bool _skewMode;
 
     private bool _isPanning;
     private Point _panStart;
@@ -264,6 +268,16 @@ public partial class MainWindow : Window
                     Converter = new ColorStringConverter()
                 };
                 return picker;
+            }
+            if (entry is GradientMeshEntry meshEntry)
+            {
+                var btn = new Button { Content = "Edit Mesh", VerticalAlignment = VerticalAlignment.Center };
+                btn.Click += async (_, _) =>
+                {
+                    var dlg = new GradientMeshEditorWindow(meshEntry.Mesh);
+                    await dlg.ShowDialog(this);
+                };
+                return btn;
             }
             if (entry is GradientStopsEntry gEntry)
             {
@@ -705,7 +719,10 @@ public partial class MainWindow : Window
                         return;
                     }
                     SaveUndoState();
-                    _isResizing = true;
+                    if (_skewMode)
+                        _isSkewing = true;
+                    else
+                        _isResizing = true;
                     _resizeElement = _selectedElement;
                     _resizeHandle = handle;
                     _resizeStart = new Shim.SKPoint(pp.X, pp.Y);
@@ -720,6 +737,7 @@ public partial class MainWindow : Window
                     _resizeStartLocal = _resizeInverse.MapPoint(_resizeStart);
                     (_startTransX, _startTransY) = _selectionService.GetTranslation(_resizeElement);
                     (_startScaleX, _startScaleY) = _selectionService.GetScale(_resizeElement);
+                    (_startSkewX, _startSkewY) = _selectionService.GetSkew(_resizeElement);
                     e.Pointer.Capture(SvgView);
                     return;
                 }
@@ -1022,6 +1040,16 @@ public partial class MainWindow : Window
                 UpdateSelectedDrawable();
                 SvgView.InvalidateVisual();
             }
+            else if (_isSkewing && _resizeElement is { })
+            {
+                var local = _resizeInverse.MapPoint(new Shim.SKPoint(skp.X, skp.Y));
+                var dx = local.X - _resizeStartLocal.X;
+                var dy = local.Y - _resizeStartLocal.Y;
+                _selectionService.SkewElement(_resizeElement, _resizeHandle, dx, dy, _startRect, _startSkewX, _startSkewY);
+                SvgView.SkSvg!.FromSvgDocument(_document);
+                UpdateSelectedDrawable();
+                SvgView.InvalidateVisual();
+            }
             else if (_isRotating && _rotateElement is { })
             {
                 var a1 = Math.Atan2(_rotateStart.Y - _rotateCenter.Y, _rotateStart.X - _rotateCenter.X);
@@ -1200,6 +1228,15 @@ public partial class MainWindow : Window
         else if (_isResizing)
         {
             _isResizing = false;
+            if (_resizeElement is { })
+            {
+                SaveUndoState();
+                LoadProperties(_resizeElement);
+            }
+        }
+        else if (_isSkewing)
+        {
+            _isSkewing = false;
             if (_resizeElement is { })
             {
                 SaveUndoState();
@@ -2171,6 +2208,11 @@ public partial class MainWindow : Window
         SvgView.InvalidateVisual();
     }
 
+    private void SkewModeMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        _skewMode = !_skewMode;
+    }
+
     private void ResetViewButton_Click(object? sender, RoutedEventArgs e)
     {
         SvgView.Zoom = 1.0;
@@ -2880,6 +2922,29 @@ public partial class MainWindow : Window
         SelectNodeFromElement(result);
     }
 
+    private void BlendSelected()
+    {
+        if (_document is null || _multiSelected.Count != 2)
+            return;
+
+        if (_multiSelected[0] is not SvgPath from || _multiSelected[1] is not SvgPath to)
+            return;
+        if (from.Parent is not SvgElement parent)
+            return;
+
+        SaveUndoState();
+
+        var blends = _pathService.Blend(from, to, 5);
+        var index = parent.Children.IndexOf(to);
+        foreach (var p in blends)
+        {
+            parent.Children.Insert(index++, p);
+        }
+
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        BuildTree();
+    }
+
     private void SmoothPointMenuItem_Click(object? sender, RoutedEventArgs e)
     {
         if (_pathService.IsEditing && _pathService.ActivePoint >= 0 && _document is { })
@@ -2907,6 +2972,8 @@ public partial class MainWindow : Window
     private void UniteMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Union);
     private void SubtractMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Difference);
     private void IntersectMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Intersect);
+    private void CreateClippingMaskMenuItem_Click(object? sender, RoutedEventArgs e) => CreateClippingMask();
+    private void BlendMenuItem_Click(object? sender, RoutedEventArgs e) => BlendSelected();
 
     private void AlignLeftMenuItem_Click(object? sender, RoutedEventArgs e) => AlignSelected(AlignService.AlignType.Left);
     private void AlignHCenterMenuItem_Click(object? sender, RoutedEventArgs e) => AlignSelected(AlignService.AlignType.HCenter);
@@ -2971,6 +3038,43 @@ public partial class MainWindow : Window
         SvgView.SkSvg!.FromSvgDocument(_document);
         UpdateSelectedDrawable();
         SvgView.InvalidateVisual();
+    }
+
+    private SvgClipPath CreateClipPath(SvgVisualElement mask, string id)
+    {
+        if (mask.Parent is SvgElement parent)
+            parent.Children.Remove(mask);
+        var clip = new SvgClipPath { ID = id };
+        clip.Children.Add(mask);
+        return clip;
+    }
+
+    private void CreateClippingMask()
+    {
+        if (_document is null || _multiSelected.Count != 2)
+            return;
+
+        if (_multiSelected[0] is not SvgVisualElement first || _multiSelected[1] is not SvgVisualElement second)
+            return;
+
+        var clipId = string.IsNullOrEmpty(second.ID)
+            ? $"clip{_document.Descendants().OfType<SvgClipPath>().Count() + 1}"
+            : second.ID;
+        second.ID = clipId;
+
+        SaveUndoState();
+
+        var clip = CreateClipPath(second, clipId);
+        first.Children.Add(clip);
+        first.ClipPath = new Uri($"#{clipId}", UriKind.Relative);
+
+        _multiSelected.Clear();
+        _multiDrawables.Clear();
+        _multiBounds = SK.SKRect.Empty;
+
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        BuildTree();
+        SelectNodeFromElement(first);
     }
 
     private void LayerAdd()
@@ -3043,6 +3147,7 @@ public partial class MainWindow : Window
         if (_polyEditing && newTool != Tool.PolygonSelect && newTool != Tool.PolylineSelect)
             StopPolyEditing();
         _isResizing = false;
+        _isSkewing = false;
         _isRotating = false;
         SvgView.InvalidateVisual();
     }

@@ -1,0 +1,17 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="AvalonDraw.GradientMeshEditorWindow"
+        Width="400" Height="300"
+        Title="Edit Gradient Mesh">
+    <Canvas x:Name="MeshCanvas" Background="Gray">
+        <ItemsControl ItemsSource="{Binding Points}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Ellipse Width="10" Height="10" Fill="Red"
+                             Canvas.Left="{Binding Position.X}"
+                             Canvas.Top="{Binding Position.Y}" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Canvas>
+</Window>
