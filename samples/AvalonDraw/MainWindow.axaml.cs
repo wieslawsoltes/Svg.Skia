@@ -1232,6 +1232,7 @@ public partial class MainWindow : Window
         var scale = GetCanvasScale(e.Canvas);
         _renderingService.Draw(e.Canvas,
             SvgView.SkSvg?.Picture,
+            SvgView.SkSvg?.Picture?.CullRect,
             scale,
             _snapToGrid,
             _showGrid,

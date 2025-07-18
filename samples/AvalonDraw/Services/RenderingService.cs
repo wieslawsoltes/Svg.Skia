@@ -29,6 +29,7 @@ public class RenderingService
 
     public void Draw(SK.SKCanvas canvas,
         SK.SKPicture? picture,
+        SK.SKRect? rootBounds,
         float scale,
         bool snapToGrid,
         bool showGrid,
@@ -55,6 +56,19 @@ public class RenderingService
                 canvas.DrawLine(x, 0, x, bounds.Height, gridPaint);
             for (float y = 0; y <= bounds.Height; y += (float)gridSize)
                 canvas.DrawLine(0, y, bounds.Width, y, gridPaint);
+        }
+
+        if (rootBounds is { })
+        {
+            using var rootPaint = new SK.SKPaint
+            {
+                IsAntialias = true,
+                Style = SK.SKPaintStyle.Stroke,
+                Color = SK.SKColors.Gray,
+                StrokeWidth = 1f / scale,
+                PathEffect = SK.SKPathEffect.CreateDash(new float[] { 4f / scale, 4f / scale }, 0)
+            };
+            canvas.DrawRect(rootBounds.Value, rootPaint);
         }
 
         if (selectedDrawables is null || selectedDrawables.Count == 0)

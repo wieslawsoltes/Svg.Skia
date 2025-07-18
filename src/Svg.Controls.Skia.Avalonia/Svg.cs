@@ -406,7 +406,7 @@ public class Svg : Control
 
         var userMatrix = Matrix.CreateScale(Zoom, Zoom) * Matrix.CreateTranslation(PanX, PanY);
 
-        using (context.PushClip(destRect))
+        using (context.PushClip(viewPort))
         using (context.PushTransform(scaleMatrix * translateMatrix * userMatrix))
         {
             context.Custom(
