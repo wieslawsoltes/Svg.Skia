@@ -90,6 +90,7 @@
                 <MenuItem Header="Text Path" Click="TextPathToolMenuItem_Click" InputGesture="K"/>
                 <MenuItem Header="Text Area" Click="TextAreaToolMenuItem_Click" InputGesture="H"/>
                 <MenuItem Header="Symbol" Click="SymbolToolMenuItem_Click" InputGesture="U"/>
+                <MenuItem Header="Freehand" Click="FreehandToolMenuItem_Click" InputGesture="F"/>
                 <Separator/>
                 <MenuItem Header="Path Line" Click="PathLineToolMenuItem_Click" InputGesture="B"/>
                 <MenuItem Header="Path Cubic" Click="PathCubicToolMenuItem_Click" InputGesture="J"/>
@@ -138,11 +139,14 @@
             <RadioButton Content="TextPath" GroupName="tools" Margin="4,0" Click="TextPathToolButton_Click" />
             <RadioButton Content="TextArea" GroupName="tools" Margin="4,0" Click="TextAreaToolButton_Click" />
             <RadioButton Content="Symbol" GroupName="tools" Margin="4,0" Click="SymbolToolButton_Click" />
+            <RadioButton Content="Free" GroupName="tools" Margin="4,0" Click="FreehandToolButton_Click" />
             <RadioButton Content="PLine" GroupName="tools" Margin="4,0" Click="PathLineToolButton_Click" />
             <RadioButton Content="PCubic" GroupName="tools" Margin="4,0" Click="PathCubicToolButton_Click" />
             <RadioButton Content="PQuad" GroupName="tools" Margin="4,0" Click="PathQuadraticToolButton_Click" />
             <RadioButton Content="PArc" GroupName="tools" Margin="4,0" Click="PathArcToolButton_Click" />
             <RadioButton Content="PMove" GroupName="tools" Margin="4,0" Click="PathMoveToolButton_Click" />
+            <TextBlock Text="Width:" VerticalAlignment="Center" Margin="8,0,0,0"/>
+            <TextBox x:Name="StrokeWidthBox" Width="50" KeyUp="StrokeWidthBox_OnKeyUp" />
         </StackPanel>
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>

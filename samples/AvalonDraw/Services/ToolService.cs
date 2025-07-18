@@ -29,7 +29,8 @@ public class ToolService
         PathArc,
         PathMove,
         Symbol,
-        Image
+        Image,
+        Freehand
     }
 
     public Tool CurrentTool { get; private set; } = Tool.Select;
@@ -142,6 +143,7 @@ public class ToolService
                 Height = new SvgUnit(SvgUnitType.User, 0),
                 Href = ImageHref
             },
+            Tool.Freehand => CreateFreehand(start),
             _ => null!
         };
     }
@@ -174,6 +176,19 @@ public class ToolService
         list.Add(seg);
         path.PathData = list;
         return path;
+    }
+
+    private SvgPath CreateFreehand(ShimSkiaSharp.SKPoint start)
+    {
+        return new SvgPath
+        {
+            Stroke = new SvgColourServer(System.Drawing.Color.Black),
+            StrokeWidth = new SvgUnit(CurrentStrokeWidth),
+            PathData = new SvgPathSegmentList
+            {
+                new SvgMoveToSegment(false, new System.Drawing.PointF(start.X, start.Y))
+            }
+        };
     }
 
     public void UpdateElement(SvgVisualElement element, Tool tool, ShimSkiaSharp.SKPoint start, ShimSkiaSharp.SKPoint current, bool snapToGrid, Func<float, float> snap)
@@ -366,5 +381,17 @@ public class ToolService
             pts[pts.Count - 2] = new SvgUnit(pts[0].Type, x);
             pts[pts.Count - 1] = new SvgUnit(pts[1].Type, y);
         }
+    }
+
+    public void AddFreehandPoint(SvgVisualElement element, ShimSkiaSharp.SKPoint point, bool snapToGrid, Func<float, float> snap)
+    {
+        if (element is not SvgPath path)
+            return;
+        var x = snapToGrid ? snap(point.X) : point.X;
+        var y = snapToGrid ? snap(point.Y) : point.Y;
+        if (path.PathData.Count == 0)
+            path.PathData.Add(new SvgMoveToSegment(false, new System.Drawing.PointF(x, y)));
+        else
+            path.PathData.Add(new SvgLineSegment(false, new System.Drawing.PointF(x, y)));
     }
 }
