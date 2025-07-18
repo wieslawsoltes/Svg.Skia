@@ -261,6 +261,16 @@ public partial class MainWindow : Window
                 };
                 return picker;
             }
+            if (entry is GradientMeshEntry meshEntry)
+            {
+                var btn = new Button { Content = "Edit Mesh", VerticalAlignment = VerticalAlignment.Center };
+                btn.Click += async (_, _) =>
+                {
+                    var dlg = new GradientMeshEditorWindow(meshEntry.Mesh);
+                    await dlg.ShowDialog(this);
+                };
+                return btn;
+            }
             if (entry is GradientStopsEntry gEntry)
             {
                 var btn = new Button { Content = entry.Value ?? "Edit", VerticalAlignment = VerticalAlignment.Center };
