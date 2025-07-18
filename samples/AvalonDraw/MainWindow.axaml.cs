@@ -2187,12 +2187,13 @@ public partial class MainWindow : Window
     {
         if (_document is null)
             return;
-        var win = new TextEditorWindow(_document.GetXML());
-        var result = await win.ShowDialog<string?>(this);
-        if (!string.IsNullOrEmpty(result))
+        var win = new TextEditorWindow(_document.GetXML(), _toolService.CurrentFontFamily,
+            _toolService.CurrentFontWeight, _toolService.CurrentLetterSpacing, _toolService.CurrentWordSpacing);
+        var ok = await win.ShowDialog<bool>(this);
+        if (ok)
         {
             SaveUndoState();
-            _document = SvgService.FromSvg(result);
+            _document = SvgService.FromSvg(win.TextResult);
             SvgView.SkSvg!.FromSvgDocument(_document);
             BuildTree();
         }
@@ -2202,12 +2203,21 @@ public partial class MainWindow : Window
     {
         if (_selectedSvgElement is SvgTextBase txt && _document is { })
         {
-            var win = new TextEditorWindow(txt.Text);
-            var result = await win.ShowDialog<string?>(this);
-            if (result is not null)
+            var win = new TextEditorWindow(
+                txt.Text,
+                txt.FontFamily,
+                txt.FontWeight,
+                txt.LetterSpacing.Value,
+                txt.WordSpacing.Value);
+            var ok2 = await win.ShowDialog<bool>(this);
+            if (ok2)
             {
                 SaveUndoState();
-                txt.Text = result;
+                txt.Text = win.TextResult;
+                txt.FontFamily = win.FontFamilyResult;
+                txt.FontWeight = win.FontWeightResult;
+                txt.LetterSpacing = new SvgUnit(SvgUnitType.User, win.LetterSpacingResult);
+                txt.WordSpacing = new SvgUnit(SvgUnitType.User, win.WordSpacingResult);
                 SvgView.SkSvg!.FromSvgDocument(_document);
                 UpdateSelectedDrawable();
                 LoadProperties(txt);
