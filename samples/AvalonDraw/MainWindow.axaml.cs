@@ -216,6 +216,24 @@ public partial class MainWindow : Window
                 };
                 return picker;
             }
+            if (entry is GradientStopsEntry gEntry)
+            {
+                var btn = new Button { Content = entry.Value ?? "Edit", VerticalAlignment = VerticalAlignment.Center };
+                btn.Click += async (_, _) =>
+                {
+                    var dlg = new GradientEditorWindow(gEntry.Stops);
+                    var result = await dlg.ShowDialog<bool>(this);
+                    if (result)
+                    {
+                        gEntry.Stops.Clear();
+                        foreach (var s in dlg.Result)
+                            gEntry.Stops.Add(s);
+                        gEntry.UpdateValue();
+                        gEntry.NotifyChanged();
+                    }
+                };
+                return btn;
+            }
             var tb = new TextBox { VerticalContentAlignment = VerticalAlignment.Center };
             tb[!TextBox.TextProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };
             return tb;

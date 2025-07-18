@@ -81,6 +81,13 @@ public class PropertiesService
             }
         }
 
+        if (element is SvgGradientServer grad)
+        {
+            var gEntry = new GradientStopsEntry(grad);
+            gEntry.PropertyChanged += OnEntryChanged;
+            Properties.Add(gEntry);
+        }
+
         ApplyFilter(_filter);
     }
 

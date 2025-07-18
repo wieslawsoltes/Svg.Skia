@@ -42,7 +42,7 @@ public class PropertyEntry : INotifyPropertyChanged
             Suggestions = null; // filled later
     }
 
-    private PropertyEntry(string name, string? value, Action<object, string?> setter)
+    protected PropertyEntry(string name, string? value, Action<object, string?> setter)
     {
         Name = name;
         _setter = setter;
@@ -52,7 +52,7 @@ public class PropertyEntry : INotifyPropertyChanged
     public static PropertyEntry CreateAttribute(string name, string? value, Action<object, string?> setter)
         => new PropertyEntry(name, value, setter);
 
-    public void Apply(object target)
+    public virtual void Apply(object target)
     {
         try
         {
@@ -87,4 +87,9 @@ public class PropertyEntry : INotifyPropertyChanged
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    public void NotifyChanged()
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Value)));
+    }
 }
