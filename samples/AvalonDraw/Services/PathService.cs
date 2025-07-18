@@ -513,4 +513,75 @@ public class PathService
 
         return path;
     }
+
+    private static float Lerp(float a, float b, float t) => a + (b - a) * t;
+
+    private static System.Drawing.PointF Lerp(System.Drawing.PointF a, System.Drawing.PointF b, float t)
+        => new System.Drawing.PointF(Lerp(a.X, b.X, t), Lerp(a.Y, b.Y, t));
+
+    private static SvgPathSegment? LerpSegment(SvgPathSegment s1, SvgPathSegment s2, float t)
+    {
+        if (s1.GetType() != s2.GetType())
+            return null;
+        return s1 switch
+        {
+            SvgMoveToSegment mv1 when s2 is SvgMoveToSegment mv2 => new SvgMoveToSegment(false, Lerp(mv1.End, mv2.End, t)),
+            SvgLineSegment ln1 when s2 is SvgLineSegment ln2 => new SvgLineSegment(false, Lerp(ln1.End, ln2.End, t)),
+            SvgCubicCurveSegment c1 when s2 is SvgCubicCurveSegment c2 => new SvgCubicCurveSegment(false,
+                Lerp(c1.FirstControlPoint, c2.FirstControlPoint, t),
+                Lerp(c1.SecondControlPoint, c2.SecondControlPoint, t),
+                Lerp(c1.End, c2.End, t)),
+            SvgQuadraticCurveSegment q1 when s2 is SvgQuadraticCurveSegment q2 => new SvgQuadraticCurveSegment(false,
+                Lerp(q1.ControlPoint, q2.ControlPoint, t),
+                Lerp(q1.End, q2.End, t)),
+            SvgArcSegment a1 when s2 is SvgArcSegment a2 => new SvgArcSegment(
+                Lerp(a1.RadiusX, a2.RadiusX, t),
+                Lerp(a1.RadiusY, a2.RadiusY, t),
+                Lerp(a1.Angle, a2.Angle, t),
+                a1.Size,
+                a1.Sweep,
+                false,
+                Lerp(a1.End, a2.End, t)),
+            SvgClosePathSegment _ when s2 is SvgClosePathSegment => new SvgClosePathSegment(false),
+            _ => null,
+        };
+    }
+
+    private static SvgPathSegmentList? LerpPath(SvgPathSegmentList from, SvgPathSegmentList to, float t)
+    {
+        if (from.Count != to.Count)
+            return null;
+        var list = new SvgPathSegmentList();
+        for (int i = 0; i < from.Count; i++)
+        {
+            var seg = LerpSegment(from[i], to[i], t);
+            if (seg is null)
+                return null;
+            list.Add(seg);
+        }
+        return list;
+    }
+
+    public IList<SvgPath> Blend(SvgPath? from, SvgPath? to, int steps)
+    {
+        var list = new List<SvgPath>();
+        if (from is null || to is null || steps <= 0)
+            return list;
+
+        var d1 = from.PathData;
+        var d2 = to.PathData;
+        if (d1 is null || d2 is null)
+            return list;
+
+        for (int i = 1; i <= steps; i++)
+        {
+            var t = i / (float)(steps + 1);
+            var segs = LerpPath(d1, d2, t);
+            if (segs is null)
+                continue;
+            list.Add(new SvgPath { PathData = segs });
+        }
+
+        return list;
+    }
 }
