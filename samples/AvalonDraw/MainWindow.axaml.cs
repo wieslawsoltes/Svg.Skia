@@ -2354,7 +2354,7 @@ public partial class MainWindow : Window
             if (_selectedSvgElement is SvgVisualElement ve)
             {
                 SaveUndoState();
-                info.Apply(ve);
+                // TODO: info.Apply(ve);
                 SvgView.SkSvg!.FromSvgDocument(_document);
                 UpdateSelectedDrawable();
                 SaveExpandedNodes();
