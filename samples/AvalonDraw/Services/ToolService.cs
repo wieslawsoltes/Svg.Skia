@@ -28,7 +28,8 @@ public class ToolService
         PathQuadratic,
         PathArc,
         PathMove,
-        Symbol
+        Symbol,
+        Image
     }
 
     public Tool CurrentTool { get; private set; } = Tool.Select;
@@ -46,6 +47,7 @@ public class ToolService
 
     public string? SymbolId { get; set; }
     public string? ReferenceId { get; set; }
+    public string? ImageHref { get; set; }
 
     public SvgVisualElement? CreateElement(Tool tool, SvgElement parent, ShimSkiaSharp.SKPoint start)
     {
@@ -130,6 +132,14 @@ public class ToolService
                 X = new SvgUnit(SvgUnitType.User, start.X),
                 Y = new SvgUnit(SvgUnitType.User, start.Y)
             },
+            Tool.Image when !string.IsNullOrEmpty(ImageHref) => new SvgImage
+            {
+                X = new SvgUnit(SvgUnitType.User, start.X),
+                Y = new SvgUnit(SvgUnitType.User, start.Y),
+                Width = new SvgUnit(SvgUnitType.User, 0),
+                Height = new SvgUnit(SvgUnitType.User, 0),
+                Href = ImageHref
+            },
             _ => null!
         };
     }
@@ -179,12 +189,32 @@ public class ToolService
                 var h = Math.Abs(current.Y - start.Y);
                 if (snapToGrid)
                 {
-                    x = snap(x); y = snap(y); w = snap(w); h = snap(h);
+                    x = snap(x);
+                    y = snap(y);
+                    w = snap(w);
+                    h = snap(h);
                 }
                 r.X = new SvgUnit(r.X.Type, x);
                 r.Y = new SvgUnit(r.Y.Type, y);
                 r.Width = new SvgUnit(r.Width.Type, w);
                 r.Height = new SvgUnit(r.Height.Type, h);
+                break;
+            case Tool.Image when element is SvgImage img:
+                var ix = Math.Min(start.X, current.X);
+                var iy = Math.Min(start.Y, current.Y);
+                var iw = Math.Abs(current.X - start.X);
+                var ih = Math.Abs(current.Y - start.Y);
+                if (snapToGrid)
+                {
+                    ix = snap(ix);
+                    iy = snap(iy);
+                    iw = snap(iw);
+                    ih = snap(ih);
+                }
+                img.X = new SvgUnit(img.X.Type, ix);
+                img.Y = new SvgUnit(img.Y.Type, iy);
+                img.Width = new SvgUnit(img.Width.Type, iw);
+                img.Height = new SvgUnit(img.Height.Type, ih);
                 break;
             case Tool.Circle when element is SvgCircle c:
                 var cx = (start.X + current.X) / 2f;
@@ -192,7 +222,9 @@ public class ToolService
                 var rv = Math.Max(Math.Abs(current.X - start.X), Math.Abs(current.Y - start.Y)) / 2f;
                 if (snapToGrid)
                 {
-                    cx = snap(cx); cy = snap(cy); rv = snap(rv);
+                    cx = snap(cx);
+                    cy = snap(cy);
+                    rv = snap(rv);
                 }
                 c.CenterX = new SvgUnit(c.CenterX.Type, cx);
                 c.CenterY = new SvgUnit(c.CenterY.Type, cy);
@@ -205,7 +237,10 @@ public class ToolService
                 var ry = Math.Abs(current.Y - start.Y) / 2f;
                 if (snapToGrid)
                 {
-                    ecx = snap(ecx); ecy = snap(ecy); rx = snap(rx); ry = snap(ry);
+                    ecx = snap(ecx);
+                    ecy = snap(ecy);
+                    rx = snap(rx);
+                    ry = snap(ry);
                 }
                 el.CenterX = new SvgUnit(el.CenterX.Type, ecx);
                 el.CenterY = new SvgUnit(el.CenterY.Type, ecy);
