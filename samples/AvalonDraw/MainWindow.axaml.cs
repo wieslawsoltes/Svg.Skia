@@ -1,36 +1,36 @@
 using System;
-using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
-using System.Linq;
-using Avalonia.Threading;
-using System.Reflection;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text;
+using AvalonDraw.Services;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Input;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
-using Avalonia.Platform;
+using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
-using Avalonia.Controls.Templates;
-using Avalonia.Media;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.Markup.Xaml;
+using Avalonia.Media;
+using Avalonia.Platform;
 using Avalonia.Svg.Skia;
-using SK = SkiaSharp;
-using Shim = ShimSkiaSharp;
+using Avalonia.Threading;
 using Svg;
-using Svg.Skia;
 using Svg.Model;
 using Svg.Model.Drawables;
 using Svg.Model.Services;
-using Svg.Transforms;
 using Svg.Pathing;
-using AvalonDraw.Services;
+using Svg.Skia;
+using Svg.Transforms;
+using Shim = ShimSkiaSharp;
+using SK = SkiaSharp;
 using Tool = AvalonDraw.Services.ToolService.Tool;
 
 namespace AvalonDraw;
@@ -79,6 +79,7 @@ public partial class MainWindow : Window
     private bool _snapToGrid;
     private bool _showGrid;
     private double _gridSize = 10.0;
+    private bool _includeHidden;
 
 
     private readonly Stack<string> _undo = new();
@@ -279,6 +280,7 @@ public partial class MainWindow : Window
         _snapToGrid = false;
         _showGrid = false;
         _gridSize = 10.0;
+        _includeHidden = false;
         _selectionService.SnapToGrid = _snapToGrid;
         _selectionService.GridSize = _gridSize;
         SvgView.Wireframe = false;
@@ -528,8 +530,8 @@ public partial class MainWindow : Window
                         UpdateSelectedDrawable();
                         LoadProperties(_newElement);
                         SvgView.InvalidateVisual();
-                    _toolService.UpdateElement(_newElement, _toolService.CurrentTool,
-                        _newStart, _newStart, _snapToGrid, _selectionService.Snap);
+                        _toolService.UpdateElement(_newElement, _toolService.CurrentTool,
+                            _newStart, _newStart, _snapToGrid, _selectionService.Snap);
                         SvgView.SkSvg!.FromSvgDocument(_document);
                         _creating = true;
                     }
@@ -655,6 +657,8 @@ public partial class MainWindow : Window
             }
 
             var hits = skSvg.HitTestElements(pp).OfType<SvgVisualElement>().ToList();
+            if (!_includeHidden)
+                hits = hits.Where(IsElementVisible).ToList();
             if (hits.Count > 0)
             {
                 if (_toolService.CurrentTool == Tool.PathSelect && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
@@ -955,22 +959,40 @@ public partial class MainWindow : Window
                 var p1 = _boxStartPicture;
                 var p2 = _boxEndPicture;
                 var rect = new Shim.SKRect(Math.Min(p1.X, p2.X), Math.Min(p1.Y, p2.Y), Math.Max(p1.X, p2.X), Math.Max(p1.Y, p2.Y));
-                _multiSelected.Clear();
-                _multiDrawables.Clear();
-                foreach (var el in svg.HitTestElements(rect).OfType<SvgVisualElement>())
+                var elements = svg.HitTestElements(rect).OfType<SvgVisualElement>();
+                if (!_includeHidden)
+                    elements = elements.Where(IsElementVisible);
+                var hits = elements.ToList();
+                var mods = e.KeyModifiers;
+                if ((mods & KeyModifiers.Shift) != 0)
                 {
-                    _multiSelected.Add(el);
-                    var dr = svg.HitTestDrawables(rect).FirstOrDefault(d => d.Element == el);
-                    if (dr is { }) _multiDrawables.Add(dr);
+                    foreach (var el in hits)
+                        if (!_multiSelected.Contains(el))
+                            _multiSelected.Add(el);
                 }
+                else if ((mods & KeyModifiers.Control) != 0)
+                {
+                    foreach (var el in hits)
+                    {
+                        if (_multiSelected.Contains(el))
+                            _multiSelected.Remove(el);
+                        else
+                            _multiSelected.Add(el);
+                    }
+                }
+                else
+                {
+                    _multiSelected.Clear();
+                    foreach (var el in hits)
+                        _multiSelected.Add(el);
+                }
+                UpdateSelectedDrawable();
                 if (_multiSelected.Count > 0)
                 {
                     _selectedElement = _multiSelected[0];
-                    _selectedDrawable = _multiDrawables.FirstOrDefault();
                     _selectedSvgElement = _selectedElement;
                     LoadProperties(_selectedSvgElement);
                     SelectNodeFromElement(_selectedSvgElement);
-                    UpdateSelectedDrawable();
                 }
                 SvgView.InvalidateVisual();
             }
@@ -996,15 +1018,49 @@ public partial class MainWindow : Window
                     _lastHitPoint = _pressPoint;
                 }
                 _hitElements = hits;
-                _selectedElement = _hitElements[_hitIndex];
-                _selectedDrawable = skSvg.HitTestDrawables(_pressPoint).FirstOrDefault(d => d.Element == _selectedElement);
-                _selectedSvgElement = _selectedElement;
-                if (_pathService.IsEditing && _pathService.EditPath != _selectedElement)
-                    _pathService.Stop();
-                LoadProperties(_selectedSvgElement);
-                SelectNodeFromElement(_selectedSvgElement);
-                UpdateSelectedDrawable();
-                SvgView.InvalidateVisual();
+                var element = _hitElements[_hitIndex];
+                if (_toolService.CurrentTool == Tool.MultiSelect)
+                {
+                    var mods = e.KeyModifiers;
+                    if ((mods & KeyModifiers.Shift) != 0)
+                    {
+                        if (!_multiSelected.Contains(element))
+                            _multiSelected.Add(element);
+                    }
+                    else if ((mods & KeyModifiers.Control) != 0)
+                    {
+                        if (_multiSelected.Contains(element))
+                            _multiSelected.Remove(element);
+                        else
+                            _multiSelected.Add(element);
+                    }
+                    else
+                    {
+                        _multiSelected.Clear();
+                        _multiSelected.Add(element);
+                    }
+                    _selectedElement = element;
+                    _selectedDrawable = skSvg.HitTestDrawables(_pressPoint).FirstOrDefault(d => d.Element == _selectedElement);
+                    _selectedSvgElement = _selectedElement;
+                    if (_pathService.IsEditing && _pathService.EditPath != _selectedElement)
+                        _pathService.Stop();
+                    LoadProperties(_selectedSvgElement);
+                    SelectNodeFromElement(_selectedSvgElement);
+                    UpdateSelectedDrawable();
+                    SvgView.InvalidateVisual();
+                }
+                else
+                {
+                    _selectedElement = element;
+                    _selectedDrawable = skSvg.HitTestDrawables(_pressPoint).FirstOrDefault(d => d.Element == _selectedElement);
+                    _selectedSvgElement = _selectedElement;
+                    if (_pathService.IsEditing && _pathService.EditPath != _selectedElement)
+                        _pathService.Stop();
+                    LoadProperties(_selectedSvgElement);
+                    SelectNodeFromElement(_selectedSvgElement);
+                    UpdateSelectedDrawable();
+                    SvgView.InvalidateVisual();
+                }
             }
             else
             {
@@ -1217,7 +1273,7 @@ public partial class MainWindow : Window
         pointer.Capture(SvgView);
     }
 
-    
+
 
 
     private float GetCanvasScale(SkiaSharp.SKCanvas? canvas = null)
@@ -1545,7 +1601,7 @@ public partial class MainWindow : Window
         }
     }
 
-    
+
     private SvgNode? FindNode(SvgNode node, SvgElement element)
     {
         if (node.Element == element)
@@ -1696,7 +1752,7 @@ public partial class MainWindow : Window
         _activePolyPoint = -1;
     }
 
-    
+
 
     private static bool IsAncestor(SvgNode parent, SvgNode child)
     {
@@ -1744,6 +1800,14 @@ public partial class MainWindow : Window
             .OfType<SvgElementAttribute>()
             .FirstOrDefault(a => !string.IsNullOrEmpty(a.ElementName));
         return attr?.ElementName ?? type.Name;
+    }
+
+    private static bool IsElementVisible(SvgElement element)
+    {
+        var vis = !string.Equals(element.Visibility, "hidden", StringComparison.OrdinalIgnoreCase) &&
+                  !string.Equals(element.Visibility, "collapse", StringComparison.OrdinalIgnoreCase);
+        var disp = !string.Equals(element.Display, "none", StringComparison.OrdinalIgnoreCase);
+        return vis && disp;
     }
 
     private void UndoMenuItem_Click(object? sender, RoutedEventArgs e)
@@ -2260,13 +2324,14 @@ public partial class MainWindow : Window
 
     private async void SettingsMenuItem_Click(object? sender, RoutedEventArgs e)
     {
-        var win = new SettingsWindow(_snapToGrid, _gridSize, _showGrid);
+        var win = new SettingsWindow(_snapToGrid, _gridSize, _showGrid, _includeHidden);
         var result = await win.ShowDialog<bool?>(this);
         if (result == true)
         {
             _snapToGrid = win.SnapToGrid;
             _showGrid = win.ShowGrid;
             _gridSize = win.GridSize;
+            _includeHidden = win.IncludeHidden;
             _selectionService.SnapToGrid = _snapToGrid;
             _selectionService.GridSize = _gridSize;
             SvgView.InvalidateVisual();
@@ -2634,7 +2699,8 @@ public partial class MainWindow : Window
                     if (target.Parent?.Element is SvgElement parentBefore)
                     {
                         var index = parentBefore.Children.IndexOf(target.Element);
-                        if (index < 0) index = parentBefore.Children.Count;
+                        if (index < 0)
+                            index = parentBefore.Children.Count;
                         if (index >= parentBefore.Children.Count)
                             parentBefore.Children.Add(node.Element);
                         else
@@ -2645,7 +2711,8 @@ public partial class MainWindow : Window
                     if (target.Parent?.Element is SvgElement parentAfter)
                     {
                         var index = parentAfter.Children.IndexOf(target.Element);
-                        if (index < 0) index = parentAfter.Children.Count - 1;
+                        if (index < 0)
+                            index = parentAfter.Children.Count - 1;
                         if (index + 1 >= parentAfter.Children.Count)
                             parentAfter.Children.Add(node.Element);
                         else
