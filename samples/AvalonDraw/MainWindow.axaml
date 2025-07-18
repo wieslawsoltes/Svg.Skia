@@ -48,6 +48,8 @@
                 <MenuItem Header="Copy Element" Click="CopyElementMenuItem_Click" InputGesture="Ctrl+C"/>
                 <MenuItem Header="Paste Element" Click="PasteElementMenuItem_Click" InputGesture="Ctrl+V"/>
                 <MenuItem Header="Edit Content..." Click="EditContentMenuItem_Click"/>
+                <MenuItem Header="Create Symbol..." Click="CreateSymbolMenuItem_Click"/>
+                <MenuItem Header="Insert Symbol" Click="SymbolToolMenuItem_Click"/>
                 <MenuItem Header="Reset File" Click="ResetFileMenuItem_Click" InputGesture="Ctrl+R"/>
                 <Separator />
                 <MenuItem Header="Undo" Click="UndoMenuItem_Click" InputGesture="Ctrl+Z"/>
@@ -72,6 +74,7 @@
                 <MenuItem Header="Polygon" Click="PolygonToolMenuItem_Click" InputGesture="P"/>
                 <MenuItem Header="Polyline" Click="PolylineToolMenuItem_Click" InputGesture="O"/>
                 <MenuItem Header="Text" Click="TextToolMenuItem_Click" InputGesture="T"/>
+                <MenuItem Header="Symbol" Click="SymbolToolMenuItem_Click" InputGesture="U"/>
                 <Separator/>
                 <MenuItem Header="Path Line" Click="PathLineToolMenuItem_Click" InputGesture="B"/>
                 <MenuItem Header="Path Cubic" Click="PathCubicToolMenuItem_Click" InputGesture="J"/>
@@ -109,6 +112,7 @@
             <RadioButton Content="Polygon" GroupName="tools" Margin="4,0" Click="PolygonToolButton_Click" />
             <RadioButton Content="Polyline" GroupName="tools" Margin="4,0" Click="PolylineToolButton_Click" />
             <RadioButton Content="Text" GroupName="tools" Margin="4,0" Click="TextToolButton_Click" />
+            <RadioButton Content="Symbol" GroupName="tools" Margin="4,0" Click="SymbolToolButton_Click" />
             <RadioButton Content="PLine" GroupName="tools" Margin="4,0" Click="PathLineToolButton_Click" />
             <RadioButton Content="PCubic" GroupName="tools" Margin="4,0" Click="PathCubicToolButton_Click" />
             <RadioButton Content="PQuad" GroupName="tools" Margin="4,0" Click="PathQuadraticToolButton_Click" />

@@ -25,7 +25,8 @@ public class ToolService
         PathCubic,
         PathQuadratic,
         PathArc,
-        PathMove
+        PathMove,
+        Symbol
     }
 
     public Tool CurrentTool { get; private set; } = Tool.Select;
@@ -40,6 +41,8 @@ public class ToolService
         CurrentTool = tool;
         ToolChanged?.Invoke(old, tool);
     }
+
+    public string? SymbolId { get; set; }
 
     public SvgVisualElement? CreateElement(Tool tool, SvgElement parent, ShimSkiaSharp.SKPoint start)
     {
@@ -105,6 +108,12 @@ public class ToolService
             Tool.PathQuadratic => CreatePath(start, Tool.PathQuadratic),
             Tool.PathArc => CreatePath(start, Tool.PathArc),
             Tool.PathMove => CreatePath(start, Tool.PathMove),
+            Tool.Symbol when !string.IsNullOrEmpty(SymbolId) => new SvgUse
+            {
+                ReferencedElement = new Uri($"#{SymbolId}", UriKind.Relative),
+                X = new SvgUnit(SvgUnitType.User, start.X),
+                Y = new SvgUnit(SvgUnitType.User, start.Y)
+            },
             _ => null!
         };
     }
@@ -244,6 +253,12 @@ public class ToolService
                 var mx = snapToGrid ? snap(current.X) : current.X;
                 var my = snapToGrid ? snap(current.Y) : current.Y;
                 mv.End = new System.Drawing.PointF(mx, my);
+                break;
+            case Tool.Symbol when element is SvgUse use:
+                var ux = snapToGrid ? snap(current.X) : current.X;
+                var uy = snapToGrid ? snap(current.Y) : current.Y;
+                use.X = new SvgUnit(use.X.Type, ux);
+                use.Y = new SvgUnit(use.Y.Type, uy);
                 break;
         }
     }

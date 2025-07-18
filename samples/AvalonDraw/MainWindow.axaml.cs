@@ -540,7 +540,7 @@ public partial class MainWindow : Window
         }
 
         if ((_toolService.CurrentTool == Tool.Line || _toolService.CurrentTool == Tool.Rect || _toolService.CurrentTool == Tool.Circle || _toolService.CurrentTool == Tool.Ellipse ||
-             _toolService.CurrentTool == Tool.Text ||
+             _toolService.CurrentTool == Tool.Text || _toolService.CurrentTool == Tool.Symbol ||
              _toolService.CurrentTool == Tool.PathLine || _toolService.CurrentTool == Tool.PathCubic || _toolService.CurrentTool == Tool.PathQuadratic || _toolService.CurrentTool == Tool.PathArc || _toolService.CurrentTool == Tool.PathMove) &&
             e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
         {
@@ -1825,6 +1825,30 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void CreateSymbolMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_selectedSvgElement is not SvgVisualElement vis || _document is null)
+            return;
+        var nameWin = new SymbolNameWindow();
+        var symId = await nameWin.ShowDialog<string?>(this);
+        if (string.IsNullOrEmpty(symId))
+            return;
+        SaveUndoState();
+        var symbol = new SvgSymbol { ID = symId };
+        symbol.Children.Add((SvgElement)vis.DeepCopy());
+        _document.Children.Add(symbol);
+        var use = new SvgUse { ReferencedElement = new Uri($"#{symId}", UriKind.Relative) };
+        if (vis.Parent is SvgElement parent)
+        {
+            var idx = parent.Children.IndexOf(vis);
+            parent.Children.Insert(idx, use);
+            parent.Children.Remove(vis);
+        }
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        BuildTree();
+        SelectNodeFromElement(use);
+    }
+
     private async void PreviewMenuItem_Click(object? sender, RoutedEventArgs e)
     {
         if (_document is null)
@@ -1993,6 +2017,23 @@ public partial class MainWindow : Window
         _pathService.CurrentSegmentTool = PathService.SegmentTool.Move;
     }
 
+    private async void SymbolToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathService.IsEditing)
+            _pathService.Stop();
+        if (_document is null)
+            return;
+        var ids = _document.Children.OfType<SvgSymbol>().Select(s => s.ID).Where(id => !string.IsNullOrEmpty(id)).ToList();
+        if (ids.Count == 0)
+            return;
+        var win = new SymbolSelectWindow(ids!);
+        var result = await win.ShowDialog<string?>(this);
+        if (result is null)
+            return;
+        _toolService.SymbolId = result;
+        _toolService.SetTool(Tool.Symbol);
+    }
+
     private void MultiSelectToolMenuItem_Click(object? sender, RoutedEventArgs e) => MultiSelectToolButton_Click(sender, e);
 
     private void SelectToolMenuItem_Click(object? sender, RoutedEventArgs e) => SelectToolButton_Click(sender, e);
@@ -2011,6 +2052,7 @@ public partial class MainWindow : Window
     private void PathQuadraticToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathQuadraticToolButton_Click(sender, e);
     private void PathArcToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathArcToolButton_Click(sender, e);
     private void PathMoveToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathMoveToolButton_Click(sender, e);
+    private void SymbolToolMenuItem_Click(object? sender, RoutedEventArgs e) => SymbolToolButton_Click(sender, e);
 
     private async void SettingsMenuItem_Click(object? sender, RoutedEventArgs e)
     {
