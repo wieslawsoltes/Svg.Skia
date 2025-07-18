@@ -2868,6 +2868,29 @@ public partial class MainWindow : Window
         SelectNodeFromElement(result);
     }
 
+    private void BlendSelected()
+    {
+        if (_document is null || _multiSelected.Count != 2)
+            return;
+
+        if (_multiSelected[0] is not SvgPath from || _multiSelected[1] is not SvgPath to)
+            return;
+        if (from.Parent is not SvgElement parent)
+            return;
+
+        SaveUndoState();
+
+        var blends = _pathService.Blend(from, to, 5);
+        var index = parent.Children.IndexOf(to);
+        foreach (var p in blends)
+        {
+            parent.Children.Insert(index++, p);
+        }
+
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        BuildTree();
+    }
+
     private void SmoothPointMenuItem_Click(object? sender, RoutedEventArgs e)
     {
         if (_pathService.IsEditing && _pathService.ActivePoint >= 0 && _document is { })
@@ -2895,6 +2918,7 @@ public partial class MainWindow : Window
     private void UniteMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Union);
     private void SubtractMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Difference);
     private void IntersectMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Intersect);
+    private void BlendMenuItem_Click(object? sender, RoutedEventArgs e) => BlendSelected();
 
     private void AlignLeftMenuItem_Click(object? sender, RoutedEventArgs e) => AlignSelected(AlignService.AlignType.Left);
     private void AlignHCenterMenuItem_Click(object? sender, RoutedEventArgs e) => AlignSelected(AlignService.AlignType.HCenter);
