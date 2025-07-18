@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using SK = SkiaSharp;
 using Svg;
 using Svg.Model.Drawables;
-using Svg.Transforms;
 using Svg.Skia;
+using Svg.Transforms;
 using Shim = ShimSkiaSharp;
+using SK = SkiaSharp;
 
 namespace AvalonDraw.Services;
 
@@ -172,6 +172,32 @@ public class SelectionService
         }
     }
 
+    public (float X, float Y) GetSkew(SvgVisualElement? element)
+    {
+        if (element?.Transforms is { } t)
+        {
+            var sk = t.OfType<SvgSkew>().FirstOrDefault();
+            if (sk is { })
+                return (sk.AngleX, sk.AngleY);
+        }
+        return (0f, 0f);
+    }
+
+    public void SetSkew(SvgVisualElement element, float x, float y)
+    {
+        element.Transforms ??= new SvgTransformCollection();
+        var sk = element.Transforms.OfType<SvgSkew>().FirstOrDefault();
+        if (sk != null)
+        {
+            sk.AngleX = x;
+            sk.AngleY = y;
+        }
+        else
+        {
+            element.Transforms.Add(new SvgSkew(x, y));
+        }
+    }
+
     public float Snap(float value)
     {
         if (!SnapToGrid || GridSize <= 0)
@@ -204,14 +230,40 @@ public class SelectionService
             float hgt = el.Height.Value;
             switch (h)
             {
-                case 0: x = startRect.Left + ddx; y = startRect.Top + ddy; w = startRect.Right - x; hgt = startRect.Bottom - y; break;
-                case 1: y = startRect.Top + ddy; hgt = startRect.Bottom - y; break;
-                case 2: y = startRect.Top + ddy; w = startRect.Width + ddx; hgt = startRect.Bottom - y; break;
-                case 3: w = startRect.Width + ddx; break;
-                case 4: w = startRect.Width + ddx; hgt = startRect.Height + ddy; break;
-                case 5: hgt = startRect.Height + ddy; break;
-                case 6: x = startRect.Left + ddx; w = startRect.Right - x; hgt = startRect.Height + ddy; break;
-                case 7: x = startRect.Left + ddx; w = startRect.Right - x; break;
+                case 0:
+                    x = startRect.Left + ddx;
+                    y = startRect.Top + ddy;
+                    w = startRect.Right - x;
+                    hgt = startRect.Bottom - y;
+                    break;
+                case 1:
+                    y = startRect.Top + ddy;
+                    hgt = startRect.Bottom - y;
+                    break;
+                case 2:
+                    y = startRect.Top + ddy;
+                    w = startRect.Width + ddx;
+                    hgt = startRect.Bottom - y;
+                    break;
+                case 3:
+                    w = startRect.Width + ddx;
+                    break;
+                case 4:
+                    w = startRect.Width + ddx;
+                    hgt = startRect.Height + ddy;
+                    break;
+                case 5:
+                    hgt = startRect.Height + ddy;
+                    break;
+                case 6:
+                    x = startRect.Left + ddx;
+                    w = startRect.Right - x;
+                    hgt = startRect.Height + ddy;
+                    break;
+                case 7:
+                    x = startRect.Left + ddx;
+                    w = startRect.Right - x;
+                    break;
             }
             if (SnapToGrid)
             {
@@ -234,14 +286,40 @@ public class SelectionService
             float hgt = startRect.Height;
             switch (h)
             {
-                case 0: x += ddx; y += ddy; w = startRect.Right - x; hgt = startRect.Bottom - y; break;
-                case 1: y += ddy; hgt = startRect.Bottom - y; break;
-                case 2: y += ddy; w += ddx; hgt = startRect.Bottom - y; break;
-                case 3: w += ddx; break;
-                case 4: w += ddx; hgt += ddy; break;
-                case 5: hgt += ddy; break;
-                case 6: x += ddx; w = startRect.Right - x; hgt += ddy; break;
-                case 7: x += ddx; w = startRect.Right - x; break;
+                case 0:
+                    x += ddx;
+                    y += ddy;
+                    w = startRect.Right - x;
+                    hgt = startRect.Bottom - y;
+                    break;
+                case 1:
+                    y += ddy;
+                    hgt = startRect.Bottom - y;
+                    break;
+                case 2:
+                    y += ddy;
+                    w += ddx;
+                    hgt = startRect.Bottom - y;
+                    break;
+                case 3:
+                    w += ddx;
+                    break;
+                case 4:
+                    w += ddx;
+                    hgt += ddy;
+                    break;
+                case 5:
+                    hgt += ddy;
+                    break;
+                case 6:
+                    x += ddx;
+                    w = startRect.Right - x;
+                    hgt += ddy;
+                    break;
+                case 7:
+                    x += ddx;
+                    w = startRect.Right - x;
+                    break;
             }
             var cx = x + w / 2f;
             var cy = y + hgt / 2f;
@@ -265,20 +343,52 @@ public class SelectionService
             float hgt = startRect.Height;
             switch (h)
             {
-                case 0: x += ddx; y += ddy; w = startRect.Right - x; hgt = startRect.Bottom - y; break;
-                case 1: y += ddy; hgt = startRect.Bottom - y; break;
-                case 2: y += ddy; w += ddx; hgt = startRect.Bottom - y; break;
-                case 3: w += ddx; break;
-                case 4: w += ddx; hgt += ddy; break;
-                case 5: hgt += ddy; break;
-                case 6: x += ddx; w = startRect.Right - x; hgt += ddy; break;
-                case 7: x += ddx; w = startRect.Right - x; break;
+                case 0:
+                    x += ddx;
+                    y += ddy;
+                    w = startRect.Right - x;
+                    hgt = startRect.Bottom - y;
+                    break;
+                case 1:
+                    y += ddy;
+                    hgt = startRect.Bottom - y;
+                    break;
+                case 2:
+                    y += ddy;
+                    w += ddx;
+                    hgt = startRect.Bottom - y;
+                    break;
+                case 3:
+                    w += ddx;
+                    break;
+                case 4:
+                    w += ddx;
+                    hgt += ddy;
+                    break;
+                case 5:
+                    hgt += ddy;
+                    break;
+                case 6:
+                    x += ddx;
+                    w = startRect.Right - x;
+                    hgt += ddy;
+                    break;
+                case 7:
+                    x += ddx;
+                    w = startRect.Right - x;
+                    break;
             }
             if (SnapToGrid)
             {
-                x = Snap(x); y = Snap(y); w = Snap(w); hgt = Snap(hgt);
+                x = Snap(x);
+                y = Snap(y);
+                w = Snap(w);
+                hgt = Snap(hgt);
             }
-            if (w == 0) w = 0.01f; if (hgt == 0) hgt = 0.01f;
+            if (w == 0)
+                w = 0.01f;
+            if (hgt == 0)
+                hgt = 0.01f;
             var sx = w / startRect.Width;
             var sy = hgt / startRect.Height;
             var tx = x - startRect.Left;
@@ -286,6 +396,28 @@ public class SelectionService
             SetScale(p, startScaleX * sx, startScaleY * sy);
             SetTranslation(p, startTransX + tx, startTransY + ty);
         }
+    }
+
+    public void SkewElement(SvgVisualElement element, int handle, float dx, float dy, SK.SKRect startRect, float startSkewX, float startSkewY)
+    {
+        var ax = startSkewX;
+        var ay = startSkewY;
+        switch (handle)
+        {
+            case 1:
+            case 5:
+                ax += (float)(Math.Atan(dx / startRect.Height) * 180.0 / Math.PI);
+                break;
+            case 3:
+            case 7:
+                ay += (float)(Math.Atan(dy / startRect.Width) * 180.0 / Math.PI);
+                break;
+            default:
+                ax += (float)(Math.Atan(dx / startRect.Height) * 180.0 / Math.PI);
+                ay += (float)(Math.Atan(dy / startRect.Width) * 180.0 / Math.PI);
+                break;
+        }
+        SetSkew(element, ax, ay);
     }
 
     public bool GetDragProperties(SvgVisualElement element, out List<(PropertyInfo Prop, SvgUnit Unit, char Axis)> props)

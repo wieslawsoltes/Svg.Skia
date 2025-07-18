@@ -65,6 +65,7 @@
                 <MenuItem Header="Subtract" Click="SubtractMenuItem_Click" InputGesture="Ctrl+Shift+D"/>
                 <MenuItem Header="Intersect" Click="IntersectMenuItem_Click" InputGesture="Ctrl+Shift+I"/>
                 <MenuItem Header="Create Clipping Mask" Click="CreateClippingMaskMenuItem_Click"/>
+                <MenuItem Header="Blend" Click="BlendMenuItem_Click" InputGesture="Ctrl+Shift+B"/>
                 <Separator />
                 <MenuItem Header="New Layer" Click="NewLayerMenuItem_Click"/>
                 <MenuItem Header="Delete Layer" Click="DeleteLayerMenuItem_Click"/>
@@ -95,6 +96,8 @@
                 <MenuItem Header="Path Quadratic" Click="PathQuadraticToolMenuItem_Click" InputGesture="Q"/>
                 <MenuItem Header="Path Arc" Click="PathArcToolMenuItem_Click" InputGesture="A"/>
                 <MenuItem Header="Path Move" Click="PathMoveToolMenuItem_Click" InputGesture="M"/>
+                <Separator/>
+                <MenuItem Header="Skew Mode" Click="SkewModeMenuItem_Click" InputGesture="Ctrl+Shift+K"/>
             </MenuItem>
             <MenuItem Header="Arrange">
                 <MenuItem Header="Align Left" Click="AlignLeftMenuItem_Click"/>
