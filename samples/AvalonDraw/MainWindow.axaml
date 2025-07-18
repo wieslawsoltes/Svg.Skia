@@ -3,6 +3,7 @@
         xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Svg.Controls.Skia.Avalonia"
         xmlns:dgrid="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
         xmlns:local="clr-namespace:AvalonDraw"
+        xmlns:services="clr-namespace:AvalonDraw.Services"
         x:Class="AvalonDraw.MainWindow"
         Width="800" Height="600"
         DragDrop.AllowDrop="True"
@@ -62,6 +63,13 @@
                 <MenuItem Header="Unite" Click="UniteMenuItem_Click" InputGesture="Ctrl+Shift+U"/>
                 <MenuItem Header="Subtract" Click="SubtractMenuItem_Click" InputGesture="Ctrl+Shift+D"/>
                 <MenuItem Header="Intersect" Click="IntersectMenuItem_Click" InputGesture="Ctrl+Shift+I"/>
+                <Separator />
+                <MenuItem Header="New Layer" Click="NewLayerMenuItem_Click"/>
+                <MenuItem Header="Delete Layer" Click="DeleteLayerMenuItem_Click"/>
+                <MenuItem Header="Move Layer Up" Click="MoveLayerUpMenuItem_Click"/>
+                <MenuItem Header="Move Layer Down" Click="MoveLayerDownMenuItem_Click"/>
+                <MenuItem Header="Lock Layer" Click="LockLayerMenuItem_Click"/>
+                <MenuItem Header="Unlock Layer" Click="UnlockLayerMenuItem_Click"/>
             </MenuItem>
             <MenuItem Header="Tools">
                 <MenuItem Header="Select" Click="SelectToolMenuItem_Click" InputGesture="V"/>
@@ -139,11 +147,22 @@
                 <DockPanel>
                     <TextBox x:Name="FilterBox" Margin="4" Watermark="Filter" KeyUp="FilterBox_OnKeyUp" DockPanel.Dock="Top" />
                     <TextBlock Text="Layers" Margin="4,4,4,0" DockPanel.Dock="Bottom"/>
+                    <StackPanel Orientation="Horizontal" Margin="4" DockPanel.Dock="Bottom">
+                        <Button Content="Add" Click="LayerAdd_Click" Margin="0,0,4,0"/>
+                        <Button Content="Delete" Click="LayerDelete_Click" Margin="0,0,4,0"/>
+                        <Button Content="Up" Click="LayerUp_Click" Margin="0,0,4,0"/>
+                        <Button Content="Down" Click="LayerDown_Click" Margin="0,0,4,0"/>
+                        <Button Content="Lock" Click="LayerLock_Click" Margin="0,0,4,0"/>
+                        <Button Content="Unlock" Click="LayerUnlock_Click" Margin="0,0,4,0"/>
+                    </StackPanel>
                     <TreeView x:Name="LayerTree" Margin="4" Height="100" DockPanel.Dock="Bottom"
                               ItemsSource="{Binding Layers}" SelectionChanged="LayerTree_OnSelectionChanged">
                         <TreeView.ItemTemplate>
-                            <TreeDataTemplate DataType="{x:Type local:LayerInfo}" ItemsSource="{Binding Sublayers}">
-                                <TextBlock Text="{Binding Name}"/>
+                            <TreeDataTemplate DataType="{x:Type services:LayerService+LayerEntry}">
+                                <DockPanel>
+                                    <ToggleButton DockPanel.Dock="Right" IsChecked="{Binding Visible}" Width="16" Height="16" Margin="4,0,0,0" />
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                </DockPanel>
                             </TreeDataTemplate>
                         </TreeView.ItemTemplate>
                     </TreeView>

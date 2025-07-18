@@ -53,15 +53,16 @@ public partial class MainWindow : Window
     private string? _currentFile;
 
     private readonly PropertiesService _propertiesService = new();
+    private readonly LayerService _layerService = new();
     public ObservableCollection<PropertyEntry> Properties => _propertiesService.Properties;
     public ObservableCollection<PropertyEntry> FilteredProperties => _propertiesService.FilteredProperties;
     private ObservableCollection<SvgNode> Nodes { get; } = new();
     public ObservableCollection<string> Ids => _propertiesService.Ids;
     public ObservableCollection<ArtboardInfo> Artboards { get; } = new();
-    public ObservableCollection<LayerInfo> Layers { get; } = new();
+    public ObservableCollection<LayerService.LayerEntry> Layers => _layerService.Layers;
     public ObservableCollection<PatternInfo> Patterns { get; } = new();
     private ArtboardInfo? _selectedArtboard;
-    private LayerInfo? _selectedLayer;
+    private LayerService.LayerEntry? _selectedLayer;
     private PatternInfo? _selectedPattern;
     private ListBox? _artboardList;
     private TreeView? _layerTree;
@@ -1380,17 +1381,7 @@ public partial class MainWindow : Window
 
     private void UpdateLayers()
     {
-        Layers.Clear();
-        if (_document is null || SvgView.SkSvg?.Drawable is not DrawableBase root)
-            return;
-        int index = 1;
-        foreach (var g in _document.Children.OfType<SvgGroup>())
-        {
-            if (g.CustomAttributes.TryGetValue("data-artboard", out var flag) &&
-                string.Equals(flag, "true", StringComparison.OrdinalIgnoreCase))
-                continue;
-            Layers.Add(CreateLayerInfo(g, root, ref index));
-        }
+        _layerService.Load(_document, SvgView.SkSvg?.Drawable as DrawableBase);
         if (Layers.Count > 0)
         {
             _selectedLayer = Layers[0];
@@ -1418,17 +1409,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private LayerInfo CreateLayerInfo(SvgGroup group, DrawableBase root, ref int index)
-    {
-        var name = string.IsNullOrEmpty(group.ID) ? $"Layer {index++}" : group.ID;
-        var info = new LayerInfo(group, name)
-        {
-            Drawable = FindDrawable(root, group)
-        };
-        foreach (var child in group.Children.OfType<SvgGroup>())
-            info.Sublayers.Add(CreateLayerInfo(child, root, ref index));
-        return info;
-    }
 
     private SvgNode CreateNode(SvgElement element, SvgNode? parent = null)
     {
@@ -2053,7 +2033,7 @@ public partial class MainWindow : Window
 
     private void LayerTree_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (e.AddedItems.Count > 0 && e.AddedItems[0] is LayerInfo info)
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is LayerService.LayerEntry info)
         {
             _selectedLayer = info;
             SvgView.InvalidateVisual();
@@ -2766,6 +2746,18 @@ public partial class MainWindow : Window
     private void AlignBottomMenuItem_Click(object? sender, RoutedEventArgs e) => AlignSelected(AlignService.AlignType.Bottom);
     private void DistributeHMenuItem_Click(object? sender, RoutedEventArgs e) => DistributeSelected(AlignService.DistributeType.Horizontal);
     private void DistributeVMenuItem_Click(object? sender, RoutedEventArgs e) => DistributeSelected(AlignService.DistributeType.Vertical);
+    private void NewLayerMenuItem_Click(object? sender, RoutedEventArgs e) => LayerAdd();
+    private void DeleteLayerMenuItem_Click(object? sender, RoutedEventArgs e) => LayerDelete();
+    private void MoveLayerUpMenuItem_Click(object? sender, RoutedEventArgs e) => LayerUp();
+    private void MoveLayerDownMenuItem_Click(object? sender, RoutedEventArgs e) => LayerDown();
+    private void LockLayerMenuItem_Click(object? sender, RoutedEventArgs e) => LayerLock();
+    private void UnlockLayerMenuItem_Click(object? sender, RoutedEventArgs e) => LayerUnlock();
+    private void LayerAdd_Click(object? sender, RoutedEventArgs e) => LayerAdd();
+    private void LayerDelete_Click(object? sender, RoutedEventArgs e) => LayerDelete();
+    private void LayerUp_Click(object? sender, RoutedEventArgs e) => LayerUp();
+    private void LayerDown_Click(object? sender, RoutedEventArgs e) => LayerDown();
+    private void LayerLock_Click(object? sender, RoutedEventArgs e) => LayerLock();
+    private void LayerUnlock_Click(object? sender, RoutedEventArgs e) => LayerUnlock();
 
     private void AlignSelected(AlignService.AlignType type)
     {
@@ -2811,6 +2803,60 @@ public partial class MainWindow : Window
         SvgView.InvalidateVisual();
     }
 
+    private void LayerAdd()
+    {
+        if (_document is null)
+            return;
+        SaveUndoState();
+        _layerService.AddLayer(_document);
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        BuildTree();
+    }
+
+    private void LayerDelete()
+    {
+        if (_document is null || _selectedLayer is null)
+            return;
+        SaveUndoState();
+        _layerService.RemoveLayer(_selectedLayer, _document);
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        BuildTree();
+    }
+
+    private void LayerUp()
+    {
+        if (_document is null || _selectedLayer is null)
+            return;
+        SaveUndoState();
+        _layerService.MoveUp(_selectedLayer, _document);
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        BuildTree();
+    }
+
+    private void LayerDown()
+    {
+        if (_document is null || _selectedLayer is null)
+            return;
+        SaveUndoState();
+        _layerService.MoveDown(_selectedLayer, _document);
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        BuildTree();
+    }
+
+    private void LayerLock()
+    {
+        if (_selectedLayer is null)
+            return;
+        _selectedLayer.Locked = true;
+    }
+
+    private void LayerUnlock()
+    {
+        if (_selectedLayer is null)
+            return;
+        _selectedLayer.Locked = false;
+    }
+
     private void ToolServiceOnToolChanged(Tool oldTool, Tool newTool)
     {
         _boxSelecting = false;
@@ -2851,21 +2897,6 @@ public class ArtboardInfo
     public override string ToString() => Name;
 }
 
-public class LayerInfo
-{
-    public SvgGroup Group { get; }
-    public string Name { get; }
-    public ObservableCollection<LayerInfo> Sublayers { get; } = new();
-    public DrawableBase? Drawable { get; set; }
-
-    public LayerInfo(SvgGroup group, string name)
-    {
-        Group = group;
-        Name = name;
-    }
-
-    public override string ToString() => Name;
-}
 
 public class PatternInfo
 {
