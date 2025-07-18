@@ -135,6 +135,10 @@ public partial class MainWindow : Window
     private SK.SKPoint _rotateStart;
     private SK.SKPoint _rotateCenter;
     private float _startAngle;
+    private bool _isSkewing;
+    private float _startSkewX;
+    private float _startSkewY;
+    private bool _skewMode;
 
     private bool _isPanning;
     private Point _panStart;
@@ -682,7 +686,10 @@ public partial class MainWindow : Window
                         return;
                     }
                     SaveUndoState();
-                    _isResizing = true;
+                    if (_skewMode)
+                        _isSkewing = true;
+                    else
+                        _isResizing = true;
                     _resizeElement = _selectedElement;
                     _resizeHandle = handle;
                     _resizeStart = new Shim.SKPoint(pp.X, pp.Y);
@@ -697,6 +704,7 @@ public partial class MainWindow : Window
                     _resizeStartLocal = _resizeInverse.MapPoint(_resizeStart);
                     (_startTransX, _startTransY) = _selectionService.GetTranslation(_resizeElement);
                     (_startScaleX, _startScaleY) = _selectionService.GetScale(_resizeElement);
+                    (_startSkewX, _startSkewY) = _selectionService.GetSkew(_resizeElement);
                     e.Pointer.Capture(SvgView);
                     return;
                 }
@@ -999,6 +1007,16 @@ public partial class MainWindow : Window
                 UpdateSelectedDrawable();
                 SvgView.InvalidateVisual();
             }
+            else if (_isSkewing && _resizeElement is { })
+            {
+                var local = _resizeInverse.MapPoint(new Shim.SKPoint(skp.X, skp.Y));
+                var dx = local.X - _resizeStartLocal.X;
+                var dy = local.Y - _resizeStartLocal.Y;
+                _selectionService.SkewElement(_resizeElement, _resizeHandle, dx, dy, _startRect, _startSkewX, _startSkewY);
+                SvgView.SkSvg!.FromSvgDocument(_document);
+                UpdateSelectedDrawable();
+                SvgView.InvalidateVisual();
+            }
             else if (_isRotating && _rotateElement is { })
             {
                 var a1 = Math.Atan2(_rotateStart.Y - _rotateCenter.Y, _rotateStart.X - _rotateCenter.X);
@@ -1177,6 +1195,15 @@ public partial class MainWindow : Window
         else if (_isResizing)
         {
             _isResizing = false;
+            if (_resizeElement is { })
+            {
+                SaveUndoState();
+                LoadProperties(_resizeElement);
+            }
+        }
+        else if (_isSkewing)
+        {
+            _isSkewing = false;
             if (_resizeElement is { })
             {
                 SaveUndoState();
@@ -2136,6 +2163,11 @@ public partial class MainWindow : Window
         SvgView.InvalidateVisual();
     }
 
+    private void SkewModeMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        _skewMode = !_skewMode;
+    }
+
     private void ResetViewButton_Click(object? sender, RoutedEventArgs e)
     {
         SvgView.Zoom = 1.0;
@@ -2999,6 +3031,7 @@ public partial class MainWindow : Window
         if (_polyEditing && newTool != Tool.PolygonSelect && newTool != Tool.PolylineSelect)
             StopPolyEditing();
         _isResizing = false;
+        _isSkewing = false;
         _isRotating = false;
         SvgView.InvalidateVisual();
     }
