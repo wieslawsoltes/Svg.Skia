@@ -5,6 +5,14 @@
         Title="Edit SVG Text">
     <StackPanel Margin="10" Spacing="4">
         <TextBox x:Name="Editor" AcceptsReturn="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+        <StackPanel Orientation="Horizontal" Spacing="4">
+            <ComboBox x:Name="FontFamilyBox" Width="160" />
+            <ComboBox x:Name="FontWeightBox" Width="100" />
+            <TextBlock Text="Letter" VerticalAlignment="Center" />
+            <TextBox x:Name="LetterBox" Width="60" />
+            <TextBlock Text="Word" VerticalAlignment="Center" />
+            <TextBox x:Name="WordBox" Width="60" />
+        </StackPanel>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4">
             <Button Content="OK" Click="OkButton_OnClick" Width="80"/>
             <Button Content="Cancel" Click="CancelButton_OnClick" Width="80"/>
