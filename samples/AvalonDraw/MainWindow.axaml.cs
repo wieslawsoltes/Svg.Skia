@@ -3061,6 +3061,9 @@ public partial class MainWindow : Window
     private void UniteMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Union);
     private void SubtractMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Difference);
     private void IntersectMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Intersect);
+    private void ExcludeMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Xor);
+    private void DivideMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.ReverseDifference);
+    private void TrimMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Difference);
     private void CreateClippingMaskMenuItem_Click(object? sender, RoutedEventArgs e) => CreateClippingMask();
     private void BlendMenuItem_Click(object? sender, RoutedEventArgs e) => BlendSelected();
 
