@@ -115,6 +115,13 @@ public partial class SKSvg : IDisposable
         }
     }
 
+    private DrawAttributes _ignoreAttributes;
+    public DrawAttributes IgnoreAttributes
+    {
+        get => _ignoreAttributes;
+        set => _ignoreAttributes = value;
+    }
+
     public void ClearWireframePicture()
     {
         WireframePicture?.Dispose();
@@ -169,7 +176,7 @@ public partial class SKSvg : IDisposable
             }
         }
 
-        Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
+        Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _, _ignoreAttributes);
         Drawable = drawable;
         Picture = SkiaModel.ToSKPicture(Model);
         WireframePicture?.Dispose();
@@ -192,7 +199,7 @@ public partial class SKSvg : IDisposable
             return null;
         }
 
-        Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
+        Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _, _ignoreAttributes);
         Drawable = drawable;
         Picture = SkiaModel.ToSKPicture(Model);
         WireframePicture?.Dispose();
@@ -208,7 +215,7 @@ public partial class SKSvg : IDisposable
         var svgDocument = SvgService.Open(reader);
         if (svgDocument is { })
         {
-            Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
+            Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _, _ignoreAttributes);
             Drawable = drawable;
             Picture = SkiaModel.ToSKPicture(Model);
             WireframePicture?.Dispose();
@@ -247,7 +254,7 @@ public partial class SKSvg : IDisposable
         var svgDocument = SvgService.FromSvg(svg);
         if (svgDocument is { })
         {
-            Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
+            Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _, _ignoreAttributes);
             Drawable = drawable;
             Picture = SkiaModel.ToSKPicture(Model);
             WireframePicture?.Dispose();
@@ -261,7 +268,7 @@ public partial class SKSvg : IDisposable
     {
         if (svgDocument is { })
         {
-            Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _);
+            Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _, _ignoreAttributes);
             Drawable = drawable;
             Picture = SkiaModel.ToSKPicture(Model);
             WireframePicture?.Dispose();
