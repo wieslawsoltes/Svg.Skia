@@ -36,8 +36,8 @@ public class RenderingService
         bool snapToGrid,
         bool showGrid,
         double gridSize,
-        IEnumerable<LayerInfo> layers,
-        LayerInfo? selectedLayer,
+        IEnumerable<LayerService.LayerEntry> layers,
+        LayerService.LayerEntry? selectedLayer,
         IList<DrawableBase> selectedDrawables,
         System.Func<DrawableBase, BoundsInfo> getBounds,
         bool polyEditing,
@@ -100,7 +100,7 @@ public class RenderingService
                 StrokeWidth = 1f / scale,
                 PathEffect = SK.SKPathEffect.CreateDash(new float[] { 4f / scale, 4f / scale }, 0)
             };
-            void DrawLayer(LayerInfo info)
+            void DrawLayer(LayerService.LayerEntry info)
             {
                 if (info.Drawable is { })
                 {
