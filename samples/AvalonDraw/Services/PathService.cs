@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SK = SkiaSharp;
-using Svg.Transforms;
 using Svg;
 using Svg.Model.Drawables;
 using Svg.Pathing;
+using Svg.Transforms;
 using Shim = ShimSkiaSharp;
+using SK = SkiaSharp;
 
 namespace AvalonDraw.Services;
 
@@ -54,7 +54,7 @@ public class PathService
         _points.Clear();
         MakePathAbsolute(path);
         var segs = path.PathData;
-        var cur = new Shim.SKPoint(0,0);
+        var cur = new Shim.SKPoint(0, 0);
         foreach (var seg in segs)
         {
             switch (seg)
@@ -118,7 +118,7 @@ public class PathService
             SegmentTool.Quadratic => new SvgQuadraticCurveSegment(false,
                 new System.Drawing.PointF(point.X, point.Y),
                 new System.Drawing.PointF(point.X, point.Y)),
-            SegmentTool.Arc => new SvgArcSegment(10,10,0,SvgArcSize.Small,SvgArcSweep.Positive,false,
+            SegmentTool.Arc => new SvgArcSegment(10, 10, 0, SvgArcSize.Small, SvgArcSweep.Positive, false,
                 new System.Drawing.PointF(point.X, point.Y)),
             SegmentTool.Move => new SvgMoveToSegment(false, new System.Drawing.PointF(point.X, point.Y)),
             _ => new SvgLineSegment(false, new System.Drawing.PointF(point.X, point.Y))
@@ -537,6 +537,15 @@ public class PathService
 
         return path;
     }
+
+    public SvgPath? ExcludePath(SvgVisualElement? element, SvgVisualElement? clip)
+        => ApplyPathOp(element, clip, SK.SKPathOp.Xor);
+
+    public SvgPath? DividePath(SvgVisualElement? element, SvgVisualElement? clip)
+        => ApplyPathOp(element, clip, SK.SKPathOp.ReverseDifference);
+
+    public SvgPath? TrimPath(SvgVisualElement? element, SvgVisualElement? clip)
+        => ApplyPathOp(element, clip, SK.SKPathOp.Difference);
 
     private static float Lerp(float a, float b, float t) => a + (b - a) * t;
 

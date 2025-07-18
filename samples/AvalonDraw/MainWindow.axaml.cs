@@ -57,6 +57,7 @@ public partial class MainWindow : Window
     private readonly PatternService _patternService = new();
     private readonly BrushService _brushService = new();
     private readonly SymbolService _symbolService = new();
+    private readonly AppearanceService _appearanceService = new();
     public ObservableCollection<PropertyEntry> Properties => _propertiesService.Properties;
     public ObservableCollection<PropertyEntry> FilteredProperties => _propertiesService.FilteredProperties;
     private ObservableCollection<SvgNode> Nodes { get; } = new();
@@ -66,16 +67,19 @@ public partial class MainWindow : Window
     public ObservableCollection<PatternService.PatternEntry> Patterns => _patternService.Patterns;
     public ObservableCollection<BrushService.BrushEntry> BrushStyles => _brushService.Brushes;
     public ObservableCollection<SymbolService.SymbolEntry> Symbols => _symbolService.Symbols;
+    public ObservableCollection<AppearanceService.StyleEntry> Styles => _appearanceService.Styles;
     private ArtboardInfo? _selectedArtboard;
     private LayerService.LayerEntry? _selectedLayer;
     private PatternService.PatternEntry? _selectedPattern;
     private BrushService.BrushEntry? _selectedBrush;
     private SymbolService.SymbolEntry? _selectedSymbol;
+    private AppearanceService.StyleEntry? _selectedStyle;
     private ListBox? _artboardList;
     private TreeView? _layerTree;
     private ListBox? _swatchList;
     private ListBox? _brushList;
     private ListBox? _symbolList;
+    private ListBox? _styleList;
     private readonly HashSet<string> _expandedIds = new();
     private HashSet<string> _filterBackup = new();
 
@@ -355,6 +359,7 @@ public partial class MainWindow : Window
         _swatchList = this.FindControl<ListBox>("SwatchList");
         _brushList = this.FindControl<ListBox>("BrushList");
         _symbolList = this.FindControl<ListBox>("SymbolList");
+        _styleList = this.FindControl<ListBox>("StyleList");
         _strokeWidthBox = this.FindControl<TextBox>("StrokeWidthBox");
         if (_strokeWidthBox is { })
             _strokeWidthBox.Text = _toolService.CurrentStrokeWidth.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -427,6 +432,10 @@ public partial class MainWindow : Window
         UpdateTitle();
         BuildTree();
         UpdateArtboards();
+        UpdateLayers();
+        UpdatePatterns();
+        UpdateBrushes();
+        UpdateStyles();
     }
 
     private async void OpenMenuItem_Click(object? sender, RoutedEventArgs e)
@@ -1560,6 +1569,7 @@ public partial class MainWindow : Window
         UpdatePatterns();
         UpdateBrushes();
         UpdateSymbols();
+        UpdateStyles();
     }
 
     private void ApplyPropertyFilter()
@@ -1639,6 +1649,17 @@ public partial class MainWindow : Window
             _selectedSymbol = Symbols[0];
             if (_symbolList is { })
                 _symbolList.SelectedIndex = 0;
+        }
+    }
+
+    private void UpdateStyles()
+    {
+        _appearanceService.Load(_document);
+        if (Styles.Count > 0)
+        {
+            _selectedStyle = Styles[0];
+            if (_styleList is { })
+                _styleList.SelectedIndex = 0;
         }
     }
 
@@ -2183,12 +2204,13 @@ public partial class MainWindow : Window
     {
         if (_document is null)
             return;
-        var win = new TextEditorWindow(_document.GetXML());
-        var result = await win.ShowDialog<string?>(this);
-        if (!string.IsNullOrEmpty(result))
+        var win = new TextEditorWindow(_document.GetXML(), _toolService.CurrentFontFamily,
+            _toolService.CurrentFontWeight, _toolService.CurrentLetterSpacing, _toolService.CurrentWordSpacing);
+        var ok = await win.ShowDialog<bool>(this);
+        if (ok)
         {
             SaveUndoState();
-            _document = SvgService.FromSvg(result);
+            _document = SvgService.FromSvg(win.TextResult);
             SvgView.SkSvg!.FromSvgDocument(_document);
             BuildTree();
         }
@@ -2198,12 +2220,21 @@ public partial class MainWindow : Window
     {
         if (_selectedSvgElement is SvgTextBase txt && _document is { })
         {
-            var win = new TextEditorWindow(txt.Text);
-            var result = await win.ShowDialog<string?>(this);
-            if (result is not null)
+            var win = new TextEditorWindow(
+                txt.Text,
+                txt.FontFamily,
+                txt.FontWeight,
+                txt.LetterSpacing.Value,
+                txt.WordSpacing.Value);
+            var ok2 = await win.ShowDialog<bool>(this);
+            if (ok2)
             {
                 SaveUndoState();
-                txt.Text = result;
+                txt.Text = win.TextResult;
+                txt.FontFamily = win.FontFamilyResult;
+                txt.FontWeight = win.FontWeightResult;
+                txt.LetterSpacing = new SvgUnit(SvgUnitType.User, win.LetterSpacingResult);
+                txt.WordSpacing = new SvgUnit(SvgUnitType.User, win.WordSpacingResult);
                 SvgView.SkSvg!.FromSvgDocument(_document);
                 UpdateSelectedDrawable();
                 LoadProperties(txt);
@@ -2320,6 +2351,36 @@ public partial class MainWindow : Window
         if (e.AddedItems.Count > 0 && e.AddedItems[0] is SymbolService.SymbolEntry info)
         {
             _selectedSymbol = info;
+            if (_selectedSvgElement is SvgVisualElement ve)
+            {
+                SaveUndoState();
+                info.Apply(ve);
+                SvgView.SkSvg!.FromSvgDocument(_document);
+                UpdateSelectedDrawable();
+                SaveExpandedNodes();
+                BuildTree();
+                SelectNodeFromElement(ve);
+                SvgView.InvalidateVisual();
+            }
+        }
+    }
+
+    private void StyleList_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is AppearanceService.StyleEntry info)
+        {
+            _selectedStyle = info;
+            if (_selectedSvgElement is SvgVisualElement ve)
+            {
+                SaveUndoState();
+                info.Apply(ve);
+                SvgView.SkSvg!.FromSvgDocument(_document);
+                UpdateSelectedDrawable();
+                SaveExpandedNodes();
+                BuildTree();
+                SelectNodeFromElement(ve);
+                SvgView.InvalidateVisual();
+            }
         }
     }
 
@@ -3089,6 +3150,9 @@ public partial class MainWindow : Window
     private void UniteMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Union);
     private void SubtractMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Difference);
     private void IntersectMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Intersect);
+    private void ExcludeMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Xor);
+    private void DivideMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.ReverseDifference);
+    private void TrimMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Difference);
     private void CreateClippingMaskMenuItem_Click(object? sender, RoutedEventArgs e) => CreateClippingMask();
     private void BlendMenuItem_Click(object? sender, RoutedEventArgs e) => BlendSelected();
 
@@ -3108,6 +3172,39 @@ public partial class MainWindow : Window
     private void MoveLayerDownMenuItem_Click(object? sender, RoutedEventArgs e) => LayerDown();
     private void LockLayerMenuItem_Click(object? sender, RoutedEventArgs e) => LayerLock();
     private void UnlockLayerMenuItem_Click(object? sender, RoutedEventArgs e) => LayerUnlock();
+    private async void CreateStyleMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_document is null || _selectedSvgElement is not SvgVisualElement ve)
+            return;
+        var win = new SymbolNameWindow();
+        var name = await win.ShowDialog<string?>(this);
+        if (string.IsNullOrWhiteSpace(name))
+            return;
+        SaveUndoState();
+        var entry = AppearanceService.StyleEntry.FromElement(name!, ve);
+        _appearanceService.AddOrUpdateStyle(_document, entry);
+        UpdateStyles();
+    }
+
+    private void UpdateStyleMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_document is null || _selectedStyle is null || _selectedSvgElement is not SvgVisualElement ve)
+            return;
+        SaveUndoState();
+        var entry = AppearanceService.StyleEntry.FromElement(_selectedStyle.Name, ve);
+        _appearanceService.AddOrUpdateStyle(_document, entry);
+        UpdateStyles();
+    }
+
+    private void DeleteStyleMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_document is null || _selectedStyle is null)
+            return;
+        SaveUndoState();
+        _appearanceService.RemoveStyle(_document, _selectedStyle);
+        _selectedStyle = null;
+        UpdateStyles();
+    }
     private void BringForwardMenuItem_Click(object? sender, RoutedEventArgs e) => BringForward();
     private void SendBackwardMenuItem_Click(object? sender, RoutedEventArgs e) => SendBackward();
     private void LayerAdd_Click(object? sender, RoutedEventArgs e) => LayerAdd();
