@@ -54,16 +54,17 @@ public partial class MainWindow : Window
 
     private readonly PropertiesService _propertiesService = new();
     private readonly LayerService _layerService = new();
+    private readonly PatternService _patternService = new();
     public ObservableCollection<PropertyEntry> Properties => _propertiesService.Properties;
     public ObservableCollection<PropertyEntry> FilteredProperties => _propertiesService.FilteredProperties;
     private ObservableCollection<SvgNode> Nodes { get; } = new();
     public ObservableCollection<string> Ids => _propertiesService.Ids;
     public ObservableCollection<ArtboardInfo> Artboards { get; } = new();
     public ObservableCollection<LayerService.LayerEntry> Layers => _layerService.Layers;
-    public ObservableCollection<PatternInfo> Patterns { get; } = new();
+    public ObservableCollection<PatternService.PatternEntry> Patterns => _patternService.Patterns;
     private ArtboardInfo? _selectedArtboard;
     private LayerService.LayerEntry? _selectedLayer;
-    private PatternInfo? _selectedPattern;
+    private PatternService.PatternEntry? _selectedPattern;
     private ListBox? _artboardList;
     private TreeView? _layerTree;
     private ListBox? _swatchList;
@@ -183,6 +184,39 @@ public partial class MainWindow : Window
         _renderingService = new RenderingService(_pathService, _toolService);
         Resources["PropertyEditorTemplate"] = new FuncDataTemplate<PropertyEntry>((entry, ns) =>
         {
+            if (entry.Property?.Name == nameof(SvgVisualElement.Fill))
+            {
+                var list = new ObservableCollection<string>(_patternService.Patterns
+                    .Where(p => !string.IsNullOrEmpty(p.Pattern.ID))
+                    .Select(p => $"url(#{p.Pattern.ID})"));
+                list.Insert(0, "New Pattern");
+                var box = new AutoCompleteBox
+                {
+                    ItemsSource = list,
+                    MinimumPrefixLength = 0,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                box[!AutoCompleteBox.TextProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };
+                box.GotFocus += (_, _) => box.IsDropDownOpen = true;
+                box.SelectionChanged += async (_, _) =>
+                {
+                    if (box.SelectedItem as string == "New Pattern")
+                    {
+                        var dlg = new PatternEditorWindow();
+                        var result = await dlg.ShowDialog<bool>(this);
+                        if (result && dlg.Result is { } pat)
+                        {
+                            if (string.IsNullOrEmpty(pat.ID))
+                                pat.ID = $"pattern{_patternService.Patterns.Count + 1}";
+                            if (_document is { })
+                                _patternService.AddPattern(_document, pat);
+                            list.Add($"url(#{pat.ID})");
+                            box.SelectedItem = $"url(#{pat.ID})";
+                        }
+                    }
+                };
+                return box;
+            }
             if (entry.Options is { } opts)
             {
                 var box = new AutoCompleteBox
@@ -1448,15 +1482,7 @@ public partial class MainWindow : Window
 
     private void UpdatePatterns()
     {
-        Patterns.Clear();
-        if (_document is null)
-            return;
-        int index = 1;
-        foreach (var p in _document.Descendants().OfType<SvgPatternServer>())
-        {
-            var name = string.IsNullOrEmpty(p.ID) ? $"Pattern {index++}" : p.ID;
-            Patterns.Add(new PatternInfo(p, name));
-        }
+        _patternService.Load(_document);
         if (Patterns.Count > 0)
         {
             _selectedPattern = Patterns[0];
@@ -2106,7 +2132,7 @@ public partial class MainWindow : Window
 
     private void SwatchList_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (e.AddedItems.Count > 0 && e.AddedItems[0] is PatternInfo info)
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is PatternService.PatternEntry info)
         {
             _selectedPattern = info;
         }
@@ -2965,19 +2991,6 @@ public class ArtboardInfo
 }
 
 
-public class PatternInfo
-{
-    public SvgPatternServer Pattern { get; }
-    public string Name { get; }
-
-    public PatternInfo(SvgPatternServer pattern, string name)
-    {
-        Pattern = pattern;
-        Name = name;
-    }
-
-    public override string ToString() => Name;
-}
 
 public class SvgNode : INotifyPropertyChanged
 {
