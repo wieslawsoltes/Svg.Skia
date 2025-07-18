@@ -76,13 +76,16 @@
                 <MenuItem Header="Path Cubic" Click="PathCubicToolMenuItem_Click" InputGesture="J"/>
                 <MenuItem Header="Path Quadratic" Click="PathQuadraticToolMenuItem_Click" InputGesture="Q"/>
                 <MenuItem Header="Path Arc" Click="PathArcToolMenuItem_Click" InputGesture="A"/>
-                <MenuItem Header="Path Move" Click="PathMoveToolMenuItem_Click" InputGesture="M"/>
-            </MenuItem>
-            <MenuItem Header="View">
-                <MenuItem Header="Wireframe" Click="WireframeMenuItem_Click"/>
-                <MenuItem Header="Disable Filters" Click="FiltersMenuItem_Click"/>
-                <MenuItem Header="Settings..." Click="SettingsMenuItem_Click"/>
-            </MenuItem>
+            <MenuItem Header="Path Move" Click="PathMoveToolMenuItem_Click" InputGesture="M"/>
+        </MenuItem>
+        <MenuItem Header="Effects">
+            <MenuItem Header="Glass..." Click="GlassEffectMenuItem_Click"/>
+        </MenuItem>
+        <MenuItem Header="View">
+            <MenuItem Header="Wireframe" Click="WireframeMenuItem_Click"/>
+            <MenuItem Header="Disable Filters" Click="FiltersMenuItem_Click"/>
+            <MenuItem Header="Settings..." Click="SettingsMenuItem_Click"/>
+        </MenuItem>
         </Menu>
         <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="4">
             <RadioButton Content="Select" GroupName="tools" IsChecked="True" Click="SelectToolButton_Click" />

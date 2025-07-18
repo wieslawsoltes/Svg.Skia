@@ -30,6 +30,7 @@ using Svg.Model.Drawables;
 using Svg.Model.Services;
 using Svg.Transforms;
 using Svg.Pathing;
+using Svg.FilterEffects;
 using AvalonDraw.Services;
 using Tool = AvalonDraw.Services.ToolService.Tool;
 
@@ -2115,6 +2116,84 @@ public partial class MainWindow : Window
             _gridSize = win.GridSize;
             SvgView.InvalidateVisual();
         }
+    }
+
+    private async void GlassEffectMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_selectedSvgElement is null || _document is null)
+            return;
+
+        var win = new GlassEffectWindow();
+        var result = await win.ShowDialog<bool?>(this);
+        if (result == true)
+        {
+            ApplyGlassEffect(win.Angle, win.Intensity, win.Refraction, win.Depth, win.Dispersion, win.Frost);
+            SvgView.SkSvg!.FromSvgDocument(_document);
+            UpdateSelectedDrawable();
+            LoadProperties(_selectedSvgElement);
+            SvgView.InvalidateVisual();
+        }
+    }
+
+    private void ApplyGlassEffect(float angle, float intensity, float refraction, float depth, float dispersion, float frost)
+    {
+        if (_document is null || _selectedSvgElement is null)
+            return;
+
+        SaveUndoState();
+
+        var defs = _document.Children.OfType<SvgDefinitionList>().FirstOrDefault();
+        if (defs is null)
+        {
+            defs = new SvgDefinitionList();
+            _document.Children.Insert(0, defs);
+        }
+
+        var filter = new SvgFilter
+        {
+            ID = "glass" + Guid.NewGuid().ToString("N")
+        };
+
+        var blur = new SvgGaussianBlur
+        {
+            Input = SvgFilterPrimitive.SourceGraphic,
+            StdDeviation = new SvgNumberCollection { frost },
+            Result = "blur"
+        };
+
+        var light = new SvgSpecularLighting
+        {
+            Input = "blur",
+            SurfaceScale = depth,
+            SpecularConstant = intensity,
+            SpecularExponent = 20,
+            LightingColor = new SvgColourServer(System.Drawing.Color.White),
+            Result = "light"
+        };
+        light.Children.Add(new SvgDistantLight { Azimuth = angle, Elevation = 45 });
+
+        var comp = new SvgComposite
+        {
+            Input = "light",
+            Input2 = "blur",
+            Operator = SvgCompositeOperator.Atop,
+            Result = "comp"
+        };
+
+        var blend = new SvgBlend
+        {
+            Input = "comp",
+            Input2 = SvgFilterPrimitive.SourceGraphic,
+            Mode = SvgBlendMode.Screen
+        };
+
+        filter.Children.Add(blur);
+        filter.Children.Add(light);
+        filter.Children.Add(comp);
+        filter.Children.Add(blend);
+
+        defs.Children.Add(filter);
+        _selectedSvgElement.Filter = new Uri($"url(#{filter.ID})", UriKind.Relative);
     }
 
     private void MainWindow_OnKeyDown(object? sender, KeyEventArgs e)
