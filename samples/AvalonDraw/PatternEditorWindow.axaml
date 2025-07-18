@@ -1,0 +1,20 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="AvalonDraw.PatternEditorWindow"
+        Width="400" Height="300"
+        Title="Edit Pattern">
+    <StackPanel Margin="10" Spacing="4">
+        <StackPanel Orientation="Horizontal" Spacing="4">
+            <TextBlock Text="Width:" VerticalAlignment="Center"/>
+            <TextBox x:Name="WidthBox" Width="60"/>
+            <TextBlock Text="Height:" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <TextBox x:Name="HeightBox" Width="60"/>
+        </StackPanel>
+        <TextBlock Text="Path Data:"/>
+        <TextBox x:Name="PathBox" AcceptsReturn="True" Height="120"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4">
+            <Button Content="OK" Width="80" Click="OkButton_OnClick"/>
+            <Button Content="Cancel" Width="80" Click="CancelButton_OnClick"/>
+        </StackPanel>
+    </StackPanel>
+</Window>
