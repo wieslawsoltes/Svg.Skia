@@ -1,0 +1,13 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="AvalonDraw.InsertElementWindow"
+        Width="300" Height="200"
+        Title="Insert Element">
+    <StackPanel Margin="10" Spacing="4">
+        <AutoCompleteBox x:Name="ElementList" MinimumPrefixLength="0" GotFocus="ElementList_OnGotFocus" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4">
+            <Button Content="OK" Click="OkButton_OnClick" Width="80"/>
+            <Button Content="Cancel" Click="CancelButton_OnClick" Width="80"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

@@ -1,0 +1,31 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="AvalonDraw.GradientEditorWindow"
+        Width="400" Height="300"
+        Title="Edit Gradient">
+    <DockPanel Margin="10" LastChildFill="True">
+        <DataGrid x:Name="StopsGrid" DockPanel.Dock="Top" AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Offset" Binding="{Binding Offset, Mode=TwoWay}" Width="80"/>
+                <DataGridTemplateColumn Header="Color" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border Width="40" Height="16" Background="{Binding Color, Converter={StaticResource ColorStringConverter}}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn.CellEditingTemplate>
+                        <DataTemplate>
+                            <ColorPicker Width="120" Color="{Binding Color, Mode=TwoWay, Converter={StaticResource ColorStringConverter}}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellEditingTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4">
+            <Button Content="Add" Click="AddButton_OnClick" Width="80"/>
+            <Button Content="Remove" Click="RemoveButton_OnClick" Width="80"/>
+            <Button Content="OK" Click="OkButton_OnClick" Width="80"/>
+            <Button Content="Cancel" Click="CancelButton_OnClick" Width="80"/>
+        </StackPanel>
+    </DockPanel>
+</Window>

@@ -1,0 +1,243 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Svg.Controls.Skia.Avalonia"
+        xmlns:dgrid="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
+        xmlns:local="clr-namespace:AvalonDraw"
+        x:Class="AvalonDraw.MainWindow"
+        Width="800" Height="600"
+        DragDrop.AllowDrop="True"
+        Title="AvalonDraw">
+    <Window.Resources>
+        <DrawingBrush x:Key="CheckerBrush"
+                       TileMode="Tile"
+                       DestinationRect="0,0,20,20">
+            <DrawingBrush.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="#FFF">
+                        <GeometryDrawing.Geometry>
+                            <RectangleGeometry Rect="0,0,20,20" />
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                    <GeometryDrawing Brush="#CCC">
+                        <GeometryDrawing.Geometry>
+                            <GeometryGroup>
+                                <RectangleGeometry Rect="0,0,10,10" />
+                                <RectangleGeometry Rect="10,10,10,10" />
+                            </GeometryGroup>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+        <Geometry x:Key="EyeOpen">M1,8 C3,4 13,4 15,8 C13,12 3,12 1,8 Z M8,8 A3,3 0 1 1 7.99,8 Z</Geometry>
+        <Geometry x:Key="EyeClosed">M1,8 C3,4 13,4 15,8 C13,12 3,12 1,8 Z M0,0 L16,16 M16,0 L0,16</Geometry>
+    </Window.Resources>
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <Menu Grid.Row="0">
+            <MenuItem Header="File">
+                <MenuItem Header="New" Click="NewMenuItem_Click" InputGesture="Ctrl+N"/>
+                <MenuItem Header="Open..." Click="OpenMenuItem_Click" InputGesture="Ctrl+O"/>
+                <MenuItem Header="Save..." Click="SaveMenuItem_Click" InputGesture="Ctrl+S"/>
+                <MenuItem Header="Export Element..." Click="ExportElementMenuItem_Click" InputGesture="Ctrl+E"/>
+                <MenuItem Header="Preview" Click="PreviewMenuItem_Click" InputGesture="F5"/>
+                <MenuItem Header="Edit Text" Click="EditTextMenuItem_Click" InputGesture="Ctrl+T"/>
+            </MenuItem>
+            <MenuItem Header="Edit">
+                <MenuItem Header="Insert Element" Click="InsertElementMenuItem_Click" InputGesture="Ctrl+I"/>
+                <MenuItem Header="Remove Element" Click="RemoveElementMenuItem_Click" InputGesture="Delete"/>
+                <MenuItem Header="Copy Element" Click="CopyElementMenuItem_Click" InputGesture="Ctrl+C"/>
+                <MenuItem Header="Paste Element" Click="PasteElementMenuItem_Click" InputGesture="Ctrl+V"/>
+                <MenuItem Header="Group" Click="GroupMenuItem_Click" InputGesture="Ctrl+G"/>
+                <MenuItem Header="Ungroup" Click="UngroupMenuItem_Click" InputGesture="Ctrl+Shift+G"/>
+                <MenuItem Header="Edit Content..." Click="EditContentMenuItem_Click"/>
+                <MenuItem Header="Create Symbol..." Click="CreateSymbolMenuItem_Click"/>
+                <MenuItem Header="Insert Symbol" Click="SymbolToolMenuItem_Click"/>
+                <MenuItem Header="Reset File" Click="ResetFileMenuItem_Click" InputGesture="Ctrl+R"/>
+                <Separator />
+                <MenuItem Header="Undo" Click="UndoMenuItem_Click" InputGesture="Ctrl+Z"/>
+                <MenuItem Header="Redo" Click="RedoMenuItem_Click" InputGesture="Ctrl+Y"/>
+                <Separator />
+                <MenuItem Header="Smooth Point" Click="SmoothPointMenuItem_Click" InputGesture="S"/>
+                <MenuItem Header="Corner Point" Click="CornerPointMenuItem_Click" InputGesture="B"/>
+                <MenuItem Header="Unite" Click="UniteMenuItem_Click" InputGesture="Ctrl+Shift+U"/>
+                <MenuItem Header="Subtract" Click="SubtractMenuItem_Click" InputGesture="Ctrl+Shift+D"/>
+                <MenuItem Header="Intersect" Click="IntersectMenuItem_Click" InputGesture="Ctrl+Shift+I"/>
+            </MenuItem>
+            <MenuItem Header="Tools">
+                <MenuItem Header="Select" Click="SelectToolMenuItem_Click" InputGesture="V"/>
+                <MenuItem Header="Multi Select" Click="MultiSelectToolMenuItem_Click" InputGesture="X"/>
+                <MenuItem Header="Path Select" Click="PathToolMenuItem_Click" InputGesture="N"/>
+                <MenuItem Header="Polygon Select" Click="PolygonSelectToolMenuItem_Click" InputGesture="G"/>
+                <MenuItem Header="Polyline Select" Click="PolylineSelectToolMenuItem_Click" InputGesture="Y"/>
+                <MenuItem Header="Line" Click="LineToolMenuItem_Click" InputGesture="L"/>
+                <MenuItem Header="Rect" Click="RectToolMenuItem_Click" InputGesture="R"/>
+                <MenuItem Header="Circle" Click="CircleToolMenuItem_Click" InputGesture="C"/>
+                <MenuItem Header="Ellipse" Click="EllipseToolMenuItem_Click" InputGesture="E"/>
+                <MenuItem Header="Polygon" Click="PolygonToolMenuItem_Click" InputGesture="P"/>
+                <MenuItem Header="Polyline" Click="PolylineToolMenuItem_Click" InputGesture="O"/>
+                <MenuItem Header="Text" Click="TextToolMenuItem_Click" InputGesture="T"/>
+                <MenuItem Header="Text Path" Click="TextPathToolMenuItem_Click" InputGesture="K"/>
+                <MenuItem Header="Text Area" Click="TextAreaToolMenuItem_Click" InputGesture="H"/>
+                <MenuItem Header="Symbol" Click="SymbolToolMenuItem_Click" InputGesture="U"/>
+                <Separator/>
+                <MenuItem Header="Path Line" Click="PathLineToolMenuItem_Click" InputGesture="B"/>
+                <MenuItem Header="Path Cubic" Click="PathCubicToolMenuItem_Click" InputGesture="J"/>
+                <MenuItem Header="Path Quadratic" Click="PathQuadraticToolMenuItem_Click" InputGesture="Q"/>
+                <MenuItem Header="Path Arc" Click="PathArcToolMenuItem_Click" InputGesture="A"/>
+                <MenuItem Header="Path Move" Click="PathMoveToolMenuItem_Click" InputGesture="M"/>
+            </MenuItem>
+            <MenuItem Header="Arrange">
+                <MenuItem Header="Align Left" Click="AlignLeftMenuItem_Click"/>
+                <MenuItem Header="Align Center" Click="AlignHCenterMenuItem_Click"/>
+                <MenuItem Header="Align Right" Click="AlignRightMenuItem_Click"/>
+                <MenuItem Header="Align Top" Click="AlignTopMenuItem_Click"/>
+                <MenuItem Header="Align Middle" Click="AlignVCenterMenuItem_Click"/>
+                <MenuItem Header="Align Bottom" Click="AlignBottomMenuItem_Click"/>
+                <Separator/>
+                <MenuItem Header="Distribute Horizontal" Click="DistributeHMenuItem_Click"/>
+                <MenuItem Header="Distribute Vertical" Click="DistributeVMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="View">
+                <MenuItem Header="Wireframe" Click="WireframeMenuItem_Click"/>
+                <MenuItem Header="Disable Filters" Click="FiltersMenuItem_Click"/>
+                <MenuItem Header="Settings..." Click="SettingsMenuItem_Click"/>
+            </MenuItem>
+        </Menu>
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="4">
+            <RadioButton Content="Select" GroupName="tools" IsChecked="True" Click="SelectToolButton_Click" />
+            <RadioButton Content="Multi Sel" GroupName="tools" Margin="4,0" Click="MultiSelectToolButton_Click" />
+            <RadioButton Content="Path Sel" GroupName="tools" Margin="4,0" Click="PathToolButton_Click" />
+            <RadioButton Content="Poly Sel" GroupName="tools" Margin="4,0" Click="PolygonSelectToolButton_Click" />
+            <RadioButton Content="PolyLine Sel" GroupName="tools" Margin="4,0" Click="PolylineSelectToolButton_Click" />
+            <RadioButton Content="Line" GroupName="tools" Margin="4,0" Click="LineToolButton_Click" />
+            <RadioButton Content="Rect" GroupName="tools" Margin="4,0" Click="RectToolButton_Click" />
+            <RadioButton Content="Circle" GroupName="tools" Margin="4,0" Click="CircleToolButton_Click" />
+            <RadioButton Content="Ellipse" GroupName="tools" Margin="4,0" Click="EllipseToolButton_Click" />
+            <RadioButton Content="Polygon" GroupName="tools" Margin="4,0" Click="PolygonToolButton_Click" />
+            <RadioButton Content="Polyline" GroupName="tools" Margin="4,0" Click="PolylineToolButton_Click" />
+            <RadioButton Content="Text" GroupName="tools" Margin="4,0" Click="TextToolButton_Click" />
+            <RadioButton Content="TextPath" GroupName="tools" Margin="4,0" Click="TextPathToolButton_Click" />
+            <RadioButton Content="TextArea" GroupName="tools" Margin="4,0" Click="TextAreaToolButton_Click" />
+            <RadioButton Content="Symbol" GroupName="tools" Margin="4,0" Click="SymbolToolButton_Click" />
+            <RadioButton Content="PLine" GroupName="tools" Margin="4,0" Click="PathLineToolButton_Click" />
+            <RadioButton Content="PCubic" GroupName="tools" Margin="4,0" Click="PathCubicToolButton_Click" />
+            <RadioButton Content="PQuad" GroupName="tools" Margin="4,0" Click="PathQuadraticToolButton_Click" />
+            <RadioButton Content="PArc" GroupName="tools" Margin="4,0" Click="PathArcToolButton_Click" />
+            <RadioButton Content="PMove" GroupName="tools" Margin="4,0" Click="PathMoveToolButton_Click" />
+        </StackPanel>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0"
+                    Background="#F2F2F7"
+                    BorderBrush="#D1D1D1"
+                    BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <TextBox x:Name="FilterBox" Margin="4" Watermark="Filter" KeyUp="FilterBox_OnKeyUp" DockPanel.Dock="Top" />
+                    <TextBlock Text="Layers" Margin="4,4,4,0" DockPanel.Dock="Bottom"/>
+                    <TreeView x:Name="LayerTree" Margin="4" Height="100" DockPanel.Dock="Bottom"
+                              ItemsSource="{Binding Layers}" SelectionChanged="LayerTree_OnSelectionChanged">
+                        <TreeView.ItemTemplate>
+                            <TreeDataTemplate DataType="{x:Type local:LayerInfo}" ItemsSource="{Binding Sublayers}">
+                                <TextBlock Text="{Binding Name}"/>
+                            </TreeDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+                    <TextBlock Text="Swatches" Margin="4,4,4,0" DockPanel.Dock="Bottom"/>
+                    <ListBox x:Name="SwatchList" Margin="4" Height="80" DockPanel.Dock="Bottom"
+                             ItemsSource="{Binding Patterns}" SelectionChanged="SwatchList_OnSelectionChanged"/>
+                    <TextBlock Text="Artboards" Margin="4,4,4,0" DockPanel.Dock="Bottom"/>
+                    <ListBox x:Name="ArtboardList" Margin="4" Height="80" DockPanel.Dock="Bottom"
+                             ItemsSource="{Binding Artboards}" SelectionChanged="ArtboardList_OnSelectionChanged"/>
+                    <Grid>
+                        <TreeView x:Name="DocumentTree"
+                                  Margin="0,4,0,0"
+                                  ItemsSource="{Binding Nodes}"
+                                  SelectionChanged="DocumentTree_OnSelectionChanged">
+                            <TreeView.ItemTemplate>
+                                <TreeDataTemplate DataType="{x:Type local:SvgNode}"
+                                                  ItemsSource="{Binding Children}">
+                                    <DockPanel LastChildFill="True">
+                                        <ToggleButton DockPanel.Dock="Right"
+                                                      IsChecked="{Binding IsVisible}"
+                                                      Click="VisibilityToggle_Click"
+                                                      Width="16" Height="16" Margin="4,0,20,0">
+                                           <Path Fill="Black" Data="{Binding IsVisible, Converter={StaticResource EyeIconConverter}}"/>
+                                        </ToggleButton>
+                                        <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
+                                    </DockPanel>
+                                </TreeDataTemplate>
+                        </TreeView.ItemTemplate>
+                        </TreeView>
+                        <Border x:Name="DropIndicator"
+                                Background="#0078D7"
+                                Height="2"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Top"
+                                IsHitTestVisible="False"
+                                IsVisible="False"/>
+                    </Grid>
+                </DockPanel>
+            </Border>
+            <GridSplitter Grid.Column="0" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
+            <!-- BoxShadow string parsed by Avalonia requires space separated values -->
+            <Border Grid.Column="1"
+                    Background="{StaticResource CheckerBrush}"
+                    BoxShadow="0 0 5 0 #80000000"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Margin="10">
+                <svg:Svg x:Name="SvgView"
+                         Stretch="Uniform"
+                         PointerPressed="SvgView_OnPointerPressed"
+                         PointerMoved="SvgView_OnPointerMoved"
+                         PointerReleased="SvgView_OnPointerReleased" />
+            </Border>
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
+
+            <Border Grid.Column="2"
+                    Background="#F2F2F7"
+                    BorderBrush="#D1D1D1"
+                    BorderThickness="1,0,0,0"
+                    Padding="4">
+                <DockPanel>
+                    <Button Content="Apply" Margin="0,10,0,0" Click="ApplyButton_OnClick" DockPanel.Dock="Bottom"/>
+                    <TextBox x:Name="PropertyFilterBox" DockPanel.Dock="Top" Margin="0,0,0,4"
+                             Watermark="Filter properties"
+                             KeyUp="PropertyFilterBox_OnKeyUp" />
+                    <dgrid:DataGrid x:Name="PropertiesGrid"
+                                    AutoGenerateColumns="False"
+                                    HeadersVisibility="None"
+                                    GridLinesVisibility="None"
+                                    CanUserResizeColumns="False"
+                                    CanUserSortColumns="False"
+                                    ItemsSource="{Binding FilteredProperties}">
+                        <dgrid:DataGrid.Columns>
+                            <dgrid:DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True" Width="*"/>
+                            <dgrid:DataGridTemplateColumn Header="Value" Width="*">
+                                <dgrid:DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Value}" VerticalAlignment="Center"/>
+                                    </DataTemplate>
+                                </dgrid:DataGridTemplateColumn.CellTemplate>
+                                <dgrid:DataGridTemplateColumn.CellEditingTemplate>
+                                    <StaticResource ResourceKey="PropertyEditorTemplate"/>
+                                </dgrid:DataGridTemplateColumn.CellEditingTemplate>
+                            </dgrid:DataGridTemplateColumn>
+                        </dgrid:DataGrid.Columns>
+                    </dgrid:DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+        <Border Grid.Row="3" Background="#EEE" Padding="4">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="PanZoomLabel" Margin="4"/>
+                <Button Content="Reset" Margin="4,0" Click="ResetViewButton_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

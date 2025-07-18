@@ -25,6 +25,10 @@ public class Svg : Control
     private SvgSource? _svg;
     private bool _enableCache;
     private bool _wireframe;
+    private bool _disableFilters;
+    private double _zoom = 1.0;
+    private double _panX;
+    private double _panY;
     private Dictionary<string, SvgSource>? _cache;
 
     /// <summary>
@@ -68,6 +72,38 @@ public class Svg : Control
         AvaloniaProperty.RegisterDirect<Svg, bool>(nameof(Wireframe),
             o => o.Wireframe,
             (o, v) => o.Wireframe = v);
+
+    /// <summary>
+    /// Defines the <see cref="DisableFilters"/> property.
+    /// </summary>
+    public static readonly DirectProperty<Svg, bool> DisableFiltersProperty =
+        AvaloniaProperty.RegisterDirect<Svg, bool>(nameof(DisableFilters),
+            o => o.DisableFilters,
+            (o, v) => o.DisableFilters = v);
+
+    /// <summary>
+    /// Defines the <see cref="Zoom"/> property.
+    /// </summary>
+    public static readonly DirectProperty<Svg, double> ZoomProperty =
+        AvaloniaProperty.RegisterDirect<Svg, double>(nameof(Zoom),
+            o => o.Zoom,
+            (o, v) => o.Zoom = v);
+
+    /// <summary>
+    /// Defines the <see cref="PanX"/> property.
+    /// </summary>
+    public static readonly DirectProperty<Svg, double> PanXProperty =
+        AvaloniaProperty.RegisterDirect<Svg, double>(nameof(PanX),
+            o => o.PanX,
+            (o, v) => o.PanX = v);
+
+    /// <summary>
+    /// Defines the <see cref="PanY"/> property.
+    /// </summary>
+    public static readonly DirectProperty<Svg, double> PanYProperty =
+        AvaloniaProperty.RegisterDirect<Svg, double>(nameof(PanY),
+            o => o.PanY,
+            (o, v) => o.PanY = v);
 
     /// <summary>
     /// Defines the Css property.
@@ -137,6 +173,68 @@ public class Svg : Control
     }
 
     /// <summary>
+    /// Gets or sets a value controlling whether SVG filters are rendered.
+    /// </summary>
+    public bool DisableFilters
+    {
+        get { return _disableFilters; }
+        set { SetAndRaise(DisableFiltersProperty, ref _disableFilters, value); }
+    }
+
+    /// <summary>
+    /// Gets or sets the zoom factor.
+    /// </summary>
+    public double Zoom
+    {
+        get { return _zoom; }
+        set { SetAndRaise(ZoomProperty, ref _zoom, value); }
+    }
+
+    /// <summary>
+    /// Gets or sets the horizontal pan offset.
+    /// </summary>
+    public double PanX
+    {
+        get { return _panX; }
+        set { SetAndRaise(PanXProperty, ref _panX, value); }
+    }
+
+    /// <summary>
+    /// Gets or sets the vertical pan offset.
+    /// </summary>
+    public double PanY
+    {
+        get { return _panY; }
+        set { SetAndRaise(PanYProperty, ref _panY, value); }
+    }
+
+    /// <summary>
+    /// Adjusts <see cref="Zoom"/> and pan offsets so that zooming keeps the
+    /// specified control point fixed.
+    /// </summary>
+    /// <param name="newZoom">The new zoom factor.</param>
+    /// <param name="point">Point in control coordinates that should stay in place.</param>
+    public void ZoomToPoint(double newZoom, Point point)
+    {
+        var oldZoom = _zoom;
+
+        if (newZoom < 0.1)
+            newZoom = 0.1;
+        if (newZoom > 10)
+            newZoom = 10;
+
+        var zoomFactor = newZoom / oldZoom;
+
+        // adjust pan so that the supplied point remains under the cursor
+        _panX = point.X - (point.X - _panX) * zoomFactor;
+        _panY = point.Y - (point.Y - _panY) * zoomFactor;
+
+        SetAndRaise(PanXProperty, ref _panX, _panX);
+        SetAndRaise(PanYProperty, ref _panY, _panY);
+        SetAndRaise(ZoomProperty, ref _zoom, newZoom);
+    }
+
+    /// <summary>
     /// Gets svg picture.
     /// </summary>
     public SkiaSharp.SKPicture? Picture => _svg?.Picture;
@@ -167,8 +265,9 @@ public class Svg : Control
         var sourceRect = new Rect(sourceSize).CenterRect(new Rect(destRect.Size / scale));
         var bounds = picture.CullRect;
         var scaleMatrix = Matrix.CreateScale(destRect.Width / sourceRect.Width, destRect.Height / sourceRect.Height);
-        var translateMatrix = Matrix.CreateTranslation(-sourceRect.X + destRect.X - bounds.Top, -sourceRect.Y + destRect.Y - bounds.Left);
-        var matrix = scaleMatrix * translateMatrix;
+        var translateMatrix = Matrix.CreateTranslation(-sourceRect.X + destRect.X - bounds.Left, -sourceRect.Y + destRect.Y - bounds.Top);
+        var userMatrix = Matrix.CreateScale(Zoom, Zoom) * Matrix.CreateTranslation(PanX, PanY);
+        var matrix = scaleMatrix * translateMatrix * userMatrix;
         var inverse = matrix.Invert();
         var local = inverse.Transform(point);
 
@@ -302,11 +401,13 @@ public class Svg : Control
             destRect.Width / sourceRect.Width,
             destRect.Height / sourceRect.Height);
         var translateMatrix = Matrix.CreateTranslation(
-            -sourceRect.X + destRect.X - bounds.Top,
-            -sourceRect.Y + destRect.Y - bounds.Left);
+            -sourceRect.X + destRect.X - bounds.Left,
+            -sourceRect.Y + destRect.Y - bounds.Top);
+
+        var userMatrix = Matrix.CreateScale(Zoom, Zoom) * Matrix.CreateTranslation(PanX, PanY);
 
         using (context.PushClip(destRect))
-        using (context.PushTransform(scaleMatrix * translateMatrix))
+        using (context.PushTransform(scaleMatrix * translateMatrix * userMatrix))
         {
             context.Custom(
                 new SvgSourceCustomDrawOperation(
@@ -402,6 +503,22 @@ public class Svg : Control
             }
             InvalidateVisual();
         }
+
+        if (change.Property == DisableFiltersProperty)
+        {
+            if (_svg?.Svg is { } skSvg)
+            {
+                skSvg.IgnoreAttributes = change.GetNewValue<bool>() ? DrawAttributes.Filter : DrawAttributes.None;
+            }
+            InvalidateVisual();
+        }
+
+        if (change.Property == ZoomProperty ||
+            change.Property == PanXProperty ||
+            change.Property == PanYProperty)
+        {
+            InvalidateVisual();
+        }
     }
 
     private void LoadFromPath(string? path, SvgParameters? parameters = null)
@@ -420,6 +537,7 @@ public class Svg : Control
             if (_svg.Svg is { } skSvg)
             {
                 skSvg.Wireframe = _wireframe;
+                skSvg.IgnoreAttributes = _disableFilters ? DrawAttributes.Filter : DrawAttributes.None;
                 skSvg.ClearWireframePicture();
             }
             return;
@@ -437,6 +555,7 @@ public class Svg : Control
             if (_svg?.Svg is { } skSvg2)
             {
                 skSvg2.Wireframe = _wireframe;
+                skSvg2.IgnoreAttributes = _disableFilters ? DrawAttributes.Filter : DrawAttributes.None;
                 skSvg2.ClearWireframePicture();
             }
 
@@ -470,6 +589,7 @@ public class Svg : Control
             if (_svg?.Svg is { } skSvg)
             {
                 skSvg.Wireframe = _wireframe;
+                skSvg.IgnoreAttributes = _disableFilters ? DrawAttributes.Filter : DrawAttributes.None;
                 skSvg.ClearWireframePicture();
             }
         }
