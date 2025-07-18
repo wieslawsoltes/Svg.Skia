@@ -147,60 +147,69 @@
                     BorderThickness="0,0,1,0">
                 <DockPanel>
                     <TextBox x:Name="FilterBox" Margin="4" Watermark="Filter" KeyUp="FilterBox_OnKeyUp" DockPanel.Dock="Top" />
-                    <TextBlock Text="Layers" Margin="4,4,4,0" DockPanel.Dock="Bottom"/>
-                    <StackPanel Orientation="Horizontal" Margin="4" DockPanel.Dock="Bottom">
-                        <Button Content="Add" Click="LayerAdd_Click" Margin="0,0,4,0"/>
-                        <Button Content="Delete" Click="LayerDelete_Click" Margin="0,0,4,0"/>
-                        <Button Content="Up" Click="LayerUp_Click" Margin="0,0,4,0"/>
-                        <Button Content="Down" Click="LayerDown_Click" Margin="0,0,4,0"/>
-                        <Button Content="Lock" Click="LayerLock_Click" Margin="0,0,4,0"/>
-                        <Button Content="Unlock" Click="LayerUnlock_Click" Margin="0,0,4,0"/>
-                    </StackPanel>
-                    <TreeView x:Name="LayerTree" Margin="4" Height="100" DockPanel.Dock="Bottom"
-                              ItemsSource="{Binding Layers}" SelectionChanged="LayerTree_OnSelectionChanged">
-                        <TreeView.ItemTemplate>
-                            <TreeDataTemplate DataType="{x:Type services:LayerService+LayerEntry}">
-                                <DockPanel>
-                                    <ToggleButton DockPanel.Dock="Right" IsChecked="{Binding Visible}" Width="16" Height="16" Margin="4,0,0,0" />
-                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
-                                </DockPanel>
-                            </TreeDataTemplate>
-                        </TreeView.ItemTemplate>
-                    </TreeView>
-                    <TextBlock Text="Swatches" Margin="4,4,4,0" DockPanel.Dock="Bottom"/>
-                    <ListBox x:Name="SwatchList" Margin="4" Height="80" DockPanel.Dock="Bottom"
-                             ItemsSource="{Binding Patterns}" SelectionChanged="SwatchList_OnSelectionChanged"/>
-                    <TextBlock Text="Artboards" Margin="4,4,4,0" DockPanel.Dock="Bottom"/>
-                    <ListBox x:Name="ArtboardList" Margin="4" Height="80" DockPanel.Dock="Bottom"
-                             ItemsSource="{Binding Artboards}" SelectionChanged="ArtboardList_OnSelectionChanged"/>
-                    <Grid>
-                        <TreeView x:Name="DocumentTree"
-                                  Margin="0,4,0,0"
-                                  ItemsSource="{Binding Nodes}"
-                                  SelectionChanged="DocumentTree_OnSelectionChanged">
-                            <TreeView.ItemTemplate>
-                                <TreeDataTemplate DataType="{x:Type local:SvgNode}"
-                                                  ItemsSource="{Binding Children}">
-                                    <DockPanel LastChildFill="True">
-                                        <ToggleButton DockPanel.Dock="Right"
-                                                      IsChecked="{Binding IsVisible}"
-                                                      Click="VisibilityToggle_Click"
-                                                      Width="16" Height="16" Margin="4,0,20,0">
-                                           <Path Fill="Black" Data="{Binding IsVisible, Converter={StaticResource EyeIconConverter}}"/>
-                                        </ToggleButton>
-                                        <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
-                                    </DockPanel>
-                                </TreeDataTemplate>
-                        </TreeView.ItemTemplate>
-                        </TreeView>
-                        <Border x:Name="DropIndicator"
-                                Background="#0078D7"
-                                Height="2"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Top"
-                                IsHitTestVisible="False"
-                                IsVisible="False"/>
-                    </Grid>
+                    <TabControl>
+                        <TabItem Header="SVG">
+                            <Grid>
+                                <TreeView x:Name="DocumentTree"
+                                          Margin="0,4,0,0"
+                                          ItemsSource="{Binding Nodes}"
+                                          SelectionChanged="DocumentTree_OnSelectionChanged">
+                                    <TreeView.ItemTemplate>
+                                        <TreeDataTemplate DataType="{x:Type local:SvgNode}"
+                                                          ItemsSource="{Binding Children}">
+                                            <DockPanel LastChildFill="True">
+                                                <ToggleButton DockPanel.Dock="Right"
+                                                              IsChecked="{Binding IsVisible}"
+                                                              Click="VisibilityToggle_Click"
+                                                              Width="16" Height="16" Margin="4,0,20,0">
+                                                    <Path Fill="Black" Data="{Binding IsVisible, Converter={StaticResource EyeIconConverter}}"/>
+                                                </ToggleButton>
+                                                <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
+                                            </DockPanel>
+                                        </TreeDataTemplate>
+                                    </TreeView.ItemTemplate>
+                                </TreeView>
+                                <Border x:Name="DropIndicator"
+                                        Background="#0078D7"
+                                        Height="2"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Top"
+                                        IsHitTestVisible="False"
+                                        IsVisible="False"/>
+                            </Grid>
+                        </TabItem>
+                        <TabItem Header="Artboards">
+                            <ListBox x:Name="ArtboardList" Margin="4" Height="80"
+                                     ItemsSource="{Binding Artboards}" SelectionChanged="ArtboardList_OnSelectionChanged"/>
+                        </TabItem>
+                        <TabItem Header="Swatches">
+                            <ListBox x:Name="SwatchList" Margin="4" Height="80"
+                                     ItemsSource="{Binding Patterns}" SelectionChanged="SwatchList_OnSelectionChanged"/>
+                        </TabItem>
+                        <TabItem Header="Layers">
+                            <DockPanel>
+                                <StackPanel Orientation="Horizontal" Margin="4" DockPanel.Dock="Top">
+                                    <Button Content="Add" Click="LayerAdd_Click" Margin="0,0,4,0"/>
+                                    <Button Content="Delete" Click="LayerDelete_Click" Margin="0,0,4,0"/>
+                                    <Button Content="Up" Click="LayerUp_Click" Margin="0,0,4,0"/>
+                                    <Button Content="Down" Click="LayerDown_Click" Margin="0,0,4,0"/>
+                                    <Button Content="Lock" Click="LayerLock_Click" Margin="0,0,4,0"/>
+                                    <Button Content="Unlock" Click="LayerUnlock_Click" Margin="0,0,4,0"/>
+                                </StackPanel>
+                                <TreeView x:Name="LayerTree" Margin="4" Height="100"
+                                          ItemsSource="{Binding Layers}" SelectionChanged="LayerTree_OnSelectionChanged">
+                                    <TreeView.ItemTemplate>
+                                        <TreeDataTemplate DataType="{x:Type services:LayerService+LayerEntry}">
+                                            <DockPanel>
+                                                <ToggleButton DockPanel.Dock="Right" IsChecked="{Binding Visible}" Width="16" Height="16" Margin="4,0,0,0" />
+                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                            </DockPanel>
+                                        </TreeDataTemplate>
+                                    </TreeView.ItemTemplate>
+                                </TreeView>
+                            </DockPanel>
+                        </TabItem>
+                    </TabControl>
                 </DockPanel>
             </Border>
             <GridSplitter Grid.Column="0" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
