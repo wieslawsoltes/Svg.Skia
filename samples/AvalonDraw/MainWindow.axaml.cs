@@ -514,6 +514,7 @@ public partial class MainWindow : Window
         }
 
         if ((_toolService.CurrentTool == Tool.Line || _toolService.CurrentTool == Tool.Rect || _toolService.CurrentTool == Tool.Circle || _toolService.CurrentTool == Tool.Ellipse ||
+             _toolService.CurrentTool == Tool.Text ||
              _toolService.CurrentTool == Tool.PathLine || _toolService.CurrentTool == Tool.PathCubic || _toolService.CurrentTool == Tool.PathQuadratic || _toolService.CurrentTool == Tool.PathArc || _toolService.CurrentTool == Tool.PathMove) &&
             e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
         {
@@ -2221,6 +2222,13 @@ public partial class MainWindow : Window
         _toolService.SetTool(Tool.Polyline);
     }
 
+    private void TextToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathService.IsEditing)
+            _pathService.Stop();
+        _toolService.SetTool(Tool.Text);
+    }
+
     private void PathLineToolButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_pathService.IsEditing)
@@ -2269,6 +2277,7 @@ public partial class MainWindow : Window
     private void EllipseToolMenuItem_Click(object? sender, RoutedEventArgs e) => EllipseToolButton_Click(sender, e);
     private void PolygonToolMenuItem_Click(object? sender, RoutedEventArgs e) => PolygonToolButton_Click(sender, e);
     private void PolylineToolMenuItem_Click(object? sender, RoutedEventArgs e) => PolylineToolButton_Click(sender, e);
+    private void TextToolMenuItem_Click(object? sender, RoutedEventArgs e) => TextToolButton_Click(sender, e);
     private void PathLineToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathLineToolButton_Click(sender, e);
     private void PathCubicToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathCubicToolButton_Click(sender, e);
     private void PathQuadraticToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathQuadraticToolButton_Click(sender, e);
@@ -2430,6 +2439,10 @@ public partial class MainWindow : Window
                     break;
                 case Key.O:
                     PolylineToolButton_Click(this, new RoutedEventArgs());
+                    e.Handled = true;
+                    break;
+                case Key.T:
+                    TextToolButton_Click(this, new RoutedEventArgs());
                     e.Handled = true;
                     break;
                 case Key.B:

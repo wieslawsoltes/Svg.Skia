@@ -71,6 +71,7 @@
                 <MenuItem Header="Ellipse" Click="EllipseToolMenuItem_Click" InputGesture="E"/>
                 <MenuItem Header="Polygon" Click="PolygonToolMenuItem_Click" InputGesture="P"/>
                 <MenuItem Header="Polyline" Click="PolylineToolMenuItem_Click" InputGesture="O"/>
+                <MenuItem Header="Text" Click="TextToolMenuItem_Click" InputGesture="T"/>
                 <Separator/>
                 <MenuItem Header="Path Line" Click="PathLineToolMenuItem_Click" InputGesture="B"/>
                 <MenuItem Header="Path Cubic" Click="PathCubicToolMenuItem_Click" InputGesture="J"/>
@@ -107,6 +108,7 @@
             <RadioButton Content="Ellipse" GroupName="tools" Margin="4,0" Click="EllipseToolButton_Click" />
             <RadioButton Content="Polygon" GroupName="tools" Margin="4,0" Click="PolygonToolButton_Click" />
             <RadioButton Content="Polyline" GroupName="tools" Margin="4,0" Click="PolylineToolButton_Click" />
+            <RadioButton Content="Text" GroupName="tools" Margin="4,0" Click="TextToolButton_Click" />
             <RadioButton Content="PLine" GroupName="tools" Margin="4,0" Click="PathLineToolButton_Click" />
             <RadioButton Content="PCubic" GroupName="tools" Margin="4,0" Click="PathCubicToolButton_Click" />
             <RadioButton Content="PQuad" GroupName="tools" Margin="4,0" Click="PathQuadraticToolButton_Click" />

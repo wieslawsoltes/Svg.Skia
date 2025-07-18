@@ -20,6 +20,7 @@ public class ToolService
         Ellipse,
         Polygon,
         Polyline,
+        Text,
         PathLine,
         PathCubic,
         PathQuadratic,
@@ -92,6 +93,12 @@ public class ToolService
                 },
                 Stroke = new SvgColourServer(System.Drawing.Color.Black),
                 StrokeWidth = new SvgUnit(1f)
+            },
+            Tool.Text => new SvgText
+            {
+                X = new SvgUnitCollection { new SvgUnit(SvgUnitType.User, start.X) },
+                Y = new SvgUnitCollection { new SvgUnit(SvgUnitType.User, start.Y) },
+                Text = "Text"
             },
             Tool.PathLine => CreatePath(start, Tool.PathLine),
             Tool.PathCubic => CreatePath(start, Tool.PathCubic),
@@ -197,6 +204,16 @@ public class ToolService
                     pl.Points[pl.Points.Count - 2] = new SvgUnit(pl.Points[0].Type, plx);
                     pl.Points[pl.Points.Count - 1] = new SvgUnit(pl.Points[1].Type, ply);
                 }
+                break;
+            case Tool.Text when element is SvgTextBase txt:
+                if (txt.X.Count == 0)
+                    txt.X.Add(new SvgUnit(SvgUnitType.User, 0));
+                if (txt.Y.Count == 0)
+                    txt.Y.Add(new SvgUnit(SvgUnitType.User, 0));
+                var tx = snapToGrid ? snap(current.X) : current.X;
+                var ty = snapToGrid ? snap(current.Y) : current.Y;
+                txt.X[0] = new SvgUnit(txt.X[0].Type, tx);
+                txt.Y[0] = new SvgUnit(txt.Y[0].Type, ty);
                 break;
             case Tool.PathLine when element is SvgPath p:
                 if (p.PathData.Count >= 2 && p.PathData[1] is SvgLineSegment lnSeg)
