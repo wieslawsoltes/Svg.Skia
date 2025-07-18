@@ -12,6 +12,7 @@ public class PropertiesService
     public ObservableCollection<PropertyEntry> Properties { get; } = new();
     public ObservableCollection<PropertyEntry> FilteredProperties { get; } = new();
     public ObservableCollection<string> Ids { get; } = new();
+    public ObservableCollection<AppearanceLayer> AppearanceLayers { get; } = new();
     private string _filter = string.Empty;
 
     public event Action<PropertyEntry>? EntryChanged;
@@ -88,7 +89,44 @@ public class PropertiesService
             Properties.Add(gEntry);
         }
 
+        LoadAppearanceLayers(element);
+
         ApplyFilter(_filter);
+    }
+
+    private void LoadAppearanceLayers(SvgElement element)
+    {
+        AppearanceLayers.Clear();
+        if (element is SvgVisualElement ve)
+        {
+            var converter = TypeDescriptor.GetConverter(typeof(SvgPaintServer));
+            var layer = new AppearanceLayer();
+            if (ve.Fill is { })
+            {
+                try
+                {
+                    layer.Fill = converter.ConvertToInvariantString(ve.Fill);
+                }
+                catch
+                {
+                    layer.Fill = ve.Fill.ToString();
+                }
+            }
+            if (ve.Stroke is { })
+            {
+                try
+                {
+                    layer.Stroke = converter.ConvertToInvariantString(ve.Stroke);
+                }
+                catch
+                {
+                    layer.Stroke = ve.Stroke.ToString();
+                }
+            }
+            layer.StrokeWidth = ve.StrokeWidth.Value;
+            layer.Effect = AppearanceEffect.None;
+            AppearanceLayers.Add(layer);
+        }
     }
 
     public void ApplyFilter(string filter)
@@ -116,6 +154,38 @@ public class PropertiesService
     {
         foreach (var entry in Properties)
             entry.Apply(element);
+
+        ApplyAppearanceLayers(element);
+    }
+
+    private void ApplyAppearanceLayers(SvgElement element)
+    {
+        if (AppearanceLayers.Count == 0 || element is not SvgVisualElement ve)
+            return;
+
+        var layer = AppearanceLayers[0];
+        var converter = TypeDescriptor.GetConverter(typeof(SvgPaintServer));
+        if (layer.Fill is { })
+        {
+            try
+            {
+                ve.Fill = (SvgPaintServer?)converter.ConvertFromInvariantString(layer.Fill);
+            }
+            catch
+            {
+            }
+        }
+        if (layer.Stroke is { })
+        {
+            try
+            {
+                ve.Stroke = (SvgPaintServer?)converter.ConvertFromInvariantString(layer.Stroke);
+            }
+            catch
+            {
+            }
+        }
+        ve.StrokeWidth = layer.StrokeWidth;
     }
 
     private void OnEntryChanged(object? sender, PropertyChangedEventArgs e)
