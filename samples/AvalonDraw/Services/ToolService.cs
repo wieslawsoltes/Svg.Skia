@@ -34,6 +34,8 @@ public class ToolService
 
     public Tool CurrentTool { get; private set; } = Tool.Select;
 
+    public float CurrentStrokeWidth { get; set; } = 1f;
+
     public event Action<Tool, Tool>? ToolChanged;
 
     public void SetTool(Tool tool)
@@ -60,7 +62,7 @@ public class ToolService
                 EndX = new SvgUnit(SvgUnitType.User, start.X),
                 EndY = new SvgUnit(SvgUnitType.User, start.Y),
                 Stroke = new SvgColourServer(System.Drawing.Color.Black),
-                StrokeWidth = new SvgUnit(1f)
+                StrokeWidth = new SvgUnit(CurrentStrokeWidth)
             },
             Tool.Rect => new SvgRectangle
             {
@@ -90,7 +92,7 @@ public class ToolService
                     new SvgUnit(SvgUnitType.User, start.X), new SvgUnit(SvgUnitType.User, start.Y)
                 },
                 Stroke = new SvgColourServer(System.Drawing.Color.Black),
-                StrokeWidth = new SvgUnit(1f)
+                StrokeWidth = new SvgUnit(CurrentStrokeWidth)
             },
             Tool.Polyline => new SvgPolyline
             {
@@ -100,7 +102,7 @@ public class ToolService
                     new SvgUnit(SvgUnitType.User, start.X), new SvgUnit(SvgUnitType.User, start.Y)
                 },
                 Stroke = new SvgColourServer(System.Drawing.Color.Black),
-                StrokeWidth = new SvgUnit(1f)
+                StrokeWidth = new SvgUnit(CurrentStrokeWidth)
             },
             Tool.Text => new SvgText
             {
@@ -144,12 +146,12 @@ public class ToolService
         };
     }
 
-    private static SvgPath CreatePath(ShimSkiaSharp.SKPoint start, Tool tool)
+    private SvgPath CreatePath(ShimSkiaSharp.SKPoint start, Tool tool)
     {
         var path = new SvgPath
         {
             Stroke = new SvgColourServer(System.Drawing.Color.Black),
-            StrokeWidth = new SvgUnit(1f)
+            StrokeWidth = new SvgUnit(CurrentStrokeWidth)
         };
         var list = new SvgPathSegmentList
         {
