@@ -358,6 +358,30 @@ public class PathService
         return pts;
     }
 
+    public static SvgPathSegmentList MakeSmooth(IList<Shim.SKPoint> points)
+    {
+        var list = new SvgPathSegmentList();
+        if (points.Count == 0)
+            return list;
+        list.Add(new SvgMoveToSegment(false, new System.Drawing.PointF(points[0].X, points[0].Y)));
+        if (points.Count == 1)
+            return list;
+        for (int i = 0; i < points.Count - 1; i++)
+        {
+            var p0 = i == 0 ? points[i] : points[i - 1];
+            var p1 = points[i];
+            var p2 = points[i + 1];
+            var p3 = i + 2 < points.Count ? points[i + 2] : p2;
+            var c1 = new Shim.SKPoint(p1.X + (p2.X - p0.X) / 6f, p1.Y + (p2.Y - p0.Y) / 6f);
+            var c2 = new Shim.SKPoint(p2.X - (p3.X - p1.X) / 6f, p2.Y - (p3.Y - p1.Y) / 6f);
+            list.Add(new SvgCubicCurveSegment(false,
+                new System.Drawing.PointF(c1.X, c1.Y),
+                new System.Drawing.PointF(c2.X, c2.Y),
+                new System.Drawing.PointF(p2.X, p2.Y)));
+        }
+        return list;
+    }
+
     public static void AddPathSegments(SK.SKPath path, SvgPathSegmentList segments)
     {
         var cur = new SK.SKPoint();

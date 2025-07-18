@@ -186,6 +186,8 @@ public partial class MainWindow : Window
     private readonly List<SvgVisualElement> _multiSelected = new();
     private readonly List<DrawableBase> _multiDrawables = new();
     private SK.SKRect _multiBounds = SK.SKRect.Empty;
+    private readonly List<Shim.SKPoint> _freehandPoints = new();
+    private TextBox? _strokeWidthBox;
 
     public MainWindow()
     {
@@ -347,6 +349,9 @@ public partial class MainWindow : Window
         _layerTree = this.FindControl<TreeView>("LayerTree");
         _swatchList = this.FindControl<ListBox>("SwatchList");
         _brushList = this.FindControl<ListBox>("BrushList");
+        _strokeWidthBox = this.FindControl<TextBox>("StrokeWidthBox");
+        if (_strokeWidthBox is { })
+            _strokeWidthBox.Text = _toolService.CurrentStrokeWidth.ToString(System.Globalization.CultureInfo.InvariantCulture);
         _wireframeEnabled = false;
         _filtersDisabled = false;
         _snapToGrid = false;
@@ -873,13 +878,28 @@ public partial class MainWindow : Window
         if (_creating && SvgView.TryGetPicturePoint(point, out var cp) && _newElement is { })
         {
             var cur = new Shim.SKPoint(cp.X, cp.Y);
-            _toolService.UpdateElement(_newElement, _toolService.CurrentTool,
-                _newStart, cur, _snapToGrid, _selectionService.Snap);
-            SvgView.SkSvg!.FromSvgDocument(_document);
-            UpdateSelectedDrawable();
-            if (_pathService.IsEditing)
-                _pathService.EditDrawable = _selectedDrawable;
-            SvgView.InvalidateVisual();
+            if (_toolService.CurrentTool == Tool.Freehand)
+            {
+                var last = _freehandPoints[^1];
+                if (Math.Abs(last.X - cur.X) > DragThreshold || Math.Abs(last.Y - cur.Y) > DragThreshold)
+                {
+                    _freehandPoints.Add(cur);
+                    _toolService.AddFreehandPoint(_newElement, cur, _snapToGrid, _selectionService.Snap);
+                    SvgView.SkSvg!.FromSvgDocument(_document);
+                    UpdateSelectedDrawable();
+                    SvgView.InvalidateVisual();
+                }
+            }
+            else
+            {
+                _toolService.UpdateElement(_newElement, _toolService.CurrentTool,
+                    _newStart, cur, _snapToGrid, _selectionService.Snap);
+                SvgView.SkSvg!.FromSvgDocument(_document);
+                UpdateSelectedDrawable();
+                if (_pathService.IsEditing)
+                    _pathService.EditDrawable = _selectedDrawable;
+                SvgView.InvalidateVisual();
+            }
             return;
         }
 
@@ -1217,12 +1237,20 @@ public partial class MainWindow : Window
                 _creating = false;
                 if (_newElement is { })
                 {
+                    if (_toolService.CurrentTool == Tool.Freehand && _newElement is SvgPath fp && _freehandPoints.Count > 1)
+                    {
+                        fp.PathData = PathService.MakeSmooth(_freehandPoints);
+                        if (_selectedBrush is { })
+                            fp.CustomAttributes["stroke-profile"] = _selectedBrush.Profile.ToString();
+                        SvgView.SkSvg!.FromSvgDocument(_document);
+                    }
                     LoadProperties(_newElement);
                     _selectedElement = _newElement;
                     _selectedSvgElement = _newElement;
                     UpdateSelectedDrawable();
                 }
                 _newElement = null;
+                _freehandPoints.Clear();
             }
         }
         else if (_isResizing)
@@ -2408,6 +2436,13 @@ public partial class MainWindow : Window
         _pathService.CurrentSegmentTool = PathService.SegmentTool.Move;
     }
 
+    private void FreehandToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathService.IsEditing)
+            _pathService.Stop();
+        _toolService.SetTool(Tool.Freehand);
+    }
+
     private async void SymbolToolButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_pathService.IsEditing)
@@ -2446,6 +2481,7 @@ public partial class MainWindow : Window
     private void PathArcToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathArcToolButton_Click(sender, e);
     private void PathMoveToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathMoveToolButton_Click(sender, e);
     private void SymbolToolMenuItem_Click(object? sender, RoutedEventArgs e) => SymbolToolButton_Click(sender, e);
+    private void FreehandToolMenuItem_Click(object? sender, RoutedEventArgs e) => FreehandToolButton_Click(sender, e);
 
     private async void SettingsMenuItem_Click(object? sender, RoutedEventArgs e)
     {
@@ -2693,6 +2729,15 @@ public partial class MainWindow : Window
         {
             _propertyFilter = tb.Text ?? string.Empty;
             ApplyPropertyFilter();
+        }
+    }
+
+    private void StrokeWidthBox_OnKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (sender is TextBox tb &&
+            float.TryParse(tb.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var w))
+        {
+            _toolService.CurrentStrokeWidth = w;
         }
     }
 
