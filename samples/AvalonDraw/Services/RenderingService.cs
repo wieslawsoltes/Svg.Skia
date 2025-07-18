@@ -3,6 +3,9 @@ using SK = SkiaSharp;
 using Svg.Model.Drawables;
 using Svg.Pathing;
 using Shim = ShimSkiaSharp;
+using static AvalonDraw.Services.SelectionService;
+
+// Provides rendering helpers for editor overlays
 
 namespace AvalonDraw.Services;
 
@@ -23,17 +26,6 @@ public class RenderingService
         _toolService = toolService;
     }
 
-    public record struct BoundsInfo(
-        SK.SKPoint TL,
-        SK.SKPoint TR,
-        SK.SKPoint BR,
-        SK.SKPoint BL,
-        SK.SKPoint TopMid,
-        SK.SKPoint RightMid,
-        SK.SKPoint BottomMid,
-        SK.SKPoint LeftMid,
-        SK.SKPoint Center,
-        SK.SKPoint RotHandle);
 
     public void Draw(SK.SKCanvas canvas,
         SK.SKPicture? picture,

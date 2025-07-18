@@ -145,6 +145,7 @@ public partial class MainWindow : Window
     private readonly PathService _pathService = new();
     private readonly RenderingService _renderingService;
     private readonly AlignService _alignService = new();
+    private readonly SelectionService _selectionService = new();
 
     private bool _polyEditing;
     private SvgVisualElement? _editPolyElement;
@@ -245,6 +246,8 @@ public partial class MainWindow : Window
         _snapToGrid = false;
         _showGrid = false;
         _gridSize = 10.0;
+        _selectionService.SnapToGrid = _snapToGrid;
+        _selectionService.GridSize = _gridSize;
         SvgView.Wireframe = false;
         if (SvgView.SkSvg is { } initSvg)
             initSvg.IgnoreAttributes = DrawAttributes.None;
@@ -452,7 +455,7 @@ public partial class MainWindow : Window
             {
                 SaveUndoState();
                 _toolService.FinalizePolygon(_newElement, _toolService.CurrentTool,
-                    new Shim.SKPoint((float)rp.X, (float)rp.Y), _snapToGrid, Snap);
+                    new Shim.SKPoint((float)rp.X, (float)rp.Y), _snapToGrid, _selectionService.Snap);
                 _creating = false;
                 LoadProperties(_newElement);
                 _selectedElement = _newElement;
@@ -473,8 +476,8 @@ public partial class MainWindow : Window
                 if (!_creating)
                 {
                     SaveUndoState();
-                    var sx = _snapToGrid ? Snap(p.X) : p.X;
-                    var sy = _snapToGrid ? Snap(p.Y) : p.Y;
+                    var sx = _snapToGrid ? _selectionService.Snap(p.X) : p.X;
+                    var sy = _snapToGrid ? _selectionService.Snap(p.Y) : p.Y;
                     _newStart = new Shim.SKPoint(sx, sy);
                     _newElement = _toolService.CreateElement(_toolService.CurrentTool, parent, _newStart);
                     if (_newElement is { })
@@ -489,8 +492,8 @@ public partial class MainWindow : Window
                         UpdateSelectedDrawable();
                         LoadProperties(_newElement);
                         SvgView.InvalidateVisual();
-                        _toolService.UpdateElement(_newElement, _toolService.CurrentTool,
-                            _newStart, _newStart, _snapToGrid, Snap);
+                    _toolService.UpdateElement(_newElement, _toolService.CurrentTool,
+                        _newStart, _newStart, _snapToGrid, _selectionService.Snap);
                         SvgView.SkSvg!.FromSvgDocument(_document);
                         _creating = true;
                     }
@@ -498,13 +501,13 @@ public partial class MainWindow : Window
                 else if (_newElement is { })
                 {
                     SaveUndoState();
-                    var x = _snapToGrid ? Snap(p.X) : p.X;
-                    var y = _snapToGrid ? Snap(p.Y) : p.Y;
+                    var x = _snapToGrid ? _selectionService.Snap(p.X) : p.X;
+                    var y = _snapToGrid ? _selectionService.Snap(p.Y) : p.Y;
                     _toolService.AddPolygonPoint(_newElement, _toolService.CurrentTool,
-                        new Shim.SKPoint((float)x, (float)y), _snapToGrid, Snap);
+                        new Shim.SKPoint((float)x, (float)y), _snapToGrid, _selectionService.Snap);
                     SvgView.SkSvg!.FromSvgDocument(_document);
                     _toolService.UpdateElement(_newElement, _toolService.CurrentTool,
-                        _newStart, new Shim.SKPoint((float)x, (float)y), _snapToGrid, Snap);
+                        _newStart, new Shim.SKPoint((float)x, (float)y), _snapToGrid, _selectionService.Snap);
                     SvgView.SkSvg!.FromSvgDocument(_document);
                     UpdateSelectedDrawable();
                     SvgView.InvalidateVisual();
@@ -567,7 +570,7 @@ public partial class MainWindow : Window
                         _rotateElement = _selectedElement;
                         _rotateStart = new SK.SKPoint(pp.X, pp.Y);
                         _rotateCenter = center;
-                        _startAngle = GetRotation(_rotateElement);
+                        _startAngle = _selectionService.GetRotation(_rotateElement);
                         e.Pointer.Capture(SvgView);
                         return;
                     }
@@ -585,8 +588,8 @@ public partial class MainWindow : Window
                     if (!_resizeMatrix.TryInvert(out _resizeInverse))
                         _resizeInverse = Shim.SKMatrix.CreateIdentity();
                     _resizeStartLocal = _resizeInverse.MapPoint(_resizeStart);
-                    (_startTransX, _startTransY) = GetTranslation(_resizeElement);
-                    (_startScaleX, _startScaleY) = GetScale(_resizeElement);
+                    (_startTransX, _startTransY) = _selectionService.GetTranslation(_resizeElement);
+                    (_startScaleX, _startScaleY) = _selectionService.GetScale(_resizeElement);
                     e.Pointer.Capture(SvgView);
                     return;
                 }
@@ -605,7 +608,7 @@ public partial class MainWindow : Window
             }
             if (_polyEditing)
             {
-                var idx = HitPolyPoint(new SK.SKPoint(pp.X, pp.Y));
+                var idx = _selectionService.HitPolyPoint(_polyPoints, _polyMatrix, new SK.SKPoint(pp.X, pp.Y), GetCanvasScale());
                 if (idx >= 0)
                 {
                     _activePolyPoint = idx;
@@ -721,7 +724,7 @@ public partial class MainWindow : Window
         {
             var cur = new Shim.SKPoint(cp.X, cp.Y);
             _toolService.UpdateElement(_newElement, _toolService.CurrentTool,
-                _newStart, cur, _snapToGrid, Snap);
+                _newStart, cur, _snapToGrid, _selectionService.Snap);
             SvgView.SkSvg!.FromSvgDocument(_document);
             UpdateSelectedDrawable();
             if (_pathService.IsEditing)
@@ -769,7 +772,7 @@ public partial class MainWindow : Window
         {
             var loc = _pathService.PathInverse.MapPoint(new Shim.SKPoint((float)ppe.X, (float)ppe.Y));
             if (_snapToGrid)
-                loc = new Shim.SKPoint(Snap(loc.X), Snap(loc.Y));
+                loc = new Shim.SKPoint(_selectionService.Snap(loc.X), _selectionService.Snap(loc.Y));
             _pathService.MoveActivePoint(loc);
             if (_document is { })
             {
@@ -785,7 +788,7 @@ public partial class MainWindow : Window
         {
             var loc = _polyInverse.MapPoint(new Shim.SKPoint((float)ppep.X, (float)ppep.Y));
             if (_snapToGrid)
-                loc = new Shim.SKPoint(Snap(loc.X), Snap(loc.Y));
+                loc = new Shim.SKPoint(_selectionService.Snap(loc.X), _selectionService.Snap(loc.Y));
             _polyPoints[_activePolyPoint] = loc;
             UpdatePolyPoint(_activePolyPoint, loc);
             SvgView.SkSvg!.FromSvgDocument(_document);
@@ -812,16 +815,16 @@ public partial class MainWindow : Window
                             var delta = Axis == 'x' ? dx : dy;
                             var val = Unit.Value + delta;
                             if (_snapToGrid)
-                                val = Snap(val);
+                                val = _selectionService.Snap(val);
                             Prop.SetValue(info.Element, new SvgUnit(Unit.Type, val));
                         }
                     }
                     else if (info.Element is SvgTextBase txt)
                     {
                         if (txt.X.Count > 0)
-                            txt.X[0] = new SvgUnit(txt.X[0].Type, _snapToGrid ? Snap(info.TextX + dx) : info.TextX + dx);
+                            txt.X[0] = new SvgUnit(txt.X[0].Type, _snapToGrid ? _selectionService.Snap(info.TextX + dx) : info.TextX + dx);
                         if (txt.Y.Count > 0)
-                            txt.Y[0] = new SvgUnit(txt.Y[0].Type, _snapToGrid ? Snap(info.TextY + dy) : info.TextY + dy);
+                            txt.Y[0] = new SvgUnit(txt.Y[0].Type, _snapToGrid ? _selectionService.Snap(info.TextY + dy) : info.TextY + dy);
                     }
                     else
                     {
@@ -829,10 +832,10 @@ public partial class MainWindow : Window
                         var ty = info.TransY + dy;
                         if (_snapToGrid)
                         {
-                            tx = Snap(tx);
-                            ty = Snap(ty);
+                            tx = _selectionService.Snap(tx);
+                            ty = _selectionService.Snap(ty);
                         }
-                        SetTranslation(info.Element, tx, ty);
+                        _selectionService.SetTranslation(info.Element, tx, ty);
                     }
                 }
                 SvgView.SkSvg!.FromSvgDocument(_document);
@@ -850,16 +853,16 @@ public partial class MainWindow : Window
                         var delta = Axis == 'x' ? dx : dy;
                         var val = Unit.Value + delta;
                         if (_snapToGrid)
-                            val = Snap(val);
+                            val = _selectionService.Snap(val);
                         Prop.SetValue(dragEl, new SvgUnit(Unit.Type, val));
                     }
                 }
                 else if (dragEl is SvgTextBase txt)
                 {
                     if (txt.X.Count > 0)
-                        txt.X[0] = new SvgUnit(txt.X[0].Type, _snapToGrid ? Snap(_dragTextX + dx) : _dragTextX + dx);
+                        txt.X[0] = new SvgUnit(txt.X[0].Type, _snapToGrid ? _selectionService.Snap(_dragTextX + dx) : _dragTextX + dx);
                     if (txt.Y.Count > 0)
-                        txt.Y[0] = new SvgUnit(txt.Y[0].Type, _snapToGrid ? Snap(_dragTextY + dy) : _dragTextY + dy);
+                        txt.Y[0] = new SvgUnit(txt.Y[0].Type, _snapToGrid ? _selectionService.Snap(_dragTextY + dy) : _dragTextY + dy);
                 }
                 else
                 {
@@ -867,10 +870,10 @@ public partial class MainWindow : Window
                     var ty = _dragTransY + dy;
                     if (_snapToGrid)
                     {
-                        tx = Snap(tx);
-                        ty = Snap(ty);
+                        tx = _selectionService.Snap(tx);
+                        ty = _selectionService.Snap(ty);
                     }
-                    SetTranslation(dragEl, tx, ty);
+                    _selectionService.SetTranslation(dragEl, tx, ty);
                 }
                 SvgView.SkSvg!.FromSvgDocument(_document);
                 UpdateSelectedDrawable();
@@ -881,7 +884,7 @@ public partial class MainWindow : Window
                 var local = _resizeInverse.MapPoint(new Shim.SKPoint(skp.X, skp.Y));
                 var dx = local.X - _resizeStartLocal.X;
                 var dy = local.Y - _resizeStartLocal.Y;
-                ResizeElement(_resizeElement, _resizeHandle, dx, dy);
+                _selectionService.ResizeElement(_resizeElement, _resizeHandle, dx, dy, _startRect, _startTransX, _startTransY, _startScaleX, _startScaleY);
                 SvgView.SkSvg!.FromSvgDocument(_document);
                 UpdateSelectedDrawable();
                 SvgView.InvalidateVisual();
@@ -891,7 +894,7 @@ public partial class MainWindow : Window
                 var a1 = Math.Atan2(_rotateStart.Y - _rotateCenter.Y, _rotateStart.X - _rotateCenter.X);
                 var a2 = Math.Atan2(skp.Y - _rotateCenter.Y, skp.X - _rotateCenter.X);
                 var delta = (float)((a2 - a1) * 180.0 / Math.PI);
-                SetRotation(_rotateElement, _startAngle + delta, _rotateCenter);
+                _selectionService.SetRotation(_rotateElement, _startAngle + delta, _rotateCenter);
                 SvgView.SkSvg!.FromSvgDocument(_document);
                 UpdateSelectedDrawable();
                 SvgView.InvalidateVisual();
@@ -1106,7 +1109,7 @@ public partial class MainWindow : Window
             _multiDragInfos = new List<DragInfo>();
             foreach (var el in _multiSelected)
             {
-                if (GetDragProperties(el, out var p))
+                if (_selectionService.GetDragProperties(el, out var p))
                 {
                     _multiDragInfos.Add(new DragInfo
                     {
@@ -1126,7 +1129,7 @@ public partial class MainWindow : Window
                 }
                 else
                 {
-                    var (tx, ty) = GetTranslation(el);
+                    var (tx, ty) = _selectionService.GetTranslation(el);
                     _multiDragInfos.Add(new DragInfo
                     {
                         Element = el,
@@ -1144,7 +1147,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (GetDragProperties(element, out var props))
+        if (_selectionService.GetDragProperties(element, out var props))
         {
             SaveUndoState();
             _dragProps = props;
@@ -1167,59 +1170,14 @@ public partial class MainWindow : Window
         }
         else
         {
-            var (tx, ty) = GetTranslation(element);
+            var (tx, ty) = _selectionService.GetTranslation(element);
             _dragTransX = tx;
             _dragTransY = ty;
         }
         pointer.Capture(SvgView);
     }
 
-    private static bool GetDragProperties(SvgVisualElement element, out List<(PropertyInfo Prop, SvgUnit Unit, char Axis)> props)
-    {
-        var list = new List<(PropertyInfo Prop, SvgUnit Unit, char Axis)>();
-        switch (element)
-        {
-            case SvgRectangle rect:
-            case Svg.SvgImage img:
-            case SvgUse use:
-                Add("X", 'x');
-                Add("Y", 'y');
-                break;
-            case SvgCircle circle:
-            case SvgEllipse ellipse:
-                Add("CenterX", 'x');
-                Add("CenterY", 'y');
-                break;
-            case SvgLine line:
-                Add("StartX", 'x');
-                Add("StartY", 'y');
-                Add("EndX", 'x');
-                Add("EndY", 'y');
-                break;
-            case SvgTextBase:
-                props = null!;
-                return false;
-            case SvgPath:
-                props = null!;
-                return false;
-            default:
-                props = null!;
-                return false;
-        }
-        props = list;
-        return props.Count > 0;
-
-        void Add(string name, char axis)
-        {
-            var p = element.GetType().GetProperty(name);
-            if (p != null && p.PropertyType == typeof(SvgUnit))
-            {
-                var unit = (SvgUnit)p.GetValue(element)!;
-                list.Add((p, unit, axis));
-            }
-        }
-    }
-
+    
 
 
     private float GetCanvasScale(SkiaSharp.SKCanvas? canvas = null)
@@ -1256,268 +1214,17 @@ public partial class MainWindow : Window
 
     private static SK.SKPoint Mid(SK.SKPoint a, SK.SKPoint b) => new((a.X + b.X) / 2f, (a.Y + b.Y) / 2f);
 
-    private RenderingService.BoundsInfo GetBoundsInfo(DrawableBase drawable)
-    {
-        var rect = drawable.GeometryBounds;
-        var m = drawable.TotalTransform;
-        var tl = SvgView.SkSvg!.SkiaModel.ToSKPoint(m.MapPoint(new Shim.SKPoint(rect.Left, rect.Top)));
-        var tr = SvgView.SkSvg!.SkiaModel.ToSKPoint(m.MapPoint(new Shim.SKPoint(rect.Right, rect.Top)));
-        var br = SvgView.SkSvg!.SkiaModel.ToSKPoint(m.MapPoint(new Shim.SKPoint(rect.Right, rect.Bottom)));
-        var bl = SvgView.SkSvg!.SkiaModel.ToSKPoint(m.MapPoint(new Shim.SKPoint(rect.Left, rect.Bottom)));
-        var topMid = Mid(tl, tr);
-        var rightMid = Mid(tr, br);
-        var bottomMid = Mid(br, bl);
-        var leftMid = Mid(bl, tl);
-        var center = Mid(tl, br);
-        var edge = new SK.SKPoint(tr.X - tl.X, tr.Y - tl.Y);
-        var len = (float)Math.Sqrt(edge.X * edge.X + edge.Y * edge.Y);
-        var normal = len > 0
-            ? new SK.SKPoint(edge.Y / len, -edge.X / len)
-            : new SK.SKPoint(0, -1);
-        var scale = GetCanvasScale();
-        var rotHandle = new SK.SKPoint(topMid.X + normal.X * 20f / scale, topMid.Y + normal.Y * 20f / scale);
-        return new RenderingService.BoundsInfo
-        {
-            TL = tl,
-            TR = tr,
-            BR = br,
-            BL = bl,
-            TopMid = topMid,
-            RightMid = rightMid,
-            BottomMid = bottomMid,
-            LeftMid = leftMid,
-            Center = center,
-            RotHandle = rotHandle
-        };
-    }
+    private SelectionService.BoundsInfo GetBoundsInfo(DrawableBase drawable)
+        => _selectionService.GetBoundsInfo(drawable, SvgView.SkSvg!, () => GetCanvasScale());
 
-    private int HitHandle(RenderingService.BoundsInfo b, SK.SKPoint pt, out SK.SKPoint center)
-    {
-        center = new SK.SKPoint(b.Center.X, b.Center.Y);
-        var scale = GetCanvasScale();
-        var hs = HandleSize / 2f / scale;
-        var handlePts = new[] { b.TL, b.TopMid, b.TR, b.RightMid, b.BR, b.BottomMid, b.BL, b.LeftMid };
-        for (int i = 0; i < handlePts.Length; i++)
-        {
-            var r = new SK.SKRect(handlePts[i].X - hs, handlePts[i].Y - hs, handlePts[i].X + hs, handlePts[i].Y + hs);
-            if (r.Contains(pt))
-                return i;
-        }
-        if (SK.SKPoint.Distance(b.RotHandle, pt) <= HandleSize / scale)
-            return 8;
-        return -1;
-    }
-
-
-    private float GetRotation(SvgVisualElement? element)
-    {
-        if (element?.Transforms is { } t)
-        {
-            var rot = t.OfType<Svg.Transforms.SvgRotate>().FirstOrDefault();
-            return rot?.Angle ?? 0f;
-        }
-        return 0f;
-    }
-
-    private void SetRotation(SvgVisualElement element, float angle, SK.SKPoint center)
-    {
-        if (element.Transforms == null)
-            element.Transforms = new SvgTransformCollection();
-        var rot = element.Transforms.OfType<SvgRotate>().FirstOrDefault();
-        if (rot != null)
-        {
-            rot.Angle = angle;
-            rot.CenterX = center.X;
-            rot.CenterY = center.Y;
-        }
-        else
-        {
-            element.Transforms.Add(new SvgRotate(angle, center.X, center.Y));
-        }
-    }
-
-    private (float X, float Y) GetTranslation(SvgVisualElement? element)
-    {
-        if (element?.Transforms is { } t)
-        {
-            var tr = t.OfType<Svg.Transforms.SvgTranslate>().FirstOrDefault();
-            if (tr is { })
-                return (tr.X, tr.Y);
-        }
-        return (0f, 0f);
-    }
-
-    private void SetTranslation(SvgVisualElement element, float x, float y)
-    {
-        if (_snapToGrid)
-        {
-            x = Snap(x);
-            y = Snap(y);
-        }
-        if (element.Transforms == null)
-            element.Transforms = new SvgTransformCollection();
-        var tr = element.Transforms.OfType<SvgTranslate>().FirstOrDefault();
-        if (tr != null)
-        {
-            tr.X = x;
-            tr.Y = y;
-        }
-        else
-        {
-            element.Transforms.Add(new SvgTranslate(x, y));
-        }
-    }
-
-    private (float X, float Y) GetScale(SvgVisualElement? element)
-    {
-        if (element?.Transforms is { } t)
-        {
-            var sc = t.OfType<SvgScale>().FirstOrDefault();
-            if (sc is { })
-                return (sc.X, sc.Y);
-        }
-        return (1f, 1f);
-    }
-
-    private void SetScale(SvgVisualElement element, float x, float y)
-    {
-        if (element.Transforms == null)
-            element.Transforms = new SvgTransformCollection();
-        var sc = element.Transforms.OfType<SvgScale>().FirstOrDefault();
-        if (sc != null)
-        {
-            sc.X = x;
-            sc.Y = y;
-        }
-        else
-        {
-            element.Transforms.Add(new SvgScale(x, y));
-        }
-    }
-
-    private float Snap(float value)
-    {
-        if (!_snapToGrid || _gridSize <= 0)
-            return value;
-        return (float)(Math.Round(value / _gridSize) * _gridSize);
-    }
-
-
-    private void ResizeElement(SvgVisualElement element, int handle, float dx, float dy)
-    {
-        switch (element)
-        {
-            case SvgRectangle rect:
-            case Svg.SvgImage img:
-            case SvgUse use:
-                ResizeBox((dynamic)element, handle, dx, dy);
-                break;
-            case SvgCircle circle:
-                ResizeCircle(circle, handle, dx, dy);
-                break;
-            case SvgPath path:
-                ResizePath(path, handle, dx, dy);
-                break;
-        }
-
-        void ResizeBox(dynamic el, int h, float ddx, float ddy)
-        {
-            float x = el.X.Value;
-            float y = el.Y.Value;
-            float w = el.Width.Value;
-            float hgt = el.Height.Value;
-            switch (h)
-            {
-                case 0: x = _startRect.Left + ddx; y = _startRect.Top + ddy; w = _startRect.Right - x; hgt = _startRect.Bottom - y; break;
-                case 1: y = _startRect.Top + ddy; hgt = _startRect.Bottom - y; break;
-                case 2: y = _startRect.Top + ddy; w = _startRect.Width + ddx; hgt = _startRect.Bottom - y; break;
-                case 3: w = _startRect.Width + ddx; break;
-                case 4: w = _startRect.Width + ddx; hgt = _startRect.Height + ddy; break;
-                case 5: hgt = _startRect.Height + ddy; break;
-                case 6: x = _startRect.Left + ddx; w = _startRect.Right - x; hgt = _startRect.Height + ddy; break;
-                case 7: x = _startRect.Left + ddx; w = _startRect.Right - x; break;
-            }
-            if (_snapToGrid)
-            {
-                x = Snap(x);
-                y = Snap(y);
-                w = Snap(w);
-                hgt = Snap(hgt);
-            }
-            el.X = new SvgUnit(el.X.Type, x);
-            el.Y = new SvgUnit(el.Y.Type, y);
-            el.Width = new SvgUnit(el.Width.Type, w);
-            el.Height = new SvgUnit(el.Height.Type, hgt);
-        }
-
-        void ResizeCircle(SvgCircle c, int h, float ddx, float ddy)
-        {
-            float x = _startRect.Left;
-            float y = _startRect.Top;
-            float w = _startRect.Width;
-            float hgt = _startRect.Height;
-            switch (h)
-            {
-                case 0: x += ddx; y += ddy; w = _startRect.Right - x; hgt = _startRect.Bottom - y; break;
-                case 1: y += ddy; hgt = _startRect.Bottom - y; break;
-                case 2: y += ddy; w += ddx; hgt = _startRect.Bottom - y; break;
-                case 3: w += ddx; break;
-                case 4: w += ddx; hgt += ddy; break;
-                case 5: hgt += ddy; break;
-                case 6: x += ddx; w = _startRect.Right - x; hgt += ddy; break;
-                case 7: x += ddx; w = _startRect.Right - x; break;
-            }
-            var cx = x + w / 2f;
-            var cy = y + hgt / 2f;
-            var r = Math.Max(w, hgt) / 2f;
-            if (_snapToGrid)
-            {
-                cx = Snap(cx);
-                cy = Snap(cy);
-                r = Snap(r);
-            }
-            c.CenterX = new SvgUnit(c.CenterX.Type, cx);
-            c.CenterY = new SvgUnit(c.CenterY.Type, cy);
-            c.Radius = new SvgUnit(c.Radius.Type, r);
-        }
-
-        void ResizePath(SvgPath p, int h, float ddx, float ddy)
-        {
-            float x = _startRect.Left;
-            float y = _startRect.Top;
-            float w = _startRect.Width;
-            float hgt = _startRect.Height;
-            switch (h)
-            {
-                case 0: x += ddx; y += ddy; w = _startRect.Right - x; hgt = _startRect.Bottom - y; break;
-                case 1: y += ddy; hgt = _startRect.Bottom - y; break;
-                case 2: y += ddy; w += ddx; hgt = _startRect.Bottom - y; break;
-                case 3: w += ddx; break;
-                case 4: w += ddx; hgt += ddy; break;
-                case 5: hgt += ddy; break;
-                case 6: x += ddx; w = _startRect.Right - x; hgt += ddy; break;
-                case 7: x += ddx; w = _startRect.Right - x; break;
-            }
-            if (_snapToGrid)
-            {
-                x = Snap(x); y = Snap(y); w = Snap(w); hgt = Snap(hgt);
-            }
-            if (w == 0) w = 0.01f; if (hgt == 0) hgt = 0.01f;
-            var sx = w / _startRect.Width;
-            var sy = hgt / _startRect.Height;
-            var tx = x - _startRect.Left;
-            var ty = y - _startRect.Top;
-            SetScale(p, _startScaleX * sx, _startScaleY * sy);
-            SetTranslation(p, _startTransX + tx, _startTransY + ty);
-        }
-    }
-
+    private int HitHandle(SelectionService.BoundsInfo b, SK.SKPoint pt, out SK.SKPoint center)
+        => _selectionService.HitHandle(b, pt, GetCanvasScale(), out center);
     private void UpdateNewElement(Shim.SKPoint current)
     {
         if (_newElement is null)
             return;
         _toolService.UpdateElement(_newElement, _toolService.CurrentTool,
-            _newStart, current, _snapToGrid, Snap);
+            _newStart, current, _snapToGrid, _selectionService.Snap);
     }
 
     private void SvgView_OnDraw(object? sender, SKSvgDrawEventArgs e)
@@ -1692,7 +1399,7 @@ public partial class MainWindow : Window
                 if (d is { })
                 {
                     _multiDrawables.Add(d);
-                    var b = GetBoundsRect(GetBoundsInfo(d));
+                    var b = SelectionService.GetBoundsRect(GetBoundsInfo(d));
                     _multiBounds = _multiBounds.IsEmpty ? b : SK.SKRect.Union(_multiBounds, b);
                 }
             }
@@ -1712,15 +1419,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private static SK.SKRect GetBoundsRect(RenderingService.BoundsInfo b)
-    {
-        var left = Math.Min(Math.Min(b.TL.X, b.TR.X), Math.Min(b.BL.X, b.BR.X));
-        var top = Math.Min(Math.Min(b.TL.Y, b.TR.Y), Math.Min(b.BL.Y, b.BR.Y));
-        var right = Math.Max(Math.Max(b.TL.X, b.TR.X), Math.Max(b.BL.X, b.BR.X));
-        var bottom = Math.Max(Math.Max(b.TL.Y, b.TR.Y), Math.Max(b.BL.Y, b.BR.Y));
-        return new SK.SKRect(left, top, right, bottom);
-    }
-
+    
     private SvgNode? FindNode(SvgNode node, SvgElement element)
     {
         if (node.Element == element)
@@ -1871,20 +1570,7 @@ public partial class MainWindow : Window
         _activePolyPoint = -1;
     }
 
-    private int HitPolyPoint(SK.SKPoint pt)
-    {
-        var scale = GetCanvasScale();
-        var hs = HandleSize / 2f / scale;
-        for (int i = 0; i < _polyPoints.Count; i++)
-        {
-            var p = _polyMatrix.MapPoint(_polyPoints[i]);
-            var r = new SK.SKRect(p.X - hs, p.Y - hs, p.X + hs, p.Y + hs);
-            if (r.Contains(pt))
-                return i;
-        }
-        return -1;
-    }
-
+    
 
     private static bool IsAncestor(SvgNode parent, SvgNode child)
     {
@@ -2293,6 +1979,8 @@ public partial class MainWindow : Window
             _snapToGrid = win.SnapToGrid;
             _showGrid = win.ShowGrid;
             _gridSize = win.GridSize;
+            _selectionService.SnapToGrid = _snapToGrid;
+            _selectionService.GridSize = _gridSize;
             SvgView.InvalidateVisual();
         }
     }
