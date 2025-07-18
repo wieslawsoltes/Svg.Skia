@@ -2983,6 +2983,8 @@ public partial class MainWindow : Window
     private void AlignBottomMenuItem_Click(object? sender, RoutedEventArgs e) => AlignSelected(AlignService.AlignType.Bottom);
     private void DistributeHMenuItem_Click(object? sender, RoutedEventArgs e) => DistributeSelected(AlignService.DistributeType.Horizontal);
     private void DistributeVMenuItem_Click(object? sender, RoutedEventArgs e) => DistributeSelected(AlignService.DistributeType.Vertical);
+    private void FlipHMenuItem_Click(object? sender, RoutedEventArgs e) => FlipSelected(true);
+    private void FlipVMenuItem_Click(object? sender, RoutedEventArgs e) => FlipSelected(false);
     private void NewLayerMenuItem_Click(object? sender, RoutedEventArgs e) => LayerAdd();
     private void DeleteLayerMenuItem_Click(object? sender, RoutedEventArgs e) => LayerDelete();
     private void MoveLayerUpMenuItem_Click(object? sender, RoutedEventArgs e) => LayerUp();
@@ -3036,6 +3038,40 @@ public partial class MainWindow : Window
         SaveUndoState();
         _alignService.Distribute(list, type);
         SvgView.SkSvg!.FromSvgDocument(_document);
+        UpdateSelectedDrawable();
+        SvgView.InvalidateVisual();
+    }
+
+    private void FlipSelected(bool horizontal)
+    {
+        if (_document is null || SvgView.SkSvg is null)
+            return;
+
+        var list = new List<(SvgVisualElement Element, DrawableBase Drawable)>();
+        if (_toolService.CurrentTool == Tool.MultiSelect && _multiSelected.Count > 0)
+        {
+            for (int i = 0; i < _multiSelected.Count && i < _multiDrawables.Count; i++)
+                list.Add((_multiSelected[i], _multiDrawables[i]));
+        }
+        else if (_selectedElement is { } el && _selectedDrawable is { } dr)
+        {
+            list.Add((el, dr));
+        }
+
+        if (list.Count == 0)
+            return;
+
+        SaveUndoState();
+        foreach (var (el, drawable) in list)
+        {
+            var center = _selectionService.GetBoundsInfo(drawable, SvgView.SkSvg, () => GetCanvasScale()).Center;
+            if (horizontal)
+                _selectionService.FlipHorizontal(el, center);
+            else
+                _selectionService.FlipVertical(el, center);
+        }
+
+        SvgView.SkSvg.FromSvgDocument(_document);
         UpdateSelectedDrawable();
         SvgView.InvalidateVisual();
     }

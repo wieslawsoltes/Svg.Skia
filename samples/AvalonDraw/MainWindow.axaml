@@ -109,6 +109,9 @@
                 <Separator/>
                 <MenuItem Header="Distribute Horizontal" Click="DistributeHMenuItem_Click"/>
                 <MenuItem Header="Distribute Vertical" Click="DistributeVMenuItem_Click"/>
+                <Separator/>
+                <MenuItem Header="Flip Horizontal" Click="FlipHMenuItem_Click"/>
+                <MenuItem Header="Flip Vertical" Click="FlipVMenuItem_Click"/>
             </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Wireframe" Click="WireframeMenuItem_Click"/>
