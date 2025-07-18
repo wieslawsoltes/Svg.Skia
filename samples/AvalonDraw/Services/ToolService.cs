@@ -21,6 +21,8 @@ public class ToolService
         Polygon,
         Polyline,
         Text,
+        TextPath,
+        TextArea,
         PathLine,
         PathCubic,
         PathQuadratic,
@@ -43,6 +45,7 @@ public class ToolService
     }
 
     public string? SymbolId { get; set; }
+    public string? ReferenceId { get; set; }
 
     public SvgVisualElement? CreateElement(Tool tool, SvgElement parent, ShimSkiaSharp.SKPoint start)
     {
@@ -101,6 +104,19 @@ public class ToolService
             {
                 X = new SvgUnitCollection { new SvgUnit(SvgUnitType.User, start.X) },
                 Y = new SvgUnitCollection { new SvgUnit(SvgUnitType.User, start.Y) },
+                Text = "Text"
+            },
+            Tool.TextPath when !string.IsNullOrEmpty(ReferenceId) => new SvgTextPath
+            {
+                ReferencedPath = new Uri($"#{ReferenceId}", UriKind.Relative),
+                StartOffset = new SvgUnit(SvgUnitType.User, 0),
+                Text = "Text"
+            },
+            Tool.TextArea when !string.IsNullOrEmpty(ReferenceId) => new SvgText
+            {
+                X = new SvgUnitCollection { new SvgUnit(SvgUnitType.User, start.X) },
+                Y = new SvgUnitCollection { new SvgUnit(SvgUnitType.User, start.Y) },
+                ClipPath = new Uri($"#{ReferenceId}", UriKind.Relative),
                 Text = "Text"
             },
             Tool.PathLine => CreatePath(start, Tool.PathLine),
@@ -223,6 +239,20 @@ public class ToolService
                 var ty = snapToGrid ? snap(current.Y) : current.Y;
                 txt.X[0] = new SvgUnit(txt.X[0].Type, tx);
                 txt.Y[0] = new SvgUnit(txt.Y[0].Type, ty);
+                break;
+            case Tool.TextPath when element is SvgTextPath tp:
+                var so = snapToGrid ? snap(current.X) : current.X;
+                tp.StartOffset = new SvgUnit(tp.StartOffset.Type, so);
+                break;
+            case Tool.TextArea when element is SvgText tArea:
+                if (tArea.X.Count == 0)
+                    tArea.X.Add(new SvgUnit(SvgUnitType.User, 0));
+                if (tArea.Y.Count == 0)
+                    tArea.Y.Add(new SvgUnit(SvgUnitType.User, 0));
+                var tax = snapToGrid ? snap(current.X) : current.X;
+                var tay = snapToGrid ? snap(current.Y) : current.Y;
+                tArea.X[0] = new SvgUnit(tArea.X[0].Type, tax);
+                tArea.Y[0] = new SvgUnit(tArea.Y[0].Type, tay);
                 break;
             case Tool.PathLine when element is SvgPath p:
                 if (p.PathData.Count >= 2 && p.PathData[1] is SvgLineSegment lnSeg)

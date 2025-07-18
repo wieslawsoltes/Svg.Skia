@@ -545,7 +545,8 @@ public partial class MainWindow : Window
         }
 
         if ((_toolService.CurrentTool == Tool.Line || _toolService.CurrentTool == Tool.Rect || _toolService.CurrentTool == Tool.Circle || _toolService.CurrentTool == Tool.Ellipse ||
-             _toolService.CurrentTool == Tool.Text || _toolService.CurrentTool == Tool.Symbol ||
+             _toolService.CurrentTool == Tool.Text || _toolService.CurrentTool == Tool.TextPath || _toolService.CurrentTool == Tool.TextArea ||
+             _toolService.CurrentTool == Tool.Symbol ||
              _toolService.CurrentTool == Tool.PathLine || _toolService.CurrentTool == Tool.PathCubic || _toolService.CurrentTool == Tool.PathQuadratic || _toolService.CurrentTool == Tool.PathArc || _toolService.CurrentTool == Tool.PathMove) &&
             e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
         {
@@ -2024,6 +2025,28 @@ public partial class MainWindow : Window
         _toolService.SetTool(Tool.Text);
     }
 
+    private void TextPathToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathService.IsEditing)
+            _pathService.Stop();
+        if (_selectedSvgElement is SvgVisualElement ve && !string.IsNullOrEmpty(ve.ID))
+            _toolService.ReferenceId = ve.ID;
+        else
+            _toolService.ReferenceId = null;
+        _toolService.SetTool(Tool.TextPath);
+    }
+
+    private void TextAreaToolButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_pathService.IsEditing)
+            _pathService.Stop();
+        if (_selectedSvgElement is SvgVisualElement ve && !string.IsNullOrEmpty(ve.ID))
+            _toolService.ReferenceId = ve.ID;
+        else
+            _toolService.ReferenceId = null;
+        _toolService.SetTool(Tool.TextArea);
+    }
+
     private void PathLineToolButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_pathService.IsEditing)
@@ -2090,6 +2113,8 @@ public partial class MainWindow : Window
     private void PolygonToolMenuItem_Click(object? sender, RoutedEventArgs e) => PolygonToolButton_Click(sender, e);
     private void PolylineToolMenuItem_Click(object? sender, RoutedEventArgs e) => PolylineToolButton_Click(sender, e);
     private void TextToolMenuItem_Click(object? sender, RoutedEventArgs e) => TextToolButton_Click(sender, e);
+    private void TextPathToolMenuItem_Click(object? sender, RoutedEventArgs e) => TextPathToolButton_Click(sender, e);
+    private void TextAreaToolMenuItem_Click(object? sender, RoutedEventArgs e) => TextAreaToolButton_Click(sender, e);
     private void PathLineToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathLineToolButton_Click(sender, e);
     private void PathCubicToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathCubicToolButton_Click(sender, e);
     private void PathQuadraticToolMenuItem_Click(object? sender, RoutedEventArgs e) => PathQuadraticToolButton_Click(sender, e);

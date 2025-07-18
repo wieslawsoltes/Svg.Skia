@@ -74,6 +74,8 @@
                 <MenuItem Header="Polygon" Click="PolygonToolMenuItem_Click" InputGesture="P"/>
                 <MenuItem Header="Polyline" Click="PolylineToolMenuItem_Click" InputGesture="O"/>
                 <MenuItem Header="Text" Click="TextToolMenuItem_Click" InputGesture="T"/>
+                <MenuItem Header="Text Path" Click="TextPathToolMenuItem_Click" InputGesture="K"/>
+                <MenuItem Header="Text Area" Click="TextAreaToolMenuItem_Click" InputGesture="H"/>
                 <MenuItem Header="Symbol" Click="SymbolToolMenuItem_Click" InputGesture="U"/>
                 <Separator/>
                 <MenuItem Header="Path Line" Click="PathLineToolMenuItem_Click" InputGesture="B"/>
@@ -112,6 +114,8 @@
             <RadioButton Content="Polygon" GroupName="tools" Margin="4,0" Click="PolygonToolButton_Click" />
             <RadioButton Content="Polyline" GroupName="tools" Margin="4,0" Click="PolylineToolButton_Click" />
             <RadioButton Content="Text" GroupName="tools" Margin="4,0" Click="TextToolButton_Click" />
+            <RadioButton Content="TextPath" GroupName="tools" Margin="4,0" Click="TextPathToolButton_Click" />
+            <RadioButton Content="TextArea" GroupName="tools" Margin="4,0" Click="TextAreaToolButton_Click" />
             <RadioButton Content="Symbol" GroupName="tools" Margin="4,0" Click="SymbolToolButton_Click" />
             <RadioButton Content="PLine" GroupName="tools" Margin="4,0" Click="PathLineToolButton_Click" />
             <RadioButton Content="PCubic" GroupName="tools" Margin="4,0" Click="PathCubicToolButton_Click" />
