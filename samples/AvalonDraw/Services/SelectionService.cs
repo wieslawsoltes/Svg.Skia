@@ -198,6 +198,22 @@ public class SelectionService
         }
     }
 
+    public void FlipHorizontal(SvgVisualElement element, SK.SKPoint center)
+    {
+        element.Transforms ??= new SvgTransformCollection();
+        element.Transforms.Add(new SvgTranslate(center.X, center.Y));
+        element.Transforms.Add(new SvgScale(-1, 1));
+        element.Transforms.Add(new SvgTranslate(-center.X, -center.Y));
+    }
+
+    public void FlipVertical(SvgVisualElement element, SK.SKPoint center)
+    {
+        element.Transforms ??= new SvgTransformCollection();
+        element.Transforms.Add(new SvgTranslate(center.X, center.Y));
+        element.Transforms.Add(new SvgScale(1, -1));
+        element.Transforms.Add(new SvgTranslate(-center.X, -center.Y));
+    }
+
     public float Snap(float value)
     {
         if (!SnapToGrid || GridSize <= 0)
