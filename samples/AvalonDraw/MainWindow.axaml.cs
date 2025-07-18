@@ -2989,6 +2989,8 @@ public partial class MainWindow : Window
     private void MoveLayerDownMenuItem_Click(object? sender, RoutedEventArgs e) => LayerDown();
     private void LockLayerMenuItem_Click(object? sender, RoutedEventArgs e) => LayerLock();
     private void UnlockLayerMenuItem_Click(object? sender, RoutedEventArgs e) => LayerUnlock();
+    private void BringForwardMenuItem_Click(object? sender, RoutedEventArgs e) => BringForward();
+    private void SendBackwardMenuItem_Click(object? sender, RoutedEventArgs e) => SendBackward();
     private void LayerAdd_Click(object? sender, RoutedEventArgs e) => LayerAdd();
     private void LayerDelete_Click(object? sender, RoutedEventArgs e) => LayerDelete();
     private void LayerUp_Click(object? sender, RoutedEventArgs e) => LayerUp();
@@ -3129,6 +3131,36 @@ public partial class MainWindow : Window
         if (_selectedLayer is null)
             return;
         _selectedLayer.Locked = false;
+    }
+
+    private void BringForward()
+    {
+        if (_document is null || _selectedSvgElement is not SvgElement { Parent: { } parent })
+            return;
+        var index = parent.Children.IndexOf(_selectedSvgElement);
+        if (index < 0 || index >= parent.Children.Count - 1)
+            return;
+        SaveUndoState();
+        parent.Children.RemoveAt(index);
+        parent.Children.Insert(index + 1, _selectedSvgElement);
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        BuildTree();
+        SelectNodeFromElement(_selectedSvgElement);
+    }
+
+    private void SendBackward()
+    {
+        if (_document is null || _selectedSvgElement is not SvgElement { Parent: { } parent })
+            return;
+        var index = parent.Children.IndexOf(_selectedSvgElement);
+        if (index <= 0)
+            return;
+        SaveUndoState();
+        parent.Children.RemoveAt(index);
+        parent.Children.Insert(index - 1, _selectedSvgElement);
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        BuildTree();
+        SelectNodeFromElement(_selectedSvgElement);
     }
 
     private void ToolServiceOnToolChanged(Tool oldTool, Tool newTool)
