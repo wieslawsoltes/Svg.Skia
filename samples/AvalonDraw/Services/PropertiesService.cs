@@ -79,6 +79,9 @@ public class PropertiesService
                 entry.PropertyChanged += OnEntryChanged;
                 Properties.Add(entry);
             }
+            AddTypographicAttribute(element, "tracking");
+            AddTypographicAttribute(element, "kerning");
+            AddTypographicAttribute(element, "font-feature-settings");
         }
 
         if (element is SvgGradientServer grad)
@@ -137,5 +140,19 @@ public class PropertiesService
         if (svgAttr != null && svgAttr.Name.Contains("href", StringComparison.OrdinalIgnoreCase))
             return true;
         return false;
+    }
+
+    private void AddTypographicAttribute(SvgElement element, string name)
+    {
+        if (Properties.Any(p => p.Name == name))
+            return;
+        element.TryGetAttribute(name, out var value);
+        var entry = PropertyEntry.CreateAttribute(name, value, (target, val) =>
+        {
+            if (target is SvgElement el)
+                el.CustomAttributes[name] = val ?? string.Empty;
+        });
+        entry.PropertyChanged += OnEntryChanged;
+        Properties.Add(entry);
     }
 }
