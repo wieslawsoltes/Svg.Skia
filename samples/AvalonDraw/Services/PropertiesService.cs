@@ -92,6 +92,14 @@ public class PropertiesService
             Properties.Add(gEntry);
         }
 
+        if (element is SvgVisualElement vis &&
+            vis.CustomAttributes.TryGetValue("stroke-profile", out var prof))
+        {
+            var sEntry = new StrokeProfileEntry(prof);
+            sEntry.PropertyChanged += OnEntryChanged;
+            Properties.Add(sEntry);
+        }
+
         LoadAppearanceLayers(element);
 
         ApplyFilter(_filter);

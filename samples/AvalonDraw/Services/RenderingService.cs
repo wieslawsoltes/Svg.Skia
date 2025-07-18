@@ -1,10 +1,13 @@
 using System.Collections.Generic;
-using SK = SkiaSharp;
+using System.Linq;
+using AvalonDraw;
+using AvalonDraw.Services;
+using Svg;
 using Svg.Model.Drawables;
 using Svg.Pathing;
-using Shim = ShimSkiaSharp;
-using AvalonDraw;
 using static AvalonDraw.Services.SelectionService;
+using Shim = ShimSkiaSharp;
+using SK = SkiaSharp;
 
 // Provides rendering helpers for editor overlays
 
@@ -20,6 +23,24 @@ public class RenderingService
     private readonly SK.SKColor _controlColor = SK.SKColors.SkyBlue;
 
     private const float HandleSize = 10f;
+
+    private static void DrawProfile(SK.SKCanvas canvas, SK.SKPath path, StrokeProfile profile, SK.SKPaint paint)
+    {
+        using var measure = new SK.SKPathMeasure(path, false);
+        var length = measure.Length;
+        var pts = profile.Points.OrderBy(p => p.Offset).ToList();
+        for (var i = 1; i < pts.Count; i++)
+        {
+            using var seg = new SK.SKPath();
+            var start = (float)pts[i - 1].Offset * length;
+            var end = (float)pts[i].Offset * length;
+            if (measure.GetSegment(start, end, seg, true))
+            {
+                paint.StrokeWidth = (float)((pts[i - 1].Width + pts[i].Width) / 2.0);
+                canvas.DrawPath(seg, paint);
+            }
+        }
+    }
 
     public RenderingService(PathService pathService, ToolService toolService)
     {
@@ -156,6 +177,18 @@ public class RenderingService
                 canvas.DrawLine(info.TopMid, info.RotHandle, paint);
                 canvas.DrawCircle(info.RotHandle, hs, fill);
                 canvas.DrawCircle(info.RotHandle, hs, paint);
+            }
+
+            if (selectedDrawable.Element is SvgVisualElement vis &&
+                vis.CustomAttributes.TryGetValue("stroke-profile", out var prof))
+            {
+                var profile = StrokeProfile.Parse(prof);
+                var skPath = PathService.ElementToPath(vis);
+                if (skPath is { })
+                {
+                    using var spaint = new SK.SKPaint { IsAntialias = true, Style = SK.SKPaintStyle.Stroke, Color = SK.SKColors.Black };
+                    DrawProfile(canvas, skPath, profile, spaint);
+                }
             }
 
             if (_pathService.IsEditing && _pathService.EditDrawable == selectedDrawable)

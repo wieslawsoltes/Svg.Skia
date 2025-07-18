@@ -55,6 +55,7 @@ public partial class MainWindow : Window
     private readonly PropertiesService _propertiesService = new();
     private readonly LayerService _layerService = new();
     private readonly PatternService _patternService = new();
+    private readonly BrushService _brushService = new();
     public ObservableCollection<PropertyEntry> Properties => _propertiesService.Properties;
     public ObservableCollection<PropertyEntry> FilteredProperties => _propertiesService.FilteredProperties;
     private ObservableCollection<SvgNode> Nodes { get; } = new();
@@ -62,12 +63,15 @@ public partial class MainWindow : Window
     public ObservableCollection<ArtboardInfo> Artboards { get; } = new();
     public ObservableCollection<LayerService.LayerEntry> Layers => _layerService.Layers;
     public ObservableCollection<PatternService.PatternEntry> Patterns => _patternService.Patterns;
+    public ObservableCollection<BrushService.BrushEntry> BrushStyles => _brushService.Brushes;
     private ArtboardInfo? _selectedArtboard;
     private LayerService.LayerEntry? _selectedLayer;
     private PatternService.PatternEntry? _selectedPattern;
+    private BrushService.BrushEntry? _selectedBrush;
     private ListBox? _artboardList;
     private TreeView? _layerTree;
     private ListBox? _swatchList;
+    private ListBox? _brushList;
     private readonly HashSet<string> _expandedIds = new();
     private HashSet<string> _filterBackup = new();
 
@@ -293,6 +297,24 @@ public partial class MainWindow : Window
                 };
                 return btn;
             }
+            if (entry is StrokeProfileEntry spEntry)
+            {
+                var btn = new Button { Content = entry.Value ?? "Edit", VerticalAlignment = VerticalAlignment.Center };
+                btn.Click += async (_, _) =>
+                {
+                    var dlg = new StrokeProfileEditorWindow(spEntry.Points);
+                    var result = await dlg.ShowDialog<bool>(this);
+                    if (result)
+                    {
+                        spEntry.Points.Clear();
+                        foreach (var p in dlg.Result)
+                            spEntry.Points.Add(p);
+                        spEntry.UpdateValue();
+                        spEntry.NotifyChanged();
+                    }
+                };
+                return btn;
+            }
             var tb = new TextBox { VerticalContentAlignment = VerticalAlignment.Center };
             tb[!TextBox.TextProperty] = new Binding("Value") { Mode = BindingMode.TwoWay };
             return tb;
@@ -324,6 +346,7 @@ public partial class MainWindow : Window
         _artboardList = this.FindControl<ListBox>("ArtboardList");
         _layerTree = this.FindControl<TreeView>("LayerTree");
         _swatchList = this.FindControl<ListBox>("SwatchList");
+        _brushList = this.FindControl<ListBox>("BrushList");
         _wireframeEnabled = false;
         _filtersDisabled = false;
         _snapToGrid = false;
@@ -1501,6 +1524,7 @@ public partial class MainWindow : Window
         UpdateArtboards();
         UpdateLayers();
         UpdatePatterns();
+        UpdateBrushes();
     }
 
     private void ApplyPropertyFilter()
@@ -1558,6 +1582,17 @@ public partial class MainWindow : Window
             _selectedPattern = Patterns[0];
             if (_swatchList is { })
                 _swatchList.SelectedIndex = 0;
+        }
+    }
+
+    private void UpdateBrushes()
+    {
+        if (BrushStyles.Count > 0)
+        {
+            _selectedBrush = BrushStyles[0];
+            _toolService.CurrentStrokeWidth = (float)_selectedBrush.Profile.Points.First().Width;
+            if (_brushList is { })
+                _brushList.SelectedIndex = 0;
         }
     }
 
@@ -2210,6 +2245,15 @@ public partial class MainWindow : Window
         if (e.AddedItems.Count > 0 && e.AddedItems[0] is PatternService.PatternEntry info)
         {
             _selectedPattern = info;
+        }
+    }
+
+    private void BrushList_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is BrushService.BrushEntry info)
+        {
+            _selectedBrush = info;
+            _toolService.CurrentStrokeWidth = (float)info.Profile.Points.First().Width;
         }
     }
 

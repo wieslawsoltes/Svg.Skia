@@ -1,0 +1,20 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="AvalonDraw.StrokeProfileEditorWindow"
+        Width="400" Height="300"
+        Title="Edit Stroke Profile">
+    <DockPanel Margin="10" LastChildFill="True">
+        <DataGrid x:Name="PointsGrid" DockPanel.Dock="Top" AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Offset" Binding="{Binding Offset, Mode=TwoWay}" Width="80"/>
+                <DataGridTextColumn Header="Width" Binding="{Binding Width, Mode=TwoWay}" Width="80"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4">
+            <Button Content="Add" Click="AddButton_OnClick" Width="80"/>
+            <Button Content="Remove" Click="RemoveButton_OnClick" Width="80"/>
+            <Button Content="OK" Click="OkButton_OnClick" Width="80"/>
+            <Button Content="Cancel" Click="CancelButton_OnClick" Width="80"/>
+        </StackPanel>
+    </DockPanel>
+</Window>
