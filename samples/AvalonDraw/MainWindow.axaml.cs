@@ -455,6 +455,39 @@ public partial class MainWindow : Window
             SK.SKColorType.Rgba8888, SK.SKAlphaType.Premul, SvgView.SkSvg.Settings.Srgb);
     }
 
+    private async void PlaceImageMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_document is null)
+            return;
+        var dialog = new OpenFileDialog
+        {
+            Filters = new()
+            {
+                new FileDialogFilter { Name = "Images", Extensions = { "png", "jpg", "jpeg", "bmp" } },
+                new FileDialogFilter { Name = "All", Extensions = { "*" } }
+            }
+        };
+        var result = await dialog.ShowAsync(this);
+        var file = result?.FirstOrDefault();
+        if (string.IsNullOrEmpty(file))
+            return;
+        byte[] data;
+        try
+        {
+            data = await File.ReadAllBytesAsync(file);
+        }
+        catch
+        {
+            return;
+        }
+        var ext = Path.GetExtension(file).Trim('.').ToLowerInvariant();
+        if (ext == "jpg")
+            ext = "jpeg";
+        var href = $"data:image/{ext};base64,{Convert.ToBase64String(data)}";
+        _toolService.ImageHref = href;
+        _toolService.SetTool(Tool.Image);
+    }
+
     private void Window_OnDragOver(object? sender, DragEventArgs e)
     {
         if (e.Data.Contains(DataFormats.FileNames))
@@ -591,7 +624,7 @@ public partial class MainWindow : Window
 
         if ((_toolService.CurrentTool == Tool.Line || _toolService.CurrentTool == Tool.Rect || _toolService.CurrentTool == Tool.Circle || _toolService.CurrentTool == Tool.Ellipse ||
              _toolService.CurrentTool == Tool.Text || _toolService.CurrentTool == Tool.TextPath || _toolService.CurrentTool == Tool.TextArea ||
-             _toolService.CurrentTool == Tool.Symbol ||
+             _toolService.CurrentTool == Tool.Symbol || _toolService.CurrentTool == Tool.Image ||
              _toolService.CurrentTool == Tool.PathLine || _toolService.CurrentTool == Tool.PathCubic || _toolService.CurrentTool == Tool.PathQuadratic || _toolService.CurrentTool == Tool.PathArc || _toolService.CurrentTool == Tool.PathMove) &&
             e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
         {
