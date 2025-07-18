@@ -64,6 +64,7 @@
                 <MenuItem Header="Unite" Click="UniteMenuItem_Click" InputGesture="Ctrl+Shift+U"/>
                 <MenuItem Header="Subtract" Click="SubtractMenuItem_Click" InputGesture="Ctrl+Shift+D"/>
                 <MenuItem Header="Intersect" Click="IntersectMenuItem_Click" InputGesture="Ctrl+Shift+I"/>
+                <MenuItem Header="Create Clipping Mask" Click="CreateClippingMaskMenuItem_Click"/>
                 <MenuItem Header="Blend" Click="BlendMenuItem_Click" InputGesture="Ctrl+Shift+B"/>
                 <Separator />
                 <MenuItem Header="New Layer" Click="NewLayerMenuItem_Click"/>

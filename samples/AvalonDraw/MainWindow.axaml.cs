@@ -2928,6 +2928,7 @@ public partial class MainWindow : Window
     private void UniteMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Union);
     private void SubtractMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Difference);
     private void IntersectMenuItem_Click(object? sender, RoutedEventArgs e) => ApplyPathOp(SK.SKPathOp.Intersect);
+    private void CreateClippingMaskMenuItem_Click(object? sender, RoutedEventArgs e) => CreateClippingMask();
     private void BlendMenuItem_Click(object? sender, RoutedEventArgs e) => BlendSelected();
 
     private void AlignLeftMenuItem_Click(object? sender, RoutedEventArgs e) => AlignSelected(AlignService.AlignType.Left);
@@ -2993,6 +2994,43 @@ public partial class MainWindow : Window
         SvgView.SkSvg!.FromSvgDocument(_document);
         UpdateSelectedDrawable();
         SvgView.InvalidateVisual();
+    }
+
+    private SvgClipPath CreateClipPath(SvgVisualElement mask, string id)
+    {
+        if (mask.Parent is SvgElement parent)
+            parent.Children.Remove(mask);
+        var clip = new SvgClipPath { ID = id };
+        clip.Children.Add(mask);
+        return clip;
+    }
+
+    private void CreateClippingMask()
+    {
+        if (_document is null || _multiSelected.Count != 2)
+            return;
+
+        if (_multiSelected[0] is not SvgVisualElement first || _multiSelected[1] is not SvgVisualElement second)
+            return;
+
+        var clipId = string.IsNullOrEmpty(second.ID)
+            ? $"clip{_document.Descendants().OfType<SvgClipPath>().Count() + 1}"
+            : second.ID;
+        second.ID = clipId;
+
+        SaveUndoState();
+
+        var clip = CreateClipPath(second, clipId);
+        first.Children.Add(clip);
+        first.ClipPath = new Uri($"#{clipId}", UriKind.Relative);
+
+        _multiSelected.Clear();
+        _multiDrawables.Clear();
+        _multiBounds = SK.SKRect.Empty;
+
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        BuildTree();
+        SelectNodeFromElement(first);
     }
 
     private void LayerAdd()
