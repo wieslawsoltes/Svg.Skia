@@ -94,6 +94,8 @@
                 <MenuItem Header="Path Quadratic" Click="PathQuadraticToolMenuItem_Click" InputGesture="Q"/>
                 <MenuItem Header="Path Arc" Click="PathArcToolMenuItem_Click" InputGesture="A"/>
                 <MenuItem Header="Path Move" Click="PathMoveToolMenuItem_Click" InputGesture="M"/>
+                <Separator/>
+                <MenuItem Header="Skew Mode" Click="SkewModeMenuItem_Click" InputGesture="Ctrl+Shift+K"/>
             </MenuItem>
             <MenuItem Header="Arrange">
                 <MenuItem Header="Align Left" Click="AlignLeftMenuItem_Click"/>
