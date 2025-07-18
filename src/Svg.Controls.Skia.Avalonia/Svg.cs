@@ -265,7 +265,7 @@ public class Svg : Control
         var sourceRect = new Rect(sourceSize).CenterRect(new Rect(destRect.Size / scale));
         var bounds = picture.CullRect;
         var scaleMatrix = Matrix.CreateScale(destRect.Width / sourceRect.Width, destRect.Height / sourceRect.Height);
-        var translateMatrix = Matrix.CreateTranslation(-sourceRect.X + destRect.X - bounds.Top, -sourceRect.Y + destRect.Y - bounds.Left);
+        var translateMatrix = Matrix.CreateTranslation(-sourceRect.X + destRect.X - bounds.Left, -sourceRect.Y + destRect.Y - bounds.Top);
         var userMatrix = Matrix.CreateScale(Zoom, Zoom) * Matrix.CreateTranslation(PanX, PanY);
         var matrix = scaleMatrix * translateMatrix * userMatrix;
         var inverse = matrix.Invert();
@@ -401,8 +401,8 @@ public class Svg : Control
             destRect.Width / sourceRect.Width,
             destRect.Height / sourceRect.Height);
         var translateMatrix = Matrix.CreateTranslation(
-            -sourceRect.X + destRect.X - bounds.Top,
-            -sourceRect.Y + destRect.Y - bounds.Left);
+            -sourceRect.X + destRect.X - bounds.Left,
+            -sourceRect.Y + destRect.Y - bounds.Top);
 
         var userMatrix = Matrix.CreateScale(Zoom, Zoom) * Matrix.CreateTranslation(PanX, PanY);
 
