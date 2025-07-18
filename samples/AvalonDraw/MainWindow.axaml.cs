@@ -95,7 +95,7 @@ public partial class MainWindow : Window
         .OrderBy(t => GetElementName(t)).ToList();
 
     private ContextMenu? _treeMenu;
-
+    private ContextMenu? _pathMenu;
     private string _filter = string.Empty;
     private string _propertyFilter = string.Empty;
     private SvgNode? _dragNode;
@@ -340,6 +340,7 @@ public partial class MainWindow : Window
         _toolService.ToolChanged += ToolServiceOnToolChanged;
         _toolService.SetTool(Tool.Select);
         _treeMenu = BuildTreeContextMenu();
+        _pathMenu = BuildPathContextMenu();
         DocumentTree.ContextMenu = _treeMenu;
         _dropIndicator = this.FindControl<Border>("DropIndicator");
         _panZoomLabel = this.FindControl<TextBlock>("PanZoomLabel");
@@ -1983,6 +1984,18 @@ public partial class MainWindow : Window
         return menu;
     }
 
+    private ContextMenu BuildPathContextMenu()
+    {
+        var menu = new ContextMenu();
+        var offsetItem = new MenuItem { Header = "Offset Path" };
+        offsetItem.Click += OffsetPathMenuItem_Click;
+        var simplifyItem = new MenuItem { Header = "Simplify Path" };
+        simplifyItem.Click += SimplifyPathMenuItem_Click;
+        menu.Items.Add(offsetItem);
+        menu.Items.Add(simplifyItem);
+        return menu;
+    }
+
     private void InsertElement(SvgElement parent, Type type)
     {
         if (_document is null)
@@ -2706,7 +2719,10 @@ public partial class MainWindow : Window
                 while (c != null && c.DataContext is not SvgNode && c.Parent is StyledElement p)
                     c = p;
                 if (c?.DataContext is SvgNode node)
+                {
                     DocumentTree.SelectedItem = node;
+                    DocumentTree.ContextMenu = node.Element is SvgPath ? _pathMenu : _treeMenu;
+                }
             }
             return;
         }
@@ -2963,6 +2979,34 @@ public partial class MainWindow : Window
         {
             SaveUndoState();
             _pathService.MakeCorner(_pathService.ActivePoint);
+            SvgView.SkSvg!.FromSvgDocument(_document);
+            UpdateSelectedDrawable();
+            SvgView.InvalidateVisual();
+        }
+    }
+
+    private void OffsetPathMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_selectedElement is SvgPath sp && _document is { })
+        {
+            SaveUndoState();
+            var result = _pathService.OffsetPath(sp, 10f);
+            if (result is null)
+                return;
+            if (sp.Parent is SvgElement parent)
+                parent.Children.Add(result);
+            SvgView.SkSvg!.FromSvgDocument(_document);
+            BuildTree();
+            SelectNodeFromElement(result);
+        }
+    }
+
+    private void SimplifyPathMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_selectedElement is SvgPath sp && _document is { })
+        {
+            SaveUndoState();
+            _pathService.SimplifyPath(sp);
             SvgView.SkSvg!.FromSvgDocument(_document);
             UpdateSelectedDrawable();
             SvgView.InvalidateVisual();

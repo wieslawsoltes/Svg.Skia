@@ -584,4 +584,45 @@ public class PathService
 
         return list;
     }
+
+    public SvgPath? OffsetPath(SvgVisualElement? element, float distance)
+    {
+        if (element is null)
+            return null;
+
+        var src = ElementToPath(element);
+        if (src is null)
+            return null;
+
+        using var paint = new SK.SKPaint
+        {
+            Style = SK.SKPaintStyle.Stroke,
+            StrokeWidth = Math.Abs(distance) * 2f,
+            StrokeJoin = SK.SKStrokeJoin.Miter,
+            StrokeCap = SK.SKStrokeCap.Butt
+        };
+
+        var dst = new SK.SKPath();
+        if (!paint.GetFillPath(src, dst))
+            return null;
+
+        var data = ToSvgPathData(dst);
+        var segs = SvgPathBuilder.Parse(data.AsSpan());
+        return new SvgPath { PathData = segs };
+    }
+
+    public void SimplifyPath(SvgPath? path)
+    {
+        if (path is null)
+            return;
+
+        var src = ElementToPath(path);
+        if (src is null)
+            return;
+
+        using var simplified = src.Simplify();
+        var data = ToSvgPathData(simplified);
+        var segs = SvgPathBuilder.Parse(data.AsSpan());
+        path.PathData = segs;
+    }
 }
