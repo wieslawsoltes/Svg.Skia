@@ -1,36 +1,93 @@
-using System.Threading.Tasks;
+using System;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
+using Svg;
 
 namespace AvalonDraw;
 
 public partial class TextEditorWindow : Window
 {
     private readonly TextBox _editor;
+    private readonly ComboBox _fontFamilyBox;
+    private readonly ComboBox _fontWeightBox;
+    private readonly TextBox _letterBox;
+    private readonly TextBox _wordBox;
 
-    public TextEditorWindow(string text)
+    public TextEditorWindow(string text, string fontFamily, SvgFontWeight weight, float letter, float word)
     {
         InitializeComponent();
         _editor = this.FindControl<TextBox>("Editor");
+        _fontFamilyBox = this.FindControl<ComboBox>("FontFamilyBox");
+        _fontWeightBox = this.FindControl<ComboBox>("FontWeightBox");
+        _letterBox = this.FindControl<TextBox>("LetterBox");
+        _wordBox = this.FindControl<TextBox>("WordBox");
+
         _editor.Text = text;
+        _fontFamilyBox.ItemsSource = FontManager.Current?.SystemFonts;
+        _fontFamilyBox.SelectedItem = fontFamily;
+        _fontWeightBox.ItemsSource = Enum.GetValues(typeof(FontWeight)).Cast<FontWeight>();
+        _fontWeightBox.SelectedItem = ToFontWeight(weight);
+        _letterBox.Text = letter.ToString();
+        _wordBox.Text = word.ToString();
     }
+
+    private static FontWeight ToFontWeight(SvgFontWeight w) => w switch
+    {
+        SvgFontWeight.W100 => FontWeight.Thin,
+        SvgFontWeight.W200 => FontWeight.ExtraLight,
+        SvgFontWeight.W300 => FontWeight.Light,
+        SvgFontWeight.W400 => FontWeight.Normal,
+        SvgFontWeight.W500 => FontWeight.Medium,
+        SvgFontWeight.W600 => FontWeight.SemiBold,
+        SvgFontWeight.W700 => FontWeight.Bold,
+        SvgFontWeight.W800 => FontWeight.ExtraBold,
+        SvgFontWeight.W900 => FontWeight.Black,
+        SvgFontWeight.Bold => FontWeight.Bold,
+        _ => FontWeight.Normal
+    };
+
+    private static SvgFontWeight FromFontWeight(FontWeight w) => w switch
+    {
+        FontWeight.Thin => SvgFontWeight.W100,
+        FontWeight.ExtraLight => SvgFontWeight.W200,
+        FontWeight.Light => SvgFontWeight.W300,
+        FontWeight.Normal => SvgFontWeight.W400,
+        FontWeight.Medium => SvgFontWeight.W500,
+        FontWeight.SemiBold => SvgFontWeight.W600,
+        FontWeight.Bold => SvgFontWeight.W700,
+        FontWeight.ExtraBold => SvgFontWeight.W800,
+        FontWeight.Black => SvgFontWeight.W900,
+        _ => SvgFontWeight.Normal
+    };
 
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);
     }
 
-    public string Result { get; private set; } = string.Empty;
+    public string TextResult { get; private set; } = string.Empty;
+    public string FontFamilyResult { get; private set; } = string.Empty;
+    public SvgFontWeight FontWeightResult { get; private set; }
+    public float LetterSpacingResult { get; private set; }
+    public float WordSpacingResult { get; private set; }
 
     private void OkButton_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        Result = _editor.Text;
-        Close(Result);
+        TextResult = _editor.Text;
+        FontFamilyResult = _fontFamilyBox.SelectedItem as string ?? string.Empty;
+        FontWeightResult = FromFontWeight((FontWeight)_fontWeightBox.SelectedItem!);
+        float.TryParse(_letterBox.Text, out var ls);
+        float.TryParse(_wordBox.Text, out var ws);
+        LetterSpacingResult = ls;
+        WordSpacingResult = ws;
+        Close(true);
     }
 
     private void CancelButton_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        Close(null);
+        Close(false);
     }
 }

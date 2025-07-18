@@ -37,6 +37,11 @@ public class ToolService
 
     public float CurrentStrokeWidth { get; set; } = 1f;
 
+    public string CurrentFontFamily { get; set; } = "Arial";
+    public SvgFontWeight CurrentFontWeight { get; set; } = SvgFontWeight.Normal;
+    public float CurrentLetterSpacing { get; set; } = 0f;
+    public float CurrentWordSpacing { get; set; } = 0f;
+
     public event Action<Tool, Tool>? ToolChanged;
 
     public void SetTool(Tool tool)
@@ -109,20 +114,32 @@ public class ToolService
             {
                 X = new SvgUnitCollection { new SvgUnit(SvgUnitType.User, start.X) },
                 Y = new SvgUnitCollection { new SvgUnit(SvgUnitType.User, start.Y) },
-                Text = "Text"
+                Text = "Text",
+                FontFamily = CurrentFontFamily,
+                FontWeight = CurrentFontWeight,
+                LetterSpacing = new SvgUnit(SvgUnitType.User, CurrentLetterSpacing),
+                WordSpacing = new SvgUnit(SvgUnitType.User, CurrentWordSpacing)
             },
             Tool.TextPath when !string.IsNullOrEmpty(ReferenceId) => new SvgTextPath
             {
                 ReferencedPath = new Uri($"#{ReferenceId}", UriKind.Relative),
                 StartOffset = new SvgUnit(SvgUnitType.User, 0),
-                Text = "Text"
+                Text = "Text",
+                FontFamily = CurrentFontFamily,
+                FontWeight = CurrentFontWeight,
+                LetterSpacing = new SvgUnit(SvgUnitType.User, CurrentLetterSpacing),
+                WordSpacing = new SvgUnit(SvgUnitType.User, CurrentWordSpacing)
             },
             Tool.TextArea when !string.IsNullOrEmpty(ReferenceId) => new SvgText
             {
                 X = new SvgUnitCollection { new SvgUnit(SvgUnitType.User, start.X) },
                 Y = new SvgUnitCollection { new SvgUnit(SvgUnitType.User, start.Y) },
                 ClipPath = new Uri($"#{ReferenceId}", UriKind.Relative),
-                Text = "Text"
+                Text = "Text",
+                FontFamily = CurrentFontFamily,
+                FontWeight = CurrentFontWeight,
+                LetterSpacing = new SvgUnit(SvgUnitType.User, CurrentLetterSpacing),
+                WordSpacing = new SvgUnit(SvgUnitType.User, CurrentWordSpacing)
             },
             Tool.PathLine => CreatePath(start, Tool.PathLine),
             Tool.PathCubic => CreatePath(start, Tool.PathCubic),

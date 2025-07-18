@@ -54,6 +54,9 @@
                 <MenuItem Header="Edit Content..." Click="EditContentMenuItem_Click"/>
                 <MenuItem Header="Create Symbol..." Click="CreateSymbolMenuItem_Click"/>
                 <MenuItem Header="Insert Symbol" Click="SymbolToolMenuItem_Click"/>
+                <MenuItem Header="Create Style" Click="CreateStyleMenuItem_Click"/>
+                <MenuItem Header="Update Style" Click="UpdateStyleMenuItem_Click"/>
+                <MenuItem Header="Delete Style" Click="DeleteStyleMenuItem_Click"/>
                 <MenuItem Header="Reset File" Click="ResetFileMenuItem_Click" InputGesture="Ctrl+R"/>
                 <Separator />
                 <MenuItem Header="Undo" Click="UndoMenuItem_Click" InputGesture="Ctrl+Z"/>
@@ -64,6 +67,9 @@
                 <MenuItem Header="Unite" Click="UniteMenuItem_Click" InputGesture="Ctrl+Shift+U"/>
                 <MenuItem Header="Subtract" Click="SubtractMenuItem_Click" InputGesture="Ctrl+Shift+D"/>
                 <MenuItem Header="Intersect" Click="IntersectMenuItem_Click" InputGesture="Ctrl+Shift+I"/>
+                <MenuItem Header="Exclude" Click="ExcludeMenuItem_Click" InputGesture="Ctrl+Shift+E"/>
+                <MenuItem Header="Divide" Click="DivideMenuItem_Click" InputGesture="Ctrl+Shift+V"/>
+                <MenuItem Header="Trim" Click="TrimMenuItem_Click" InputGesture="Ctrl+Shift+T"/>
                 <MenuItem Header="Create Clipping Mask" Click="CreateClippingMaskMenuItem_Click"/>
                 <MenuItem Header="Blend" Click="BlendMenuItem_Click" InputGesture="Ctrl+Shift+B"/>
                 <Separator />
@@ -114,8 +120,8 @@
                 <MenuItem Header="Flip Horizontal" Click="FlipHMenuItem_Click"/>
                 <MenuItem Header="Flip Vertical" Click="FlipVMenuItem_Click"/>
                 <Separator/>
-                <MenuItem Header="Bring Forward" Click="BringForwardMenuItem_Click" InputGesture="Ctrl+]"/>
-                <MenuItem Header="Send Backward" Click="SendBackwardMenuItem_Click" InputGesture="Ctrl+["/>
+                <MenuItem Header="Bring Forward" Click="BringForwardMenuItem_Click" InputGesture="Ctrl+OemCloseBrackets"/>
+                <MenuItem Header="Send Backward" Click="SendBackwardMenuItem_Click" InputGesture="Ctrl+OemOpenBrackets"/>
             </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Wireframe" Click="WireframeMenuItem_Click"/>
@@ -205,6 +211,14 @@
                         <TabItem Header="Brushes">
                             <ListBox x:Name="BrushList" Margin="4" Height="80"
                                      ItemsSource="{Binding BrushStyles}" SelectionChanged="BrushList_OnSelectionChanged"/>
+                        </TabItem>
+                        <TabItem Header="Symbols">
+                            <ListBox x:Name="SymbolList" Margin="4" Height="80"
+                                     ItemsSource="{Binding Symbols}" SelectionChanged="SymbolList_OnSelectionChanged"/>
+                        </TabItem>
+                        <TabItem Header="Styles">
+                            <ListBox x:Name="StyleList" Margin="4" Height="80"
+                                     ItemsSource="{Binding Styles}" SelectionChanged="StyleList_OnSelectionChanged"/>
                         </TabItem>
                         <TabItem Header="Layers">
                             <DockPanel>
