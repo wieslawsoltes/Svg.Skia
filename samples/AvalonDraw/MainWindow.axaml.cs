@@ -66,12 +66,14 @@ public partial class MainWindow : Window
     public ObservableCollection<LayerService.LayerEntry> Layers => _layerService.Layers;
     public ObservableCollection<PatternService.PatternEntry> Patterns => _patternService.Patterns;
     public ObservableCollection<BrushService.BrushEntry> BrushStyles => _brushService.Brushes;
+    public ObservableCollection<BrushService.SwatchEntry> Swatches => _brushService.Swatches;
     public ObservableCollection<SymbolService.SymbolEntry> Symbols => _symbolService.Symbols;
     public ObservableCollection<AppearanceService.StyleEntry> Styles => _appearanceService.Styles;
     private ArtboardInfo? _selectedArtboard;
     private LayerService.LayerEntry? _selectedLayer;
     private PatternService.PatternEntry? _selectedPattern;
     private BrushService.BrushEntry? _selectedBrush;
+    private BrushService.SwatchEntry? _selectedSwatch;
     private SymbolService.SymbolEntry? _selectedSymbol;
     private AppearanceService.StyleEntry? _selectedStyle;
     private ListBox? _artboardList;
@@ -1567,6 +1569,7 @@ public partial class MainWindow : Window
         UpdateArtboards();
         UpdateLayers();
         UpdatePatterns();
+        UpdateSwatches();
         UpdateBrushes();
         UpdateSymbols();
         UpdateStyles();
@@ -1625,6 +1628,17 @@ public partial class MainWindow : Window
         if (Patterns.Count > 0)
         {
             _selectedPattern = Patterns[0];
+            if (_swatchList is { })
+                _swatchList.SelectedIndex = 0;
+        }
+    }
+
+    private void UpdateSwatches()
+    {
+        _brushService.LoadSwatches(_document);
+        if (Swatches.Count > 0)
+        {
+            _selectedSwatch = Swatches[0];
             if (_swatchList is { })
                 _swatchList.SelectedIndex = 0;
         }
@@ -2331,9 +2345,27 @@ public partial class MainWindow : Window
 
     private void SwatchList_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (e.AddedItems.Count > 0 && e.AddedItems[0] is PatternService.PatternEntry info)
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is BrushService.SwatchEntry info)
         {
-            _selectedPattern = info;
+            _selectedSwatch = info;
+        }
+    }
+
+    private async void SwatchList_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.ClickCount == 2 && _swatchList?.SelectedItem is BrushService.SwatchEntry info)
+        {
+            var dlg = new SwatchEditorWindow(info.Color);
+            var result = await dlg.ShowDialog<bool>(this);
+            if (result)
+            {
+                info.Color = dlg.Result;
+                if (_document is { })
+                {
+                    SvgView.SkSvg!.FromSvgDocument(_document);
+                    SvgView.InvalidateVisual();
+                }
+            }
         }
     }
 

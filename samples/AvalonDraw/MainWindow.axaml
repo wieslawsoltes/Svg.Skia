@@ -204,7 +204,9 @@
                         </TabItem>
                         <TabItem Header="Swatches">
                             <ListBox x:Name="SwatchList" Margin="4" Height="80"
-                                     ItemsSource="{Binding Patterns}" SelectionChanged="SwatchList_OnSelectionChanged"/>
+                                     ItemsSource="{Binding Swatches}"
+                                     SelectionChanged="SwatchList_OnSelectionChanged"
+                                     PointerPressed="SwatchList_OnPointerPressed"/>
                         </TabItem>
                         <TabItem Header="Brushes">
                             <ListBox x:Name="BrushList" Margin="4" Height="80"
