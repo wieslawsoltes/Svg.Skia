@@ -30,6 +30,7 @@ public class RenderingService
     public void Draw(SK.SKCanvas canvas,
         SK.SKPicture? picture,
         SK.SKRect? rootBounds,
+        SK.SKRect? artboardBounds,
         float scale,
         bool snapToGrid,
         bool showGrid,
@@ -42,6 +43,13 @@ public class RenderingService
         IList<Shim.SKPoint> polyPoints,
         Shim.SKMatrix polyMatrix)
     {
+        int clipSave = -1;
+        if (artboardBounds is { })
+        {
+            clipSave = canvas.Save();
+            canvas.ClipRect(artboardBounds.Value);
+        }
+
         if (snapToGrid && showGrid && gridSize > 0 && picture is { })
         {
             using var gridPaint = new SK.SKPaint
@@ -244,6 +252,9 @@ public class RenderingService
                 canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, paint);
             }
         }
+
+        if (clipSave != -1)
+            canvas.Restore();
     }
 }
 

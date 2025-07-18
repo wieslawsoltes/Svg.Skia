@@ -132,6 +132,9 @@
                     BorderThickness="0,0,1,0">
                 <DockPanel>
                     <TextBox x:Name="FilterBox" Margin="4" Watermark="Filter" KeyUp="FilterBox_OnKeyUp" DockPanel.Dock="Top" />
+                    <TextBlock Text="Artboards" Margin="4,4,4,0" DockPanel.Dock="Bottom"/>
+                    <ListBox x:Name="ArtboardList" Margin="4" Height="80" DockPanel.Dock="Bottom"
+                             ItemsSource="{Binding Artboards}" SelectionChanged="ArtboardList_OnSelectionChanged"/>
                     <Grid>
                         <TreeView x:Name="DocumentTree"
                                   Margin="0,4,0,0"

@@ -57,6 +57,9 @@ public partial class MainWindow : Window
     public ObservableCollection<PropertyEntry> FilteredProperties => _propertiesService.FilteredProperties;
     private ObservableCollection<SvgNode> Nodes { get; } = new();
     public ObservableCollection<string> Ids => _propertiesService.Ids;
+    public ObservableCollection<ArtboardInfo> Artboards { get; } = new();
+    private ArtboardInfo? _selectedArtboard;
+    private ListBox? _artboardList;
     private readonly HashSet<string> _expandedIds = new();
     private HashSet<string> _filterBackup = new();
 
@@ -262,6 +265,7 @@ public partial class MainWindow : Window
         DocumentTree.ContextMenu = _treeMenu;
         _dropIndicator = this.FindControl<Border>("DropIndicator");
         _panZoomLabel = this.FindControl<TextBlock>("PanZoomLabel");
+        _artboardList = this.FindControl<ListBox>("ArtboardList");
         _wireframeEnabled = false;
         _filtersDisabled = false;
         _snapToGrid = false;
@@ -329,6 +333,7 @@ public partial class MainWindow : Window
         _currentFile = path;
         UpdateTitle();
         BuildTree();
+        UpdateArtboards();
     }
 
     private async void OpenMenuItem_Click(object? sender, RoutedEventArgs e)
@@ -1256,9 +1261,11 @@ public partial class MainWindow : Window
     private void SvgView_OnDraw(object? sender, SKSvgDrawEventArgs e)
     {
         var scale = GetCanvasScale(e.Canvas);
+        var artboardRect = _selectedArtboard is { } ab ? SK.SKRect.Create(0, 0, ab.Width, ab.Height) : (SK.SKRect?)null;
         _renderingService.Draw(e.Canvas,
             SvgView.SkSvg?.Picture,
             SvgView.SkSvg?.Picture?.CullRect,
+            artboardRect,
             scale,
             _snapToGrid,
             _showGrid,
@@ -1319,6 +1326,7 @@ public partial class MainWindow : Window
                 UpdateSelectedDrawable();
             SvgView.InvalidateVisual();
         });
+        UpdateArtboards();
     }
 
     private void ApplyPropertyFilter()
@@ -1329,6 +1337,32 @@ public partial class MainWindow : Window
     private void UpdateIdList()
     {
         _propertiesService.UpdateIdList(_document);
+    }
+
+    private void UpdateArtboards()
+    {
+        Artboards.Clear();
+        if (_document is null)
+            return;
+        foreach (var g in _document.Children.OfType<SvgGroup>())
+        {
+            if (g.CustomAttributes.TryGetValue("data-artboard", out var flag) && string.Equals(flag, "true", StringComparison.OrdinalIgnoreCase))
+            {
+                g.CustomAttributes.TryGetValue("width", out var wStr);
+                g.CustomAttributes.TryGetValue("height", out var hStr);
+                float.TryParse(wStr, NumberStyles.Float, CultureInfo.InvariantCulture, out var w);
+                float.TryParse(hStr, NumberStyles.Float, CultureInfo.InvariantCulture, out var h);
+                var name = string.IsNullOrEmpty(g.ID) ? $"Artboard {Artboards.Count + 1}" : g.ID;
+                Artboards.Add(new ArtboardInfo(g, name, w, h));
+            }
+        }
+        if (Artboards.Count > 0)
+        {
+            _selectedArtboard = Artboards[0];
+            if (_artboardList is { })
+                _artboardList.SelectedIndex = 0;
+        }
+        SvgView.InvalidateVisual();
     }
 
     private SvgNode CreateNode(SvgElement element, SvgNode? parent = null)
@@ -1886,6 +1920,15 @@ public partial class MainWindow : Window
         SvgView.PanY = 0;
         UpdateStatusBar();
         SvgView.InvalidateVisual();
+    }
+
+    private void ArtboardList_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is ArtboardInfo info)
+        {
+            _selectedArtboard = info;
+            SvgView.InvalidateVisual();
+        }
     }
 
     private void SelectToolButton_Click(object? sender, RoutedEventArgs e)
@@ -2627,6 +2670,24 @@ public partial class MainWindow : Window
         SvgView.InvalidateVisual();
     }
 
+}
+
+public class ArtboardInfo
+{
+    public SvgGroup Group { get; }
+    public string Name { get; }
+    public float Width { get; }
+    public float Height { get; }
+
+    public ArtboardInfo(SvgGroup group, string name, float width, float height)
+    {
+        Group = group;
+        Name = name;
+        Width = width;
+        Height = height;
+    }
+
+    public override string ToString() => Name;
 }
 
 public class SvgNode : INotifyPropertyChanged
