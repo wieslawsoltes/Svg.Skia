@@ -56,6 +56,7 @@ public partial class MainWindow : Window
     private readonly LayerService _layerService = new();
     private readonly PatternService _patternService = new();
     private readonly BrushService _brushService = new();
+    private readonly SymbolService _symbolService = new();
     public ObservableCollection<PropertyEntry> Properties => _propertiesService.Properties;
     public ObservableCollection<PropertyEntry> FilteredProperties => _propertiesService.FilteredProperties;
     private ObservableCollection<SvgNode> Nodes { get; } = new();
@@ -64,14 +65,17 @@ public partial class MainWindow : Window
     public ObservableCollection<LayerService.LayerEntry> Layers => _layerService.Layers;
     public ObservableCollection<PatternService.PatternEntry> Patterns => _patternService.Patterns;
     public ObservableCollection<BrushService.BrushEntry> BrushStyles => _brushService.Brushes;
+    public ObservableCollection<SymbolService.SymbolEntry> Symbols => _symbolService.Symbols;
     private ArtboardInfo? _selectedArtboard;
     private LayerService.LayerEntry? _selectedLayer;
     private PatternService.PatternEntry? _selectedPattern;
     private BrushService.BrushEntry? _selectedBrush;
+    private SymbolService.SymbolEntry? _selectedSymbol;
     private ListBox? _artboardList;
     private TreeView? _layerTree;
     private ListBox? _swatchList;
     private ListBox? _brushList;
+    private ListBox? _symbolList;
     private readonly HashSet<string> _expandedIds = new();
     private HashSet<string> _filterBackup = new();
 
@@ -350,6 +354,7 @@ public partial class MainWindow : Window
         _layerTree = this.FindControl<TreeView>("LayerTree");
         _swatchList = this.FindControl<ListBox>("SwatchList");
         _brushList = this.FindControl<ListBox>("BrushList");
+        _symbolList = this.FindControl<ListBox>("SymbolList");
         _strokeWidthBox = this.FindControl<TextBox>("StrokeWidthBox");
         if (_strokeWidthBox is { })
             _strokeWidthBox.Text = _toolService.CurrentStrokeWidth.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -1554,6 +1559,7 @@ public partial class MainWindow : Window
         UpdateLayers();
         UpdatePatterns();
         UpdateBrushes();
+        UpdateSymbols();
     }
 
     private void ApplyPropertyFilter()
@@ -1622,6 +1628,17 @@ public partial class MainWindow : Window
             _toolService.CurrentStrokeWidth = (float)_selectedBrush.Profile.Points.First().Width;
             if (_brushList is { })
                 _brushList.SelectedIndex = 0;
+        }
+    }
+
+    private void UpdateSymbols()
+    {
+        _symbolService.Load(_document);
+        if (Symbols.Count > 0)
+        {
+            _selectedSymbol = Symbols[0];
+            if (_symbolList is { })
+                _symbolList.SelectedIndex = 0;
         }
     }
 
@@ -2206,7 +2223,7 @@ public partial class MainWindow : Window
         SaveUndoState();
         var symbol = new SvgSymbol { ID = symId };
         symbol.Children.Add((SvgElement)vis.DeepCopy());
-        _document.Children.Add(symbol);
+        _symbolService.AddSymbol(_document, symbol);
         var use = new SvgUse { ReferencedElement = new Uri($"#{symId}", UriKind.Relative) };
         if (vis.Parent is SvgElement parent)
         {
@@ -2295,6 +2312,14 @@ public partial class MainWindow : Window
         {
             _selectedBrush = info;
             _toolService.CurrentStrokeWidth = (float)info.Profile.Points.First().Width;
+        }
+    }
+
+    private void SymbolList_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is SymbolService.SymbolEntry info)
+        {
+            _selectedSymbol = info;
         }
     }
 
@@ -2462,7 +2487,10 @@ public partial class MainWindow : Window
             _pathService.Stop();
         if (_document is null)
             return;
-        var ids = _document.Children.OfType<SvgSymbol>().Select(s => s.ID).Where(id => !string.IsNullOrEmpty(id)).ToList();
+        var ids = _symbolService.Symbols
+            .Select(s => s.Symbol.ID)
+            .Where(id => !string.IsNullOrEmpty(id))
+            .ToList();
         if (ids.Count == 0)
             return;
         var win = new SymbolSelectWindow(ids!);

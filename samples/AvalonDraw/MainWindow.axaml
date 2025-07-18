@@ -204,6 +204,10 @@
                             <ListBox x:Name="BrushList" Margin="4" Height="80"
                                      ItemsSource="{Binding BrushStyles}" SelectionChanged="BrushList_OnSelectionChanged"/>
                         </TabItem>
+                        <TabItem Header="Symbols">
+                            <ListBox x:Name="SymbolList" Margin="4" Height="80"
+                                     ItemsSource="{Binding Symbols}" SelectionChanged="SymbolList_OnSelectionChanged"/>
+                        </TabItem>
                         <TabItem Header="Layers">
                             <DockPanel>
                                 <StackPanel Orientation="Horizontal" Margin="4" DockPanel.Dock="Top">
