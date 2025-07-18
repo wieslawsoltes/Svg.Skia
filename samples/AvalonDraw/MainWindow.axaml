@@ -120,8 +120,8 @@
                 <MenuItem Header="Flip Horizontal" Click="FlipHMenuItem_Click"/>
                 <MenuItem Header="Flip Vertical" Click="FlipVMenuItem_Click"/>
                 <Separator/>
-                <MenuItem Header="Bring Forward" Click="BringForwardMenuItem_Click" InputGesture="Ctrl+]"/>
-                <MenuItem Header="Send Backward" Click="SendBackwardMenuItem_Click" InputGesture="Ctrl+["/>
+                <MenuItem Header="Bring Forward" Click="BringForwardMenuItem_Click" InputGesture="Ctrl+OemCloseBrackets"/>
+                <MenuItem Header="Send Backward" Click="SendBackwardMenuItem_Click" InputGesture="Ctrl+OemOpenBrackets"/>
             </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Wireframe" Click="WireframeMenuItem_Click"/>
@@ -209,6 +209,10 @@
                         <TabItem Header="Brushes">
                             <ListBox x:Name="BrushList" Margin="4" Height="80"
                                      ItemsSource="{Binding BrushStyles}" SelectionChanged="BrushList_OnSelectionChanged"/>
+                        </TabItem>
+                        <TabItem Header="Symbols">
+                            <ListBox x:Name="SymbolList" Margin="4" Height="80"
+                                     ItemsSource="{Binding Symbols}" SelectionChanged="SymbolList_OnSelectionChanged"/>
                         </TabItem>
                         <TabItem Header="Styles">
                             <ListBox x:Name="StyleList" Margin="4" Height="80"
