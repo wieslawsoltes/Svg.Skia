@@ -1,9 +1,13 @@
+using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data.Converters;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using ShimSkiaSharp;
 using Svg.Model;
 
 namespace AvalonDraw;
@@ -18,6 +22,7 @@ public partial class GradientMeshEditorWindow : Window
     public GradientMeshEditorWindow(GradientMesh mesh)
     {
         InitializeComponent();
+        Resources["SkColorConverter"] = new SkColorConverter();
         _canvas = this.FindControl<Canvas>("MeshCanvas");
         foreach (var p in mesh.Points)
             Points.Add(p);
@@ -65,6 +70,20 @@ public partial class GradientMeshEditorWindow : Window
         }
     }
 
+    private void ColorPicker_OnColorChanged(object? sender, ColorChangedEventArgs e)
+    {
+        if (sender is ColorPicker picker && picker.DataContext is GradientMeshPoint point)
+        {
+            var index = Points.IndexOf(point);
+            if (index >= 0)
+            {
+                var c = e.NewColor;
+                var sk = new SKColor(c.R, c.G, c.B, c.A);
+                Points[index] = point with { Color = sk };
+            }
+        }
+    }
+
     public GradientMesh Result
     {
         get
@@ -73,5 +92,32 @@ public partial class GradientMeshEditorWindow : Window
             mesh.Points.AddRange(Points);
             return mesh;
         }
+    }
+
+    private void OkButton_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        Close(true);
+    }
+
+    private void CancelButton_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        Close(false);
+    }
+}
+
+public class SkColorConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is SKColor color)
+            return new Color(color.Alpha, color.Red, color.Green, color.Blue);
+        return Colors.Transparent;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is Color c)
+            return new SKColor(c.R, c.G, c.B, c.A);
+        return SKColor.Empty;
     }
 }
