@@ -296,15 +296,21 @@ public partial class MainWindow : Window
                 var btn = new Button { Content = entry.Value ?? "Edit", VerticalAlignment = VerticalAlignment.Center };
                 btn.Click += async (_, _) =>
                 {
-                    var dlg = new GradientEditorWindow(gEntry.Stops);
+                    var dlg = new GradientEditorWindow(gEntry.Gradient);
                     var result = await dlg.ShowDialog<bool>(this);
-                    if (result)
+                    if (result && dlg.Result is { } newGrad)
                     {
-                        gEntry.Stops.Clear();
-                        foreach (var s in dlg.Result)
-                            gEntry.Stops.Add(s);
-                        gEntry.UpdateValue();
+                        if (!ReferenceEquals(newGrad, gEntry.Gradient) && gEntry.Gradient.Parent is SvgElement parent)
+                        {
+                            var idx = parent.Children.IndexOf(gEntry.Gradient);
+                            if (idx >= 0)
+                                parent.Children[idx] = newGrad;
+                            _selectedSvgElement = newGrad;
+                        }
+                        gEntry.SetGradient(newGrad);
                         gEntry.NotifyChanged();
+                        if (_selectedSvgElement is { })
+                            _propertiesService.LoadProperties(_selectedSvgElement);
                     }
                 };
                 return btn;

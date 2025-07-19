@@ -16,10 +16,12 @@ public class GradientStopInfo
 public class GradientStopsEntry : PropertyEntry
 {
     public ObservableCollection<GradientStopInfo> Stops { get; }
+    public SvgGradientServer Gradient { get; private set; }
 
     public GradientStopsEntry(SvgGradientServer gradient)
         : base("Stops", $"{gradient.Stops.Count} stops", (_, __) => { })
     {
+        Gradient = gradient;
         Stops = new ObservableCollection<GradientStopInfo>(
             gradient.Stops.Select(s => new GradientStopInfo
             {
@@ -28,10 +30,19 @@ public class GradientStopsEntry : PropertyEntry
             }));
     }
 
-    private static string ColorToString(System.Drawing.Color c)
+    public void SetGradient(SvgGradientServer gradient)
+    {
+        Gradient = gradient;
+        Stops.Clear();
+        foreach (var s in gradient.Stops)
+            Stops.Add(new GradientStopInfo { Offset = s.Offset.Value, Color = ColorToString(s.GetColor(gradient)) });
+        UpdateValue();
+    }
+
+    internal static string ColorToString(System.Drawing.Color c)
         => $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
 
-    private static System.Drawing.Color ParseColor(string color)
+    internal static System.Drawing.Color ParseColor(string color)
     {
         var ac = Color.Parse(color);
         return System.Drawing.Color.FromArgb(ac.A, ac.R, ac.G, ac.B);
