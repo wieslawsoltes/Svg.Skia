@@ -3,15 +3,29 @@
         x:Class="AvalonDraw.GradientMeshEditorWindow"
         Width="400" Height="300"
         Title="Edit Gradient Mesh">
-    <Canvas x:Name="MeshCanvas" Background="Gray">
-        <ItemsControl ItemsSource="{Binding Points}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Ellipse Width="10" Height="10" Fill="Red"
-                             Canvas.Left="{Binding Position.X}"
-                             Canvas.Top="{Binding Position.Y}" />
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </Canvas>
+    <DockPanel Margin="10" LastChildFill="True">
+        <Canvas x:Name="MeshCanvas" Background="Gray" DockPanel.Dock="Top">
+            <ItemsControl ItemsSource="{Binding Points}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Canvas>
+                            <Ellipse Width="10" Height="10"
+                                     Fill="{Binding Color, Converter={StaticResource SkColorConverter}}"
+                                     Canvas.Left="{Binding Position.X}"
+                                     Canvas.Top="{Binding Position.Y}" />
+                            <ColorPicker Width="120"
+                                         Canvas.Left="{Binding Position.X}"
+                                         Canvas.Top="{Binding Position.Y}"
+                                         Color="{Binding Color, Mode=TwoWay, Converter={StaticResource SkColorConverter}}"
+                                         ColorChanged="ColorPicker_OnColorChanged" />
+                        </Canvas>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Canvas>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4" Margin="0,10,0,0">
+            <Button Content="OK" Width="80" Click="OkButton_OnClick" />
+            <Button Content="Cancel" Width="80" Click="CancelButton_OnClick" />
+        </StackPanel>
+    </DockPanel>
 </Window>
