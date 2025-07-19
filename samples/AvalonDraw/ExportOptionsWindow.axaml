@@ -1,0 +1,21 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="AvalonDraw.ExportOptionsWindow"
+        Width="250" Height="200"
+        Title="Export Options">
+    <StackPanel Margin="10" Spacing="4">
+        <StackPanel Orientation="Horizontal" Spacing="4">
+            <TextBlock Text="Width:" VerticalAlignment="Center"/>
+            <TextBox x:Name="WidthBox" Width="80"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="4">
+            <TextBlock Text="Height:" VerticalAlignment="Center"/>
+            <TextBox x:Name="HeightBox" Width="80"/>
+        </StackPanel>
+        <ColorPicker x:Name="BackgroundPicker" Width="200"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4">
+            <Button Content="OK" Width="80" Click="OkButton_OnClick"/>
+            <Button Content="Cancel" Width="80" Click="CancelButton_OnClick"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

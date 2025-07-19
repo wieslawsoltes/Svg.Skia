@@ -39,6 +39,8 @@
                 <MenuItem Header="New" Click="NewMenuItem_Click" InputGesture="Ctrl+N"/>
                 <MenuItem Header="Open..." Click="OpenMenuItem_Click" InputGesture="Ctrl+O"/>
                 <MenuItem Header="Save..." Click="SaveMenuItem_Click" InputGesture="Ctrl+S"/>
+                <MenuItem Header="Export as PDF..." Click="ExportPdfMenuItem_Click"/>
+                <MenuItem Header="Export as EPS..." Click="ExportEpsMenuItem_Click"/>
                 <MenuItem Header="Export Element..." Click="ExportElementMenuItem_Click" InputGesture="Ctrl+E"/>
                 <MenuItem Header="Place Image..." Click="PlaceImageMenuItem_Click"/>
                 <MenuItem Header="Preview" Click="PreviewMenuItem_Click" InputGesture="F5"/>
