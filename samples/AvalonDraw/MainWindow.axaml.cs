@@ -2586,7 +2586,7 @@ public partial class MainWindow : Window
             .ToList();
         if (ids.Count == 0)
             return;
-        var win = new SymbolSelectWindow(ids!);
+        var win = new SymbolSelectWindow(_symbolService);
         var result = await win.ShowDialog<string?>(this);
         if (result is null)
             return;
