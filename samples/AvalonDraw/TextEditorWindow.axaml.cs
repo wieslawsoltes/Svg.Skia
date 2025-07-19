@@ -15,8 +15,10 @@ public partial class TextEditorWindow : Window
     private readonly ComboBox _fontWeightBox;
     private readonly TextBox _letterBox;
     private readonly TextBox _wordBox;
+    private readonly TextBox _orientationBox;
+    private readonly CheckBox _warpBox;
 
-    public TextEditorWindow(string text, string fontFamily, SvgFontWeight weight, float letter, float word)
+    public TextEditorWindow(string text, string fontFamily, SvgFontWeight weight, float letter, float word, float orientation, bool warp)
     {
         InitializeComponent();
         _editor = this.FindControl<TextBox>("Editor");
@@ -24,6 +26,8 @@ public partial class TextEditorWindow : Window
         _fontWeightBox = this.FindControl<ComboBox>("FontWeightBox");
         _letterBox = this.FindControl<TextBox>("LetterBox");
         _wordBox = this.FindControl<TextBox>("WordBox");
+        _orientationBox = this.FindControl<TextBox>("OrientationBox");
+        _warpBox = this.FindControl<CheckBox>("WarpBox");
 
         _editor.Text = text;
         _fontFamilyBox.ItemsSource = FontManager.Current?.SystemFonts;
@@ -32,6 +36,8 @@ public partial class TextEditorWindow : Window
         _fontWeightBox.SelectedItem = ToFontWeight(weight);
         _letterBox.Text = letter.ToString();
         _wordBox.Text = word.ToString();
+        _orientationBox.Text = orientation.ToString();
+        _warpBox.IsChecked = warp;
     }
 
     private static FontWeight ToFontWeight(SvgFontWeight w) => w switch
@@ -73,6 +79,8 @@ public partial class TextEditorWindow : Window
     public SvgFontWeight FontWeightResult { get; private set; }
     public float LetterSpacingResult { get; private set; }
     public float WordSpacingResult { get; private set; }
+    public float OrientationResult { get; private set; }
+    public bool WarpResult { get; private set; }
 
     private void OkButton_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
@@ -81,8 +89,11 @@ public partial class TextEditorWindow : Window
         FontWeightResult = FromFontWeight((FontWeight)_fontWeightBox.SelectedItem!);
         float.TryParse(_letterBox.Text, out var ls);
         float.TryParse(_wordBox.Text, out var ws);
+        float.TryParse(_orientationBox.Text, out var or);
         LetterSpacingResult = ls;
         WordSpacingResult = ws;
+        OrientationResult = or;
+        WarpResult = _warpBox.IsChecked ?? false;
         Close(true);
     }
 
