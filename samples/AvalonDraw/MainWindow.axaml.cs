@@ -484,6 +484,74 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void ExportPdfMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (SvgView.SkSvg?.Picture is not { } picture)
+            return;
+        var optsWin = new ExportOptionsWindow(picture.CullRect.Width, picture.CullRect.Height, Colors.Transparent);
+        var ok = await optsWin.ShowDialog<bool>(this);
+        if (!ok)
+            return;
+        var dialog = new SaveFileDialog
+        {
+            Filters = new()
+            {
+                new FileDialogFilter { Name = "PDF", Extensions = { "pdf" } },
+                new FileDialogFilter { Name = "All", Extensions = { "*" } }
+            },
+            DefaultExtension = "pdf"
+        };
+        var path = await dialog.ShowAsync(this);
+        if (string.IsNullOrEmpty(path))
+            return;
+        var width = optsWin.PageWidth > 0 ? (float)optsWin.PageWidth : picture.CullRect.Width;
+        var height = optsWin.PageHeight > 0 ? (float)optsWin.PageHeight : picture.CullRect.Height;
+        var scaleX = width / picture.CullRect.Width;
+        var scaleY = height / picture.CullRect.Height;
+        var background = new SK.SKColor(optsWin.Background.R, optsWin.Background.G, optsWin.Background.B, optsWin.Background.A);
+        using var stream = File.OpenWrite(path);
+        using var doc = SK.SKDocument.CreatePdf(stream, SK.SKDocument.DefaultRasterDpi);
+        using var canvas = doc.BeginPage(width, height);
+        canvas.Clear(background);
+        canvas.Scale(scaleX, scaleY);
+        canvas.DrawPicture(picture);
+        doc.Close();
+    }
+
+    private async void ExportEpsMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (SvgView.SkSvg?.Picture is not { } picture)
+            return;
+        var optsWin = new ExportOptionsWindow(picture.CullRect.Width, picture.CullRect.Height, Colors.Transparent);
+        var ok = await optsWin.ShowDialog<bool>(this);
+        if (!ok)
+            return;
+        var dialog = new SaveFileDialog
+        {
+            Filters = new()
+            {
+                new FileDialogFilter { Name = "EPS", Extensions = { "eps" } },
+                new FileDialogFilter { Name = "All", Extensions = { "*" } }
+            },
+            DefaultExtension = "eps"
+        };
+        var path = await dialog.ShowAsync(this);
+        if (string.IsNullOrEmpty(path))
+            return;
+        var width = optsWin.PageWidth > 0 ? (float)optsWin.PageWidth : picture.CullRect.Width;
+        var height = optsWin.PageHeight > 0 ? (float)optsWin.PageHeight : picture.CullRect.Height;
+        var scaleX = width / picture.CullRect.Width;
+        var scaleY = height / picture.CullRect.Height;
+        var background = new SK.SKColor(optsWin.Background.R, optsWin.Background.G, optsWin.Background.B, optsWin.Background.A);
+        using var stream = File.OpenWrite(path);
+        using var doc = SK.SKDocument.CreateXps(stream, SK.SKDocument.DefaultRasterDpi);
+        using var canvas = doc.BeginPage(width, height);
+        canvas.Clear(background);
+        canvas.Scale(scaleX, scaleY);
+        canvas.DrawPicture(picture);
+        doc.Close();
+    }
+
     private async void ExportElementMenuItem_Click(object? sender, RoutedEventArgs e)
     {
         if (_selectedDrawable is null || SvgView.SkSvg is null)
