@@ -20,10 +20,15 @@ public class SymbolService
         public override string ToString() => Name;
     }
 
+    private SvgDocument? _document;
+
+    public SvgDocument? Document => _document;
+
     public ObservableCollection<SymbolEntry> Symbols { get; } = new();
 
     public void Load(SvgDocument? document)
     {
+        _document = document;
         Symbols.Clear();
         if (document is null)
             return;
@@ -40,6 +45,7 @@ public class SymbolService
 
     public void AddSymbol(SvgDocument document, SvgSymbol symbol)
     {
+        _document = document;
         var defs = document.Children.OfType<SvgDefinitionList>().FirstOrDefault();
         if (defs is null)
         {
@@ -49,5 +55,24 @@ public class SymbolService
         defs.Children.Add(symbol);
         var name = string.IsNullOrEmpty(symbol.ID) ? $"Symbol {Symbols.Count + 1}" : symbol.ID!;
         Symbols.Add(new SymbolEntry(symbol, name));
+    }
+
+    public void ReplaceSymbol(SvgSymbol oldSymbol, SvgSymbol newSymbol)
+    {
+        if (_document is null)
+            return;
+        var defs = _document.Children.OfType<SvgDefinitionList>().FirstOrDefault();
+        if (defs is null)
+            return;
+        var idx = defs.Children.IndexOf(oldSymbol);
+        if (idx >= 0)
+            defs.Children[idx] = newSymbol;
+        var entry = Symbols.FirstOrDefault(s => s.Symbol == oldSymbol);
+        if (entry is not null)
+        {
+            var name = string.IsNullOrEmpty(newSymbol.ID) ? entry.Name : newSymbol.ID!;
+            var index = Symbols.IndexOf(entry);
+            Symbols[index] = new SymbolEntry(newSymbol, name);
+        }
     }
 }
