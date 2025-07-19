@@ -12,6 +12,10 @@
             <TextBox x:Name="LetterBox" Width="60" />
             <TextBlock Text="Word" VerticalAlignment="Center" />
             <TextBox x:Name="WordBox" Width="60" />
+            <TextBlock Text="Orient" VerticalAlignment="Center" />
+            <TextBox x:Name="OrientationBox" Width="60" />
+            <TextBlock Text="Warp" VerticalAlignment="Center" />
+            <CheckBox x:Name="WarpBox" VerticalAlignment="Center" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4">
             <Button Content="OK" Click="OkButton_OnClick" Width="80"/>

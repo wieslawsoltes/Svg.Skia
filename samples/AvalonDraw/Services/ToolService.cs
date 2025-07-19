@@ -41,6 +41,8 @@ public class ToolService
     public SvgFontWeight CurrentFontWeight { get; set; } = SvgFontWeight.Normal;
     public float CurrentLetterSpacing { get; set; } = 0f;
     public float CurrentWordSpacing { get; set; } = 0f;
+    public float CurrentOrientation { get; set; } = 0f;
+    public bool CurrentWarp { get; set; } = false;
 
     public event Action<Tool, Tool>? ToolChanged;
 
@@ -118,7 +120,8 @@ public class ToolService
                 FontFamily = CurrentFontFamily,
                 FontWeight = CurrentFontWeight,
                 LetterSpacing = new SvgUnit(SvgUnitType.User, CurrentLetterSpacing),
-                WordSpacing = new SvgUnit(SvgUnitType.User, CurrentWordSpacing)
+                WordSpacing = new SvgUnit(SvgUnitType.User, CurrentWordSpacing),
+                Rotate = CurrentOrientation.ToString(System.Globalization.CultureInfo.InvariantCulture)
             },
             Tool.TextPath when !string.IsNullOrEmpty(ReferenceId) => new SvgTextPath
             {
@@ -128,7 +131,9 @@ public class ToolService
                 FontFamily = CurrentFontFamily,
                 FontWeight = CurrentFontWeight,
                 LetterSpacing = new SvgUnit(SvgUnitType.User, CurrentLetterSpacing),
-                WordSpacing = new SvgUnit(SvgUnitType.User, CurrentWordSpacing)
+                WordSpacing = new SvgUnit(SvgUnitType.User, CurrentWordSpacing),
+                Rotate = CurrentOrientation.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                Method = CurrentWarp ? SvgTextPathMethod.Stretch : SvgTextPathMethod.Align
             },
             Tool.TextArea when !string.IsNullOrEmpty(ReferenceId) => new SvgText
             {
@@ -139,7 +144,8 @@ public class ToolService
                 FontFamily = CurrentFontFamily,
                 FontWeight = CurrentFontWeight,
                 LetterSpacing = new SvgUnit(SvgUnitType.User, CurrentLetterSpacing),
-                WordSpacing = new SvgUnit(SvgUnitType.User, CurrentWordSpacing)
+                WordSpacing = new SvgUnit(SvgUnitType.User, CurrentWordSpacing),
+                Rotate = CurrentOrientation.ToString(System.Globalization.CultureInfo.InvariantCulture)
             },
             Tool.PathLine => CreatePath(start, Tool.PathLine),
             Tool.PathCubic => CreatePath(start, Tool.PathCubic),
