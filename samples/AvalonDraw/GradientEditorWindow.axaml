@@ -4,6 +4,18 @@
         Width="400" Height="300"
         Title="Edit Gradient">
     <DockPanel Margin="10" LastChildFill="True">
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Spacing="4">
+            <TextBlock Text="Type:" VerticalAlignment="Center"/>
+            <ComboBox x:Name="TypeBox" Width="80">
+                <ComboBoxItem Content="Linear"/>
+                <ComboBoxItem Content="Radial"/>
+            </ComboBox>
+            <TextBlock Text="Center:" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <TextBox x:Name="CenterXBox" Width="40"/>
+            <TextBox x:Name="CenterYBox" Width="40" Margin="4,0,0,0"/>
+            <TextBlock Text="Radius:" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <TextBox x:Name="RadiusBox" Width="40"/>
+        </StackPanel>
         <DataGrid x:Name="StopsGrid" DockPanel.Dock="Top" AutoGenerateColumns="False">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Offset" Binding="{Binding Offset, Mode=TwoWay}" Width="80"/>

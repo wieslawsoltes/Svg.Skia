@@ -85,9 +85,15 @@ public class PropertiesService
             AddTypographicAttribute(element, "font-feature-settings");
         }
 
-        if (element is SvgGradientServer grad)
+        if (element is SvgLinearGradientServer linGrad)
         {
-            var gEntry = new GradientStopsEntry(grad);
+            var gEntry = new GradientStopsEntry(linGrad);
+            gEntry.PropertyChanged += OnEntryChanged;
+            Properties.Add(gEntry);
+        }
+        else if (element is SvgRadialGradientServer radGrad)
+        {
+            var gEntry = new GradientStopsEntry(radGrad);
             gEntry.PropertyChanged += OnEntryChanged;
             Properties.Add(gEntry);
         }
