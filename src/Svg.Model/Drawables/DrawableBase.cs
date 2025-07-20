@@ -34,6 +34,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
     public SKRect? FilterClip { get; set; }
     public SKPaint? Fill { get; set; }
     public SKPaint? Stroke { get; set; }
+    public bool NonScalingStroke { get; set; }
 
     protected DrawableBase(ISvgAssetLoader assetLoader, HashSet<Uri>? references)
     {
@@ -151,7 +152,26 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
         }
         else
         {
+            var savedWidth = 0f;
+            if (NonScalingStroke && Stroke is { })
+            {
+                var matrix = canvas.TotalMatrix;
+                var scaleX = (float)System.Math.Sqrt(matrix.ScaleX * matrix.ScaleX + matrix.SkewX * matrix.SkewX);
+                var scaleY = (float)System.Math.Sqrt(matrix.ScaleY * matrix.ScaleY + matrix.SkewY * matrix.SkewY);
+                var scale = (scaleX + scaleY) / 2f;
+                if (scale != 0f)
+                {
+                    savedWidth = Stroke.StrokeWidth;
+                    Stroke.StrokeWidth = savedWidth / scale;
+                }
+            }
+
             OnDraw(canvas, ignoreAttributes, until);
+
+            if (NonScalingStroke && Stroke is { } && savedWidth > 0f)
+            {
+                Stroke.StrokeWidth = savedWidth;
+            }
         }
 
         if (Filter is { } && enableFilter)
@@ -235,6 +255,12 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
 
         TotalTransform = totalMatrix.PreConcat(Transform);
         TransformedBounds = TotalTransform.MapRect(GeometryBounds);
+
+        if (visualElement is { } &&
+            visualElement.TryGetAttribute("vector-effect", out string vectorEffect))
+        {
+            NonScalingStroke = vectorEffect.IndexOf("non-scaling-stroke", System.StringComparison.OrdinalIgnoreCase) >= 0;
+        }
 
         if (visualElement is { } && enableClip)
         {
