@@ -296,10 +296,27 @@ public partial class MainWindow : Window
                 var btn = new Button { Content = entry.Value ?? "Edit", VerticalAlignment = VerticalAlignment.Center };
                 btn.Click += async (_, _) =>
                 {
-                    var dlg = new GradientEditorWindow(gEntry.Stops);
+                    var dlg = new GradientEditorWindow(gEntry.Stops, _selectedSvgElement as SvgGradientServer);
                     var result = await dlg.ShowDialog<bool>(this);
                     if (result)
                     {
+                        if (dlg.ResultRadial is { } radial && _selectedSvgElement is SvgGradientServer grad)
+                        {
+                            radial.ID = grad.ID;
+                            radial.GradientUnits = grad.GradientUnits;
+                            radial.SpreadMethod = grad.SpreadMethod;
+                            radial.GradientTransform = grad.GradientTransform;
+                            radial.InheritGradient = grad.InheritGradient;
+                            if (grad.Parent is SvgElement parent)
+                            {
+                                var idx = parent.Children.IndexOf(grad);
+                                if (idx >= 0)
+                                    parent.Children[idx] = radial;
+                            }
+                            _selectedSvgElement = radial;
+                            LoadProperties(_selectedSvgElement);
+                        }
+
                         gEntry.Stops.Clear();
                         foreach (var s in dlg.Result)
                             gEntry.Stops.Add(s);
