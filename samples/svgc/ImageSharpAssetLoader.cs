@@ -9,7 +9,7 @@ internal class ImageSharpAssetLoader : Svg.Model.ISvgAssetLoader
     {
         var data = ShimSkiaSharp.SKImage.FromStream(stream);
         using var image = SixLabors.ImageSharp.Image.Load(data);
-        return new ShimSkiaSharp.SKImage {Data = data, Width = image.Width, Height = image.Height};
+        return new ShimSkiaSharp.SKImage { Data = data, Width = image.Width, Height = image.Height };
     }
 
     public List<Svg.Model.TypefaceSpan> FindTypefaces(string? text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
@@ -38,7 +38,11 @@ internal class ImageSharpAssetLoader : Svg.Model.ISvgAssetLoader
             Descent = size * 0.2f,
             Top = -size * 0.8f,
             Bottom = size * 0.2f,
-            Leading = 0f
+            Leading = 0f,
+            UnderlinePosition = 0f,
+            UnderlineThickness = 0f,
+            StrikeoutPosition = 0f,
+            StrikeoutThickness = 0f
         };
     }
 

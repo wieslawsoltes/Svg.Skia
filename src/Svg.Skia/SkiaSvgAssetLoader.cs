@@ -25,7 +25,7 @@ public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
     {
         var data = ShimSkiaSharp.SKImage.FromStream(stream);
         using var image = SkiaSharp.SKImage.FromEncodedData(data);
-        return new ShimSkiaSharp.SKImage {Data = data, Width = image.Width, Height = image.Height};
+        return new ShimSkiaSharp.SKImage { Data = data, Width = image.Width, Height = image.Height };
     }
 
     /// <inheritdoc />
@@ -132,7 +132,11 @@ public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
             Ascent = skMetrics.Ascent,
             Descent = skMetrics.Descent,
             Bottom = skMetrics.Bottom,
-            Leading = skMetrics.Leading
+            Leading = skMetrics.Leading,
+            UnderlinePosition = skMetrics.UnderlinePosition ?? 0f,
+            UnderlineThickness = skMetrics.UnderlineThickness ?? 0f,
+            StrikeoutPosition = skMetrics.StrikeoutPosition ?? 0f,
+            StrikeoutThickness = skMetrics.StrikeoutThickness ?? 0f
         };
     }
 

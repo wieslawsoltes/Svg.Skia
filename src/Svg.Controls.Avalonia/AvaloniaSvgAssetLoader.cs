@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+using System.Collections.Generic;
 using System.IO;
+using Avalonia.Media;
 using ShimSkiaSharp;
 using AMI = Avalonia.Media.Imaging;
 using SM = Svg.Model;
-using Avalonia.Media;
-using System.Collections.Generic;
 
 namespace Avalonia.Svg;
 
@@ -19,7 +19,7 @@ public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
     {
         var data = SKImage.FromStream(stream);
         using var image = new AMI.Bitmap(stream);
-        return new SKImage {Data = data, Width = (float)image.Size.Width, Height = (float)image.Size.Height};
+        return new SKImage { Data = data, Width = (float)image.Size.Width, Height = (float)image.Size.Height };
     }
 
     /// <inheritdoc />
@@ -47,8 +47,8 @@ public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
                     slant,
                     weight,
                     width,
-                    preferredTypeface.FamilyName is { } n 
-                        ? FontFamily.Parse(n) 
+                    preferredTypeface.FamilyName is { } n
+                        ? FontFamily.Parse(n)
                         : null,
                     null, out var typeface);
 
@@ -104,8 +104,8 @@ public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
             {
                 runningTypeface = typeface;
             }
-            else if (runningTypeface is null && typeface is { } 
-                     || runningTypeface is { } && typeface is null 
+            else if (runningTypeface is null && typeface is { }
+                     || runningTypeface is { } && typeface is null
                      || runningTypeface != typeface)
             {
                 YieldCurrentTypefaceText();
@@ -140,7 +140,11 @@ public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
             Ascent = -(float)(metrics.Ascent * paint.TextSize),
             Descent = (float)(metrics.Descent * paint.TextSize),
             Bottom = (float)(metrics.Descent * paint.TextSize),
-            Leading = (float)(metrics.LineGap * paint.TextSize)
+            Leading = (float)(metrics.LineGap * paint.TextSize),
+            UnderlinePosition = 0f,
+            UnderlineThickness = 0f,
+            StrikeoutPosition = 0f,
+            StrikeoutThickness = 0f
         };
     }
 

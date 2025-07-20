@@ -15,6 +15,8 @@ public record DrawImageCanvasCommand(SKImage? Image, SKRect Source, SKRect Dest,
 
 public record DrawPathCanvasCommand(SKPath? Path, SKPaint? Paint) : CanvasCommand;
 
+public record DrawLineCanvasCommand(float X0, float Y0, float X1, float Y1, SKPaint Paint) : CanvasCommand;
+
 public record DrawTextBlobCanvasCommand(SKTextBlob? TextBlob, float X, float Y, SKPaint? Paint) : CanvasCommand;
 
 public record DrawTextCanvasCommand(string Text, float X, float Y, SKPaint? Paint) : CanvasCommand;
@@ -62,6 +64,11 @@ public class SKCanvas
     public void DrawPath(SKPath path, SKPaint paint)
     {
         Commands?.Add(new DrawPathCanvasCommand(path, paint));
+    }
+
+    public void DrawLine(float x0, float y0, float x1, float y1, SKPaint paint)
+    {
+        Commands?.Add(new DrawLineCanvasCommand(x0, y0, x1, y1, paint));
     }
 
     public void DrawText(SKTextBlob textBlob, float x, float y, SKPaint paint)
