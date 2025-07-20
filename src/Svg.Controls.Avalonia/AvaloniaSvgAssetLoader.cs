@@ -6,12 +6,14 @@ using AMI = Avalonia.Media.Imaging;
 using SM = Svg.Model;
 using Avalonia.Media;
 using System.Collections.Generic;
+using Svg.Model;
 
 namespace Avalonia.Svg;
 
 /// <summary>
 /// Asset loader implementation using Avalonia types.
 /// </summary>
+[Preserve(AllMembers = true)]
 public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
 {
     /// <inheritdoc />

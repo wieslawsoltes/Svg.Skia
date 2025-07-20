@@ -1,9 +1,11 @@
 // Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System.Collections.Generic;
+using Svg.Model;
 
 namespace Svg.SourceGenerator.Skia;
 
+[Preserve(AllMembers = true)]
 public class SkiaGeneratorSvgAssetLoader : Model.ISvgAssetLoader
 {
     public ShimSkiaSharp.SKImage LoadImage(System.IO.Stream stream)
