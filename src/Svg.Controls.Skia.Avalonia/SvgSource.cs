@@ -103,7 +103,7 @@ public sealed class SvgSource : IDisposable
     /// </summary>
     public static bool EnableThrowOnMissingResource { get; set; }
 
-    public object Sync { get; } = new ();
+    public object Sync { get; } = new();
 
     static SvgSource()
     {
@@ -121,7 +121,7 @@ public sealed class SvgSource : IDisposable
         {
             return null;
         }
-        
+
         var skSvg = new SKSvg();
         skSvg.Load(path, parameters);
         lock (source.Sync)
@@ -173,8 +173,8 @@ public sealed class SvgSource : IDisposable
 
     private static SvgSource? ThrowOnMissingResource(string path)
     {
-        return EnableThrowOnMissingResource 
-            ? throw new ArgumentException($"Invalid resource path: {path}") 
+        return EnableThrowOnMissingResource
+            ? throw new ArgumentException($"Invalid resource path: {path}")
             : null;
     }
 
@@ -205,7 +205,7 @@ public sealed class SvgSource : IDisposable
             ThrowOnMissingResource(path);
             return null;
         }
-        
+
         var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
         if (uri.IsAbsoluteUri && uri.IsFile)
         {
@@ -223,14 +223,14 @@ public sealed class SvgSource : IDisposable
         }
     }
 
-    /// <summary>t
+    /// <summary>
     /// Loads svg source from file or resource.
     /// </summary>
     /// <param name="path">The path to file or resource.</param>
     /// <param name="baseUri">The base uri.</param>
     /// <param name="parameters">The svg parameters.</param>
     /// <returns>The svg source.</returns>
-    public static SvgSource? Load(string path, Uri? baseUri = default, SvgParameters? parameters = null)
+    public static SvgSource Load(string path, Uri? baseUri = default, SvgParameters? parameters = null)
     {
         var source = new SvgSource(baseUri);
         source._picture = LoadImpl(source, path, baseUri, parameters);
@@ -238,11 +238,11 @@ public sealed class SvgSource : IDisposable
     }
 
     /// <summary>
-    /// Loads svg source from svg source.
+    /// Loads an <see cref="SvgSource"/> from raw SVG markup.
     /// </summary>
-    /// <param name="svg">The svg source.</param>
-    /// <returns>The svg source.</returns>
-    public static SvgSource? LoadFromSvg(string svg)
+    /// <param name="svg">The SVG markup.</param>
+    /// <returns>The loaded <see cref="SvgSource"/>.</returns>
+    public static SvgSource LoadFromSvg(string svg)
     {
         var source = new SvgSource(default(Uri));
         source._picture = FromSvg(svg);
@@ -254,25 +254,25 @@ public sealed class SvgSource : IDisposable
         return source;
     }
 
-    /// <summary>t
-    /// Loads svg source from stream.
+    /// <summary>
+    /// Loads an <see cref="SvgSource"/> from a <see cref="Stream"/>.
     /// </summary>
-    /// <param name="stream">The svg stream.</param>
-    /// <param name="parameters">The svg parameters.</param>
-    /// <returns>The svg source.</returns>
-    public static SvgSource? LoadFromStream(Stream stream, SvgParameters? parameters = null)
+    /// <param name="stream">The SVG stream.</param>
+    /// <param name="parameters">Optional SVG parameters.</param>
+    /// <returns>The loaded <see cref="SvgSource"/>.</returns>
+    public static SvgSource LoadFromStream(Stream stream, SvgParameters? parameters = null)
     {
         var source = new SvgSource(default(Uri));
         source._picture = Load(source, stream, parameters);
         return source;
     }
 
-    /// <summary>t
-    /// Loads svg source from svg document.
+    /// <summary>
+    /// Creates an <see cref="SvgSource"/> from an existing <see cref="SvgDocument"/>.
     /// </summary>
-    /// <param name="document">The svg document.</param>
-    /// <returns>The svg source.</returns>
-    public static SvgSource? LoadFromSvgDocument(SvgDocument document)
+    /// <param name="document">The SVG document.</param>
+    /// <returns>The loaded <see cref="SvgSource"/>.</returns>
+    public static SvgSource LoadFromSvgDocument(SvgDocument document)
     {
         var source = new SvgSource(default(Uri));
         source._picture = FromSvgDocument(document);
