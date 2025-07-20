@@ -27,7 +27,7 @@ public static class GradientMeshService
         return SKShader.CreateLinearGradient(
             first.Position,
             last.Position,
-            new[] { (SKColorF)first.Color, (SKColorF)last.Color },
+            new[] { (SKColorF)first.ToSKColor(), (SKColorF)last.ToSKColor() },
             SKColorSpace.Srgb,
             new[] { 0f, 1f },
             SKShaderTileMode.Clamp);

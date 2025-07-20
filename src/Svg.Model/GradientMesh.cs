@@ -19,4 +19,39 @@ public sealed class GradientMesh
 /// <summary>
 /// Defines a single mesh point with position and color.
 /// </summary>
-public sealed record GradientMeshPoint(SKPoint Position, SKColor Color);
+public sealed class GradientMeshPoint
+{
+    public SKPoint Position { get; set; }
+    public string Color { get; set; } = "#000000";
+
+    public GradientMeshPoint() { }
+
+    public GradientMeshPoint(SKPoint position, string color)
+    {
+        Position = position;
+        Color = color;
+    }
+
+    public SKColor ToSKColor()
+    {
+        var hex = Color.TrimStart('#');
+        byte a = 255;
+        byte r = 0;
+        byte g = 0;
+        byte b = 0;
+        if (hex.Length == 8)
+        {
+            a = System.Convert.ToByte(hex.Substring(0, 2), 16);
+            r = System.Convert.ToByte(hex.Substring(2, 2), 16);
+            g = System.Convert.ToByte(hex.Substring(4, 2), 16);
+            b = System.Convert.ToByte(hex.Substring(6, 2), 16);
+        }
+        else if (hex.Length == 6)
+        {
+            r = System.Convert.ToByte(hex.Substring(0, 2), 16);
+            g = System.Convert.ToByte(hex.Substring(2, 2), 16);
+            b = System.Convert.ToByte(hex.Substring(4, 2), 16);
+        }
+        return new SKColor(r, g, b, a);
+    }
+}

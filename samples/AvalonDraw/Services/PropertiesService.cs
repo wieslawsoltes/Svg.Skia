@@ -90,6 +90,13 @@ public class PropertiesService
             var gEntry = new GradientStopsEntry(grad);
             gEntry.PropertyChanged += OnEntryChanged;
             Properties.Add(gEntry);
+
+            if (grad.CustomAttributes.TryGetValue("gradient-mesh", out var mesh))
+            {
+                var mEntry = new GradientMeshEntry(GradientMeshEntry.Parse(mesh));
+                mEntry.PropertyChanged += OnEntryChanged;
+                Properties.Add(mEntry);
+            }
         }
 
         if (element is SvgVisualElement vis &&

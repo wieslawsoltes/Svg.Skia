@@ -18,13 +18,14 @@ public partial class GradientMeshEditorWindow : Window
     public GradientMeshEditorWindow(GradientMesh mesh)
     {
         InitializeComponent();
+        Resources["ColorStringConverter"] = new ColorStringConverter();
         _canvas = this.FindControl<Canvas>("MeshCanvas");
         foreach (var p in mesh.Points)
-            Points.Add(p);
+            Points.Add(new GradientMeshPoint(p.Position, p.Color));
         _canvas.PointerPressed += OnPointerPressed;
         _canvas.PointerReleased += OnPointerReleased;
         _canvas.PointerMoved += OnPointerMoved;
-        _canvas.DataContext = this;
+        DataContext = this;
     }
 
     private void InitializeComponent()
@@ -57,21 +58,21 @@ public partial class GradientMeshEditorWindow : Window
             return;
 
         var pos = e.GetPosition(_canvas);
-        var index = Points.IndexOf(_dragging);
-        if (index >= 0)
-        {
-            Points[index] = _dragging with { Position = new ShimSkiaSharp.SKPoint((float)pos.X, (float)pos.Y) };
-            _dragging = Points[index];
-        }
+        _dragging.Position = new ShimSkiaSharp.SKPoint((float)pos.X, (float)pos.Y);
     }
 
-    public GradientMesh Result
+    public GradientMesh Result { get; private set; } = new();
+
+    private void OkButton_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        get
-        {
-            var mesh = new GradientMesh();
-            mesh.Points.AddRange(Points);
-            return mesh;
-        }
+        Result.Points.Clear();
+        foreach (var p in Points)
+            Result.Points.Add(new GradientMeshPoint(p.Position, p.Color));
+        Close(true);
+    }
+
+    private void CancelButton_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        Close(false);
     }
 }

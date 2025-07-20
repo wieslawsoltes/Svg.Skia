@@ -287,7 +287,15 @@ public partial class MainWindow : Window
                 btn.Click += async (_, _) =>
                 {
                     var dlg = new GradientMeshEditorWindow(meshEntry.Mesh);
-                    await dlg.ShowDialog(this);
+                    var result = await dlg.ShowDialog<bool>(this);
+                    if (result)
+                    {
+                        meshEntry.Mesh.Points.Clear();
+                        foreach (var p in dlg.Result.Points)
+                            meshEntry.Mesh.Points.Add(p);
+                        meshEntry.Value = string.Empty;
+                        meshEntry.NotifyChanged();
+                    }
                 };
                 return btn;
             }

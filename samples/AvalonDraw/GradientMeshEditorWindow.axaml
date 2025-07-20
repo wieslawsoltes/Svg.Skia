@@ -3,15 +3,30 @@
         x:Class="AvalonDraw.GradientMeshEditorWindow"
         Width="400" Height="300"
         Title="Edit Gradient Mesh">
-    <Canvas x:Name="MeshCanvas" Background="Gray">
-        <ItemsControl ItemsSource="{Binding Points}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Ellipse Width="10" Height="10" Fill="Red"
-                             Canvas.Left="{Binding Position.X}"
-                             Canvas.Top="{Binding Position.Y}" />
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </Canvas>
+    <DockPanel Margin="10" LastChildFill="True">
+        <Canvas x:Name="MeshCanvas" Background="Gray" DockPanel.Dock="Top" Height="200">
+            <ItemsControl ItemsSource="{Binding Points}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Canvas.Left="{Binding Position.X}"
+                                    Canvas.Top="{Binding Position.Y}">
+                            <Ellipse Width="10" Height="10"
+                                     Fill="{Binding Color, Converter={StaticResource ColorStringConverter}}"/>
+                            <ColorPicker Width="120"
+                                         Color="{Binding Color, Mode=TwoWay, Converter={StaticResource ColorStringConverter}}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Canvas>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4">
+            <Button Content="OK" Width="80" Click="OkButton_OnClick"/>
+            <Button Content="Cancel" Width="80" Click="CancelButton_OnClick"/>
+        </StackPanel>
+    </DockPanel>
 </Window>
