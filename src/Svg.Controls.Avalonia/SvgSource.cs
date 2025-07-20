@@ -132,4 +132,9 @@ public class SvgSource
     {
         return new() { Picture = LoadPictureFromSvg(source) };
     }
+
+    public static float MeasureText(string? text, SKPaint paint, ref SKRect bounds)
+    {
+        return s_assetLoader.MeasureText(text, paint, ref bounds);
+    }
 }
