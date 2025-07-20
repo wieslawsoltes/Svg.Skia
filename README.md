@@ -524,6 +524,10 @@ cd ./src/Svg.Skia.Converter
 dotnet publish -c Release -f net6.0 -r osx-x64 -o Svg.Skia.Converter_net6.0_osx-x64
 ```
 
+## Limitations
+
+Animation support is experimental and currently only handles `animateTransform` elements for translation, scale and rotation. Other animation types are ignored.
+
 ## Externals
 
 The `Svg.Skia` library is using code from the https://github.com/vvvv/SVG

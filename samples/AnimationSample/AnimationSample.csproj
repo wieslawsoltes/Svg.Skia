@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <IsPackable>False</IsPackable>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\*" />
+  </ItemGroup>
+
+  <Import Project="..\..\build\Avalonia.props" />
+  <Import Project="..\..\build\Avalonia.Themes.Fluent.props" />
+  <Import Project="..\..\build\Avalonia.Desktop.props" />
+  <Import Project="..\..\build\Avalonia.Diagnostics.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Skia.Controls.Avalonia\Skia.Controls.Avalonia.csproj" />
+    <ProjectReference Include="..\..\src\Svg.Skia\Svg.Skia.csproj" />
+  </ItemGroup>
+
+</Project>
