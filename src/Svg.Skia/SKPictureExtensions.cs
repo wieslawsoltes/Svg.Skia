@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+using System;
 using System.IO;
 
 namespace Svg.Skia;
@@ -23,7 +24,9 @@ public static class SKPictureExtensions
         {
             return null;
         }
-        var skImageInfo = new SkiaSharp.SKImageInfo((int)width, (int)height, skColorType, skAlphaType, skColorSpace);
+        var widthRounded = Math.Max(1, (int)Math.Ceiling(width));
+        var heightRounded = Math.Max(1, (int)Math.Ceiling(height));
+        var skImageInfo = new SkiaSharp.SKImageInfo(widthRounded, heightRounded, skColorType, skAlphaType, skColorSpace);
         var skBitmap = new SkiaSharp.SKBitmap(skImageInfo);
         using var skCanvas = new SkiaSharp.SKCanvas(skBitmap);
         Draw(skPicture, background, scaleX, scaleY, skCanvas);
