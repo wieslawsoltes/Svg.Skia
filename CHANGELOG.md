@@ -1,5 +1,9 @@
 # Svg.Skia Changelog
 
+## 3.0.5
+
+* Updated Avalonia packages to 11.3.0.2.
+
 ## 0.3.0
 
 * Updated NuGet packages.
