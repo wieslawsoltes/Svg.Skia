@@ -2219,7 +2219,8 @@ public partial class MainWindow : Window
         if (_document is null)
             return;
         var win = new TextEditorWindow(_document.GetXML(), _toolService.CurrentFontFamily,
-            _toolService.CurrentFontWeight, _toolService.CurrentLetterSpacing, _toolService.CurrentWordSpacing);
+            _toolService.CurrentFontWeight, _toolService.CurrentLetterSpacing, _toolService.CurrentWordSpacing,
+            0f, SvgTextPathMethod.Align);
         var ok = await win.ShowDialog<bool>(this);
         if (ok)
         {
@@ -2234,12 +2235,16 @@ public partial class MainWindow : Window
     {
         if (_selectedSvgElement is SvgTextBase txt && _document is { })
         {
+            float.TryParse(txt.Rotate, out var orient);
+            var method = txt is SvgTextPath tp ? tp.Method : SvgTextPathMethod.Align;
             var win = new TextEditorWindow(
                 txt.Text,
                 txt.FontFamily,
                 txt.FontWeight,
                 txt.LetterSpacing.Value,
-                txt.WordSpacing.Value);
+                txt.WordSpacing.Value,
+                orient,
+                method);
             var ok2 = await win.ShowDialog<bool>(this);
             if (ok2)
             {
@@ -2249,6 +2254,9 @@ public partial class MainWindow : Window
                 txt.FontWeight = win.FontWeightResult;
                 txt.LetterSpacing = new SvgUnit(SvgUnitType.User, win.LetterSpacingResult);
                 txt.WordSpacing = new SvgUnit(SvgUnitType.User, win.WordSpacingResult);
+                txt.Rotate = win.OrientationResult.ToString();
+                if (txt is SvgTextPath tp2)
+                    tp2.Method = win.WarpResult;
                 SvgView.SkSvg!.FromSvgDocument(_document);
                 UpdateSelectedDrawable();
                 LoadProperties(txt);
