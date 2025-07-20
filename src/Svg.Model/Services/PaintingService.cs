@@ -224,6 +224,34 @@ internal static class PaintingService
         };
     }
 
+    internal static SKBlendMode GetBlendMode(SvgElement svgElement)
+    {
+        if (SvgService.TryGetAttribute(svgElement, "mix-blend-mode", out var value))
+        {
+            return value.Trim().ToLowerInvariant() switch
+            {
+                "normal" => SKBlendMode.SrcOver,
+                "multiply" => SKBlendMode.Multiply,
+                "screen" => SKBlendMode.Screen,
+                "overlay" => SKBlendMode.Overlay,
+                "darken" => SKBlendMode.Darken,
+                "lighten" => SKBlendMode.Lighten,
+                "color-dodge" => SKBlendMode.ColorDodge,
+                "color-burn" => SKBlendMode.ColorBurn,
+                "hard-light" => SKBlendMode.HardLight,
+                "soft-light" => SKBlendMode.SoftLight,
+                "difference" => SKBlendMode.Difference,
+                "exclusion" => SKBlendMode.Exclusion,
+                "hue" => SKBlendMode.Hue,
+                "saturation" => SKBlendMode.Saturation,
+                "color" => SKBlendMode.Color,
+                "luminosity" => SKBlendMode.Luminosity,
+                _ => SKBlendMode.SrcOver,
+            };
+        }
+        return SKBlendMode.SrcOver;
+    }
+
     internal static SKShader CreateLinearGradient(SvgLinearGradientServer svgLinearGradientServer, SKRect skBounds, SvgVisualElement svgVisualElement, float opacity, DrawAttributes ignoreAttributes, SKColorSpace skColorSpace)
     {
         var svgReferencedGradientServers = GetLinkedGradientServer(svgLinearGradientServer, svgVisualElement);
@@ -522,12 +550,12 @@ internal static class PaintingService
         if (radius == 0.0)
         {
             return SKShader.CreateColor(
-                skColors.Length > 0 ? skColors[skColors.Length - 1] : new SKColor(0x00, 0x00, 0x00, 0xFF), 
+                skColors.Length > 0 ? skColors[skColors.Length - 1] : new SKColor(0x00, 0x00, 0x00, 0xFF),
                 skColorSpace);
         }
 
         var isRadialGradient = skCenter.X == skFocal.X && skCenter.Y == skFocal.Y;
-        
+
         if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
         {
             var skBoundingBoxTransform = new SKMatrix
@@ -630,7 +658,7 @@ internal static class PaintingService
         }
 
         var drawables = new List<DrawableBase>();
-        
+
         foreach (var svgElement in svgElementCollection)
         {
             var drawable = DrawableFactory.Create(svgElement, skBounds, null, assetLoader, references, ignoreAttributes);
@@ -870,7 +898,7 @@ internal static class PaintingService
                         if (fallbackServer is SvgColourServer svgColourServerFallback)
                         {
                             var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
-                            
+
                             if (skColorSpace == SKColorSpace.Srgb)
                             {
                                 skPaint.Color = skColor;
@@ -968,7 +996,7 @@ internal static class PaintingService
                             {
                                 skColor = ToLinear(skColor);
                             }
- 
+
                             var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
                             if (skColorShader is { })
                             {
@@ -1062,6 +1090,8 @@ internal static class PaintingService
             return default;
         }
 
+        skPaint.BlendMode = GetBlendMode(svgVisualElement);
+
         return skPaint;
     }
 
@@ -1079,6 +1109,8 @@ internal static class PaintingService
         {
             return default;
         }
+
+        skPaint.BlendMode = GetBlendMode(svgVisualElement);
 
         switch (svgVisualElement.StrokeLineCap)
         {

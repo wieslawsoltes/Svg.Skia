@@ -109,7 +109,7 @@ public sealed class ImageDrawable : DrawableBase
         {
             return;
         }
-        
+
         IsAntialias = PaintingService.IsAntialias(svgImage);
 
         GeometryBounds = default(SKRect);
@@ -156,7 +156,8 @@ public sealed class ImageDrawable : DrawableBase
             var skImagePaint = new SKPaint
             {
                 IsAntialias = true,
-                FilterQuality = SKFilterQuality.High
+                FilterQuality = SKFilterQuality.High,
+                BlendMode = PaintingService.GetBlendMode(Element!)
             };
             canvas.DrawImage(Image, SrcRect, DestRect, skImagePaint);
         }
