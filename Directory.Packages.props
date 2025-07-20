@@ -43,4 +43,9 @@
     <PackageVersion Include="Nuke.Common" Version="9.0.4" />
     <PackageVersion Include="System.Runtime.Serialization.Formatters" Version="9.0.4" />
   </ItemGroup>
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm'">
+    <PackageVersion Update="SkiaSharp" Version="2.88.9" />
+    <PackageVersion Update="SkiaSharp.HarfBuzz" Version="2.88.9" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.WebAssembly" Version="2.88.9" />
+  </ItemGroup>
 </Project>
