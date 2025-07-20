@@ -83,7 +83,7 @@ public static class SKPictureExtensions
             return false;
         }
         using var skFileWStream = new SkiaSharp.SKFileWStream(path);
-        using var skDocument = SkiaSharp.SKDocument.CreatePdf(skFileWStream, SkiaSharp.SKDocument.DefaultRasterDpi);
+        using var skDocument = SKDocumentFactory.CreatePdf(skFileWStream);
         using var skCanvas = skDocument.BeginPage(width, height);
         Draw(skPicture, background, scaleX, scaleY, skCanvas);
         skDocument.Close();
@@ -98,7 +98,7 @@ public static class SKPictureExtensions
         {
             return false;
         }
-        using var skDocument = SkiaSharp.SKDocument.CreatePdf(stream, SkiaSharp.SKDocument.DefaultRasterDpi);
+        using var skDocument = SKDocumentFactory.CreatePdf(stream);
         using var skCanvas = skDocument.BeginPage(width, height);
         Draw(skPicture, background, scaleX, scaleY, skCanvas);
         skDocument.Close();
