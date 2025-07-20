@@ -2580,13 +2580,18 @@ public partial class MainWindow : Window
             _pathService.Stop();
         if (_document is null)
             return;
-        var ids = _symbolService.Symbols
-            .Select(s => s.Symbol.ID)
-            .Where(id => !string.IsNullOrEmpty(id))
-            .ToList();
-        if (ids.Count == 0)
+        if (_symbolService.Symbols.Count == 0)
             return;
-        var win = new SymbolSelectWindow(ids!);
+        var win = new SymbolSelectWindow(_symbolService);
+        win.SymbolEdited += (_, _) =>
+        {
+            if (_document is { })
+            {
+                SvgView.SkSvg!.FromSvgDocument(_document);
+                UpdateSymbols();
+                SvgView.InvalidateVisual();
+            }
+        };
         var result = await win.ShowDialog<string?>(this);
         if (result is null)
             return;
