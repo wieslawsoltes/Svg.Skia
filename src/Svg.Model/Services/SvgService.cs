@@ -645,19 +645,29 @@ public static class SvgService
 
     public static SvgDocument? OpenSvg(string path, SvgParameters? parameters = null)
     {
-        return SvgDocument.Open<SvgDocument>(path, new SvgOptions(parameters?.Entities, parameters?.Css));
+        var svgText = System.IO.File.ReadAllText(path);
+        svgText = CssVariableService.Preprocess(svgText);
+        var bytes = System.Text.Encoding.UTF8.GetBytes(svgText);
+        using var memoryStream = new System.IO.MemoryStream(bytes);
+        return SvgDocument.Open<SvgDocument>(memoryStream, new SvgOptions(parameters?.Entities, parameters?.Css));
     }
 
     public static SvgDocument? OpenSvgz(string path, SvgParameters? parameters = null)
     {
         using var fileStream = System.IO.File.OpenRead(path);
         using var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress);
-        using var memoryStream = new System.IO.MemoryStream();
+        using var textStream = new System.IO.MemoryStream();
 
-        gzipStream.CopyTo(memoryStream);
-        memoryStream.Position = 0;
+        gzipStream.CopyTo(textStream);
+        textStream.Position = 0;
 
-        return Open(memoryStream, parameters);
+        using var reader = new System.IO.StreamReader(textStream, System.Text.Encoding.UTF8, true, 1024, true);
+        var svgText = reader.ReadToEnd();
+        svgText = CssVariableService.Preprocess(svgText);
+        var bytes = System.Text.Encoding.UTF8.GetBytes(svgText);
+        using var memoryStream = new System.IO.MemoryStream(bytes);
+
+        return SvgDocument.Open<SvgDocument>(memoryStream, new SvgOptions(parameters?.Entities, parameters?.Css));
     }
 
     public static SvgDocument? Open(string path, SvgParameters? parameters = null)
@@ -673,11 +683,17 @@ public static class SvgService
 
     public static SvgDocument? Open(System.IO.Stream stream, SvgParameters? parameters = null)
     {
-        return SvgDocument.Open<SvgDocument>(stream, new SvgOptions(parameters?.Entities, parameters?.Css));
+        using var reader = new System.IO.StreamReader(stream, System.Text.Encoding.UTF8, true, 1024, true);
+        var svgText = reader.ReadToEnd();
+        svgText = CssVariableService.Preprocess(svgText);
+        var bytes = System.Text.Encoding.UTF8.GetBytes(svgText);
+        using var memoryStream = new System.IO.MemoryStream(bytes);
+        return SvgDocument.Open<SvgDocument>(memoryStream, new SvgOptions(parameters?.Entities, parameters?.Css));
     }
 
     public static SvgDocument? FromSvg(string svg)
     {
+        svg = CssVariableService.Preprocess(svg);
         return SvgDocument.FromSvg<SvgDocument>(svg);
     }
 
