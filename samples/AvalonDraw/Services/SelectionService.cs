@@ -60,6 +60,12 @@ public class SelectionService
         return new SK.SKRect(left, top, right, bottom);
     }
 
+    public static bool ContainsRect(SK.SKRect outer, SK.SKRect inner)
+    {
+        return outer.Left <= inner.Left && outer.Right >= inner.Right &&
+               outer.Top <= inner.Top && outer.Bottom >= inner.Bottom;
+    }
+
     public int HitHandle(BoundsInfo b, SK.SKPoint pt, float scale, out SK.SKPoint center)
     {
         center = b.Center;

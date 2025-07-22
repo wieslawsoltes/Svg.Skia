@@ -1156,10 +1156,24 @@ public partial class MainWindow : Window
                 var p1 = _boxStartPicture;
                 var p2 = _boxEndPicture;
                 var rect = new Shim.SKRect(Math.Min(p1.X, p2.X), Math.Min(p1.Y, p2.Y), Math.Max(p1.X, p2.X), Math.Max(p1.Y, p2.Y));
+                var skRect = new SK.SKRect(rect.Left, rect.Top, rect.Right, rect.Bottom);
                 var elements = svg.HitTestElements(rect).OfType<SvgVisualElement>();
                 if (!_includeHidden)
                     elements = elements.Where(IsElementVisible);
-                var hits = elements.ToList();
+                var root = svg.Drawable as DrawableBase;
+                var hits = new List<SvgVisualElement>();
+                var leftToRight = p2.X >= p1.X;
+                foreach (var el in elements)
+                {
+                    if (root is null)
+                        continue;
+                    var dr = FindDrawable(root, el);
+                    if (dr is null)
+                        continue;
+                    var b = SelectionService.GetBoundsRect(GetBoundsInfo(dr));
+                    if (!leftToRight || SelectionService.ContainsRect(skRect, b))
+                        hits.Add(el);
+                }
                 var mods = e.KeyModifiers;
                 if ((mods & KeyModifiers.Shift) != 0)
                 {
