@@ -514,6 +514,44 @@ public partial class MainWindow : Window
             SK.SKColorType.Rgba8888, SK.SKAlphaType.Premul, SvgView.SkSvg.Settings.Srgb);
     }
 
+    private async void ExportPdfMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_document is null || SvgView.SkSvg?.Picture is null)
+            return;
+        var dialog = new SaveFileDialog
+        {
+            Filters = new()
+            {
+                new FileDialogFilter { Name = "PDF", Extensions = { "pdf" } },
+                new FileDialogFilter { Name = "All", Extensions = { "*" } }
+            },
+            DefaultExtension = "pdf",
+        };
+        var path = await dialog.ShowAsync(this);
+        if (string.IsNullOrEmpty(path))
+            return;
+        SvgView.SkSvg.Picture.ToPdf(path, SK.SKColors.Transparent, 1f, 1f);
+    }
+
+    private async void ExportEpsMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_document is null || SvgView.SkSvg?.Picture is null)
+            return;
+        var dialog = new SaveFileDialog
+        {
+            Filters = new()
+            {
+                new FileDialogFilter { Name = "EPS", Extensions = { "eps" } },
+                new FileDialogFilter { Name = "All", Extensions = { "*" } }
+            },
+            DefaultExtension = "eps",
+        };
+        var path = await dialog.ShowAsync(this);
+        if (string.IsNullOrEmpty(path))
+            return;
+        SvgView.SkSvg.Picture.ToXps(path, SK.SKColors.Transparent, 1f, 1f);
+    }
+
     private async void PlaceImageMenuItem_Click(object? sender, RoutedEventArgs e)
     {
         if (_document is null)

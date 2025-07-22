@@ -43,6 +43,8 @@
                 <MenuItem Header="Place Image..." Click="PlaceImageMenuItem_Click"/>
                 <MenuItem Header="Preview" Click="PreviewMenuItem_Click" InputGesture="F5"/>
                 <MenuItem Header="Edit Text" Click="EditTextMenuItem_Click" InputGesture="Ctrl+T"/>
+                <MenuItem Header="Export as PDF..." Click="ExportPdfMenuItem_Click"/>
+                <MenuItem Header="Export as EPS..." Click="ExportEpsMenuItem_Click"/>
             </MenuItem>
             <MenuItem Header="Edit">
                 <MenuItem Header="Insert Element" Click="InsertElementMenuItem_Click" InputGesture="Ctrl+I"/>
