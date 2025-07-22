@@ -617,16 +617,18 @@ public partial class MainWindow : Window
     private async void SvgView_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var point = e.GetPosition(SvgView);
-        if (_toolService.CurrentTool == Tool.MultiSelect && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
+        var hasStart = SvgView.TryGetPicturePoint(point, out var picturePt);
+        if (IsMultiSelectionMode(e.KeyModifiers) && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed &&
+            !(_multiSelected.Count > 0 && !_multiBounds.IsEmpty && hasStart && _multiBounds.Contains(picturePt.X, picturePt.Y)))
         {
             if (_pathService.IsEditing)
                 _pathService.Stop();
             _boxSelecting = true;
             _boxStart = point;
             _boxEnd = point;
-            if (SvgView.TryGetPicturePoint(point, out var sp))
+            if (hasStart)
             {
-                _boxStartPicture = new SK.SKPoint((float)sp.X, (float)sp.Y);
+                _boxStartPicture = new SK.SKPoint((float)picturePt.X, (float)picturePt.Y);
                 _boxEndPicture = _boxStartPicture;
             }
             e.Pointer.Capture(SvgView);
@@ -892,19 +894,22 @@ public partial class MainWindow : Window
             }
             else
             {
-                if (_toolService.CurrentTool == Tool.MultiSelect && _multiSelected.Count > 0 && !_multiBounds.IsEmpty)
+                if (_multiSelected.Count > 0 && !_multiBounds.IsEmpty && _multiBounds.Contains(pp.X, pp.Y))
                 {
-                    if (_multiBounds.Contains(pp.X, pp.Y))
-                    {
-                        StartDrag(_multiSelected[0], new Shim.SKPoint(pp.X, pp.Y), e.Pointer);
-                        SvgView.InvalidateVisual();
-                        return;
-                    }
+                    StartDrag(_multiSelected[0], new Shim.SKPoint(pp.X, pp.Y), e.Pointer);
+                    SvgView.InvalidateVisual();
+                    return;
                 }
 
                 _selectedDrawable = skSvg.HitTestDrawables(pp).FirstOrDefault();
                 _selectedElement = null;
                 _selectedSvgElement = null;
+                if (_multiSelected.Count > 0)
+                {
+                    _multiSelected.Clear();
+                    _multiDrawables.Clear();
+                    _multiBounds = SK.SKRect.Empty;
+                }
                 if (_pathService.IsEditing)
                     _pathService.Stop();
                 if (_polyEditing)
@@ -1153,10 +1158,24 @@ public partial class MainWindow : Window
                 var p1 = _boxStartPicture;
                 var p2 = _boxEndPicture;
                 var rect = new Shim.SKRect(Math.Min(p1.X, p2.X), Math.Min(p1.Y, p2.Y), Math.Max(p1.X, p2.X), Math.Max(p1.Y, p2.Y));
+                var skRect = new SK.SKRect(rect.Left, rect.Top, rect.Right, rect.Bottom);
                 var elements = svg.HitTestElements(rect).OfType<SvgVisualElement>();
                 if (!_includeHidden)
                     elements = elements.Where(IsElementVisible);
-                var hits = elements.ToList();
+                var root = svg.Drawable as DrawableBase;
+                var hits = new List<SvgVisualElement>();
+                var leftToRight = p2.X >= p1.X;
+                foreach (var el in elements)
+                {
+                    if (root is null)
+                        continue;
+                    var dr = FindDrawable(root, el);
+                    if (dr is null)
+                        continue;
+                    var b = SelectionService.GetBoundsRect(GetBoundsInfo(dr));
+                    if (!leftToRight || SelectionService.ContainsRect(skRect, b))
+                        hits.Add(el);
+                }
                 var mods = e.KeyModifiers;
                 if ((mods & KeyModifiers.Shift) != 0)
                 {
@@ -1213,7 +1232,7 @@ public partial class MainWindow : Window
                 }
                 _hitElements = hits;
                 var element = _hitElements[_hitIndex];
-                if (_toolService.CurrentTool == Tool.MultiSelect)
+                if (IsMultiSelectionMode(e.KeyModifiers))
                 {
                     var mods = e.KeyModifiers;
                     if ((mods & KeyModifiers.Shift) != 0)
@@ -1245,6 +1264,12 @@ public partial class MainWindow : Window
                 }
                 else
                 {
+                    if (_multiSelected.Count > 0)
+                    {
+                        _multiSelected.Clear();
+                        _multiDrawables.Clear();
+                        _multiBounds = SK.SKRect.Empty;
+                    }
                     _selectedElement = element;
                     _selectedDrawable = skSvg.HitTestDrawables(_pressPoint).FirstOrDefault(d => d.Element == _selectedElement);
                     _selectedSvgElement = _selectedElement;
@@ -1261,6 +1286,12 @@ public partial class MainWindow : Window
                 _selectedDrawable = null;
                 _selectedElement = null;
                 _selectedSvgElement = null;
+                if (_multiSelected.Count > 0)
+                {
+                    _multiSelected.Clear();
+                    _multiDrawables.Clear();
+                    _multiBounds = SK.SKRect.Empty;
+                }
                 UpdateSelectedDrawable();
                 SvgView.InvalidateVisual();
             }
@@ -1410,7 +1441,7 @@ public partial class MainWindow : Window
 
     private void StartDrag(SvgVisualElement element, Shim.SKPoint start, IPointer pointer)
     {
-        if (_toolService.CurrentTool == Tool.MultiSelect && _multiSelected.Count > 1)
+        if (_multiSelected.Count > 1)
         {
             SaveUndoState();
             _multiDragInfos = new List<DragInfo>();
@@ -1518,6 +1549,11 @@ public partial class MainWindow : Window
 
         return (float)SvgView.Zoom;
     }
+
+    private bool IsMultiSelectionMode(KeyModifiers modifiers)
+        => _toolService.CurrentTool == Tool.MultiSelect ||
+           (_toolService.CurrentTool == Tool.Select &&
+            (modifiers & (KeyModifiers.Control | KeyModifiers.Shift)) != 0);
 
     private static SK.SKPoint Mid(SK.SKPoint a, SK.SKPoint b) => new((a.X + b.X) / 2f, (a.Y + b.Y) / 2f);
 
@@ -2131,7 +2167,7 @@ public partial class MainWindow : Window
         if (_document is null)
             return;
 
-        if (_toolService.CurrentTool == Tool.MultiSelect && _multiSelected.Count > 1)
+        if (_multiSelected.Count > 1)
         {
             SaveUndoState();
             foreach (var el in _multiSelected.ToList())
@@ -2687,6 +2723,12 @@ public partial class MainWindow : Window
                 _selectedDrawable = null;
                 _selectedElement = null;
                 _selectedSvgElement = null;
+                if (_multiSelected.Count > 0)
+                {
+                    _multiSelected.Clear();
+                    _multiDrawables.Clear();
+                    _multiBounds = SK.SKRect.Empty;
+                }
                 DocumentTree.SelectedItem = null;
                 SvgView.InvalidateVisual();
             }
@@ -3334,7 +3376,7 @@ public partial class MainWindow : Window
             return;
 
         var list = new List<(SvgVisualElement Element, DrawableBase Drawable)>();
-        if (_toolService.CurrentTool == Tool.MultiSelect && _multiSelected.Count > 0)
+        if (_multiSelected.Count > 0)
         {
             for (int i = 0; i < _multiSelected.Count && i < _multiDrawables.Count; i++)
                 list.Add((_multiSelected[i], _multiDrawables[i]));
