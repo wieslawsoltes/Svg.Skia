@@ -6,6 +6,8 @@
     <LangVersion>latest</LangVersion>
     <IsPackable>False</IsPackable>
     <Nullable>disable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <PublishAot>true</PublishAot>
   </PropertyGroup>
 
   <ItemGroup>
