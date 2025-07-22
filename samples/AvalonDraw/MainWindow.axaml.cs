@@ -617,16 +617,18 @@ public partial class MainWindow : Window
     private async void SvgView_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var point = e.GetPosition(SvgView);
-        if (IsMultiSelectionMode(e.KeyModifiers) && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
+        var hasStart = SvgView.TryGetPicturePoint(point, out var picturePt);
+        if (IsMultiSelectionMode(e.KeyModifiers) && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed &&
+            !(_multiSelected.Count > 0 && !_multiBounds.IsEmpty && hasStart && _multiBounds.Contains(picturePt.X, picturePt.Y)))
         {
             if (_pathService.IsEditing)
                 _pathService.Stop();
             _boxSelecting = true;
             _boxStart = point;
             _boxEnd = point;
-            if (SvgView.TryGetPicturePoint(point, out var sp))
+            if (hasStart)
             {
-                _boxStartPicture = new SK.SKPoint((float)sp.X, (float)sp.Y);
+                _boxStartPicture = new SK.SKPoint((float)picturePt.X, (float)picturePt.Y);
                 _boxEndPicture = _boxStartPicture;
             }
             e.Pointer.Capture(SvgView);
