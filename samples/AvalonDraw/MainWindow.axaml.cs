@@ -902,6 +902,12 @@ public partial class MainWindow : Window
                 _selectedDrawable = skSvg.HitTestDrawables(pp).FirstOrDefault();
                 _selectedElement = null;
                 _selectedSvgElement = null;
+                if (_multiSelected.Count > 0)
+                {
+                    _multiSelected.Clear();
+                    _multiDrawables.Clear();
+                    _multiBounds = SK.SKRect.Empty;
+                }
                 if (_pathService.IsEditing)
                     _pathService.Stop();
                 if (_polyEditing)
@@ -1242,6 +1248,12 @@ public partial class MainWindow : Window
                 }
                 else
                 {
+                    if (_multiSelected.Count > 0)
+                    {
+                        _multiSelected.Clear();
+                        _multiDrawables.Clear();
+                        _multiBounds = SK.SKRect.Empty;
+                    }
                     _selectedElement = element;
                     _selectedDrawable = skSvg.HitTestDrawables(_pressPoint).FirstOrDefault(d => d.Element == _selectedElement);
                     _selectedSvgElement = _selectedElement;
@@ -1258,6 +1270,12 @@ public partial class MainWindow : Window
                 _selectedDrawable = null;
                 _selectedElement = null;
                 _selectedSvgElement = null;
+                if (_multiSelected.Count > 0)
+                {
+                    _multiSelected.Clear();
+                    _multiDrawables.Clear();
+                    _multiBounds = SK.SKRect.Empty;
+                }
                 UpdateSelectedDrawable();
                 SvgView.InvalidateVisual();
             }
@@ -2689,6 +2707,12 @@ public partial class MainWindow : Window
                 _selectedDrawable = null;
                 _selectedElement = null;
                 _selectedSvgElement = null;
+                if (_multiSelected.Count > 0)
+                {
+                    _multiSelected.Clear();
+                    _multiDrawables.Clear();
+                    _multiBounds = SK.SKRect.Empty;
+                }
                 DocumentTree.SelectedItem = null;
                 SvgView.InvalidateVisual();
             }
