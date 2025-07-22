@@ -617,8 +617,7 @@ public partial class MainWindow : Window
     private async void SvgView_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var point = e.GetPosition(SvgView);
-        var mods = e.KeyModifiers;
-        if (IsMultiSelectionMode(mods) && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
+        if (IsMultiSelectionMode(e.KeyModifiers) && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
         {
             if (_pathService.IsEditing)
                 _pathService.Stop();
