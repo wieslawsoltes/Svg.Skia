@@ -24,7 +24,7 @@
     <PublishReadyToRun>True</PublishReadyToRun>
     <ApplicationIcon>SvgToPng.ico</ApplicationIcon>
   </PropertyGroup>
-=
+
   <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <Import Project="..\..\build\SkiaSharp.v3.props" />
