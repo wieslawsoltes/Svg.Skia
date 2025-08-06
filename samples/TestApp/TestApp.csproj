@@ -28,7 +28,8 @@
   <Import Project="..\..\build\Avalonia.Diagnostics.props" />
   <Import Project="..\..\build\Avalonia.ReactiveUI.props" />
   <Import Project="..\..\build\Avalonia.Desktop.props" />
-  <Import Project="..\..\build\SkiaSharp.props" />
+  <Import Project="..\..\build\SkiaSharp.v3.props" />
+  <Import Project="..\..\build\SkiaSharp.Native.v3.props" />
   <Import Project="..\..\build\Newtonsoft.Json.props" />
 
   <ItemGroup>
