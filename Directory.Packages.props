@@ -24,6 +24,8 @@
     <PackageVersion Include="SkiaSharp.NativeAssets.Win32" Version="2.88.9" />
     <PackageVersion Include="SkiaSharp.NativeAssets.macOS" Version="2.88.9" />
     <PackageVersion Include="SkiaSharp.NativeAssets.WebAssembly" Version="2.88.9" />
+    <PackageVersion Include="SkiaSharp.HarfBuzz" Version="2.88.9" />
+    <PackageVersion Include="HarfBuzzSharp.NativeAssets.Linux" Version="8.0.4" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="System.Memory" Version="4.6.3" />
     <PackageVersion Include="System.Text.Json" Version="9.0.4" />

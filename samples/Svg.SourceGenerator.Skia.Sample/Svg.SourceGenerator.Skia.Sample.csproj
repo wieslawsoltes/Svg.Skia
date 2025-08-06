@@ -17,8 +17,8 @@
     <AdditionalFiles Include="Svg/pservers-pattern-01-b.svg" />
   </ItemGroup>
 
-  <Import Project="..\..\build\SkiaSharp.props" />
-  <Import Project="..\..\build\SkiaSharp.Native.props" />
+  <Import Project="..\..\build\SkiaSharp.v3.props" />
+  <Import Project="..\..\build\SkiaSharp.Native.v3.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Svg.Model\Svg.Model.csproj" />
