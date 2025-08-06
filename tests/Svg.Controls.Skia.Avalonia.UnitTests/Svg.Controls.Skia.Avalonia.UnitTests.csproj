@@ -12,7 +12,6 @@
   <Import Project="..\..\build\XUnit.props" />
   <Import Project="..\..\build\SkiaSharp.props" />
   <Import Project="..\..\build\SkiaSharp.Linux.props" />
-  <Import Project="..\..\build\HarfBuzzSharp.NativeAssets.Linux.props" />
   <Import Project="..\..\build\Avalonia.props" />
   <Import Project="..\..\build\Avalonia.Skia.props" />
  

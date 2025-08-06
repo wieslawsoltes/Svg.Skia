@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
-using System;
 using System.Collections.Generic;
 using ShimSkiaSharp;
 
@@ -642,11 +641,11 @@ public class SkiaModel
                     return null;
                 }
 
-                    return SkiaSharp.SKImageFilter.CreateImage(
-                        ToSKImage(imageImageFilter.Image),
-                        ToSKRect(imageImageFilter.Src),
-                        ToSKRect(imageImageFilter.Dst), 
-                        SkiaSharp.SKFilterQuality.High);
+                return SkiaSharp.SKImageFilter.CreateImage(
+                    ToSKImage(imageImageFilter.Image),
+                    ToSKRect(imageImageFilter.Src),
+                    ToSKRect(imageImageFilter.Dst), 
+                    SkiaSharp.SKFilterQuality.High);
             }
             case MatrixConvolutionImageFilter matrixConvolutionImageFilter:
             {
