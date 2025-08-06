@@ -17,7 +17,7 @@
   <Import Project="..\..\build\Avalonia.Desktop.props" />
   <Import Project="..\..\build\Avalonia.Diagnostics.props" />
   <Import Project="..\..\build\SkiaSharp.props" />
-  <Import Project="..\..\build\SkiaSharp.Linux.props" />
+  <Import Project="..\..\build\SkiaSharp.Native.props" />
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Controls.DataGrid" />

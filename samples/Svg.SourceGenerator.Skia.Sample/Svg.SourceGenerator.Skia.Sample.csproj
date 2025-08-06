@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <Import Project="..\..\build\SkiaSharp.props" />
-  <Import Project="..\..\build\SkiaSharp.Linux.props" />
+  <Import Project="..\..\build\SkiaSharp.Native.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Svg.Model\Svg.Model.csproj" />
