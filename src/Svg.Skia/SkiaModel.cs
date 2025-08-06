@@ -647,7 +647,6 @@ public class SkiaModel
                         ToSKRect(imageImageFilter.Src),
                         ToSKRect(imageImageFilter.Dst), 
                         SkiaSharp.SKFilterQuality.High);
-                    //new SkiaSharp.SKSamplingOptions(SkiaSharp.SKCubicResampler.Mitchell));
             }
             case MatrixConvolutionImageFilter matrixConvolutionImageFilter:
             {
