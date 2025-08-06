@@ -642,11 +642,12 @@ public class SkiaModel
                     return null;
                 }
 
-                return SkiaSharp.SKImageFilter.CreateImage(
-                    ToSKImage(imageImageFilter.Image),
-                    ToSKRect(imageImageFilter.Src),
-                    ToSKRect(imageImageFilter.Dst),
-                    new SkiaSharp.SKSamplingOptions(SkiaSharp.SKCubicResampler.Mitchell));
+                    return SkiaSharp.SKImageFilter.CreateImage(
+                        ToSKImage(imageImageFilter.Image),
+                        ToSKRect(imageImageFilter.Src),
+                        ToSKRect(imageImageFilter.Dst), 
+                        SkiaSharp.SKFilterQuality.High);
+                    //new SkiaSharp.SKSamplingOptions(SkiaSharp.SKCubicResampler.Mitchell));
             }
             case MatrixConvolutionImageFilter matrixConvolutionImageFilter:
             {

@@ -32,10 +32,7 @@
   <Import Project="..\..\build\SourceLink.props" />
   <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\ReferenceAssemblies.props" />
-  <Import Project="..\..\build\SkiaSharp.props" />
-  <Import Project="..\..\build\SkiaSharp.HarfBuzz.props" />
-
-  <!--<Import Project="..\..\build\Svg.props" />-->
+  <Import Project="..\..\build\Avalonia.Skia.props" />
   <ItemGroup>
     <!--<ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />-->
     <ProjectReference Include="..\Svg.Model\Svg.Model.csproj" />
