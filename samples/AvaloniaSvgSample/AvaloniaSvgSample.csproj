@@ -20,6 +20,7 @@
   <Import Project="..\..\build\Avalonia.Diagnostics.props" />
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.DotNet.ILCompiler" />
     <ProjectReference Include="..\..\src\Svg.Controls.Avalonia\Svg.Controls.Avalonia.csproj" />
   </ItemGroup>
 
