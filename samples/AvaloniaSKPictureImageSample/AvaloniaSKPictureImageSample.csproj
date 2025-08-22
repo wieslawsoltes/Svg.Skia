@@ -17,6 +17,8 @@
   <Import Project="..\..\build\Avalonia.Themes.Fluent.props" />
   <Import Project="..\..\build\Avalonia.Desktop.props" />
   <Import Project="..\..\build\Avalonia.Diagnostics.props" />
+  <Import Project="..\..\build\SkiaSharp.v3.props" />
+  <Import Project="..\..\build\SkiaSharp.Native.v3.props" />
 
   <ItemGroup>
     <AdditionalFiles Include="Assets/__tiger.svg" NamespaceName="AvaloniaSKPictureImageSample" ClassName="Tiger" />
