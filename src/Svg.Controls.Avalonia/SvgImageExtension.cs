@@ -31,14 +31,34 @@ public class SvgImageExtension : MarkupExtension
         var baseUri = context.BaseUri;
         var source = SvgSource.Load(path, baseUri);
         var target = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget))!;
-        if (target.TargetProperty is AvaloniaProperty property)
+        var image = new SvgImage { Source = source };
+
+        if (target.TargetProperty is not AvaloniaProperty property)
         {
-            if (property.PropertyType == typeof(IImage))
-            {
-                return new SvgImage { Source = source };
-            }
-            return new Image { Source = new SvgImage { Source = source } };
+            return image;
         }
-        return new SvgImage { Source = source };
+
+        if (typeof(IImage).IsAssignableFrom(property.PropertyType))
+        {
+            return image;
+        }
+
+        if (typeof(IBrush).IsAssignableFrom(property.PropertyType))
+        {
+            return CreateSvgBrush(image);
+        }
+
+        return new Image { Source = image };
+    }
+
+    private static IBrush CreateSvgBrush(IImage image)
+    {
+        return new VisualBrush
+        {
+            Visual = new Image
+            {
+                Source = image
+            }
+        };
     }
 }

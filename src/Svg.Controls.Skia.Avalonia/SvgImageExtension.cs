@@ -39,9 +39,14 @@ public class SvgImageExtension : MarkupExtension
             return image;
         }
 
-        if (property.PropertyType == typeof(IImage))
+        if (typeof(IImage).IsAssignableFrom(property.PropertyType))
         {
             return image;
+        }
+
+        if (typeof(IBrush).IsAssignableFrom(property.PropertyType))
+        {
+            return CreateSvgBrush(image);
         }
 
         return new Image { Source = image };
@@ -89,5 +94,16 @@ public class SvgImageExtension : MarkupExtension
         result.Bind(SvgImage.CurrentCssProperty, currentStyleBinding);
 
         return result;
+    }
+
+    private static IBrush CreateSvgBrush(IImage image)
+    {
+        return new VisualBrush
+        {
+            Visual = new Image
+            {
+                Source = image
+            }
+        };
     }
 }
