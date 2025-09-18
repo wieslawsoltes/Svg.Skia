@@ -46,17 +46,39 @@ public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
             var width = _skiaModel.ToSKFontStyleWidth(preferredTypeface.FontWidth);
             var slant = _skiaModel.ToSKFontStyleSlant(preferredTypeface.FontSlant);
 
-            matchCharacter = codepoint => SkiaSharp.SKFontManager.Default.MatchCharacter(
-                preferredTypeface.FamilyName,
-                weight,
-                width,
-                slant,
-                null,
-                codepoint);
+            matchCharacter = codepoint => 
+            {
+                // First try to find a matching typeface from custom providers
+                var customTypeface = TryMatchCharacterFromCustomProviders(preferredTypeface.FamilyName, weight, width, slant, codepoint);
+                if (customTypeface is { })
+                {
+                    return customTypeface;
+                }
+                
+                // Fall back to default font manager
+                return SkiaSharp.SKFontManager.Default.MatchCharacter(
+                    preferredTypeface.FamilyName,
+                    weight,
+                    width,
+                    slant,
+                    null,
+                    codepoint);
+            };
         }
         else
         {
-            matchCharacter = codepoint => SkiaSharp.SKFontManager.Default.MatchCharacter(codepoint);
+            matchCharacter = codepoint => 
+            {
+                // First try to find a matching typeface from custom providers
+                var customTypeface = TryMatchCharacterFromCustomProviders(null, SkiaSharp.SKFontStyleWeight.Normal, SkiaSharp.SKFontStyleWidth.Normal, SkiaSharp.SKFontStyleSlant.Upright, codepoint);
+                if (customTypeface is { })
+                {
+                    return customTypeface;
+                }
+                
+                // Fall back to default font manager
+                return SkiaSharp.SKFontManager.Default.MatchCharacter(codepoint);
+            };
         }
 
         using var runningPaint = _skiaModel.ToSKPaint(paintPreferredTypeface);
@@ -163,5 +185,33 @@ public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
 
         using var skPath = skPaint.GetTextPath(text, x, y);
         return _skiaModel.FromSKPath(skPath);
+    }
+
+    /// <summary>
+    /// Attempts to find a typeface from custom providers that can render the specified character.
+    /// </summary>
+    /// <param name="familyName">The preferred font family name.</param>
+    /// <param name="weight">The font weight.</param>
+    /// <param name="width">The font width.</param>
+    /// <param name="slant">The font slant.</param>
+    /// <param name="codepoint">The character codepoint to match.</param>
+    /// <returns>A matching typeface from custom providers, or null if none found.</returns>
+    private SkiaSharp.SKTypeface? TryMatchCharacterFromCustomProviders(string? familyName, SkiaSharp.SKFontStyleWeight weight, SkiaSharp.SKFontStyleWidth width, SkiaSharp.SKFontStyleSlant slant, int codepoint)
+    {
+        if (_skiaModel.Settings.TypefaceProviders is null || _skiaModel.Settings.TypefaceProviders.Count == 0)
+        {
+            return null;
+        }
+
+        foreach (var provider in _skiaModel.Settings.TypefaceProviders)
+        {
+            var typeface = provider.FromFamilyName(familyName ?? "Default", weight, width, slant);
+            if (typeface is { } && typeface.ContainsGlyph(codepoint))
+            {
+                return typeface;
+            }
+        }
+
+        return null;
     }
 }
