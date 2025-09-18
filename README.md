@@ -230,6 +230,14 @@ Install-Package Svg.Controls.Skia.Avalonia
 <Image Source="{SvgImage /Assets/__AJ_Digital_Camera.svg}"/>
 ```
 
+#### Background
+
+```XAML
+<Border Width="100"
+        Height="100"
+        Background="{SvgImage /Assets/__AJ_Digital_Camera.svg}" />
+```
+
 ### CSS styling
 
 ```XAML
