@@ -273,21 +273,28 @@ Install-Package Svg.Controls.Skia.Avalonia
 </Image>
 ```
 
-#### SvgBrush Markup Extension
+#### SvgResourceExtension Markup Extension
 
-Use `SvgBrush` when you want to place an SVG-backed `VisualBrush` in a resource dictionary and reuse it for backgrounds or other brush targets:
+The former `SvgBrush` markup extension has been renamed to `SvgResourceExtension`. In XAML you can use the short `{SvgResource ...}` syntax to paint any brush property directly:
+
+```XAML
+<Border CornerRadius="12"
+        Background="{SvgResource /Assets/__tiger.svg}" />
+```
+
+To reuse the brush across your view, declare it in resources (the markup extension type named `SvgResourceExtension` still trims to `SvgResource` when used in XAML):
 
 ```XAML
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Svg.Controls.Skia.Avalonia">
     <UserControl.Resources>
-        <svg:SvgBrush x:Key="TigerBrush"
-                      Stretch="UniformToFill"
-                      AlignmentX="Center"
-                      AlignmentY="Center"
-                      TileMode="Tile"
-                      DestinationRect="0,0,1,1"
-                      Opacity="0.85">/Assets/__tiger.svg</svg:SvgBrush>
+        <svg:SvgResource x:Key="TigerBrush"
+                         Stretch="UniformToFill"
+                         AlignmentX="Center"
+                         AlignmentY="Center"
+                         TileMode="Tile"
+                         DestinationRect="0,0,1,1"
+                         Opacity="0.85">/Assets/__tiger.svg</svg:SvgResource>
     </UserControl.Resources>
 
     <Border Background="{DynamicResource TigerBrush}" />
@@ -295,6 +302,39 @@ Use `SvgBrush` when you want to place an SVG-backed `VisualBrush` in a resource 
 ```
 
 The optional properties mirror those on `VisualBrush`, so you can tweak layout, tiling, opacity, and transforms directly in XAML while the control takes care of loading and rendering the SVG content.
+
+When you need the brush from code-behind, the extension now exposes a `ToBrush(IServiceProvider? serviceProvider = null)` helper and supports implicit conversion to `Brush`, which can be assigned to any `IBrush` property:
+
+```csharp
+// Resolve relative paths by providing BaseUri when running outside of XAML.
+var brush = new SvgResourceExtension("avares://MyAssembly/Assets/Icon.svg")
+{
+    BaseUri = new Uri("avares://MyAssembly/")
+}.ToBrush();
+
+// Or rely on the implicit conversion to Brush/IBrush.
+IBrush background = new SvgResourceExtension("avares://MyAssembly/Assets/Icon.svg");
+
+// When you already have an SvgImage instance, create a brush directly.
+var svgImage = new SvgImage
+{
+    Source = SvgSource.Load("avares://MyAssembly/Assets/Icon.svg", baseUri: null)
+};
+var fromImage = SvgResourceExtension.CreateBrush(
+    svgImage,
+    stretch: Stretch.Uniform,
+    alignmentX: AlignmentX.Center,
+    alignmentY: AlignmentY.Center);
+
+// Or skip creating the markup extension entirely and build a brush from the SVG path in one call.
+var fromPath = SvgResourceExtension.CreateBrush(
+    "avares://MyAssembly/Assets/Icon.svg",
+    stretch: Stretch.Fill,
+    alignmentX: AlignmentX.Right,
+    alignmentY: AlignmentY.Bottom);
+```
+
+The Skia-backed controls also accept optional `css` and `currentCss` arguments on the static helper so you can apply styles while creating the brush from code.
 
 #### Avalonia Previewer
 

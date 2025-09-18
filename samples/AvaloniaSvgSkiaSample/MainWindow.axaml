@@ -133,9 +133,16 @@
       </Panel>
     </TabItem>
     
+    <TabItem Header="Background (SvgResource)">
+      <Panel Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+        <Border CornerRadius="12"
+                Background="{SvgResource /Assets/__tiger.svg}" />
+      </Panel>
+    </TabItem>
+
     <TabItem Header="Background (Resources)">
       <TabItem.Resources>
-        <svg:SvgBrush x:Key="__tiger">/Assets/__tiger.svg</svg:SvgBrush>
+        <svg:SvgResource x:Key="__tiger">/Assets/__tiger.svg</svg:SvgResource>
       </TabItem.Resources>
       <Panel Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <Border CornerRadius="12"

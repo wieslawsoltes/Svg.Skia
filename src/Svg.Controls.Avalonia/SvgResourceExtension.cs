@@ -11,13 +11,35 @@ namespace Avalonia.Svg;
 /// <summary>
 /// Provides an SVG-backed brush that can be declared in XAML resources.
 /// </summary>
-public class SvgBrush : MarkupExtension
+public class SvgResourceExtension : MarkupExtension
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SvgResourceExtension" /> class.
+    /// </summary>
+    public SvgResourceExtension()
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SvgResourceExtension" /> class, with the provided initial key.
+    /// </summary>
+    /// <param name="path">The path of the SVG resource that this markup extension references or file path.</param>
+    public SvgResourceExtension(string path)
+    {
+        Path = path;
+    }
+
     /// <summary>
     /// Gets or sets the SVG resource or file path.
     /// </summary>
+    [ConstructorArgument("path")]
     [Content]
     public string? Path { get; set; }
+
+    /// <summary>
+    /// Gets or sets the base URI used when resolving <see cref="Path"/> outside of XAML.
+    /// </summary>
+    public Uri? BaseUri { get; set; }
 
     /// <summary>
     /// Gets or sets the stretch applied to the resulting brush.
@@ -78,7 +100,7 @@ public class SvgBrush : MarkupExtension
     /// <param name="transform">Optional transform applied to the brush.</param>
     /// <param name="transformOrigin">Optional transform origin applied when <paramref name="transform"/> is set.</param>
     /// <returns>A <see cref="VisualBrush"/> that renders <paramref name="image"/>.</returns>
-    internal static IBrush CreateFromImage(
+    public static IBrush CreateBrush(
         IImage image,
         Stretch? stretch = null,
         AlignmentX? alignmentX = null,
@@ -146,28 +168,56 @@ public class SvgBrush : MarkupExtension
         return brush;
     }
 
-    /// <inheritdoc/>
-    public override object ProvideValue(IServiceProvider serviceProvider)
+    /// <summary>
+    /// Creates a <see cref="IBrush"/> directly from an SVG path for convenient code usage.
+    /// </summary>
+    public static IBrush CreateBrush(
+        string path,
+        Uri? baseUri = null,
+        Stretch? stretch = null,
+        AlignmentX? alignmentX = null,
+        AlignmentY? alignmentY = null,
+        TileMode? tileMode = null,
+        RelativeRect? destinationRect = null,
+        RelativeRect? sourceRect = null,
+        double? opacity = null,
+        Transform? transform = null,
+        RelativePoint? transformOrigin = null)
     {
-        if (serviceProvider is null)
+        if (string.IsNullOrWhiteSpace(path))
         {
-            throw new ArgumentNullException(nameof(serviceProvider));
+            throw new ArgumentException("Path cannot be null or whitespace.", nameof(path));
         }
 
+        return CreateBrushCore(
+            path,
+            baseUri,
+            stretch,
+            alignmentX,
+            alignmentY,
+            tileMode,
+            destinationRect,
+            sourceRect,
+            opacity,
+            transform,
+            transformOrigin);
+    }
+
+    /// <summary>
+    /// Creates an <see cref="IBrush"/> instance for use in code-behind.
+    /// </summary>
+    /// <param name="serviceProvider">Optional XAML service provider used to resolve relative URIs.</param>
+    /// <returns>The generated <see cref="IBrush"/>.</returns>
+    public IBrush ToBrush(IServiceProvider? serviceProvider = null)
+    {
         if (Path is null)
         {
             throw new InvalidOperationException("SvgBrush requires a non-null Path.");
         }
 
-        var baseUri = serviceProvider.GetContextBaseUri();
-        var source = SvgSource.Load(Path, baseUri);
-        var image = new SvgImage
-        {
-            Source = source
-        };
-
-        return CreateFromImage(
-            image,
+        return CreateBrushCore(
+            Path,
+            ResolveBaseUri(serviceProvider),
             Stretch,
             AlignmentX,
             AlignmentY,
@@ -177,5 +227,73 @@ public class SvgBrush : MarkupExtension
             Opacity,
             Transform,
             TransformOrigin);
+    }
+
+    /// <inheritdoc/>
+    public override object ProvideValue(IServiceProvider serviceProvider)
+    {
+        if (serviceProvider is null)
+        {
+            throw new ArgumentNullException(nameof(serviceProvider));
+        }
+
+        return ToBrush(serviceProvider);
+    }
+
+    private static IBrush CreateBrushCore(
+        string path,
+        Uri? baseUri,
+        Stretch? stretch,
+        AlignmentX? alignmentX,
+        AlignmentY? alignmentY,
+        TileMode? tileMode,
+        RelativeRect? destinationRect,
+        RelativeRect? sourceRect,
+        double? opacity,
+        Transform? transform,
+        RelativePoint? transformOrigin)
+    {
+        var source = SvgSource.Load(path, baseUri);
+        var image = new SvgImage
+        {
+            Source = source
+        };
+
+        return CreateBrush(
+            image,
+            stretch,
+            alignmentX,
+            alignmentY,
+            tileMode,
+            destinationRect,
+            sourceRect,
+            opacity,
+            transform,
+            transformOrigin);
+    }
+
+    private Uri? ResolveBaseUri(IServiceProvider? serviceProvider)
+    {
+        if (BaseUri is { } baseUri)
+        {
+            return baseUri;
+        }
+
+        if (serviceProvider is null)
+        {
+            return null;
+        }
+
+        return serviceProvider.GetContextBaseUri();
+    }
+
+    public static implicit operator Brush(SvgResourceExtension extension)
+    {
+        if (extension is null)
+        {
+            throw new ArgumentNullException(nameof(extension));
+        }
+
+        return (Brush)extension.ToBrush();
     }
 }
