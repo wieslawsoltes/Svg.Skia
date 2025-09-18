@@ -45,7 +45,7 @@ public class SvgImageExtension : MarkupExtension
 
         if (typeof(IBrush).IsAssignableFrom(property.PropertyType))
         {
-            return SvgResourceExtension.CreateFromImage(image);
+            return SvgResourceExtension.CreateBrush(image);
         }
 
         return new Image { Source = image };

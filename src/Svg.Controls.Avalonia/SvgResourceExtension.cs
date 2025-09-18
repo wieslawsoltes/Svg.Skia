@@ -37,6 +37,11 @@ public class SvgResourceExtension : MarkupExtension
     public string? Path { get; set; }
 
     /// <summary>
+    /// Gets or sets the base URI used when resolving <see cref="Path"/> outside of XAML.
+    /// </summary>
+    public Uri? BaseUri { get; set; }
+
+    /// <summary>
     /// Gets or sets the stretch applied to the resulting brush.
     /// </summary>
     public Stretch? Stretch { get; set; }
@@ -95,7 +100,7 @@ public class SvgResourceExtension : MarkupExtension
     /// <param name="transform">Optional transform applied to the brush.</param>
     /// <param name="transformOrigin">Optional transform origin applied when <paramref name="transform"/> is set.</param>
     /// <returns>A <see cref="VisualBrush"/> that renders <paramref name="image"/>.</returns>
-    public static IBrush CreateFromImage(
+    public static IBrush CreateBrush(
         IImage image,
         Stretch? stretch = null,
         AlignmentX? alignmentX = null,
@@ -163,6 +168,17 @@ public class SvgResourceExtension : MarkupExtension
         return brush;
     }
 
+    /// <summary>
+    /// Creates an <see cref="IBrush"/> instance for use in code-behind.
+    /// </summary>
+    /// <param name="serviceProvider">Optional XAML service provider used to resolve relative URIs.</param>
+    /// <returns>The generated <see cref="IBrush"/>.</returns>
+    public IBrush ToBrush(IServiceProvider? serviceProvider = null)
+    {
+        var brush = CreateBrush(ResolveBaseUri(serviceProvider));
+        return brush;
+    }
+
     /// <inheritdoc/>
     public override object ProvideValue(IServiceProvider serviceProvider)
     {
@@ -171,19 +187,23 @@ public class SvgResourceExtension : MarkupExtension
             throw new ArgumentNullException(nameof(serviceProvider));
         }
 
+        return CreateBrush(ResolveBaseUri(serviceProvider));
+    }
+
+    private IBrush CreateBrush(Uri? baseUri)
+    {
         if (Path is null)
         {
             throw new InvalidOperationException("SvgBrush requires a non-null Path.");
         }
 
-        var baseUri = serviceProvider.GetContextBaseUri();
         var source = SvgSource.Load(Path, baseUri);
         var image = new SvgImage
         {
             Source = source
         };
 
-        return CreateFromImage(
+        return CreateBrush(
             image,
             Stretch,
             AlignmentX,
@@ -194,5 +214,30 @@ public class SvgResourceExtension : MarkupExtension
             Opacity,
             Transform,
             TransformOrigin);
+    }
+
+    private Uri? ResolveBaseUri(IServiceProvider? serviceProvider)
+    {
+        if (BaseUri is { } baseUri)
+        {
+            return baseUri;
+        }
+
+        if (serviceProvider is null)
+        {
+            return null;
+        }
+
+        return serviceProvider.GetContextBaseUri();
+    }
+
+    public static implicit operator Brush(SvgResourceExtension extension)
+    {
+        if (extension is null)
+        {
+            throw new ArgumentNullException(nameof(extension));
+        }
+
+        return (Brush)extension.ToBrush();
     }
 }
