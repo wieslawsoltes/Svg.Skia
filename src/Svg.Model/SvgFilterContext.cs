@@ -1512,7 +1512,7 @@ internal class SvgFilterContext
 
         if (svgFragment is { })
         {
-            var skSize = SvgService.GetDimensions(svgFragment);
+            var skSize = SvgService.GetDimensions(svgFragment, skFilterPrimitiveRegion);
             srcRect = SKRect.Create(0f, 0f, skSize.Width, skSize.Height);
         }
 

@@ -35,16 +35,22 @@ public sealed class FragmentDrawable : DrawableContainer
         var x = svgFragmentParent is null ? 0f : svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, skViewport);
         var y = svgFragmentParent is null ? 0f : svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, skViewport);
 
-        var skSize = SvgService.GetDimensions(svgFragment);
+        var skSize = SvgService.GetDimensions(svgFragment, skViewport);
 
-        if (skViewport.IsEmpty)
+        var fragmentViewport = SKRect.Empty;
+
+        if (skSize.Width > 0f && skSize.Height > 0f)
         {
-            skViewport = SKRect.Create(x, y, skSize.Width, skSize.Height);
+            fragmentViewport = SKRect.Create(x, y, skSize.Width, skSize.Height);
+        }
+        else if (!skViewport.IsEmpty)
+        {
+            fragmentViewport = skViewport;
         }
 
-        drawable.CreateChildren(svgFragment, skViewport, drawable, assetLoader, references, ignoreAttributes);
+        drawable.CreateChildren(svgFragment, fragmentViewport, drawable, assetLoader, references, ignoreAttributes);
 
-        drawable.Initialize(skViewport, x, y, skSize);
+        drawable.Initialize(fragmentViewport, x, y, skSize);
 
         return drawable;
     }

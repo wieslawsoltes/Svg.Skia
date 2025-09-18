@@ -548,44 +548,62 @@ public static class SvgService
         return svgDocument;
     }
 
-    public static SKSize GetDimensions(SvgFragment svgFragment)
+    public static SKSize GetDimensions(SvgFragment svgFragment, SKRect skViewport = default)
     {
         float w, h;
         var isWidthperc = svgFragment.Width.Type == SvgUnitType.Percentage;
         var isHeightperc = svgFragment.Height.Type == SvgUnitType.Percentage;
 
-        var bounds = new SKRect();
-        if (isWidthperc || isHeightperc)
+        var percentViewport = skViewport;
+
+        if (svgFragment is SvgDocument)
         {
             if (svgFragment.ViewBox.Width > 0 && svgFragment.ViewBox.Height > 0)
             {
-                bounds = new SKRect(
-                    svgFragment.ViewBox.MinX, svgFragment.ViewBox.MinY,
-                    svgFragment.ViewBox.Width, svgFragment.ViewBox.Height);
-            }
-            else
-            {
-                // TODO: Calculate correct bounds using Children bounds.
+                percentViewport = SKRect.Create(
+                    svgFragment.ViewBox.MinX,
+                    svgFragment.ViewBox.MinY,
+                    svgFragment.ViewBox.Width,
+                    svgFragment.ViewBox.Height);
             }
         }
-
-        if (isWidthperc)
+        else if (percentViewport.IsEmpty && svgFragment.ViewBox.Width > 0 && svgFragment.ViewBox.Height > 0)
         {
+            percentViewport = SKRect.Create(
+                svgFragment.ViewBox.MinX,
+                svgFragment.ViewBox.MinY,
+                svgFragment.ViewBox.Width,
+                svgFragment.ViewBox.Height);
+        }
+
+        if (isWidthperc && svgFragment is SvgDocument)
+        {
+            var bounds = percentViewport;
             w = (bounds.Width + bounds.Left) * (svgFragment.Width.Value * 0.01f);
         }
         else
         {
-            // NOTE: Pass bounds as Rect.Empty because percentage case is handled before.
-            w = svgFragment.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, SKRect.Empty);
+            w = svgFragment.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, percentViewport);
         }
-        if (isHeightperc)
+
+        if (isHeightperc && svgFragment is SvgDocument)
         {
+            var bounds = percentViewport;
             h = (bounds.Height + bounds.Top) * (svgFragment.Height.Value * 0.01f);
         }
         else
         {
-            // NOTE: Pass bounds as Rect.Empty because percentage case is handled before.
-            h = svgFragment.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, SKRect.Empty);
+            h = svgFragment.Height.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, percentViewport);
+        }
+
+        if (float.IsNaN(w) || float.IsInfinity(w))
+        {
+            w = 0f;
+        }
+
+        if (float.IsNaN(h) || float.IsInfinity(h))
+        {
+            h = 0f;
         }
 
         return new SKSize((float)Math.Round(w), (float)Math.Round(h));
