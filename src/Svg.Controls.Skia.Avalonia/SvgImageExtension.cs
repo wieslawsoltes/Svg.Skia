@@ -70,7 +70,7 @@ public class SvgImageExtension : MarkupExtension
             var source = SvgSource.Load(
                 path,
                 baseUri);
-            
+
             return CreateSvgImage(source, targetControl);
         }
     }

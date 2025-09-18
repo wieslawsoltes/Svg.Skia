@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System;
-using Svg.Model;
 using System.Collections.Generic;
-using System.Linq;
 using System.Xml;
-using Svg.Model.Drawables;
 using ShimSkiaSharp;
+using Svg.Model;
 using Svg.Model.Drawables.Factories;
 using Svg.Model.Services;
 
@@ -63,7 +61,7 @@ public partial class SKSvg : IDisposable
 
     public static void Draw(SkiaSharp.SKCanvas skCanvas, SvgFragment svgFragment, SkiaModel skiaModel, ISvgAssetLoader assetLoader)
     {
-        var references = new HashSet<Uri> {svgFragment.OwnerDocument.BaseUri};
+        var references = new HashSet<Uri> { svgFragment.OwnerDocument.BaseUri };
         var size = SvgService.GetDimensions(svgFragment);
         var bounds = SKRect.Create(size);
         var drawable = DrawableFactory.Create(svgFragment, bounds, null, assetLoader, references);
@@ -88,7 +86,7 @@ public partial class SKSvg : IDisposable
     private string? _originalPath;
     private System.IO.Stream? _originalStream;
 
-    public object Sync { get; } = new ();
+    public object Sync { get; } = new();
 
     public SKSvgSettings Settings { get; }
 
@@ -187,7 +185,7 @@ public partial class SKSvg : IDisposable
 
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream) => Load(stream, null);
 
-    public SkiaSharp.SKPicture? Load(string path, SvgParameters? parameters = null)
+    public SkiaSharp.SKPicture? Load(string? path, SvgParameters? parameters = null)
     {
         _originalPath = path;
         _originalStream?.Dispose();

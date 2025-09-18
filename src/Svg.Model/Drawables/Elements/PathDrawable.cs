@@ -81,7 +81,7 @@ public sealed class PathDrawable : DrawablePath
             IsDrawable = false;
             return;
         }
-        
+
         MarkerService.CreateMarkers(svgPath, Path, skViewport, this, AssetLoader, references);
     }
 }

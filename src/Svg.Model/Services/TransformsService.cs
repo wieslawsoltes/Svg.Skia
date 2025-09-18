@@ -170,40 +170,40 @@ internal static class TransformsService
             switch (svgTransform)
             {
                 case SvgMatrix svgMatrix:
-                {
-                    var skMatrix = svgMatrix.ToMatrix();
-                    skMatrixTotal = skMatrixTotal.PreConcat(skMatrix);
-                }
+                    {
+                        var skMatrix = svgMatrix.ToMatrix();
+                        skMatrixTotal = skMatrixTotal.PreConcat(skMatrix);
+                    }
                     break;
 
                 case SvgRotate svgRotate:
-                {
-                    var skMatrixRotate = SKMatrix.CreateRotationDegrees(svgRotate.Angle, svgRotate.CenterX, svgRotate.CenterY);
-                    skMatrixTotal = skMatrixTotal.PreConcat(skMatrixRotate);
-                }
+                    {
+                        var skMatrixRotate = SKMatrix.CreateRotationDegrees(svgRotate.Angle, svgRotate.CenterX, svgRotate.CenterY);
+                        skMatrixTotal = skMatrixTotal.PreConcat(skMatrixRotate);
+                    }
                     break;
 
                 case SvgScale svgScale:
-                {
-                    var skMatrixScale = SKMatrix.CreateScale(svgScale.X, svgScale.Y);
-                    skMatrixTotal = skMatrixTotal.PreConcat(skMatrixScale);
-                }
+                    {
+                        var skMatrixScale = SKMatrix.CreateScale(svgScale.X, svgScale.Y);
+                        skMatrixTotal = skMatrixTotal.PreConcat(skMatrixScale);
+                    }
                     break;
 
                 case SvgSkew svgSkew:
-                {
-                    var sx = (float)Math.Tan(Math.PI * svgSkew.AngleX / 180);
-                    var sy = (float)Math.Tan(Math.PI * svgSkew.AngleY / 180);
-                    var skMatrixSkew = SKMatrix.CreateSkew(sx, sy);
-                    skMatrixTotal = skMatrixTotal.PreConcat(skMatrixSkew);
-                }
+                    {
+                        var sx = (float)Math.Tan(Math.PI * svgSkew.AngleX / 180);
+                        var sy = (float)Math.Tan(Math.PI * svgSkew.AngleY / 180);
+                        var skMatrixSkew = SKMatrix.CreateSkew(sx, sy);
+                        skMatrixTotal = skMatrixTotal.PreConcat(skMatrixSkew);
+                    }
                     break;
 
                 case SvgTranslate svgTranslate:
-                {
-                    var skMatrixTranslate = SKMatrix.CreateTranslation(svgTranslate.X, svgTranslate.Y);
-                    skMatrixTotal = skMatrixTotal.PreConcat(skMatrixTranslate);
-                }
+                    {
+                        var skMatrixTranslate = SKMatrix.CreateTranslation(svgTranslate.X, svgTranslate.Y);
+                        skMatrixTotal = skMatrixTotal.PreConcat(skMatrixTranslate);
+                    }
                     break;
             }
         }
@@ -300,15 +300,15 @@ internal static class TransformsService
 
         return skMatrixTotal;
     }
- 
+
     internal static SKRect? CalculateRect(SvgUnit xUnit, SvgUnit yUnit, SvgUnit widthUnit, SvgUnit heightUnit, SvgCoordinateUnits coordinateUnits, SKRect skBounds, SKRect skViewport, SvgElement? svgElement)
     {
         var useBoundingBox = coordinateUnits == SvgCoordinateUnits.ObjectBoundingBox;
 
-        var xRenderType  = useBoundingBox ? UnitRenderingType.Horizontal : UnitRenderingType.HorizontalOffset;
+        var xRenderType = useBoundingBox ? UnitRenderingType.Horizontal : UnitRenderingType.HorizontalOffset;
         var x = xUnit.ToDeviceValue(xRenderType, svgElement, useBoundingBox ? skBounds : skViewport);
 
-        var yRenderType  = useBoundingBox ? UnitRenderingType.Vertical : UnitRenderingType.VerticalOffset;
+        var yRenderType = useBoundingBox ? UnitRenderingType.Vertical : UnitRenderingType.VerticalOffset;
         var y = yUnit.ToDeviceValue(yRenderType, svgElement, useBoundingBox ? skBounds : skViewport);
 
         var width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgElement, useBoundingBox ? skBounds : skViewport);
@@ -327,7 +327,7 @@ internal static class TransformsService
             }
             x += skBounds.Left;
         }
-            
+
         if (useBoundingBox)
         {
             if (yUnit.Type != SvgUnitType.Percentage)
@@ -336,7 +336,7 @@ internal static class TransformsService
             }
             y += skBounds.Top;
         }
-            
+
         if (useBoundingBox)
         {
             if (widthUnit.Type != SvgUnitType.Percentage)
@@ -344,7 +344,7 @@ internal static class TransformsService
                 width *= skBounds.Width;
             }
         }
-            
+
         if (useBoundingBox)
         {
             if (heightUnit.Type != SvgUnitType.Percentage)

@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
-using Svg.DataTypes;
 using ShimSkiaSharp;
+using Svg.DataTypes;
 
 namespace Svg.Model;
 

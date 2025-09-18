@@ -59,7 +59,8 @@ public sealed class FragmentDrawable : DrawableContainer
     {
         if (Element is not SvgFragment svgFragment)
         {
-            return;;
+            return;
+            ;
         }
 
         IsAntialias = PaintingService.IsAntialias(svgFragment);
@@ -107,7 +108,7 @@ public sealed class FragmentDrawable : DrawableContainer
             MaskingService.GetClipPath(svgClipPath, skViewport, clipPathUris, clipPath);
             if (clipPath.Clips is { } && clipPath.Clips.Count > 0 && !IgnoreAttributes.HasFlag(DrawAttributes.ClipPath))
             {
-                ClipPath = clipPath;    
+                ClipPath = clipPath;
             }
             else
             {

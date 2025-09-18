@@ -4,16 +4,16 @@ namespace ShimSkiaSharp;
 
 public abstract record SKColorFilter
 {
-    public static SKColorFilter CreateColorMatrix(float[] matrix) 
+    public static SKColorFilter CreateColorMatrix(float[] matrix)
         => new ColorMatrixColorFilter(matrix);
 
-    public static SKColorFilter CreateTable(byte[]? tableA, byte[]? tableR, byte[]? tableG, byte[]? tableB) 
+    public static SKColorFilter CreateTable(byte[]? tableA, byte[]? tableR, byte[]? tableG, byte[]? tableB)
         => new TableColorFilter(tableA, tableB, tableG, tableR);
 
-    public static SKColorFilter CreateBlendMode(SKColor c, SKBlendMode mode) 
+    public static SKColorFilter CreateBlendMode(SKColor c, SKBlendMode mode)
         => new BlendModeColorFilter(c, mode);
 
-    public static SKColorFilter CreateLumaColor() 
+    public static SKColorFilter CreateLumaColor()
         => new LumaColorColorFilter();
 }
 

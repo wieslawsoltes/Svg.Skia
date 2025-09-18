@@ -6,13 +6,13 @@ namespace Svg.Skia.UnitTests;
 
 public class SKSvgTests : SvgUnitTest
 {
-    private static string GetSvgPath(string name) 
+    private static string GetSvgPath(string name)
         => Path.Combine("..", "..", "..", "..", "Tests", name);
 
-    private static string GetExpectedPngPath(string name) 
+    private static string GetExpectedPngPath(string name)
         => Path.Combine("..", "..", "..", "..", "Tests", name);
 
-    private static string GetActualPngPath(string name) 
+    private static string GetActualPngPath(string name)
         => Path.Combine("..", "..", "..", "..", "Tests", name);
 
     [WindowsTheory]

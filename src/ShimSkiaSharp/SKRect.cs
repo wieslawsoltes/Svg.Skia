@@ -78,6 +78,6 @@ public struct SKRect
             Math.Max(a.Bottom, b.Bottom));
     }
 
-    public override string ToString() 
+    public override string ToString()
         => FormattableString.Invariant($"{Left}, {Top}, {Width}, {Height}");
 }

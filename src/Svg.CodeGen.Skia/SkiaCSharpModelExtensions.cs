@@ -425,167 +425,167 @@ public static class SkiaCSharpModelExtensions
         switch (shader)
         {
             case ColorShader colorShader:
-            {
-                sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
-                sb.AppendLine($"SKShader.CreateColor(");
-                sb.AppendLine($"{indent}    {colorShader.Color.ToSKColor()},");
-                sb.AppendLine($"{indent}    {(colorShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)});");
-                return;
-            }
+                {
+                    sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
+                    sb.AppendLine($"SKShader.CreateColor(");
+                    sb.AppendLine($"{indent}    {colorShader.Color.ToSKColor()},");
+                    sb.AppendLine($"{indent}    {(colorShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)});");
+                    return;
+                }
             case LinearGradientShader linearGradientShader:
-            {
-                if (linearGradientShader.Colors is null || linearGradientShader.ColorPos is null)
                 {
-                    sb.AppendLine($"{indent}var {counter.ShaderVarName}{counterShader} = default(SKShader);");
-                    return;
-                }
+                    if (linearGradientShader.Colors is null || linearGradientShader.ColorPos is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ShaderVarName}{counterShader} = default(SKShader);");
+                        return;
+                    }
 
-                if (linearGradientShader.LocalMatrix is { })
-                {
-                    sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
-                    sb.AppendLine($"SKShader.CreateLinearGradient(");
-                    sb.AppendLine($"{indent}    {linearGradientShader.Start.ToSKPoint()},");
-                    sb.AppendLine($"{indent}    {linearGradientShader.End.ToSKPoint()},");
-                    sb.AppendLine($"{indent}    {linearGradientShader.Colors.ToSKColors()},");
-                    sb.AppendLine($"{indent}    {(linearGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
-                    sb.AppendLine($"{indent}    {linearGradientShader.ColorPos.ToFloatArray()},");
-                    sb.AppendLine($"{indent}    {linearGradientShader.Mode.ToSKShaderTileMode()},");
-                    sb.AppendLine($"{indent}    {linearGradientShader.LocalMatrix.Value.ToSKMatrix()});");
-                    return;
+                    if (linearGradientShader.LocalMatrix is { })
+                    {
+                        sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
+                        sb.AppendLine($"SKShader.CreateLinearGradient(");
+                        sb.AppendLine($"{indent}    {linearGradientShader.Start.ToSKPoint()},");
+                        sb.AppendLine($"{indent}    {linearGradientShader.End.ToSKPoint()},");
+                        sb.AppendLine($"{indent}    {linearGradientShader.Colors.ToSKColors()},");
+                        sb.AppendLine($"{indent}    {(linearGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
+                        sb.AppendLine($"{indent}    {linearGradientShader.ColorPos.ToFloatArray()},");
+                        sb.AppendLine($"{indent}    {linearGradientShader.Mode.ToSKShaderTileMode()},");
+                        sb.AppendLine($"{indent}    {linearGradientShader.LocalMatrix.Value.ToSKMatrix()});");
+                        return;
+                    }
+                    else
+                    {
+                        sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
+                        sb.AppendLine($"SKShader.CreateLinearGradient(");
+                        sb.AppendLine($"{indent}    {linearGradientShader.Start.ToSKPoint()},");
+                        sb.AppendLine($"{indent}    {linearGradientShader.End.ToSKPoint()},");
+                        sb.AppendLine($"{indent}    {linearGradientShader.Colors.ToSKColors()},");
+                        sb.AppendLine($"{indent}    {(linearGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
+                        sb.AppendLine($"{indent}    {linearGradientShader.ColorPos.ToFloatArray()},");
+                        sb.AppendLine($"{indent}    {linearGradientShader.Mode.ToSKShaderTileMode()});");
+                        return;
+                    }
                 }
-                else
-                {
-                    sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
-                    sb.AppendLine($"SKShader.CreateLinearGradient(");
-                    sb.AppendLine($"{indent}    {linearGradientShader.Start.ToSKPoint()},");
-                    sb.AppendLine($"{indent}    {linearGradientShader.End.ToSKPoint()},");
-                    sb.AppendLine($"{indent}    {linearGradientShader.Colors.ToSKColors()},");
-                    sb.AppendLine($"{indent}    {(linearGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
-                    sb.AppendLine($"{indent}    {linearGradientShader.ColorPos.ToFloatArray()},");
-                    sb.AppendLine($"{indent}    {linearGradientShader.Mode.ToSKShaderTileMode()});");
-                    return;
-                }
-            }
             case RadialGradientShader radialGradientShader:
-            {
-                if (radialGradientShader.Colors is null || radialGradientShader.ColorPos is null)
                 {
-                    sb.AppendLine($"{indent}var {counter.ShaderVarName}{counterShader} = default(SKShader);");
-                    return;
-                }
+                    if (radialGradientShader.Colors is null || radialGradientShader.ColorPos is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ShaderVarName}{counterShader} = default(SKShader);");
+                        return;
+                    }
 
-                if (radialGradientShader.LocalMatrix is { })
-                {
-                    sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
-                    sb.AppendLine($"SKShader.CreateRadialGradient(");
-                    sb.AppendLine($"{indent}    {radialGradientShader.Center.ToSKPoint()},");
-                    sb.AppendLine($"{indent}    {radialGradientShader.Radius.ToFloatString()},");
-                    sb.AppendLine($"{indent}    {radialGradientShader.Colors.ToSKColors()},");
-                    sb.AppendLine($"{indent}    {(radialGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
-                    sb.AppendLine($"{indent}    {radialGradientShader.ColorPos.ToFloatArray()},");
-                    sb.AppendLine($"{indent}    {radialGradientShader.Mode.ToSKShaderTileMode()},");
-                    sb.AppendLine($"{indent}    {radialGradientShader.LocalMatrix.Value.ToSKMatrix()});");
-                    return;
+                    if (radialGradientShader.LocalMatrix is { })
+                    {
+                        sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
+                        sb.AppendLine($"SKShader.CreateRadialGradient(");
+                        sb.AppendLine($"{indent}    {radialGradientShader.Center.ToSKPoint()},");
+                        sb.AppendLine($"{indent}    {radialGradientShader.Radius.ToFloatString()},");
+                        sb.AppendLine($"{indent}    {radialGradientShader.Colors.ToSKColors()},");
+                        sb.AppendLine($"{indent}    {(radialGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
+                        sb.AppendLine($"{indent}    {radialGradientShader.ColorPos.ToFloatArray()},");
+                        sb.AppendLine($"{indent}    {radialGradientShader.Mode.ToSKShaderTileMode()},");
+                        sb.AppendLine($"{indent}    {radialGradientShader.LocalMatrix.Value.ToSKMatrix()});");
+                        return;
+                    }
+                    else
+                    {
+                        sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
+                        sb.AppendLine($"SKShader.CreateRadialGradient(");
+                        sb.AppendLine($"{indent}    {radialGradientShader.Center.ToSKPoint()},");
+                        sb.AppendLine($"{indent}    {radialGradientShader.Radius.ToFloatString()},");
+                        sb.AppendLine($"{indent}    {radialGradientShader.Colors.ToSKColors()},");
+                        sb.AppendLine($"{indent}    {(radialGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
+                        sb.AppendLine($"{indent}    {radialGradientShader.ColorPos.ToFloatArray()},");
+                        sb.AppendLine($"{indent}    {radialGradientShader.Mode.ToSKShaderTileMode()});");
+                        return;
+                    }
                 }
-                else
-                {
-                    sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
-                    sb.AppendLine($"SKShader.CreateRadialGradient(");
-                    sb.AppendLine($"{indent}    {radialGradientShader.Center.ToSKPoint()},");
-                    sb.AppendLine($"{indent}    {radialGradientShader.Radius.ToFloatString()},");
-                    sb.AppendLine($"{indent}    {radialGradientShader.Colors.ToSKColors()},");
-                    sb.AppendLine($"{indent}    {(radialGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
-                    sb.AppendLine($"{indent}    {radialGradientShader.ColorPos.ToFloatArray()},");
-                    sb.AppendLine($"{indent}    {radialGradientShader.Mode.ToSKShaderTileMode()});");
-                    return;
-                }
-            }
             case TwoPointConicalGradientShader twoPointConicalGradientShader:
-            {
-                if (twoPointConicalGradientShader.Colors is null || twoPointConicalGradientShader.ColorPos is null)
                 {
-                    sb.AppendLine($"{indent}var {counter.ShaderVarName}{counterShader} = default(SKShader);");
-                    return;
-                }
+                    if (twoPointConicalGradientShader.Colors is null || twoPointConicalGradientShader.ColorPos is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ShaderVarName}{counterShader} = default(SKShader);");
+                        return;
+                    }
 
-                if (twoPointConicalGradientShader.LocalMatrix is { })
-                {
-                    sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
-                    sb.AppendLine($"SKShader.CreateTwoPointConicalGradient(");
-                    sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Start.ToSKPoint()},");
-                    sb.AppendLine($"{indent}    {twoPointConicalGradientShader.StartRadius.ToFloatString()},");
-                    sb.AppendLine($"{indent}    {twoPointConicalGradientShader.End.ToSKPoint()},");
-                    sb.AppendLine($"{indent}    {twoPointConicalGradientShader.EndRadius.ToFloatString()},");
-                    sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Colors.ToSKColors()},");
-                    sb.AppendLine($"{indent}    {(twoPointConicalGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
-                    sb.AppendLine($"{indent}    {twoPointConicalGradientShader.ColorPos.ToFloatArray()},");
-                    sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Mode.ToSKShaderTileMode()},");
-                    sb.AppendLine($"{indent}    {twoPointConicalGradientShader.LocalMatrix.Value.ToSKMatrix()});");
-                    return;
+                    if (twoPointConicalGradientShader.LocalMatrix is { })
+                    {
+                        sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
+                        sb.AppendLine($"SKShader.CreateTwoPointConicalGradient(");
+                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Start.ToSKPoint()},");
+                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.StartRadius.ToFloatString()},");
+                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.End.ToSKPoint()},");
+                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.EndRadius.ToFloatString()},");
+                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Colors.ToSKColors()},");
+                        sb.AppendLine($"{indent}    {(twoPointConicalGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
+                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.ColorPos.ToFloatArray()},");
+                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Mode.ToSKShaderTileMode()},");
+                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.LocalMatrix.Value.ToSKMatrix()});");
+                        return;
+                    }
+                    else
+                    {
+                        sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
+                        sb.AppendLine($"SKShader.CreateTwoPointConicalGradient(");
+                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Start.ToSKPoint()},");
+                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.StartRadius.ToFloatString()},");
+                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.End.ToSKPoint()},");
+                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.EndRadius.ToFloatString()},");
+                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Colors.ToSKColors()},");
+                        sb.AppendLine($"{indent}    {(twoPointConicalGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
+                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.ColorPos.ToFloatArray()},");
+                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Mode.ToSKShaderTileMode()});");
+                        return;
+                    }
                 }
-                else
-                {
-                    sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
-                    sb.AppendLine($"SKShader.CreateTwoPointConicalGradient(");
-                    sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Start.ToSKPoint()},");
-                    sb.AppendLine($"{indent}    {twoPointConicalGradientShader.StartRadius.ToFloatString()},");
-                    sb.AppendLine($"{indent}    {twoPointConicalGradientShader.End.ToSKPoint()},");
-                    sb.AppendLine($"{indent}    {twoPointConicalGradientShader.EndRadius.ToFloatString()},");
-                    sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Colors.ToSKColors()},");
-                    sb.AppendLine($"{indent}    {(twoPointConicalGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
-                    sb.AppendLine($"{indent}    {twoPointConicalGradientShader.ColorPos.ToFloatArray()},");
-                    sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Mode.ToSKShaderTileMode()});");
-                    return;
-                }
-            }
             case PictureShader pictureShader:
-            {
-                if (pictureShader.Src is null)
+                {
+                    if (pictureShader.Src is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ShaderVarName}{counterShader} = default(SKShader);");
+                        return;
+                    }
+
+                    var counterPicture = ++counter.Picture;
+                    pictureShader.Src.ToSKPicture(counter, sb, indent);
+
+                    sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
+                    sb.AppendLine($"SKShader.CreatePicture(");
+                    sb.AppendLine($"{indent}    {counter.PictureVarName}{counterPicture},");
+                    sb.AppendLine($"{indent}    SKShaderTileMode.Repeat,");
+                    sb.AppendLine($"{indent}    SKShaderTileMode.Repeat,");
+                    sb.AppendLine($"{indent}    {pictureShader.LocalMatrix.ToSKMatrix()},");
+                    sb.AppendLine($"{indent}    {pictureShader.Tile.ToSKRect()});");
+                    sb.AppendLine($"{indent}{counter.PictureVarName}{counterPicture}?.Dispose();");
+                    return;
+                }
+            case PerlinNoiseFractalNoiseShader perlinNoiseFractalNoiseShader:
+                {
+                    sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
+                    sb.AppendLine($"SKShader.CreatePerlinNoiseFractalNoise(");
+                    sb.AppendLine($"{indent}    {perlinNoiseFractalNoiseShader.BaseFrequencyX.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {perlinNoiseFractalNoiseShader.BaseFrequencyY.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {perlinNoiseFractalNoiseShader.NumOctaves.ToIntString()},");
+                    sb.AppendLine($"{indent}    {perlinNoiseFractalNoiseShader.Seed.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {perlinNoiseFractalNoiseShader.TileSize.ToSKPointI()});");
+                    return;
+                }
+            case PerlinNoiseTurbulenceShader perlinNoiseTurbulenceShader:
+                {
+                    sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
+                    sb.AppendLine($"SKShader.CreatePerlinNoiseTurbulence(");
+                    sb.AppendLine($"{indent}    {perlinNoiseTurbulenceShader.BaseFrequencyX.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {perlinNoiseTurbulenceShader.BaseFrequencyY.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {perlinNoiseTurbulenceShader.NumOctaves.ToIntString()},");
+                    sb.AppendLine($"{indent}    {perlinNoiseTurbulenceShader.Seed.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {perlinNoiseTurbulenceShader.TileSize.ToSKPointI()});");
+                    return;
+                }
+            default:
                 {
                     sb.AppendLine($"{indent}var {counter.ShaderVarName}{counterShader} = default(SKShader);");
                     return;
                 }
-
-                var counterPicture = ++counter.Picture;
-                pictureShader.Src.ToSKPicture(counter, sb, indent);
-
-                sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
-                sb.AppendLine($"SKShader.CreatePicture(");
-                sb.AppendLine($"{indent}    {counter.PictureVarName}{counterPicture},");
-                sb.AppendLine($"{indent}    SKShaderTileMode.Repeat,");
-                sb.AppendLine($"{indent}    SKShaderTileMode.Repeat,");
-                sb.AppendLine($"{indent}    {pictureShader.LocalMatrix.ToSKMatrix()},");
-                sb.AppendLine($"{indent}    {pictureShader.Tile.ToSKRect()});");
-                sb.AppendLine($"{indent}{counter.PictureVarName}{counterPicture}?.Dispose();");
-                return;
-            }
-            case PerlinNoiseFractalNoiseShader perlinNoiseFractalNoiseShader:
-            {
-                sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
-                sb.AppendLine($"SKShader.CreatePerlinNoiseFractalNoise(");
-                sb.AppendLine($"{indent}    {perlinNoiseFractalNoiseShader.BaseFrequencyX.ToFloatString()},");
-                sb.AppendLine($"{indent}    {perlinNoiseFractalNoiseShader.BaseFrequencyY.ToFloatString()},");
-                sb.AppendLine($"{indent}    {perlinNoiseFractalNoiseShader.NumOctaves.ToIntString()},");
-                sb.AppendLine($"{indent}    {perlinNoiseFractalNoiseShader.Seed.ToFloatString()},");
-                sb.AppendLine($"{indent}    {perlinNoiseFractalNoiseShader.TileSize.ToSKPointI()});");
-                return;
-            }
-            case PerlinNoiseTurbulenceShader perlinNoiseTurbulenceShader:
-            {
-                sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
-                sb.AppendLine($"SKShader.CreatePerlinNoiseTurbulence(");
-                sb.AppendLine($"{indent}    {perlinNoiseTurbulenceShader.BaseFrequencyX.ToFloatString()},");
-                sb.AppendLine($"{indent}    {perlinNoiseTurbulenceShader.BaseFrequencyY.ToFloatString()},");
-                sb.AppendLine($"{indent}    {perlinNoiseTurbulenceShader.NumOctaves.ToIntString()},");
-                sb.AppendLine($"{indent}    {perlinNoiseTurbulenceShader.Seed.ToFloatString()},");
-                sb.AppendLine($"{indent}    {perlinNoiseTurbulenceShader.TileSize.ToSKPointI()});");
-                return;
-            }
-            default:
-            {
-                sb.AppendLine($"{indent}var {counter.ShaderVarName}{counterShader} = default(SKShader);");
-                return;
-            }
         }
     }
 
@@ -596,56 +596,56 @@ public static class SkiaCSharpModelExtensions
         switch (colorFilter)
         {
             case BlendModeColorFilter blendModeColorFilter:
-            {
-                sb.Append($"{indent}var {counter.ColorFilterVarName}{counterColorFilter} = ");
-                sb.AppendLine($"SKColorFilter.CreateBlendMode(");
-                sb.AppendLine($"{indent}    {blendModeColorFilter.Color.ToSKColor()},");
-                sb.AppendLine($"{indent}    {blendModeColorFilter.Mode.ToSKBlendMode()});");
-                return;
-            }
+                {
+                    sb.Append($"{indent}var {counter.ColorFilterVarName}{counterColorFilter} = ");
+                    sb.AppendLine($"SKColorFilter.CreateBlendMode(");
+                    sb.AppendLine($"{indent}    {blendModeColorFilter.Color.ToSKColor()},");
+                    sb.AppendLine($"{indent}    {blendModeColorFilter.Mode.ToSKBlendMode()});");
+                    return;
+                }
             case ColorMatrixColorFilter colorMatrixColorFilter:
-            {
-                if (colorMatrixColorFilter.Matrix is null)
                 {
-                    sb.AppendLine($"{indent}var {counter.ColorFilterVarName}{counterColorFilter} = default(SKColorFilter);");
+                    if (colorMatrixColorFilter.Matrix is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ColorFilterVarName}{counterColorFilter} = default(SKColorFilter);");
+                        return;
+                    }
+
+                    sb.Append($"{indent}var {counter.ColorFilterVarName}{counterColorFilter} = ");
+                    sb.AppendLine($"SKColorFilter.CreateColorMatrix(");
+                    sb.AppendLine($"{indent}    {colorMatrixColorFilter.Matrix.ToFloatArray()});");
                     return;
                 }
-
-                sb.Append($"{indent}var {counter.ColorFilterVarName}{counterColorFilter} = ");
-                sb.AppendLine($"SKColorFilter.CreateColorMatrix(");
-                sb.AppendLine($"{indent}    {colorMatrixColorFilter.Matrix.ToFloatArray()});");
-                return;
-            }
             case LumaColorColorFilter _:
-            {
-                sb.Append($"{indent}var {counter.ColorFilterVarName}{counterColorFilter} = ");
-                sb.AppendLine($"SKColorFilter.CreateLumaColor();");
-                return;
-            }
+                {
+                    sb.Append($"{indent}var {counter.ColorFilterVarName}{counterColorFilter} = ");
+                    sb.AppendLine($"SKColorFilter.CreateLumaColor();");
+                    return;
+                }
             case TableColorFilter tableColorFilter:
-            {
-                if (tableColorFilter.TableA is null
-                    || tableColorFilter.TableR is null
-                    || tableColorFilter.TableG is null
-                    || tableColorFilter.TableB is null)
+                {
+                    if (tableColorFilter.TableA is null
+                        || tableColorFilter.TableR is null
+                        || tableColorFilter.TableG is null
+                        || tableColorFilter.TableB is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ColorFilterVarName}{counterColorFilter} = default(SKColorFilter);");
+                        return;
+                    }
+
+                    sb.Append($"{indent}var {counter.ColorFilterVarName}{counterColorFilter} = ");
+                    sb.AppendLine($"SKColorFilter.CreateTable(");
+                    sb.AppendLine($"{indent}    {tableColorFilter.TableA.ToByteArray()},");
+                    sb.AppendLine($"{indent}    {tableColorFilter.TableR.ToByteArray()},");
+                    sb.AppendLine($"{indent}    {tableColorFilter.TableG.ToByteArray()},");
+                    sb.AppendLine($"{indent}    {tableColorFilter.TableB.ToByteArray()});");
+                    return;
+                }
+            default:
                 {
                     sb.AppendLine($"{indent}var {counter.ColorFilterVarName}{counterColorFilter} = default(SKColorFilter);");
                     return;
                 }
-
-                sb.Append($"{indent}var {counter.ColorFilterVarName}{counterColorFilter} = ");
-                sb.AppendLine($"SKColorFilter.CreateTable(");
-                sb.AppendLine($"{indent}    {tableColorFilter.TableA.ToByteArray()},");
-                sb.AppendLine($"{indent}    {tableColorFilter.TableR.ToByteArray()},");
-                sb.AppendLine($"{indent}    {tableColorFilter.TableG.ToByteArray()},");
-                sb.AppendLine($"{indent}    {tableColorFilter.TableB.ToByteArray()});");
-                return;
-            }
-            default:
-            {
-                sb.AppendLine($"{indent}var {counter.ColorFilterVarName}{counterColorFilter} = default(SKColorFilter);");
-                return;
-            }
         }
     }
 
@@ -672,365 +672,365 @@ public static class SkiaCSharpModelExtensions
         switch (imageFilter)
         {
             case ArithmeticImageFilter arithmeticImageFilter:
-            {
-                if (arithmeticImageFilter.Background is null)
                 {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
-                    return;
-                }
-
-                var counterImageFilterBackground = ++counter.ImageFilter;
-                if (arithmeticImageFilter.Background is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterBackground} = default(SKImageFilter);");
-                }
-                else
-                {
-                    arithmeticImageFilter.Background.ToSKImageFilter(counter, sb, indent);
-                }
-
-                var counterImageFilterForeground = ++counter.ImageFilter;
-                if (arithmeticImageFilter.Foreground is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterBackground} = default(SKImageFilter);");
-                }
-                else
-                {
-                    arithmeticImageFilter.Foreground.ToSKImageFilter(counter, sb, indent);
-                }
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateArithmetic(");
-                sb.AppendLine($"{indent}    {arithmeticImageFilter.K1.ToFloatString()},");
-                sb.AppendLine($"{indent}    {arithmeticImageFilter.K2.ToFloatString()},");
-                sb.AppendLine($"{indent}    {arithmeticImageFilter.K3.ToFloatString()},");
-                sb.AppendLine($"{indent}    {arithmeticImageFilter.K4.ToFloatString()},");
-                sb.AppendLine($"{indent}    {arithmeticImageFilter.EforcePMColor.ToBoolString()},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterBackground},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterForeground},");
-                sb.AppendLine($"{indent}    {arithmeticImageFilter.Clip?.ToSKRect() ?? "null"});");
-                return;
-            }
-            case BlendModeImageFilter blendModeImageFilter:
-            {
-                if (blendModeImageFilter.Background is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
-                    return;
-                }
-
-                var counterImageFilterBackground = ++counter.ImageFilter;
-                if (blendModeImageFilter.Background is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterBackground} = default(SKImageFilter);");
-                }
-                else
-                {
-                    blendModeImageFilter.Background.ToSKImageFilter(counter, sb, indent);
-                }
-
-                var counterImageFilterForeground = ++counter.ImageFilter;
-                if (blendModeImageFilter.Foreground is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterBackground} = default(SKImageFilter);");
-                }
-                else
-                {
-                    blendModeImageFilter.Foreground.ToSKImageFilter(counter, sb, indent);
-                }
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateBlendMode(");
-                sb.AppendLine($"{indent}    {blendModeImageFilter.Mode.ToSKBlendMode()},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterBackground},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterForeground},");
-                sb.AppendLine($"{indent}    {blendModeImageFilter.Clip?.ToSKRect() ?? "null"});");
-                return;
-            }
-            case BlurImageFilter blurImageFilter:
-            {
-                var counterImageFilterInput = ++counter.ImageFilter;
-                if (blurImageFilter.Input is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
-                }
-                else
-                {
-                    blurImageFilter.Input.ToSKImageFilter(counter, sb, indent);
-                }
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateBlur(");
-                sb.AppendLine($"{indent}    {blurImageFilter.SigmaX.ToFloatString()},");
-                sb.AppendLine($"{indent}    {blurImageFilter.SigmaY.ToFloatString()},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {blurImageFilter.Clip?.ToSKRect() ?? "null"});");
-                return;
-            }
-            case ColorFilterImageFilter colorFilterImageFilter:
-            {
-                if (colorFilterImageFilter.ColorFilter is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
-                    return;
-                }
-
-                var counterColorFilter = ++counter.ColorFilter;
-                colorFilterImageFilter.ColorFilter.ToSKColorFilter(counter, sb, indent);
-
-                var counterImageFilterInput = ++counter.ImageFilter;
-                if (colorFilterImageFilter.Input is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
-                }
-                else
-                {
-                    colorFilterImageFilter.Input.ToSKImageFilter(counter, sb, indent);
-                }
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateColorFilter(");
-                sb.AppendLine($"{indent}    {counter.ColorFilterVarName}{counterColorFilter},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {colorFilterImageFilter.Clip?.ToSKRect() ?? "null"});");
-                return;
-            }
-            case DilateImageFilter dilateImageFilter:
-            {
-                var counterImageFilterInput = ++counter.ImageFilter;
-                if (dilateImageFilter.Input is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
-                }
-                else
-                {
-                    dilateImageFilter.Input.ToSKImageFilter(counter, sb, indent);
-                }
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateDilate(");
-                sb.AppendLine($"{indent}    {dilateImageFilter.RadiusX.ToIntString()},");
-                sb.AppendLine($"{indent}    {dilateImageFilter.RadiusY.ToIntString()},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {dilateImageFilter.Clip?.ToSKRect() ?? "null"});");
-                return;
-            }
-            case DisplacementMapEffectImageFilter displacementMapEffectImageFilter:
-            {
-                if (displacementMapEffectImageFilter.Displacement is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
-                    return;
-                }
-
-                var counterImageFilterDisplacement = ++counter.ImageFilter;
-                displacementMapEffectImageFilter.Displacement.ToSKImageFilter(counter, sb, indent);
-
-                var counterImageFilterInput = ++counter.ImageFilter;
-                if (displacementMapEffectImageFilter.Input is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
-                }
-                else
-                {
-                    displacementMapEffectImageFilter.Input.ToSKImageFilter(counter, sb, indent);
-                }
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateDisplacementMapEffect(");
-                sb.AppendLine($"{indent}    {displacementMapEffectImageFilter.XChannelSelector.ToSKColorChannel()},");
-                sb.AppendLine($"{indent}    {displacementMapEffectImageFilter.YChannelSelector.ToSKColorChannel()},");
-                sb.AppendLine($"{indent}    {displacementMapEffectImageFilter.Scale.ToFloatString()},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterDisplacement},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {displacementMapEffectImageFilter.Clip?.ToSKRect() ?? "null"});");
-                return;
-            }
-            case DistantLitDiffuseImageFilter distantLitDiffuseImageFilter:
-            {
-                var counterImageFilterInput = ++counter.ImageFilter;
-                if (distantLitDiffuseImageFilter.Input is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
-                }
-                else
-                {
-                    distantLitDiffuseImageFilter.Input.ToSKImageFilter(counter, sb, indent);
-                }
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateDistantLitDiffuse(");
-                sb.AppendLine($"{indent}    {distantLitDiffuseImageFilter.Direction.ToSKPoint3()},");
-                sb.AppendLine($"{indent}    {distantLitDiffuseImageFilter.LightColor.ToSKColor()},");
-                sb.AppendLine($"{indent}    {distantLitDiffuseImageFilter.SurfaceScale.ToFloatString()},");
-                sb.AppendLine($"{indent}    {distantLitDiffuseImageFilter.Kd.ToFloatString()},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {distantLitDiffuseImageFilter.Clip?.ToSKRect() ?? "null"});");
-                return;
-            }
-            case DistantLitSpecularImageFilter distantLitSpecularImageFilter:
-            {
-                var counterImageFilterInput = ++counter.ImageFilter;
-                if (distantLitSpecularImageFilter.Input is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
-                }
-                else
-                {
-                    distantLitSpecularImageFilter.Input.ToSKImageFilter(counter, sb, indent);
-                }
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateDistantLitSpecular(");
-                sb.AppendLine($"{indent}    {distantLitSpecularImageFilter.Direction.ToSKPoint3()},");
-                sb.AppendLine($"{indent}    {distantLitSpecularImageFilter.LightColor.ToSKColor()},");
-                sb.AppendLine($"{indent}    {distantLitSpecularImageFilter.SurfaceScale.ToFloatString()},");
-                sb.AppendLine($"{indent}    {distantLitSpecularImageFilter.Ks.ToFloatString()},");
-                sb.AppendLine($"{indent}    {distantLitSpecularImageFilter.Shininess.ToFloatString()},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {distantLitSpecularImageFilter.Clip?.ToSKRect() ?? "null"});");
-                return;
-            }
-            case ErodeImageFilter erodeImageFilter:
-            {
-                var counterImageFilterInput = ++counter.ImageFilter;
-                if (erodeImageFilter.Input is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
-                }
-                else
-                {
-                    erodeImageFilter.Input.ToSKImageFilter(counter, sb, indent);
-                }
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateErode(");
-                sb.AppendLine($"{indent}    {erodeImageFilter.RadiusX.ToIntString()},");
-                sb.AppendLine($"{indent}    {erodeImageFilter.RadiusY.ToIntString()},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {erodeImageFilter.Clip?.ToSKRect() ?? "null"});");
-                return;
-            }
-            case ImageImageFilter imageImageFilter:
-            {
-                if (imageImageFilter.Image is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
-                    return;
-                }
-
-                var counterImage = ++counter.Image;
-                imageImageFilter.Image.ToSKImage(counter, sb, indent);
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateImage(");
-                sb.AppendLine($"{indent}    {counter.ImageVarName}{counterImage},");
-                sb.AppendLine($"{indent}    {imageImageFilter.Src.ToSKRect()},");
-                sb.AppendLine($"{indent}    {imageImageFilter.Dst.ToSKRect()},");
-                sb.AppendLine($"{indent}    SKFilterQuality.High);");
-                return;
-            }
-            case MatrixConvolutionImageFilter matrixConvolutionImageFilter:
-            {
-                if (matrixConvolutionImageFilter.Kernel is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
-                    return;
-                }
-
-                var counterImageFilterInput = ++counter.ImageFilter;
-                if (matrixConvolutionImageFilter.Input is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
-                }
-                else
-                {
-                    matrixConvolutionImageFilter.Input.ToSKImageFilter(counter, sb, indent);
-                }
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateMatrixConvolution(");
-                sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.KernelSize.ToSKSizeI()},");
-                sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.Kernel.ToFloatArray()},");
-                sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.Gain.ToFloatString()},");
-                sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.Bias.ToFloatString()},");
-                sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.KernelOffset.ToSKPointI()},");
-                sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.TileMode.ToSKShaderTileMode()},");
-                sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.ConvolveAlpha.ToBoolString()},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.Clip?.ToSKRect() ?? "null"});");
-                return;
-            }
-            case MergeImageFilter mergeImageFilter:
-            {
-                if (mergeImageFilter.Filters is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
-                    return;
-                }
-
-                var imageFilters = mergeImageFilter.Filters;
-
-                sb.AppendLine($"{indent}var {counter.ImageFilterVarName}s{counterImageFilter} = new SKImageFilter[{imageFilters.Length}];");
-
-                for (int i = 0; i < imageFilters.Length; i++)
-                {
-                    var imageFilterItem = imageFilters[i];
-                    var counterImageFilterItem = ++counter.ImageFilter;
-                    if (imageFilterItem is null)
+                    if (arithmeticImageFilter.Background is null)
                     {
-                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterItem} = default(SKImageFilter);");
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
+                        return;
+                    }
+
+                    var counterImageFilterBackground = ++counter.ImageFilter;
+                    if (arithmeticImageFilter.Background is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterBackground} = default(SKImageFilter);");
                     }
                     else
                     {
-                        imageFilterItem.ToSKImageFilter(counter, sb, indent);
+                        arithmeticImageFilter.Background.ToSKImageFilter(counter, sb, indent);
                     }
-                    sb.AppendLine($"{indent}{counter.ImageFilterVarName}s{counterImageFilter}[{i}] = {counter.ImageFilterVarName}{counterImageFilterItem};");
-                }
 
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateMerge(");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}s{counterImageFilter},");
-                sb.AppendLine($"{indent}    {mergeImageFilter.Clip?.ToSKRect() ?? "null"});");
-                return;
-            }
-            case OffsetImageFilter offsetImageFilter:
-            {
-                var counterImageFilterInput = ++counter.ImageFilter;
-                if (offsetImageFilter.Input is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
-                }
-                else
-                {
-                    offsetImageFilter.Input.ToSKImageFilter(counter, sb, indent);
-                }
+                    var counterImageFilterForeground = ++counter.ImageFilter;
+                    if (arithmeticImageFilter.Foreground is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterBackground} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        arithmeticImageFilter.Foreground.ToSKImageFilter(counter, sb, indent);
+                    }
 
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateOffset(");
-                sb.AppendLine($"{indent}    {offsetImageFilter.Dx.ToFloatString()},");
-                sb.AppendLine($"{indent}    {offsetImageFilter.Dy.ToFloatString()},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {offsetImageFilter.Clip?.ToSKRect() ?? "null"});");
-                return;
-            }
-            case PaintImageFilter paintImageFilter:
-            {
-                if (paintImageFilter.Paint is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateArithmetic(");
+                    sb.AppendLine($"{indent}    {arithmeticImageFilter.K1.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {arithmeticImageFilter.K2.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {arithmeticImageFilter.K3.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {arithmeticImageFilter.K4.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {arithmeticImageFilter.EforcePMColor.ToBoolString()},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterBackground},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterForeground},");
+                    sb.AppendLine($"{indent}    {arithmeticImageFilter.Clip?.ToSKRect() ?? "null"});");
                     return;
                 }
+            case BlendModeImageFilter blendModeImageFilter:
+                {
+                    if (blendModeImageFilter.Background is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
+                        return;
+                    }
 
-                var counterPaint = ++counter.Paint;
-                paintImageFilter.Paint.ToSKPaint(counter, sb, indent);
+                    var counterImageFilterBackground = ++counter.ImageFilter;
+                    if (blendModeImageFilter.Background is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterBackground} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        blendModeImageFilter.Background.ToSKImageFilter(counter, sb, indent);
+                    }
 
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreatePaint(");
-                sb.AppendLine($"{indent}    {counter.PaintVarName}{counterPaint},");
-                sb.AppendLine($"{indent}    {paintImageFilter.Clip?.ToSKRect() ?? "null"});");
+                    var counterImageFilterForeground = ++counter.ImageFilter;
+                    if (blendModeImageFilter.Foreground is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterBackground} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        blendModeImageFilter.Foreground.ToSKImageFilter(counter, sb, indent);
+                    }
 
-                // NOTE: Do not dispose created SKTypeface by font manager.
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateBlendMode(");
+                    sb.AppendLine($"{indent}    {blendModeImageFilter.Mode.ToSKBlendMode()},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterBackground},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterForeground},");
+                    sb.AppendLine($"{indent}    {blendModeImageFilter.Clip?.ToSKRect() ?? "null"});");
+                    return;
+                }
+            case BlurImageFilter blurImageFilter:
+                {
+                    var counterImageFilterInput = ++counter.ImageFilter;
+                    if (blurImageFilter.Input is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        blurImageFilter.Input.ToSKImageFilter(counter, sb, indent);
+                    }
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateBlur(");
+                    sb.AppendLine($"{indent}    {blurImageFilter.SigmaX.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {blurImageFilter.SigmaY.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
+                    sb.AppendLine($"{indent}    {blurImageFilter.Clip?.ToSKRect() ?? "null"});");
+                    return;
+                }
+            case ColorFilterImageFilter colorFilterImageFilter:
+                {
+                    if (colorFilterImageFilter.ColorFilter is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
+                        return;
+                    }
+
+                    var counterColorFilter = ++counter.ColorFilter;
+                    colorFilterImageFilter.ColorFilter.ToSKColorFilter(counter, sb, indent);
+
+                    var counterImageFilterInput = ++counter.ImageFilter;
+                    if (colorFilterImageFilter.Input is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        colorFilterImageFilter.Input.ToSKImageFilter(counter, sb, indent);
+                    }
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateColorFilter(");
+                    sb.AppendLine($"{indent}    {counter.ColorFilterVarName}{counterColorFilter},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
+                    sb.AppendLine($"{indent}    {colorFilterImageFilter.Clip?.ToSKRect() ?? "null"});");
+                    return;
+                }
+            case DilateImageFilter dilateImageFilter:
+                {
+                    var counterImageFilterInput = ++counter.ImageFilter;
+                    if (dilateImageFilter.Input is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        dilateImageFilter.Input.ToSKImageFilter(counter, sb, indent);
+                    }
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateDilate(");
+                    sb.AppendLine($"{indent}    {dilateImageFilter.RadiusX.ToIntString()},");
+                    sb.AppendLine($"{indent}    {dilateImageFilter.RadiusY.ToIntString()},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
+                    sb.AppendLine($"{indent}    {dilateImageFilter.Clip?.ToSKRect() ?? "null"});");
+                    return;
+                }
+            case DisplacementMapEffectImageFilter displacementMapEffectImageFilter:
+                {
+                    if (displacementMapEffectImageFilter.Displacement is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
+                        return;
+                    }
+
+                    var counterImageFilterDisplacement = ++counter.ImageFilter;
+                    displacementMapEffectImageFilter.Displacement.ToSKImageFilter(counter, sb, indent);
+
+                    var counterImageFilterInput = ++counter.ImageFilter;
+                    if (displacementMapEffectImageFilter.Input is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        displacementMapEffectImageFilter.Input.ToSKImageFilter(counter, sb, indent);
+                    }
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateDisplacementMapEffect(");
+                    sb.AppendLine($"{indent}    {displacementMapEffectImageFilter.XChannelSelector.ToSKColorChannel()},");
+                    sb.AppendLine($"{indent}    {displacementMapEffectImageFilter.YChannelSelector.ToSKColorChannel()},");
+                    sb.AppendLine($"{indent}    {displacementMapEffectImageFilter.Scale.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterDisplacement},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
+                    sb.AppendLine($"{indent}    {displacementMapEffectImageFilter.Clip?.ToSKRect() ?? "null"});");
+                    return;
+                }
+            case DistantLitDiffuseImageFilter distantLitDiffuseImageFilter:
+                {
+                    var counterImageFilterInput = ++counter.ImageFilter;
+                    if (distantLitDiffuseImageFilter.Input is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        distantLitDiffuseImageFilter.Input.ToSKImageFilter(counter, sb, indent);
+                    }
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateDistantLitDiffuse(");
+                    sb.AppendLine($"{indent}    {distantLitDiffuseImageFilter.Direction.ToSKPoint3()},");
+                    sb.AppendLine($"{indent}    {distantLitDiffuseImageFilter.LightColor.ToSKColor()},");
+                    sb.AppendLine($"{indent}    {distantLitDiffuseImageFilter.SurfaceScale.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {distantLitDiffuseImageFilter.Kd.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
+                    sb.AppendLine($"{indent}    {distantLitDiffuseImageFilter.Clip?.ToSKRect() ?? "null"});");
+                    return;
+                }
+            case DistantLitSpecularImageFilter distantLitSpecularImageFilter:
+                {
+                    var counterImageFilterInput = ++counter.ImageFilter;
+                    if (distantLitSpecularImageFilter.Input is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        distantLitSpecularImageFilter.Input.ToSKImageFilter(counter, sb, indent);
+                    }
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateDistantLitSpecular(");
+                    sb.AppendLine($"{indent}    {distantLitSpecularImageFilter.Direction.ToSKPoint3()},");
+                    sb.AppendLine($"{indent}    {distantLitSpecularImageFilter.LightColor.ToSKColor()},");
+                    sb.AppendLine($"{indent}    {distantLitSpecularImageFilter.SurfaceScale.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {distantLitSpecularImageFilter.Ks.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {distantLitSpecularImageFilter.Shininess.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
+                    sb.AppendLine($"{indent}    {distantLitSpecularImageFilter.Clip?.ToSKRect() ?? "null"});");
+                    return;
+                }
+            case ErodeImageFilter erodeImageFilter:
+                {
+                    var counterImageFilterInput = ++counter.ImageFilter;
+                    if (erodeImageFilter.Input is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        erodeImageFilter.Input.ToSKImageFilter(counter, sb, indent);
+                    }
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateErode(");
+                    sb.AppendLine($"{indent}    {erodeImageFilter.RadiusX.ToIntString()},");
+                    sb.AppendLine($"{indent}    {erodeImageFilter.RadiusY.ToIntString()},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
+                    sb.AppendLine($"{indent}    {erodeImageFilter.Clip?.ToSKRect() ?? "null"});");
+                    return;
+                }
+            case ImageImageFilter imageImageFilter:
+                {
+                    if (imageImageFilter.Image is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
+                        return;
+                    }
+
+                    var counterImage = ++counter.Image;
+                    imageImageFilter.Image.ToSKImage(counter, sb, indent);
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateImage(");
+                    sb.AppendLine($"{indent}    {counter.ImageVarName}{counterImage},");
+                    sb.AppendLine($"{indent}    {imageImageFilter.Src.ToSKRect()},");
+                    sb.AppendLine($"{indent}    {imageImageFilter.Dst.ToSKRect()},");
+                    sb.AppendLine($"{indent}    SKFilterQuality.High);");
+                    return;
+                }
+            case MatrixConvolutionImageFilter matrixConvolutionImageFilter:
+                {
+                    if (matrixConvolutionImageFilter.Kernel is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
+                        return;
+                    }
+
+                    var counterImageFilterInput = ++counter.ImageFilter;
+                    if (matrixConvolutionImageFilter.Input is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        matrixConvolutionImageFilter.Input.ToSKImageFilter(counter, sb, indent);
+                    }
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateMatrixConvolution(");
+                    sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.KernelSize.ToSKSizeI()},");
+                    sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.Kernel.ToFloatArray()},");
+                    sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.Gain.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.Bias.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.KernelOffset.ToSKPointI()},");
+                    sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.TileMode.ToSKShaderTileMode()},");
+                    sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.ConvolveAlpha.ToBoolString()},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
+                    sb.AppendLine($"{indent}    {matrixConvolutionImageFilter.Clip?.ToSKRect() ?? "null"});");
+                    return;
+                }
+            case MergeImageFilter mergeImageFilter:
+                {
+                    if (mergeImageFilter.Filters is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
+                        return;
+                    }
+
+                    var imageFilters = mergeImageFilter.Filters;
+
+                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}s{counterImageFilter} = new SKImageFilter[{imageFilters.Length}];");
+
+                    for (int i = 0; i < imageFilters.Length; i++)
+                    {
+                        var imageFilterItem = imageFilters[i];
+                        var counterImageFilterItem = ++counter.ImageFilter;
+                        if (imageFilterItem is null)
+                        {
+                            sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterItem} = default(SKImageFilter);");
+                        }
+                        else
+                        {
+                            imageFilterItem.ToSKImageFilter(counter, sb, indent);
+                        }
+                        sb.AppendLine($"{indent}{counter.ImageFilterVarName}s{counterImageFilter}[{i}] = {counter.ImageFilterVarName}{counterImageFilterItem};");
+                    }
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateMerge(");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}s{counterImageFilter},");
+                    sb.AppendLine($"{indent}    {mergeImageFilter.Clip?.ToSKRect() ?? "null"});");
+                    return;
+                }
+            case OffsetImageFilter offsetImageFilter:
+                {
+                    var counterImageFilterInput = ++counter.ImageFilter;
+                    if (offsetImageFilter.Input is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        offsetImageFilter.Input.ToSKImageFilter(counter, sb, indent);
+                    }
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateOffset(");
+                    sb.AppendLine($"{indent}    {offsetImageFilter.Dx.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {offsetImageFilter.Dy.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
+                    sb.AppendLine($"{indent}    {offsetImageFilter.Clip?.ToSKRect() ?? "null"});");
+                    return;
+                }
+            case PaintImageFilter paintImageFilter:
+                {
+                    if (paintImageFilter.Paint is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
+                        return;
+                    }
+
+                    var counterPaint = ++counter.Paint;
+                    paintImageFilter.Paint.ToSKPaint(counter, sb, indent);
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreatePaint(");
+                    sb.AppendLine($"{indent}    {counter.PaintVarName}{counterPaint},");
+                    sb.AppendLine($"{indent}    {paintImageFilter.Clip?.ToSKRect() ?? "null"});");
+
+                    // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
                         if (paintImageFilter.Paint.Typeface is { })
                         {
@@ -1040,183 +1040,183 @@ public static class SkiaCSharpModelExtensions
                             sb.AppendLine($"{indent}}}");
                         } 
 #endif
-                if (paintImageFilter.Paint.Shader is { })
-                {
-                    sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
-                }
-                if (paintImageFilter.Paint.ColorFilter is { })
-                {
-                    sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter.Dispose()");
-                }
-                if (paintImageFilter.Paint.ImageFilter is { })
-                {
-                    sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
-                }
-                if (paintImageFilter.Paint.PathEffect is { })
-                {
-                    sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
-                }
+                    if (paintImageFilter.Paint.Shader is { })
+                    {
+                        sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
+                    }
+                    if (paintImageFilter.Paint.ColorFilter is { })
+                    {
+                        sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter.Dispose()");
+                    }
+                    if (paintImageFilter.Paint.ImageFilter is { })
+                    {
+                        sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
+                    }
+                    if (paintImageFilter.Paint.PathEffect is { })
+                    {
+                        sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
+                    }
 
-                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
-                return;
-            }
+                    sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
+                    return;
+                }
             case ShaderImageFilter shaderImageFilter:
-            {
-                if (shaderImageFilter.Shader is null)
                 {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
+                    if (shaderImageFilter.Shader is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
+                        return;
+                    }
+
+                    var counterShader = ++counter.Shader;
+                    shaderImageFilter.Shader.ToSKShader(counter, sb, indent);
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateShader(");
+                    sb.AppendLine($"{indent}    {counter.ShaderVarName}{counterShader},");
+                    sb.AppendLine($"{indent}    {shaderImageFilter.Dither.ToBoolString()},");
+                    sb.AppendLine($"{indent}    {shaderImageFilter.Clip?.ToSKRect() ?? "null"});");
+
+                    sb.AppendLine($"{indent}{counter.ShaderVarName}{counterShader}?.Dispose();");
                     return;
                 }
-
-                var counterShader = ++counter.Shader;
-                shaderImageFilter.Shader.ToSKShader(counter, sb, indent);
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateShader(");
-                sb.AppendLine($"{indent}    {counter.ShaderVarName}{counterShader},");
-                sb.AppendLine($"{indent}    {shaderImageFilter.Dither.ToBoolString()},");
-                sb.AppendLine($"{indent}    {shaderImageFilter.Clip?.ToSKRect() ?? "null"});");
-
-                sb.AppendLine($"{indent}{counter.ShaderVarName}{counterShader}?.Dispose();");
-                return;
-            }
             case PictureImageFilter pictureImageFilter:
-            {
-                if (pictureImageFilter.Picture is null)
+                {
+                    if (pictureImageFilter.Picture is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
+                        return;
+                    }
+
+                    var counterPicture = ++counter.Picture;
+                    pictureImageFilter.Picture.ToSKPicture(counter, sb, indent);
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreatePicture(");
+                    sb.AppendLine($"{indent}    {counter.PictureVarName}{counterPicture},");
+                    sb.AppendLine($"{indent}    {pictureImageFilter.Picture.CullRect.ToSKRect()});");
+                    return;
+                }
+            case PointLitDiffuseImageFilter pointLitDiffuseImageFilter:
+                {
+                    var counterImageFilterInput = ++counter.ImageFilter;
+                    if (pointLitDiffuseImageFilter.Input is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        pointLitDiffuseImageFilter.Input.ToSKImageFilter(counter, sb, indent);
+                    }
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreatePointLitDiffuse(");
+                    sb.AppendLine($"{indent}    {pointLitDiffuseImageFilter.Location.ToSKPoint3()},");
+                    sb.AppendLine($"{indent}    {pointLitDiffuseImageFilter.LightColor.ToSKColor()},");
+                    sb.AppendLine($"{indent}    {pointLitDiffuseImageFilter.SurfaceScale.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {pointLitDiffuseImageFilter.Kd.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
+                    sb.AppendLine($"{indent}    {pointLitDiffuseImageFilter.Clip?.ToSKRect() ?? "null"});");
+                    return;
+                }
+            case PointLitSpecularImageFilter pointLitSpecularImageFilter:
+                {
+                    var counterImageFilterInput = ++counter.ImageFilter;
+                    if (pointLitSpecularImageFilter.Input is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        pointLitSpecularImageFilter.Input.ToSKImageFilter(counter, sb, indent);
+                    }
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreatePointLitSpecular(");
+                    sb.AppendLine($"{indent}    {pointLitSpecularImageFilter.Location.ToSKPoint3()},");
+                    sb.AppendLine($"{indent}    {pointLitSpecularImageFilter.LightColor.ToSKColor()},");
+                    sb.AppendLine($"{indent}    {pointLitSpecularImageFilter.SurfaceScale.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {pointLitSpecularImageFilter.Ks.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {pointLitSpecularImageFilter.Shininess.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
+                    sb.AppendLine($"{indent}    {pointLitSpecularImageFilter.Clip?.ToSKRect() ?? "null"});");
+                    return;
+                }
+            case SpotLitDiffuseImageFilter spotLitDiffuseImageFilter:
+                {
+                    var counterImageFilterInput = ++counter.ImageFilter;
+                    if (spotLitDiffuseImageFilter.Input is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        spotLitDiffuseImageFilter.Input.ToSKImageFilter(counter, sb, indent);
+                    }
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateSpotLitDiffuse(");
+                    sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.Location.ToSKPoint3()},");
+                    sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.Target.ToSKPoint3()},");
+                    sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.SpecularExponent.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.CutoffAngle.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.LightColor.ToSKColor()},");
+                    sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.SurfaceScale.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.Kd.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
+                    sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.Clip?.ToSKRect() ?? "null"});");
+                    return;
+                }
+            case SpotLitSpecularImageFilter spotLitSpecularImageFilter:
+                {
+                    var counterImageFilterInput = ++counter.ImageFilter;
+                    if (spotLitSpecularImageFilter.Input is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        spotLitSpecularImageFilter.Input.ToSKImageFilter(counter, sb, indent);
+                    }
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateSpotLitSpecular(");
+                    sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.Location.ToSKPoint3()},");
+                    sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.Target.ToSKPoint3()},");
+                    sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.SpecularExponent.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.CutoffAngle.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.LightColor.ToSKColor()},");
+                    sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.SurfaceScale.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.Ks.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.SpecularExponent.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
+                    sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.Clip?.ToSKRect() ?? "null"});");
+                    return;
+                }
+            case TileImageFilter tileImageFilter:
+                {
+                    var counterImageFilterInput = ++counter.ImageFilter;
+                    if (tileImageFilter.Input is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
+                    }
+                    else
+                    {
+                        tileImageFilter.Input.ToSKImageFilter(counter, sb, indent);
+                    }
+
+                    sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
+                    sb.AppendLine($"SKImageFilter.CreateTile(");
+                    sb.AppendLine($"{indent}    {tileImageFilter.Src.ToSKRect()},");
+                    sb.AppendLine($"{indent}    {tileImageFilter.Dst.ToSKRect()},");
+                    sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput});");
+                    return;
+                }
+            default:
                 {
                     sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
                     return;
                 }
-
-                var counterPicture = ++counter.Picture;
-                pictureImageFilter.Picture.ToSKPicture(counter, sb, indent);
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreatePicture(");
-                sb.AppendLine($"{indent}    {counter.PictureVarName}{counterPicture},");
-                sb.AppendLine($"{indent}    {pictureImageFilter.Picture.CullRect.ToSKRect()});");
-                return;
-            }
-            case PointLitDiffuseImageFilter pointLitDiffuseImageFilter:
-            {
-                var counterImageFilterInput = ++counter.ImageFilter;
-                if (pointLitDiffuseImageFilter.Input is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
-                }
-                else
-                {
-                    pointLitDiffuseImageFilter.Input.ToSKImageFilter(counter, sb, indent);
-                }
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreatePointLitDiffuse(");
-                sb.AppendLine($"{indent}    {pointLitDiffuseImageFilter.Location.ToSKPoint3()},");
-                sb.AppendLine($"{indent}    {pointLitDiffuseImageFilter.LightColor.ToSKColor()},");
-                sb.AppendLine($"{indent}    {pointLitDiffuseImageFilter.SurfaceScale.ToFloatString()},");
-                sb.AppendLine($"{indent}    {pointLitDiffuseImageFilter.Kd.ToFloatString()},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {pointLitDiffuseImageFilter.Clip?.ToSKRect() ?? "null"});");
-                return;
-            }
-            case PointLitSpecularImageFilter pointLitSpecularImageFilter:
-            {
-                var counterImageFilterInput = ++counter.ImageFilter;
-                if (pointLitSpecularImageFilter.Input is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
-                }
-                else
-                {
-                    pointLitSpecularImageFilter.Input.ToSKImageFilter(counter, sb, indent);
-                }
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreatePointLitSpecular(");
-                sb.AppendLine($"{indent}    {pointLitSpecularImageFilter.Location.ToSKPoint3()},");
-                sb.AppendLine($"{indent}    {pointLitSpecularImageFilter.LightColor.ToSKColor()},");
-                sb.AppendLine($"{indent}    {pointLitSpecularImageFilter.SurfaceScale.ToFloatString()},");
-                sb.AppendLine($"{indent}    {pointLitSpecularImageFilter.Ks.ToFloatString()},");
-                sb.AppendLine($"{indent}    {pointLitSpecularImageFilter.Shininess.ToFloatString()},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {pointLitSpecularImageFilter.Clip?.ToSKRect() ?? "null"});");
-                return;
-            }
-            case SpotLitDiffuseImageFilter spotLitDiffuseImageFilter:
-            {
-                var counterImageFilterInput = ++counter.ImageFilter;
-                if (spotLitDiffuseImageFilter.Input is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
-                }
-                else
-                {
-                    spotLitDiffuseImageFilter.Input.ToSKImageFilter(counter, sb, indent);
-                }
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateSpotLitDiffuse(");
-                sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.Location.ToSKPoint3()},");
-                sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.Target.ToSKPoint3()},");
-                sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.SpecularExponent.ToFloatString()},");
-                sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.CutoffAngle.ToFloatString()},");
-                sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.LightColor.ToSKColor()},");
-                sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.SurfaceScale.ToFloatString()},");
-                sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.Kd.ToFloatString()},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {spotLitDiffuseImageFilter.Clip?.ToSKRect() ?? "null"});");
-                return;
-            }
-            case SpotLitSpecularImageFilter spotLitSpecularImageFilter:
-            {
-                var counterImageFilterInput = ++counter.ImageFilter;
-                if (spotLitSpecularImageFilter.Input is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
-                }
-                else
-                {
-                    spotLitSpecularImageFilter.Input.ToSKImageFilter(counter, sb, indent);
-                }
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateSpotLitSpecular(");
-                sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.Location.ToSKPoint3()},");
-                sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.Target.ToSKPoint3()},");
-                sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.SpecularExponent.ToFloatString()},");
-                sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.CutoffAngle.ToFloatString()},");
-                sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.LightColor.ToSKColor()},");
-                sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.SurfaceScale.ToFloatString()},");
-                sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.Ks.ToFloatString()},");
-                sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.SpecularExponent.ToFloatString()},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
-                sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.Clip?.ToSKRect() ?? "null"});");
-                return;
-            }
-            case TileImageFilter tileImageFilter:
-            {
-                var counterImageFilterInput = ++counter.ImageFilter;
-                if (tileImageFilter.Input is null)
-                {
-                    sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilterInput} = default(SKImageFilter);");
-                }
-                else
-                {
-                    tileImageFilter.Input.ToSKImageFilter(counter, sb, indent);
-                }
-
-                sb.Append($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = ");
-                sb.AppendLine($"SKImageFilter.CreateTile(");
-                sb.AppendLine($"{indent}    {tileImageFilter.Src.ToSKRect()},");
-                sb.AppendLine($"{indent}    {tileImageFilter.Dst.ToSKRect()},");
-                sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput});");
-                return;
-            }
-            default:
-            {
-                sb.AppendLine($"{indent}var {counter.ImageFilterVarName}{counterImageFilter} = default(SKImageFilter);");
-                return;
-            }
         }
     }
 
@@ -1227,24 +1227,24 @@ public static class SkiaCSharpModelExtensions
         switch (pathEffect)
         {
             case DashPathEffect dashPathEffect:
-            {
-                if (dashPathEffect.Intervals is null)
+                {
+                    if (dashPathEffect.Intervals is null)
+                    {
+                        sb.AppendLine($"{indent}var {counter.PathEffectVarName}{counterPathEffect} = default(SKPathEffect);");
+                        return;
+                    }
+
+                    sb.Append($"{indent}var {counter.PathEffectVarName}{counterPathEffect} = ");
+                    sb.AppendLine($"SKPathEffect.CreateDash(");
+                    sb.AppendLine($"{indent}    {dashPathEffect.Intervals.ToFloatArray()},");
+                    sb.AppendLine($"{indent}    {dashPathEffect.Phase.ToFloatString()});");
+                    return;
+                }
+            default:
                 {
                     sb.AppendLine($"{indent}var {counter.PathEffectVarName}{counterPathEffect} = default(SKPathEffect);");
                     return;
                 }
-
-                sb.Append($"{indent}var {counter.PathEffectVarName}{counterPathEffect} = ");
-                sb.AppendLine($"SKPathEffect.CreateDash(");
-                sb.AppendLine($"{indent}    {dashPathEffect.Intervals.ToFloatArray()},");
-                sb.AppendLine($"{indent}    {dashPathEffect.Phase.ToFloatString()});");
-                return;
-            }
-            default:
-            {
-                sb.AppendLine($"{indent}var {counter.PathEffectVarName}{counterPathEffect} = default(SKPathEffect);");
-                return;
-            }
         }
     }
 
@@ -1552,93 +1552,93 @@ public static class SkiaCSharpModelExtensions
             switch (pathCommand)
             {
                 case MoveToPathCommand moveToPathCommand:
-                {
-                    var x = moveToPathCommand.X;
-                    var y = moveToPathCommand.Y;
-                    sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.MoveTo({x.ToFloatString()}, {y.ToFloatString()});");
-                }
+                    {
+                        var x = moveToPathCommand.X;
+                        var y = moveToPathCommand.Y;
+                        sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.MoveTo({x.ToFloatString()}, {y.ToFloatString()});");
+                    }
                     break;
                 case LineToPathCommand lineToPathCommand:
-                {
-                    var x = lineToPathCommand.X;
-                    var y = lineToPathCommand.Y;
-                    sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.LineTo({x.ToFloatString()}, {y.ToFloatString()});");
-                }
+                    {
+                        var x = lineToPathCommand.X;
+                        var y = lineToPathCommand.Y;
+                        sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.LineTo({x.ToFloatString()}, {y.ToFloatString()});");
+                    }
                     break;
                 case ArcToPathCommand arcToPathCommand:
-                {
-                    var rx = arcToPathCommand.Rx;
-                    var ry = arcToPathCommand.Ry;
-                    var xAxisRotate = arcToPathCommand.XAxisRotate;
-                    var largeArc = arcToPathCommand.LargeArc.ToSKPathArcSize();
-                    var sweep = arcToPathCommand.Sweep.ToSKPathDirection();
-                    var x = arcToPathCommand.X;
-                    var y = arcToPathCommand.Y;
-                    sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.ArcTo({rx.ToFloatString()}, {ry.ToFloatString()}, {xAxisRotate.ToFloatString()}, {largeArc}, {sweep}, {x.ToFloatString()}, {y.ToFloatString()});");
-                }
+                    {
+                        var rx = arcToPathCommand.Rx;
+                        var ry = arcToPathCommand.Ry;
+                        var xAxisRotate = arcToPathCommand.XAxisRotate;
+                        var largeArc = arcToPathCommand.LargeArc.ToSKPathArcSize();
+                        var sweep = arcToPathCommand.Sweep.ToSKPathDirection();
+                        var x = arcToPathCommand.X;
+                        var y = arcToPathCommand.Y;
+                        sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.ArcTo({rx.ToFloatString()}, {ry.ToFloatString()}, {xAxisRotate.ToFloatString()}, {largeArc}, {sweep}, {x.ToFloatString()}, {y.ToFloatString()});");
+                    }
                     break;
                 case QuadToPathCommand quadToPathCommand:
-                {
-                    var x0 = quadToPathCommand.X0;
-                    var y0 = quadToPathCommand.Y0;
-                    var x1 = quadToPathCommand.X1;
-                    var y1 = quadToPathCommand.Y1;
-                    sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.QuadTo({x0.ToFloatString()}, {y0.ToFloatString()}, {x1.ToFloatString()}, {y1.ToFloatString()});");
-                }
+                    {
+                        var x0 = quadToPathCommand.X0;
+                        var y0 = quadToPathCommand.Y0;
+                        var x1 = quadToPathCommand.X1;
+                        var y1 = quadToPathCommand.Y1;
+                        sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.QuadTo({x0.ToFloatString()}, {y0.ToFloatString()}, {x1.ToFloatString()}, {y1.ToFloatString()});");
+                    }
                     break;
                 case CubicToPathCommand cubicToPathCommand:
-                {
-                    var x0 = cubicToPathCommand.X0;
-                    var y0 = cubicToPathCommand.Y0;
-                    var x1 = cubicToPathCommand.X1;
-                    var y1 = cubicToPathCommand.Y1;
-                    var x2 = cubicToPathCommand.X2;
-                    var y2 = cubicToPathCommand.Y2;
-                    sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.CubicTo({x0.ToFloatString()}, {y0.ToFloatString()}, {x1.ToFloatString()}, {y1.ToFloatString()}, {x2.ToFloatString()}, {y2.ToFloatString()});");
-                }
+                    {
+                        var x0 = cubicToPathCommand.X0;
+                        var y0 = cubicToPathCommand.Y0;
+                        var x1 = cubicToPathCommand.X1;
+                        var y1 = cubicToPathCommand.Y1;
+                        var x2 = cubicToPathCommand.X2;
+                        var y2 = cubicToPathCommand.Y2;
+                        sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.CubicTo({x0.ToFloatString()}, {y0.ToFloatString()}, {x1.ToFloatString()}, {y1.ToFloatString()}, {x2.ToFloatString()}, {y2.ToFloatString()});");
+                    }
                     break;
                 case ClosePathCommand _:
-                {
-                    sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.Close();");
-                }
+                    {
+                        sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.Close();");
+                    }
                     break;
                 case AddRectPathCommand addRectPathCommand:
-                {
-                    var rect = addRectPathCommand.Rect.ToSKRect();
-                    sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.AddRect({rect});");
-                }
+                    {
+                        var rect = addRectPathCommand.Rect.ToSKRect();
+                        sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.AddRect({rect});");
+                    }
                     break;
                 case AddRoundRectPathCommand addRoundRectPathCommand:
-                {
-                    var rect = addRoundRectPathCommand.Rect.ToSKRect();
-                    var rx = addRoundRectPathCommand.Rx;
-                    var ry = addRoundRectPathCommand.Ry;
-                    sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.AddRoundRect({rect}, {rx.ToFloatString()}, {ry.ToFloatString()});");
-                }
+                    {
+                        var rect = addRoundRectPathCommand.Rect.ToSKRect();
+                        var rx = addRoundRectPathCommand.Rx;
+                        var ry = addRoundRectPathCommand.Ry;
+                        sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.AddRoundRect({rect}, {rx.ToFloatString()}, {ry.ToFloatString()});");
+                    }
                     break;
                 case AddOvalPathCommand addOvalPathCommand:
-                {
-                    var rect = addOvalPathCommand.Rect.ToSKRect();
-                    sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.AddOval({rect});");
-                }
+                    {
+                        var rect = addOvalPathCommand.Rect.ToSKRect();
+                        sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.AddOval({rect});");
+                    }
                     break;
                 case AddCirclePathCommand addCirclePathCommand:
-                {
-                    var x = addCirclePathCommand.X;
-                    var y = addCirclePathCommand.Y;
-                    var radius = addCirclePathCommand.Radius;
-                    sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.AddCircle({x.ToFloatString()}, {y.ToFloatString()}, {radius.ToFloatString()});");
-                }
+                    {
+                        var x = addCirclePathCommand.X;
+                        var y = addCirclePathCommand.Y;
+                        var radius = addCirclePathCommand.Radius;
+                        sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.AddCircle({x.ToFloatString()}, {y.ToFloatString()}, {radius.ToFloatString()});");
+                    }
                     break;
                 case AddPolyPathCommand addPolyPathCommand:
-                {
-                    if (addPolyPathCommand.Points is { })
                     {
-                        var points = addPolyPathCommand.Points.ToSKPoints();
-                        var close = addPolyPathCommand.Close.ToBoolString();
-                        sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.AddPoly({points}, {close});");
+                        if (addPolyPathCommand.Points is { })
+                        {
+                            var points = addPolyPathCommand.Points.ToSKPoints();
+                            var close = addPolyPathCommand.Close.ToBoolString();
+                            sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}.AddPoly({points}, {close});");
+                        }
                     }
-                }
                     break;
                 default:
                     break;
@@ -1746,53 +1746,53 @@ public static class SkiaCSharpModelExtensions
             switch (canvasCommand)
             {
                 case ClipPathCanvasCommand clipPathCanvasCommand:
-                {
-                    if (clipPathCanvasCommand.ClipPath is { })
                     {
-                        var counterPath = ++counter.Path;
-                        clipPathCanvasCommand.ClipPath.ToSKPath(counter, sb, indent, out var isDefault);
-                        if (!isDefault)
+                        if (clipPathCanvasCommand.ClipPath is { })
                         {
-                            var operation = clipPathCanvasCommand.Operation.ToSKClipOperation();
-                            var antialias = clipPathCanvasCommand.Antialias.ToBoolString();
-                            sb.AppendLine(
-                                $"{indent}{counter.CanvasVarName}{counterCanvas}.ClipPath({counter.PathVarName}{counterPath}, {operation}, {antialias});");
+                            var counterPath = ++counter.Path;
+                            clipPathCanvasCommand.ClipPath.ToSKPath(counter, sb, indent, out var isDefault);
+                            if (!isDefault)
+                            {
+                                var operation = clipPathCanvasCommand.Operation.ToSKClipOperation();
+                                var antialias = clipPathCanvasCommand.Antialias.ToBoolString();
+                                sb.AppendLine(
+                                    $"{indent}{counter.CanvasVarName}{counterCanvas}.ClipPath({counter.PathVarName}{counterPath}, {operation}, {antialias});");
+                            }
                         }
+                        break;
                     }
-                    break;
-                }
                 case ClipRectCanvasCommand clipRectCanvasCommand:
-                {
-                    var rect = clipRectCanvasCommand.Rect.ToSKRect();
-                    var operation = clipRectCanvasCommand.Operation.ToSKClipOperation();
-                    var antialias = clipRectCanvasCommand.Antialias.ToBoolString();
-                    sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.ClipRect({rect}, {operation}, {antialias});");
-                    break;
-                }
-                case SaveCanvasCommand _:
-                {
-                    sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.Save();");
-                    break;
-                }
-                case RestoreCanvasCommand _:
-                {
-                    sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.Restore();");
-                    break;
-                }
-                case SetMatrixCanvasCommand setMatrixCanvasCommand:
-                {
-                    sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SetMatrix({setMatrixCanvasCommand.TotalMatrix.ToSKMatrix()});");
-                    break;
-                }
-                case SaveLayerCanvasCommand saveLayerCanvasCommand:
-                {
-                    if (saveLayerCanvasCommand.Paint is { })
                     {
-                        var counterPaint = ++counter.Paint;
-                        saveLayerCanvasCommand.Paint.ToSKPaint(counter, sb, indent);
-                        sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SaveLayer({counter.PaintVarName}{counterPaint});");
+                        var rect = clipRectCanvasCommand.Rect.ToSKRect();
+                        var operation = clipRectCanvasCommand.Operation.ToSKClipOperation();
+                        var antialias = clipRectCanvasCommand.Antialias.ToBoolString();
+                        sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.ClipRect({rect}, {operation}, {antialias});");
+                        break;
+                    }
+                case SaveCanvasCommand _:
+                    {
+                        sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.Save();");
+                        break;
+                    }
+                case RestoreCanvasCommand _:
+                    {
+                        sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.Restore();");
+                        break;
+                    }
+                case SetMatrixCanvasCommand setMatrixCanvasCommand:
+                    {
+                        sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SetMatrix({setMatrixCanvasCommand.TotalMatrix.ToSKMatrix()});");
+                        break;
+                    }
+                case SaveLayerCanvasCommand saveLayerCanvasCommand:
+                    {
+                        if (saveLayerCanvasCommand.Paint is { })
+                        {
+                            var counterPaint = ++counter.Paint;
+                            saveLayerCanvasCommand.Paint.ToSKPaint(counter, sb, indent);
+                            sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SaveLayer({counter.PaintVarName}{counterPaint});");
 
-                        // NOTE: Do not dispose created SKTypeface by font manager.
+                            // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
                         if (saveLayerCanvasCommand.Paint.Typeface is { })
                         {
@@ -1802,45 +1802,45 @@ public static class SkiaCSharpModelExtensions
                             sb.AppendLine($"{indent}}}");
                         } 
 #endif
-                        if (saveLayerCanvasCommand.Paint.Shader is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
-                        }
-                        if (saveLayerCanvasCommand.Paint.ColorFilter is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
-                        }
-                        if (saveLayerCanvasCommand.Paint.ImageFilter is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
-                        }
-                        if (saveLayerCanvasCommand.Paint.PathEffect is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
-                        }
+                            if (saveLayerCanvasCommand.Paint.Shader is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
+                            }
+                            if (saveLayerCanvasCommand.Paint.ColorFilter is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
+                            }
+                            if (saveLayerCanvasCommand.Paint.ImageFilter is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
+                            }
+                            if (saveLayerCanvasCommand.Paint.PathEffect is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
+                            }
 
-                        sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
+                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
+                        }
+                        else
+                        {
+                            sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SaveLayer();");
+                        }
+                        break;
                     }
-                    else
-                    {
-                        sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SaveLayer();");
-                    }
-                    break;
-                }
                 case DrawImageCanvasCommand drawImageCanvasCommand:
-                {
-                    if (drawImageCanvasCommand.Image is { })
                     {
-                        var counterImage = ++counter.Image;
-                        drawImageCanvasCommand.Image.ToSKImage(counter, sb, indent);
-                        var source = drawImageCanvasCommand.Source.ToSKRect();
-                        var dest = drawImageCanvasCommand.Dest.ToSKRect();
-                        var counterPaint = ++counter.Paint;
-                        drawImageCanvasCommand.Paint?.ToSKPaint(counter, sb, indent);
-                        sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.DrawImage({counter.ImageVarName}{counterImage}, {source}, {dest}, {counter.PaintVarName}{counterPaint});");
-                        sb.AppendLine($"{indent}{counter.ImageVarName}{counterImage}?.Dispose();");
+                        if (drawImageCanvasCommand.Image is { })
+                        {
+                            var counterImage = ++counter.Image;
+                            drawImageCanvasCommand.Image.ToSKImage(counter, sb, indent);
+                            var source = drawImageCanvasCommand.Source.ToSKRect();
+                            var dest = drawImageCanvasCommand.Dest.ToSKRect();
+                            var counterPaint = ++counter.Paint;
+                            drawImageCanvasCommand.Paint?.ToSKPaint(counter, sb, indent);
+                            sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.DrawImage({counter.ImageVarName}{counterImage}, {source}, {dest}, {counter.PaintVarName}{counterPaint});");
+                            sb.AppendLine($"{indent}{counter.ImageVarName}{counterImage}?.Dispose();");
 
-                        // NOTE: Do not dispose created SKTypeface by font manager.
+                            // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
                         if (drawImageCanvasCommand.Paint?.Typeface is { })
                         {
@@ -1850,38 +1850,38 @@ public static class SkiaCSharpModelExtensions
                             sb.AppendLine($"{indent}}}");
                         } 
 #endif
-                        if (drawImageCanvasCommand.Paint?.Shader is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
-                        }
-                        if (drawImageCanvasCommand.Paint?.ColorFilter is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
-                        }
-                        if (drawImageCanvasCommand.Paint?.ImageFilter is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
-                        }
-                        if (drawImageCanvasCommand.Paint?.PathEffect is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
-                        }
+                            if (drawImageCanvasCommand.Paint?.Shader is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
+                            }
+                            if (drawImageCanvasCommand.Paint?.ColorFilter is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
+                            }
+                            if (drawImageCanvasCommand.Paint?.ImageFilter is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
+                            }
+                            if (drawImageCanvasCommand.Paint?.PathEffect is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
+                            }
 
-                        sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
+                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
+                        }
+                        break;
                     }
-                    break;
-                }
                 case DrawPathCanvasCommand drawPathCanvasCommand:
-                {
-                    if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })
                     {
-                        var counterPath = ++counter.Path;
-                        drawPathCanvasCommand.Path.ToSKPath(counter, sb, indent);
-                        var counterPaint = ++counter.Paint;
-                        drawPathCanvasCommand.Paint.ToSKPaint(counter, sb, indent);
-                        sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.DrawPath({counter.PathVarName}{counterPath}, {counter.PaintVarName}{counterPaint});");
+                        if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })
+                        {
+                            var counterPath = ++counter.Path;
+                            drawPathCanvasCommand.Path.ToSKPath(counter, sb, indent);
+                            var counterPaint = ++counter.Paint;
+                            drawPathCanvasCommand.Paint.ToSKPaint(counter, sb, indent);
+                            sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.DrawPath({counter.PathVarName}{counterPath}, {counter.PaintVarName}{counterPaint});");
 
-                        // NOTE: Do not dispose created SKTypeface by font manager.
+                            // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
                         if (drawPathCanvasCommand.Paint.Typeface is { })
                         {
@@ -1891,45 +1891,45 @@ public static class SkiaCSharpModelExtensions
                             sb.AppendLine($"{indent}}}");
                         } 
 #endif
-                        if (drawPathCanvasCommand.Paint.Shader is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
-                        }
-                        if (drawPathCanvasCommand.Paint.ColorFilter is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
-                        }
-                        if (drawPathCanvasCommand.Paint.ImageFilter is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
-                        }
-                        if (drawPathCanvasCommand.Paint.PathEffect is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
-                        }
+                            if (drawPathCanvasCommand.Paint.Shader is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
+                            }
+                            if (drawPathCanvasCommand.Paint.ColorFilter is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
+                            }
+                            if (drawPathCanvasCommand.Paint.ImageFilter is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
+                            }
+                            if (drawPathCanvasCommand.Paint.PathEffect is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
+                            }
 
-                        sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
-                        sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}?.Dispose();");
+                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
+                            sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}?.Dispose();");
+                        }
+                        break;
                     }
-                    break;
-                }
                 case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:
-                {
-                    if (drawPositionedTextCanvasCommand.TextBlob is { } && drawPositionedTextCanvasCommand.TextBlob.Points is { } && drawPositionedTextCanvasCommand.Paint is { })
                     {
-                        var text = EspaceString(drawPositionedTextCanvasCommand.TextBlob.Text);
-                        var points = drawPositionedTextCanvasCommand.TextBlob.Points.ToSKPoints();
-                        var counterPaint = ++counter.Paint;
-                        drawPositionedTextCanvasCommand.Paint.ToSKPaint(counter, sb, indent);
-                        var counterFont = ++counter.Font;
-                        sb.AppendLine($"{indent}var {counter.FontVarName}{counterFont} = {counter.PaintVarName}{counterPaint}.ToFont();");
-                        var counterTextBlob = ++counter.TextBlob;
-                        sb.AppendLine($"{indent}var {counter.TextBlobVarName}{counterTextBlob} = SKTextBlob.CreatePositioned(\"{text}\", {counter.FontVarName}{counterFont}, {points});");
-                        var x = drawPositionedTextCanvasCommand.X;
-                        var y = drawPositionedTextCanvasCommand.Y;
-                        sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.DrawText({counter.TextBlobVarName}{counterTextBlob}, {x.ToFloatString()}, {y.ToFloatString()}, {counter.PaintVarName}{counterPaint});");
+                        if (drawPositionedTextCanvasCommand.TextBlob is { } && drawPositionedTextCanvasCommand.TextBlob.Points is { } && drawPositionedTextCanvasCommand.Paint is { })
+                        {
+                            var text = EspaceString(drawPositionedTextCanvasCommand.TextBlob.Text);
+                            var points = drawPositionedTextCanvasCommand.TextBlob.Points.ToSKPoints();
+                            var counterPaint = ++counter.Paint;
+                            drawPositionedTextCanvasCommand.Paint.ToSKPaint(counter, sb, indent);
+                            var counterFont = ++counter.Font;
+                            sb.AppendLine($"{indent}var {counter.FontVarName}{counterFont} = {counter.PaintVarName}{counterPaint}.ToFont();");
+                            var counterTextBlob = ++counter.TextBlob;
+                            sb.AppendLine($"{indent}var {counter.TextBlobVarName}{counterTextBlob} = SKTextBlob.CreatePositioned(\"{text}\", {counter.FontVarName}{counterFont}, {points});");
+                            var x = drawPositionedTextCanvasCommand.X;
+                            var y = drawPositionedTextCanvasCommand.Y;
+                            sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.DrawText({counter.TextBlobVarName}{counterTextBlob}, {x.ToFloatString()}, {y.ToFloatString()}, {counter.PaintVarName}{counterPaint});");
 
-                        // NOTE: Do not dispose created SKTypeface by font manager.
+                            // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
                         if (drawPositionedTextCanvasCommand.Paint.Typeface is { })
                         {
@@ -1939,39 +1939,39 @@ public static class SkiaCSharpModelExtensions
                             sb.AppendLine($"{indent}}}");
                         } 
 #endif
-                        if (drawPositionedTextCanvasCommand.Paint.Shader is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
-                        }
-                        if (drawPositionedTextCanvasCommand.Paint.ColorFilter is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
-                        }
-                        if (drawPositionedTextCanvasCommand.Paint.ImageFilter is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
-                        }
-                        if (drawPositionedTextCanvasCommand.Paint.PathEffect is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
-                        }
+                            if (drawPositionedTextCanvasCommand.Paint.Shader is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
+                            }
+                            if (drawPositionedTextCanvasCommand.Paint.ColorFilter is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
+                            }
+                            if (drawPositionedTextCanvasCommand.Paint.ImageFilter is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
+                            }
+                            if (drawPositionedTextCanvasCommand.Paint.PathEffect is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
+                            }
 
-                        sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
+                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
+                        }
+                        break;
                     }
-                    break;
-                }
                 case DrawTextCanvasCommand drawTextCanvasCommand:
-                {
-                    if (drawTextCanvasCommand.Paint is { })
                     {
-                        var text = EspaceString(drawTextCanvasCommand.Text);
-                        var x = drawTextCanvasCommand.X;
-                        var y = drawTextCanvasCommand.Y;
-                        var counterPaint = ++counter.Paint;
-                        drawTextCanvasCommand.Paint.ToSKPaint(counter, sb, indent);
-                        sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.DrawText(\"{text}\", {x.ToFloatString()}, {y.ToFloatString()}, {counter.PaintVarName}{counterPaint});");
+                        if (drawTextCanvasCommand.Paint is { })
+                        {
+                            var text = EspaceString(drawTextCanvasCommand.Text);
+                            var x = drawTextCanvasCommand.X;
+                            var y = drawTextCanvasCommand.Y;
+                            var counterPaint = ++counter.Paint;
+                            drawTextCanvasCommand.Paint.ToSKPaint(counter, sb, indent);
+                            sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.DrawText(\"{text}\", {x.ToFloatString()}, {y.ToFloatString()}, {counter.PaintVarName}{counterPaint});");
 
-                        // NOTE: Do not dispose created SKTypeface by font manager.
+                            // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
                         if (drawTextCanvasCommand.Paint.Typeface is { })
                         {
@@ -1981,41 +1981,41 @@ public static class SkiaCSharpModelExtensions
                             sb.AppendLine($"{indent}}}");
                         } 
 #endif
-                        if (drawTextCanvasCommand.Paint.Shader is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
-                        }
-                        if (drawTextCanvasCommand.Paint.ColorFilter is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
-                        }
-                        if (drawTextCanvasCommand.Paint.ImageFilter is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
-                        }
-                        if (drawTextCanvasCommand.Paint.PathEffect is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
-                        }
+                            if (drawTextCanvasCommand.Paint.Shader is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
+                            }
+                            if (drawTextCanvasCommand.Paint.ColorFilter is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
+                            }
+                            if (drawTextCanvasCommand.Paint.ImageFilter is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
+                            }
+                            if (drawTextCanvasCommand.Paint.PathEffect is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
+                            }
 
-                        sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
+                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
+                        }
+                        break;
                     }
-                    break;
-                }
                 case DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand:
-                {
-                    if (drawTextOnPathCanvasCommand.Path is { } && drawTextOnPathCanvasCommand.Paint is { })
                     {
-                        var text = EspaceString(drawTextOnPathCanvasCommand.Text);
-                        var counterPath = ++counter.Path;
-                        drawTextOnPathCanvasCommand.Path.ToSKPath(counter, sb, indent);
-                        var hOffset = drawTextOnPathCanvasCommand.HOffset;
-                        var vOffset = drawTextOnPathCanvasCommand.VOffset;
-                        var counterPaint = ++counter.Paint;
-                        drawTextOnPathCanvasCommand.Paint.ToSKPaint(counter, sb, indent);
-                        sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.DrawTextOnPath(\"{text}\", {counter.PathVarName}{counterPath}, {hOffset.ToFloatString()}, {vOffset.ToFloatString()}, {counter.PaintVarName}{counterPaint});");
+                        if (drawTextOnPathCanvasCommand.Path is { } && drawTextOnPathCanvasCommand.Paint is { })
+                        {
+                            var text = EspaceString(drawTextOnPathCanvasCommand.Text);
+                            var counterPath = ++counter.Path;
+                            drawTextOnPathCanvasCommand.Path.ToSKPath(counter, sb, indent);
+                            var hOffset = drawTextOnPathCanvasCommand.HOffset;
+                            var vOffset = drawTextOnPathCanvasCommand.VOffset;
+                            var counterPaint = ++counter.Paint;
+                            drawTextOnPathCanvasCommand.Paint.ToSKPaint(counter, sb, indent);
+                            sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.DrawTextOnPath(\"{text}\", {counter.PathVarName}{counterPath}, {hOffset.ToFloatString()}, {vOffset.ToFloatString()}, {counter.PaintVarName}{counterPaint});");
 
-                        // NOTE: Do not dispose created SKTypeface by font manager.
+                            // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
                         if (drawTextOnPathCanvasCommand.Paint.Typeface is { })
                         {
@@ -2025,32 +2025,32 @@ public static class SkiaCSharpModelExtensions
                             sb.AppendLine($"{indent}}}");
                         }
 #endif
-                        if (drawTextOnPathCanvasCommand.Paint.Shader is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
-                        }
-                        if (drawTextOnPathCanvasCommand.Paint.ColorFilter is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
-                        }
-                        if (drawTextOnPathCanvasCommand.Paint.ImageFilter is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
-                        }
-                        if (drawTextOnPathCanvasCommand.Paint.PathEffect is { })
-                        {
-                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
-                        }
+                            if (drawTextOnPathCanvasCommand.Paint.Shader is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Shader?.Dispose();");
+                            }
+                            if (drawTextOnPathCanvasCommand.Paint.ColorFilter is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ColorFilter?.Dispose();");
+                            }
+                            if (drawTextOnPathCanvasCommand.Paint.ImageFilter is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.ImageFilter?.Dispose();");
+                            }
+                            if (drawTextOnPathCanvasCommand.Paint.PathEffect is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.PathEffect?.Dispose();");
+                            }
 
-                        sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
-                        sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}?.Dispose();");
+                            sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
+                            sb.AppendLine($"{indent}{counter.PathVarName}{counterPath}?.Dispose();");
+                        }
+                        break;
                     }
-                    break;
-                }
                 default:
-                {
-                    break;
-                }
+                    {
+                        break;
+                    }
             }
         }
 

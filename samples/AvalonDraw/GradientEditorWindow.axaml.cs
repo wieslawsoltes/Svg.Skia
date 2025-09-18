@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Linq;
+using AvalonDraw.Services;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 using Avalonia.Interactivity;
-using AvalonDraw.Services;
+using Avalonia.Markup.Xaml;
 
 namespace AvalonDraw;
 

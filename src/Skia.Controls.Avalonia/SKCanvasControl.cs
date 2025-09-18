@@ -39,7 +39,7 @@ public class SKCanvasControl : Control
         var e = new SKCanvasEventArgs(canvas);
         OnDraw(e);
     }
-    
+
     /// <summary>
     /// 
     /// </summary>

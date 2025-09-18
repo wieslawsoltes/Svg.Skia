@@ -20,6 +20,6 @@ public readonly struct SKPointI
         Y = y;
     }
 
-    public override string ToString() 
+    public override string ToString()
         => FormattableString.Invariant($"{X}, {Y}");
 }

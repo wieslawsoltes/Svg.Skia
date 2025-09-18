@@ -3,8 +3,8 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Svg.Pathing;
 using Svg;
+using Svg.Pathing;
 
 namespace AvalonDraw;
 

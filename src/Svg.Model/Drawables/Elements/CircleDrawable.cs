@@ -60,7 +60,7 @@ public sealed class CircleDrawable : DrawablePath
 
         if (PaintingService.IsValidFill(svgCircle))
         {
-            Fill = PaintingService.GetFillPaint(svgCircle, GeometryBounds ,AssetLoader, references, IgnoreAttributes);
+            Fill = PaintingService.GetFillPaint(svgCircle, GeometryBounds, AssetLoader, references, IgnoreAttributes);
             if (Fill is null)
             {
                 canDrawFill = false;

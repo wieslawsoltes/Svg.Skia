@@ -74,7 +74,7 @@ public class App : Application
             {
                 using var stream = File.OpenWrite(ConfigurationPath);
                 mainWindowViewModel.SaveConfiguration(stream);
-            }; 
+            };
         }
 
         base.OnFrameworkInitializationCompleted();

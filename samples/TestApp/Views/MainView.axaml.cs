@@ -1,17 +1,17 @@
-﻿using Avalonia.Controls;
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
-using System.Linq;
 using ShimSkiaSharp;
 using SkiaSharp;
-using Svg.Skia;
 using Svg.Model.Drawables;
 using Svg.Model.Services;
+using Svg.Skia;
 using TestApp.ViewModels;
 
 namespace TestApp.Views;

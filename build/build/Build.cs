@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Nuke.Common;
 using Nuke.Common.Git;
+using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tools.DotNet;
-using Nuke.Common.IO;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
 class Build : NukeBuild
@@ -58,7 +58,7 @@ class Build : NukeBuild
     Target Clean => _ => _
         .Executes(() =>
         {
-            
+
             DeleteDirectories(SourceDirectory.GlobDirectories("**/bin", "**/obj"));
             DeleteDirectories(TestsDirectory.GlobDirectories("**/bin", "**/obj"));
             ArtifactsDirectory.CreateOrCleanDirectory();
@@ -117,7 +117,7 @@ class Build : NukeBuild
         .Executes(() =>
         {
             DotNetPublish(s => s
-                .SetProject( Solution.AllProjects.FirstOrDefault(x => x.Name == PublishProject))
+                .SetProject(Solution.AllProjects.FirstOrDefault(x => x.Name == PublishProject))
                 .SetConfiguration(Configuration)
                 .SetVersionSuffix(VersionSuffix)
                 .SetFramework(PublishFramework)

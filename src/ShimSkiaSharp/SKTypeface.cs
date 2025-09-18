@@ -12,7 +12,7 @@ public class SKTypeface
     private SKTypeface()
     {
     }
-    
+
     public static SKTypeface FromFamilyName(
         string familyName,
         SKFontStyleWeight weight,

@@ -110,7 +110,7 @@ internal static class FilterEffectsService
     {
         return SKColorFilter.CreateTable(s_Identity, s_linearRGBtoSRGB, s_linearRGBtoSRGB, s_linearRGBtoSRGB);
     }
-    
+
     internal static SKColorFilter SRGBToLinearGamma()
     {
         return SKColorFilter.CreateTable(s_Identity, s_sRGBtoLinearRGB, s_sRGBtoLinearRGB, s_sRGBtoLinearRGB);

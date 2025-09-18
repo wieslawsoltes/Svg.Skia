@@ -248,7 +248,7 @@ public class Svg : Control
             var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
             var path = Path;
             var source = Source;
-            
+
             if (path is { })
             {
                 LoadFromPath(path, parameters);
@@ -257,7 +257,7 @@ public class Svg : Control
             {
                 LoadFromSource(source, parameters);
             }
-            
+
             InvalidateVisual();
         }
 
@@ -268,7 +268,7 @@ public class Svg : Control
             var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
             var path = Path;
             var source = Source;
-            
+
             if (path is { })
             {
                 LoadFromPath(path, parameters);
@@ -277,10 +277,10 @@ public class Svg : Control
             {
                 LoadFromSource(source, parameters);
             }
-            
+
             InvalidateVisual();
         }
-        
+
         if (change.Property == SourceProperty)
         {
             var css = GetCss(this);

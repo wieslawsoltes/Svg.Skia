@@ -54,7 +54,8 @@ public sealed class GroupDrawable : DrawableContainer
     {
         if (Element is not SvgGroup svgGroup)
         {
-            return;;
+            return;
+            ;
         }
 
         IsAntialias = PaintingService.IsAntialias(svgGroup);

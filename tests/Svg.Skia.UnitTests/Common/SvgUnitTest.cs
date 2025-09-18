@@ -5,7 +5,7 @@ namespace Svg.Skia.UnitTests.Common;
 
 public abstract class SvgUnitTest
 {
-    protected static string GetFontsPath(string name) 
+    protected static string GetFontsPath(string name)
         => Path.Combine("..", "..", "..", "..", "..", "externals", "resvg", "tests", "fonts", name);
 
     protected void SetTypefaceProviders(SKSvgSettings settings)

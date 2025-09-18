@@ -522,12 +522,12 @@ internal static class PaintingService
         if (radius == 0.0)
         {
             return SKShader.CreateColor(
-                skColors.Length > 0 ? skColors[skColors.Length - 1] : new SKColor(0x00, 0x00, 0x00, 0xFF), 
+                skColors.Length > 0 ? skColors[skColors.Length - 1] : new SKColor(0x00, 0x00, 0x00, 0xFF),
                 skColorSpace);
         }
 
         var isRadialGradient = skCenter.X == skFocal.X && skCenter.Y == skFocal.Y;
-        
+
         if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
         {
             var skBoundingBoxTransform = new SKMatrix
@@ -630,7 +630,7 @@ internal static class PaintingService
         }
 
         var drawables = new List<DrawableBase>();
-        
+
         foreach (var svgElement in svgElementCollection)
         {
             var drawable = DrawableFactory.Create(svgElement, skBounds, null, assetLoader, references, ignoreAttributes);
@@ -870,7 +870,7 @@ internal static class PaintingService
                         if (fallbackServer is SvgColourServer svgColourServerFallback)
                         {
                             var skColor = GetColor(svgColourServerFallback, opacity, ignoreAttributes);
-                            
+
                             if (skColorSpace == SKColorSpace.Srgb)
                             {
                                 skPaint.Color = skColor;
@@ -968,7 +968,7 @@ internal static class PaintingService
                             {
                                 skColor = ToLinear(skColor);
                             }
- 
+
                             var skColorShader = SKShader.CreateColor(skColor, skColorSpace);
                             if (skColorShader is { })
                             {

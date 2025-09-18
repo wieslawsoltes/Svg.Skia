@@ -4,7 +4,7 @@ namespace ShimSkiaSharp;
 
 public abstract record SKPathEffect
 {
-    public static SKPathEffect CreateDash(float[] intervals, float phase) 
+    public static SKPathEffect CreateDash(float[] intervals, float phase)
         => new DashPathEffect(intervals, phase);
 }
 

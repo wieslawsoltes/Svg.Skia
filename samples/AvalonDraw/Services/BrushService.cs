@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using Avalonia.Media;
 using Svg;
-using System.Linq;
 
 namespace AvalonDraw.Services;
 

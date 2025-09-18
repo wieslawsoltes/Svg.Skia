@@ -62,7 +62,7 @@ public sealed class SwitchDrawable : DrawableBase
         }
 
         drawable.Initialize();
-        
+
         return drawable;
     }
 
@@ -72,7 +72,7 @@ public sealed class SwitchDrawable : DrawableBase
         {
             return;
         }
-        
+
         IsAntialias = PaintingService.IsAntialias(svgSwitch);
 
         // TODO: use drawable.FirstChild.GeometryBounds
@@ -83,7 +83,7 @@ public sealed class SwitchDrawable : DrawableBase
         Fill = null;
         Stroke = null;
     }
-    
+
     public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)
     {
         if (until is { } && this == until)

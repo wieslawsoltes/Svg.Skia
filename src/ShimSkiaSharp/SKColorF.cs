@@ -30,6 +30,6 @@ public readonly struct SKColorF
             (byte)(color.Alpha * 255.0f));
     }
 
-    public override string ToString() 
+    public override string ToString()
         => FormattableString.Invariant($"{Red}, {Green}, {Blue}, {Alpha}");
 }

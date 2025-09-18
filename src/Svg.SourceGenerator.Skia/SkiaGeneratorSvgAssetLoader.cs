@@ -10,7 +10,7 @@ public class SkiaGeneratorSvgAssetLoader : Model.ISvgAssetLoader
     {
         var data = ShimSkiaSharp.SKImage.FromStream(stream);
         using var image = SkiaSharp.SKImage.FromEncodedData(data);
-        return new ShimSkiaSharp.SKImage {Data = data, Width = image.Width, Height = image.Height};
+        return new ShimSkiaSharp.SKImage { Data = data, Width = image.Width, Height = image.Height };
     }
 
     public List<Model.TypefaceSpan> FindTypefaces(string? text, ShimSkiaSharp.SKPaint paintPreferredTypeface)

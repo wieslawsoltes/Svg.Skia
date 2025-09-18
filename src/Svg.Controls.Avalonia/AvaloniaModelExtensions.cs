@@ -480,10 +480,10 @@ public static class AvaloniaModelExtensions
 
     private static AM.IPen ToPen(this SKPaint paint, SKRect bounds)
     {
-        var brush = paint.Shader is not null 
+        var brush = paint.Shader is not null
             ? ToBrush(paint.Shader, bounds)
-            : paint.Color is not null 
-                ? ToSolidColorBrush(paint.Color.Value) 
+            : paint.Color is not null
+                ? ToSolidColorBrush(paint.Color.Value)
                 : null;
         var lineCap = paint.StrokeCap.ToPenLineCap();
         var lineJoin = paint.StrokeJoin.ToPenLineJoin();
@@ -517,10 +517,10 @@ public static class AvaloniaModelExtensions
 
         if (paint.Style == SKPaintStyle.Fill || paint.Style == SKPaintStyle.StrokeAndFill)
         {
-            brush = paint.Shader is not null 
+            brush = paint.Shader is not null
                 ? ToBrush(paint.Shader, bounds)
-                : paint.Color is not null 
-                    ? ToSolidColorBrush(paint.Color.Value) 
+                : paint.Color is not null
+                    ? ToSolidColorBrush(paint.Color.Value)
                     : null;
         }
 
@@ -638,77 +638,77 @@ public static class AvaloniaModelExtensions
             switch (pathCommand)
             {
                 case MoveToPathCommand moveToPathCommand:
-                {
-                    if (haveFigure)
                     {
-                        streamGeometryContext.EndFigure(isClosed: false);
+                        if (haveFigure)
+                        {
+                            streamGeometryContext.EndFigure(isClosed: false);
+                        }
+
+                        var x = moveToPathCommand.X;
+                        var y = moveToPathCommand.Y;
+                        var point = new A.Point(x, y);
+                        streamGeometryContext.BeginFigure(point, isFilled);
+                        haveFigure = true;
+                        break;
                     }
 
-                    var x = moveToPathCommand.X;
-                    var y = moveToPathCommand.Y;
-                    var point = new A.Point(x, y);
-                    streamGeometryContext.BeginFigure(point, isFilled);
-                    haveFigure = true;
-                    break;
-                }
-
                 case LineToPathCommand lineToPathCommand:
-                {
-                    var x = lineToPathCommand.X;
-                    var y = lineToPathCommand.Y;
-                    var point = new A.Point(x, y);
-                    streamGeometryContext.LineTo(point);
-                    break;
-                }
+                    {
+                        var x = lineToPathCommand.X;
+                        var y = lineToPathCommand.Y;
+                        var point = new A.Point(x, y);
+                        streamGeometryContext.LineTo(point);
+                        break;
+                    }
 
                 case ArcToPathCommand arcToPathCommand:
-                {
-                    var x = arcToPathCommand.X;
-                    var y = arcToPathCommand.Y;
-                    var point = new A.Point(x, y);
-                    var rx = arcToPathCommand.Rx;
-                    var ry = arcToPathCommand.Ry;
-                    var size = new A.Size(rx, ry);
-                    var rotationAngle = arcToPathCommand.XAxisRotate;
-                    var isLargeArc = arcToPathCommand.LargeArc == SKPathArcSize.Large;
-                    var sweep = arcToPathCommand.Sweep.ToSweepDirection();
-                    streamGeometryContext.ArcTo(point, size, rotationAngle, isLargeArc, sweep);
-                    break;
-                }
+                    {
+                        var x = arcToPathCommand.X;
+                        var y = arcToPathCommand.Y;
+                        var point = new A.Point(x, y);
+                        var rx = arcToPathCommand.Rx;
+                        var ry = arcToPathCommand.Ry;
+                        var size = new A.Size(rx, ry);
+                        var rotationAngle = arcToPathCommand.XAxisRotate;
+                        var isLargeArc = arcToPathCommand.LargeArc == SKPathArcSize.Large;
+                        var sweep = arcToPathCommand.Sweep.ToSweepDirection();
+                        streamGeometryContext.ArcTo(point, size, rotationAngle, isLargeArc, sweep);
+                        break;
+                    }
 
                 case QuadToPathCommand quadToPathCommand:
-                {
-                    var x0 = quadToPathCommand.X0;
-                    var y0 = quadToPathCommand.Y0;
-                    var x1 = quadToPathCommand.X1;
-                    var y1 = quadToPathCommand.Y1;
-                    var control = new A.Point(x0, y0);
-                    var endPoint = new A.Point(x1, y1);
-                    streamGeometryContext.QuadraticBezierTo(control, endPoint);
-                    break;
-                }
+                    {
+                        var x0 = quadToPathCommand.X0;
+                        var y0 = quadToPathCommand.Y0;
+                        var x1 = quadToPathCommand.X1;
+                        var y1 = quadToPathCommand.Y1;
+                        var control = new A.Point(x0, y0);
+                        var endPoint = new A.Point(x1, y1);
+                        streamGeometryContext.QuadraticBezierTo(control, endPoint);
+                        break;
+                    }
 
                 case CubicToPathCommand cubicToPathCommand:
-                {
-                    var x0 = cubicToPathCommand.X0;
-                    var y0 = cubicToPathCommand.Y0;
-                    var x1 = cubicToPathCommand.X1;
-                    var y1 = cubicToPathCommand.Y1;
-                    var x2 = cubicToPathCommand.X2;
-                    var y2 = cubicToPathCommand.Y2;
-                    var point1 = new A.Point(x0, y0);
-                    var point2 = new A.Point(x1, y1);
-                    var point3 = new A.Point(x2, y2);
-                    streamGeometryContext.CubicBezierTo(point1, point2, point3);
-                    break;
-                }
+                    {
+                        var x0 = cubicToPathCommand.X0;
+                        var y0 = cubicToPathCommand.Y0;
+                        var x1 = cubicToPathCommand.X1;
+                        var y1 = cubicToPathCommand.Y1;
+                        var x2 = cubicToPathCommand.X2;
+                        var y2 = cubicToPathCommand.Y2;
+                        var point1 = new A.Point(x0, y0);
+                        var point2 = new A.Point(x1, y1);
+                        var point3 = new A.Point(x2, y2);
+                        streamGeometryContext.CubicBezierTo(point1, point2, point3);
+                        break;
+                    }
 
                 case ClosePathCommand _:
-                {
-                    haveFigure = false;
-                    streamGeometryContext.EndFigure(isClosed: true);
-                    break;
-                }
+                    {
+                        haveFigure = false;
+                        streamGeometryContext.EndFigure(isClosed: true);
+                        break;
+                    }
             }
         }
 

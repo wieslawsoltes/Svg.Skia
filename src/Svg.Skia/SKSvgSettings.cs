@@ -15,7 +15,7 @@ public class SKSvgSettings
 
     public SkiaSharp.SKColorSpace Srgb { get; set; }
 
-    public IList<ITypefaceProvider>? TypefaceProviders  { get; set; }
+    public IList<ITypefaceProvider>? TypefaceProviders { get; set; }
 
     public SKSvgSettings()
     {

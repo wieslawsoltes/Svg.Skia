@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using Svg.Model.Drawables.Elements;
 using ShimSkiaSharp;
+using Svg.Model.Drawables.Elements;
 using Svg.Model.Services;
 
 namespace Svg.Model.Drawables;
@@ -245,7 +245,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
             MaskingService.GetSvgVisualElementClipPath(visualElement, GeometryBounds, new HashSet<Uri>(), clipPath);
             if (clipPath.Clips is { } && clipPath.Clips.Count > 0)
             {
-                ClipPath = clipPath;    
+                ClipPath = clipPath;
             }
             else
             {
@@ -368,9 +368,9 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
         }
 
         var cullRect = clip ?? SKRect.Create(
-            0, 
-            0, 
-            Math.Abs(skBounds.Left) + skBounds.Width, 
+            0,
+            0,
+            Math.Abs(skBounds.Left) + skBounds.Width,
             Math.Abs(skBounds.Top) + skBounds.Height);
         var skPictureRecorder = new SKPictureRecorder();
         var skCanvas = skPictureRecorder.BeginRecording(cullRect);
@@ -395,9 +395,9 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
 
         var skBounds = drawable.GeometryBounds;
         var cullRect = clip ?? SKRect.Create(
-            0, 
-            0, 
-            Math.Abs(skBounds.Left) + skBounds.Width, 
+            0,
+            0,
+            Math.Abs(skBounds.Left) + skBounds.Width,
             Math.Abs(skBounds.Top) + skBounds.Height);
         var skPictureRecorder = new SKPictureRecorder();
         var skCanvas = skPictureRecorder.BeginRecording(cullRect);

@@ -39,67 +39,67 @@ internal static class PathingService
             switch (pathCommand)
             {
                 case MoveToPathCommand moveToPathCommand:
-                {
-                    var point0 = new SKPoint(moveToPathCommand.X, moveToPathCommand.Y);
-                    pathTypes.Add((point0, (byte)PathPointType.Start));
-                    lastPoint = (point0, (byte)PathPointType.Start);
-                    break;
-                }
-                case LineToPathCommand lineToPathCommand:
-                {
-                    var point1 = new SKPoint(lineToPathCommand.X, lineToPathCommand.Y);
-                    pathTypes.Add((point1, (byte)PathPointType.Line));
-                    lastPoint = (point1, (byte)PathPointType.Line);
-                    break;
-                }
-                case CubicToPathCommand cubicToPathCommand:
-                {
-                    var point1 = new SKPoint(cubicToPathCommand.X0, cubicToPathCommand.Y0);
-                    var point2 = new SKPoint(cubicToPathCommand.X1, cubicToPathCommand.Y1);
-                    var point3 = new SKPoint(cubicToPathCommand.X2, cubicToPathCommand.Y2);
-                    pathTypes.Add((point1, (byte)PathPointType.Bezier));
-                    pathTypes.Add((point2, (byte)PathPointType.Bezier));
-                    pathTypes.Add((point3, (byte)PathPointType.Bezier));
-                    lastPoint = (point3, (byte)PathPointType.Bezier);
-                    break;
-                }
-                case QuadToPathCommand quadToPathCommand:
-                {
-                    var point1 = new SKPoint(quadToPathCommand.X0, quadToPathCommand.Y0);
-                    var point2 = new SKPoint(quadToPathCommand.X1, quadToPathCommand.Y1);
-                    pathTypes.Add((point1, (byte)PathPointType.Bezier));
-                    pathTypes.Add((point2, (byte)PathPointType.Bezier));
-                    lastPoint = (point2, (byte)PathPointType.Bezier);
-                    break;
-                }
-                case ArcToPathCommand arcToPathCommand:
-                {
-                    var point1 = new SKPoint(arcToPathCommand.X, arcToPathCommand.Y);
-                    pathTypes.Add((point1, (byte)PathPointType.Bezier));
-                    lastPoint = (point1, (byte)PathPointType.Bezier);
-                    break;
-                }
-                case ClosePathCommand:
-                {
-                    lastPoint = (lastPoint.Point, (byte)(lastPoint.Type | (byte)PathPointType.CloseSubpath));
-                    pathTypes[pathTypes.Count - 1] = lastPoint;
-                    break;
-                }
-                case AddPolyPathCommand addPolyPathCommand:
-                {
-                    if (addPolyPathCommand.Points is { } && addPolyPathCommand.Points.Count > 0)
                     {
-                        foreach (var nexPoint in addPolyPathCommand.Points)
-                        {
-                            var point1 = new SKPoint(nexPoint.X, nexPoint.Y);
-                            pathTypes.Add((point1, (byte)PathPointType.Start));
-                        }
-
-                        var point = addPolyPathCommand.Points[addPolyPathCommand.Points.Count - 1];
-                        lastPoint = (point, (byte)PathPointType.Line);
+                        var point0 = new SKPoint(moveToPathCommand.X, moveToPathCommand.Y);
+                        pathTypes.Add((point0, (byte)PathPointType.Start));
+                        lastPoint = (point0, (byte)PathPointType.Start);
+                        break;
                     }
-                    break;
-                }
+                case LineToPathCommand lineToPathCommand:
+                    {
+                        var point1 = new SKPoint(lineToPathCommand.X, lineToPathCommand.Y);
+                        pathTypes.Add((point1, (byte)PathPointType.Line));
+                        lastPoint = (point1, (byte)PathPointType.Line);
+                        break;
+                    }
+                case CubicToPathCommand cubicToPathCommand:
+                    {
+                        var point1 = new SKPoint(cubicToPathCommand.X0, cubicToPathCommand.Y0);
+                        var point2 = new SKPoint(cubicToPathCommand.X1, cubicToPathCommand.Y1);
+                        var point3 = new SKPoint(cubicToPathCommand.X2, cubicToPathCommand.Y2);
+                        pathTypes.Add((point1, (byte)PathPointType.Bezier));
+                        pathTypes.Add((point2, (byte)PathPointType.Bezier));
+                        pathTypes.Add((point3, (byte)PathPointType.Bezier));
+                        lastPoint = (point3, (byte)PathPointType.Bezier);
+                        break;
+                    }
+                case QuadToPathCommand quadToPathCommand:
+                    {
+                        var point1 = new SKPoint(quadToPathCommand.X0, quadToPathCommand.Y0);
+                        var point2 = new SKPoint(quadToPathCommand.X1, quadToPathCommand.Y1);
+                        pathTypes.Add((point1, (byte)PathPointType.Bezier));
+                        pathTypes.Add((point2, (byte)PathPointType.Bezier));
+                        lastPoint = (point2, (byte)PathPointType.Bezier);
+                        break;
+                    }
+                case ArcToPathCommand arcToPathCommand:
+                    {
+                        var point1 = new SKPoint(arcToPathCommand.X, arcToPathCommand.Y);
+                        pathTypes.Add((point1, (byte)PathPointType.Bezier));
+                        lastPoint = (point1, (byte)PathPointType.Bezier);
+                        break;
+                    }
+                case ClosePathCommand:
+                    {
+                        lastPoint = (lastPoint.Point, (byte)(lastPoint.Type | (byte)PathPointType.CloseSubpath));
+                        pathTypes[pathTypes.Count - 1] = lastPoint;
+                        break;
+                    }
+                case AddPolyPathCommand addPolyPathCommand:
+                    {
+                        if (addPolyPathCommand.Points is { } && addPolyPathCommand.Points.Count > 0)
+                        {
+                            foreach (var nexPoint in addPolyPathCommand.Points)
+                            {
+                                var point1 = new SKPoint(nexPoint.X, nexPoint.Y);
+                                pathTypes.Add((point1, (byte)PathPointType.Start));
+                            }
+
+                            var point = addPolyPathCommand.Points[addPolyPathCommand.Points.Count - 1];
+                            lastPoint = (point, (byte)PathPointType.Line);
+                        }
+                        break;
+                    }
                 default:
                     break;
             }
@@ -169,152 +169,152 @@ internal static class PathingService
             switch (svgSegment)
             {
                 case SvgMoveToSegment svgMoveToSegment:
-                {
-                    if (isEndFigure && haveFigure == false)
                     {
-                        return default;
-                    }
+                        if (isEndFigure && haveFigure == false)
+                        {
+                            return default;
+                        }
 
-                    if (isLast)
-                    {
-                        return skPath;
-                    }
+                        if (isLast)
+                        {
+                            return skPath;
+                        }
 
-                    isEndFigure = true;
-                    haveFigure = true;
-                    var end = ToAbsolute(svgMoveToSegment.End, svgMoveToSegment.IsRelative, start);
-                    skPath.MoveTo(end.X, end.Y);
-                    start = end;
-                    prevMove = end;
-                    break;
-                }
+                        isEndFigure = true;
+                        haveFigure = true;
+                        var end = ToAbsolute(svgMoveToSegment.End, svgMoveToSegment.IsRelative, start);
+                        skPath.MoveTo(end.X, end.Y);
+                        start = end;
+                        prevMove = end;
+                        break;
+                    }
                 case SvgLineSegment svgLineSegment:
-                {
-                    if (isEndFigure == false)
                     {
-                        return default;
+                        if (isEndFigure == false)
+                        {
+                            return default;
+                        }
+                        haveFigure = true;
+                        var end = ToAbsolute(svgLineSegment.End, svgLineSegment.IsRelative, start);
+                        skPath.LineTo(end.X, end.Y);
+                        points.Add(start);
+                        points.Add(end);
+                        start = end;
+                        break;
                     }
-                    haveFigure = true;
-                    var end = ToAbsolute(svgLineSegment.End, svgLineSegment.IsRelative, start);
-                    skPath.LineTo(end.X, end.Y);
-                    points.Add(start);
-                    points.Add(end);
-                    start = end;
-                    break;
-                }
                 case SvgCubicCurveSegment svgCubicCurveSegment:
-                {
-                    if (isEndFigure == false)
                     {
-                        return default;
-                    }
-                    haveFigure = true;
-
-                    var firstControlPoint = svgCubicCurveSegment.FirstControlPoint;
-                    if (float.IsNaN(firstControlPoint.X) || float.IsNaN(firstControlPoint.Y))
-                    {
-                        var prev = svgPathSegmentList.IndexOf(svgCubicCurveSegment) - 1;
-                        if (prev >= 0 && svgPathSegmentList[prev] is SvgCubicCurveSegment)
+                        if (isEndFigure == false)
                         {
-                            var prevSecondControlPoint = points[points.Count - 2];
-                            firstControlPoint = Reflect(new System.Drawing.PointF(prevSecondControlPoint.X, prevSecondControlPoint.Y), start);
+                            return default;
+                        }
+                        haveFigure = true;
+
+                        var firstControlPoint = svgCubicCurveSegment.FirstControlPoint;
+                        if (float.IsNaN(firstControlPoint.X) || float.IsNaN(firstControlPoint.Y))
+                        {
+                            var prev = svgPathSegmentList.IndexOf(svgCubicCurveSegment) - 1;
+                            if (prev >= 0 && svgPathSegmentList[prev] is SvgCubicCurveSegment)
+                            {
+                                var prevSecondControlPoint = points[points.Count - 2];
+                                firstControlPoint = Reflect(new System.Drawing.PointF(prevSecondControlPoint.X, prevSecondControlPoint.Y), start);
+                            }
+                            else
+                            {
+                                firstControlPoint = start;
+                            }
                         }
                         else
                         {
-                            firstControlPoint = start;
+                            firstControlPoint = ToAbsolute(firstControlPoint, svgCubicCurveSegment.IsRelative, start);
                         }
-                    }
-                    else
-                    {
-                        firstControlPoint = ToAbsolute(firstControlPoint, svgCubicCurveSegment.IsRelative, start);
-                    }
 
-                    var end = ToAbsolute(svgCubicCurveSegment.End, svgCubicCurveSegment.IsRelative, start);
-                    var first = firstControlPoint;
-                    var second = ToAbsolute(svgCubicCurveSegment.SecondControlPoint, svgCubicCurveSegment.IsRelative, start);
-                    skPath.CubicTo(first.X, first.Y, second.X, second.Y, end.X, end.Y);
-                    points.Add(start);
-                    points.Add(first);
-                    points.Add(second);
-                    points.Add(end);
-                    start = end;
-                    break;
-                }
+                        var end = ToAbsolute(svgCubicCurveSegment.End, svgCubicCurveSegment.IsRelative, start);
+                        var first = firstControlPoint;
+                        var second = ToAbsolute(svgCubicCurveSegment.SecondControlPoint, svgCubicCurveSegment.IsRelative, start);
+                        skPath.CubicTo(first.X, first.Y, second.X, second.Y, end.X, end.Y);
+                        points.Add(start);
+                        points.Add(first);
+                        points.Add(second);
+                        points.Add(end);
+                        start = end;
+                        break;
+                    }
                 case SvgQuadraticCurveSegment svgQuadraticCurveSegment:
-                {
-                    if (isEndFigure == false)
                     {
-                        return default;
-                    }
-                    haveFigure = true;
-
-                    var controlPoint = svgQuadraticCurveSegment.ControlPoint;
-                    if (float.IsNaN(controlPoint.X) || float.IsNaN(controlPoint.Y))
-                    {
-                        var prev = svgPathSegmentList.IndexOf(svgQuadraticCurveSegment) - 1;
-                        if (prev >= 0 && svgPathSegmentList[prev] is SvgQuadraticCurveSegment)
+                        if (isEndFigure == false)
                         {
-                            var prevControlPoint = points[points.Count - 2];
-                            controlPoint = Reflect(new System.Drawing.PointF(prevControlPoint.X, prevControlPoint.Y), start);
+                            return default;
+                        }
+                        haveFigure = true;
+
+                        var controlPoint = svgQuadraticCurveSegment.ControlPoint;
+                        if (float.IsNaN(controlPoint.X) || float.IsNaN(controlPoint.Y))
+                        {
+                            var prev = svgPathSegmentList.IndexOf(svgQuadraticCurveSegment) - 1;
+                            if (prev >= 0 && svgPathSegmentList[prev] is SvgQuadraticCurveSegment)
+                            {
+                                var prevControlPoint = points[points.Count - 2];
+                                controlPoint = Reflect(new System.Drawing.PointF(prevControlPoint.X, prevControlPoint.Y), start);
+                            }
+                            else
+                            {
+                                controlPoint = start;
+                            }
                         }
                         else
                         {
-                            controlPoint = start;
+                            controlPoint = ToAbsolute(controlPoint, svgQuadraticCurveSegment.IsRelative, start);
                         }
-                    }
-                    else
-                    {
-                        controlPoint = ToAbsolute(controlPoint, svgQuadraticCurveSegment.IsRelative, start);
-                    }
 
-                    var end = ToAbsolute(svgQuadraticCurveSegment.End, svgQuadraticCurveSegment.IsRelative, start);
+                        var end = ToAbsolute(svgQuadraticCurveSegment.End, svgQuadraticCurveSegment.IsRelative, start);
 
-                    skPath.QuadTo(controlPoint.X, controlPoint.Y, end.X, end.Y);
-                    points.Add(start);
-                    points.Add(controlPoint);
-                    points.Add(end);
-                    start = end;
-                    break;
-                }
+                        skPath.QuadTo(controlPoint.X, controlPoint.Y, end.X, end.Y);
+                        points.Add(start);
+                        points.Add(controlPoint);
+                        points.Add(end);
+                        start = end;
+                        break;
+                    }
                 case SvgArcSegment svgArcSegment:
-                {
-                    if (isEndFigure == false)
                     {
-                        return default;
+                        if (isEndFigure == false)
+                        {
+                            return default;
+                        }
+                        haveFigure = true;
+                        var rx = svgArcSegment.RadiusX;
+                        var ry = svgArcSegment.RadiusY;
+                        var xAxisRotate = svgArcSegment.Angle;
+                        var largeArc = svgArcSegment.Size == SvgArcSize.Small ? SKPathArcSize.Small : SKPathArcSize.Large;
+                        var sweep = svgArcSegment.Sweep == SvgArcSweep.Negative ? SKPathDirection.CounterClockwise : SKPathDirection.Clockwise;
+                        var end = ToAbsolute(svgArcSegment.End, svgArcSegment.IsRelative, start);
+                        skPath.ArcTo(rx, ry, xAxisRotate, largeArc, sweep, end.X, end.Y);
+                        points.Add(start);
+                        points.Add(end);
+                        start = end;
+                        break;
                     }
-                    haveFigure = true;
-                    var rx = svgArcSegment.RadiusX;
-                    var ry = svgArcSegment.RadiusY;
-                    var xAxisRotate = svgArcSegment.Angle;
-                    var largeArc = svgArcSegment.Size == SvgArcSize.Small ? SKPathArcSize.Small : SKPathArcSize.Large;
-                    var sweep = svgArcSegment.Sweep == SvgArcSweep.Negative ? SKPathDirection.CounterClockwise : SKPathDirection.Clockwise;
-                    var end = ToAbsolute(svgArcSegment.End, svgArcSegment.IsRelative, start);
-                    skPath.ArcTo(rx, ry, xAxisRotate, largeArc, sweep, end.X, end.Y);
-                    points.Add(start);
-                    points.Add(end);
-                    start = end;
-                    break;
-                }
                 case SvgClosePathSegment _:
-                {
-                    if (isEndFigure == false && haveFigure == false)
                     {
-                        continue;
+                        if (isEndFigure == false && haveFigure == false)
+                        {
+                            continue;
+                        }
+                        if (isEndFigure == false)
+                        {
+                            return default;
+                        }
+                        if (haveFigure == false)
+                        {
+                            return default;
+                        }
+                        isEndFigure = false;
+                        haveFigure = false;
+                        skPath.Close();
+                        start = prevMove;
+                        break;
                     }
-                    if (isEndFigure == false)
-                    {
-                        return default;
-                    }
-                    if (haveFigure == false)
-                    {
-                        return default;
-                    }
-                    isEndFigure = false;
-                    haveFigure = false;
-                    skPath.Close();
-                    start = prevMove;
-                    break;
-                } 
             }
         }
 

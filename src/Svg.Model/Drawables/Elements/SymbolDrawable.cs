@@ -70,7 +70,7 @@ public sealed class SymbolDrawable : DrawableContainer
         drawable.CreateChildren(svgSymbol, skViewport, drawable, assetLoader, references, ignoreAttributes);
 
         drawable.Initialize(x, y, width, height);
-        
+
         return drawable;
     }
 

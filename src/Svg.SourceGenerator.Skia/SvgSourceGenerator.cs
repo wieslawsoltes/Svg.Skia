@@ -34,7 +34,7 @@ public class SvgSourceGenerator : IIncrementalGenerator
 
         // Create a provider for the global namespace from build properties
         var globalNamespace = context.AnalyzerConfigOptionsProvider
-            .Select((options, _) => 
+            .Select((options, _) =>
             {
                 options.GlobalOptions.TryGetValue("build_property.NamespaceName", out var namespaceName);
                 return namespaceName;
@@ -140,7 +140,7 @@ public class SvgSourceGenerator : IIncrementalGenerator
                                                    FormattingCharacter;
     private const string InvalidIdentifierCharacterRegex = "(?!" + IdentifierPartCharacter + ").";
     private static readonly Regex s_regexReplaceName = new Regex(InvalidIdentifierCharacterRegex, RegexOptions.Compiled);
-    
+
     private string CreateClassName(string path)
     {
         var name = System.IO.Path.GetFileNameWithoutExtension(path);

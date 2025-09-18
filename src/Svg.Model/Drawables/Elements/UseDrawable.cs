@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using Svg.Document_Structure;
 using ShimSkiaSharp;
+using Svg.Document_Structure;
 using Svg.Model.Drawables.Factories;
 using Svg.Model.Services;
 
@@ -150,7 +150,7 @@ public sealed class UseDrawable : DrawableBase
         Fill = null;
         Stroke = null;
     }
-    
+
     public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)
     {
         if (until is { } && this == until)

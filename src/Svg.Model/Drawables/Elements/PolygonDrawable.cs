@@ -48,7 +48,7 @@ public sealed class PolygonDrawable : DrawablePath
         {
             return;
         }
-        
+
         IsAntialias = PaintingService.IsAntialias(svgPolygon);
 
         GeometryBounds = Path.Bounds;

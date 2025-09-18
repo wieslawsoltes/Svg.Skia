@@ -1,9 +1,9 @@
-﻿using Avalonia;
+﻿using System;
+using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
-using System;
-using System.Linq;
 
 namespace AvaloniaSvgSkiaStylingSample;
 
@@ -19,12 +19,12 @@ public partial class MainWindow : Window
         ApplySvgImageStyleButton.Click += ApplySvgImageStyleButtonClick;
     }
 
-    private void ApplySvgStyleButtonClick(object sender, EventArgs e) 
+    private void ApplySvgStyleButtonClick(object sender, EventArgs e)
     {
         SvgControl.SetCurrentValue(Avalonia.Svg.Skia.Svg.CssProperty, ".Black { fill: #AAAAFF; }");
     }
 
-    private void ApplySvgImageStyleButtonClick(object sender, EventArgs e) 
+    private void ApplySvgImageStyleButtonClick(object sender, EventArgs e)
     {
         SvgImageButton.SetCurrentValue(Avalonia.Svg.Skia.Svg.CssProperty, ".Black { fill: #AAAAFF; }");
     }

@@ -6,10 +6,10 @@ namespace Svg.Skia.UnitTests;
 
 public class W3CTestSuiteTests
 {
-    private string GetSvgPath(string name) 
+    private string GetSvgPath(string name)
         => Path.Combine("..", "..", "..", "..", "..", "externals", "W3C_SVG_11_TestSuite", "W3C_SVG_11_TestSuite", "svg", name);
 
-    private string GetExpectedPngPath(string name) 
+    private string GetExpectedPngPath(string name)
         => Path.Combine("..", "..", "..", "..", "..", "externals", "W3C_SVG_11_TestSuite", "W3C_SVG_11_TestSuite", "png", name);
 
     private string GetActualPngPath(string name)

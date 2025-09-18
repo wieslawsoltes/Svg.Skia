@@ -2,8 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System;
 using Avalonia.Media;
-using Avalonia.Metadata;
 using Avalonia.Media.Imaging;
+using Avalonia.Metadata;
 using SkiaSharp;
 
 namespace Avalonia.Controls.Skia;

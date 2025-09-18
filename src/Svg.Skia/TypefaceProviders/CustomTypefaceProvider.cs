@@ -50,7 +50,7 @@ public sealed class CustomTypefaceProvider : ITypefaceProvider, IDisposable
         {
             foreach (var fontFamilyName in fontFamilyNames)
             {
-                if (fontFamilyName == FamilyName 
+                if (fontFamilyName == FamilyName
                     && Typeface.FontStyle.Width == (int)fontWidth
                     && Typeface.FontStyle.Weight == (int)fontWeight
                     && Typeface.FontStyle.Slant == fontStyle)

@@ -103,7 +103,7 @@ public sealed class SvgSource : IDisposable
     /// </summary>
     public static bool EnableThrowOnMissingResource { get; set; }
 
-    public object Sync { get; } = new ();
+    public object Sync { get; } = new();
 
     static SvgSource()
     {
@@ -121,7 +121,7 @@ public sealed class SvgSource : IDisposable
         {
             return null;
         }
-        
+
         var skSvg = new SKSvg();
         skSvg.Load(path, parameters);
         lock (source.Sync)
@@ -173,8 +173,8 @@ public sealed class SvgSource : IDisposable
 
     private static SvgSource? ThrowOnMissingResource(string path)
     {
-        return EnableThrowOnMissingResource 
-            ? throw new ArgumentException($"Invalid resource path: {path}") 
+        return EnableThrowOnMissingResource
+            ? throw new ArgumentException($"Invalid resource path: {path}")
             : null;
     }
 
@@ -205,7 +205,7 @@ public sealed class SvgSource : IDisposable
             ThrowOnMissingResource(path);
             return null;
         }
-        
+
         var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
         if (uri.IsAbsoluteUri && uri.IsFile)
         {
@@ -230,7 +230,7 @@ public sealed class SvgSource : IDisposable
     /// <param name="baseUri">The base uri.</param>
     /// <param name="parameters">The svg parameters.</param>
     /// <returns>The svg source.</returns>
-    public static SvgSource? Load(string path, Uri? baseUri = default, SvgParameters? parameters = null)
+    public static SvgSource Load(string path, Uri? baseUri = default, SvgParameters? parameters = null)
     {
         var source = new SvgSource(baseUri);
         source._picture = LoadImpl(source, path, baseUri, parameters);
@@ -242,7 +242,7 @@ public sealed class SvgSource : IDisposable
     /// </summary>
     /// <param name="svg">The svg source.</param>
     /// <returns>The svg source.</returns>
-    public static SvgSource? LoadFromSvg(string svg)
+    public static SvgSource LoadFromSvg(string svg)
     {
         var source = new SvgSource(default(Uri));
         source._picture = FromSvg(svg);
@@ -260,7 +260,7 @@ public sealed class SvgSource : IDisposable
     /// <param name="stream">The svg stream.</param>
     /// <param name="parameters">The svg parameters.</param>
     /// <returns>The svg source.</returns>
-    public static SvgSource? LoadFromStream(Stream stream, SvgParameters? parameters = null)
+    public static SvgSource LoadFromStream(Stream stream, SvgParameters? parameters = null)
     {
         var source = new SvgSource(default(Uri));
         source._picture = Load(source, stream, parameters);
@@ -272,7 +272,7 @@ public sealed class SvgSource : IDisposable
     /// </summary>
     /// <param name="document">The svg document.</param>
     /// <returns>The svg source.</returns>
-    public static SvgSource? LoadFromSvgDocument(SvgDocument document)
+    public static SvgSource LoadFromSvgDocument(SvgDocument document)
     {
         var source = new SvgSource(default(Uri));
         source._picture = FromSvgDocument(document);

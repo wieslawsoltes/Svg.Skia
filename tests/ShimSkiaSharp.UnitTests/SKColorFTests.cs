@@ -1,5 +1,5 @@
-using Xunit;
 using ShimSkiaSharp;
+using Xunit;
 
 namespace ShimSkiaSharp.UnitTests;
 

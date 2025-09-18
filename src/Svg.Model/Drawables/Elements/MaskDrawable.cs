@@ -80,7 +80,7 @@ public sealed class MaskDrawable : DrawableContainer
         Fill = null;
         Stroke = null;
     }
-    
+
     public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
     {
         var element = Element;

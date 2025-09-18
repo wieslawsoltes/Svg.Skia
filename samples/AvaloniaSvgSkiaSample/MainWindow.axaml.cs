@@ -61,7 +61,7 @@ public partial class MainWindow : Window
     {
         if (svgSourceImage is { })
         {
-            var comboBox = (ComboBox)sender; 
+            var comboBox = (ComboBox)sender;
             svgSourceImage.Stretch = (Stretch)comboBox.SelectedIndex;
         }
     }

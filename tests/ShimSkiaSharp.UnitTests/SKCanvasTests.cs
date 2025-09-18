@@ -1,6 +1,6 @@
 using System.Linq;
-using Xunit;
 using ShimSkiaSharp;
+using Xunit;
 
 namespace ShimSkiaSharp.UnitTests;
 
@@ -9,14 +9,14 @@ public class SKCanvasTests
     private static SKCanvas CreateCanvas()
     {
         var recorder = new SKPictureRecorder();
-        return recorder.BeginRecording(SKRect.Create(0,0,10,10));
+        return recorder.BeginRecording(SKRect.Create(0, 0, 10, 10));
     }
 
     [Fact]
     public void SetMatrix_AddsCommandAndUpdatesMatrix()
     {
         var canvas = CreateCanvas();
-        var delta = SKMatrix.CreateTranslation(5,5);
+        var delta = SKMatrix.CreateTranslation(5, 5);
         canvas.SetMatrix(delta);
         Assert.Equal(delta, canvas.TotalMatrix);
         var cmd = Assert.IsType<SetMatrixCanvasCommand>(canvas.Commands!.Single());

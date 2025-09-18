@@ -112,7 +112,7 @@ public class SKPathControl : Control
         }
 
         var paint = Paint;
-            
+
         var viewPort = new Rect(Bounds.Size);
         var sourceSize = new Size(path.Bounds.Width, path.Bounds.Height);
         if (sourceSize.Width <= 0 || sourceSize.Height <= 0)
@@ -147,7 +147,7 @@ public class SKPathControl : Control
             context.Custom(
                 new SKPathDrawOperation(
                     new Rect(0, 0, bounds.Width, bounds.Height),
-                    path, 
+                    path,
                     paint));
         }
     }

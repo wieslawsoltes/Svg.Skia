@@ -10,10 +10,10 @@ public partial class FileItemViewModel : ViewModelBase
 {
     [Reactive]
     public partial string Name { get; set; }
-    
+
     [Reactive]
     public partial string Path { get; set; }
-    
+
     public ICommand RemoveCommand { get; }
 
     public ICommand OpenInExplorerCommand { get; }
@@ -37,7 +37,7 @@ public partial class FileItemViewModel : ViewModelBase
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                Process.Start("open", _path); 
+                Process.Start("open", _path);
             }
         });
 
@@ -53,7 +53,7 @@ public partial class FileItemViewModel : ViewModelBase
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                Process.Start("open", "-t " + _path); 
+                Process.Start("open", "-t " + _path);
             }
         });
 

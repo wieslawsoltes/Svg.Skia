@@ -10,9 +10,9 @@ using Avalonia.Logging;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using ShimSkiaSharp;
+using Svg;
 using Svg.Model;
 using Svg.Skia;
-using Svg;
 
 namespace Avalonia.Svg.Skia;
 
@@ -438,7 +438,7 @@ public class Svg : Control
             var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
             var path = Path;
             var source = Source;
-            
+
             if (path is { })
             {
                 LoadFromPath(path, parameters);
@@ -458,7 +458,7 @@ public class Svg : Control
             var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
             var path = Path;
             var source = Source;
-            
+
             if (path is { })
             {
                 LoadFromPath(path, parameters);

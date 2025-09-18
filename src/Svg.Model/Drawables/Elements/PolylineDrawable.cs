@@ -38,7 +38,7 @@ public sealed class PolylineDrawable : DrawablePath
         }
 
         drawable.Initialize(skViewport, references);
-        
+
         return drawable;
     }
 

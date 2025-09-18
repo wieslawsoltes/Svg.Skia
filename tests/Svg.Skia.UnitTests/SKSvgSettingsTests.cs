@@ -26,7 +26,7 @@ public class SKSvgSettingsTests : SvgUnitTest
         var expectedTypeface = default(SKTypeface);
 
         var settings = new SKSvgSettings();
-        
+
         SetTypefaceProviders(settings);
 
         if (settings.TypefaceProviders is { } && settings.TypefaceProviders.Count > 0)

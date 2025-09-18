@@ -1,6 +1,6 @@
-using Xunit;
-using ShimSkiaSharp;
 using System.IO;
+using ShimSkiaSharp;
+using Xunit;
 
 namespace ShimSkiaSharp.UnitTests;
 

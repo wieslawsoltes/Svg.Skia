@@ -109,7 +109,7 @@ public sealed class ImageDrawable : DrawableBase
         {
             return;
         }
-        
+
         IsAntialias = PaintingService.IsAntialias(svgImage);
 
         GeometryBounds = default(SKRect);

@@ -1,6 +1,6 @@
 ﻿using Avalonia;
-using Avalonia.Headless.XUnit;
 using Avalonia.Controls;
+using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using Avalonia.Svg.Skia;
 using Avalonia.Svg.Skia.UnitTests.Views;

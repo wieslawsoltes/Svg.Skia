@@ -1,6 +1,6 @@
 using System.Linq;
-using Xunit;
 using ShimSkiaSharp;
+using Xunit;
 
 namespace ShimSkiaSharp.UnitTests;
 
@@ -34,7 +34,7 @@ public class SKPathTests
         var path = new SKPath();
         path.MoveTo(1, 2);
         path.LineTo(3, 4);
-        Assert.Equal(new SKRect(1,2,3,4), path.Bounds);
+        Assert.Equal(new SKRect(1, 2, 3, 4), path.Bounds);
     }
 
     [Fact]

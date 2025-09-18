@@ -42,13 +42,13 @@ public sealed class LineDrawable : DrawablePath
         return drawable;
     }
 
-    private void Initialize(SKRect skViewport,HashSet<Uri>? references)
+    private void Initialize(SKRect skViewport, HashSet<Uri>? references)
     {
         if (Element is not SvgLine svgLine || Path is null)
         {
             return;
         }
-        
+
         IsAntialias = PaintingService.IsAntialias(svgLine);
 
         GeometryBounds = Path.Bounds;
@@ -98,8 +98,10 @@ public sealed class LineDrawable : DrawablePath
         }
 
         var t = (ux * vx + uy * vy) / lenSq;
-        if (t < 0f) t = 0f;
-        else if (t > 1f) t = 1f;
+        if (t < 0f)
+            t = 0f;
+        else if (t > 1f)
+            t = 1f;
 
         var px = a.X + t * vx;
         var py = a.Y + t * vy;

@@ -1,9 +1,9 @@
 using System.IO;
-using ShimSkiaSharp;
 using System.Linq;
-using Svg.Skia.UnitTests.Common;
-using Svg.Skia;
+using ShimSkiaSharp;
 using Svg.Model.Services;
+using Svg.Skia;
+using Svg.Skia.UnitTests.Common;
 using Xunit;
 
 namespace Svg.Skia.UnitTests;
@@ -36,11 +36,11 @@ public class HitTestTests : SvgUnitTest
     [Fact]
     public void IntersectsWith_Works()
     {
-        var a = SKRect.Create(0,0,10,10);
-        var b = SKRect.Create(5,5,5,5);
-        Assert.True(HitTestService.IntersectsWith(a,b));
-        var c = SKRect.Create(20,20,5,5);
-        Assert.False(HitTestService.IntersectsWith(a,c));
+        var a = SKRect.Create(0, 0, 10, 10);
+        var b = SKRect.Create(5, 5, 5, 5);
+        Assert.True(HitTestService.IntersectsWith(a, b));
+        var c = SKRect.Create(20, 20, 5, 5);
+        Assert.False(HitTestService.IntersectsWith(a, c));
     }
 
     [Fact]

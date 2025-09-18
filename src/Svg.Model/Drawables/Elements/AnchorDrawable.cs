@@ -35,7 +35,8 @@ public sealed class AnchorDrawable : DrawableContainer
     {
         if (Element is not SvgAnchor svgAnchor)
         {
-            return;;
+            return;
+            ;
         }
 
         IsAntialias = PaintingService.IsAntialias(svgAnchor);

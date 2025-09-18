@@ -48,7 +48,7 @@ public sealed class EllipseDrawable : DrawablePath
         {
             return;
         }
-        
+
         IsAntialias = PaintingService.IsAntialias(svgEllipse);
         Transform = TransformsService.ToMatrix(svgEllipse.Transforms);
 

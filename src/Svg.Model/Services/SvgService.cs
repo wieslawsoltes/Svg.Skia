@@ -24,7 +24,7 @@ public static class SvgService
 
     private const string MimeTypeSvg = "image/svg+xml";
 
-    private static byte[] GZipMagicHeaderBytes => new byte[] {0x1f, 0x8b};
+    private static byte[] GZipMagicHeaderBytes => new byte[] { 0x1f, 0x8b };
 
     internal static HashSet<string> s_supportedFeatures = new()
     {
@@ -201,7 +201,7 @@ public static class SvgService
         {
             return true;
         }
-            
+
         if (string.IsNullOrEmpty(requiredFeaturesString))
         {
             return false;
@@ -232,7 +232,7 @@ public static class SvgService
         {
             return true;
         }
-            
+
         if (string.IsNullOrEmpty(requiredExtensionsString))
         {
             return false;
@@ -283,7 +283,7 @@ public static class SvgService
             try
             {
                 var languageCultureInfo = CultureInfo.CreateSpecificCulture(language.Trim());
-                if (systemLanguage.Equals(languageCultureInfo) 
+                if (systemLanguage.Equals(languageCultureInfo)
                     || systemLanguage.TwoLetterISOLanguageName == languageCultureInfo.TwoLetterISOLanguageName)
                 {
                     hasSystemLanguage = true;
@@ -348,27 +348,27 @@ public static class SvgService
     {
         return radians * (180.0 / Math.PI);
     }
-    
-    internal static Uri GetImageUri(string uriString, SvgDocument svgOwnerDocument)
-{
-    // Uri MaxLength is 65519 (https://msdn.microsoft.com/en-us/library/z6c2z492.aspx)
-    // if using data URI scheme, very long URI may happen.
-    var safeUriString = uriString.Length > 65519 ? uriString.Substring(0, 65519) : uriString;
-    var uri = new Uri(safeUriString, UriKind.RelativeOrAbsolute);
 
-    // handle data/uri embedded images (http://en.wikipedia.org/wiki/Data_URI_scheme)
-    if (uri.IsAbsoluteUri && uri.Scheme == "data")
+    internal static Uri GetImageUri(string uriString, SvgDocument svgOwnerDocument)
     {
+        // Uri MaxLength is 65519 (https://msdn.microsoft.com/en-us/library/z6c2z492.aspx)
+        // if using data URI scheme, very long URI may happen.
+        var safeUriString = uriString.Length > 65519 ? uriString.Substring(0, 65519) : uriString;
+        var uri = new Uri(safeUriString, UriKind.RelativeOrAbsolute);
+
+        // handle data/uri embedded images (http://en.wikipedia.org/wiki/Data_URI_scheme)
+        if (uri.IsAbsoluteUri && uri.Scheme == "data")
+        {
+            return uri;
+        }
+
+        if (!uri.IsAbsoluteUri)
+        {
+            uri = new Uri(svgOwnerDocument.BaseUri, uri);
+        }
+
         return uri;
     }
-
-    if (!uri.IsAbsoluteUri)
-    {
-        uri = new Uri(svgOwnerDocument.BaseUri, uri);
-    }
-
-    return uri;
-}
 
     internal static object? GetImage(string uriString, SvgDocument svgOwnerDocument, ISvgAssetLoader assetLoader)
     {

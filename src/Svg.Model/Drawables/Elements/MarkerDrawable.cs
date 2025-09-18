@@ -2,8 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System;
 using System.Collections.Generic;
-using Svg.DataTypes;
 using ShimSkiaSharp;
+using Svg.DataTypes;
 using Svg.Model.Drawables.Factories;
 using Svg.Model.Services;
 
@@ -118,7 +118,7 @@ public sealed class MarkerDrawable : DrawableBase
         }
 
         drawable.Initialize(skMarkerMatrix);
-        
+
         return drawable;
     }
 
@@ -139,7 +139,7 @@ public sealed class MarkerDrawable : DrawableBase
         Fill = null;
         Stroke = null;
     }
-    
+
     internal SvgVisualElement? GetMarkerElement(SvgMarker svgMarker)
     {
         SvgVisualElement? markerElement = null;

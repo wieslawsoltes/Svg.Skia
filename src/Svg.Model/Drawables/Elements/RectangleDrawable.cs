@@ -38,17 +38,17 @@ public sealed class RectangleDrawable : DrawablePath
         }
 
         drawable.Initialize(references);
-        
+
         return drawable;
     }
-    
+
     private void Initialize(HashSet<Uri>? references)
     {
         if (Element is not SvgRectangle svgRectangle || Path is null)
         {
             return;
         }
-        
+
         IsAntialias = PaintingService.IsAntialias(svgRectangle);
 
         GeometryBounds = Path.Bounds;

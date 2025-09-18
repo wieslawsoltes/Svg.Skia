@@ -40,51 +40,51 @@ public sealed class AvaloniaPicture : IDisposable
             switch (pathCommand)
             {
                 case AddRectPathCommand addRectPathCommand:
-                {
-                    var rect = addRectPathCommand.Rect.ToRect();
-                    commands.Add(new RectangleDrawCommand(brush, pen, rect, 0, 0));
-                    success = true;
-                    break;
-                }
-                case AddRoundRectPathCommand addRoundRectPathCommand:
-                {
-                    var rect = addRoundRectPathCommand.Rect.ToRect();
-                    var rx = addRoundRectPathCommand.Rx;
-                    var ry = addRoundRectPathCommand.Ry;
-                    commands.Add(new RectangleDrawCommand(brush, pen, rect, rx, ry));
-                    success = true;
-                    break;
-                }
-                case AddOvalPathCommand addOvalPathCommand:
-                {
-                    var rect = addOvalPathCommand.Rect.ToRect();
-                    var ellipseGeometry = new AM.EllipseGeometry(rect);
-                    commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
-                    success = true;
-                    break;
-                }
-                case AddCirclePathCommand addCirclePathCommand:
-                {
-                    var x = addCirclePathCommand.X;
-                    var y = addCirclePathCommand.Y;
-                    var radius = addCirclePathCommand.Radius;
-                    var rect = new A.Rect(x - radius, y - radius, radius + radius, radius + radius);
-                    var ellipseGeometry = new AM.EllipseGeometry(rect);
-                    commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
-                    success = true;
-                    break;
-                }
-                case AddPolyPathCommand addPolyPathCommand:
-                {
-                    if (addPolyPathCommand.Points is { })
                     {
-                        var close = addPolyPathCommand.Close;
-                        var polylineGeometry = addPolyPathCommand.Points.ToGeometry(close);
-                        commands.Add(new GeometryDrawCommand(brush, pen, polylineGeometry));
+                        var rect = addRectPathCommand.Rect.ToRect();
+                        commands.Add(new RectangleDrawCommand(brush, pen, rect, 0, 0));
                         success = true;
+                        break;
                     }
-                    break;
-                }
+                case AddRoundRectPathCommand addRoundRectPathCommand:
+                    {
+                        var rect = addRoundRectPathCommand.Rect.ToRect();
+                        var rx = addRoundRectPathCommand.Rx;
+                        var ry = addRoundRectPathCommand.Ry;
+                        commands.Add(new RectangleDrawCommand(brush, pen, rect, rx, ry));
+                        success = true;
+                        break;
+                    }
+                case AddOvalPathCommand addOvalPathCommand:
+                    {
+                        var rect = addOvalPathCommand.Rect.ToRect();
+                        var ellipseGeometry = new AM.EllipseGeometry(rect);
+                        commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
+                        success = true;
+                        break;
+                    }
+                case AddCirclePathCommand addCirclePathCommand:
+                    {
+                        var x = addCirclePathCommand.X;
+                        var y = addCirclePathCommand.Y;
+                        var radius = addCirclePathCommand.Radius;
+                        var rect = new A.Rect(x - radius, y - radius, radius + radius, radius + radius);
+                        var ellipseGeometry = new AM.EllipseGeometry(rect);
+                        commands.Add(new GeometryDrawCommand(brush, pen, ellipseGeometry));
+                        success = true;
+                        break;
+                    }
+                case AddPolyPathCommand addPolyPathCommand:
+                    {
+                        if (addPolyPathCommand.Points is { })
+                        {
+                            var close = addPolyPathCommand.Close;
+                            var polylineGeometry = addPolyPathCommand.Points.ToGeometry(close);
+                            commands.Add(new GeometryDrawCommand(brush, pen, polylineGeometry));
+                            success = true;
+                        }
+                        break;
+                    }
             }
 
             if (success)
@@ -119,100 +119,100 @@ public sealed class AvaloniaPicture : IDisposable
         switch (canvasCommand)
         {
             case ClipPathCanvasCommand clipPathCanvasCommand:
-            {
-                if (clipPathCanvasCommand.ClipPath is { })
                 {
-                    var path = clipPathCanvasCommand.ClipPath.ToGeometry(false);
-                    if (path is { })
+                    if (clipPathCanvasCommand.ClipPath is { })
                     {
-                        // TODO: clipPathCanvasCommand.Operation;
-                        // TODO: clipPathCanvasCommand.Antialias;
-                        commands.Add(new GeometryClipDrawCommand(path));
+                        var path = clipPathCanvasCommand.ClipPath.ToGeometry(false);
+                        if (path is { })
+                        {
+                            // TODO: clipPathCanvasCommand.Operation;
+                            // TODO: clipPathCanvasCommand.Antialias;
+                            commands.Add(new GeometryClipDrawCommand(path));
+                        }
                     }
+                    break;
                 }
-                break;
-            }
             case ClipRectCanvasCommand clipRectCanvasCommand:
-            {
-                var rect = clipRectCanvasCommand.Rect.ToRect();
-                // TODO: clipRectCanvasCommand.Operation;
-                // TODO: clipRectCanvasCommand.Antialias;
-                commands.Add(new ClipDrawCommand(rect));
-                break;
-            }
+                {
+                    var rect = clipRectCanvasCommand.Rect.ToRect();
+                    // TODO: clipRectCanvasCommand.Operation;
+                    // TODO: clipRectCanvasCommand.Antialias;
+                    commands.Add(new ClipDrawCommand(rect));
+                    break;
+                }
             case SaveCanvasCommand _:
-            {
-                // TODO: SaveCanvasCommand
-                commands.Add(new SaveDrawCommand());
-                break;
-            }
+                {
+                    // TODO: SaveCanvasCommand
+                    commands.Add(new SaveDrawCommand());
+                    break;
+                }
             case RestoreCanvasCommand _:
-            {
-                // TODO: RestoreCanvasCommand
-                commands.Add(new RestoreDrawCommand());
-                break;
-            }
+                {
+                    // TODO: RestoreCanvasCommand
+                    commands.Add(new RestoreDrawCommand());
+                    break;
+                }
             case SetMatrixCanvasCommand setMatrixCanvasCommand:
-            {
-                var matrix = setMatrixCanvasCommand.DeltaMatrix.ToMatrix();
-                commands.Add(new PushTransformDrawCommand(matrix));
-                break;
-            }
+                {
+                    var matrix = setMatrixCanvasCommand.DeltaMatrix.ToMatrix();
+                    commands.Add(new PushTransformDrawCommand(matrix));
+                    break;
+                }
             case SaveLayerCanvasCommand saveLayerCanvasCommand:
-            {
-                // TODO: SaveLayerCanvasCommand
-                commands.Add(new SaveLayerDrawCommand());
-                break;
-            }
+                {
+                    // TODO: SaveLayerCanvasCommand
+                    commands.Add(new SaveLayerDrawCommand());
+                    break;
+                }
             case DrawImageCanvasCommand drawImageCanvasCommand:
-            {
-                if (drawImageCanvasCommand.Image is { })
                 {
-                    var image = drawImageCanvasCommand.Image.ToBitmap();
-                    if (image is { })
+                    if (drawImageCanvasCommand.Image is { })
                     {
-                        var source = drawImageCanvasCommand.Source.ToRect();
-                        var dest = drawImageCanvasCommand.Dest.ToRect();
-                        var bitmapInterpolationMode = drawImageCanvasCommand.Paint?.FilterQuality.ToBitmapInterpolationMode() ?? AVMI.BitmapInterpolationMode.None;
-                        commands.Add(new ImageDrawCommand(image, source, dest, bitmapInterpolationMode));
+                        var image = drawImageCanvasCommand.Image.ToBitmap();
+                        if (image is { })
+                        {
+                            var source = drawImageCanvasCommand.Source.ToRect();
+                            var dest = drawImageCanvasCommand.Dest.ToRect();
+                            var bitmapInterpolationMode = drawImageCanvasCommand.Paint?.FilterQuality.ToBitmapInterpolationMode() ?? AVMI.BitmapInterpolationMode.None;
+                            commands.Add(new ImageDrawCommand(image, source, dest, bitmapInterpolationMode));
+                        }
                     }
+                    break;
                 }
-                break;
-            }
             case DrawPathCanvasCommand drawPathCanvasCommand:
-            {
-                RecordPathCommand(drawPathCanvasCommand, commands);
-                break;
-            }
-            case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:
-            {
-                // TODO: DrawTextBlobCanvasCommand
-                break;
-            }
-            case DrawTextCanvasCommand drawTextCanvasCommand:
-            {
-                if (drawTextCanvasCommand.Paint is { })
                 {
-                    // TOD: Calculate text bounds.
-                    var bounds = new SKRect(0f, 0f, 0f, 0f);
-                    var (brush, _) = drawTextCanvasCommand.Paint.ToBrushAndPen(bounds);
-                    var text = drawTextCanvasCommand.Paint.ToFormattedText(drawTextCanvasCommand.Text, brush);
-                    var x = drawTextCanvasCommand.X;
-                    var y = drawTextCanvasCommand.Y;
-                    var origin = new A.Point(x, y - drawTextCanvasCommand.Paint.TextSize);
-                    commands.Add(new TextDrawCommand(origin, text));
+                    RecordPathCommand(drawPathCanvasCommand, commands);
+                    break;
                 }
-                break;
-            }
+            case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:
+                {
+                    // TODO: DrawTextBlobCanvasCommand
+                    break;
+                }
+            case DrawTextCanvasCommand drawTextCanvasCommand:
+                {
+                    if (drawTextCanvasCommand.Paint is { })
+                    {
+                        // TOD: Calculate text bounds.
+                        var bounds = new SKRect(0f, 0f, 0f, 0f);
+                        var (brush, _) = drawTextCanvasCommand.Paint.ToBrushAndPen(bounds);
+                        var text = drawTextCanvasCommand.Paint.ToFormattedText(drawTextCanvasCommand.Text, brush);
+                        var x = drawTextCanvasCommand.X;
+                        var y = drawTextCanvasCommand.Y;
+                        var origin = new A.Point(x, y - drawTextCanvasCommand.Paint.TextSize);
+                        commands.Add(new TextDrawCommand(origin, text));
+                    }
+                    break;
+                }
             case DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand:
-            {
-                // TODO: DrawTextOnPathCanvasCommand
-                break;
-            }
+                {
+                    // TODO: DrawTextOnPathCanvasCommand
+                    break;
+                }
             default:
-            {
-                break;
-            }
+                {
+                    break;
+                }
         }
     }
 
@@ -238,103 +238,103 @@ public sealed class AvaloniaPicture : IDisposable
         switch (command)
         {
             case GeometryClipDrawCommand geometryClipDrawCommand:
-            {
-                if (geometryClipDrawCommand.Clip is { })
                 {
-                    var geometryPushedState = context.PushGeometryClip(geometryClipDrawCommand.Clip);
-                    var currentPushedStates = pushedStates.Peek();
-                    currentPushedStates.Push(geometryPushedState);
+                    if (geometryClipDrawCommand.Clip is { })
+                    {
+                        var geometryPushedState = context.PushGeometryClip(geometryClipDrawCommand.Clip);
+                        var currentPushedStates = pushedStates.Peek();
+                        currentPushedStates.Push(geometryPushedState);
+                    }
+                    break;
                 }
-                break;
-            }
             case ClipDrawCommand clipDrawCommand:
-            {
-                var clipPushedState = context.PushClip(clipDrawCommand.Clip);
-                var currentPushedStates = pushedStates.Peek();
-                currentPushedStates.Push(clipPushedState);
-                break;
-            }
+                {
+                    var clipPushedState = context.PushClip(clipDrawCommand.Clip);
+                    var currentPushedStates = pushedStates.Peek();
+                    currentPushedStates.Push(clipPushedState);
+                    break;
+                }
             case SaveDrawCommand _:
-            {
-                pushedStates.Push(new Stack<IDisposable>());
-                break;
-            }
+                {
+                    pushedStates.Push(new Stack<IDisposable>());
+                    break;
+                }
             case RestoreDrawCommand _:
-            {
-                var currentPushedStates = pushedStates.Pop();
-                while (currentPushedStates.Count > 0)
                 {
-                    var pushedState = currentPushedStates.Pop();
-                    pushedState.Dispose();
+                    var currentPushedStates = pushedStates.Pop();
+                    while (currentPushedStates.Count > 0)
+                    {
+                        var pushedState = currentPushedStates.Pop();
+                        pushedState.Dispose();
+                    }
+                    break;
                 }
-                break;
-            }
             case PushTransformDrawCommand pushTransformDrawCommand:
-            {
-                var transformPreTransform = context.PushTransform(pushTransformDrawCommand.Matrix);
-                var currentPushedStates = pushedStates.Peek();
-                currentPushedStates.Push(transformPreTransform);
-                break;
-            }
+                {
+                    var transformPreTransform = context.PushTransform(pushTransformDrawCommand.Matrix);
+                    var currentPushedStates = pushedStates.Peek();
+                    currentPushedStates.Push(transformPreTransform);
+                    break;
+                }
             case SaveLayerDrawCommand saveLayerDrawCommand:
-            {
-                pushedStates.Push(new Stack<IDisposable>());
-                break;
-            }
+                {
+                    pushedStates.Push(new Stack<IDisposable>());
+                    break;
+                }
             case ImageDrawCommand imageDrawCommand:
-            {
-                if (imageDrawCommand.Source is { })
                 {
-                    // TODO: imageDrawCommand.BitmapInterpolationMode
-                    context.DrawImage(
-                        imageDrawCommand.Source,
-                        imageDrawCommand.SourceRect,
-                        imageDrawCommand.DestRect);
+                    if (imageDrawCommand.Source is { })
+                    {
+                        // TODO: imageDrawCommand.BitmapInterpolationMode
+                        context.DrawImage(
+                            imageDrawCommand.Source,
+                            imageDrawCommand.SourceRect,
+                            imageDrawCommand.DestRect);
+                    }
+                    break;
                 }
-                break;
-            }
             case GeometryDrawCommand geometryDrawCommand:
-            {
-                if (geometryDrawCommand.Geometry is { })
                 {
-                    context.DrawGeometry(
-                        geometryDrawCommand.Brush,
-                        geometryDrawCommand.Pen,
-                        geometryDrawCommand.Geometry);
+                    if (geometryDrawCommand.Geometry is { })
+                    {
+                        context.DrawGeometry(
+                            geometryDrawCommand.Brush,
+                            geometryDrawCommand.Pen,
+                            geometryDrawCommand.Geometry);
+                    }
+                    break;
                 }
-                break;
-            }
             case LineDrawCommand lineDrawCommand:
-            {
-                if (lineDrawCommand.Pen is { })
                 {
-                    context.DrawLine(
-                        lineDrawCommand.Pen,
-                        lineDrawCommand.P1,
-                        lineDrawCommand.P2);
+                    if (lineDrawCommand.Pen is { })
+                    {
+                        context.DrawLine(
+                            lineDrawCommand.Pen,
+                            lineDrawCommand.P1,
+                            lineDrawCommand.P2);
+                    }
+                    break;
                 }
-                break;
-            }
             case RectangleDrawCommand rectangleDrawCommand:
-            {
-                context.DrawRectangle(
-                    rectangleDrawCommand.Brush,
-                    rectangleDrawCommand.Pen,
-                    rectangleDrawCommand.Rect,
-                    rectangleDrawCommand.RadiusX,
-                    rectangleDrawCommand.RadiusY);
-                break;
-            }
-            case TextDrawCommand textDrawCommand:
-            {
-                if (textDrawCommand.FormattedText is { })
                 {
-                    context.DrawText(
-                        textDrawCommand.FormattedText,
-                        textDrawCommand.Origin);
+                    context.DrawRectangle(
+                        rectangleDrawCommand.Brush,
+                        rectangleDrawCommand.Pen,
+                        rectangleDrawCommand.Rect,
+                        rectangleDrawCommand.RadiusX,
+                        rectangleDrawCommand.RadiusY);
+                    break;
                 }
-                break;
-            }
+            case TextDrawCommand textDrawCommand:
+                {
+                    if (textDrawCommand.FormattedText is { })
+                    {
+                        context.DrawText(
+                            textDrawCommand.FormattedText,
+                            textDrawCommand.Origin);
+                    }
+                    break;
+                }
         }
     }
 

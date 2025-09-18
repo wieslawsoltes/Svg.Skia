@@ -25,7 +25,7 @@ public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
     {
         var data = ShimSkiaSharp.SKImage.FromStream(stream);
         using var image = SkiaSharp.SKImage.FromEncodedData(data);
-        return new ShimSkiaSharp.SKImage {Data = data, Width = image.Width, Height = image.Height};
+        return new ShimSkiaSharp.SKImage { Data = data, Width = image.Width, Height = image.Height };
     }
 
     /// <inheritdoc />
@@ -46,7 +46,7 @@ public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
             var width = _skiaModel.ToSKFontStyleWidth(preferredTypeface.FontWidth);
             var slant = _skiaModel.ToSKFontStyleSlant(preferredTypeface.FontSlant);
 
-            matchCharacter = codepoint => 
+            matchCharacter = codepoint =>
             {
                 // First try to find a matching typeface from custom providers
                 var customTypeface = TryMatchCharacterFromCustomProviders(preferredTypeface.FamilyName, weight, width, slant, codepoint);
@@ -54,7 +54,7 @@ public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
                 {
                     return customTypeface;
                 }
-                
+
                 // Fall back to default font manager
                 return SkiaSharp.SKFontManager.Default.MatchCharacter(
                     preferredTypeface.FamilyName,
@@ -67,7 +67,7 @@ public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
         }
         else
         {
-            matchCharacter = codepoint => 
+            matchCharacter = codepoint =>
             {
                 // First try to find a matching typeface from custom providers
                 var customTypeface = TryMatchCharacterFromCustomProviders(null, SkiaSharp.SKFontStyleWeight.Normal, SkiaSharp.SKFontStyleWidth.Normal, SkiaSharp.SKFontStyleSlant.Upright, codepoint);
@@ -75,7 +75,7 @@ public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
                 {
                     return customTypeface;
                 }
-                
+
                 // Fall back to default font manager
                 return SkiaSharp.SKFontManager.Default.MatchCharacter(codepoint);
             };

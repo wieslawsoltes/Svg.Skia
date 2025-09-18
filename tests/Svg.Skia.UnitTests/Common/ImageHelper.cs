@@ -18,16 +18,16 @@ public static class ImageHelper
         double squaresError = 0;
 
         const double scale = 1 / 255d;
-        
+
         for (var x = 0; x < actual.Width; x++)
         {
             double localError = 0;
-            
+
             for (var y = 0; y < actual.Height; y++)
             {
                 var expectedAlpha = expected[x, y].A * scale;
                 var actualAlpha = actual[x, y].A * scale;
-                
+
                 var r = scale * (expectedAlpha * expected[x, y].R - actualAlpha * actual[x, y].R);
                 var g = scale * (expectedAlpha * expected[x, y].G - actualAlpha * actual[x, y].G);
                 var b = scale * (expectedAlpha * expected[x, y].B - actualAlpha * actual[x, y].B);
@@ -44,9 +44,9 @@ public static class ImageHelper
         var meanSquaresError = squaresError / quantity;
 
         const int channelCount = 4;
-        
+
         meanSquaresError = meanSquaresError / channelCount;
-        
+
         return Math.Sqrt(meanSquaresError);
     }
 
@@ -58,7 +58,7 @@ public static class ImageHelper
 
         if (immediateError > errorThreshold)
         {
-            Assert.True(false, name + ": Error = " + immediateError);
+            Assert.Fail(name + ": Error = " + immediateError);
         }
     }
 }

@@ -27,13 +27,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [Reactive]
     public partial FileItemViewModel? SelectedItem { get; set; }
-    
+
     [Reactive]
     public partial string? ItemQuery { get; set; }
-    
+
     [Reactive]
     public partial ReadOnlyObservableCollection<FileItemViewModel>? FilteredItems { get; set; }
-    
+
     public ICommand ResetQueryCommand { get; }
 
     public ICommand LoadConfigurationCommand { get; }
@@ -41,7 +41,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand SaveConfigurationCommand { get; }
 
     public ICommand ClearConfigurationCommand { get; }
-        
+
     public ICommand AddItemCommand { get; }
 
     public ICommand ExportCommand { get; }
@@ -257,8 +257,8 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             if (File.GetAttributes(path).HasFlag(FileAttributes.Directory))
             {
-                var svgPaths = Directory.EnumerateFiles(path, "*.svg", new EnumerationOptions {RecurseSubdirectories = true});
-                var svgzPaths = Directory.EnumerateFiles(path, "*.svgz", new EnumerationOptions {RecurseSubdirectories = true});
+                var svgPaths = Directory.EnumerateFiles(path, "*.svg", new EnumerationOptions { RecurseSubdirectories = true });
+                var svgzPaths = Directory.EnumerateFiles(path, "*.svgz", new EnumerationOptions { RecurseSubdirectories = true });
                 Drop(svgPaths);
                 Drop(svgzPaths);
                 continue;
@@ -269,16 +269,16 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 case ".svg":
                 case ".svgz":
-                {
-                    AddItem(path);
-                    break;
-                }
+                    {
+                        AddItem(path);
+                        break;
+                    }
                 case ".json":
-                {
-                    using var stream = File.OpenRead(path);
-                    LoadConfiguration(stream);
-                    break;
-                }
+                    {
+                        using var stream = File.OpenRead(path);
+                        LoadConfiguration(stream);
+                        break;
+                    }
             }
         }
     }
@@ -321,7 +321,7 @@ public partial class MainWindowViewModel : ViewModelBase
         };
 
         var json = JsonSerializer.Serialize(configuration);
-        using var writer = new StreamWriter(stream); 
+        using var writer = new StreamWriter(stream);
         writer.Write(json);
     }
 
@@ -341,44 +341,44 @@ public partial class MainWindowViewModel : ViewModelBase
         switch (extension.ToLower())
         {
             case ".png":
-            {
-                svg.Picture?.ToImage(
-                    stream, 
-                    skBackgroundColor, 
-                    SkiaSharp.SKEncodedImageFormat.Png, 
-                    100, 
-                    scaleX, 
-                    scaleY, 
-                    SkiaSharp.SKColorType.Rgba8888, 
-                    SkiaSharp.SKAlphaType.Premul, 
-                    SkiaSharp.SKColorSpace.CreateSrgb());
-                break;
-            }
+                {
+                    svg.Picture?.ToImage(
+                        stream,
+                        skBackgroundColor,
+                        SkiaSharp.SKEncodedImageFormat.Png,
+                        100,
+                        scaleX,
+                        scaleY,
+                        SkiaSharp.SKColorType.Rgba8888,
+                        SkiaSharp.SKAlphaType.Premul,
+                        SkiaSharp.SKColorSpace.CreateSrgb());
+                    break;
+                }
             case ".jpg":
             case ".jpeg":
-            {
-                svg.Picture?.ToImage(
-                    stream, 
-                    skBackgroundColor, 
-                    SkiaSharp.SKEncodedImageFormat.Jpeg, 
-                    100, 
-                    scaleX, 
-                    scaleY, 
-                    SkiaSharp.SKColorType.Rgba8888, 
-                    SkiaSharp.SKAlphaType.Premul, 
-                    SkiaSharp.SKColorSpace.CreateSrgb());
-                break;
-            }
+                {
+                    svg.Picture?.ToImage(
+                        stream,
+                        skBackgroundColor,
+                        SkiaSharp.SKEncodedImageFormat.Jpeg,
+                        100,
+                        scaleX,
+                        scaleY,
+                        SkiaSharp.SKColorType.Rgba8888,
+                        SkiaSharp.SKAlphaType.Premul,
+                        SkiaSharp.SKColorSpace.CreateSrgb());
+                    break;
+                }
             case ".pdf":
-            {
-                svg.Picture?.ToPdf(stream, skBackgroundColor, scaleX, scaleY);
-                break;
-            }
+                {
+                    svg.Picture?.ToPdf(stream, skBackgroundColor, scaleX, scaleY);
+                    break;
+                }
             case ".xps":
-            {
-                svg.Picture?.ToXps(stream, skBackgroundColor, scaleX, scaleY);
-                break;
-            }
+                {
+                    svg.Picture?.ToXps(stream, skBackgroundColor, scaleX, scaleY);
+                    break;
+                }
         }
     }
 

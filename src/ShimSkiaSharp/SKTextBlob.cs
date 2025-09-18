@@ -11,6 +11,6 @@ public sealed class SKTextBlob
     {
     }
 
-    public static SKTextBlob CreatePositioned(string? text, SKPoint[]? points) 
-        => new() {Text = text, Points = points};
+    public static SKTextBlob CreatePositioned(string? text, SKPoint[]? points)
+        => new() { Text = text, Points = points };
 }

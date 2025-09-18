@@ -20,7 +20,7 @@ public class MainWindowViewModel
     private readonly SKSvgSettings _settings;
     private readonly SkiaModel _skiaModel;
     private readonly ISvgAssetLoader _assetLoader;
-    
+
     [DataMember]
     public ObservableCollection<Item> Items { get; set; }
 
@@ -125,7 +125,7 @@ public class MainWindowViewModel
             {
                 var stopwatchToPicture = Stopwatch.StartNew();
 
-                var references = new HashSet<Uri> {item.Document.BaseUri};
+                var references = new HashSet<Uri> { item.Document.BaseUri };
                 item.Drawable = SvgService.ToDrawable(item.Document, _assetLoader, references, out var bounds);
                 if (item.Drawable is { } && bounds is { })
                 {

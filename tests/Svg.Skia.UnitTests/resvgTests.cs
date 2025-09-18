@@ -8,10 +8,10 @@ namespace Svg.Skia.UnitTests;
 
 public class resvgTests : SvgUnitTest
 {
-    private static string GetSvgPath(string name) 
+    private static string GetSvgPath(string name)
         => Path.Combine("..", "..", "..", "..", "..", "externals", "resvg", "tests", "svg", name);
 
-    private static string GetExpectedPngPath(string name) 
+    private static string GetExpectedPngPath(string name)
         => Path.Combine("..", "..", "..", "..", "..", "externals", "resvg", "tests", "png", name);
 
     private static string GetActualPngPath(string name)
@@ -41,7 +41,7 @@ public class resvgTests : SvgUnitTest
     [Theory(Skip = "TODO")]
     [InlineData("a-alignment-baseline-001", 0.022)]
     public void a_alignment_baseline(string name, double errorThreshold) => TestImpl(name, errorThreshold);
- 
+
     [Theory(Skip = "TODO")]
     [InlineData("a-baseline-shift-001", 0.022)]
     [InlineData("a-baseline-shift-002", 0.022)]
@@ -263,7 +263,7 @@ public class resvgTests : SvgUnitTest
     [Theory]
     [InlineData("a-font-001", 0.022)]
     public void a_font(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory(Skip = "TODO")]
     [InlineData("a-font-family-001", 0.022)]
     [InlineData("a-font-family-002", 0.022)]
@@ -300,28 +300,28 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-font-size-019", 0.022, Skip = "TODO")]
     [InlineData("a-font-size-020", 0.022, Skip = "TODO")]
     public void a_font_size(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory(Skip = "TODO")]
     [InlineData("a-font-size-adjust-001", 0.022)]
     public void a_font_size_adjust(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory(Skip = "TODO")]
     [InlineData("a-font-stretch-001", 0.022)]
     [InlineData("a-font-stretch-002", 0.022)]
     [InlineData("a-font-stretch-003", 0.022)]
     public void a_font_stretch(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory(Skip = "TODO")]
     [InlineData("a-font-style-001", 0.022)]
     [InlineData("a-font-style-002", 0.022)]
     [InlineData("a-font-style-003", 0.022)]
     public void a_font_style(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory(Skip = "TODO")]
     [InlineData("a-font-variant-001", 0.022)]
     [InlineData("a-font-variant-002", 0.022)]
     public void a_font_variant(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory(Skip = "TODO")]
     [InlineData("a-font-weight-001", 0.022)]
     [InlineData("a-font-weight-002", 0.022)]
@@ -336,11 +336,11 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-font-weight-011", 0.022)]
     [InlineData("a-font-weight-012", 0.022)]
     public void a_font_weight(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory(Skip = "TODO")]
     [InlineData("a-glyph-orientation-horizontal-001", 0.022)]
     public void a_glyph_orientation_horizontal(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-        
+
     [Theory(Skip = "TODO")]
     [InlineData("a-glyph-orientation-vertical-001", 0.022)]
     public void a_glyph_orientation_vertical(string name, double errorThreshold) => TestImpl(name, errorThreshold);
@@ -355,11 +355,11 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-isolation-001", 0.022)]
     [InlineData("a-isolation-002", 0.022)]
     public void a_isolation(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory(Skip = "TODO")]
     [InlineData("a-kerning-001", 0.022)]
     public void a_kerning(string name, double errorThreshold) => TestImpl(name, errorThreshold);
-    
+
     [Theory(Skip = "TODO")]
     [InlineData("a-lengthAdjust-001", 0.022)]
     public void a_lengthAdjust(string name, double errorThreshold) => TestImpl(name, errorThreshold);

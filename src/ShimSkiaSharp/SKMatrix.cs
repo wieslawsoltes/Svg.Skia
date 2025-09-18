@@ -28,13 +28,13 @@ public struct SKMatrix : IEquatable<SKMatrix>
 
     public static readonly SKMatrix Empty;
 
-    public static readonly SKMatrix Identity = new() {ScaleX = 1, ScaleY = 1, Persp2 = 1};
+    public static readonly SKMatrix Identity = new() { ScaleX = 1, ScaleY = 1, Persp2 = 1 };
 
     public bool IsIdentity => Equals(Identity);
 
     public static SKMatrix CreateIdentity()
     {
-        return new() {ScaleX = 1, ScaleY = 1, Persp2 = 1};
+        return new() { ScaleX = 1, ScaleY = 1, Persp2 = 1 };
     }
 
     public static SKMatrix CreateTranslation(float x, float y)
@@ -276,11 +276,11 @@ public struct SKMatrix : IEquatable<SKMatrix>
 
         inverse = new SKMatrix
         {
-            ScaleX =  ScaleY * invDet,
-            SkewX  = -SkewX * invDet,
+            ScaleX = ScaleY * invDet,
+            SkewX = -SkewX * invDet,
             TransX = (SkewX * TransY - ScaleY * TransX) * invDet,
-            SkewY  = -SkewY * invDet,
-            ScaleY =  ScaleX * invDet,
+            SkewY = -SkewY * invDet,
+            ScaleY = ScaleX * invDet,
             TransY = (SkewY * TransX - ScaleX * TransY) * invDet,
             Persp0 = 0,
             Persp1 = 0,

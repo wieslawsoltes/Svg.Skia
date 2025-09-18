@@ -20,6 +20,6 @@ public readonly struct SKSizeI
         Height = height;
     }
 
-    public override string ToString() 
+    public override string ToString()
         => FormattableString.Invariant($"{Width}, {Height}");
 }
