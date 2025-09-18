@@ -273,6 +273,29 @@ Install-Package Svg.Controls.Skia.Avalonia
 </Image>
 ```
 
+#### SvgBrush Markup Extension
+
+Use `SvgBrush` when you want to place an SVG-backed `VisualBrush` in a resource dictionary and reuse it for backgrounds or other brush targets:
+
+```XAML
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Svg.Controls.Skia.Avalonia">
+    <UserControl.Resources>
+        <svg:SvgBrush x:Key="TigerBrush"
+                      Stretch="UniformToFill"
+                      AlignmentX="Center"
+                      AlignmentY="Center"
+                      TileMode="Tile"
+                      DestinationRect="0,0,1,1"
+                      Opacity="0.85">/Assets/__tiger.svg</svg:SvgBrush>
+    </UserControl.Resources>
+
+    <Border Background="{DynamicResource TigerBrush}" />
+</UserControl>
+```
+
+The optional properties mirror those on `VisualBrush`, so you can tweak layout, tiling, opacity, and transforms directly in XAML while the control takes care of loading and rendering the SVG content.
+
 #### Avalonia Previewer
 
 To make controls work with `Avalonia Previewer` please add the following lines to `BuildAvaloniaApp()` method:
