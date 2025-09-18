@@ -20,4 +20,16 @@ public class SvgImageTests
         var svgImage = Assert.IsType<SvgImage>(image.Source);
         Assert.NotNull(svgImage.Source);
     }
+
+    [AvaloniaFact]
+    public void SvgBrushResource_Returns_VisualBrush()
+    {
+        var view = new SvgBrushBackgroundView();
+        var host = Assert.IsType<Border>(view.BackgroundHost);
+
+        var brush = Assert.IsType<VisualBrush>(host.Background);
+        var image = Assert.IsType<Image>(brush.Visual);
+        var svgImage = Assert.IsType<SvgImage>(image.Source);
+        Assert.NotNull(svgImage.Source);
+    }
 }

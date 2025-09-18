@@ -46,7 +46,7 @@ public class SvgImageExtension : MarkupExtension
 
         if (typeof(IBrush).IsAssignableFrom(property.PropertyType))
         {
-            return CreateSvgBrush(image);
+            return SvgBrush.CreateFromImage(image);
         }
 
         return new Image { Source = image };
@@ -94,16 +94,5 @@ public class SvgImageExtension : MarkupExtension
         result.Bind(SvgImage.CurrentCssProperty, currentStyleBinding);
 
         return result;
-    }
-
-    private static IBrush CreateSvgBrush(IImage image)
-    {
-        return new VisualBrush
-        {
-            Visual = new Image
-            {
-                Source = image
-            }
-        };
     }
 }

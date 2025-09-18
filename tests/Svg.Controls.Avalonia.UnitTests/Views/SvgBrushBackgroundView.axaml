@@ -1,0 +1,10 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:svg="clr-namespace:Avalonia.Svg;assembly=Svg.Controls.Avalonia"
+             x:Class="Avalonia.Svg.UnitTests.Views.SvgBrushBackgroundView">
+    <UserControl.Resources>
+        <svg:SvgBrush x:Key="Brush">/Assets/Icon.svg</svg:SvgBrush>
+    </UserControl.Resources>
+    <Border x:Name="BackgroundHost"
+            Background="{DynamicResource Brush}" />
+</UserControl>
