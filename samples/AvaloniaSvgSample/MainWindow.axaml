@@ -105,6 +105,23 @@
       </Panel>
     </TabItem>
 
+    <TabItem Header="Background">
+      <Panel Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+        <Border CornerRadius="12"
+                Background="{SvgImage /Assets/__tiger.svg}" />
+      </Panel>
+    </TabItem>
+    
+    <TabItem Header="Background (Resources)">
+      <TabItem.Resources>
+        <svg:SvgBrush x:Key="__tiger">/Assets/__tiger.svg</svg:SvgBrush>
+      </TabItem.Resources>
+      <Panel Margin="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+        <Border CornerRadius="12"
+                Background="{DynamicResource __tiger}" />
+      </Panel>
+    </TabItem>
+
     <TabItem Header="String">
       <DockPanel x:Name="svgStringDockPanel" 
                  Background="Transparent" 

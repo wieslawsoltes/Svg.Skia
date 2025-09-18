@@ -5,22 +5,19 @@
     <OutputType>Library</OutputType>
     <IsPackable>False</IsPackable>
     <Nullable>enable</Nullable>
-    <RootNamespace>Avalonia.Svg.Skia.UnitTests</RootNamespace>
+    <RootNamespace>Avalonia.Svg.UnitTests</RootNamespace>
   </PropertyGroup>
 
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <Import Project="..\..\build\XUnit.props" />
-  <Import Project="..\..\build\SkiaSharp.v3.props" />
-  <Import Project="..\..\build\SkiaSharp.Native.v3.props" />
   <Import Project="..\..\build\Avalonia.props" />
-  <Import Project="..\..\build\Avalonia.Skia.props" />
  
   <ItemGroup>
     <AvaloniaResource Include="Assets\*" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Svg.Controls.Skia.Avalonia\Svg.Controls.Skia.Avalonia.csproj" />
+    <ProjectReference Include="..\..\src\Svg.Controls.Avalonia\Svg.Controls.Avalonia.csproj" />
   </ItemGroup>
 
   <ItemGroup>

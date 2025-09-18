@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Svg.Controls.Skia.Avalonia"
+             x:Class="Avalonia.Svg.Skia.UnitTests.Views.SvgBrushBackgroundView">
+    <UserControl.Resources>
+        <svg:SvgBrush x:Key="Brush"
+                      Stretch="UniformToFill"
+                      AlignmentX="Center"
+                      AlignmentY="Bottom"
+                      TileMode="Tile"
+                      DestinationRect="0.1,0.2,0.6,0.7"
+                      SourceRect="0.05,0.05,0.9,0.9"
+                      Opacity="0.5"
+                      Transform="1,0,0,1,10,20"
+                      TransformOrigin="0.25,0.75">/Assets/Icon.svg</svg:SvgBrush>
+    </UserControl.Resources>
+    <Border x:Name="BackgroundHost"
+            Background="{DynamicResource Brush}" />
+</UserControl>
