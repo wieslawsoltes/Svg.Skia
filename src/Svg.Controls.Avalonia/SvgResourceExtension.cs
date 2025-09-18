@@ -169,14 +169,64 @@ public class SvgResourceExtension : MarkupExtension
     }
 
     /// <summary>
+    /// Creates a <see cref="IBrush"/> directly from an SVG path for convenient code usage.
+    /// </summary>
+    public static IBrush CreateBrush(
+        string path,
+        Uri? baseUri = null,
+        Stretch? stretch = null,
+        AlignmentX? alignmentX = null,
+        AlignmentY? alignmentY = null,
+        TileMode? tileMode = null,
+        RelativeRect? destinationRect = null,
+        RelativeRect? sourceRect = null,
+        double? opacity = null,
+        Transform? transform = null,
+        RelativePoint? transformOrigin = null)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            throw new ArgumentException("Path cannot be null or whitespace.", nameof(path));
+        }
+
+        return CreateBrushCore(
+            path,
+            baseUri,
+            stretch,
+            alignmentX,
+            alignmentY,
+            tileMode,
+            destinationRect,
+            sourceRect,
+            opacity,
+            transform,
+            transformOrigin);
+    }
+
+    /// <summary>
     /// Creates an <see cref="IBrush"/> instance for use in code-behind.
     /// </summary>
     /// <param name="serviceProvider">Optional XAML service provider used to resolve relative URIs.</param>
     /// <returns>The generated <see cref="IBrush"/>.</returns>
     public IBrush ToBrush(IServiceProvider? serviceProvider = null)
     {
-        var brush = CreateBrush(ResolveBaseUri(serviceProvider));
-        return brush;
+        if (Path is null)
+        {
+            throw new InvalidOperationException("SvgBrush requires a non-null Path.");
+        }
+
+        return CreateBrushCore(
+            Path,
+            ResolveBaseUri(serviceProvider),
+            Stretch,
+            AlignmentX,
+            AlignmentY,
+            TileMode,
+            DestinationRect,
+            SourceRect,
+            Opacity,
+            Transform,
+            TransformOrigin);
     }
 
     /// <inheritdoc/>
@@ -187,17 +237,23 @@ public class SvgResourceExtension : MarkupExtension
             throw new ArgumentNullException(nameof(serviceProvider));
         }
 
-        return CreateBrush(ResolveBaseUri(serviceProvider));
+        return ToBrush(serviceProvider);
     }
 
-    private IBrush CreateBrush(Uri? baseUri)
+    private static IBrush CreateBrushCore(
+        string path,
+        Uri? baseUri,
+        Stretch? stretch,
+        AlignmentX? alignmentX,
+        AlignmentY? alignmentY,
+        TileMode? tileMode,
+        RelativeRect? destinationRect,
+        RelativeRect? sourceRect,
+        double? opacity,
+        Transform? transform,
+        RelativePoint? transformOrigin)
     {
-        if (Path is null)
-        {
-            throw new InvalidOperationException("SvgBrush requires a non-null Path.");
-        }
-
-        var source = SvgSource.Load(Path, baseUri);
+        var source = SvgSource.Load(path, baseUri);
         var image = new SvgImage
         {
             Source = source
@@ -205,15 +261,15 @@ public class SvgResourceExtension : MarkupExtension
 
         return CreateBrush(
             image,
-            Stretch,
-            AlignmentX,
-            AlignmentY,
-            TileMode,
-            DestinationRect,
-            SourceRect,
-            Opacity,
-            Transform,
-            TransformOrigin);
+            stretch,
+            alignmentX,
+            alignmentY,
+            tileMode,
+            destinationRect,
+            sourceRect,
+            opacity,
+            transform,
+            transformOrigin);
     }
 
     private Uri? ResolveBaseUri(IServiceProvider? serviceProvider)

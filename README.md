@@ -325,7 +325,16 @@ var fromImage = SvgResourceExtension.CreateBrush(
     stretch: Stretch.Uniform,
     alignmentX: AlignmentX.Center,
     alignmentY: AlignmentY.Center);
+
+// Or skip creating the markup extension entirely and build a brush from the SVG path in one call.
+var fromPath = SvgResourceExtension.CreateBrush(
+    "avares://MyAssembly/Assets/Icon.svg",
+    stretch: Stretch.Fill,
+    alignmentX: AlignmentX.Right,
+    alignmentY: AlignmentY.Bottom);
 ```
+
+The Skia-backed controls also accept optional `css` and `currentCss` arguments on the static helper so you can apply styles while creating the brush from code.
 
 #### Avalonia Previewer
 
