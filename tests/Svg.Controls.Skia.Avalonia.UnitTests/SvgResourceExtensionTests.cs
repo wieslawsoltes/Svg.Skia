@@ -80,4 +80,11 @@ public class SvgResourceExtensionTests
         Assert.Equal(".root { fill: red; }", svgImage.Css);
         Assert.Equal(".current { stroke: blue; }", svgImage.CurrentCss);
     }
+
+    [AvaloniaFact]
+    public void CreateBrush_From_Path_Throws_On_Invalid_Path()
+    {
+        Assert.Throws<ArgumentException>(() => SvgResourceExtension.CreateBrush((string)null!));
+        Assert.Throws<ArgumentException>(() => SvgResourceExtension.CreateBrush(" "));
+    }
 }

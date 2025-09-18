@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
@@ -74,5 +75,12 @@ public class SvgResourceExtensionTests
 
         var image = Assert.IsType<Image>(visualBrush.Visual);
         Assert.IsType<SvgImage>(image.Source);
+    }
+
+    [AvaloniaFact]
+    public void CreateBrush_From_Path_Throws_On_Invalid_Path()
+    {
+        Assert.Throws<ArgumentException>(() => SvgResourceExtension.CreateBrush((string)null!));
+        Assert.Throws<ArgumentException>(() => SvgResourceExtension.CreateBrush(" "));
     }
 }
