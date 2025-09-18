@@ -31,19 +31,130 @@ public class SvgBrush : MarkupExtension
     public string? CurrentCss { get; set; }
 
     /// <summary>
-    /// Creates a brush instance for a provided image.
+    /// Gets or sets the stretch applied to the resulting brush.
     /// </summary>
-    /// <param name="image">The image that should be rendered by the brush.</param>
-    /// <returns>A brush that renders the supplied image.</returns>
-    internal static IBrush CreateFromImage(IImage image)
+    public Stretch? Stretch { get; set; }
+
+    /// <summary>
+    /// Gets or sets the horizontal alignment applied to the resulting brush.
+    /// </summary>
+    public AlignmentX? AlignmentX { get; set; }
+
+    /// <summary>
+    /// Gets or sets the vertical alignment applied to the resulting brush.
+    /// </summary>
+    public AlignmentY? AlignmentY { get; set; }
+
+    /// <summary>
+    /// Gets or sets the tile mode applied to the resulting brush.
+    /// </summary>
+    public TileMode? TileMode { get; set; }
+
+    /// <summary>
+    /// Gets or sets the destination rectangle applied to the resulting brush.
+    /// </summary>
+    public RelativeRect? DestinationRect { get; set; }
+
+    /// <summary>
+    /// Gets or sets the source rectangle applied to the resulting brush.
+    /// </summary>
+    public RelativeRect? SourceRect { get; set; }
+
+    /// <summary>
+    /// Gets or sets the opacity applied to the resulting brush.
+    /// </summary>
+    public double? Opacity { get; set; }
+
+    /// <summary>
+    /// Gets or sets the transform applied to the resulting brush.
+    /// </summary>
+    public Transform? Transform { get; set; }
+
+    /// <summary>
+    /// Gets or sets the transform origin applied to the resulting brush.
+    /// </summary>
+    public RelativePoint? TransformOrigin { get; set; }
+
+    /// <summary>
+    /// Creates a <see cref="VisualBrush"/> configured with the provided image and optional overrides.
+    /// </summary>
+    /// <param name="image">The SVG image instance rendered by the brush.</param>
+    /// <param name="stretch">Optional stretch applied to the brush.</param>
+    /// <param name="alignmentX">Optional horizontal alignment applied to the brush.</param>
+    /// <param name="alignmentY">Optional vertical alignment applied to the brush.</param>
+    /// <param name="tileMode">Optional tile mode applied to the brush.</param>
+    /// <param name="destinationRect">Optional destination rectangle for the brush content.</param>
+    /// <param name="sourceRect">Optional source rectangle cropping the brush content.</param>
+    /// <param name="opacity">Optional opacity multiplier applied to the brush.</param>
+    /// <param name="transform">Optional transform applied to the brush.</param>
+    /// <param name="transformOrigin">Optional transform origin applied when <paramref name="transform"/> is set.</param>
+    /// <returns>A <see cref="VisualBrush"/> that renders <paramref name="image"/>.</returns>
+    internal static IBrush CreateFromImage(
+        IImage image,
+        Stretch? stretch = null,
+        AlignmentX? alignmentX = null,
+        AlignmentY? alignmentY = null,
+        TileMode? tileMode = null,
+        RelativeRect? destinationRect = null,
+        RelativeRect? sourceRect = null,
+        double? opacity = null,
+        Transform? transform = null,
+        RelativePoint? transformOrigin = null)
     {
-        return new VisualBrush
+        var brush = new VisualBrush
         {
             Visual = new Image
             {
                 Source = image
             }
         };
+
+        if (stretch.HasValue)
+        {
+            brush.Stretch = stretch.Value;
+        }
+
+        if (alignmentX.HasValue)
+        {
+            brush.AlignmentX = alignmentX.Value;
+        }
+
+        if (alignmentY.HasValue)
+        {
+            brush.AlignmentY = alignmentY.Value;
+        }
+
+        if (tileMode.HasValue)
+        {
+            brush.TileMode = tileMode.Value;
+        }
+
+        if (destinationRect.HasValue)
+        {
+            brush.DestinationRect = destinationRect.Value;
+        }
+
+        if (sourceRect.HasValue)
+        {
+            brush.SourceRect = sourceRect.Value;
+        }
+
+        if (opacity.HasValue)
+        {
+            brush.Opacity = opacity.Value;
+        }
+
+        if (transform is not null)
+        {
+            brush.Transform = transform;
+        }
+
+        if (transformOrigin.HasValue)
+        {
+            brush.TransformOrigin = transformOrigin.Value;
+        }
+
+        return brush;
     }
 
     /// <inheritdoc/>
@@ -69,7 +180,17 @@ public class SvgBrush : MarkupExtension
             CurrentCss = CurrentCss
         };
 
-        return CreateFromImage(image);
+        return CreateFromImage(
+            image,
+            Stretch,
+            AlignmentX,
+            AlignmentY,
+            TileMode,
+            DestinationRect,
+            SourceRect,
+            Opacity,
+            Transform,
+            TransformOrigin);
     }
 
     private static SvgParameters? CreateParameters(string? css, string? currentCss)
