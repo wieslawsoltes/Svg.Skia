@@ -11,11 +11,28 @@ namespace Avalonia.Svg;
 /// <summary>
 /// Provides an SVG-backed brush that can be declared in XAML resources.
 /// </summary>
-public class SvgBrush : MarkupExtension
+public class SvgResourceExtension : MarkupExtension
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SvgResourceExtension" /> class.
+    /// </summary>
+    public SvgResourceExtension()
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SvgResourceExtension" /> class, with the provided initial key.
+    /// </summary>
+    /// <param name="path">The path of the SVG resource that this markup extension references or file path.</param>
+    public SvgResourceExtension(string path)
+    {
+        Path = path;
+    }
+
     /// <summary>
     /// Gets or sets the SVG resource or file path.
     /// </summary>
+    [ConstructorArgument("path")]
     [Content]
     public string? Path { get; set; }
 
@@ -78,7 +95,7 @@ public class SvgBrush : MarkupExtension
     /// <param name="transform">Optional transform applied to the brush.</param>
     /// <param name="transformOrigin">Optional transform origin applied when <paramref name="transform"/> is set.</param>
     /// <returns>A <see cref="VisualBrush"/> that renders <paramref name="image"/>.</returns>
-    internal static IBrush CreateFromImage(
+    public static IBrush CreateFromImage(
         IImage image,
         Stretch? stretch = null,
         AlignmentX? alignmentX = null,
