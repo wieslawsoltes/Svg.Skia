@@ -301,6 +301,66 @@ public sealed class TextDrawable : DrawableBase
         skCanvas.Restore();
     }
 
+    private float DrawTextRuns(
+        SvgTextBase svgTextBase,
+        string text,
+        float anchorX,
+        float anchorY,
+        SKRect skBounds,
+        SKPaint skPaint,
+        SKCanvas skCanvas)
+    {
+        PaintingService.SetPaintText(svgTextBase, skBounds, skPaint);
+
+        var textAlign = skPaint.TextAlign;
+        var typefaceSpans = AssetLoader.FindTypefaces(text, skPaint);
+        if (typefaceSpans.Count == 0)
+        {
+            return 0f;
+        }
+
+        var totalAdvance = 0f;
+        foreach (var span in typefaceSpans)
+        {
+            totalAdvance += span.Advance;
+        }
+
+        var currentX = anchorX;
+        if (textAlign == SKTextAlign.Center)
+        {
+            currentX -= totalAdvance * 0.5f;
+        }
+        else if (textAlign == SKTextAlign.Right)
+        {
+            currentX -= totalAdvance;
+        }
+
+        skPaint.TextAlign = SKTextAlign.Left;
+
+        foreach (var typefaceSpan in typefaceSpans)
+        {
+            skPaint.Typeface = typefaceSpan.Typeface;
+#if USE_TEXT_SHAPER
+            if (skPaint.Typeface is { } typeface)
+            {
+                using var skShaper = new SKShaper(typeface);
+                skCanvas.DrawShapedText(skShaper, typefaceSpan.Text, currentX, anchorY, skPaint);
+            }
+            else
+            {
+                skCanvas.DrawText(typefaceSpan.Text, currentX, anchorY, skPaint);
+            }
+#else
+            skPaint.TextAlign = SKTextAlign.Left;
+            skCanvas.DrawText(typefaceSpan.Text, currentX, anchorY, skPaint);
+#endif
+            currentX += typefaceSpan.Advance;
+            skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
+        }
+
+        return totalAdvance;
+    }
+
     internal void DrawTextString(SvgTextBase svgTextBase, string text, ref float x, ref float y, SKRect skViewport, DrawAttributes ignoreAttributes, SKCanvas skCanvas, DrawableBase? until)
     {
         // Use element geometry for bounds so that paints relying on
@@ -311,26 +371,9 @@ public sealed class TextDrawable : DrawableBase
         if (PaintingService.IsValidFill(svgTextBase))
         {
             var skPaint = PaintingService.GetFillPaint(svgTextBase, skBounds, AssetLoader, References, ignoreAttributes);
-
             if (skPaint is { })
             {
-                PaintingService.SetPaintText(svgTextBase, skBounds, skPaint);
-
-                foreach (var typefaceSpan in AssetLoader.FindTypefaces(text, skPaint))
-                {
-                    skPaint.Typeface = typefaceSpan.Typeface;
-#if USE_TEXT_SHAPER
-                    if (skPaint.Typeface is { } typeface)
-                    {
-                        using var skShaper = new SKShaper(skPaint.Typeface);
-                        skCanvas.DrawShapedText(skShaper, typefaceSpan.text, x + fillAdvance, y, skPaint);
-                    }
-#else
-                    skCanvas.DrawText(typefaceSpan.Text, x + fillAdvance, y, skPaint);
-#endif
-                    skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
-                    fillAdvance += typefaceSpan.Advance;
-                }
+                fillAdvance = DrawTextRuns(svgTextBase, text, x, y, skBounds, skPaint, skCanvas);
             }
         }
 
@@ -341,23 +384,7 @@ public sealed class TextDrawable : DrawableBase
             var skPaint = PaintingService.GetStrokePaint(svgTextBase, skBounds, AssetLoader, References, ignoreAttributes);
             if (skPaint is { })
             {
-                PaintingService.SetPaintText(svgTextBase, skBounds, skPaint);
-
-                foreach (var typefaceSpan in AssetLoader.FindTypefaces(text, skPaint))
-                {
-                    skPaint.Typeface = typefaceSpan.Typeface;
-#if USE_TEXT_SHAPER
-                    if (skPaint.Typeface is { } typeface)
-                    {
-                        using var skShaper = new SKShaper(skPaint.Typeface);
-                        skCanvas.DrawShapedText(skShaper, typefaceSpan.text, x + strokeAdvance, y, skPaint);
-                    }
-#else
-                    skCanvas.DrawText(typefaceSpan.Text, x + strokeAdvance, y, skPaint);
-#endif
-                    skPaint = skPaint.Clone(); // Don't modify stored skPaint objects
-                    strokeAdvance += typefaceSpan.Advance;
-                }
+                strokeAdvance = DrawTextRuns(svgTextBase, text, x, y, skBounds, skPaint, skCanvas);
             }
         }
 
