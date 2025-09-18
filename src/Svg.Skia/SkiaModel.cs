@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+using System;
 using System.Collections.Generic;
 using ShimSkiaSharp;
 
@@ -7,6 +8,17 @@ namespace Svg.Skia;
 
 public class SkiaModel
 {
+    private static readonly char[] s_fontFamilyTrimChars = { '\'', '"' };
+
+    private static readonly Dictionary<string, string[]> s_genericFontFamilyMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["sans-serif"] = new[] { "sans-serif", "Helvetica Neue", "Helvetica", "Arial", "Roboto", "Segoe UI", "DejaVu Sans" },
+        ["serif"] = new[] { "serif", "Times New Roman", "Times", "Georgia", "Droid Serif", "DejaVu Serif" },
+        ["monospace"] = new[] { "monospace", "Courier New", "Courier", "Menlo", "Consolas", "Roboto Mono", "DejaVu Sans Mono" },
+        ["cursive"] = new[] { "cursive", "Snell Roundhand", "Comic Sans MS", "Apple Chancery" },
+        ["fantasy"] = new[] { "fantasy", "Impact", "Papyrus" }
+    };
+
     public SKSvgSettings Settings { get; }
 
     public SkiaModel(SKSvgSettings settings)
@@ -178,29 +190,114 @@ public class SkiaModel
         };
     }
 
+    private IEnumerable<string> EnumerateFontFamilyCandidates(string? fontFamily)
+    {
+        var yielded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        if (!string.IsNullOrWhiteSpace(fontFamily))
+        {
+            foreach (var rawFamily in fontFamily.Split(','))
+            {
+                var candidate = rawFamily.Trim();
+                if (candidate.Length == 0)
+                {
+                    continue;
+                }
+
+                candidate = candidate.Trim(s_fontFamilyTrimChars);
+                if (candidate.Length == 0 || !yielded.Add(candidate))
+                {
+                    continue;
+                }
+
+                yield return candidate;
+
+                if (s_genericFontFamilyMap.TryGetValue(candidate, out var mappedFamilies))
+                {
+                    foreach (var mapped in mappedFamilies)
+                    {
+                        if (yielded.Add(mapped))
+                        {
+                            yield return mapped;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (yielded.Count == 0 && s_genericFontFamilyMap.TryGetValue("sans-serif", out var fallbackFamilies))
+        {
+            foreach (var mapped in fallbackFamilies)
+            {
+                if (yielded.Add(mapped))
+                {
+                    yield return mapped;
+                }
+            }
+        }
+    }
+
+    private SkiaSharp.SKTypeface? ResolveTypeface(string candidate, SkiaSharp.SKFontStyle style)
+    {
+        if (string.IsNullOrEmpty(candidate))
+        {
+            return null;
+        }
+
+        var fontManager = SkiaSharp.SKFontManager.Default;
+        var matched = fontManager.MatchFamily(candidate, style);
+        if (matched is { })
+        {
+            return matched;
+        }
+
+        return SkiaSharp.SKTypeface.FromFamilyName(candidate, style.Weight, style.Width, style.Slant);
+    }
+
     public SkiaSharp.SKTypeface? ToSKTypeface(SKTypeface? typeface)
     {
-        if (typeface is null || typeface.FamilyName is null)
-            return SkiaSharp.SKTypeface.Default;
+        var fontFamily = typeface?.FamilyName;
+        var fontWeight = ToSKFontStyleWeight(typeface?.FontWeight ?? SKFontStyleWeight.Normal);
+        var fontWidth = ToSKFontStyleWidth(typeface?.FontWidth ?? SKFontStyleWidth.Normal);
+        var fontStyle = ToSKFontStyleSlant(typeface?.FontSlant ?? SKFontStyleSlant.Upright);
+        var style = new SkiaSharp.SKFontStyle(fontWeight, fontWidth, fontStyle);
 
-        var fontFamily = typeface.FamilyName;
-        var fontWeight = ToSKFontStyleWeight(typeface.FontWeight);
-        var fontWidth = ToSKFontStyleWidth(typeface.FontWidth);
-        var fontStyle = ToSKFontStyleSlant(typeface.FontSlant);
+        foreach (var candidate in EnumerateFontFamilyCandidates(fontFamily))
+        {
+            if (Settings.TypefaceProviders is { } && Settings.TypefaceProviders.Count > 0)
+            {
+                foreach (var typefaceProvider in Settings.TypefaceProviders)
+                {
+                    var providerTypeface = typefaceProvider.FromFamilyName(candidate, fontWeight, fontWidth, fontStyle);
+                    if (providerTypeface is { })
+                    {
+                        return providerTypeface;
+                    }
+                }
+            }
+
+            var resolved = ResolveTypeface(candidate, style);
+            if (resolved is { })
+            {
+                return resolved;
+            }
+        }
 
         if (Settings.TypefaceProviders is { } && Settings.TypefaceProviders.Count > 0)
         {
             foreach (var typefaceProvider in Settings.TypefaceProviders)
             {
-                var skTypeface = typefaceProvider.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
-                if (skTypeface is { })
+                var providerTypeface = typefaceProvider.FromFamilyName(SkiaSharp.SKTypeface.Default.FamilyName, fontWeight, fontWidth, fontStyle);
+                if (providerTypeface is { })
                 {
-                    return skTypeface;
+                    return providerTypeface;
                 }
             }
         }
 
-        return SkiaSharp.SKTypeface.FromFamilyName(fontFamily, fontWeight, fontWidth, fontStyle);
+        var defaultTypeface = SkiaSharp.SKTypeface.FromFamilyName(null, fontWeight, fontWidth, fontStyle);
+
+        return defaultTypeface ?? SkiaSharp.SKTypeface.Default;
     }
 
     public SkiaSharp.SKColor ToSKColor(SKColor color)
@@ -950,7 +1047,7 @@ public class SkiaModel
         var blendMode = ToSKBlendMode(paint.BlendMode);
         var filterQuality = ToSKFilterQuality(paint.FilterQuality);
 
-        return new SkiaSharp.SKPaint
+        var skPaint = new SkiaSharp.SKPaint
         {
             Style = style,
             IsAntialias = paint.IsAntialias,
@@ -972,6 +1069,24 @@ public class SkiaModel
             BlendMode = blendMode,
             FilterQuality = filterQuality
         };
+
+        ApplyTypefaceAdjustments(paint, skPaint);
+
+        return skPaint;
+    }
+
+    private void ApplyTypefaceAdjustments(ShimSkiaSharp.SKPaint sourcePaint, SkiaSharp.SKPaint targetPaint)
+    {
+        if (sourcePaint.Typeface is null || targetPaint.Typeface is null)
+        {
+            return;
+        }
+
+        var desiredWeight = (int)ToSKFontStyleWeight(sourcePaint.Typeface.FontWeight);
+        if (targetPaint.Typeface.FontWeight < desiredWeight)
+        {
+            targetPaint.FakeBoldText = true;
+        }
     }
 
     public SkiaSharp.SKClipOperation ToSKClipOperation(SKClipOperation clipOperation)
