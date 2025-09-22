@@ -48,6 +48,6 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" PrivateAssets="all" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
     <PackageVersion Include="Nuke.Common" Version="9.0.4" />
-    <PackageVersion Include="System.Runtime.Serialization.Formatters" Version="9.0.8" />
+    <PackageVersion Include="System.Runtime.Serialization.Formatters" Version="9.0.9" />
   </ItemGroup>
 </Project>
