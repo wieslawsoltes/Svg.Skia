@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>netstandard2.0;net6.0;net8.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <IsPackable>True</IsPackable>
+    <EnableDefaultItems>False</EnableDefaultItems>
+    <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Description>Lightweight SVG AST abstractions and parser helpers.</Description>
+    <PackageId>Svg.Ast</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>svg;ast;parser;xml</PackageTags>
+    <PackageDescription>Immutable SVG AST (parsing, diagnostics, emission)</PackageDescription>
+    <PackageReadmeFile>docs/SvgAst.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GuiLabs.Language.Xml" />
+    <PackageReference Include="System.Memory" />
+    <Compile Include="**\*.cs" Exclude="obj\**" />
+  </ItemGroup>
+
+</Project>

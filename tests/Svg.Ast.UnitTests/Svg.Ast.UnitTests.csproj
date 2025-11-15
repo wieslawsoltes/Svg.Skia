@@ -2,20 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-    <OutputType>Library</OutputType>
     <IsPackable>False</IsPackable>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <Import Project="..\..\build\XUnit.props" />
-  <Import Project="..\..\build\SixLabors.ImageSharp.props" />
-  <Import Project="..\..\build\SkiaSharp.v3.props" />
-  <Import Project="..\..\build\SkiaSharp.Native.v3.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Svg.Skia\Svg.Skia.csproj" />
-    <ProjectReference Include="..\..\src\Svg.Model\Svg.Model.csproj" />
     <ProjectReference Include="..\..\src\Svg.Ast\Svg.Ast.csproj" />
   </ItemGroup>
 

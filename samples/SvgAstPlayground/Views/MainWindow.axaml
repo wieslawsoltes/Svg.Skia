@@ -1,0 +1,195 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:SvgAstPlayground.ViewModels"
+        xmlns:avaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+        x:Class="SvgAstPlayground.MainWindow"
+        Width="1200"
+        Height="820"
+        MinWidth="900"
+        MinHeight="600"
+        Padding="0"
+        Title="SvgAst Playground"
+        mc:Ignorable="d">
+  <Design.DataContext>
+    <vm:MainViewModel />
+  </Design.DataContext>
+  <Grid RowDefinitions="Auto,*,2*">
+    <Border Grid.Row="0"
+            Background="#FFF5F5F5"
+            Padding="16">
+      <Grid ColumnDefinitions="Auto,Auto,*">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Content="Open SVG..."
+                  Padding="12,6"
+                  Click="OnOpenSvgClicked" />
+          <Button Content="Reset Sample"
+                  Padding="12,6"
+                  Click="OnResetSampleClicked" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" Margin="16,0,0,0">
+          <TextBlock Text="Auto render delay:" VerticalAlignment="Center" FontSize="12" />
+          <TextBlock Text="{Binding UpdateDelayDescription}"
+                     FontWeight="Bold"
+                     VerticalAlignment="Center"
+                     FontSize="12" />
+        </StackPanel>
+        <StackPanel Grid.Column="2"
+                    Orientation="Horizontal"
+                    Spacing="12"
+                    HorizontalAlignment="Right">
+          <TextBlock Text="{Binding SummaryText}"
+                     FontSize="13"
+                     FontWeight="SemiBold"
+                     VerticalAlignment="Center"
+                     TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Border Grid.Row="1"
+            Margin="16,8,16,8"
+            Padding="12"
+            BorderThickness="1"
+            CornerRadius="6"
+            BorderBrush="#FFD3D3D3"
+            Background="#FFFFFFFF">
+      <Grid RowDefinitions="Auto,*">
+        <TextBlock Text="SVG Source"
+                   FontSize="16"
+                   FontWeight="SemiBold"
+                   Margin="0,0,0,8" />
+        <avaloniaEdit:TextEditor x:Name="SourceEditor"
+                                 Grid.Row="1"
+                                 FontFamily="Consolas, Menlo, 'Courier New', monospace"
+                                 FontSize="14"
+                                 ShowLineNumbers="True"
+                                 Background="Transparent"
+                                 HorizontalScrollBarVisibility="Auto"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Margin="0"
+                                 BorderThickness="0" />
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="2"
+          Margin="16,0,16,16"
+          ColumnDefinitions="2*,6,1.4*,6,2.4*">
+      <Border Grid.Column="0"
+              Padding="12"
+              BorderThickness="1"
+              CornerRadius="6"
+              BorderBrush="#FFD3D3D3"
+              Background="#FFFFFFFF">
+        <Grid RowDefinitions="Auto,*">
+          <TextBlock Text="AST"
+                     FontSize="16"
+                     FontWeight="SemiBold"
+                     Margin="0,0,0,8" />
+          <TreeView x:Name="AstTree"
+                    Grid.Row="1"
+                    ItemsSource="{Binding AstNodes}"
+                    SelectionChanged="OnAstTreeSelectionChanged">
+            <TreeView.ItemTemplate>
+              <TreeDataTemplate DataType="vm:AstTreeNodeViewModel"
+                                ItemsSource="{Binding Children}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                  <TextBlock Text="{Binding Details}"
+                             Foreground="#666666"
+                             TextWrapping="Wrap"
+                             MaxWidth="340" />
+                </StackPanel>
+              </TreeDataTemplate>
+            </TreeView.ItemTemplate>
+          </TreeView>
+        </Grid>
+      </Border>
+
+      <GridSplitter Grid.Column="1"
+                    ResizeDirection="Columns"
+                    ResizeBehavior="PreviousAndNext"
+                    Width="6"
+                    HorizontalAlignment="Stretch"
+                    Background="#22000000" />
+
+      <Border Grid.Column="2"
+              Padding="12"
+              BorderThickness="1"
+              CornerRadius="6"
+              BorderBrush="#FFD3D3D3"
+              Background="#FFFFFFFF">
+        <Grid RowDefinitions="Auto,*">
+          <TextBlock Text="Diagnostics"
+                     FontSize="16"
+                     FontWeight="SemiBold"
+                     Margin="0,0,0,8" />
+          <DataGrid Grid.Row="1"
+                    ItemsSource="{Binding Diagnostics}"
+                    AutoGenerateColumns="False"
+                    CanUserReorderColumns="False"
+                    CanUserResizeColumns="True"
+                    CanUserSortColumns="False"
+                    HeadersVisibility="Column"
+                    GridLinesVisibility="All">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Stage"
+                                  Binding="{Binding Stage}"
+                                  Width="80" />
+              <DataGridTextColumn Header="Severity"
+                                  Binding="{Binding Severity}"
+                                  Width="80" />
+              <DataGridTextColumn Header="Code"
+                                  Binding="{Binding Code}"
+                                  Width="100" />
+              <DataGridTextColumn Header="Location"
+                                  Binding="{Binding Location}"
+                                  Width="100" />
+              <DataGridTextColumn Header="Message"
+                                  Binding="{Binding Message}"
+                                  Width="*" />
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </Border>
+
+      <GridSplitter Grid.Column="3"
+                    ResizeDirection="Columns"
+                    ResizeBehavior="PreviousAndNext"
+                    Width="6"
+                    HorizontalAlignment="Stretch"
+                    Background="#22000000" />
+
+      <Border Grid.Column="4"
+              Padding="12"
+              BorderThickness="1"
+              CornerRadius="6"
+              BorderBrush="#FFD3D3D3"
+              Background="#FFFFFFFF">
+        <Grid RowDefinitions="Auto,*">
+          <TextBlock Text="Render Preview"
+                     FontSize="16"
+                     FontWeight="SemiBold"
+                     Margin="0,0,0,8" />
+          <Grid Grid.Row="1">
+            <Viewbox Stretch="Uniform"
+                     StretchDirection="Both"
+                     HorizontalAlignment="Stretch"
+                     VerticalAlignment="Stretch"
+                     IsVisible="{Binding HasPreview}">
+              <Image Source="{Binding PreviewImage}"
+                     Stretch="Uniform" />
+            </Viewbox>
+            <TextBlock Text="No preview available"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       FontStyle="Italic"
+                       IsVisible="{Binding ShowPreviewPlaceholder}"
+                       Foreground="#666666" />
+          </Grid>
+        </Grid>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>

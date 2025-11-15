@@ -33,6 +33,17 @@ The `Svg.Skia` can be used in same way as the [SkiaSharp.Extended.Svg](https://g
 The `Svg` library has a more complete implementation of the `Svg` document model than [SkiaSharp.Extended.Svg](https://github.com/mono/SkiaSharp.Extended/tree/main/source/SkiaSharp.Extended.Svg)
 and the `Svg.Skia` renderer will provide more complete rendering subsystem implementation.
 
+## Svg.Ast (Experimental)
+
+The repository ships a lightweight SVG abstract syntax tree alongside the renderer:
+
+- Source lives under `src/Svg.Ast/`
+- Unit tests: `tests/Svg.Ast.UnitTests`
+- Benchmarks: `tests/Svg.Ast.Benchmarks`
+- Playground: `samples/SvgAstPlayground` (parse + optional rendering via `--png output.png`)
+
+Start with `docs/SvgAst.md` for an overview and sample code, see `docs/SvgAst-RFC.md` / `docs/SvgAst-Spec.md` for deeper design details, and consult `docs/SvgAst-Packaging.md` when preparing a NuGet release.
+
 ## NuGet
 
 Svg.Skia is delivered as a NuGet package.

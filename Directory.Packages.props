@@ -26,6 +26,7 @@
     <PackageVersion Include="SkiaSharp.NativeAssets.WebAssembly" Version="2.88.9" />
     <PackageVersion Include="SkiaSharp.HarfBuzz" Version="2.88.9" />
     <PackageVersion Include="HarfBuzzSharp.NativeAssets.Linux" Version="8.0.4" />
+    <PackageVersion Include="GuiLabs.Language.Xml" Version="1.2.93" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="System.Memory" Version="4.6.3" />
     <PackageVersion Include="System.Text.Json" Version="9.0.9" />
@@ -49,5 +50,6 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
     <PackageVersion Include="Nuke.Common" Version="9.0.4" />
     <PackageVersion Include="System.Runtime.Serialization.Formatters" Version="9.0.8" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
   </ItemGroup>
 </Project>

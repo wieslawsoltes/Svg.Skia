@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <Import Project="..\..\build\Avalonia.props" />
+  <Import Project="..\..\build\Avalonia.Themes.Fluent.props" />
+  <Import Project="..\..\build\Avalonia.Desktop.props" />
+  <Import Project="..\..\build\Avalonia.Diagnostics.props" />
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Controls.DataGrid" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Svg.Ast\Svg.Ast.csproj" />
+    <ProjectReference Include="..\..\src\Svg.Model\Svg.Model.csproj" />
+    <ProjectReference Include="..\..\src\Svg.Skia\Svg.Skia.csproj" />
+    <ProjectReference Include="/Users/wieslawsoltes/GitHub/AvaloniaEdit/src/AvaloniaEdit/AvaloniaEdit.csproj" />
+  </ItemGroup>
+</Project>
