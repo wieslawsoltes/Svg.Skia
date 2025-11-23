@@ -240,21 +240,26 @@ Install-Package Svg.Controls.Skia.Avalonia
 
 ### CSS styling
 
+> [!WARNING]  
+> For the SVG foreground color to work correctly, the SVG file must not contain any predefined colors, such as a fill attribute.
+Additionally, the SVG must use `<path />` elements.
+If either of these conditions is not met, the CSS foreground color will not be applied.
+
 ```XAML
 <Svg Path="/Assets/__tiger.svg" 
-     Css=".Black { fill: #FF0000; }"  />
+     Css="path { fill: #FF0000; }"  />
 ```
 
 ```XAML
 <Style Selector="Svg">
-  <Setter Property="(Svg.Css)" Value=".Black { fill: #FF0000; }" />
+  <Setter Property="(Svg.Css)" Value="path { fill: #FF0000; }" />
 </Style>
 ```
 
 ```XAML
 <SvgSource x:Key="TigerIcon"
            Path="/Assets/__tiger.svg"
-           Css=".Black { fill: #FF0000; }" />
+           Css="path { fill: #FF0000; }" />
 ```
 
 ```XAML
@@ -268,7 +273,7 @@ Install-Package Svg.Controls.Skia.Avalonia
 ```XAML
 <Image>
   <Image.Source>
-    <SvgImage Source="/Assets/__tiger.svg" Css=".Black { fill: #FF0000; }" />
+    <SvgImage Source="/Assets/__tiger.svg" Css="path { fill: #FF0000; }" />
   </Image.Source>
 </Image>
 ```
