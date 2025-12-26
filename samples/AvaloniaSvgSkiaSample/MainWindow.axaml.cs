@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Svg.Skia;
+using ShimSkiaSharp;
 using SS = Svg.Skia;
 
 namespace AvaloniaSvgSkiaSample;
@@ -37,6 +38,31 @@ public partial class MainWindow : Window
                <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" />
             </svg>
             """;
+        
+        var svgImage = svgCloningOriginal.Source as SvgImage;
+        var clone = new SvgImage { Source = svgImage?.Source?.Clone() };
+
+        foreach (var cmd in clone.Source?.Svg?.Model?.Commands?.OfType<DrawPathCanvasCommand>() ?? [])
+        {
+            var paint = cmd.Paint;
+            if (paint?.Color is not null)
+            {
+                paint.Color = ToGrayscale(paint.Color.Value);
+            }
+
+            if (paint?.Shader is ColorShader shader)
+            {
+                paint.Shader = SKShader.CreateColor(ToGrayscale(paint.Color.Value), shader.ColorSpace);
+            }
+        }
+
+        svgCloningClone.Source = clone;
+    }
+
+    private static SKColor ToGrayscale(SKColor color)
+    {
+        var luminance = (byte)(0.2126f * color.Red + 0.7152f * color.Green + 0.0722f * color.Blue);
+        return new SKColor(luminance, luminance, luminance, color.Alpha);
     }
 
     public void SvgSvgStretchChanged(object sender, SelectionChangedEventArgs e)

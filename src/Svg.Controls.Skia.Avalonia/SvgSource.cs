@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,10 +8,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using Avalonia.Metadata;
+using Avalonia.Platform;
 using SkiaSharp;
 using Svg;
 using Svg.Model;
-using Svg.Model.Services;
 using Svg.Skia;
 
 namespace Avalonia.Svg.Skia;
@@ -32,6 +33,8 @@ public sealed class SvgSource : IDisposable
     private SvgParameters? _originalParameters;
     private string? _originalPath;
     private Stream? _originalStream;
+    private string? _originalSvg;
+    private SvgDocument? _originalDocument;
 
     [Content]
     public string? Path { get; init; }
@@ -95,6 +98,8 @@ public sealed class SvgSource : IDisposable
             _originalPath = null;
             _originalStream?.Dispose();
             _originalStream = null;
+            _originalSvg = null;
+            _originalDocument = null;
         }
     }
 
@@ -116,6 +121,8 @@ public sealed class SvgSource : IDisposable
         source._originalPath = path;
         source._originalStream?.Dispose();
         source._originalStream = null;
+        source._originalSvg = null;
+        source._originalDocument = null;
 
         if (path is null)
         {
@@ -142,6 +149,8 @@ public sealed class SvgSource : IDisposable
 
         source._originalPath = null;
         source._originalParameters = parameters;
+        source._originalSvg = null;
+        source._originalDocument = null;
         source._originalStream.Position = 0;
 
         var skSvg = new SKSvg();
@@ -207,18 +216,13 @@ public sealed class SvgSource : IDisposable
         }
 
         var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
-        if (uri.IsAbsoluteUri && uri.IsFile)
+        if (uri is { IsAbsoluteUri: true, IsFile: true })
         {
             return Load(source, uri.LocalPath, parameters);
         }
         else
         {
-            var stream = Platform.AssetLoader.Open(uri, baseUri);
-            if (stream is null)
-            {
-                ThrowOnMissingResource(path);
-                return null;
-            }
+            var stream = AssetLoader.Open(uri, baseUri);
             return Load(source, stream, parameters);
         }
     }
@@ -230,7 +234,7 @@ public sealed class SvgSource : IDisposable
     /// <param name="baseUri">The base uri.</param>
     /// <param name="parameters">The svg parameters.</param>
     /// <returns>The svg source.</returns>
-    public static SvgSource Load(string path, Uri? baseUri = default, SvgParameters? parameters = null)
+    public static SvgSource Load(string path, Uri? baseUri = null, SvgParameters? parameters = null)
     {
         var source = new SvgSource(baseUri);
         source._picture = LoadImpl(source, path, baseUri, parameters);
@@ -245,6 +249,8 @@ public sealed class SvgSource : IDisposable
     public static SvgSource LoadFromSvg(string svg)
     {
         var source = new SvgSource(default(Uri));
+        source._originalSvg = svg;
+        source._originalDocument = null;
         source._picture = FromSvg(svg);
         // loading from SVG string does not store SKSvg instance
         lock (source.Sync)
@@ -275,12 +281,59 @@ public sealed class SvgSource : IDisposable
     public static SvgSource LoadFromSvgDocument(SvgDocument document)
     {
         var source = new SvgSource(default(Uri));
+        source._originalDocument = document;
+        source._originalSvg = null;
         source._picture = FromSvgDocument(document);
         lock (source.Sync)
         {
             source._skSvg = null;
         }
         return source;
+    }
+
+    public SvgSource Clone()
+    {
+        lock (Sync)
+        {
+            var clone = new SvgSource(_baseUri)
+            {
+                Path = Path,
+                Entities = Entities is null ? null : new Dictionary<string, string>(Entities),
+                Css = Css
+            };
+
+            clone._originalParameters = _originalParameters;
+            clone._originalSvg = _originalSvg;
+            clone._originalDocument = _originalDocument;
+
+            if (_originalStream is not null)
+            {
+                _originalStream.Position = 0;
+                clone._picture = Load(clone, _originalStream, _originalParameters);
+                return clone;
+            }
+
+            if (!string.IsNullOrEmpty(_originalPath))
+            {
+                clone._picture = LoadImpl(clone, _originalPath, _baseUri, _originalParameters);
+                return clone;
+            }
+
+            if (_originalSvg is not null)
+            {
+                clone._picture = FromSvg(_originalSvg);
+                return clone;
+            }
+
+            if (_originalDocument is not null)
+            {
+                clone._picture = FromSvgDocument(_originalDocument);
+                return clone;
+            }
+
+            clone._picture = _picture;
+            return clone;
+        }
     }
 
     public void ReLoad(SvgParameters? parameters)
@@ -292,15 +345,29 @@ public sealed class SvgSource : IDisposable
 
             _originalParameters = parameters;
 
-            if (_originalStream == null)
+            if (_originalStream != null)
+            {
+                _originalStream.Position = 0;
+                _picture = Load(this, _originalStream, parameters);
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(_originalPath))
             {
                 _picture = Load(this, _originalPath, parameters);
                 return;
             }
 
-            _originalStream.Position = 0;
+            if (_originalSvg != null)
+            {
+                _picture = FromSvg(_originalSvg);
+                return;
+            }
 
-            _picture = Load(this, _originalStream, parameters);
+            if (_originalDocument != null)
+            {
+                _picture = FromSvgDocument(_originalDocument);
+            }
         }
     }
 }

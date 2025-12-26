@@ -188,7 +188,20 @@
         <local:DrawControl Image="{SvgImage /Assets/__tiger.svg}" />
       </DockPanel>
     </TabItem>
-    
+
+    <TabItem Header="Cloning">
+      <DockPanel x:Name="svgCloningDockPanel" 
+                 Background="Transparent" 
+                 Margin="16" 
+                 VerticalAlignment="Stretch"
+                 HorizontalAlignment="Stretch">
+        <Grid ColumnDefinitions="*,*">
+          <Image Name="svgCloningOriginal" Source="{SvgImage /Assets/__tiger.svg}" />
+          <Image Grid.Column="1" Name="svgCloningClone" />
+        </Grid>
+      </DockPanel>
+    </TabItem>
+
   </TabControl>
 
 </Window>
