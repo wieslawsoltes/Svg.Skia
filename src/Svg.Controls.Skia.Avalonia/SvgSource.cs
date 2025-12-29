@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using Avalonia.Metadata;
+using Avalonia.Platform;
 using SkiaSharp;
 using Svg;
 using Svg.Model;
@@ -29,9 +31,6 @@ public sealed class SvgSource : IDisposable
 
     private readonly Uri? _baseUri;
     private SKPicture? _picture;
-    private SvgParameters? _originalParameters;
-    private string? _originalPath;
-    private Stream? _originalStream;
 
     [Content]
     public string? Path { get; init; }
@@ -51,21 +50,24 @@ public sealed class SvgSource : IDisposable
         }
     }
 
-    public SvgParameters? Parameters => _originalParameters;
+    public SvgParameters? Parameters => _skSvg?.Parameters;
 
     public SKPicture? Picture
     {
         get
         {
-            if (_picture is null && Path is not null)
+            lock (Sync)
             {
-                var entitiesCopy = Entities is null ? null : new Dictionary<string, string>(Entities);
-                _picture = LoadImpl(this, Path, _baseUri, new SvgParameters(entitiesCopy, Css));
-            }
+                if (_skSvg is null && Path is not null)
+                {
+                    var entitiesCopy = Entities is null ? null : new Dictionary<string, string>(Entities);
+                    LoadImpl(this, Path, _baseUri, new SvgParameters(entitiesCopy, Css));
+                }
 
-            return _picture;
+                return UpdatePictureFromModel();
+            }
         }
-        set => _picture = value;
+        private set => _picture = value;
     }
 
     /// <summary>
@@ -92,9 +94,8 @@ public sealed class SvgSource : IDisposable
         {
             _picture?.Dispose();
 
-            _originalPath = null;
-            _originalStream?.Dispose();
-            _originalStream = null;
+            _skSvg?.Dispose();
+            _skSvg = null;
         }
     }
 
@@ -111,14 +112,13 @@ public sealed class SvgSource : IDisposable
         s_assetLoader = new SkiaSvgAssetLoader(s_skiaModel);
     }
 
-    private static SKPicture? Load(SvgSource source, string? path, SvgParameters? parameters)
+    private static SKSvg? Load(SvgSource source, string? path, SvgParameters? parameters)
     {
-        source._originalPath = path;
-        source._originalStream?.Dispose();
-        source._originalStream = null;
-
         if (path is null)
         {
+            source._picture?.Dispose();
+            source._picture = null;
+            source._skSvg = null;
             return null;
         }
 
@@ -127,46 +127,39 @@ public sealed class SvgSource : IDisposable
         lock (source.Sync)
         {
             source._skSvg = skSvg;
+            source._picture?.Dispose();
+            source._picture = null;
         }
-        return skSvg.Picture;
+        return skSvg;
     }
 
-    private static SKPicture? Load(SvgSource source, Stream stream, SvgParameters? parameters = null)
+    private static SKSvg? Load(SvgSource source, Stream stream, SvgParameters? parameters = null)
     {
-        if (source._originalStream != stream)
-        {
-            source._originalStream?.Dispose();
-            source._originalStream = new MemoryStream();
-            stream.CopyTo(source._originalStream);
-        }
-
-        source._originalPath = null;
-        source._originalParameters = parameters;
-        source._originalStream.Position = 0;
-
         var skSvg = new SKSvg();
-        skSvg.Load(source._originalStream, parameters);
+        skSvg.Load(stream, parameters);
         lock (source.Sync)
         {
             source._skSvg = skSvg;
+            source._picture?.Dispose();
+            source._picture = null;
         }
-        return skSvg.Picture;
+        return skSvg;
     }
 
-    private static SKPicture? FromSvg(string svg)
+    private static SKSvg? FromSvg(string svg)
     {
         var skSvg = new SKSvg();
         skSvg.FromSvg(svg);
-        return skSvg.Picture;
+        return skSvg;
     }
 
-    private static SKPicture? FromSvgDocument(SvgDocument? svgDocument)
+    private static SKSvg? FromSvgDocument(SvgDocument? svgDocument)
     {
         if (svgDocument is { })
         {
             var skSvg = new SKSvg();
             skSvg.FromSvgDocument(svgDocument);
-            return skSvg.Picture;
+            return skSvg;
         }
         return null;
     }
@@ -178,7 +171,7 @@ public sealed class SvgSource : IDisposable
             : null;
     }
 
-    private static SKPicture? LoadImpl(SvgSource source, string path, Uri? baseUri, SvgParameters? parameters = null)
+    private static SKSvg? LoadImpl(SvgSource source, string path, Uri? baseUri, SvgParameters? parameters = null)
     {
         if (File.Exists(path))
         {
@@ -207,18 +200,13 @@ public sealed class SvgSource : IDisposable
         }
 
         var uri = path.StartsWith("/") ? new Uri(path, UriKind.Relative) : new Uri(path, UriKind.RelativeOrAbsolute);
-        if (uri.IsAbsoluteUri && uri.IsFile)
+        if (uri is { IsAbsoluteUri: true, IsFile: true })
         {
             return Load(source, uri.LocalPath, parameters);
         }
         else
         {
-            var stream = Platform.AssetLoader.Open(uri, baseUri);
-            if (stream is null)
-            {
-                ThrowOnMissingResource(path);
-                return null;
-            }
+            var stream = AssetLoader.Open(uri, baseUri);
             return Load(source, stream, parameters);
         }
     }
@@ -230,10 +218,10 @@ public sealed class SvgSource : IDisposable
     /// <param name="baseUri">The base uri.</param>
     /// <param name="parameters">The svg parameters.</param>
     /// <returns>The svg source.</returns>
-    public static SvgSource Load(string path, Uri? baseUri = default, SvgParameters? parameters = null)
+    public static SvgSource Load(string path, Uri? baseUri = null, SvgParameters? parameters = null)
     {
         var source = new SvgSource(baseUri);
-        source._picture = LoadImpl(source, path, baseUri, parameters);
+        LoadImpl(source, path, baseUri, parameters);
         return source;
     }
 
@@ -245,11 +233,10 @@ public sealed class SvgSource : IDisposable
     public static SvgSource LoadFromSvg(string svg)
     {
         var source = new SvgSource(default(Uri));
-        source._picture = FromSvg(svg);
-        // loading from SVG string does not store SKSvg instance
         lock (source.Sync)
         {
-            source._skSvg = null;
+            source._skSvg = FromSvg(svg);
+            source._picture = null;
         }
         return source;
     }
@@ -263,7 +250,7 @@ public sealed class SvgSource : IDisposable
     public static SvgSource LoadFromStream(Stream stream, SvgParameters? parameters = null)
     {
         var source = new SvgSource(default(Uri));
-        source._picture = Load(source, stream, parameters);
+        Load(source, stream, parameters);
         return source;
     }
 
@@ -275,32 +262,52 @@ public sealed class SvgSource : IDisposable
     public static SvgSource LoadFromSvgDocument(SvgDocument document)
     {
         var source = new SvgSource(default(Uri));
-        source._picture = FromSvgDocument(document);
         lock (source.Sync)
         {
-            source._skSvg = null;
+            source._skSvg = FromSvgDocument(document);
+            source._picture = null;
         }
         return source;
+    }
+
+    public SvgSource Clone()
+    {
+        lock (Sync)
+        {
+            var clone = new SvgSource(_baseUri)
+            {
+                Path = Path,
+                Entities = Entities is null ? null : new Dictionary<string, string>(Entities),
+                Css = Css
+            };
+
+            clone._skSvg = _skSvg;
+            clone._picture = null;
+            return clone;
+        }
     }
 
     public void ReLoad(SvgParameters? parameters)
     {
         lock (Sync)
         {
+            _ = parameters;
+            _picture?.Dispose();
             _picture = null;
-            _skSvg = null;
-
-            _originalParameters = parameters;
-
-            if (_originalStream == null)
-            {
-                _picture = Load(this, _originalPath, parameters);
-                return;
-            }
-
-            _originalStream.Position = 0;
-
-            _picture = Load(this, _originalStream, parameters);
+            UpdatePictureFromModel();
         }
+    }
+
+    private SKPicture? UpdatePictureFromModel()
+    {
+        if (_skSvg?.Model is null)
+        {
+            return _picture;
+        }
+
+        var newPicture = _skSvg.SkiaModel.ToSKPicture(_skSvg.Model);
+        _picture?.Dispose();
+        _picture = newPicture;
+        return _picture;
     }
 }
