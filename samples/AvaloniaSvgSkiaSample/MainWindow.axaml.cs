@@ -56,7 +56,9 @@ public partial class MainWindow : Window
             }
         }
 
+        clone.Source?.ReLoad(null);
         svgCloningClone.Source = clone;
+        svgCloningClone.InvalidateVisual();
     }
 
     private static SKColor ToGrayscale(SKColor color)
