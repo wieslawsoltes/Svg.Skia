@@ -1,5 +1,6 @@
-﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
+﻿// Copyright (c) Wiesław Šoltés, Stefan Koell. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,10 +8,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using Avalonia.Metadata;
+using Avalonia.Platform;
 using SkiaSharp;
 using Svg;
 using Svg.Model;
-using Svg.Model.Services;
 using Svg.Skia;
 
 namespace Avalonia.Svg.Skia;
@@ -153,19 +154,27 @@ public sealed class SvgSource : IDisposable
         return skSvg.Picture;
     }
 
-    private static SKPicture? FromSvg(string svg)
+    private static SKPicture? FromSvg(SvgSource source, string svg)
     {
         var skSvg = new SKSvg();
         skSvg.FromSvg(svg);
+        lock (source.Sync)
+        {
+            source._skSvg = skSvg;
+        }
         return skSvg.Picture;
     }
 
-    private static SKPicture? FromSvgDocument(SvgDocument? svgDocument)
+    private static SKPicture? FromSvgDocument(SvgSource source, SvgDocument? svgDocument)
     {
         if (svgDocument is { })
         {
             var skSvg = new SKSvg();
             skSvg.FromSvgDocument(svgDocument);
+            lock (source.Sync)
+            {
+                source._skSvg = skSvg;
+            }
             return skSvg.Picture;
         }
         return null;
@@ -213,7 +222,7 @@ public sealed class SvgSource : IDisposable
         }
         else
         {
-            var stream = Platform.AssetLoader.Open(uri, baseUri);
+            var stream = AssetLoader.Open(uri, baseUri);
             if (stream is null)
             {
                 ThrowOnMissingResource(path);
@@ -245,12 +254,7 @@ public sealed class SvgSource : IDisposable
     public static SvgSource LoadFromSvg(string svg)
     {
         var source = new SvgSource(default(Uri));
-        source._picture = FromSvg(svg);
-        // loading from SVG string does not store SKSvg instance
-        lock (source.Sync)
-        {
-            source._skSvg = null;
-        }
+        source._picture = FromSvg(source, svg);
         return source;
     }
 
@@ -275,14 +279,60 @@ public sealed class SvgSource : IDisposable
     public static SvgSource LoadFromSvgDocument(SvgDocument document)
     {
         var source = new SvgSource(default(Uri));
-        source._picture = FromSvgDocument(document);
-        lock (source.Sync)
-        {
-            source._skSvg = null;
-        }
+        source._picture = FromSvgDocument(source, document);
         return source;
     }
 
+    /// <summary>
+    /// Creates a new instance of the <see cref="SvgSource"/> class that is a copy of the current instance.
+    /// </summary>
+    /// <returns>A new <see cref="SvgSource"/> object that is a clone of this instance.</returns>
+    public SvgSource Clone()
+    {
+        lock (Sync)
+        {
+            var clone = new SvgSource(_baseUri)
+            {
+                Path = Path,
+                Entities = Entities is null ? null : new Dictionary<string, string>(Entities),
+                Css = Css
+            };
+
+            clone._originalParameters = _originalParameters;
+            clone._originalPath = _originalPath;
+            if (_originalStream is { })
+            {
+                clone._originalStream = new MemoryStream();
+                _originalStream.Position = 0;
+                _originalStream.CopyTo(clone._originalStream);
+            }
+
+            if (_skSvg is { })
+            {
+                var skSvgClone = _skSvg.Clone();
+                clone._skSvg = skSvgClone;
+            }
+
+            return clone;
+        }
+    }
+
+    /// <summary>
+    /// Rebuilds the <see cref="SvgSource"/> from its underlying model, refreshing its associated
+    /// <see cref="SkiaSharp.SKPicture"/> representation if the <see cref="SKSvg"/> instance exists.
+    /// </summary>
+    public void RebuildFromModel()
+    {
+        if (Svg is null) 
+            return;
+        Svg.Picture = Svg.SkiaModel.ToSKPicture(Svg.Model);
+        Picture = Svg.Picture;
+    }
+
+    /// <summary>
+    /// Reloads the SVG from the original source using the provided parameters. Modifications on the <see cref="SKSvg.SkiaModel" /> are lost.
+    /// </summary>
+    /// <param name="parameters">The optional parameters that define entities and CSS to apply when reloading the SVG source.</param>
     public void ReLoad(SvgParameters? parameters)
     {
         lock (Sync)
