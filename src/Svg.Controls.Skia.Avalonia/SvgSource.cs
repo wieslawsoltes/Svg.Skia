@@ -325,8 +325,11 @@ public sealed class SvgSource : IDisposable
     {
         if (Svg is null) 
             return;
-        Svg.Picture = Svg.SkiaModel.ToSKPicture(Svg.Model);
-        Picture = Svg.Picture;
+        lock (Sync)
+        {
+            Svg.Picture = Svg.SkiaModel.ToSKPicture(Svg.Model);
+            _picture = Svg.Picture;
+        }
     }
 
     /// <summary>
