@@ -9,13 +9,31 @@ public abstract record SKPathEffect : IDeepCloneable<SKPathEffect>
     public static SKPathEffect CreateDash(float[] intervals, float phase)
         => new DashPathEffect(intervals, phase);
 
-    public SKPathEffect DeepClone()
+    public SKPathEffect DeepClone() => DeepClone(new CloneContext());
+
+    internal SKPathEffect DeepClone(CloneContext context)
     {
-        return this switch
+        if (context.TryGet(this, out SKPathEffect existing))
         {
-            DashPathEffect dashPathEffect => new DashPathEffect(CloneHelpers.CloneArray(dashPathEffect.Intervals), dashPathEffect.Phase),
-            _ => throw new NotSupportedException($"Unsupported {nameof(SKPathEffect)} type: {GetType().Name}.")
-        };
+            return existing;
+        }
+
+        context.Enter(this);
+        try
+        {
+            var clone = this switch
+            {
+                DashPathEffect dashPathEffect => new DashPathEffect(CloneHelpers.CloneArray(dashPathEffect.Intervals, context), dashPathEffect.Phase),
+                _ => throw new NotSupportedException($"Unsupported {nameof(SKPathEffect)} type: {GetType().Name}.")
+            };
+
+            context.Add(this, clone);
+            return clone;
+        }
+        finally
+        {
+            context.Exit(this);
+        }
     }
 }
 

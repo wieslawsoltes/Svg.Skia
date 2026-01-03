@@ -20,17 +20,26 @@ public class SKImage : ICloneable, IDeepCloneable<SKImage>
         return memoryStream.ToArray();
     }
 
-    public SKImage Clone()
-    {
-        return new SKImage
-        {
-            Data = CloneHelpers.CloneArray(Data),
-            Width = Width,
-            Height = Height
-        };
-    }
+    public SKImage Clone() => DeepClone(new CloneContext());
 
     public SKImage DeepClone() => Clone();
 
     object ICloneable.Clone() => Clone();
+
+    internal SKImage DeepClone(CloneContext context)
+    {
+        if (context.TryGet(this, out SKImage existing))
+        {
+            return existing;
+        }
+
+        var clone = new SKImage();
+        context.Add(this, clone);
+
+        clone.Data = CloneHelpers.CloneArray(Data, context);
+        clone.Width = Width;
+        clone.Height = Height;
+
+        return clone;
+    }
 }

@@ -12,17 +12,26 @@ public class PathClip : ICloneable, IDeepCloneable<PathClip>
 
     public ClipPath? Clip { get; set; }
 
-    public PathClip Clone()
-    {
-        return new PathClip
-        {
-            Path = Path?.Clone(),
-            Transform = Transform,
-            Clip = Clip?.Clone()
-        };
-    }
+    public PathClip Clone() => DeepClone(new CloneContext());
 
     public PathClip DeepClone() => Clone();
 
     object ICloneable.Clone() => Clone();
+
+    internal PathClip DeepClone(CloneContext context)
+    {
+        if (context.TryGet(this, out PathClip existing))
+        {
+            return existing;
+        }
+
+        var clone = new PathClip();
+        context.Add(this, clone);
+
+        clone.Path = Path?.DeepClone(context);
+        clone.Transform = Transform;
+        clone.Clip = Clip?.DeepClone(context);
+
+        return clone;
+    }
 }

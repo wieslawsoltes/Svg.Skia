@@ -7,23 +7,41 @@ namespace ShimSkiaSharp;
 
 public abstract record PathCommand : IDeepCloneable<PathCommand>
 {
-    public PathCommand DeepClone()
+    public PathCommand DeepClone() => DeepClone(new CloneContext());
+
+    internal PathCommand DeepClone(CloneContext context)
     {
-        return this switch
+        if (context.TryGet(this, out PathCommand existing))
         {
-            AddCirclePathCommand addCirclePathCommand => new AddCirclePathCommand(addCirclePathCommand.X, addCirclePathCommand.Y, addCirclePathCommand.Radius),
-            AddOvalPathCommand addOvalPathCommand => new AddOvalPathCommand(addOvalPathCommand.Rect),
-            AddPolyPathCommand addPolyPathCommand => new AddPolyPathCommand(CloneHelpers.CloneList(addPolyPathCommand.Points), addPolyPathCommand.Close),
-            AddRectPathCommand addRectPathCommand => new AddRectPathCommand(addRectPathCommand.Rect),
-            AddRoundRectPathCommand addRoundRectPathCommand => new AddRoundRectPathCommand(addRoundRectPathCommand.Rect, addRoundRectPathCommand.Rx, addRoundRectPathCommand.Ry),
-            ArcToPathCommand arcToPathCommand => new ArcToPathCommand(arcToPathCommand.Rx, arcToPathCommand.Ry, arcToPathCommand.XAxisRotate, arcToPathCommand.LargeArc, arcToPathCommand.Sweep, arcToPathCommand.X, arcToPathCommand.Y),
-            ClosePathCommand => new ClosePathCommand(),
-            CubicToPathCommand cubicToPathCommand => new CubicToPathCommand(cubicToPathCommand.X0, cubicToPathCommand.Y0, cubicToPathCommand.X1, cubicToPathCommand.Y1, cubicToPathCommand.X2, cubicToPathCommand.Y2),
-            LineToPathCommand lineToPathCommand => new LineToPathCommand(lineToPathCommand.X, lineToPathCommand.Y),
-            MoveToPathCommand moveToPathCommand => new MoveToPathCommand(moveToPathCommand.X, moveToPathCommand.Y),
-            QuadToPathCommand quadToPathCommand => new QuadToPathCommand(quadToPathCommand.X0, quadToPathCommand.Y0, quadToPathCommand.X1, quadToPathCommand.Y1),
-            _ => throw new NotSupportedException($"Unsupported {nameof(PathCommand)} type: {GetType().Name}.")
-        };
+            return existing;
+        }
+
+        context.Enter(this);
+        try
+        {
+            PathCommand clone = this switch
+            {
+                AddCirclePathCommand addCirclePathCommand => new AddCirclePathCommand(addCirclePathCommand.X, addCirclePathCommand.Y, addCirclePathCommand.Radius),
+                AddOvalPathCommand addOvalPathCommand => new AddOvalPathCommand(addOvalPathCommand.Rect),
+                AddPolyPathCommand addPolyPathCommand => new AddPolyPathCommand(CloneHelpers.CloneList(addPolyPathCommand.Points, context), addPolyPathCommand.Close),
+                AddRectPathCommand addRectPathCommand => new AddRectPathCommand(addRectPathCommand.Rect),
+                AddRoundRectPathCommand addRoundRectPathCommand => new AddRoundRectPathCommand(addRoundRectPathCommand.Rect, addRoundRectPathCommand.Rx, addRoundRectPathCommand.Ry),
+                ArcToPathCommand arcToPathCommand => new ArcToPathCommand(arcToPathCommand.Rx, arcToPathCommand.Ry, arcToPathCommand.XAxisRotate, arcToPathCommand.LargeArc, arcToPathCommand.Sweep, arcToPathCommand.X, arcToPathCommand.Y),
+                ClosePathCommand => new ClosePathCommand(),
+                CubicToPathCommand cubicToPathCommand => new CubicToPathCommand(cubicToPathCommand.X0, cubicToPathCommand.Y0, cubicToPathCommand.X1, cubicToPathCommand.Y1, cubicToPathCommand.X2, cubicToPathCommand.Y2),
+                LineToPathCommand lineToPathCommand => new LineToPathCommand(lineToPathCommand.X, lineToPathCommand.Y),
+                MoveToPathCommand moveToPathCommand => new MoveToPathCommand(moveToPathCommand.X, moveToPathCommand.Y),
+                QuadToPathCommand quadToPathCommand => new QuadToPathCommand(quadToPathCommand.X0, quadToPathCommand.Y0, quadToPathCommand.X1, quadToPathCommand.Y1),
+                _ => throw new NotSupportedException($"Unsupported {nameof(PathCommand)} type: {GetType().Name}.")
+            };
+
+            context.Add(this, clone);
+            return clone;
+        }
+        finally
+        {
+            context.Exit(this);
+        }
     }
 }
 
@@ -64,18 +82,27 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>
         Commands = new List<PathCommand>();
     }
 
-    public SKPath Clone()
-    {
-        return new SKPath
-        {
-            FillType = FillType,
-            Commands = CloneHelpers.CloneList(Commands, command => command.DeepClone())
-        };
-    }
+    public SKPath Clone() => DeepClone(new CloneContext());
 
     public SKPath DeepClone() => Clone();
 
     object ICloneable.Clone() => Clone();
+
+    internal SKPath DeepClone(CloneContext context)
+    {
+        if (context.TryGet(this, out SKPath existing))
+        {
+            return existing;
+        }
+
+        var clone = new SKPath();
+        context.Add(this, clone);
+
+        clone.FillType = FillType;
+        clone.Commands = CloneHelpers.CloneList(Commands, context, command => command.DeepClone(context));
+
+        return clone;
+    }
 
 
     private SKRect GetBounds()

@@ -30,18 +30,27 @@ public class SKTypeface : ICloneable, IDeepCloneable<SKTypeface>
         };
     }
 
-    public SKTypeface Clone()
-    {
-        return new SKTypeface
-        {
-            FamilyName = FamilyName,
-            FontWeight = FontWeight,
-            FontWidth = FontWidth,
-            FontSlant = FontSlant
-        };
-    }
+    public SKTypeface Clone() => DeepClone(new CloneContext());
 
     public SKTypeface DeepClone() => Clone();
 
     object ICloneable.Clone() => Clone();
+
+    internal SKTypeface DeepClone(CloneContext context)
+    {
+        if (context.TryGet(this, out SKTypeface existing))
+        {
+            return existing;
+        }
+
+        var clone = new SKTypeface();
+        context.Add(this, clone);
+
+        clone.FamilyName = FamilyName;
+        clone.FontWeight = FontWeight;
+        clone.FontWidth = FontWidth;
+        clone.FontSlant = FontSlant;
+
+        return clone;
+    }
 }

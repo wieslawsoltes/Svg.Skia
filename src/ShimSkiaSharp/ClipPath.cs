@@ -19,17 +19,26 @@ public class ClipPath : ICloneable, IDeepCloneable<ClipPath>
         Clips = new List<PathClip>();
     }
 
-    public ClipPath Clone()
-    {
-        return new ClipPath
-        {
-            Clips = CloneHelpers.CloneList(Clips, clip => clip.Clone()),
-            Transform = Transform,
-            Clip = Clip?.Clone()
-        };
-    }
+    public ClipPath Clone() => DeepClone(new CloneContext());
 
     public ClipPath DeepClone() => Clone();
 
     object ICloneable.Clone() => Clone();
+
+    internal ClipPath DeepClone(CloneContext context)
+    {
+        if (context.TryGet(this, out ClipPath existing))
+        {
+            return existing;
+        }
+
+        var clone = new ClipPath();
+        context.Add(this, clone);
+
+        clone.Clips = CloneHelpers.CloneList(Clips, context, clip => clip.DeepClone(context));
+        clone.Transform = Transform;
+        clone.Clip = Clip?.DeepClone(context);
+
+        return clone;
+    }
 }

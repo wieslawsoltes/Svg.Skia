@@ -18,16 +18,34 @@ public abstract record SKColorFilter : IDeepCloneable<SKColorFilter>
     public static SKColorFilter CreateLumaColor()
         => new LumaColorColorFilter();
 
-    public SKColorFilter DeepClone()
+    public SKColorFilter DeepClone() => DeepClone(new CloneContext());
+
+    internal SKColorFilter DeepClone(CloneContext context)
     {
-        return this switch
+        if (context.TryGet(this, out SKColorFilter existing))
         {
-            BlendModeColorFilter blendModeColorFilter => new BlendModeColorFilter(blendModeColorFilter.Color, blendModeColorFilter.Mode),
-            ColorMatrixColorFilter colorMatrixColorFilter => new ColorMatrixColorFilter(CloneHelpers.CloneArray(colorMatrixColorFilter.Matrix)),
-            LumaColorColorFilter => new LumaColorColorFilter(),
-            TableColorFilter tableColorFilter => new TableColorFilter(CloneHelpers.CloneArray(tableColorFilter.TableA), CloneHelpers.CloneArray(tableColorFilter.TableR), CloneHelpers.CloneArray(tableColorFilter.TableG), CloneHelpers.CloneArray(tableColorFilter.TableB)),
-            _ => throw new NotSupportedException($"Unsupported {nameof(SKColorFilter)} type: {GetType().Name}.")
-        };
+            return existing;
+        }
+
+        context.Enter(this);
+        try
+        {
+            SKColorFilter clone = this switch
+            {
+                BlendModeColorFilter blendModeColorFilter => new BlendModeColorFilter(blendModeColorFilter.Color, blendModeColorFilter.Mode),
+                ColorMatrixColorFilter colorMatrixColorFilter => new ColorMatrixColorFilter(CloneHelpers.CloneArray(colorMatrixColorFilter.Matrix, context)),
+                LumaColorColorFilter => new LumaColorColorFilter(),
+                TableColorFilter tableColorFilter => new TableColorFilter(CloneHelpers.CloneArray(tableColorFilter.TableA, context), CloneHelpers.CloneArray(tableColorFilter.TableR, context), CloneHelpers.CloneArray(tableColorFilter.TableG, context), CloneHelpers.CloneArray(tableColorFilter.TableB, context)),
+                _ => throw new NotSupportedException($"Unsupported {nameof(SKColorFilter)} type: {GetType().Name}.")
+            };
+
+            context.Add(this, clone);
+            return clone;
+        }
+        finally
+        {
+            context.Exit(this);
+        }
     }
 }
 

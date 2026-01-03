@@ -16,16 +16,25 @@ public sealed class SKTextBlob : ICloneable, IDeepCloneable<SKTextBlob>
     public static SKTextBlob CreatePositioned(string? text, SKPoint[]? points)
         => new() { Text = text, Points = points };
 
-    public SKTextBlob Clone()
-    {
-        return new SKTextBlob
-        {
-            Text = Text,
-            Points = CloneHelpers.CloneArray(Points)
-        };
-    }
+    public SKTextBlob Clone() => DeepClone(new CloneContext());
 
     public SKTextBlob DeepClone() => Clone();
 
     object ICloneable.Clone() => Clone();
+
+    internal SKTextBlob DeepClone(CloneContext context)
+    {
+        if (context.TryGet(this, out SKTextBlob existing))
+        {
+            return existing;
+        }
+
+        var clone = new SKTextBlob();
+        context.Add(this, clone);
+
+        clone.Text = Text;
+        clone.Points = CloneHelpers.CloneArray(Points, context);
+
+        return clone;
+    }
 }

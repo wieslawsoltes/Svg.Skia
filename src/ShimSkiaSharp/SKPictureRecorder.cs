@@ -30,16 +30,25 @@ public sealed class SKPictureRecorder : ICloneable, IDeepCloneable<SKPictureReco
         return picture;
     }
 
-    public SKPictureRecorder Clone()
-    {
-        return new SKPictureRecorder
-        {
-            CullRect = CullRect,
-            RecordingCanvas = RecordingCanvas?.Clone()
-        };
-    }
+    public SKPictureRecorder Clone() => DeepClone(new CloneContext());
 
     public SKPictureRecorder DeepClone() => Clone();
 
     object ICloneable.Clone() => Clone();
+
+    internal SKPictureRecorder DeepClone(CloneContext context)
+    {
+        if (context.TryGet(this, out SKPictureRecorder existing))
+        {
+            return existing;
+        }
+
+        var clone = new SKPictureRecorder();
+        context.Add(this, clone);
+
+        clone.CullRect = CullRect;
+        clone.RecordingCanvas = RecordingCanvas?.DeepClone(context);
+
+        return clone;
+    }
 }

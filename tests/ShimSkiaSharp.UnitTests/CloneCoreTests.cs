@@ -109,6 +109,52 @@ public class CloneCoreTests
     }
 
     [Fact]
+    public void SKCanvas_DeepClone_PreservesSharedPathAndPaint()
+    {
+        var recorder = new SKPictureRecorder();
+        var canvas = recorder.BeginRecording(SKRect.Create(0, 0, 10, 10));
+        var path = CloneTestData.CreatePath();
+        var paint = CloneTestData.CreatePaint();
+
+        canvas.DrawPath(path, paint);
+        canvas.DrawPath(path, paint);
+
+        var clone = canvas.DeepClone();
+
+        var first = Assert.IsType<DrawPathCanvasCommand>(clone.Commands![0]);
+        var second = Assert.IsType<DrawPathCanvasCommand>(clone.Commands![1]);
+
+        Assert.Same(first.Path, second.Path);
+        Assert.Same(first.Paint, second.Paint);
+        Assert.NotSame(path, first.Path);
+        Assert.NotSame(paint, first.Paint);
+    }
+
+    [Fact]
+    public void SKCanvas_DeepClone_PreservesSharedShaderAcrossPaints()
+    {
+        var recorder = new SKPictureRecorder();
+        var canvas = recorder.BeginRecording(SKRect.Create(0, 0, 10, 10));
+        var shader = SKShader.CreateColor(new SKColor(1, 2, 3, 4), SKColorSpace.Srgb);
+        var paintA = CloneTestData.CreatePaint();
+        var paintB = CloneTestData.CreatePaint();
+        paintA.Shader = shader;
+        paintB.Shader = shader;
+
+        canvas.DrawPath(CloneTestData.CreatePath(), paintA);
+        canvas.DrawPath(CloneTestData.CreatePath(), paintB);
+
+        var clone = canvas.DeepClone();
+
+        var first = Assert.IsType<DrawPathCanvasCommand>(clone.Commands![0]);
+        var second = Assert.IsType<DrawPathCanvasCommand>(clone.Commands![1]);
+
+        Assert.NotSame(first.Paint, second.Paint);
+        Assert.NotSame(shader, first.Paint!.Shader);
+        Assert.Same(first.Paint.Shader, second.Paint!.Shader);
+    }
+
+    [Fact]
     public void SKPictureRecorder_Clone_DeepClone_CopiesRecordingCanvas()
     {
         var recorder = CloneTestData.CreateRecorderWithCommand();

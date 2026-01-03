@@ -46,34 +46,43 @@ public sealed class SKPaint : ICloneable, IDeepCloneable<SKPaint>
 
     public SKFilterQuality FilterQuality { get; set; } = SKFilterQuality.None;
 
-    public SKPaint Clone()
-    {
-        return new SKPaint
-        {
-            Style = Style,
-            IsAntialias = IsAntialias,
-            IsDither = IsDither,
-            StrokeWidth = StrokeWidth,
-            StrokeCap = StrokeCap,
-            StrokeJoin = StrokeJoin,
-            StrokeMiter = StrokeMiter,
-            Typeface = Typeface?.Clone(),
-            TextSize = TextSize,
-            TextAlign = TextAlign,
-            LcdRenderText = LcdRenderText,
-            SubpixelText = SubpixelText,
-            TextEncoding = TextEncoding,
-            Color = Color,
-            Shader = Shader?.DeepClone(),
-            ColorFilter = ColorFilter?.DeepClone(),
-            ImageFilter = ImageFilter?.DeepClone(),
-            PathEffect = PathEffect?.DeepClone(),
-            BlendMode = BlendMode,
-            FilterQuality = FilterQuality
-        };
-    }
+    public SKPaint Clone() => DeepClone(new CloneContext());
 
     public SKPaint DeepClone() => Clone();
 
     object ICloneable.Clone() => Clone();
+
+    internal SKPaint DeepClone(CloneContext context)
+    {
+        if (context.TryGet(this, out SKPaint existing))
+        {
+            return existing;
+        }
+
+        var clone = new SKPaint();
+        context.Add(this, clone);
+
+        clone.Style = Style;
+        clone.IsAntialias = IsAntialias;
+        clone.IsDither = IsDither;
+        clone.StrokeWidth = StrokeWidth;
+        clone.StrokeCap = StrokeCap;
+        clone.StrokeJoin = StrokeJoin;
+        clone.StrokeMiter = StrokeMiter;
+        clone.Typeface = Typeface?.DeepClone(context);
+        clone.TextSize = TextSize;
+        clone.TextAlign = TextAlign;
+        clone.LcdRenderText = LcdRenderText;
+        clone.SubpixelText = SubpixelText;
+        clone.TextEncoding = TextEncoding;
+        clone.Color = Color;
+        clone.Shader = Shader?.DeepClone(context);
+        clone.ColorFilter = ColorFilter?.DeepClone(context);
+        clone.ImageFilter = ImageFilter?.DeepClone(context);
+        clone.PathEffect = PathEffect?.DeepClone(context);
+        clone.BlendMode = BlendMode;
+        clone.FilterQuality = FilterQuality;
+
+        return clone;
+    }
 }
