@@ -100,4 +100,12 @@ public sealed class SwitchDrawable : DrawableBase
 
         FirstChild?.PostProcess(viewport, TotalTransform);
     }
+
+    public override SKDrawable Clone()
+    {
+        var clone = new SwitchDrawable(AssetLoader, CloneReferences(References));
+        CopyTo(clone, Parent);
+        clone.FirstChild = CloneDrawableWithParent(FirstChild, this, clone);
+        return clone;
+    }
 }

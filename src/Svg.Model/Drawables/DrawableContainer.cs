@@ -17,6 +17,21 @@ public abstract class DrawableContainer : DrawableBase
         ChildrenDrawables = new List<DrawableBase>();
     }
 
+    protected void CopyTo(DrawableContainer target, DrawableBase? parent)
+    {
+        base.CopyTo(target, parent);
+
+        foreach (var child in ChildrenDrawables)
+        {
+            var childClone = (DrawableBase)child.DeepClone();
+            if (child.Parent == this)
+            {
+                childClone.Parent = target;
+            }
+            target.ChildrenDrawables.Add(childClone);
+        }
+    }
+
     protected void CreateChildren(SvgElement svgElement, SKRect skViewport, DrawableBase? parent, ISvgAssetLoader assetLoader, HashSet<Uri>? references, DrawAttributes ignoreAttributes)
     {
         foreach (var child in svgElement.Children)

@@ -81,4 +81,11 @@ public sealed class AnchorDrawable : DrawableContainer
             child.PostProcess(viewport, TotalTransform);
         }
     }
+
+    public override SKDrawable Clone()
+    {
+        var clone = new AnchorDrawable(AssetLoader, CloneReferences(References));
+        CopyTo(clone, Parent);
+        return clone;
+    }
 }

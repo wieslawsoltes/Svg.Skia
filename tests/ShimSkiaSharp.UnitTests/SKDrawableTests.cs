@@ -14,6 +14,9 @@ public class SKDrawableTests
             canvas.Save();
         }
         protected override SKRect OnGetBounds() => SKRect.Create(1, 2, 3, 4);
+
+        public override SKDrawable Clone()
+            => new TestDrawable();
     }
 
     [Fact]

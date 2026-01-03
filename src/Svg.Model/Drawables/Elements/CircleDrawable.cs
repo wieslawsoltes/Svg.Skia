@@ -81,4 +81,11 @@ public sealed class CircleDrawable : DrawablePath
             IsDrawable = false;
         }
     }
+
+    public override SKDrawable Clone()
+    {
+        var clone = new CircleDrawable(AssetLoader, CloneReferences(References));
+        CopyTo(clone, Parent);
+        return clone;
+    }
 }

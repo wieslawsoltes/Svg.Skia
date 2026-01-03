@@ -1,20 +1,20 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using ShimSkiaSharp;
+using Svg.Model.Drawables;
 using Xunit;
 
-namespace ShimSkiaSharp.UnitTests;
+namespace Svg.Model.UnitTests;
 
 public class CloneCoverageTests
 {
     [Fact]
-    public void AllEligibleTypesSupportCloneOrDeepClone()
+    public void AllDrawableTypesSupportCloneOrDeepClone()
     {
-        var types = typeof(SKPaint).Assembly
-            .GetExportedTypes()
-            .Where(type => type.Namespace == nameof(ShimSkiaSharp))
-            .Where(type => type.IsClass);
+        var types = typeof(DrawableBase).Assembly
+            .GetTypes()
+            .Where(type => typeof(SKDrawable).IsAssignableFrom(type))
+            .Where(type => type.IsClass && !type.IsAbstract);
 
         var missing = types
             .Where(type => !SupportsClone(type))

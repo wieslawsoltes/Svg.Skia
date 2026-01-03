@@ -84,4 +84,11 @@ public sealed class PolygonDrawable : DrawablePath
 
         MarkerService.CreateMarkers(svgPolygon, Path, skViewport, this, AssetLoader, references);
     }
+
+    public override SKDrawable Clone()
+    {
+        var clone = new PolygonDrawable(AssetLoader, CloneReferences(References));
+        CopyTo(clone, Parent);
+        return clone;
+    }
 }
