@@ -1,11 +1,50 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace ShimSkiaSharp;
 
-public abstract record CanvasCommand;
+public abstract record CanvasCommand : IDeepCloneable<CanvasCommand>
+{
+    public CanvasCommand DeepClone() => DeepClone(new CloneContext());
+
+    internal CanvasCommand DeepClone(CloneContext context)
+    {
+        if (context.TryGet(this, out CanvasCommand existing))
+        {
+            return existing;
+        }
+
+        context.Enter(this);
+        try
+        {
+            CanvasCommand clone = this switch
+            {
+                ClipPathCanvasCommand clipPathCanvasCommand => new ClipPathCanvasCommand(clipPathCanvasCommand.ClipPath?.DeepClone(context), clipPathCanvasCommand.Operation, clipPathCanvasCommand.Antialias),
+                ClipRectCanvasCommand clipRectCanvasCommand => new ClipRectCanvasCommand(clipRectCanvasCommand.Rect, clipRectCanvasCommand.Operation, clipRectCanvasCommand.Antialias),
+                DrawImageCanvasCommand drawImageCanvasCommand => new DrawImageCanvasCommand(drawImageCanvasCommand.Image?.DeepClone(context), drawImageCanvasCommand.Source, drawImageCanvasCommand.Dest, drawImageCanvasCommand.Paint?.DeepClone(context)),
+                DrawPathCanvasCommand drawPathCanvasCommand => new DrawPathCanvasCommand(drawPathCanvasCommand.Path?.DeepClone(context), drawPathCanvasCommand.Paint?.DeepClone(context)),
+                DrawTextBlobCanvasCommand drawTextBlobCanvasCommand => new DrawTextBlobCanvasCommand(drawTextBlobCanvasCommand.TextBlob?.DeepClone(context), drawTextBlobCanvasCommand.X, drawTextBlobCanvasCommand.Y, drawTextBlobCanvasCommand.Paint?.DeepClone(context)),
+                DrawTextCanvasCommand drawTextCanvasCommand => new DrawTextCanvasCommand(drawTextCanvasCommand.Text, drawTextCanvasCommand.X, drawTextCanvasCommand.Y, drawTextCanvasCommand.Paint?.DeepClone(context)),
+                DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand => new DrawTextOnPathCanvasCommand(drawTextOnPathCanvasCommand.Text, drawTextOnPathCanvasCommand.Path?.DeepClone(context), drawTextOnPathCanvasCommand.HOffset, drawTextOnPathCanvasCommand.VOffset, drawTextOnPathCanvasCommand.Paint?.DeepClone(context)),
+                RestoreCanvasCommand restoreCanvasCommand => new RestoreCanvasCommand(restoreCanvasCommand.Count),
+                SaveCanvasCommand saveCanvasCommand => new SaveCanvasCommand(saveCanvasCommand.Count),
+                SaveLayerCanvasCommand saveLayerCanvasCommand => new SaveLayerCanvasCommand(saveLayerCanvasCommand.Count, saveLayerCanvasCommand.Paint?.DeepClone(context)),
+                SetMatrixCanvasCommand setMatrixCanvasCommand => new SetMatrixCanvasCommand(setMatrixCanvasCommand.DeltaMatrix, setMatrixCanvasCommand.TotalMatrix),
+                _ => throw new NotSupportedException($"Unsupported {nameof(CanvasCommand)} type: {GetType().Name}.")
+            };
+
+            context.Add(this, clone);
+            return clone;
+        }
+        finally
+        {
+            context.Exit(this);
+        }
+    }
+}
 
 public record ClipPathCanvasCommand(ClipPath? ClipPath, SKClipOperation Operation, bool Antialias) : CanvasCommand;
 
@@ -29,7 +68,7 @@ public record SaveLayerCanvasCommand(int Count, SKPaint? Paint = null) : CanvasC
 
 public record SetMatrixCanvasCommand(SKMatrix DeltaMatrix, SKMatrix TotalMatrix) : CanvasCommand;
 
-public class SKCanvas
+public class SKCanvas : ICloneable, IDeepCloneable<SKCanvas>
 {
     private int _saveCount;
     private readonly Stack<SKMatrix> _totalMatrices = new();
@@ -42,6 +81,41 @@ public class SKCanvas
     {
         Commands = commands;
         TotalMatrix = totalMatrix;
+    }
+
+    public SKCanvas Clone() => DeepClone(new CloneContext());
+
+    public SKCanvas DeepClone() => Clone();
+
+    object ICloneable.Clone() => Clone();
+
+    internal SKCanvas DeepClone(CloneContext context)
+    {
+        if (context.TryGet(this, out SKCanvas existing))
+        {
+            return existing;
+        }
+
+        var commands = Commands is null
+            ? new List<CanvasCommand>()
+            : CloneHelpers.CloneList(Commands, context, command => command.DeepClone(context)) ?? new List<CanvasCommand>();
+
+        var clone = new SKCanvas(commands, TotalMatrix)
+        {
+            _saveCount = _saveCount
+        };
+        context.Add(this, clone);
+
+        if (_totalMatrices.Count > 0)
+        {
+            var matrices = _totalMatrices.ToArray();
+            for (var i = matrices.Length - 1; i >= 0; i--)
+            {
+                clone._totalMatrices.Push(matrices[i]);
+            }
+        }
+
+        return clone;
     }
 
     public void ClipPath(ClipPath clipPath, SKClipOperation operation = SKClipOperation.Intersect, bool antialias = false)

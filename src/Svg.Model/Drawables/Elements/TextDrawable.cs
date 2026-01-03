@@ -729,4 +729,14 @@ public sealed class TextDrawable : DrawableBase
     {
         base.PostProcess(viewport, totalMatrix);
     }
+
+    public override SKDrawable Clone()
+    {
+        var clone = new TextDrawable(AssetLoader, CloneReferences(References));
+        CopyTo(clone, Parent);
+        clone.Text = Text;
+        clone.OwnerBounds = OwnerBounds;
+        clone.Path = Path?.DeepClone();
+        return clone;
+    }
 }

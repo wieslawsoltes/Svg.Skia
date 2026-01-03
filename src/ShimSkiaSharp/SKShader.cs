@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+using System;
+
 namespace ShimSkiaSharp;
 
-public abstract record SKShader
+public abstract record SKShader : IDeepCloneable<SKShader>
 {
     public static SKShader CreateColor(SKColor color, SKColorSpace colorSpace)
         => new ColorShader(color, colorSpace);
@@ -33,6 +35,39 @@ public abstract record SKShader
 
     public static SKShader CreateTwoPointConicalGradient(SKPoint start, float startRadius, SKPoint end, float endRadius, SKColorF[] colors, SKColorSpace colorSpace, float[] colorPos, SKShaderTileMode mode, SKMatrix localMatrix)
         => new TwoPointConicalGradientShader(start, startRadius, end, endRadius, colors, colorSpace, colorPos, mode, localMatrix);
+
+    public SKShader DeepClone() => DeepClone(new CloneContext());
+
+    internal SKShader DeepClone(CloneContext context)
+    {
+        if (context.TryGet(this, out SKShader existing))
+        {
+            return existing;
+        }
+
+        context.Enter(this);
+        try
+        {
+            SKShader clone = this switch
+            {
+                ColorShader colorShader => new ColorShader(colorShader.Color, colorShader.ColorSpace),
+                LinearGradientShader linearGradientShader => new LinearGradientShader(linearGradientShader.Start, linearGradientShader.End, CloneHelpers.CloneArray(linearGradientShader.Colors, context), linearGradientShader.ColorSpace, CloneHelpers.CloneArray(linearGradientShader.ColorPos, context), linearGradientShader.Mode, linearGradientShader.LocalMatrix),
+                PerlinNoiseFractalNoiseShader perlinNoiseFractalNoiseShader => new PerlinNoiseFractalNoiseShader(perlinNoiseFractalNoiseShader.BaseFrequencyX, perlinNoiseFractalNoiseShader.BaseFrequencyY, perlinNoiseFractalNoiseShader.NumOctaves, perlinNoiseFractalNoiseShader.Seed, perlinNoiseFractalNoiseShader.TileSize),
+                PerlinNoiseTurbulenceShader perlinNoiseTurbulenceShader => new PerlinNoiseTurbulenceShader(perlinNoiseTurbulenceShader.BaseFrequencyX, perlinNoiseTurbulenceShader.BaseFrequencyY, perlinNoiseTurbulenceShader.NumOctaves, perlinNoiseTurbulenceShader.Seed, perlinNoiseTurbulenceShader.TileSize),
+                PictureShader pictureShader => new PictureShader(pictureShader.Src?.DeepClone(context), pictureShader.TmX, pictureShader.TmY, pictureShader.LocalMatrix, pictureShader.Tile),
+                RadialGradientShader radialGradientShader => new RadialGradientShader(radialGradientShader.Center, radialGradientShader.Radius, CloneHelpers.CloneArray(radialGradientShader.Colors, context), radialGradientShader.ColorSpace, CloneHelpers.CloneArray(radialGradientShader.ColorPos, context), radialGradientShader.Mode, radialGradientShader.LocalMatrix),
+                TwoPointConicalGradientShader twoPointConicalGradientShader => new TwoPointConicalGradientShader(twoPointConicalGradientShader.Start, twoPointConicalGradientShader.StartRadius, twoPointConicalGradientShader.End, twoPointConicalGradientShader.EndRadius, CloneHelpers.CloneArray(twoPointConicalGradientShader.Colors, context), twoPointConicalGradientShader.ColorSpace, CloneHelpers.CloneArray(twoPointConicalGradientShader.ColorPos, context), twoPointConicalGradientShader.Mode, twoPointConicalGradientShader.LocalMatrix),
+                _ => throw new NotSupportedException($"Unsupported {nameof(SKShader)} type: {GetType().Name}.")
+            };
+
+            context.Add(this, clone);
+            return clone;
+        }
+        finally
+        {
+            context.Exit(this);
+        }
+    }
 }
 
 public record ColorShader(SKColor Color, SKColorSpace ColorSpace) : SKShader;

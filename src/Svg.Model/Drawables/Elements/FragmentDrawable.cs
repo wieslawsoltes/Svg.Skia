@@ -147,4 +147,11 @@ public sealed class FragmentDrawable : DrawableContainer
             child.PostProcess(viewport, TotalTransform);
         }
     }
+
+    public override SKDrawable Clone()
+    {
+        var clone = new FragmentDrawable(AssetLoader, CloneReferences(References));
+        CopyTo(clone, Parent);
+        return clone;
+    }
 }

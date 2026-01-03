@@ -179,4 +179,18 @@ public sealed class ImageDrawable : DrawableBase
 
         FragmentDrawable?.PostProcess(viewport, TotalTransform);
     }
+
+    public override SKDrawable Clone()
+    {
+        var clone = new ImageDrawable(AssetLoader, CloneReferences(References));
+        CopyTo(clone, Parent);
+
+        clone.Image = Image?.DeepClone();
+        clone.FragmentDrawable = CloneDrawableWithParent(FragmentDrawable, this, clone);
+        clone.SrcRect = SrcRect;
+        clone.DestRect = DestRect;
+        clone.FragmentTransform = FragmentTransform;
+
+        return clone;
+    }
 }

@@ -81,4 +81,11 @@ public sealed class RectangleDrawable : DrawablePath
             IsDrawable = false;
         }
     }
+
+    public override SKDrawable Clone()
+    {
+        var clone = new RectangleDrawable(AssetLoader, CloneReferences(References));
+        CopyTo(clone, Parent);
+        return clone;
+    }
 }

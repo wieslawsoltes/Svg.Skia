@@ -168,4 +168,12 @@ public sealed class UseDrawable : DrawableBase
         // TODO: Fix PostProcess() using correct ReferencedElement Parent.
         ReferencedDrawable?.PostProcess(viewport, TotalTransform);
     }
+
+    public override SKDrawable Clone()
+    {
+        var clone = new UseDrawable(AssetLoader, CloneReferences(References));
+        CopyTo(clone, Parent);
+        clone.ReferencedDrawable = CloneDrawableWithParent(ReferencedDrawable, this, clone);
+        return clone;
+    }
 }

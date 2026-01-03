@@ -94,4 +94,11 @@ public sealed class SymbolDrawable : DrawableContainer
         Fill = null;
         Stroke = null;
     }
+
+    public override SKDrawable Clone()
+    {
+        var clone = new SymbolDrawable(AssetLoader, CloneReferences(References));
+        CopyTo(clone, Parent);
+        return clone;
+    }
 }

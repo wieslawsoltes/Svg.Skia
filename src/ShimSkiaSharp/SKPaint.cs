@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+using System;
+
 namespace ShimSkiaSharp;
 
-public sealed class SKPaint
+public sealed class SKPaint : ICloneable, IDeepCloneable<SKPaint>
 {
     public SKPaintStyle Style { get; set; } = SKPaintStyle.Fill;
 
@@ -44,29 +46,43 @@ public sealed class SKPaint
 
     public SKFilterQuality FilterQuality { get; set; } = SKFilterQuality.None;
 
-    public SKPaint Clone()
+    public SKPaint Clone() => DeepClone(new CloneContext());
+
+    public SKPaint DeepClone() => Clone();
+
+    object ICloneable.Clone() => Clone();
+
+    internal SKPaint DeepClone(CloneContext context)
     {
-        return new SKPaint
+        if (context.TryGet(this, out SKPaint existing))
         {
-            Style = Style,
-            IsAntialias = IsAntialias,
-            StrokeWidth = StrokeWidth,
-            StrokeCap = StrokeCap,
-            StrokeJoin = StrokeJoin,
-            StrokeMiter = StrokeMiter,
-            Typeface = Typeface,
-            TextSize = TextSize,
-            TextAlign = TextAlign,
-            LcdRenderText = LcdRenderText,
-            SubpixelText = SubpixelText,
-            TextEncoding = TextEncoding,
-            Color = Color,
-            Shader = Shader,
-            ColorFilter = ColorFilter,
-            ImageFilter = ImageFilter,
-            PathEffect = PathEffect,
-            BlendMode = BlendMode,
-            FilterQuality = FilterQuality
-        };
+            return existing;
+        }
+
+        var clone = new SKPaint();
+        context.Add(this, clone);
+
+        clone.Style = Style;
+        clone.IsAntialias = IsAntialias;
+        clone.IsDither = IsDither;
+        clone.StrokeWidth = StrokeWidth;
+        clone.StrokeCap = StrokeCap;
+        clone.StrokeJoin = StrokeJoin;
+        clone.StrokeMiter = StrokeMiter;
+        clone.Typeface = Typeface?.DeepClone(context);
+        clone.TextSize = TextSize;
+        clone.TextAlign = TextAlign;
+        clone.LcdRenderText = LcdRenderText;
+        clone.SubpixelText = SubpixelText;
+        clone.TextEncoding = TextEncoding;
+        clone.Color = Color;
+        clone.Shader = Shader?.DeepClone(context);
+        clone.ColorFilter = ColorFilter?.DeepClone(context);
+        clone.ImageFilter = ImageFilter?.DeepClone(context);
+        clone.PathEffect = PathEffect?.DeepClone(context);
+        clone.BlendMode = BlendMode;
+        clone.FilterQuality = FilterQuality;
+
+        return clone;
     }
 }

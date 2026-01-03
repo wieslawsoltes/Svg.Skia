@@ -127,4 +127,11 @@ public sealed class LineDrawable : DrawablePath
 
         return base.HitTest(point);
     }
+
+    public override SKDrawable Clone()
+    {
+        var clone = new LineDrawable(AssetLoader, CloneReferences(References));
+        CopyTo(clone, Parent);
+        return clone;
+    }
 }

@@ -177,4 +177,13 @@ public sealed class MarkerDrawable : DrawableBase
 
         MarkerElementDrawable?.PostProcess(viewport, TotalTransform);
     }
+
+    public override SKDrawable Clone()
+    {
+        var clone = new MarkerDrawable(AssetLoader, CloneReferences(References));
+        CopyTo(clone, Parent);
+        clone.MarkerElementDrawable = CloneDrawableWithParent(MarkerElementDrawable, this, clone);
+        clone.MarkerClipRect = MarkerClipRect;
+        return clone;
+    }
 }

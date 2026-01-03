@@ -16,6 +16,31 @@ public abstract class DrawablePath : DrawableBase, IMarkerHost
     {
     }
 
+    protected void CopyTo(DrawablePath target, DrawableBase? parent)
+    {
+        base.CopyTo(target, parent);
+
+        target.Path = Path?.DeepClone();
+
+        if (MarkerDrawables is { })
+        {
+            target.MarkerDrawables = new List<DrawableBase>(MarkerDrawables.Count);
+            foreach (var marker in MarkerDrawables)
+            {
+                var markerClone = (DrawableBase)marker.DeepClone();
+                if (marker.Parent == this)
+                {
+                    markerClone.Parent = target;
+                }
+                target.MarkerDrawables.Add(markerClone);
+            }
+        }
+        else
+        {
+            target.MarkerDrawables = null;
+        }
+    }
+
     void IMarkerHost.AddMarker(DrawableBase drawable)
     {
         MarkerDrawables ??= new List<DrawableBase>();

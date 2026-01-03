@@ -84,4 +84,11 @@ public sealed class PolylineDrawable : DrawablePath
 
         MarkerService.CreateMarkers(svgPolyline, Path, skViewport, this, AssetLoader, references);
     }
+
+    public override SKDrawable Clone()
+    {
+        var clone = new PolylineDrawable(AssetLoader, CloneReferences(References));
+        CopyTo(clone, Parent);
+        return clone;
+    }
 }

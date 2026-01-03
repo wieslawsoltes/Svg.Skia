@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+using System;
+
 namespace ShimSkiaSharp;
 
-public abstract class SKDrawable
+public abstract class SKDrawable : ICloneable, IDeepCloneable<SKDrawable>
 {
     public SKRect Bounds => OnGetBounds();
 
@@ -21,4 +23,10 @@ public abstract class SKDrawable
     }
 
     protected virtual SKRect OnGetBounds() => SKRect.Empty;
+
+    public abstract SKDrawable Clone();
+
+    public virtual SKDrawable DeepClone() => Clone();
+
+    object ICloneable.Clone() => Clone();
 }

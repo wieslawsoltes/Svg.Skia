@@ -76,4 +76,11 @@ public sealed class GroupDrawable : DrawableContainer
             Stroke = PaintingService.GetStrokePaint(svgGroup, GeometryBounds, AssetLoader, references, IgnoreAttributes);
         }
     }
+
+    public override SKDrawable Clone()
+    {
+        var clone = new GroupDrawable(AssetLoader, CloneReferences(References));
+        CopyTo(clone, Parent);
+        return clone;
+    }
 }

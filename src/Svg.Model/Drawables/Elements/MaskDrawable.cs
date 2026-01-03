@@ -112,4 +112,11 @@ public sealed class MaskDrawable : DrawableContainer
         TotalTransform = totalMatrix.PreConcat(Transform);
         TransformedBounds = TotalTransform.MapRect(GeometryBounds);
     }
+
+    public override SKDrawable Clone()
+    {
+        var clone = new MaskDrawable(AssetLoader, CloneReferences(References));
+        CopyTo(clone, Parent);
+        return clone;
+    }
 }

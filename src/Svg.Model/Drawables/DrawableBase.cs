@@ -41,6 +41,57 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
         References = references;
     }
 
+    protected static HashSet<Uri>? CloneReferences(HashSet<Uri>? references)
+    {
+        return references is null ? null : new HashSet<Uri>(references);
+    }
+
+    protected static T? CloneDrawable<T>(T? drawable) where T : DrawableBase
+    {
+        return drawable is null ? null : (T)drawable.DeepClone();
+    }
+
+    protected static T? CloneDrawableWithParent<T>(T? drawable, DrawableBase? originalParent, DrawableBase? newParent)
+        where T : DrawableBase
+    {
+        if (drawable is null)
+        {
+            return null;
+        }
+
+        var clone = (T)drawable.DeepClone();
+        if (drawable.Parent == originalParent)
+        {
+            clone.Parent = newParent;
+        }
+
+        return clone;
+    }
+
+    protected void CopyTo(DrawableBase target, DrawableBase? parent)
+    {
+        target.Element = Element;
+        target.Parent = parent;
+        target.IsDrawable = IsDrawable;
+        target.IgnoreAttributes = IgnoreAttributes;
+        target.IsAntialias = IsAntialias;
+        target.GeometryBounds = GeometryBounds;
+        target.TransformedBounds = TransformedBounds;
+        target.Transform = Transform;
+        target.TotalTransform = TotalTransform;
+        target.Overflow = Overflow;
+        target.Clip = Clip;
+        target.ClipPath = ClipPath?.DeepClone();
+        target.MaskDrawable = CloneDrawableWithParent(MaskDrawable, this, target);
+        target.Mask = Mask?.DeepClone();
+        target.MaskDstIn = MaskDstIn?.DeepClone();
+        target.Opacity = Opacity?.DeepClone();
+        target.Filter = Filter?.DeepClone();
+        target.FilterClip = FilterClip;
+        target.Fill = Fill?.DeepClone();
+        target.Stroke = Stroke?.DeepClone();
+    }
+
     protected override void OnDraw(SKCanvas canvas)
     {
         Draw(canvas, IgnoreAttributes, null, true);

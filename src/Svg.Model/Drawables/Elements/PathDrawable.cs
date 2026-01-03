@@ -84,4 +84,11 @@ public sealed class PathDrawable : DrawablePath
 
         MarkerService.CreateMarkers(svgPath, Path, skViewport, this, AssetLoader, references);
     }
+
+    public override SKDrawable Clone()
+    {
+        var clone = new PathDrawable(AssetLoader, CloneReferences(References));
+        CopyTo(clone, Parent);
+        return clone;
+    }
 }
