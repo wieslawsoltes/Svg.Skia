@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+using System;
+
 namespace ShimSkiaSharp;
 
-public abstract record SKColorFilter
+public abstract record SKColorFilter : IDeepCloneable<SKColorFilter>
 {
     public static SKColorFilter CreateColorMatrix(float[] matrix)
         => new ColorMatrixColorFilter(matrix);
@@ -15,6 +17,18 @@ public abstract record SKColorFilter
 
     public static SKColorFilter CreateLumaColor()
         => new LumaColorColorFilter();
+
+    public SKColorFilter DeepClone()
+    {
+        return this switch
+        {
+            BlendModeColorFilter blendModeColorFilter => new BlendModeColorFilter(blendModeColorFilter.Color, blendModeColorFilter.Mode),
+            ColorMatrixColorFilter colorMatrixColorFilter => new ColorMatrixColorFilter(CloneHelpers.CloneArray(colorMatrixColorFilter.Matrix)),
+            LumaColorColorFilter => new LumaColorColorFilter(),
+            TableColorFilter tableColorFilter => new TableColorFilter(CloneHelpers.CloneArray(tableColorFilter.TableA), CloneHelpers.CloneArray(tableColorFilter.TableR), CloneHelpers.CloneArray(tableColorFilter.TableG), CloneHelpers.CloneArray(tableColorFilter.TableB)),
+            _ => throw new NotSupportedException($"Unsupported {nameof(SKColorFilter)} type: {GetType().Name}.")
+        };
+    }
 }
 
 public record BlendModeColorFilter(SKColor Color, SKBlendMode Mode) : SKColorFilter;

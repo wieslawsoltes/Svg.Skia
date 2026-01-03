@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+using System;
+
 namespace ShimSkiaSharp;
 
-public class SKTypeface
+public class SKTypeface : ICloneable, IDeepCloneable<SKTypeface>
 {
     public string? FamilyName { get; private set; }
     public SKFontStyleWeight FontWeight { get; private set; }
@@ -27,4 +29,19 @@ public class SKTypeface
             FontSlant = slant
         };
     }
+
+    public SKTypeface Clone()
+    {
+        return new SKTypeface
+        {
+            FamilyName = FamilyName,
+            FontWeight = FontWeight,
+            FontWidth = FontWidth,
+            FontSlant = FontSlant
+        };
+    }
+
+    public SKTypeface DeepClone() => Clone();
+
+    object ICloneable.Clone() => Clone();
 }

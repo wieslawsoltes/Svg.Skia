@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+using System;
 using System.IO;
 
 namespace ShimSkiaSharp;
 
-public class SKImage
+public class SKImage : ICloneable, IDeepCloneable<SKImage>
 {
     public byte[]? Data { get; set; }
 
@@ -18,4 +19,18 @@ public class SKImage
         sourceStream.CopyTo(memoryStream);
         return memoryStream.ToArray();
     }
+
+    public SKImage Clone()
+    {
+        return new SKImage
+        {
+            Data = CloneHelpers.CloneArray(Data),
+            Width = Width,
+            Height = Height
+        };
+    }
+
+    public SKImage DeepClone() => Clone();
+
+    object ICloneable.Clone() => Clone();
 }

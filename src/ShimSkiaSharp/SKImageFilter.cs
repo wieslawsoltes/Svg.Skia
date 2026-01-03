@@ -4,7 +4,7 @@ using System;
 
 namespace ShimSkiaSharp;
 
-public abstract record SKImageFilter
+public abstract record SKImageFilter : IDeepCloneable<SKImageFilter>
 {
     public static SKImageFilter CreateArithmetic(float k1, float k2, float k3, float k4, bool enforcePMColor, SKImageFilter background, SKImageFilter? foreground = null, SKRect? cropRect = null)
         => new ArithmeticImageFilter(k1, k2, k3, k4, enforcePMColor, background, foreground, cropRect);
@@ -68,6 +68,35 @@ public abstract record SKImageFilter
 
     public static SKImageFilter CreateTile(SKRect src, SKRect dst, SKImageFilter? input)
         => new TileImageFilter(src, dst, input);
+
+    public SKImageFilter DeepClone()
+    {
+        return this switch
+        {
+            ArithmeticImageFilter arithmeticImageFilter => new ArithmeticImageFilter(arithmeticImageFilter.K1, arithmeticImageFilter.K2, arithmeticImageFilter.K3, arithmeticImageFilter.K4, arithmeticImageFilter.EforcePMColor, arithmeticImageFilter.Background?.DeepClone(), arithmeticImageFilter.Foreground?.DeepClone(), arithmeticImageFilter.Clip),
+            BlendModeImageFilter blendModeImageFilter => new BlendModeImageFilter(blendModeImageFilter.Mode, blendModeImageFilter.Background?.DeepClone(), blendModeImageFilter.Foreground?.DeepClone(), blendModeImageFilter.Clip),
+            BlurImageFilter blurImageFilter => new BlurImageFilter(blurImageFilter.SigmaX, blurImageFilter.SigmaY, blurImageFilter.Input?.DeepClone(), blurImageFilter.Clip),
+            ColorFilterImageFilter colorFilterImageFilter => new ColorFilterImageFilter(colorFilterImageFilter.ColorFilter?.DeepClone(), colorFilterImageFilter.Input?.DeepClone(), colorFilterImageFilter.Clip),
+            DilateImageFilter dilateImageFilter => new DilateImageFilter(dilateImageFilter.RadiusX, dilateImageFilter.RadiusY, dilateImageFilter.Input?.DeepClone(), dilateImageFilter.Clip),
+            DisplacementMapEffectImageFilter displacementMapEffectImageFilter => new DisplacementMapEffectImageFilter(displacementMapEffectImageFilter.XChannelSelector, displacementMapEffectImageFilter.YChannelSelector, displacementMapEffectImageFilter.Scale, displacementMapEffectImageFilter.Displacement?.DeepClone(), displacementMapEffectImageFilter.Input?.DeepClone(), displacementMapEffectImageFilter.Clip),
+            DistantLitDiffuseImageFilter distantLitDiffuseImageFilter => new DistantLitDiffuseImageFilter(distantLitDiffuseImageFilter.Direction, distantLitDiffuseImageFilter.LightColor, distantLitDiffuseImageFilter.SurfaceScale, distantLitDiffuseImageFilter.Kd, distantLitDiffuseImageFilter.Input?.DeepClone(), distantLitDiffuseImageFilter.Clip),
+            DistantLitSpecularImageFilter distantLitSpecularImageFilter => new DistantLitSpecularImageFilter(distantLitSpecularImageFilter.Direction, distantLitSpecularImageFilter.LightColor, distantLitSpecularImageFilter.SurfaceScale, distantLitSpecularImageFilter.Ks, distantLitSpecularImageFilter.Shininess, distantLitSpecularImageFilter.Input?.DeepClone(), distantLitSpecularImageFilter.Clip),
+            ErodeImageFilter erodeImageFilter => new ErodeImageFilter(erodeImageFilter.RadiusX, erodeImageFilter.RadiusY, erodeImageFilter.Input?.DeepClone(), erodeImageFilter.Clip),
+            ImageImageFilter imageImageFilter => new ImageImageFilter(imageImageFilter.Image?.Clone(), imageImageFilter.Src, imageImageFilter.Dst, imageImageFilter.FilterQuality),
+            MatrixConvolutionImageFilter matrixConvolutionImageFilter => new MatrixConvolutionImageFilter(matrixConvolutionImageFilter.KernelSize, CloneHelpers.CloneArray(matrixConvolutionImageFilter.Kernel), matrixConvolutionImageFilter.Gain, matrixConvolutionImageFilter.Bias, matrixConvolutionImageFilter.KernelOffset, matrixConvolutionImageFilter.TileMode, matrixConvolutionImageFilter.ConvolveAlpha, matrixConvolutionImageFilter.Input?.DeepClone(), matrixConvolutionImageFilter.Clip),
+            MergeImageFilter mergeImageFilter => new MergeImageFilter(CloneHelpers.CloneArray(mergeImageFilter.Filters, filter => filter.DeepClone()), mergeImageFilter.Clip),
+            OffsetImageFilter offsetImageFilter => new OffsetImageFilter(offsetImageFilter.Dx, offsetImageFilter.Dy, offsetImageFilter.Input?.DeepClone(), offsetImageFilter.Clip),
+            PaintImageFilter paintImageFilter => new PaintImageFilter(paintImageFilter.Paint?.Clone(), paintImageFilter.Clip),
+            ShaderImageFilter shaderImageFilter => new ShaderImageFilter(shaderImageFilter.Shader?.DeepClone(), shaderImageFilter.Dither, shaderImageFilter.Clip),
+            PictureImageFilter pictureImageFilter => new PictureImageFilter(pictureImageFilter.Picture?.DeepClone(), pictureImageFilter.Clip),
+            PointLitDiffuseImageFilter pointLitDiffuseImageFilter => new PointLitDiffuseImageFilter(pointLitDiffuseImageFilter.Location, pointLitDiffuseImageFilter.LightColor, pointLitDiffuseImageFilter.SurfaceScale, pointLitDiffuseImageFilter.Kd, pointLitDiffuseImageFilter.Input?.DeepClone(), pointLitDiffuseImageFilter.Clip),
+            PointLitSpecularImageFilter pointLitSpecularImageFilter => new PointLitSpecularImageFilter(pointLitSpecularImageFilter.Location, pointLitSpecularImageFilter.LightColor, pointLitSpecularImageFilter.SurfaceScale, pointLitSpecularImageFilter.Ks, pointLitSpecularImageFilter.Shininess, pointLitSpecularImageFilter.Input?.DeepClone(), pointLitSpecularImageFilter.Clip),
+            SpotLitDiffuseImageFilter spotLitDiffuseImageFilter => new SpotLitDiffuseImageFilter(spotLitDiffuseImageFilter.Location, spotLitDiffuseImageFilter.Target, spotLitDiffuseImageFilter.SpecularExponent, spotLitDiffuseImageFilter.CutoffAngle, spotLitDiffuseImageFilter.LightColor, spotLitDiffuseImageFilter.SurfaceScale, spotLitDiffuseImageFilter.Kd, spotLitDiffuseImageFilter.Input?.DeepClone(), spotLitDiffuseImageFilter.Clip),
+            SpotLitSpecularImageFilter spotLitSpecularImageFilter => new SpotLitSpecularImageFilter(spotLitSpecularImageFilter.Location, spotLitSpecularImageFilter.Target, spotLitSpecularImageFilter.SpecularExponent, spotLitSpecularImageFilter.CutoffAngle, spotLitSpecularImageFilter.LightColor, spotLitSpecularImageFilter.SurfaceScale, spotLitSpecularImageFilter.Ks, spotLitSpecularImageFilter.Shininess, spotLitSpecularImageFilter.Input?.DeepClone(), spotLitSpecularImageFilter.Clip),
+            TileImageFilter tileImageFilter => new TileImageFilter(tileImageFilter.Src, tileImageFilter.Dst, tileImageFilter.Input?.DeepClone()),
+            _ => throw new NotSupportedException($"Unsupported {nameof(SKImageFilter)} type: {GetType().Name}.")
+        };
+    }
 }
 
 public record ArithmeticImageFilter(float K1, float K2, float K3, float K4, bool EforcePMColor, SKImageFilter? Background, SKImageFilter? Foreground, SKRect? Clip) : SKImageFilter;

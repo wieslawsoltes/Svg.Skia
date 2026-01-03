@@ -5,7 +5,27 @@ using System.Collections.Generic;
 
 namespace ShimSkiaSharp;
 
-public abstract record PathCommand;
+public abstract record PathCommand : IDeepCloneable<PathCommand>
+{
+    public PathCommand DeepClone()
+    {
+        return this switch
+        {
+            AddCirclePathCommand addCirclePathCommand => new AddCirclePathCommand(addCirclePathCommand.X, addCirclePathCommand.Y, addCirclePathCommand.Radius),
+            AddOvalPathCommand addOvalPathCommand => new AddOvalPathCommand(addOvalPathCommand.Rect),
+            AddPolyPathCommand addPolyPathCommand => new AddPolyPathCommand(CloneHelpers.CloneList(addPolyPathCommand.Points), addPolyPathCommand.Close),
+            AddRectPathCommand addRectPathCommand => new AddRectPathCommand(addRectPathCommand.Rect),
+            AddRoundRectPathCommand addRoundRectPathCommand => new AddRoundRectPathCommand(addRoundRectPathCommand.Rect, addRoundRectPathCommand.Rx, addRoundRectPathCommand.Ry),
+            ArcToPathCommand arcToPathCommand => new ArcToPathCommand(arcToPathCommand.Rx, arcToPathCommand.Ry, arcToPathCommand.XAxisRotate, arcToPathCommand.LargeArc, arcToPathCommand.Sweep, arcToPathCommand.X, arcToPathCommand.Y),
+            ClosePathCommand => new ClosePathCommand(),
+            CubicToPathCommand cubicToPathCommand => new CubicToPathCommand(cubicToPathCommand.X0, cubicToPathCommand.Y0, cubicToPathCommand.X1, cubicToPathCommand.Y1, cubicToPathCommand.X2, cubicToPathCommand.Y2),
+            LineToPathCommand lineToPathCommand => new LineToPathCommand(lineToPathCommand.X, lineToPathCommand.Y),
+            MoveToPathCommand moveToPathCommand => new MoveToPathCommand(moveToPathCommand.X, moveToPathCommand.Y),
+            QuadToPathCommand quadToPathCommand => new QuadToPathCommand(quadToPathCommand.X0, quadToPathCommand.Y0, quadToPathCommand.X1, quadToPathCommand.Y1),
+            _ => throw new NotSupportedException($"Unsupported {nameof(PathCommand)} type: {GetType().Name}.")
+        };
+    }
+}
 
 public record AddCirclePathCommand(float X, float Y, float Radius) : PathCommand;
 
@@ -29,7 +49,7 @@ public record MoveToPathCommand(float X, float Y) : PathCommand;
 
 public record QuadToPathCommand(float X0, float Y0, float X1, float Y1) : PathCommand;
 
-public class SKPath
+public class SKPath : ICloneable, IDeepCloneable<SKPath>
 {
     public SKPathFillType FillType { get; set; }
 
@@ -43,6 +63,19 @@ public class SKPath
     {
         Commands = new List<PathCommand>();
     }
+
+    public SKPath Clone()
+    {
+        return new SKPath
+        {
+            FillType = FillType,
+            Commands = CloneHelpers.CloneList(Commands, command => command.DeepClone())
+        };
+    }
+
+    public SKPath DeepClone() => Clone();
+
+    object ICloneable.Clone() => Clone();
 
 
     private SKRect GetBounds()

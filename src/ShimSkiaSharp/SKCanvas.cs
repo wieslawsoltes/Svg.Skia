@@ -1,11 +1,32 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace ShimSkiaSharp;
 
-public abstract record CanvasCommand;
+public abstract record CanvasCommand : IDeepCloneable<CanvasCommand>
+{
+    public CanvasCommand DeepClone()
+    {
+        return this switch
+        {
+            ClipPathCanvasCommand clipPathCanvasCommand => new ClipPathCanvasCommand(clipPathCanvasCommand.ClipPath?.Clone(), clipPathCanvasCommand.Operation, clipPathCanvasCommand.Antialias),
+            ClipRectCanvasCommand clipRectCanvasCommand => new ClipRectCanvasCommand(clipRectCanvasCommand.Rect, clipRectCanvasCommand.Operation, clipRectCanvasCommand.Antialias),
+            DrawImageCanvasCommand drawImageCanvasCommand => new DrawImageCanvasCommand(drawImageCanvasCommand.Image?.Clone(), drawImageCanvasCommand.Source, drawImageCanvasCommand.Dest, drawImageCanvasCommand.Paint?.Clone()),
+            DrawPathCanvasCommand drawPathCanvasCommand => new DrawPathCanvasCommand(drawPathCanvasCommand.Path?.Clone(), drawPathCanvasCommand.Paint?.Clone()),
+            DrawTextBlobCanvasCommand drawTextBlobCanvasCommand => new DrawTextBlobCanvasCommand(drawTextBlobCanvasCommand.TextBlob?.Clone(), drawTextBlobCanvasCommand.X, drawTextBlobCanvasCommand.Y, drawTextBlobCanvasCommand.Paint?.Clone()),
+            DrawTextCanvasCommand drawTextCanvasCommand => new DrawTextCanvasCommand(drawTextCanvasCommand.Text, drawTextCanvasCommand.X, drawTextCanvasCommand.Y, drawTextCanvasCommand.Paint?.Clone()),
+            DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand => new DrawTextOnPathCanvasCommand(drawTextOnPathCanvasCommand.Text, drawTextOnPathCanvasCommand.Path?.Clone(), drawTextOnPathCanvasCommand.HOffset, drawTextOnPathCanvasCommand.VOffset, drawTextOnPathCanvasCommand.Paint?.Clone()),
+            RestoreCanvasCommand restoreCanvasCommand => new RestoreCanvasCommand(restoreCanvasCommand.Count),
+            SaveCanvasCommand saveCanvasCommand => new SaveCanvasCommand(saveCanvasCommand.Count),
+            SaveLayerCanvasCommand saveLayerCanvasCommand => new SaveLayerCanvasCommand(saveLayerCanvasCommand.Count, saveLayerCanvasCommand.Paint?.Clone()),
+            SetMatrixCanvasCommand setMatrixCanvasCommand => new SetMatrixCanvasCommand(setMatrixCanvasCommand.DeltaMatrix, setMatrixCanvasCommand.TotalMatrix),
+            _ => throw new NotSupportedException($"Unsupported {nameof(CanvasCommand)} type: {GetType().Name}.")
+        };
+    }
+}
 
 public record ClipPathCanvasCommand(ClipPath? ClipPath, SKClipOperation Operation, bool Antialias) : CanvasCommand;
 
@@ -29,7 +50,7 @@ public record SaveLayerCanvasCommand(int Count, SKPaint? Paint = null) : CanvasC
 
 public record SetMatrixCanvasCommand(SKMatrix DeltaMatrix, SKMatrix TotalMatrix) : CanvasCommand;
 
-public class SKCanvas
+public class SKCanvas : ICloneable, IDeepCloneable<SKCanvas>
 {
     private int _saveCount;
     private readonly Stack<SKMatrix> _totalMatrices = new();
@@ -43,6 +64,33 @@ public class SKCanvas
         Commands = commands;
         TotalMatrix = totalMatrix;
     }
+
+    public SKCanvas Clone()
+    {
+        var commands = Commands is null
+            ? new List<CanvasCommand>()
+            : CloneHelpers.CloneList(Commands, command => command.DeepClone()) ?? new List<CanvasCommand>();
+
+        var clone = new SKCanvas(commands, TotalMatrix)
+        {
+            _saveCount = _saveCount
+        };
+
+        if (_totalMatrices.Count > 0)
+        {
+            var matrices = _totalMatrices.ToArray();
+            for (var i = matrices.Length - 1; i >= 0; i--)
+            {
+                clone._totalMatrices.Push(matrices[i]);
+            }
+        }
+
+        return clone;
+    }
+
+    public SKCanvas DeepClone() => Clone();
+
+    object ICloneable.Clone() => Clone();
 
     public void ClipPath(ClipPath clipPath, SKClipOperation operation = SKClipOperation.Intersect, bool antialias = false)
     {

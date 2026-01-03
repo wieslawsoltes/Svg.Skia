@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+using System;
+
 namespace ShimSkiaSharp;
 
-public sealed class SKPaint
+public sealed class SKPaint : ICloneable, IDeepCloneable<SKPaint>
 {
     public SKPaintStyle Style { get; set; } = SKPaintStyle.Fill;
 
@@ -50,23 +52,28 @@ public sealed class SKPaint
         {
             Style = Style,
             IsAntialias = IsAntialias,
+            IsDither = IsDither,
             StrokeWidth = StrokeWidth,
             StrokeCap = StrokeCap,
             StrokeJoin = StrokeJoin,
             StrokeMiter = StrokeMiter,
-            Typeface = Typeface,
+            Typeface = Typeface?.Clone(),
             TextSize = TextSize,
             TextAlign = TextAlign,
             LcdRenderText = LcdRenderText,
             SubpixelText = SubpixelText,
             TextEncoding = TextEncoding,
             Color = Color,
-            Shader = Shader,
-            ColorFilter = ColorFilter,
-            ImageFilter = ImageFilter,
-            PathEffect = PathEffect,
+            Shader = Shader?.DeepClone(),
+            ColorFilter = ColorFilter?.DeepClone(),
+            ImageFilter = ImageFilter?.DeepClone(),
+            PathEffect = PathEffect?.DeepClone(),
             BlendMode = BlendMode,
             FilterQuality = FilterQuality
         };
     }
+
+    public SKPaint DeepClone() => Clone();
+
+    object ICloneable.Clone() => Clone();
 }

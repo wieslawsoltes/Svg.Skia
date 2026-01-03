@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+using System;
 using System.Collections.Generic;
 
 namespace ShimSkiaSharp;
 
-public sealed class SKPictureRecorder
+public sealed class SKPictureRecorder : ICloneable, IDeepCloneable<SKPictureRecorder>
 {
     public SKRect CullRect { get; private set; }
 
@@ -28,4 +29,17 @@ public sealed class SKPictureRecorder
 
         return picture;
     }
+
+    public SKPictureRecorder Clone()
+    {
+        return new SKPictureRecorder
+        {
+            CullRect = CullRect,
+            RecordingCanvas = RecordingCanvas?.Clone()
+        };
+    }
+
+    public SKPictureRecorder DeepClone() => Clone();
+
+    object ICloneable.Clone() => Clone();
 }
