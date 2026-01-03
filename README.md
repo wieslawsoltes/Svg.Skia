@@ -273,6 +273,51 @@ Install-Package Svg.Controls.Skia.Avalonia
 </Image>
 ```
 
+### Model editing and rebuild
+
+If you want to modify the generated draw commands, update the model and rebuild the picture:
+
+```csharp
+using System.Linq;
+using ShimSkiaSharp;
+using Svg.Skia;
+
+var skSvg = new SKSvg();
+skSvg.FromSvg(svgText);
+
+foreach (var cmd in skSvg.Model?.Commands?.OfType<DrawPathCanvasCommand>() ?? Enumerable.Empty<DrawPathCanvasCommand>())
+{
+    if (cmd.Paint?.Color is { } color)
+    {
+        cmd.Paint.Color = new SKColor(color.Red, color.Red, color.Red, color.Alpha);
+    }
+}
+
+skSvg.RebuildFromModel();
+```
+
+The same rebuild flow is available on Avalonia sources:
+
+```csharp
+using System.Linq;
+using Avalonia.Svg.Skia;
+using ShimSkiaSharp;
+
+var source = SvgSource.Load("avares://MyAssembly/Assets/Icon.svg", baseUri: null);
+
+foreach (var cmd in source.Svg?.Model?.Commands?.OfType<DrawPathCanvasCommand>() ?? Enumerable.Empty<DrawPathCanvasCommand>())
+{
+    if (cmd.Paint?.Color is { } color)
+    {
+        cmd.Paint.Color = new SKColor(color.Red, color.Red, color.Red, color.Alpha);
+    }
+}
+
+source.RebuildFromModel();
+```
+
+For the non-Skia Avalonia controls (`Avalonia.Svg`), update `SvgSource.Picture` commands and call `SvgSource.RebuildFromModel()` to refresh the rendered picture.
+
 #### SvgResourceExtension Markup Extension
 
 The former `SvgBrush` markup extension has been renamed to `SvgResourceExtension`. In XAML you can use the short `{SvgResource ...}` syntax to paint any brush property directly:
