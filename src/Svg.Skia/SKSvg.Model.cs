@@ -98,7 +98,33 @@ public partial class SKSvg : IDisposable
 
     public SKPicture? Model { get; private set; }
 
-    public virtual SkiaSharp.SKPicture? Picture { get; protected set; }
+    private SkiaSharp.SKPicture? _picture;
+    public virtual SkiaSharp.SKPicture? Picture
+    {
+        get
+        {
+            if (_picture is { })
+            {
+                return _picture;
+            }
+
+            if (Model is null)
+            {
+                return null;
+            }
+
+            lock (Sync)
+            {
+                if (_picture is null && Model is { } model)
+                {
+                    _picture = SkiaModel.ToSKPicture(model);
+                }
+
+                return _picture;
+            }
+        }
+        protected set => _picture = value;
+    }
 
     public SkiaSharp.SKPicture? WireframePicture { get; protected set; }
 
@@ -140,6 +166,33 @@ public partial class SKSvg : IDisposable
         Settings = new SKSvgSettings();
         SkiaModel = new SkiaModel(Settings);
         AssetLoader = new SkiaSvgAssetLoader(SkiaModel);
+    }
+
+    /// <summary>
+    /// Rebuilds the SkiaSharp picture from the current model.
+    /// </summary>
+    /// <returns>The rebuilt SkiaSharp picture, or null when no model exists.</returns>
+    public SkiaSharp.SKPicture? RebuildFromModel()
+    {
+        lock (Sync)
+        {
+            var previous = _picture;
+            if (Model is null)
+            {
+                _picture = null;
+                previous?.Dispose();
+                ClearWireframePicture();
+                return null;
+            }
+
+            _picture = SkiaModel.ToSKPicture(Model);
+            if (!ReferenceEquals(previous, _picture))
+            {
+                previous?.Dispose();
+            }
+            ClearWireframePicture();
+            return _picture;
+        }
     }
 
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream, SvgParameters? parameters = null)
@@ -328,8 +381,8 @@ public partial class SKSvg : IDisposable
             Model = null;
             Drawable = null;
 
-            Picture?.Dispose();
-            Picture = null;
+            _picture?.Dispose();
+            _picture = null;
 
             WireframePicture?.Dispose();
             WireframePicture = null;
