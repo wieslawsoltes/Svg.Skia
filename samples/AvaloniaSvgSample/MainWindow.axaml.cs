@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Svg;
+using ShimSkiaSharp;
 
 namespace AvaloniaSvgSample;
 
@@ -35,6 +36,8 @@ public partial class MainWindow : Window
                <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" />
             </svg>
             """;
+
+        InitializeModelSample();
     }
 
     public void SvgSvgStretchChanged(object sender, SelectionChangedEventArgs e)
@@ -131,5 +134,48 @@ public partial class MainWindow : Window
                 }
             }
         }
+    }
+
+    private void InitializeModelSample()
+    {
+        var assemblyName = typeof(MainWindow).Assembly.GetName().Name ?? "AvaloniaSvgSample";
+        var resourcePath = $"avares://{assemblyName}/Assets/__tiger.svg";
+        var originalSource = SvgSource.Load(resourcePath, null);
+        svgModelOriginal.Source = new SvgImage { Source = originalSource };
+
+        var modifiedSource = SvgSource.Load(resourcePath, null);
+        ApplyGrayscale(modifiedSource);
+        svgModelModified.Source = new SvgImage { Source = modifiedSource };
+    }
+
+    private static void ApplyGrayscale(SvgSource source)
+    {
+        var commands = source.Picture?.Commands;
+        if (commands is null)
+        {
+            return;
+        }
+
+        foreach (var cmd in commands.OfType<DrawPathCanvasCommand>())
+        {
+            var paint = cmd.Paint;
+            if (paint?.Color is { } color)
+            {
+                paint.Color = ToGrayscale(color);
+            }
+
+            if (paint?.Shader is ColorShader shader)
+            {
+                paint.Shader = SKShader.CreateColor(ToGrayscale(shader.Color), shader.ColorSpace);
+            }
+        }
+
+        source.RebuildFromModel();
+    }
+
+    private static SKColor ToGrayscale(SKColor color)
+    {
+        var luminance = (byte)(0.2126f * color.Red + 0.7152f * color.Green + 0.0722f * color.Blue);
+        return new SKColor(luminance, luminance, luminance, color.Alpha);
     }
 }
