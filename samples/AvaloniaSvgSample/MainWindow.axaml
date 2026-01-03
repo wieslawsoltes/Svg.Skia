@@ -78,6 +78,20 @@
       </DockPanel>
     </TabItem>
 
+    <TabItem Header="Model">
+      <DockPanel Background="Transparent" 
+                 Margin="16" 
+                 VerticalAlignment="Stretch"
+                 HorizontalAlignment="Stretch">
+        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,*">
+          <TextBlock Text="Original" />
+          <TextBlock Grid.Column="1" Text="Modified" />
+          <Image Grid.Row="1" Name="svgModelOriginal" />
+          <Image Grid.Row="1" Grid.Column="1" Name="svgModelModified" />
+        </Grid>
+      </DockPanel>
+    </TabItem>
+
     <TabItem Header="Resource">
       <DockPanel x:Name="svgResourceDockPanel" 
                  Background="Transparent" 

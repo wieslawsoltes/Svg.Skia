@@ -7,10 +7,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using Avalonia.Metadata;
+using Avalonia.Platform;
 using SkiaSharp;
 using Svg;
 using Svg.Model;
-using Svg.Model.Services;
 using Svg.Skia;
 
 namespace Avalonia.Svg.Skia;
@@ -160,12 +160,38 @@ public sealed class SvgSource : IDisposable
         return skSvg.Picture;
     }
 
+    private static SKPicture? FromSvg(SvgSource source, string svg)
+    {
+        var skSvg = new SKSvg();
+        skSvg.FromSvg(svg);
+        lock (source.Sync)
+        {
+            source._skSvg = skSvg;
+        }
+        return skSvg.Picture;
+    }
+
     private static SKPicture? FromSvgDocument(SvgDocument? svgDocument)
     {
         if (svgDocument is { })
         {
             var skSvg = new SKSvg();
             skSvg.FromSvgDocument(svgDocument);
+            return skSvg.Picture;
+        }
+        return null;
+    }
+
+    private static SKPicture? FromSvgDocument(SvgSource source, SvgDocument? svgDocument)
+    {
+        if (svgDocument is { })
+        {
+            var skSvg = new SKSvg();
+            skSvg.FromSvgDocument(svgDocument);
+            lock (source.Sync)
+            {
+                source._skSvg = skSvg;
+            }
             return skSvg.Picture;
         }
         return null;
@@ -213,7 +239,7 @@ public sealed class SvgSource : IDisposable
         }
         else
         {
-            var stream = Platform.AssetLoader.Open(uri, baseUri);
+            var stream = AssetLoader.Open(uri, baseUri);
             if (stream is null)
             {
                 ThrowOnMissingResource(path);
@@ -245,12 +271,7 @@ public sealed class SvgSource : IDisposable
     public static SvgSource LoadFromSvg(string svg)
     {
         var source = new SvgSource(default(Uri));
-        source._picture = FromSvg(svg);
-        // loading from SVG string does not store SKSvg instance
-        lock (source.Sync)
-        {
-            source._skSvg = null;
-        }
+        source._picture = FromSvg(source, svg);
         return source;
     }
 
@@ -275,12 +296,26 @@ public sealed class SvgSource : IDisposable
     public static SvgSource LoadFromSvgDocument(SvgDocument document)
     {
         var source = new SvgSource(default(Uri));
-        source._picture = FromSvgDocument(document);
-        lock (source.Sync)
-        {
-            source._skSvg = null;
-        }
+        source._picture = FromSvgDocument(source, document);
         return source;
+    }
+
+    /// <summary>
+    /// Rebuilds the <see cref="SvgSource"/> from its underlying model, refreshing its associated
+    /// <see cref="SkiaSharp.SKPicture"/> representation if the <see cref="SKSvg"/> instance exists.
+    /// </summary>
+    public void RebuildFromModel()
+    {
+        lock (Sync)
+        {
+            if (_skSvg is null)
+            {
+                return;
+            }
+
+            _skSvg.RebuildFromModel();
+            _picture = _skSvg.Picture;
+        }
     }
 
     public void ReLoad(SvgParameters? parameters)

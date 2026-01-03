@@ -132,4 +132,17 @@ public class SvgSource
     {
         return new() { Picture = LoadPictureFromSvg(source) };
     }
+
+    /// <summary>
+    /// Rebuilds the <see cref="SvgSource"/> from its underlying model, refreshing its associated picture.
+    /// </summary>
+    public void RebuildFromModel()
+    {
+        if (Picture is not { } picture)
+        {
+            return;
+        }
+
+        Picture = picture.DeepClone();
+    }
 }
