@@ -11,8 +11,8 @@ This repository contains the Svg.Skia library and associated tests. The followin
 ## Workflow
 1. After cloning the repo run `git submodule update --init --recursive` to fetch external dependencies.
 2. Follow the coding conventions enforced by `.editorconfig`. Run `dotnet format --no-restore` before committing to ensure style compliance.
-3. Build the solution using `dotnet build Svg.Skia.sln -c Release`.
-4. Run all tests with `dotnet test Svg.Skia.sln -c Release`.
+3. Build the solution using `dotnet build Svg.Skia.slnx -c Release`.
+4. Run all tests with `dotnet test Svg.Skia.slnx -c Release`.
 
 ## Commit Guidelines
 - Use concise commit messages summarizing your change in under 72 characters.
