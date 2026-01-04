@@ -84,5 +84,6 @@
     <Project Path="tests/Svg.Controls.Skia.Avalonia.UnitTests/Svg.Controls.Skia.Avalonia.UnitTests.csproj" />
     <Project Path="tests/Svg.Model.UnitTests/Svg.Model.UnitTests.csproj" />
     <Project Path="tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj" />
+    <Project Path="tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj" />
   </Folder>
 </Solution>

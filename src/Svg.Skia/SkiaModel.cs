@@ -556,7 +556,7 @@ public class SkiaModel
         }
 
         var skShader = skPaint.Shader is null
-            ? SkiaSharp.SKShader.CreateColor(ToSKColor(skPaint.Color!.Value), SkiaSharp.SKColorSpace.CreateSrgb())
+            ? SkiaSharp.SKShader.CreateColor(ToSKColor(skPaint.Color!.Value), Settings.Srgb)
             : ToSKShader(skPaint.Shader);
 
         if (skCropRect == null)
@@ -1297,19 +1297,39 @@ public class SkiaModel
             return null;
         }
 
-        var skPathResult = default(SkiaSharp.SKPath);
+        SkiaSharp.SKPath? skPathResult = null;
 
         foreach (var clip in clipPath.Clips)
         {
             if (clip.Path is null)
             {
+                skPathResult?.Dispose();
                 return null;
             }
 
             var skPath = ToSKPath(clip.Path);
-            var skPathClip = ToSKPath(clip.Clip);
-            if (skPathClip is { })
-                skPath = skPath.Op(skPathClip, SkiaSharp.SKPathOp.Intersect);
+            if (skPath is null)
+            {
+                skPathResult?.Dispose();
+                return null;
+            }
+
+            if (clip.Clip is { })
+            {
+                var skPathClip = ToSKPath(clip.Clip);
+                if (skPathClip is { })
+                {
+                    var intersected = skPath.Op(skPathClip, SkiaSharp.SKPathOp.Intersect);
+                    skPath.Dispose();
+                    skPathClip.Dispose();
+                    if (intersected is null)
+                    {
+                        skPathResult?.Dispose();
+                        return null;
+                    }
+                    skPath = intersected;
+                }
+            }
 
             if (clip.Transform is { })
             {
@@ -1324,27 +1344,206 @@ public class SkiaModel
             else
             {
                 var result = skPathResult.Op(skPath, SkiaSharp.SKPathOp.Union);
+                skPathResult.Dispose();
+                skPath.Dispose();
+                if (result is null)
+                {
+                    return null;
+                }
                 skPathResult = result;
             }
         }
 
-        if (skPathResult is { })
+        if (skPathResult is null)
         {
-            if (clipPath.Clip?.Clips is { })
-            {
-                var skPathClip = ToSKPath(clipPath.Clip);
-                if (skPathClip is { })
-                    skPathResult = skPathResult.Op(skPathClip, SkiaSharp.SKPathOp.Intersect);
-            }
+            return null;
+        }
 
-            if (clipPath.Transform is { })
+        if (clipPath.Clip?.Clips is { })
+        {
+            var skPathClip = ToSKPath(clipPath.Clip);
+            if (skPathClip is { })
             {
-                var skMatrix = ToSKMatrix(clipPath.Transform.Value);
-                skPathResult.Transform(skMatrix);
+                var result = skPathResult.Op(skPathClip, SkiaSharp.SKPathOp.Intersect);
+                skPathResult.Dispose();
+                skPathClip.Dispose();
+                if (result is null)
+                {
+                    return null;
+                }
+                skPathResult = result;
             }
         }
 
+        if (clipPath.Transform is { })
+        {
+            var skMatrix = ToSKMatrix(clipPath.Transform.Value);
+            skPathResult.Transform(skMatrix);
+        }
+
         return skPathResult;
+    }
+
+    private sealed class SkiaModelDrawContext : IDisposable
+    {
+        private readonly SkiaModel _model;
+        private Dictionary<SKPaint, SkiaSharp.SKPaint>? _paints;
+        private Dictionary<SKPaint, SkiaSharp.SKPaint>? _wireframePaints;
+        private Dictionary<SKPath, SkiaSharp.SKPath>? _paths;
+        private Dictionary<ClipPath, SkiaSharp.SKPath>? _clipPaths;
+        private Dictionary<SKImage, SkiaSharp.SKImage>? _images;
+        private SkiaSharp.SKPaint? _defaultWireframePaint;
+
+        public SkiaModelDrawContext(SkiaModel model)
+        {
+            _model = model;
+        }
+
+        public SkiaSharp.SKPaint? GetPaint(SKPaint? paint)
+        {
+            if (paint is null)
+            {
+                return null;
+            }
+
+            _paints ??= new Dictionary<SKPaint, SkiaSharp.SKPaint>();
+            if (_paints.TryGetValue(paint, out var cached))
+            {
+                return cached;
+            }
+
+            var skPaint = _model.ToSKPaint(paint);
+            if (skPaint is null)
+            {
+                return null;
+            }
+
+            _paints.Add(paint, skPaint);
+            return skPaint;
+        }
+
+        public SkiaSharp.SKPaint GetWireframePaint(SKPaint? paint)
+        {
+            if (paint is null)
+            {
+                _defaultWireframePaint ??= _model.ToWireframePaint(null);
+                return _defaultWireframePaint;
+            }
+
+            _wireframePaints ??= new Dictionary<SKPaint, SkiaSharp.SKPaint>();
+            if (_wireframePaints.TryGetValue(paint, out var cached))
+            {
+                return cached;
+            }
+
+            var skPaint = _model.ToWireframePaint(paint);
+            _wireframePaints.Add(paint, skPaint);
+            return skPaint;
+        }
+
+        public SkiaSharp.SKPath? GetPath(SKPath? path)
+        {
+            if (path is null)
+            {
+                return null;
+            }
+
+            _paths ??= new Dictionary<SKPath, SkiaSharp.SKPath>();
+            if (_paths.TryGetValue(path, out var cached))
+            {
+                return cached;
+            }
+
+            var skPath = _model.ToSKPath(path);
+            _paths.Add(path, skPath);
+            return skPath;
+        }
+
+        public SkiaSharp.SKPath? GetClipPath(ClipPath? clipPath)
+        {
+            if (clipPath is null)
+            {
+                return null;
+            }
+
+            _clipPaths ??= new Dictionary<ClipPath, SkiaSharp.SKPath>();
+            if (_clipPaths.TryGetValue(clipPath, out var cached))
+            {
+                return cached;
+            }
+
+            var skPath = _model.ToSKPath(clipPath);
+            if (skPath is null)
+            {
+                return null;
+            }
+
+            _clipPaths.Add(clipPath, skPath);
+            return skPath;
+        }
+
+        public SkiaSharp.SKImage? GetImage(SKImage? image)
+        {
+            if (image is null)
+            {
+                return null;
+            }
+
+            _images ??= new Dictionary<SKImage, SkiaSharp.SKImage>();
+            if (_images.TryGetValue(image, out var cached))
+            {
+                return cached;
+            }
+
+            var skImage = _model.ToSKImage(image);
+            _images.Add(image, skImage);
+            return skImage;
+        }
+
+        public void Dispose()
+        {
+            if (_paints is { })
+            {
+                foreach (var paint in _paints.Values)
+                {
+                    paint.Dispose();
+                }
+            }
+
+            if (_wireframePaints is { })
+            {
+                foreach (var paint in _wireframePaints.Values)
+                {
+                    paint.Dispose();
+                }
+            }
+
+            _defaultWireframePaint?.Dispose();
+
+            if (_paths is { })
+            {
+                foreach (var path in _paths.Values)
+                {
+                    path.Dispose();
+                }
+            }
+
+            if (_clipPaths is { })
+            {
+                foreach (var path in _clipPaths.Values)
+                {
+                    path.Dispose();
+                }
+            }
+
+            if (_images is { })
+            {
+                foreach (var image in _images.Values)
+                {
+                    image.Dispose();
+                }
+            }
+        }
     }
 
     public SkiaSharp.SKPicture? ToSKPicture(SKPicture? picture)
@@ -1355,10 +1554,11 @@ public class SkiaModel
         }
 
         var skRect = ToSKRect(picture.CullRect);
+        using var context = new SkiaModelDrawContext(this);
         using var skPictureRecorder = new SkiaSharp.SKPictureRecorder();
         using var skCanvas = skPictureRecorder.BeginRecording(skRect);
 
-        Draw(picture, skCanvas);
+        Draw(picture, skCanvas, context);
 
         return skPictureRecorder.EndRecording();
     }
@@ -1371,15 +1571,16 @@ public class SkiaModel
         }
 
         var skRect = ToSKRect(picture.CullRect);
+        using var context = new SkiaModelDrawContext(this);
         using var skPictureRecorder = new SkiaSharp.SKPictureRecorder();
         using var skCanvas = skPictureRecorder.BeginRecording(skRect);
 
-        Draw(picture, skCanvas, true);
+        Draw(picture, skCanvas, context, true);
 
         return skPictureRecorder.EndRecording();
     }
 
-    public void Draw(CanvasCommand canvasCommand, SkiaSharp.SKCanvas skCanvas, bool wireframe = false)
+    private void Draw(CanvasCommand canvasCommand, SkiaSharp.SKCanvas skCanvas, SkiaModelDrawContext context, bool wireframe = false)
     {
         switch (canvasCommand)
         {
@@ -1387,10 +1588,13 @@ public class SkiaModel
                 {
                     if (clipPathCanvasCommand.ClipPath is { })
                     {
-                        var path = ToSKPath(clipPathCanvasCommand.ClipPath);
-                        var operation = ToSKClipOperation(clipPathCanvasCommand.Operation);
-                        var antialias = clipPathCanvasCommand.Antialias;
-                        skCanvas.ClipPath(path, operation, antialias);
+                        var path = context.GetClipPath(clipPathCanvasCommand.ClipPath);
+                        if (path is { })
+                        {
+                            var operation = ToSKClipOperation(clipPathCanvasCommand.Operation);
+                            var antialias = clipPathCanvasCommand.Antialias;
+                            skCanvas.ClipPath(path, operation, antialias);
+                        }
                     }
                     break;
                 }
@@ -1423,8 +1627,8 @@ public class SkiaModel
                     if (saveLayerCanvasCommand.Paint is { })
                     {
                         var paint = wireframe
-                            ? ToWireframePaint(saveLayerCanvasCommand.Paint)
-                            : ToSKPaint(saveLayerCanvasCommand.Paint);
+                            ? context.GetWireframePaint(saveLayerCanvasCommand.Paint)
+                            : context.GetPaint(saveLayerCanvasCommand.Paint);
                         skCanvas.SaveLayer(paint);
                     }
                     else
@@ -1439,17 +1643,20 @@ public class SkiaModel
                     {
                         if (wireframe)
                         {
-                            var rectPath = new SkiaSharp.SKPath();
-                            rectPath.AddRect(ToSKRect(drawImageCanvasCommand.Dest));
-                            skCanvas.DrawPath(rectPath, ToWireframePaint(null));
+                            var dest = ToSKRect(drawImageCanvasCommand.Dest);
+                            var wireframePaint = context.GetWireframePaint(null);
+                            skCanvas.DrawRect(dest, wireframePaint);
                         }
                         else
                         {
-                            var image = ToSKImage(drawImageCanvasCommand.Image);
+                            var image = context.GetImage(drawImageCanvasCommand.Image);
                             var source = ToSKRect(drawImageCanvasCommand.Source);
                             var dest = ToSKRect(drawImageCanvasCommand.Dest);
-                            var paint = ToSKPaint(drawImageCanvasCommand.Paint);
-                            skCanvas.DrawImage(image, source, dest, paint);
+                            var paint = context.GetPaint(drawImageCanvasCommand.Paint);
+                            if (image is { })
+                            {
+                                skCanvas.DrawImage(image, source, dest, paint);
+                            }
                         }
                     }
                     break;
@@ -1458,11 +1665,14 @@ public class SkiaModel
                 {
                     if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })
                     {
-                        var path = ToSKPath(drawPathCanvasCommand.Path);
+                        var path = context.GetPath(drawPathCanvasCommand.Path);
                         var paint = wireframe
-                            ? ToWireframePaint(drawPathCanvasCommand.Paint)
-                            : ToSKPaint(drawPathCanvasCommand.Paint);
-                        skCanvas.DrawPath(path, paint);
+                            ? context.GetWireframePaint(drawPathCanvasCommand.Paint)
+                            : context.GetPaint(drawPathCanvasCommand.Paint);
+                        if (path is { } && paint is { })
+                        {
+                            skCanvas.DrawPath(path, paint);
+                        }
                     }
                     break;
                 }
@@ -1471,12 +1681,22 @@ public class SkiaModel
                     if (drawPositionedTextCanvasCommand.TextBlob?.Points is { } && drawPositionedTextCanvasCommand.Paint is { })
                     {
                         var text = drawPositionedTextCanvasCommand.TextBlob.Text;
+                        if (string.IsNullOrEmpty(text))
+                        {
+                            break;
+                        }
+
                         var points = ToSKPoints(drawPositionedTextCanvasCommand.TextBlob.Points);
                         var paint = wireframe
-                            ? ToWireframePaint(drawPositionedTextCanvasCommand.Paint)
-                            : ToSKPaint(drawPositionedTextCanvasCommand.Paint);
-                        var font = paint?.ToFont();
-                        var textBlob = SkiaSharp.SKTextBlob.CreatePositioned(text, font, points);
+                            ? context.GetWireframePaint(drawPositionedTextCanvasCommand.Paint)
+                            : context.GetPaint(drawPositionedTextCanvasCommand.Paint);
+                        if (paint is null)
+                        {
+                            break;
+                        }
+
+                        using var font = paint.ToFont();
+                        using var textBlob = SkiaSharp.SKTextBlob.CreatePositioned(text, font, points);
                         skCanvas.DrawText(textBlob, 0, 0, paint);
                     }
                     break;
@@ -1486,12 +1706,19 @@ public class SkiaModel
                     if (drawTextCanvasCommand.Paint is { })
                     {
                         var text = drawTextCanvasCommand.Text;
+                        if (string.IsNullOrEmpty(text))
+                        {
+                            break;
+                        }
                         var x = drawTextCanvasCommand.X;
                         var y = drawTextCanvasCommand.Y;
                         var paint = wireframe
-                            ? ToWireframePaint(drawTextCanvasCommand.Paint)
-                            : ToSKPaint(drawTextCanvasCommand.Paint);
-                        skCanvas.DrawText(text, x, y, paint);
+                            ? context.GetWireframePaint(drawTextCanvasCommand.Paint)
+                            : context.GetPaint(drawTextCanvasCommand.Paint);
+                        if (paint is { })
+                        {
+                            skCanvas.DrawText(text, x, y, paint);
+                        }
                     }
                     break;
                 }
@@ -1500,20 +1727,27 @@ public class SkiaModel
                     if (drawTextOnPathCanvasCommand.Path is { } && drawTextOnPathCanvasCommand.Paint is { })
                     {
                         var text = drawTextOnPathCanvasCommand.Text;
-                        var path = ToSKPath(drawTextOnPathCanvasCommand.Path);
+                        if (string.IsNullOrEmpty(text))
+                        {
+                            break;
+                        }
+                        var path = context.GetPath(drawTextOnPathCanvasCommand.Path);
                         var hOffset = drawTextOnPathCanvasCommand.HOffset;
                         var vOffset = drawTextOnPathCanvasCommand.VOffset;
                         var paint = wireframe
-                            ? ToWireframePaint(drawTextOnPathCanvasCommand.Paint)
-                            : ToSKPaint(drawTextOnPathCanvasCommand.Paint);
-                        skCanvas.DrawTextOnPath(text, path, hOffset, vOffset, paint);
+                            ? context.GetWireframePaint(drawTextOnPathCanvasCommand.Paint)
+                            : context.GetPaint(drawTextOnPathCanvasCommand.Paint);
+                        if (path is { } && paint is { })
+                        {
+                            skCanvas.DrawTextOnPath(text, path, hOffset, vOffset, paint);
+                        }
                     }
                     break;
                 }
         }
     }
 
-    public void Draw(SKPicture picture, SkiaSharp.SKCanvas skCanvas, bool wireframe = false)
+    private void Draw(SKPicture picture, SkiaSharp.SKCanvas skCanvas, SkiaModelDrawContext context, bool wireframe = false)
     {
         if (picture.Commands is null)
         {
@@ -1522,8 +1756,14 @@ public class SkiaModel
 
         foreach (var canvasCommand in picture.Commands)
         {
-            Draw(canvasCommand, skCanvas, wireframe);
+            Draw(canvasCommand, skCanvas, context, wireframe);
         }
+    }
+
+    public void Draw(SKPicture picture, SkiaSharp.SKCanvas skCanvas, bool wireframe = false)
+    {
+        using var context = new SkiaModelDrawContext(this);
+        Draw(picture, skCanvas, context, wireframe);
     }
 
     private SkiaSharp.SKPaint ToWireframePaint(SKPaint? paint)

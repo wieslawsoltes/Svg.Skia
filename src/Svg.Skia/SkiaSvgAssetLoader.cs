@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System.Collections.Generic;
+using Svg.Skia.TypefaceProviders;
 
 namespace Svg.Skia;
 
@@ -39,45 +40,68 @@ public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
         }
 
         System.Func<int, SkiaSharp.SKTypeface?> matchCharacter;
+        var typefaceCache = new Dictionary<int, SkiaSharp.SKTypeface?>();
+        var fontManager = SkiaSharp.SKFontManager.Default;
+        var providers = _skiaModel.Settings.TypefaceProviders;
+        var hasProviders = providers is { Count: > 0 };
 
         if (paintPreferredTypeface.Typeface is { } preferredTypeface)
         {
             var weight = _skiaModel.ToSKFontStyleWeight(preferredTypeface.FontWeight);
             var width = _skiaModel.ToSKFontStyleWidth(preferredTypeface.FontWidth);
             var slant = _skiaModel.ToSKFontStyleSlant(preferredTypeface.FontSlant);
+            var providerTypefaces = hasProviders
+                ? GetProviderTypefaces(providers, preferredTypeface.FamilyName, weight, width, slant)
+                : null;
 
             matchCharacter = codepoint =>
             {
-                // First try to find a matching typeface from custom providers
-                var customTypeface = TryMatchCharacterFromCustomProviders(preferredTypeface.FamilyName, weight, width, slant, codepoint);
-                if (customTypeface is { })
+                if (typefaceCache.TryGetValue(codepoint, out var cached))
                 {
-                    return customTypeface;
+                    return cached;
                 }
 
+                SkiaSharp.SKTypeface? matched = null;
+
+                // First try to find a matching typeface from custom providers
+                matched = TryMatchCharacterFromCustomProviders(providerTypefaces, codepoint);
+
                 // Fall back to default font manager
-                return SkiaSharp.SKFontManager.Default.MatchCharacter(
+                matched ??= fontManager.MatchCharacter(
                     preferredTypeface.FamilyName,
                     weight,
                     width,
                     slant,
                     null,
                     codepoint);
+
+                typefaceCache[codepoint] = matched;
+                return matched;
             };
         }
         else
         {
+            var providerTypefaces = hasProviders
+                ? GetProviderTypefaces(providers, null, SkiaSharp.SKFontStyleWeight.Normal, SkiaSharp.SKFontStyleWidth.Normal, SkiaSharp.SKFontStyleSlant.Upright)
+                : null;
+
             matchCharacter = codepoint =>
             {
-                // First try to find a matching typeface from custom providers
-                var customTypeface = TryMatchCharacterFromCustomProviders(null, SkiaSharp.SKFontStyleWeight.Normal, SkiaSharp.SKFontStyleWidth.Normal, SkiaSharp.SKFontStyleSlant.Upright, codepoint);
-                if (customTypeface is { })
+                if (typefaceCache.TryGetValue(codepoint, out var cached))
                 {
-                    return customTypeface;
+                    return cached;
                 }
 
+                SkiaSharp.SKTypeface? matched = null;
+
+                // First try to find a matching typeface from custom providers
+                matched = TryMatchCharacterFromCustomProviders(providerTypefaces, codepoint);
+
                 // Fall back to default font manager
-                return SkiaSharp.SKFontManager.Default.MatchCharacter(codepoint);
+                matched ??= fontManager.MatchCharacter(codepoint);
+
+                typefaceCache[codepoint] = matched;
+                return matched;
             };
         }
 
@@ -92,7 +116,15 @@ public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
 
         void YieldCurrentTypefaceText()
         {
-            var currentTypefaceText = text.Substring(currentTypefaceStartIndex, i - currentTypefaceStartIndex);
+            var segmentLength = i - currentTypefaceStartIndex;
+            if (segmentLength <= 0)
+            {
+                return;
+            }
+
+            var currentTypefaceText = currentTypefaceStartIndex == 0 && i == text.Length
+                ? text
+                : text.Substring(currentTypefaceStartIndex, segmentLength);
 
             ret.Add(new(currentTypefaceText, runningPaint.MeasureText(currentTypefaceText),
                 runningPaint.Typeface is null
@@ -188,25 +220,45 @@ public class SkiaSvgAssetLoader : Model.ISvgAssetLoader
     }
 
     /// <summary>
-    /// Attempts to find a typeface from custom providers that can render the specified character.
+    /// Resolves typefaces from custom providers for the requested family and style.
     /// </summary>
     /// <param name="familyName">The preferred font family name.</param>
     /// <param name="weight">The font weight.</param>
     /// <param name="width">The font width.</param>
     /// <param name="slant">The font slant.</param>
-    /// <param name="codepoint">The character codepoint to match.</param>
-    /// <returns>A matching typeface from custom providers, or null if none found.</returns>
-    private SkiaSharp.SKTypeface? TryMatchCharacterFromCustomProviders(string? familyName, SkiaSharp.SKFontStyleWeight weight, SkiaSharp.SKFontStyleWidth width, SkiaSharp.SKFontStyleSlant slant, int codepoint)
+    /// <returns>Resolved provider typefaces, or null when none are available.</returns>
+    private static List<SkiaSharp.SKTypeface>? GetProviderTypefaces(IList<ITypefaceProvider>? providers, string? familyName, SkiaSharp.SKFontStyleWeight weight, SkiaSharp.SKFontStyleWidth width, SkiaSharp.SKFontStyleSlant slant)
     {
-        if (_skiaModel.Settings.TypefaceProviders is null || _skiaModel.Settings.TypefaceProviders.Count == 0)
+        if (providers is null || providers.Count == 0)
         {
             return null;
         }
 
-        foreach (var provider in _skiaModel.Settings.TypefaceProviders)
+        var resolvedFamilyName = familyName ?? "Default";
+        var typefaces = new List<SkiaSharp.SKTypeface>(providers.Count);
+
+        foreach (var provider in providers)
         {
-            var typeface = provider.FromFamilyName(familyName ?? "Default", weight, width, slant);
-            if (typeface is { } && typeface.ContainsGlyph(codepoint))
+            var typeface = provider.FromFamilyName(resolvedFamilyName, weight, width, slant);
+            if (typeface is { } && !typefaces.Contains(typeface))
+            {
+                typefaces.Add(typeface);
+            }
+        }
+
+        return typefaces;
+    }
+
+    private static SkiaSharp.SKTypeface? TryMatchCharacterFromCustomProviders(IReadOnlyList<SkiaSharp.SKTypeface>? typefaces, int codepoint)
+    {
+        if (typefaces is null || typefaces.Count == 0)
+        {
+            return null;
+        }
+
+        foreach (var typeface in typefaces)
+        {
+            if (typeface.ContainsGlyph(codepoint))
             {
                 return typeface;
             }

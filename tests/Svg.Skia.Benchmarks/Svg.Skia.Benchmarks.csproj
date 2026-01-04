@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\ReferenceAssemblies.props" />
+  <Import Project="..\..\build\SkiaSharp.v3.props" />
+  <Import Project="..\..\build\SkiaSharp.Native.v3.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Svg.Skia\Svg.Skia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\Tests\HitTest.svg" LogicalName="Svg.Skia.Benchmarks.Resources.HitTest.svg" />
+    <EmbeddedResource Include="..\Tests\HitTestText.svg" LogicalName="Svg.Skia.Benchmarks.Resources.HitTestText.svg" />
+    <EmbeddedResource Include="..\Tests\__tiger.svg" LogicalName="Svg.Skia.Benchmarks.Resources.__tiger.svg" />
+    <EmbeddedResource Include="..\Tests\__Telefunken_FuBK_test_pattern.svg" LogicalName="Svg.Skia.Benchmarks.Resources.__Telefunken_FuBK_test_pattern.svg" />
+  </ItemGroup>
+
+</Project>

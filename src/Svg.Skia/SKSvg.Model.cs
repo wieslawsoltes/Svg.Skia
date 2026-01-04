@@ -244,6 +244,11 @@ public partial class SKSvg : IDisposable
         _originalStream?.Dispose();
         _originalStream = null;
 
+        if (path is null)
+        {
+            return null;
+        }
+
         var svgDocument = SvgService.Open(path, parameters);
         if (svgDocument is null)
         {
