@@ -1,38 +1,153 @@
-name: CI
-permissions:
-  contents: read
-  pull-requests: write
+name: Build
 
 on:
   push:
     branches:
-    - master
-    - release/*
+      - master
+      - main
+      - develop
+      - 'feature/**'
+      - 'release/**'
   pull_request:
     branches:
-    - master
-    - release/*
+      - master
+      - main
+      - develop
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
 jobs:
-
   build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-    name: Build ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: recursive
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-    - name: Install wasm-tools
-      run: dotnet workload install wasm-tools wasm-experimental
-    - name: Build
-      run: dotnet build -c Release
-    - name: Test
-      run: dotnet test -c Release
-    - name: Pack
-      if: github.event_name != 'pull_request'
-      run: dotnet pack -c Release -o ./artifacts/NuGet
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Determine version suffix
+        shell: bash
+        run: |
+          if [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
+            echo "VERSION_SUFFIX=" >> $GITHUB_ENV
+          else
+            echo "VERSION_SUFFIX=-build.${{ github.run_number }}" >> $GITHUB_ENV
+          fi
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
+
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Determine version suffix
+        shell: bash
+        run: |
+          if [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
+            echo "VERSION_SUFFIX=" >> $GITHUB_ENV
+          else
+            echo "VERSION_SUFFIX=-build.${{ github.run_number }}" >> $GITHUB_ENV
+          fi
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
+
+      - name: Test
+        run: dotnet test -c Release --no-build --logger trx --results-directory artifacts/test
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}
+          path: artifacts/test/**/*.trx
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Publish test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Test Results (${{ matrix.os }})
+          path: artifacts/test/**/*.trx
+          reporter: dotnet-trx
+          fail-on-empty: false
+
+  pack:
+    name: Pack (ubuntu-latest)
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Determine version suffix
+        shell: bash
+        run: |
+          if [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
+            echo "VERSION_SUFFIX=" >> $GITHUB_ENV
+          else
+            echo "VERSION_SUFFIX=-build.${{ github.run_number }}" >> $GITHUB_ENV
+          fi
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
+
+      - name: Pack
+        run: dotnet pack -c Release --no-build -p:VersionSuffix="${{ env.VERSION_SUFFIX }}" -o artifacts/packages
+
+      - name: Upload NuGet packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages-ubuntu-latest
+          path: |
+            artifacts/packages/*.nupkg
+            artifacts/packages/*.snupkg
+          if-no-files-found: error
+          retention-days: 30

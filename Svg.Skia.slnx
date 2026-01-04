@@ -1,0 +1,88 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/build/">
+    <File Path=".editorconfig" />
+    <File Path="azure-pipelines.yml" />
+    <File Path="build.ps1" />
+    <File Path="build.sh" />
+    <File Path="build/svg.skia.public.snk" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <Project Path="build/build/_build.csproj" />
+  </Folder>
+  <Folder Name="/build/git/">
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path=".gitmodules" />
+  </Folder>
+  <Folder Name="/build/github/">
+    <File Path=".github/workflows/build.yml" />
+  </Folder>
+  <Folder Name="/build/nuget/">
+    <File Path="NuGet.Config" />
+  </Folder>
+  <Folder Name="/build/props/">
+    <File Path="build/Avalonia.Desktop.props" />
+    <File Path="build/Avalonia.Diagnostics.props" />
+    <File Path="build/Avalonia.props" />
+    <File Path="build/Avalonia.ReactiveUI.props" />
+    <File Path="build/Avalonia.Skia.props" />
+    <File Path="build/Avalonia.Themes.Fluent.props" />
+    <File Path="build/Avalonia.Web.props" />
+    <File Path="build/Newtonsoft.Json.props" />
+    <File Path="build/ReferenceAssemblies.props" />
+    <File Path="build/SignAssembly.props" />
+    <File Path="build/SixLabors.ImageSharp.props" />
+    <File Path="build/SkiaSharp.Native.props" />
+    <File Path="build/SkiaSharp.Native.v3.props" />
+    <File Path="build/SkiaSharp.props" />
+    <File Path="build/SkiaSharp.v3.props" />
+    <File Path="build/SourceLink.props" />
+    <File Path="build/Svg.props" />
+    <File Path="build/System.CommandLine.props" />
+    <File Path="build/XUnit.props" />
+  </Folder>
+  <Folder Name="/docs/">
+    <File Path="LICENSE.TXT" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/externals/">
+    <Project Path="externals/Svg.Generators/Svg.Generators.csproj" />
+    <Project Path="src/Svg.Custom/Svg.Custom.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/AvalonDraw/AvalonDraw.csproj" />
+    <Project Path="samples/AvaloniaControlsSample/AvaloniaControlsSample.csproj" />
+    <Project Path="samples/AvaloniaSKPictureImageSample/AvaloniaSKPictureImageSample.csproj" />
+    <Project Path="samples/AvaloniaSvgSample/AvaloniaSvgSample.csproj" />
+    <Project Path="samples/AvaloniaSvgSkiaSample/AvaloniaSvgSkiaSample.csproj" />
+    <Project Path="samples/AvaloniaSvgSkiaStylingSample/AvaloniaSvgSkiaStylingSample.csproj" />
+    <Project Path="samples/Svg.Skia.Converter/Svg.Skia.Converter.csproj" />
+    <Project Path="samples/Svg.SourceGenerator.Skia.Sample/Svg.SourceGenerator.Skia.Sample.csproj" />
+    <Project Path="samples/svgc/svgc.csproj" />
+    <Project Path="samples/SvgToPng/SvgToPng.csproj" />
+    <Project Path="samples/TestApp/TestApp.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/ShimSkiaSharp/ShimSkiaSharp.csproj" />
+    <Project Path="src/Skia.Controls.Avalonia/Skia.Controls.Avalonia.csproj" />
+    <Project Path="src/Svg.CodeGen.Skia/Svg.CodeGen.Skia.csproj" />
+    <Project Path="src/Svg.Controls.Avalonia/Svg.Controls.Avalonia.csproj" />
+    <Project Path="src/Svg.Controls.Skia.Avalonia/Svg.Controls.Skia.Avalonia.csproj" />
+    <Project Path="src/Svg.Model/Svg.Model.csproj" />
+    <Project Path="src/Svg.Skia/Svg.Skia.csproj" />
+    <Project Path="src/Svg.SourceGenerator.Skia/Svg.SourceGenerator.Skia.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ShimSkiaSharp.UnitTests/ShimSkiaSharp.UnitTests.csproj" />
+    <Project Path="tests/Svg.Controls.Avalonia.UnitTests/Svg.Controls.Avalonia.UnitTests.csproj" />
+    <Project Path="tests/Svg.Controls.Skia.Avalonia.UnitTests/Svg.Controls.Skia.Avalonia.UnitTests.csproj" />
+    <Project Path="tests/Svg.Model.UnitTests/Svg.Model.UnitTests.csproj" />
+    <Project Path="tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj" />
+  </Folder>
+</Solution>
