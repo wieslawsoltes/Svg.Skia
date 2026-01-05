@@ -108,6 +108,21 @@ public class SvgImage : AvaloniaObject, IImage
     }
 
     /// <summary>
+    /// Creates a deep clone of this <see cref="SvgImage"/> with an independent source.
+    /// </summary>
+    /// <returns>A new <see cref="SvgImage"/> instance.</returns>
+    public SvgImage Clone()
+    {
+        var clone = new SvgImage();
+        if (Source is { } source)
+        {
+            clone.Source = source.Clone();
+        }
+
+        return clone;
+    }
+
+    /// <summary>
     /// Raises the <see cref="Invalidated"/> event.
     /// </summary>
     /// <param name="e">The event args.</param>
