@@ -153,11 +153,15 @@ public partial class MainWindow : Window
         var assemblyName = typeof(MainWindow).Assembly.GetName().Name ?? "AvaloniaSvgSkiaSample";
         var resourcePath = $"avares://{assemblyName}/Assets/__tiger.svg";
         var originalSource = SvgSource.Load(resourcePath, null);
-        svgModelOriginal.Source = new SvgImage { Source = originalSource };
+        var originalImage = new SvgImage { Source = originalSource };
+        svgModelOriginal.Source = originalImage;
 
-        var modifiedSource = SvgSource.Load(resourcePath, null);
-        ApplyGrayscale(modifiedSource);
-        svgModelModified.Source = new SvgImage { Source = modifiedSource };
+        var cloneImage = originalImage.Clone();
+        if (cloneImage.Source is { } cloneSource)
+        {
+            ApplyGrayscale(cloneSource);
+        }
+        svgModelModified.Source = cloneImage;
     }
 
     private static void ApplyGrayscale(SvgSource source)

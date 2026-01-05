@@ -85,7 +85,7 @@
                  HorizontalAlignment="Stretch">
         <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,*">
           <TextBlock Text="Original" />
-          <TextBlock Grid.Column="1" Text="Modified" />
+          <TextBlock Grid.Column="1" Text="Clone (Grayscale)" />
           <Image Grid.Row="1" Name="svgModelOriginal" />
           <Image Grid.Row="1" Grid.Column="1" Name="svgModelModified" />
         </Grid>
