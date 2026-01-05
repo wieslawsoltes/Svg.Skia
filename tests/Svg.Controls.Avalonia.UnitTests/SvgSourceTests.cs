@@ -30,4 +30,14 @@ public class SvgSourceTests
         Assert.NotNull(source.Picture);
         Assert.NotSame(original, source.Picture);
     }
+
+    [AvaloniaFact]
+    public void Clone_DeepClonesPicture()
+    {
+        var source = SvgSource.LoadFromSvg(SampleSvg);
+        var clone = source.Clone();
+
+        Assert.NotSame(source, clone);
+        Assert.NotSame(source.Picture, clone.Picture);
+    }
 }
