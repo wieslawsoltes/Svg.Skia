@@ -10,6 +10,8 @@ namespace Avalonia.Svg.UnitTests;
 
 public class SvgImageTests
 {
+    private const string SampleSvg = "<svg width=\"10\" height=\"10\"><rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"red\" /></svg>";
+
     [AvaloniaFact]
     public void SvgImageExtension_Returns_VisualBrush_For_Brush_Property()
     {
@@ -52,5 +54,17 @@ public class SvgImageTests
         Assert.Equal(RelativeUnit.Absolute, brush.TransformOrigin.Unit);
         Assert.Equal(0.25, brush.TransformOrigin.Point.X, 6);
         Assert.Equal(0.75, brush.TransformOrigin.Point.Y, 6);
+    }
+
+    [AvaloniaFact]
+    public void SvgImage_Clone_Creates_Independent_Source()
+    {
+        var source = SvgSource.LoadFromSvg(SampleSvg);
+        var svgImage = new SvgImage { Source = source };
+
+        var clone = svgImage.Clone();
+
+        Assert.NotSame(svgImage, clone);
+        Assert.NotSame(svgImage.Source, clone.Source);
     }
 }

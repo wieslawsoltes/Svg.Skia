@@ -48,9 +48,6 @@ public class SvgCustomDrawOperation : ICustomDrawOperation
             return;
         }
 
-        lock (_svg.Sync)
-        {
-            _svg.Draw(canvas);
-        }
+        _svg.Draw(canvas);
     }
 }

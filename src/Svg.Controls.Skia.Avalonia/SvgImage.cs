@@ -114,9 +114,9 @@ public class SvgImage : AvaloniaObject, IImage
         {
             var css = string.Concat(change.GetNewValue<string>(), ' ', CurrentCss);
 
-            if (Source?.Css != css)
+            if (Source is { } source && source.Css != css)
             {
-                Source?.ReLoad(new SvgParameters(null, css));
+                source.ReLoad(new SvgParameters(source.Parameters?.Entities, css));
                 RaiseInvalidated(EventArgs.Empty);
             }
         }
@@ -125,12 +125,26 @@ public class SvgImage : AvaloniaObject, IImage
         {
             var css = string.Concat(Css, ' ', change.GetNewValue<string>());
 
-            if (Source?.Css != css)
+            if (Source is { } source && source.Css != css)
             {
-                Source?.ReLoad(new SvgParameters(null, css));
+                source.ReLoad(new SvgParameters(source.Parameters?.Entities, css));
                 RaiseInvalidated(EventArgs.Empty);
             }
         }
+    }
+
+    /// <summary>
+    /// Creates a deep clone of this <see cref="SvgImage"/> with an independent source.
+    /// </summary>
+    /// <returns>A new <see cref="SvgImage"/> instance.</returns>
+    public SvgImage Clone()
+    {
+        return new SvgImage
+        {
+            Source = Source?.Clone(),
+            Css = Css,
+            CurrentCss = CurrentCss
+        };
     }
 
     /// <summary>

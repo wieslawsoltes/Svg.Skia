@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 using System.Xml;
 using ShimSkiaSharp;
 using Svg.Model;
@@ -85,6 +87,8 @@ public partial class SKSvg : IDisposable
     private SvgParameters? _originalParameters;
     private string? _originalPath;
     private System.IO.Stream? _originalStream;
+    private Uri? _originalBaseUri;
+    private int _activeDraws;
 
     public object Sync { get; } = new();
 
@@ -103,24 +107,45 @@ public partial class SKSvg : IDisposable
     {
         get
         {
-            if (_picture is { })
+            SkiaSharp.SKPicture? picture;
+            SKPicture? model;
+            lock (Sync)
             {
-                return _picture;
+                picture = _picture;
+                if (picture is { })
+                {
+                    return picture;
+                }
+
+                model = Model;
+                if (model is null)
+                {
+                    return null;
+                }
             }
 
-            if (Model is null)
+            var newPicture = SkiaModel.ToSKPicture(model);
+            if (newPicture is null)
             {
                 return null;
             }
 
             lock (Sync)
             {
-                if (_picture is null && Model is { } model)
+                if (!ReferenceEquals(Model, model))
                 {
-                    _picture = SkiaModel.ToSKPicture(model);
+                    newPicture.Dispose();
+                    return _picture;
                 }
 
-                return _picture;
+                if (_picture is { } existing)
+                {
+                    newPicture.Dispose();
+                    return existing;
+                }
+
+                _picture = newPicture;
+                return newPicture;
             }
         }
         protected set => _picture = value;
@@ -148,8 +173,12 @@ public partial class SKSvg : IDisposable
 
     public void ClearWireframePicture()
     {
-        WireframePicture?.Dispose();
-        WireframePicture = null;
+        lock (Sync)
+        {
+            WaitForDrawsLocked();
+            WireframePicture?.Dispose();
+            WireframePicture = null;
+        }
     }
 
     public event EventHandler<SKSvgDrawEventArgs>? OnDraw;
@@ -174,73 +203,97 @@ public partial class SKSvg : IDisposable
     /// <returns>The rebuilt SkiaSharp picture, or null when no model exists.</returns>
     public SkiaSharp.SKPicture? RebuildFromModel()
     {
+        var model = Model;
+        if (model is null)
+        {
+            lock (Sync)
+            {
+                WaitForDrawsLocked();
+                _picture?.Dispose();
+                _picture = null;
+                WireframePicture?.Dispose();
+                WireframePicture = null;
+            }
+            return null;
+        }
+
+        var rebuilt = SkiaModel.ToSKPicture(model);
         lock (Sync)
         {
-            var previous = _picture;
-            if (Model is null)
+            WaitForDrawsLocked();
+            if (!ReferenceEquals(Model, model))
             {
-                _picture = null;
-                previous?.Dispose();
-                ClearWireframePicture();
-                return null;
+                rebuilt?.Dispose();
+                return _picture;
             }
 
-            _picture = SkiaModel.ToSKPicture(Model);
-            if (!ReferenceEquals(previous, _picture))
-            {
-                previous?.Dispose();
-            }
-            ClearWireframePicture();
-            return _picture;
+            _picture?.Dispose();
+            _picture = rebuilt;
+            WireframePicture?.Dispose();
+            WireframePicture = null;
         }
+        return rebuilt;
+    }
+
+    /// <summary>
+    /// Creates a deep clone of the current <see cref="SKSvg"/>, including model and reload data.
+    /// </summary>
+    /// <returns>A new <see cref="SKSvg"/> instance with independent state.</returns>
+    public SKSvg Clone()
+    {
+        var clone = new SKSvg();
+
+        clone.Settings.AlphaType = Settings.AlphaType;
+        clone.Settings.ColorType = Settings.ColorType;
+        clone.Settings.SrgbLinear = Settings.SrgbLinear;
+        clone.Settings.Srgb = Settings.Srgb;
+        clone.Settings.TypefaceProviders = Settings.TypefaceProviders is null
+            ? null
+            : new List<TypefaceProviders.ITypefaceProvider>(Settings.TypefaceProviders);
+
+        clone.Wireframe = Wireframe;
+        clone.IgnoreAttributes = IgnoreAttributes;
+
+        clone._originalParameters = _originalParameters;
+        clone._originalPath = _originalPath;
+        clone._originalBaseUri = _originalBaseUri;
+
+        if (_originalStream is { } originalStream)
+        {
+            clone._originalStream = new MemoryStream();
+            var position = originalStream.Position;
+            originalStream.Position = 0;
+            originalStream.CopyTo(clone._originalStream);
+            clone._originalStream.Position = 0;
+            originalStream.Position = position;
+        }
+
+        if (Model is { } model)
+        {
+            clone.Model = model.DeepClone();
+            clone.Drawable = Drawable?.DeepClone();
+        }
+
+        return clone;
     }
 
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream, SvgParameters? parameters = null)
     {
-        SvgDocument? svgDocument;
-
-        if (CacheOriginalStream)
-        {
-            if (_originalStream != stream)
-            {
-                _originalStream?.Dispose();
-                _originalStream = new System.IO.MemoryStream();
-                stream.CopyTo(_originalStream);
-            }
-
-            _originalPath = null;
-            _originalParameters = parameters;
-            _originalStream.Position = 0;
-
-            svgDocument = SvgService.Open(_originalStream, parameters);
-            if (svgDocument is null)
-            {
-                return null;
-            }
-        }
-        else
-        {
-            svgDocument = SvgService.Open(stream, parameters);
-            if (svgDocument is null)
-            {
-                return null;
-            }
-        }
-
-        Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _, _ignoreAttributes);
-        Drawable = drawable;
-        Picture = SkiaModel.ToSKPicture(Model);
-        WireframePicture?.Dispose();
-        WireframePicture = null;
-
-        return Picture;
+        return LoadInternal(stream, parameters, null);
     }
 
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream) => Load(stream, null);
 
+    public SkiaSharp.SKPicture? Load(System.IO.Stream stream, SvgParameters? parameters, Uri? baseUri)
+    {
+        return LoadInternal(stream, parameters, baseUri);
+    }
+
     public SkiaSharp.SKPicture? Load(string? path, SvgParameters? parameters = null)
     {
         _originalPath = path;
+        _originalParameters = parameters;
+        _originalBaseUri = null;
         _originalStream?.Dispose();
         _originalStream = null;
 
@@ -266,6 +319,7 @@ public partial class SKSvg : IDisposable
         var svgDocument = SvgService.Open(reader);
         if (svgDocument is { })
         {
+            _originalBaseUri = null;
             Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _, _ignoreAttributes);
             Drawable = drawable;
             Picture = SkiaModel.ToSKPicture(Model);
@@ -273,31 +327,84 @@ public partial class SKSvg : IDisposable
             WireframePicture = null;
             return Picture;
         }
+
         return null;
+    }
+
+    private SkiaSharp.SKPicture? LoadInternal(System.IO.Stream stream, SvgParameters? parameters, Uri? baseUri)
+    {
+        SvgDocument? svgDocument;
+
+        if (CacheOriginalStream)
+        {
+            if (_originalStream != stream)
+            {
+                _originalStream?.Dispose();
+                _originalStream = new System.IO.MemoryStream();
+                stream.CopyTo(_originalStream);
+            }
+
+            _originalPath = null;
+            _originalParameters = parameters;
+            _originalBaseUri = baseUri;
+            _originalStream.Position = 0;
+
+            svgDocument = SvgService.Open(_originalStream, parameters);
+        }
+        else
+        {
+            _originalBaseUri = baseUri;
+            svgDocument = SvgService.Open(stream, parameters);
+        }
+
+        if (svgDocument is null)
+        {
+            return null;
+        }
+
+        if (baseUri is { })
+        {
+            svgDocument.BaseUri = baseUri;
+        }
+
+        Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _, _ignoreAttributes);
+        Drawable = drawable;
+        Picture = SkiaModel.ToSKPicture(Model);
+        WireframePicture?.Dispose();
+        WireframePicture = null;
+
+        return Picture;
     }
 
     public SkiaSharp.SKPicture? ReLoad(SvgParameters? parameters)
     {
+        if (!CacheOriginalStream)
+        {
+            throw new ArgumentException($"Enable {nameof(CacheOriginalStream)} feature toggle to enable reload feature.");
+        }
+
+        string? originalPath;
+        System.IO.Stream? originalStream;
+        Uri? originalBaseUri;
+
         lock (Sync)
         {
-            if (!CacheOriginalStream)
-            {
-                throw new ArgumentException($"Enable {nameof(CacheOriginalStream)} feature toggle to enable reload feature.");
-            }
-
-            Reset();
-
             _originalParameters = parameters;
-
-            if (_originalStream == null)
-            {
-                return Load(_originalPath, parameters);
-            }
-
-            _originalStream.Position = 0;
-
-            return Load(_originalStream, parameters);
+            originalPath = _originalPath;
+            originalStream = _originalStream;
+            originalBaseUri = _originalBaseUri;
         }
+
+        Reset();
+
+        if (originalStream == null)
+        {
+            return Load(originalPath, parameters);
+        }
+
+        originalStream.Position = 0;
+
+        return Load(originalStream, parameters, originalBaseUri);
     }
 
     public SkiaSharp.SKPicture? FromSvg(string svg)
@@ -350,6 +457,9 @@ public partial class SKSvg : IDisposable
 
     public void Draw(SkiaSharp.SKCanvas canvas)
     {
+        BeginDraw();
+        try
+        {
         var picture = Picture;
         if (picture is null)
         {
@@ -359,17 +469,39 @@ public partial class SKSvg : IDisposable
         canvas.Save();
         if (Wireframe && Model is { })
         {
-            WireframePicture ??= SkiaModel.ToWireframePicture(Model);
-            if (WireframePicture is { })
+            var wireframePicture = WireframePicture;
+            if (wireframePicture is null && Model is { } model)
             {
-                canvas.DrawPicture(WireframePicture);
+                var newWireframe = SkiaModel.ToWireframePicture(model);
+                lock (Sync)
+                {
+                    if (WireframePicture is null)
+                    {
+                        WireframePicture = newWireframe;
+                    }
+                    else
+                    {
+                        newWireframe?.Dispose();
+                    }
+                    wireframePicture = WireframePicture;
+                }
+            }
+
+            if (wireframePicture is { })
+            {
+                canvas.DrawPicture(wireframePicture);
             }
         }
         else
         {
             canvas.DrawPicture(picture);
         }
-        canvas.Restore();
+            canvas.Restore();
+        }
+        finally
+        {
+            EndDraw();
+        }
 
         RaiseOnDraw(new SKSvgDrawEventArgs(canvas));
     }
@@ -378,6 +510,7 @@ public partial class SKSvg : IDisposable
     {
         lock (Sync)
         {
+            WaitForDrawsLocked();
             Model = null;
             Drawable = null;
 
@@ -393,5 +526,32 @@ public partial class SKSvg : IDisposable
     {
         Reset();
         _originalStream?.Dispose();
+    }
+
+    private void BeginDraw()
+    {
+        lock (Sync)
+        {
+            _activeDraws++;
+        }
+    }
+
+    private void EndDraw()
+    {
+        lock (Sync)
+        {
+            if (_activeDraws > 0 && --_activeDraws == 0)
+            {
+                Monitor.PulseAll(Sync);
+            }
+        }
+    }
+
+    private void WaitForDrawsLocked()
+    {
+        while (_activeDraws > 0)
+        {
+            Monitor.Wait(Sync);
+        }
     }
 }

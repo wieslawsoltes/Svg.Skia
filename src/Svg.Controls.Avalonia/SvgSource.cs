@@ -145,4 +145,16 @@ public class SvgSource
 
         Picture = picture.DeepClone();
     }
+
+    /// <summary>
+    /// Creates a deep clone of this <see cref="SvgSource"/>.
+    /// </summary>
+    /// <returns>A new <see cref="SvgSource"/> instance.</returns>
+    public SvgSource Clone()
+    {
+        return new SvgSource
+        {
+            Picture = Picture?.DeepClone()
+        };
+    }
 }

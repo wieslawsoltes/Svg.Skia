@@ -34,37 +34,45 @@ public class SvgSourceCustomDrawOperation : ICustomDrawOperation
             return;
         }
 
-        var leaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
-        if (leaseFeature is null)
+        if (!_svg.BeginRender())
         {
             return;
         }
 
-        using var lease = leaseFeature.Lease();
-        var canvas = lease?.SkCanvas;
-        if (canvas is null)
+        try
         {
-            return;
-        }
+            var leaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
+            if (leaseFeature is null)
+            {
+                return;
+            }
 
-        lock (_svg.Sync)
-        {
+            using var lease = leaseFeature.Lease();
+            var canvas = lease?.SkCanvas;
+            if (canvas is null)
+            {
+                return;
+            }
+
             if (_svg.Svg is { } skSvg)
             {
                 skSvg.Draw(canvas);
+                return;
             }
-            else
-            {
-                var picture = _svg.Picture;
-                if (picture is null)
-                {
-                    return;
-                }
 
-                canvas.Save();
-                canvas.DrawPicture(picture);
-                canvas.Restore();
+            var picture = _svg.Picture;
+            if (picture is null)
+            {
+                return;
             }
+
+            canvas.Save();
+            canvas.DrawPicture(picture);
+            canvas.Restore();
+        }
+        finally
+        {
+            _svg.EndRender();
         }
     }
 }
