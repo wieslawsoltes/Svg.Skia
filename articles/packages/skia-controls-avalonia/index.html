@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
+    <title>Skia.Controls.Avalonia | Svg.Skia</title>
+    <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
+    <script src="/Svg.Skia/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="Skia.Controls.Avalonia | Svg.Skia">
+<meta name="twitter:description" content="Skia.Controls.Avalonia Skia.Controls.Avalonia is the general-purpose Avalonia package for displaying or drawing raw SkiaSharp content. It complements the SVG-specific packages, but it is useful even when SVG is not involved at all. Install dotnet add package Skia.Controls.Avalonia Choose this package when you already have SKCanvas, SKBitmap, SKPath, or SKPicture content, you want Avalonia controls and images for raw SkiaSharp primitives, SVG content is only one of several Skia-based inputs in the...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta name="twitter:image:alt" content="Skia.Controls.Avalonia | Svg.Skia">
+<meta property="og:title" content="Skia.Controls.Avalonia | Svg.Skia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
+<meta property="og:description" content="Skia.Controls.Avalonia Skia.Controls.Avalonia is the general-purpose Avalonia package for displaying or drawing raw SkiaSharp content. It complements the SVG-specific packages, but it is useful even when SVG is not involved at all. Install dotnet add package Skia.Controls.Avalonia Choose this package when you already have SKCanvas, SKBitmap, SKPath, or SKPicture content, you want Avalonia controls and images for raw SkiaSharp primitives, SVG content is only one of several Skia-based inputs in the...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta property="og:image:alt" content="Skia.Controls.Avalonia | Svg.Skia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/Svg.Skia/">
+          <img class="lunet-logo" src="/Svg.Skia/images/logo.svg" alt="Svg.Skia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/Svg.Skia/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/Svg.Skia' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-packages.e82245122f8161bdc93d7258a30de783.html' data-lunet-menu-open='menu-id-packages-0' data-lunet-menu-active='menu-item-packages-8,menu-item-packages-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/packages/' class='breadcrumb-link  '>Packages</a>  </li>
+          <li class='breadcrumb-item  active'>
+            Skia.Controls.Avalonia  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="skiacontrolsavalonia">Skia.Controls.Avalonia</h1>
+<p><code>Skia.Controls.Avalonia</code> is the general-purpose Avalonia package for displaying or drawing raw SkiaSharp content. It complements the SVG-specific packages, but it is useful even when SVG is not involved at all.</p>
+<h2 id="install">Install</h2>
+<pre><code class="language-bash">dotnet add package Skia.Controls.Avalonia
+</code></pre>
+<h2 id="choose-this-package-when">Choose this package when</h2>
+<ul>
+<li>you already have <code>SKCanvas</code>, <code>SKBitmap</code>, <code>SKPath</code>, or <code>SKPicture</code> content,</li>
+<li>you want Avalonia controls and images for raw SkiaSharp primitives,</li>
+<li>SVG content is only one of several Skia-based inputs in the app,</li>
+<li>you need reusable display primitives to pair with generated or runtime-built pictures.</li>
+</ul>
+<h2 id="main-controls-and-images">Main controls and images</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Type</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SKCanvasControl</code></td>
+<td>Draw event for custom SkiaSharp painting</td>
+</tr>
+<tr>
+<td><code>SKBitmapControl</code></td>
+<td>Displays an <code>SKBitmap</code></td>
+</tr>
+<tr>
+<td><code>SKPathControl</code></td>
+<td>Displays an <code>SKPath</code> with an optional <code>SKPaint</code></td>
+</tr>
+<tr>
+<td><code>SKPictureControl</code></td>
+<td>Displays an <code>SKPicture</code></td>
+</tr>
+<tr>
+<td><code>SKBitmapImage</code></td>
+<td><code>IImage</code> wrapper around <code>SKBitmap</code></td>
+</tr>
+<tr>
+<td><code>SKPathImage</code></td>
+<td><code>IImage</code> wrapper around <code>SKPath</code></td>
+</tr>
+<tr>
+<td><code>SKPictureImage</code></td>
+<td><code>IImage</code> wrapper around <code>SKPicture</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="skcanvascontrol"><code>SKCanvasControl</code></h2>
+<p>Use this when you want direct draw-event access:</p>
+<pre><code class="language-csharp">CanvasControl.Draw += (_, e) =&gt;
+{
+    using var paint = new SkiaSharp.SKPaint
+    {
+        Color = SkiaSharp.SKColors.Aqua,
+        IsAntialias = true
+    };
+
+    e.Canvas.DrawCircle(80, 80, 48, paint);
+};
+</code></pre>
+<h2 id="skpicturecontrol"><code>SKPictureControl</code></h2>
+<p>This is the natural bridge from <code>Svg.Skia</code> or generated pictures into Avalonia:</p>
+<pre><code class="language-xml">&lt;SKPictureControl Picture=&quot;{x:Static local:Tiger.Picture}&quot;
+                  Stretch=&quot;Uniform&quot; /&gt;
+</code></pre>
+<p>It is especially useful with:</p>
+<ul>
+<li><code>SKSvg.Picture</code> from <a href="/Svg.Skia/articles/packages/svg-skia">Svg.Skia</a>,</li>
+<li>generated <code>Picture</code> classes from <a href="/Svg.Skia/articles/packages/svg-sourcegenerator-skia">Svg.SourceGenerator.Skia</a>,</li>
+<li>picture output produced by your own SkiaSharp pipeline.</li>
+</ul>
+<h2 id="skpictureimage"><code>SKPictureImage</code></h2>
+<p>When an Avalonia <code>Image</code> needs to display a picture instead of a control hosting it:</p>
+<pre><code class="language-xml">&lt;Image&gt;
+  &lt;Image.Source&gt;
+    &lt;SKPictureImage Source=&quot;{x:Static local:Camera.Picture}&quot; /&gt;
+  &lt;/Image.Source&gt;
+&lt;/Image&gt;
+</code></pre>
+<p>That keeps the asset reusable across templates, lists, buttons, and resource dictionaries.</p>
+<h2 id="why-this-package-matters-in-the-repo">Why this package matters in the repo</h2>
+<p><code>Skia.Controls.Avalonia</code> is the shared presentation layer for non-SVG-specific Skia content. It is the package that keeps SVG-generated pictures compatible with the rest of an application's Skia assets.</p>
+<h2 id="when-not-to-choose-this-package">When not to choose this package</h2>
+<ul>
+<li>Choose <a href="/Svg.Skia/articles/packages/svg-controls-skia-avalonia">Svg.Controls.Skia.Avalonia</a> when you want SVG-specific XAML primitives such as <code>Svg</code>, <code>SvgImage</code>, <code>SvgSource</code>, or <code>SvgResource</code>.</li>
+<li>Choose <a href="/Svg.Skia/articles/packages/svg-controls-avalonia">Svg.Controls.Avalonia</a> when you want the Avalonia drawing-stack SVG package.</li>
+<li>Choose <a href="/Svg.Skia/articles/packages/svg-skia">Svg.Skia</a> when you do not need Avalonia UI at all.</li>
+</ul>
+<h2 id="related-docs">Related docs</h2>
+<ul>
+<li><a href="/Svg.Skia/articles/xaml/overview">XAML Overview</a></li>
+<li><a href="/Svg.Skia/articles/xaml/skia-controls-and-skpictureimage">Skia Controls and SKPictureImage</a></li>
+</ul>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

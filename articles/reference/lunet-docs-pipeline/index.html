@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
+    <title>Lunet Docs Pipeline | Svg.Skia</title>
+    <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
+    <script src="/Svg.Skia/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="Lunet Docs Pipeline | Svg.Skia">
+<meta name="twitter:description" content="Lunet Docs Pipeline This repository now uses Lunet for the documentation site, following the same docs-first structure used in the TreeDataGrid project. Site structure site/config.scriban: Lunet configuration, bundle setup, and API docs generation site/menu.yml: top-level navigation site/readme.md: landing page site/articles/**: authored documentation site/articles/**/menu.yml: section sidebars site/images/**: docs assets site/.lunet/css/template-main.css: precompiled template stylesheet used for the Sass workaround...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta name="twitter:image:alt" content="Lunet Docs Pipeline | Svg.Skia">
+<meta property="og:title" content="Lunet Docs Pipeline | Svg.Skia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
+<meta property="og:description" content="Lunet Docs Pipeline This repository now uses Lunet for the documentation site, following the same docs-first structure used in the TreeDataGrid project. Site structure site/config.scriban: Lunet configuration, bundle setup, and API docs generation site/menu.yml: top-level navigation site/readme.md: landing page site/articles/**: authored documentation site/articles/**/menu.yml: section sidebars site/images/**: docs assets site/.lunet/css/template-main.css: precompiled template stylesheet used for the Sass workaround...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta property="og:image:alt" content="Lunet Docs Pipeline | Svg.Skia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/Svg.Skia/">
+          <img class="lunet-logo" src="/Svg.Skia/images/logo.svg" alt="Svg.Skia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/Svg.Skia/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/Svg.Skia' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <ol id='menu-id-reference-0' class='menu menu-level0 show '>
+            <li id='menu-item-reference-1' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/' class='menu-link  '>Reference</a></span>  </li>
+            <li id='menu-item-reference-2' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/packages-and-namespaces/' class='menu-link  '>Packages and Namespaces</a></span>  </li>
+            <li id='menu-item-reference-3' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/samples-and-tools/' class='menu-link  '>Samples and Tools</a></span>  </li>
+            <li id='menu-item-reference-4' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/api-coverage-index/' class='menu-link  '>API Coverage Index</a></span>  </li>
+            <li id='menu-item-reference-5' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/license/' class='menu-link  '>License</a></span>  </li>
+            <li id='menu-item-reference-6' class='menu-item  active'>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/lunet-docs-pipeline/' class='menu-link  '>Lunet Docs Pipeline</a></span>  </li>
+          </ol>
+
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/reference/' class='breadcrumb-link  '>Reference</a>  </li>
+          <li class='breadcrumb-item  active'>
+            Lunet Docs Pipeline  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="lunet-docs-pipeline">Lunet Docs Pipeline</h1>
+<p>This repository now uses Lunet for the documentation site, following the same docs-first structure used in the TreeDataGrid project.</p>
+<h2 id="site-structure">Site structure</h2>
+<ul>
+<li><code>site/config.scriban</code>: Lunet configuration, bundle setup, and API docs generation</li>
+<li><code>site/menu.yml</code>: top-level navigation</li>
+<li><code>site/readme.md</code>: landing page</li>
+<li><code>site/articles/**</code>: authored documentation</li>
+<li><code>site/articles/**/menu.yml</code>: section sidebars</li>
+<li><code>site/images/**</code>: docs assets</li>
+<li><code>site/.lunet/css/template-main.css</code>: precompiled template stylesheet used for the Sass workaround</li>
+<li><code>site/.lunet/css/site-overrides.css</code>: Svg.Skia-specific branding and layout overrides</li>
+<li><code>site/.lunet/includes/_builtins/bundle.sbn-html</code>: bundle include override that works with page-level bundle front matter</li>
+<li><code>site/.lunet/layouts/_default.api-dotnet*.sbn-md</code>: API page layout overrides</li>
+</ul>
+<h2 id="api-generation">API generation</h2>
+<p>API docs are generated by Lunet <code>api.dotnet</code> from the core library projects listed in <a href="/Svg.Skia/articles/reference/api-coverage-index">API Coverage Index</a>.</p>
+<p>Current settings:</p>
+<ul>
+<li><code>Release</code> configuration</li>
+<li><code>TargetFramework: netstandard2.0</code></li>
+<li>output under <code>/api</code></li>
+<li>Avalonia xrefs pointed at <code>https://api-docs.avaloniaui.net/docs</code></li>
+</ul>
+<h2 id="styling-pipeline-note">Styling pipeline note</h2>
+<p>Lunet <code>1.0.10</code> on macOS 15 has a Dart Sass platform detection issue. To avoid that:</p>
+<ul>
+<li>docs pages are assigned <code>bundle: &quot;lite&quot;</code></li>
+<li><code>template-main.css</code> is checked in as a precompiled template stylesheet</li>
+<li><code>site-overrides.css</code> is loaded after it for repository-specific changes</li>
+</ul>
+<p>To refresh <code>template-main.css</code> after a template update:</p>
+<pre><code class="language-bash">npx --yes sass --no-source-map --style=expanded \
+  --load-path site/.lunet/build/cache/.lunet/resources/npm/bootstrap/5.3.8/scss \
+  --load-path site/.lunet/build/cache/.lunet/resources/npm/bootstrap-icons/1.13.1/font \
+  site/.lunet/build/cache/.lunet/extends/github/lunet-io/templates/main/dist/.lunet/css/main.scss \
+  site/.lunet/css/template-main.css
+</code></pre>
+<h2 id="commands">Commands</h2>
+<p>From repository root:</p>
+<pre><code class="language-bash">./build-docs.sh
+./check-docs.sh
+./serve-docs.sh
+</code></pre>
+<p>PowerShell:</p>
+<pre><code class="language-powershell">./build-docs.ps1
+./check-docs.ps1
+./serve-docs.ps1
+</code></pre>
+<p>All commands operate in <code>site/</code> and publish to <code>site/.lunet/build/www</code>.</p>
+<h2 id="ci-publishing">CI publishing</h2>
+<p><code>.github/workflows/docs.yml</code> restores the local Lunet tool, builds the site, and deploys <code>site/.lunet/build/www</code> to GitHub Pages on pushes to <code>main</code> or <code>master</code>.</p>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

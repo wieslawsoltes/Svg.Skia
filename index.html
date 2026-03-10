@@ -1,31 +1,203 @@
 <!DOCTYPE html>
-<html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
+    <title>Svg.Skia | Svg.Skia</title>
+    <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
+    <script src="/Svg.Skia/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="Svg.Skia | Svg.Skia">
+<meta name="twitter:description" content="SVG Rendering Toolkit Svg.Skia Svg.Skia loads SVG 1.1 and Android VectorDrawable content, builds a reusable picture model, and turns it into SKPicture output, Avalonia visuals, generated C# code, and conversion artifacts. Choose a Package Browse API GitHub Repository SVG 1.1 subset SKPicture output Avalonia integration Build-time generation VectorDrawable import Repository SVG samples Actual SVG assets used by the samples, source generator, and rendering pipeline. Complex paths and layered fills...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta name="twitter:image:alt" content="Svg.Skia | Svg.Skia">
+<meta property="og:title" content="Svg.Skia | Svg.Skia">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
+<meta property="og:description" content="SVG Rendering Toolkit Svg.Skia Svg.Skia loads SVG 1.1 and Android VectorDrawable content, builds a reusable picture model, and turns it into SKPicture output, Avalonia visuals, generated C# code, and conversion artifacts. Choose a Package Browse API GitHub Repository SVG 1.1 subset SKPicture output Avalonia integration Build-time generation VectorDrawable import Repository SVG samples Actual SVG assets used by the samples, source generator, and rendering pipeline. Complex paths and layered fills...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta property="og:image:alt" content="Svg.Skia | Svg.Skia">
+  </head>
+  <body>
 
-<head>
-    <title>Svg.Skia Test App</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <base href="/Svg.Skia/" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;500;600;700&family=Open+Sans:wght@600&display=swap" rel="stylesheet">
-    <link rel="modulepreload" href="./main.js" />
-    <link rel="modulepreload" href="./dotnet.js" />
-    <link rel="modulepreload" href="./avalonia.js" />
-    <link rel="stylesheet" href="./app.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">    
-</head>
-
-<body style="margin: 0px">
-    <div id="out">                
-        <div id="avalonia-splash"> 
-            <div class="center">
-                <h2 class="purple">                   
-                    Powered by
-                    <a class="highlight" href="https://www.avaloniaui.net/" target="_blank">Avalonia UI</a></h2>              
-            </div>             
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md ">
+        <a class="navbar-brand" href="/Svg.Skia/">
+          <img class="lunet-logo" src="/Svg.Skia/images/logo.svg" alt="Svg.Skia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/Svg.Skia/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/Svg.Skia' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
         </div>
-    </div>
-    <script type='module' src="./main.js"></script>
-</body>
+      </nav>
+      <div class="lunet lunet-home">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
 
+<div class="container">
+<!-- lunet:summarize -->
+<div class="svgskia-hero">
+  <div class="svgskia-hero-copy">
+    <div class="svgskia-eyebrow"><i class="bi bi-bezier2" aria-hidden="true"></i> SVG Rendering Toolkit</div>
+    <h1>Svg.Skia</h1>
+    <p class="lead"><strong>Svg.Skia</strong> loads SVG 1.1 and Android VectorDrawable content, builds a reusable picture model, and turns it into <code>SKPicture</code> output, Avalonia visuals, generated C# code, and conversion artifacts.</p>
+    <div class="svgskia-hero-actions">
+      <a class="btn btn-primary btn-lg" href="articles/getting-started/overview"><i class="bi bi-signpost-split" aria-hidden="true"></i> Choose a Package</a>
+      <a class="btn btn-outline-secondary btn-lg" href="api"><i class="bi bi-braces" aria-hidden="true"></i> Browse API</a>
+      <a class="btn btn-outline-secondary btn-lg" href="https://github.com/wieslawsoltes/Svg.Skia"><i class="bi bi-github" aria-hidden="true"></i> GitHub Repository</a>
+    </div>
+    <div class="svgskia-pill-row">
+      <span class="svgskia-pill">SVG 1.1 subset</span>
+      <span class="svgskia-pill">SKPicture output</span>
+      <span class="svgskia-pill">Avalonia integration</span>
+      <span class="svgskia-pill">Build-time generation</span>
+      <span class="svgskia-pill">VectorDrawable import</span>
+    </div>
+  </div>
+  <div class="svgskia-hero-media svgskia-hero-media--showcase">
+    <div class="svgskia-showcase-shell">
+      <div class="svgskia-showcase-head">
+        <span class="svgskia-showcase-eyebrow">Repository SVG samples</span>
+        <strong>Actual SVG assets used by the samples, source generator, and rendering pipeline.</strong>
+      </div>
+      <div class="svgskia-showcase-grid">
+        <figure class="svgskia-showcase-card">
+          <div class="svgskia-showcase-preview">
+            <img src="images/hero-tiger.svg" alt="Tiger SVG sample asset" />
+          </div>
+          <figcaption>Complex paths and layered fills</figcaption>
+        </figure>
+        <figure class="svgskia-showcase-card">
+          <div class="svgskia-showcase-preview">
+            <img src="images/hero-camera.svg" alt="Digital camera SVG sample asset" />
+          </div>
+          <figcaption>Icon and UI-style artwork</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</div>
+<h2 id="package-surface">Package Surface</h2>
+<div class="svgskia-package-grid">
+  <a class="svgskia-package-card" href="articles/packages/svg-skia">
+    <span class="svgskia-package-title"><i class="bi bi-box-seam" aria-hidden="true"></i> Svg.Skia</span>
+    <p>The core renderer that loads markup, builds a picture model, and emits <code>SKPicture</code> output.</p>
+  </a>
+  <a class="svgskia-package-card" href="articles/packages/svg-controls-skia-avalonia">
+    <span class="svgskia-package-title"><i class="bi bi-window" aria-hidden="true"></i> Avalonia Packages</span>
+    <p>Two Avalonia stacks: a Skia-backed renderer and a pure Avalonia picture pipeline.</p>
+  </a>
+  <a class="svgskia-package-card" href="articles/packages/svg-sourcegenerator-skia">
+    <span class="svgskia-package-title"><i class="bi bi-filetype-cs" aria-hidden="true"></i> Generated Code</span>
+    <p>Compile SVG assets into C# or source-generated pictures for static assets and AOT-friendly workflows.</p>
+  </a>
+  <a class="svgskia-package-card" href="articles/guides/cli-conversion">
+    <span class="svgskia-package-title"><i class="bi bi-terminal" aria-hidden="true"></i> Tooling</span>
+    <p>Batch-convert SVG and VectorDrawable input into png, jpg, webp, pdf, xps, or raw generated code.</p>
+  </a>
+</div>
+<h2 id="documentation-sections">Documentation Sections</h2>
+<div class="svgskia-link-grid svgskia-link-grid--wide">
+  <a class="svgskia-link-card" href="articles/getting-started">
+    <span class="svgskia-link-card-title"><i class="bi bi-signpost-split" aria-hidden="true"></i> Getting Started</span>
+    <p>Install packages, pick the right stack, and render your first SVG in code or XAML.</p>
+  </a>
+  <a class="svgskia-link-card" href="articles/concepts">
+    <span class="svgskia-link-card-title"><i class="bi bi-diagram-3" aria-hidden="true"></i> Concepts</span>
+    <p>Understand the package layout, asset pipeline, picture model, and rebuild workflow.</p>
+  </a>
+  <a class="svgskia-link-card" href="articles/guides">
+    <span class="svgskia-link-card-title"><i class="bi bi-journal-code" aria-hidden="true"></i> Guides</span>
+    <p>Follow focused walkthroughs for rendering, exporting, hit testing, conversion, and code generation.</p>
+  </a>
+  <a class="svgskia-link-card" href="articles/xaml">
+    <span class="svgskia-link-card-title"><i class="bi bi-filetype-xaml" aria-hidden="true"></i> XAML Usage</span>
+    <p>Wire up <code>Svg</code>, <code>SvgImage</code>, <code>SvgResource</code>, and <code>SKPictureImage</code> in Avalonia.</p>
+  </a>
+  <a class="svgskia-link-card" href="articles/advanced">
+    <span class="svgskia-link-card-title"><i class="bi bi-speedometer2" aria-hidden="true"></i> Advanced</span>
+    <p>Review VectorDrawable support, trimming and NativeAOT notes, repository tests, and packaging expectations.</p>
+  </a>
+  <a class="svgskia-link-card" href="articles/reference">
+    <span class="svgskia-link-card-title"><i class="bi bi-collection" aria-hidden="true"></i> Reference</span>
+    <p>Package maps, sample inventory, generated API coverage, licensing, and the Lunet docs pipeline.</p>
+  </a>
+  <a class="svgskia-link-card" href="api">
+    <span class="svgskia-link-card-title"><i class="bi bi-braces-asterisk" aria-hidden="true"></i> API Documentation</span>
+    <p>Browse generated API pages for the renderer, Avalonia packages, picture model, and source-generator assemblies.</p>
+  </a>
+</div>
+<h2 id="start-here">Start Here</h2>
+<ul>
+<li>Use <a href="/Svg.Skia/articles/getting-started/overview">Getting Started Overview</a> if you are choosing between the core renderer, the Avalonia packages, and the CLI.</li>
+<li>Use <a href="/Svg.Skia/articles/getting-started/quickstart-loading-and-rendering">Quickstart: Loading and Rendering</a> when you want a minimal <code>SKSvg</code> example first.</li>
+<li>Use <a href="/Svg.Skia/articles/xaml/overview">XAML Overview</a> when the target app is Avalonia.</li>
+<li>Use <a href="/Svg.Skia/articles/reference/api-coverage-index">API Coverage Index</a> when you want to know which assemblies are included in generated docs.</li>
+</ul>
+
+</div>
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
 </html>
