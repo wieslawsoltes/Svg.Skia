@@ -169,6 +169,14 @@
 <li><code>Svg.Controls.Avalonia</code> exposes a similar API surface but renders through the Avalonia drawing model.</li>
 <li><code>Skia.Controls.Avalonia</code> provides reusable general-purpose Skia controls such as <code>SKCanvasControl</code>, <code>SKPictureControl</code>, and <code>SKPictureImage</code>.</li>
 </ul>
+<h2 id="editor-composition-path">Editor composition path</h2>
+<ul>
+<li><code>Svg.Editor.Core</code> carries shared editor session state and history.</li>
+<li><code>Svg.Editor.Svg</code> carries document mutation, properties, layers, patterns, symbols, styles, and tool-creation services.</li>
+<li><code>Svg.Editor.Skia</code> carries the editing math and overlay rendering.</li>
+<li><code>Svg.Editor.Avalonia</code> carries reusable side panels, editor views, and dialog abstractions.</li>
+<li><code>Svg.Editor.Skia.Avalonia</code> composes the full interactive editor workspace on top of the lower layers.</li>
+</ul>
 <h2 id="generated-code-path">Generated-code path</h2>
 <ul>
 <li><code>Svg.CodeGen.Skia</code> generates C# from the picture model.</li>
@@ -203,6 +211,26 @@
 <tr>
 <td><code>Avalonia.Controls.Skia</code></td>
 <td>general-purpose Skia controls for Avalonia</td>
+</tr>
+<tr>
+<td><code>Svg.Editor.Core</code></td>
+<td>editor session, settings, nodes, artboards, clipboard</td>
+</tr>
+<tr>
+<td><code>Svg.Editor.Svg</code></td>
+<td>editor document mutation services and models</td>
+</tr>
+<tr>
+<td><code>Svg.Editor.Skia</code></td>
+<td>editor selection, path editing, and overlay rendering</td>
+</tr>
+<tr>
+<td><code>Svg.Editor.Avalonia</code></td>
+<td>reusable editor controls, dialogs, and views</td>
+</tr>
+<tr>
+<td><code>Svg.Editor.Skia.Avalonia</code></td>
+<td>interactive editor surface and workspace</td>
 </tr>
 <tr>
 <td><code>ShimSkiaSharp</code></td>

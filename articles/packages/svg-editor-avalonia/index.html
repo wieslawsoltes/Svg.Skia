@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
+    <title>Svg.Editor.Avalonia | Svg.Skia</title>
+    <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
+    <script src="/Svg.Skia/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="Svg.Editor.Avalonia | Svg.Skia">
+<meta name="twitter:description" content="Svg.Editor.Avalonia Svg.Editor.Avalonia provides reusable editor UI for Avalonia without requiring the default workspace layout. Install dotnet add package Svg.Editor.Avalonia Choose this package when you want the editor side panels but not the built-in canvas/workspace, you need the typed editor dialogs and result models in another host shell, your app has its own menus, docking layout, or document tabs, you want to swap the default file-picker or modal window flow....">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta name="twitter:image:alt" content="Svg.Editor.Avalonia | Svg.Skia">
+<meta property="og:title" content="Svg.Editor.Avalonia | Svg.Skia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
+<meta property="og:description" content="Svg.Editor.Avalonia Svg.Editor.Avalonia provides reusable editor UI for Avalonia without requiring the default workspace layout. Install dotnet add package Svg.Editor.Avalonia Choose this package when you want the editor side panels but not the built-in canvas/workspace, you need the typed editor dialogs and result models in another host shell, your app has its own menus, docking layout, or document tabs, you want to swap the default file-picker or modal window flow....">
+<meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta property="og:image:alt" content="Svg.Editor.Avalonia | Svg.Skia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/Svg.Skia/">
+          <img class="lunet-logo" src="/Svg.Skia/images/logo.svg" alt="Svg.Skia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/Svg.Skia/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/Svg.Skia' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-packages.bbb787b5f89cbb5e24e4740b927c453e.html' data-lunet-menu-open='menu-id-packages-0' data-lunet-menu-active='menu-item-packages-12,menu-item-packages-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/packages/' class='breadcrumb-link  '>Packages</a>  </li>
+          <li class='breadcrumb-item  active'>
+            Svg.Editor.Avalonia  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="svgeditoravalonia">Svg.Editor.Avalonia</h1>
+<p><code>Svg.Editor.Avalonia</code> provides reusable editor UI for Avalonia without requiring the default workspace layout.</p>
+<h2 id="install">Install</h2>
+<pre><code class="language-bash">dotnet add package Svg.Editor.Avalonia
+</code></pre>
+<h2 id="choose-this-package-when">Choose this package when</h2>
+<ul>
+<li>you want the editor side panels but not the built-in canvas/workspace,</li>
+<li>you need the typed editor dialogs and result models in another host shell,</li>
+<li>your app has its own menus, docking layout, or document tabs,</li>
+<li>you want to swap the default file-picker or modal window flow.</li>
+</ul>
+<h2 id="main-controls">Main controls</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Control</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DocumentOutlineView</code></td>
+<td>Outline tree and artboard list</td>
+</tr>
+<tr>
+<td><code>ResourceBrowserView</code></td>
+<td>Layers, patterns, swatches, brushes, symbols, and styles</td>
+</tr>
+<tr>
+<td><code>PropertyInspectorView</code></td>
+<td>Filterable property grid and specialized property editors</td>
+</tr>
+<tr>
+<td><code>ToolPaletteView</code></td>
+<td>Tool buttons and stroke-width input</td>
+</tr>
+<tr>
+<td><code>StatusBarView</code></td>
+<td>Status text and reset button</td>
+</tr>
+</tbody>
+</table>
+<h2 id="dialog-infrastructure">Dialog infrastructure</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Type</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ISvgEditorDialogService</code></td>
+<td>Abstracts insert-element, gradient, mesh, stroke, text, swatch, symbol, path, and settings editors</td>
+</tr>
+<tr>
+<td><code>ISvgEditorFileDialogService</code></td>
+<td>Abstracts open/save/export/image-pick workflows</td>
+</tr>
+<tr>
+<td><code>SvgEditorDialogService</code></td>
+<td>Default window-based dialog implementation</td>
+</tr>
+<tr>
+<td><code>SvgEditorFileDialogService</code></td>
+<td>Default Avalonia storage-provider implementation</td>
+</tr>
+</tbody>
+</table>
+<h2 id="standalone-editor-views">Standalone editor views</h2>
+<p>The package exposes reusable views for each advanced editing workflow:</p>
+<ul>
+<li><code>InsertElementPickerView</code></li>
+<li><code>PatternEditorView</code></li>
+<li><code>GradientStopsEditorView</code></li>
+<li><code>GradientMeshEditorView</code></li>
+<li><code>StrokeProfileEditorView</code></li>
+<li><code>TextEditorView</code></li>
+<li><code>PathSegmentsEditorView</code></li>
+<li><code>SwatchEditorView</code></li>
+<li><code>SymbolPickerView</code></li>
+<li><code>SymbolNameEditorView</code></li>
+<li><code>SettingsEditorView</code></li>
+</ul>
+<p>Each view maps to a strongly typed result model under <code>Svg.Editor.Avalonia.Models</code>.</p>
+<h2 id="example-panel-usage">Example panel usage</h2>
+<pre><code class="language-xml">&lt;controls:PropertyInspectorView FilteredProperties=&quot;{Binding FilteredProperties}&quot; /&gt;
+</code></pre>
+<pre><code class="language-csharp">using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using Svg.Editor.Avalonia.Controls;
+using Svg.Editor.Svg.Models;
+
+var inspector = new PropertyInspectorView
+{
+    FilteredProperties = new ObservableCollection&lt;PropertyEntry&gt;()
+};
+
+inspector.PatternReferenceProvider = Array.Empty&lt;string&gt;;
+inspector.EditGradientStopsAsync = entry =&gt; Task.FromResult&lt;IReadOnlyList&lt;GradientStopInfo&gt;?&gt;(entry.Stops);
+inspector.EditGradientMeshAsync = _ =&gt; Task.CompletedTask;
+inspector.EditStrokeProfileAsync = entry =&gt; Task.FromResult&lt;IReadOnlyList&lt;StrokePointInfo&gt;?&gt;(entry.Points);
+</code></pre>
+<p>Use those hooks when the host wants the reusable grid but needs to own the actual advanced editor presentation.</p>
+<h2 id="related-docs">Related docs</h2>
+<ul>
+<li><a href="/Svg.Skia/articles/editor/composing-panels-and-dialogs">Composing Panels and Dialogs</a></li>
+<li><a href="/Svg.Skia/articles/packages/svg-editor-skia-avalonia">Svg.Editor.Skia.Avalonia</a></li>
+<li><a href="/Svg.Skia/articles/packages/svg-editor-svg">Svg.Editor.Svg</a></li>
+</ul>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

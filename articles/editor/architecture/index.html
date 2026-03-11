@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
+    <title>Architecture | Svg.Skia</title>
+    <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
+    <script src="/Svg.Skia/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="Architecture | Svg.Skia">
+<meta name="twitter:description" content="Architecture The editor stack is layered so applications can pick the lowest level that still solves the problem. Dependency order Layer Depends on Main responsibility Svg.Editor.Core Svg.Model Host-agnostic state such as the active document, outline tree, selected ids, settings, clipboard, and undo/redo history Svg.Editor.Svg Svg.Editor.Core, Svg.Model, Svg.Skia SVG document loading, save/export helpers, properties, layers, patterns, swatches, symbols, styles, and creation tools...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta name="twitter:image:alt" content="Architecture | Svg.Skia">
+<meta property="og:title" content="Architecture | Svg.Skia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
+<meta property="og:description" content="Architecture The editor stack is layered so applications can pick the lowest level that still solves the problem. Dependency order Layer Depends on Main responsibility Svg.Editor.Core Svg.Model Host-agnostic state such as the active document, outline tree, selected ids, settings, clipboard, and undo/redo history Svg.Editor.Svg Svg.Editor.Core, Svg.Model, Svg.Skia SVG document loading, save/export helpers, properties, layers, patterns, swatches, symbols, styles, and creation tools...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta property="og:image:alt" content="Architecture | Svg.Skia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/Svg.Skia/">
+          <img class="lunet-logo" src="/Svg.Skia/images/logo.svg" alt="Svg.Skia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/Svg.Skia/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/Svg.Skia' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <ol id='menu-id-editor-0' class='menu menu-level0 show '>
+            <li id='menu-item-editor-1' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/editor/' class='menu-link  '>Editor</a></span>  </li>
+            <li id='menu-item-editor-2' class='menu-item  active'>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/editor/architecture/' class='menu-link  '>Architecture</a></span>  </li>
+            <li id='menu-item-editor-3' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/editor/embedding-workspace/' class='menu-link  '>Embedding SvgEditorWorkspace</a></span>  </li>
+            <li id='menu-item-editor-4' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/editor/composing-panels-and-dialogs/' class='menu-link  '>Composing Panels and Dialogs</a></span>  </li>
+            <li id='menu-item-editor-5' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/editor/rendering-and-svg-services/' class='menu-link  '>Rendering and Svg Services</a></span>  </li>
+          </ol>
+
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/editor/' class='breadcrumb-link  '>Editor</a>  </li>
+          <li class='breadcrumb-item  active'>
+            Architecture  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="architecture">Architecture</h1>
+<p>The editor stack is layered so applications can pick the lowest level that still solves the problem.</p>
+<h2 id="dependency-order">Dependency order</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Layer</th>
+<th>Depends on</th>
+<th>Main responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Svg.Editor.Core</code></td>
+<td><code>Svg.Model</code></td>
+<td>Host-agnostic state such as the active document, outline tree, selected ids, settings, clipboard, and undo/redo history</td>
+</tr>
+<tr>
+<td><code>Svg.Editor.Svg</code></td>
+<td><code>Svg.Editor.Core</code>, <code>Svg.Model</code>, <code>Svg.Skia</code></td>
+<td>SVG document loading, save/export helpers, properties, layers, patterns, swatches, symbols, styles, and creation tools</td>
+</tr>
+<tr>
+<td><code>Svg.Editor.Skia</code></td>
+<td><code>Svg.Editor.Core</code>, <code>Svg.Editor.Svg</code>, <code>Svg.Model</code>, <code>Svg.Skia</code></td>
+<td>Bounds math, hit handles, transforms, path editing, align/distribute, and overlay rendering</td>
+</tr>
+<tr>
+<td><code>Svg.Editor.Avalonia</code></td>
+<td><code>Svg.Editor.Core</code>, <code>Svg.Editor.Svg</code></td>
+<td>Reusable Avalonia panels, property editors, standalone dialog views, and dialog/file-dialog service abstractions</td>
+</tr>
+<tr>
+<td><code>Svg.Editor.Skia.Avalonia</code></td>
+<td><code>Svg.Editor.Avalonia</code>, <code>Svg.Editor.Core</code>, <code>Svg.Editor.Skia</code>, <code>Svg.Editor.Svg</code>, <code>Svg.Controls.Skia.Avalonia</code></td>
+<td>The interactive <code>SvgEditorSurface</code> and the default <code>SvgEditorWorkspace</code> composition</td>
+</tr>
+</tbody>
+</table>
+<h2 id="package-responsibilities">Package responsibilities</h2>
+<h3 id="svgeditorcore"><code>Svg.Editor.Core</code></h3>
+<p>Use this layer when your host already has its own UI and needs a durable editor session object. <code>SvgEditorSession</code> stores the document reference, current file, title, filter text, selected ids, artboards, outline nodes, settings, clipboard contents, and undo/redo snapshots.</p>
+<h3 id="svgeditorsvg"><code>Svg.Editor.Svg</code></h3>
+<p>This layer owns document mutation and resource-oriented models. It is the package behind the property inspector, layer browser, pattern list, swatches, symbols, and styles. It also carries <code>SvgDocumentService</code> for open, save, XML round-tripping, and export helpers.</p>
+<h3 id="svgeditorskia"><code>Svg.Editor.Skia</code></h3>
+<p>This layer owns the editing math. <code>SelectionService</code> and <code>PathService</code> handle transforms and editable path points, <code>AlignService</code> handles arrangement commands, and <code>RenderingService</code> draws the editor-only overlays. <code>SvgEditorInteractionController</code> and <code>SvgEditorOverlayRenderer</code> are the public adapter types meant for hosts.</p>
+<h3 id="svgeditoravalonia"><code>Svg.Editor.Avalonia</code></h3>
+<p>This layer exposes reusable controls and standalone views rather than a monolithic window. The main reusable panels are <code>DocumentOutlineView</code>, <code>ResourceBrowserView</code>, <code>PropertyInspectorView</code>, <code>ToolPaletteView</code>, and <code>StatusBarView</code>. Dialog workflows are abstracted through <code>ISvgEditorDialogService</code> and <code>ISvgEditorFileDialogService</code>.</p>
+<h3 id="svgeditorskiaavalonia"><code>Svg.Editor.Skia.Avalonia</code></h3>
+<p>This is the highest-level package. <code>SvgEditorSurface</code> extends <code>Avalonia.Svg.Skia.Svg</code> with public overlay and interaction adapters, and <code>SvgEditorWorkspace</code> composes the menu, tool palette, left-side panels, canvas, and property inspector into the same layout used by AvalonDraw.</p>
+<h2 id="host-owned-seams">Host-owned seams</h2>
+<p>The reusable workspace is intentionally not the final application shell. Hosts remain responsible for:</p>
+<ul>
+<li>window creation and app branding through <code>WorkspaceTitlePrefix</code>,</li>
+<li>default resource lookup via <code>ResourceAssembly</code>,</li>
+<li>preview window ownership via <code>PreviewRequested</code>,</li>
+<li>modal editors via <code>DialogService</code>,</li>
+<li>file picking and save locations via <code>FileDialogService</code>.</li>
+</ul>
+<p>That design keeps the reusable packages independent from any single desktop app policy.</p>
+<h2 id="sample-to-package-split">Sample-to-package split</h2>
+<p><code>samples/AvalonDraw</code> is now a thin host that:</p>
+<ul>
+<li>instantiates <code>SvgEditorWorkspace</code>,</li>
+<li>assigns the default dialog and file-dialog services,</li>
+<li>sets the title prefix to <code>AvalonDraw</code>,</li>
+<li>opens the preview window,</li>
+<li>loads the default <code>Assets/__tiger.svg</code> document.</li>
+</ul>
+<p>All reusable editor code now lives under <code>src/Svg.Editor.*</code>.</p>
+<h2 id="choosing-the-smallest-useful-layer">Choosing the smallest useful layer</h2>
+<ul>
+<li>Choose <code>Svg.Editor.Skia.Avalonia</code> for the complete editor experience inside an Avalonia app.</li>
+<li>Choose <code>Svg.Editor.Avalonia</code> when you want the panels and dialogs but not the default canvas/workspace.</li>
+<li>Choose <code>Svg.Editor.Skia</code> when you are building your own interactive surface or canvas control.</li>
+<li>Choose <code>Svg.Editor.Svg</code> when the task is document/resource mutation without UI.</li>
+<li>Choose <code>Svg.Editor.Core</code> when you only need common session state and history primitives.</li>
+</ul>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

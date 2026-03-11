@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="API Coverage Index | Svg.Skia">
-<meta name="twitter:description" content="API Coverage Index The generated API reference under /api is built from these projects: ../src/Svg.Skia/Svg.Skia.csproj ../src/Svg.Model/Svg.Model.csproj ../src/Svg.Custom/Svg.Custom.csproj ../src/Svg.Controls.Avalonia/Svg.Controls.Avalonia.csproj ../src/Svg.Controls.Skia.Avalonia/Svg.Controls.Skia.Avalonia.csproj ../src/Skia.Controls.Avalonia/Skia.Controls.Avalonia.csproj ../src/ShimSkiaSharp/ShimSkiaSharp.csproj ../src/Svg.SourceGenerator.Skia/Svg.SourceGenerator.Skia.csproj...">
+<meta name="twitter:description" content="API Coverage Index The generated API reference under /api is built from these projects: ../src/Svg.Skia/Svg.Skia.csproj ../src/Svg.Model/Svg.Model.csproj ../src/Svg.Custom/Svg.Custom.csproj ../src/Svg.Controls.Avalonia/Svg.Controls.Avalonia.csproj ../src/Svg.Controls.Skia.Avalonia/Svg.Controls.Skia.Avalonia.csproj ../src/Skia.Controls.Avalonia/Skia.Controls.Avalonia.csproj ../src/Svg.Editor.Core/Svg.Editor.Core.csproj ../src/Svg.Editor.Svg/Svg.Editor.Svg.csproj...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="API Coverage Index | Svg.Skia">
 <meta property="og:title" content="API Coverage Index | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="API Coverage Index The generated API reference under /api is built from these projects: ../src/Svg.Skia/Svg.Skia.csproj ../src/Svg.Model/Svg.Model.csproj ../src/Svg.Custom/Svg.Custom.csproj ../src/Svg.Controls.Avalonia/Svg.Controls.Avalonia.csproj ../src/Svg.Controls.Skia.Avalonia/Svg.Controls.Skia.Avalonia.csproj ../src/Skia.Controls.Avalonia/Skia.Controls.Avalonia.csproj ../src/ShimSkiaSharp/ShimSkiaSharp.csproj ../src/Svg.SourceGenerator.Skia/Svg.SourceGenerator.Skia.csproj...">
+<meta property="og:description" content="API Coverage Index The generated API reference under /api is built from these projects: ../src/Svg.Skia/Svg.Skia.csproj ../src/Svg.Model/Svg.Model.csproj ../src/Svg.Custom/Svg.Custom.csproj ../src/Svg.Controls.Avalonia/Svg.Controls.Avalonia.csproj ../src/Svg.Controls.Skia.Avalonia/Svg.Controls.Skia.Avalonia.csproj ../src/Skia.Controls.Avalonia/Skia.Controls.Avalonia.csproj ../src/Svg.Editor.Core/Svg.Editor.Core.csproj ../src/Svg.Editor.Svg/Svg.Editor.Svg.csproj...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="API Coverage Index | Svg.Skia">
   </head>
@@ -166,6 +166,11 @@
 <li><code>../src/Svg.Controls.Avalonia/Svg.Controls.Avalonia.csproj</code></li>
 <li><code>../src/Svg.Controls.Skia.Avalonia/Svg.Controls.Skia.Avalonia.csproj</code></li>
 <li><code>../src/Skia.Controls.Avalonia/Skia.Controls.Avalonia.csproj</code></li>
+<li><code>../src/Svg.Editor.Core/Svg.Editor.Core.csproj</code></li>
+<li><code>../src/Svg.Editor.Svg/Svg.Editor.Svg.csproj</code></li>
+<li><code>../src/Svg.Editor.Skia/Svg.Editor.Skia.csproj</code></li>
+<li><code>../src/Svg.Editor.Avalonia/Svg.Editor.Avalonia.csproj</code></li>
+<li><code>../src/Svg.Editor.Skia.Avalonia/Svg.Editor.Skia.Avalonia.csproj</code></li>
 <li><code>../src/ShimSkiaSharp/ShimSkiaSharp.csproj</code></li>
 <li><code>../src/Svg.SourceGenerator.Skia/Svg.SourceGenerator.Skia.csproj</code></li>
 </ul>
@@ -180,11 +185,20 @@
 <p>This repository mixes:</p>
 <ul>
 <li>multi-target runtime packages,</li>
+<li>multi-target editor packages,</li>
 <li><code>netstandard2.0</code>-only generator packages.</li>
 </ul>
 <p>Using <code>netstandard2.0</code> as the documentation build target keeps the API site aligned across the documented assemblies without having to split the API generation into multiple passes.</p>
 <h2 id="svgcodegenskia"><code>Svg.CodeGen.Skia</code></h2>
 <p><code>Svg.CodeGen.Skia</code> is described in the authored docs but is not added as a separate <code>api.dotnet</code> project because <code>Svg.SourceGenerator.Skia</code> links the same codegen types into its assembly, which produces duplicate API UIDs during Lunet generation.</p>
+<h2 id="when-a-new-package-is-added">When a new package is added</h2>
+<p>To keep the authored docs and generated API aligned:</p>
+<ol>
+<li>Add the project to <code>site/config.scriban</code> under <code>api.dotnet.projects</code>.</li>
+<li>Add any new Avalonia or external assembly xrefs under <code>api.dotnet.external_apis</code> if the public API links out to assemblies that are not already covered.</li>
+<li>Update <a href="/Svg.Skia/articles/reference/packages-and-namespaces">Packages and Namespaces</a> and the package article under <code>site/articles/packages/</code>.</li>
+<li>Rebuild the site with <code>./build-docs.sh</code>.</li>
+</ol>
 
       </div>
   </div>

@@ -210,6 +210,12 @@
 <td><a href="/Svg.Skia/articles/packages/skia-controls-avalonia">Skia.Controls.Avalonia</a></td>
 </tr>
 <tr>
+<td><code>Svg.Editor.*</code></td>
+<td>You want reusable SVG editor components, from session/services up to a full Avalonia workspace.</td>
+<td><code>SvgEditorSession</code>, editor services, panels, <code>SvgEditorWorkspace</code></td>
+<td><a href="/Svg.Skia/articles/editor">Editor</a></td>
+</tr>
+<tr>
 <td><code>Svg.CodeGen.Skia</code></td>
 <td>You want to generate checked-in or pipeline-produced C# from the picture model.</td>
 <td>C# source from <code>ShimSkiaSharp.SKPicture</code></td>
@@ -241,6 +247,9 @@
 <h3 id="avalonia-application">Avalonia application</h3>
 <p>Start with <code>Svg.Controls.Skia.Avalonia</code> when the app is already on Avalonia plus Skia.</p>
 <p>Choose <code>Svg.Controls.Avalonia</code> when you want the same SVG concepts exposed through the Avalonia drawing stack instead.</p>
+<h3 id="embedded-editor">Embedded editor</h3>
+<p>Start with <code>Svg.Editor.Skia.Avalonia</code> when the target is an editable SVG workspace rather than a viewer-only control.</p>
+<p>Move down to the other <code>Svg.Editor.*</code> packages when the host needs only panels, dialogs, SVG mutation services, or low-level interaction helpers.</p>
 <h3 id="static-asset-generation">Static asset generation</h3>
 <p>Use <code>Svg.SourceGenerator.Skia</code> when SVG assets should be compiled into strongly named classes during build.</p>
 <p>Use <code>svgc</code> when you want the same generated-code approach as a manual step or as part of a custom pipeline.</p>

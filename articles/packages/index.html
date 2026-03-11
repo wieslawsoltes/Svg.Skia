@@ -98,7 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-packages.e82245122f8161bdc93d7258a30de783.html' data-lunet-menu-open='menu-id-packages-0' data-lunet-menu-active='menu-item-packages-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-packages.bbb787b5f89cbb5e24e4740b927c453e.html' data-lunet-menu-open='menu-id-packages-0' data-lunet-menu-active='menu-item-packages-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -203,6 +203,43 @@
 </tr>
 </tbody>
 </table>
+<h2 id="editor-packages">Editor packages</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Package</th>
+<th>Start here when</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Svg.Editor.Skia.Avalonia</code></td>
+<td>You want the full interactive editor workspace and Skia-backed canvas extracted from AvalonDraw.</td>
+<td><a href="/Svg.Skia/articles/packages/svg-editor-skia-avalonia">Svg.Editor.Skia.Avalonia</a></td>
+</tr>
+<tr>
+<td><code>Svg.Editor.Avalonia</code></td>
+<td>You want reusable side panels, standalone editor views, and dialog abstractions without the default workspace.</td>
+<td><a href="/Svg.Skia/articles/packages/svg-editor-avalonia">Svg.Editor.Avalonia</a></td>
+</tr>
+<tr>
+<td><code>Svg.Editor.Skia</code></td>
+<td>You want selection math, path editing, align/distribute helpers, and editor overlay rendering for your own surface.</td>
+<td><a href="/Svg.Skia/articles/packages/svg-editor-skia">Svg.Editor.Skia</a></td>
+</tr>
+<tr>
+<td><code>Svg.Editor.Svg</code></td>
+<td>You want SVG document mutation services, property models, and resource-browser data structures.</td>
+<td><a href="/Svg.Skia/articles/packages/svg-editor-svg">Svg.Editor.Svg</a></td>
+</tr>
+<tr>
+<td><code>Svg.Editor.Core</code></td>
+<td>You want host-agnostic editor session, settings, outline nodes, artboards, clipboard, and history state.</td>
+<td><a href="/Svg.Skia/articles/packages/svg-editor-core">Svg.Editor.Core</a></td>
+</tr>
+</tbody>
+</table>
 <h2 id="generated-code-packages">Generated-code packages</h2>
 <table class="table">
 <thead>
@@ -229,6 +266,8 @@
 <ul>
 <li>Choose <code>Svg.Skia</code> for direct runtime rendering and export.</li>
 <li>Choose <code>Svg.Controls.Skia.Avalonia</code> for interactive Avalonia usage on the Skia-backed path.</li>
+<li>Choose <code>Svg.Editor.Skia.Avalonia</code> when you want a reusable SVG editor instead of only a viewer/control package.</li>
+<li>Choose <code>Svg.Editor.Avalonia</code>, <code>Svg.Editor.Skia</code>, <code>Svg.Editor.Svg</code>, and <code>Svg.Editor.Core</code> when you need only parts of that editor stack.</li>
 <li>Choose <code>Svg.Controls.Avalonia</code> for Avalonia drawing-context integration without the <code>SKSvg</code> runtime surface.</li>
 <li>Choose <code>Svg.Model</code> and <code>ShimSkiaSharp</code> when the main task is inspection, transformation, or code generation rather than direct display.</li>
 <li>Choose <code>Svg.CodeGen.Skia</code> or <code>Svg.SourceGenerator.Skia</code> when startup cost should move from runtime to build time.</li>
