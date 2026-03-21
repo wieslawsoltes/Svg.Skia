@@ -108,6 +108,8 @@
             <li id='menu-item-getting_started-4' class='menu-item '>
               <span class='menu-item-row'><a href='/Svg.Skia/articles/getting-started/quickstart-loading-and-rendering/' class='menu-link  '>Quickstart: Loading and Rendering</a></span>  </li>
             <li id='menu-item-getting_started-5' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/getting-started/quickstart-uno/' class='menu-link  '>Quickstart: Uno</a></span>  </li>
+            <li id='menu-item-getting_started-6' class='menu-item '>
               <span class='menu-item-row'><a href='/Svg.Skia/articles/getting-started/quickstart-avalonia/' class='menu-link  '>Quickstart: Avalonia</a></span>  </li>
           </ol>
 
@@ -192,6 +194,12 @@
 <td><a href="/Svg.Skia/articles/packages/shim-skiasharp">ShimSkiaSharp</a></td>
 </tr>
 <tr>
+<td><code>Svg.Controls.Skia.Uno</code></td>
+<td>You want Uno controls that render through the Skia-backed pipeline.</td>
+<td><code>Svg</code>, <code>SvgSource</code>, hit testing, zoom/pan</td>
+<td><a href="/Svg.Skia/articles/packages/svg-controls-skia-uno">Svg.Controls.Skia.Uno</a></td>
+</tr>
+<tr>
 <td><code>Svg.Controls.Skia.Avalonia</code></td>
 <td>You want Avalonia controls that render through the Skia-backed pipeline.</td>
 <td><code>Svg</code>, <code>SvgImage</code>, <code>SvgSource</code>, <code>SvgResource</code></td>
@@ -247,6 +255,8 @@
 <h3 id="avalonia-application">Avalonia application</h3>
 <p>Start with <code>Svg.Controls.Skia.Avalonia</code> when the app is already on Avalonia plus Skia.</p>
 <p>Choose <code>Svg.Controls.Avalonia</code> when you want the same SVG concepts exposed through the Avalonia drawing stack instead.</p>
+<h3 id="uno-application">Uno application</h3>
+<p>Start with <code>Svg.Controls.Skia.Uno</code> when the app is on Uno Platform and you want direct <code>SKCanvasElement</code> rendering plus async asset loading, hit testing, and viewport controls.</p>
 <h3 id="embedded-editor">Embedded editor</h3>
 <p>Start with <code>Svg.Editor.Skia.Avalonia</code> when the target is an editable SVG workspace rather than a viewer-only control.</p>
 <p>Move down to the other <code>Svg.Editor.*</code> packages when the host needs only panels, dialogs, SVG mutation services, or low-level interaction helpers.</p>

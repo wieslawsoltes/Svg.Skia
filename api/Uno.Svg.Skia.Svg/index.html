@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
+    <title>Svg Class | Svg.Skia</title>
+    <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
+    <script src="/Svg.Skia/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="Svg Class | Svg.Skia">
+<meta name="twitter:description" content="Svg Class Definition Namespace Uno.Svg.Skia Assembly Svg.Controls.Skia.Uno.dll Inherits Object → UIElement → FrameworkElement → Uno.WinUI.Graphics2DSK.SKCanvasElement Implements IAnimationObject, IVisualElement, IVisualElement2, IDependencyObjectStoreProvider, Uno.UI.DataBinding.IWeakReferenceProvider, IEnumerable, IDataContextProvider, DependencyObject, IDependencyObjectParse, ILayoutConstraints View source Show inherited members (353) Uno.WinUI.Graphics2DSK.SKCanvasElement.IsSupportedOnCurrentPlatform Uno.WinUI.Graphics2DSK.SKCanvasElement.Invalidate Microsoft.UI.Xaml.FrameworkElement.DeferTree(Microsoft.UI.Xaml.DependencyObject) Microsoft.UI.Xaml.FrameworkElement.ToString() Microsoft.UI.Xaml.FrameworkElement.MeasureElement(Microsoft.UI.Xaml.UIElement, Windows.Foundation.Size)...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta name="twitter:image:alt" content="Svg Class | Svg.Skia">
+<meta property="og:title" content="Svg Class | Svg.Skia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
+<meta property="og:description" content="Svg Class Definition Namespace Uno.Svg.Skia Assembly Svg.Controls.Skia.Uno.dll Inherits Object → UIElement → FrameworkElement → Uno.WinUI.Graphics2DSK.SKCanvasElement Implements IAnimationObject, IVisualElement, IVisualElement2, IDependencyObjectStoreProvider, Uno.UI.DataBinding.IWeakReferenceProvider, IEnumerable, IDataContextProvider, DependencyObject, IDependencyObjectParse, ILayoutConstraints View source Show inherited members (353) Uno.WinUI.Graphics2DSK.SKCanvasElement.IsSupportedOnCurrentPlatform Uno.WinUI.Graphics2DSK.SKCanvasElement.Invalidate Microsoft.UI.Xaml.FrameworkElement.DeferTree(Microsoft.UI.Xaml.DependencyObject) Microsoft.UI.Xaml.FrameworkElement.ToString() Microsoft.UI.Xaml.FrameworkElement.MeasureElement(Microsoft.UI.Xaml.UIElement, Windows.Foundation.Size)...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta property="og:image:alt" content="Svg Class | Svg.Skia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/Svg.Skia/">
+          <img class="lunet-logo" src="/Svg.Skia/images/logo.svg" alt="Svg.Skia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/Svg.Skia/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/Svg.Skia' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-api">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-3 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-menu.6d5f66ccd71c6b21ac888c07936d49da.html' data-lunet-menu-open='menu-id-menu-0,menu-id-menu-4620,menu-id-menu-4614' data-lunet-menu-active='menu-item-menu-4620,menu-item-menu-4614,menu-item-menu-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-7 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/api/' class='breadcrumb-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/api/Uno.Svg.Skia/' class='breadcrumb-link  '><i class='bi bi-diagram-3' aria-hidden='true'></i> Uno.Svg.Skia</a>  </li>
+          <li class='breadcrumb-item  active'>
+            <i class='bi bi-box' aria-hidden='true'></i> Svg  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<div class="api-dotnet">
+<h1 id="svg-class">Svg Class</h1>
+<h2 id="definition" class="heading-anchor-hidden">Definition</h2>
+<div class="api-dotnet-definition">
+<div class="api-dotnet-definition-header">
+<div class="api-dotnet-definition-meta">
+<div><span class="api-dotnet-label">Namespace</span> <a href="/Svg.Skia/api/Uno.Svg.Skia/">Uno.Svg.Skia</a></div>
+<div><span class="api-dotnet-label">Assembly</span> Svg.Controls.Skia.Uno.dll</div>
+<div><span class="api-dotnet-label">Inherits</span> <span class="api-dotnet-inline-list"><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object">Object</a> &#x2192; <a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement">UIElement</a> &#x2192; <a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement">FrameworkElement</a> &#x2192; Uno.WinUI.Graphics2DSK.SKCanvasElement</span></div>
+<div><span class="api-dotnet-label">Implements</span> <span class="api-dotnet-inline-list"><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Composition.IAnimationObject">IAnimationObject</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Composition.IVisualElement">IVisualElement</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Composition.IVisualElement2">IVisualElement2</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.IDependencyObjectStoreProvider">IDependencyObjectStoreProvider</a>, Uno.UI.DataBinding.IWeakReferenceProvider, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.IEnumerable">IEnumerable</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.IDataContextProvider">IDataContextProvider</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.DependencyObject">DependencyObject</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.IDependencyObjectParse">IDependencyObjectParse</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.ILayoutConstraints">ILayoutConstraints</a></span></div>
+</div>
+<div class="api-dotnet-definition-actions">
+<a class="api-dotnet-action" href="https://github.com/wieslawsoltes/Svg.Skia/blob/master/src/Svg.Controls.Skia.Uno/Svg.cs#L19" target="_blank" rel="noopener">View source</a>
+</div>
+</div>
+<details class="api-dotnet-inherited">
+<summary>Show inherited members (353)</summary>
+<ul>
+<li>Uno.WinUI.Graphics2DSK.SKCanvasElement.IsSupportedOnCurrentPlatform</li>
+<li>Uno.WinUI.Graphics2DSK.SKCanvasElement.Invalidate</li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.DeferTree-Microsoft.UI.Xaml.DependencyObject">Microsoft.UI.Xaml.FrameworkElement.DeferTree(Microsoft.UI.Xaml.DependencyObject)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.ToString">Microsoft.UI.Xaml.FrameworkElement.ToString()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.MeasureElement-Microsoft.UI.Xaml.UIElement-Windows.Foundation.Size">Microsoft.UI.Xaml.FrameworkElement.MeasureElement(Microsoft.UI.Xaml.UIElement, Windows.Foundation.Size)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.ArrangeElement-Microsoft.UI.Xaml.UIElement-Windows.Foundation.Rect">Microsoft.UI.Xaml.FrameworkElement.ArrangeElement(Microsoft.UI.Xaml.UIElement, Windows.Foundation.Rect)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.GetElementDesiredSize-Microsoft.UI.Xaml.UIElement">Microsoft.UI.Xaml.FrameworkElement.GetElementDesiredSize(Microsoft.UI.Xaml.UIElement)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.CreationComplete">Microsoft.UI.Xaml.FrameworkElement.CreationComplete()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.OnApplyTemplate">Microsoft.UI.Xaml.FrameworkElement.OnApplyTemplate()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Microsoft-UI-Xaml-ILayoutConstraints-IsWidthConstrained-Microsoft.UI.Xaml.UIElement">Microsoft.UI.Xaml.FrameworkElement.Microsoft.UI.Xaml.ILayoutConstraints.IsWidthConstrained(Microsoft.UI.Xaml.UIElement)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.IsWidthConstrainedInner-Microsoft.UI.Xaml.UIElement">Microsoft.UI.Xaml.FrameworkElement.IsWidthConstrainedInner(Microsoft.UI.Xaml.UIElement)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Microsoft-UI-Xaml-ILayoutConstraints-IsHeightConstrained-Microsoft.UI.Xaml.UIElement">Microsoft.UI.Xaml.FrameworkElement.Microsoft.UI.Xaml.ILayoutConstraints.IsHeightConstrained(Microsoft.UI.Xaml.UIElement)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.IsHeightConstrainedInner-Microsoft.UI.Xaml.UIElement">Microsoft.UI.Xaml.FrameworkElement.IsHeightConstrainedInner(Microsoft.UI.Xaml.UIElement)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.GoToElementStateCore-System.String-System.Boolean">Microsoft.UI.Xaml.FrameworkElement.GoToElementStateCore(System.String, System.Boolean)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.OnCreateAutomationPeer">Microsoft.UI.Xaml.FrameworkElement.OnCreateAutomationPeer()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.GetAccessibilityInnerText">Microsoft.UI.Xaml.FrameworkElement.GetAccessibilityInnerText()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.GetAutomationPeer">Microsoft.UI.Xaml.FrameworkElement.GetAutomationPeer()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.InvalidateViewport">Microsoft.UI.Xaml.FrameworkElement.InvalidateViewport()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.FindFirstParent--1">Microsoft.UI.Xaml.FrameworkElement.FindFirstParent&lt;T&gt;()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.FindFirstParent--1-System.Boolean">Microsoft.UI.Xaml.FrameworkElement.FindFirstParent&lt;T&gt;(System.Boolean)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Dispose">Microsoft.UI.Xaml.FrameworkElement.Dispose()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.AdjustArrange-Windows.Foundation.Size">Microsoft.UI.Xaml.FrameworkElement.AdjustArrange(Windows.Foundation.Size)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.FindName-System.String">Microsoft.UI.Xaml.FrameworkElement.FindName(System.String)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.OnBackgroundChanged-Microsoft.UI.Xaml.DependencyPropertyChangedEventArgs">Microsoft.UI.Xaml.FrameworkElement.OnBackgroundChanged(Microsoft.UI.Xaml.DependencyPropertyChangedEventArgs)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.ApplyBindingPhase-System.Int32">Microsoft.UI.Xaml.FrameworkElement.ApplyBindingPhase(System.Int32)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.GetStringFromObject-System.Object">Microsoft.UI.Xaml.FrameworkElement.GetStringFromObject(System.Object)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.GetEnumerator">Microsoft.UI.Xaml.FrameworkElement.GetEnumerator()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Language">Microsoft.UI.Xaml.FrameworkElement.Language</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Triggers">Microsoft.UI.Xaml.FrameworkElement.Triggers</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.ActualHeightProperty">Microsoft.UI.Xaml.FrameworkElement.ActualHeightProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.ActualThemeProperty">Microsoft.UI.Xaml.FrameworkElement.ActualThemeProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.ActualWidthProperty">Microsoft.UI.Xaml.FrameworkElement.ActualWidthProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.LanguageProperty">Microsoft.UI.Xaml.FrameworkElement.LanguageProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.NameProperty">Microsoft.UI.Xaml.FrameworkElement.NameProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.ActualWidth">Microsoft.UI.Xaml.FrameworkElement.ActualWidth</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.ActualHeight">Microsoft.UI.Xaml.FrameworkElement.ActualHeight</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.HorizontalAlignmentProperty">Microsoft.UI.Xaml.FrameworkElement.HorizontalAlignmentProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.HorizontalAlignment">Microsoft.UI.Xaml.FrameworkElement.HorizontalAlignment</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.VerticalAlignmentProperty">Microsoft.UI.Xaml.FrameworkElement.VerticalAlignmentProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.VerticalAlignment">Microsoft.UI.Xaml.FrameworkElement.VerticalAlignment</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.WidthProperty">Microsoft.UI.Xaml.FrameworkElement.WidthProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Width">Microsoft.UI.Xaml.FrameworkElement.Width</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.HeightProperty">Microsoft.UI.Xaml.FrameworkElement.HeightProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Height">Microsoft.UI.Xaml.FrameworkElement.Height</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.MinWidthProperty">Microsoft.UI.Xaml.FrameworkElement.MinWidthProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.MinWidth">Microsoft.UI.Xaml.FrameworkElement.MinWidth</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.MinHeightProperty">Microsoft.UI.Xaml.FrameworkElement.MinHeightProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.MinHeight">Microsoft.UI.Xaml.FrameworkElement.MinHeight</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.MaxWidthProperty">Microsoft.UI.Xaml.FrameworkElement.MaxWidthProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.MaxWidth">Microsoft.UI.Xaml.FrameworkElement.MaxWidth</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.MaxHeightProperty">Microsoft.UI.Xaml.FrameworkElement.MaxHeightProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.MaxHeight">Microsoft.UI.Xaml.FrameworkElement.MaxHeight</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.MarginProperty">Microsoft.UI.Xaml.FrameworkElement.MarginProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Margin">Microsoft.UI.Xaml.FrameworkElement.Margin</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.IsLoaded">Microsoft.UI.Xaml.FrameworkElement.IsLoaded</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.UseConstraintOptimizations">Microsoft.UI.Xaml.FrameworkElement.UseConstraintOptimizations</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.AreDimensionsConstrained">Microsoft.UI.Xaml.FrameworkElement.AreDimensionsConstrained</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.IsSimpleLayout">Microsoft.UI.Xaml.FrameworkElement.IsSimpleLayout</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Tag">Microsoft.UI.Xaml.FrameworkElement.Tag</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.TagProperty">Microsoft.UI.Xaml.FrameworkElement.TagProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.FlowDirection">Microsoft.UI.Xaml.FrameworkElement.FlowDirection</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.FlowDirectionProperty">Microsoft.UI.Xaml.FrameworkElement.FlowDirectionProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Resources">Microsoft.UI.Xaml.FrameworkElement.Resources</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Parent">Microsoft.UI.Xaml.FrameworkElement.Parent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.BaseUri">Microsoft.UI.Xaml.FrameworkElement.BaseUri</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.IsParsing">Microsoft.UI.Xaml.FrameworkElement.IsParsing</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Style">Microsoft.UI.Xaml.FrameworkElement.Style</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.StyleProperty">Microsoft.UI.Xaml.FrameworkElement.StyleProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.RequestedTheme">Microsoft.UI.Xaml.FrameworkElement.RequestedTheme</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.RequestedThemeProperty">Microsoft.UI.Xaml.FrameworkElement.RequestedThemeProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.ActualTheme">Microsoft.UI.Xaml.FrameworkElement.ActualTheme</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.FocusVisualSecondaryThicknessProperty">Microsoft.UI.Xaml.FrameworkElement.FocusVisualSecondaryThicknessProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.FocusVisualSecondaryThickness">Microsoft.UI.Xaml.FrameworkElement.FocusVisualSecondaryThickness</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.FocusVisualSecondaryBrushProperty">Microsoft.UI.Xaml.FrameworkElement.FocusVisualSecondaryBrushProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.FocusVisualSecondaryBrush">Microsoft.UI.Xaml.FrameworkElement.FocusVisualSecondaryBrush</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.FocusVisualPrimaryThicknessProperty">Microsoft.UI.Xaml.FrameworkElement.FocusVisualPrimaryThicknessProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.FocusVisualPrimaryThickness">Microsoft.UI.Xaml.FrameworkElement.FocusVisualPrimaryThickness</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.FocusVisualPrimaryBrush">Microsoft.UI.Xaml.FrameworkElement.FocusVisualPrimaryBrush</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.FocusVisualPrimaryBrushProperty">Microsoft.UI.Xaml.FrameworkElement.FocusVisualPrimaryBrushProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.FocusVisualMargin">Microsoft.UI.Xaml.FrameworkElement.FocusVisualMargin</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.FocusVisualMarginProperty">Microsoft.UI.Xaml.FrameworkElement.FocusVisualMarginProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.AllowFocusWhenDisabled">Microsoft.UI.Xaml.FrameworkElement.AllowFocusWhenDisabled</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.AllowFocusWhenDisabledProperty">Microsoft.UI.Xaml.FrameworkElement.AllowFocusWhenDisabledProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.AllowFocusOnInteraction">Microsoft.UI.Xaml.FrameworkElement.AllowFocusOnInteraction</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.AllowFocusOnInteractionProperty">Microsoft.UI.Xaml.FrameworkElement.AllowFocusOnInteractionProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.TransitionsProperty">Microsoft.UI.Xaml.FrameworkElement.TransitionsProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Transitions">Microsoft.UI.Xaml.FrameworkElement.Transitions</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Background">Microsoft.UI.Xaml.FrameworkElement.Background</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.BackgroundProperty">Microsoft.UI.Xaml.FrameworkElement.BackgroundProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.RenderPhase">Microsoft.UI.Xaml.FrameworkElement.RenderPhase</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Name">Microsoft.UI.Xaml.FrameworkElement.Name</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.SizeChanged">Microsoft.UI.Xaml.FrameworkElement.SizeChanged</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.ActualThemeChanged">Microsoft.UI.Xaml.FrameworkElement.ActualThemeChanged</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.LayoutUpdated">Microsoft.UI.Xaml.FrameworkElement.LayoutUpdated</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.EffectiveViewportChanged">Microsoft.UI.Xaml.FrameworkElement.EffectiveViewportChanged</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Loading">Microsoft.UI.Xaml.FrameworkElement.Loading</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Loaded">Microsoft.UI.Xaml.FrameworkElement.Loaded</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.FrameworkElement.Unloaded">Microsoft.UI.Xaml.FrameworkElement.Unloaded</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Measure-Windows.Foundation.Size">Microsoft.UI.Xaml.UIElement.Measure(Windows.Foundation.Size)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Arrange-Windows.Foundation.Rect">Microsoft.UI.Xaml.UIElement.Arrange(Windows.Foundation.Rect)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.InvalidateMeasure">Microsoft.UI.Xaml.UIElement.InvalidateMeasure()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.InvalidateArrange">Microsoft.UI.Xaml.UIElement.InvalidateArrange()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.StartAnimation-Microsoft.UI.Composition.ICompositionAnimationBase">Microsoft.UI.Xaml.UIElement.StartAnimation(Microsoft.UI.Composition.ICompositionAnimationBase)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.StopAnimation-Microsoft.UI.Composition.ICompositionAnimationBase">Microsoft.UI.Xaml.UIElement.StopAnimation(Microsoft.UI.Composition.ICompositionAnimationBase)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.OnDisconnectVisualChildren">Microsoft.UI.Xaml.UIElement.OnDisconnectVisualChildren()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.FindSubElementsForTouchTargeting-Windows.Foundation.Point-Windows.Foundation.Rect">Microsoft.UI.Xaml.UIElement.FindSubElementsForTouchTargeting(Windows.Foundation.Point, Windows.Foundation.Rect)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PopulatePropertyInfoOverride-System.String-Microsoft.UI.Composition.AnimationPropertyInfo">Microsoft.UI.Xaml.UIElement.PopulatePropertyInfoOverride(System.String, Microsoft.UI.Composition.AnimationPropertyInfo)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PopulatePropertyInfo-System.String-Microsoft.UI.Composition.AnimationPropertyInfo">Microsoft.UI.Xaml.UIElement.PopulatePropertyInfo(System.String, Microsoft.UI.Composition.AnimationPropertyInfo)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.GetVisualInternal">Microsoft.UI.Xaml.UIElement.GetVisualInternal()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.TryStartDirectManipulation-Microsoft.UI.Xaml.Input.Pointer">Microsoft.UI.Xaml.UIElement.TryStartDirectManipulation(Microsoft.UI.Xaml.Input.Pointer)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.OnBringIntoViewRequested-Microsoft.UI.Xaml.BringIntoViewRequestedEventArgs">Microsoft.UI.Xaml.UIElement.OnBringIntoViewRequested(Microsoft.UI.Xaml.BringIntoViewRequestedEventArgs)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.StartBringIntoView">Microsoft.UI.Xaml.UIElement.StartBringIntoView()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.StartBringIntoView-Microsoft.UI.Xaml.BringIntoViewOptions">Microsoft.UI.Xaml.UIElement.StartBringIntoView(Microsoft.UI.Xaml.BringIntoViewOptions)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.RegisterAsScrollPort-Microsoft.UI.Xaml.UIElement">Microsoft.UI.Xaml.UIElement.RegisterAsScrollPort(Microsoft.UI.Xaml.UIElement)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Focus-Microsoft.UI.Xaml.FocusState">Microsoft.UI.Xaml.UIElement.Focus(Microsoft.UI.Xaml.FocusState)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.TransformToVisual-Microsoft.UI.Xaml.UIElement">Microsoft.UI.Xaml.UIElement.TransformToVisual(Microsoft.UI.Xaml.UIElement)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.OnVisibilityChanged-Microsoft.UI.Xaml.Visibility-Microsoft.UI.Xaml.Visibility">Microsoft.UI.Xaml.UIElement.OnVisibilityChanged(Microsoft.UI.Xaml.Visibility, Microsoft.UI.Xaml.Visibility)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.OnIsHitTestVisibleChanged-System.Boolean-System.Boolean">Microsoft.UI.Xaml.UIElement.OnIsHitTestVisibleChanged(System.Boolean, System.Boolean)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.UpdateLayout">Microsoft.UI.Xaml.UIElement.UpdateLayout()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.IsVisible">Microsoft.UI.Xaml.UIElement.IsVisible()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.OnKeyboardAcceleratorInvoked-Microsoft.UI.Xaml.Input.KeyboardAcceleratorInvokedEventArgs">Microsoft.UI.Xaml.UIElement.OnKeyboardAcceleratorInvoked(Microsoft.UI.Xaml.Input.KeyboardAcceleratorInvokedEventArgs)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.GetChildrenInTabFocusOrder">Microsoft.UI.Xaml.UIElement.GetChildrenInTabFocusOrder()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.OnProcessKeyboardAccelerators-Microsoft.UI.Xaml.Input.ProcessKeyboardAcceleratorEventArgs">Microsoft.UI.Xaml.UIElement.OnProcessKeyboardAccelerators(Microsoft.UI.Xaml.Input.ProcessKeyboardAcceleratorEventArgs)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.TryInvokeKeyboardAccelerator-Microsoft.UI.Xaml.Input.ProcessKeyboardAcceleratorEventArgs">Microsoft.UI.Xaml.UIElement.TryInvokeKeyboardAccelerator(Microsoft.UI.Xaml.Input.ProcessKeyboardAcceleratorEventArgs)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.CancelDirectManipulations">Microsoft.UI.Xaml.UIElement.CancelDirectManipulations()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.StartDragAsync-Microsoft.UI.Input.PointerPoint">Microsoft.UI.Xaml.UIElement.StartDragAsync(Microsoft.UI.Input.PointerPoint)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.CapturePointer-Microsoft.UI.Xaml.Input.Pointer">Microsoft.UI.Xaml.UIElement.CapturePointer(Microsoft.UI.Xaml.Input.Pointer)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ReleasePointerCapture-Microsoft.UI.Xaml.Input.Pointer">Microsoft.UI.Xaml.UIElement.ReleasePointerCapture(Microsoft.UI.Xaml.Input.Pointer)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ReleasePointerCaptures">Microsoft.UI.Xaml.UIElement.ReleasePointerCaptures()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.AddHandler-Microsoft.UI.Xaml.RoutedEvent-System.Object-System.Boolean">Microsoft.UI.Xaml.UIElement.AddHandler(Microsoft.UI.Xaml.RoutedEvent, System.Object, System.Boolean)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.RemoveHandler-Microsoft.UI.Xaml.RoutedEvent-System.Object">Microsoft.UI.Xaml.UIElement.RemoveHandler(Microsoft.UI.Xaml.RoutedEvent, System.Object)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.GetValue-Microsoft.UI.Xaml.DependencyProperty">Microsoft.UI.Xaml.UIElement.GetValue(Microsoft.UI.Xaml.DependencyProperty)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.SetValue-Microsoft.UI.Xaml.DependencyProperty-System.Object">Microsoft.UI.Xaml.UIElement.SetValue(Microsoft.UI.Xaml.DependencyProperty, System.Object)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ClearValue-Microsoft.UI.Xaml.DependencyProperty">Microsoft.UI.Xaml.UIElement.ClearValue(Microsoft.UI.Xaml.DependencyProperty)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ReadLocalValue-Microsoft.UI.Xaml.DependencyProperty">Microsoft.UI.Xaml.UIElement.ReadLocalValue(Microsoft.UI.Xaml.DependencyProperty)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.GetAnimationBaseValue-Microsoft.UI.Xaml.DependencyProperty">Microsoft.UI.Xaml.UIElement.GetAnimationBaseValue(Microsoft.UI.Xaml.DependencyProperty)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.RegisterPropertyChangedCallback-Microsoft.UI.Xaml.DependencyProperty-Microsoft.UI.Xaml.DependencyPropertyChangedCallback">Microsoft.UI.Xaml.UIElement.RegisterPropertyChangedCallback(Microsoft.UI.Xaml.DependencyProperty, Microsoft.UI.Xaml.DependencyPropertyChangedCallback)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.UnregisterPropertyChangedCallback-Microsoft.UI.Xaml.DependencyProperty-System.Int64">Microsoft.UI.Xaml.UIElement.UnregisterPropertyChangedCallback(Microsoft.UI.Xaml.DependencyProperty, System.Int64)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ClearBindings">Microsoft.UI.Xaml.UIElement.ClearBindings()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.RestoreBindings">Microsoft.UI.Xaml.UIElement.RestoreBindings()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.OnDataContextChanged-Microsoft.UI.Xaml.DependencyPropertyChangedEventArgs">Microsoft.UI.Xaml.UIElement.OnDataContextChanged(Microsoft.UI.Xaml.DependencyPropertyChangedEventArgs)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.OnTemplatedParentChanged-Microsoft.UI.Xaml.DependencyPropertyChangedEventArgs">Microsoft.UI.Xaml.UIElement.OnTemplatedParentChanged(Microsoft.UI.Xaml.DependencyPropertyChangedEventArgs)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.SetBinding-System.Object-System.String-Microsoft.UI.Xaml.Data.BindingBase">Microsoft.UI.Xaml.UIElement.SetBinding(System.Object, System.String, Microsoft.UI.Xaml.Data.BindingBase)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.SetBinding-System.String-Microsoft.UI.Xaml.Data.BindingBase">Microsoft.UI.Xaml.UIElement.SetBinding(System.String, Microsoft.UI.Xaml.Data.BindingBase)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.SetBinding-Microsoft.UI.Xaml.DependencyProperty-Microsoft.UI.Xaml.Data.BindingBase">Microsoft.UI.Xaml.UIElement.SetBinding(Microsoft.UI.Xaml.DependencyProperty, Microsoft.UI.Xaml.Data.BindingBase)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.SetBindingValue-System.Object-System.String">Microsoft.UI.Xaml.UIElement.SetBindingValue(System.Object, System.String)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.GetBindingExpression-Microsoft.UI.Xaml.DependencyProperty">Microsoft.UI.Xaml.UIElement.GetBindingExpression(Microsoft.UI.Xaml.DependencyProperty)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ResumeBindings">Microsoft.UI.Xaml.UIElement.ResumeBindings()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.SuspendBindings">Microsoft.UI.Xaml.UIElement.SuspendBindings()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.RotationTransition">Microsoft.UI.Xaml.UIElement.RotationTransition</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyTipTarget">Microsoft.UI.Xaml.UIElement.KeyTipTarget</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyTipPlacementMode">Microsoft.UI.Xaml.UIElement.KeyTipPlacementMode</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyTipHorizontalOffset">Microsoft.UI.Xaml.UIElement.KeyTipHorizontalOffset</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.IsTapEnabled">Microsoft.UI.Xaml.UIElement.IsTapEnabled</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.IsRightTapEnabled">Microsoft.UI.Xaml.UIElement.IsRightTapEnabled</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.IsHoldingEnabled">Microsoft.UI.Xaml.UIElement.IsHoldingEnabled</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.IsDoubleTapEnabled">Microsoft.UI.Xaml.UIElement.IsDoubleTapEnabled</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.AccessKey">Microsoft.UI.Xaml.UIElement.AccessKey</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.HighContrastAdjustment">Microsoft.UI.Xaml.UIElement.HighContrastAdjustment</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ExitDisplayModeOnAccessKeyInvoked">Microsoft.UI.Xaml.UIElement.ExitDisplayModeOnAccessKeyInvoked</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.OpacityTransition">Microsoft.UI.Xaml.UIElement.OpacityTransition</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.CompositeMode">Microsoft.UI.Xaml.UIElement.CompositeMode</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.CanBeScrollAnchor">Microsoft.UI.Xaml.UIElement.CanBeScrollAnchor</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.CacheMode">Microsoft.UI.Xaml.UIElement.CacheMode</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.AccessKeyScopeOwner">Microsoft.UI.Xaml.UIElement.AccessKeyScopeOwner</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.IsAccessKeyScope">Microsoft.UI.Xaml.UIElement.IsAccessKeyScope</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyTipVerticalOffset">Microsoft.UI.Xaml.UIElement.KeyTipVerticalOffset</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.CenterPoint">Microsoft.UI.Xaml.UIElement.CenterPoint</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.UseLayoutRounding">Microsoft.UI.Xaml.UIElement.UseLayoutRounding</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.TranslationTransition">Microsoft.UI.Xaml.UIElement.TranslationTransition</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.TransformMatrix">Microsoft.UI.Xaml.UIElement.TransformMatrix</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Rotation">Microsoft.UI.Xaml.UIElement.Rotation</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.RasterizationScale">Microsoft.UI.Xaml.UIElement.RasterizationScale</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Projection">Microsoft.UI.Xaml.UIElement.Projection</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ScaleTransition">Microsoft.UI.Xaml.UIElement.ScaleTransition</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Scale">Microsoft.UI.Xaml.UIElement.Scale</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.RotationAxis">Microsoft.UI.Xaml.UIElement.RotationAxis</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Transform3D">Microsoft.UI.Xaml.UIElement.Transform3D</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Lights">Microsoft.UI.Xaml.UIElement.Lights</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.AccessKeyProperty">Microsoft.UI.Xaml.UIElement.AccessKeyProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.AccessKeyScopeOwnerProperty">Microsoft.UI.Xaml.UIElement.AccessKeyScopeOwnerProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.CacheModeProperty">Microsoft.UI.Xaml.UIElement.CacheModeProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.CanBeScrollAnchorProperty">Microsoft.UI.Xaml.UIElement.CanBeScrollAnchorProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.CharacterReceivedEvent">Microsoft.UI.Xaml.UIElement.CharacterReceivedEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.CompositeModeProperty">Microsoft.UI.Xaml.UIElement.CompositeModeProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ContextRequestedEvent">Microsoft.UI.Xaml.UIElement.ContextRequestedEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ExitDisplayModeOnAccessKeyInvokedProperty">Microsoft.UI.Xaml.UIElement.ExitDisplayModeOnAccessKeyInvokedProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.HighContrastAdjustmentProperty">Microsoft.UI.Xaml.UIElement.HighContrastAdjustmentProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.IsAccessKeyScopeProperty">Microsoft.UI.Xaml.UIElement.IsAccessKeyScopeProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.IsDoubleTapEnabledProperty">Microsoft.UI.Xaml.UIElement.IsDoubleTapEnabledProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.IsHoldingEnabledProperty">Microsoft.UI.Xaml.UIElement.IsHoldingEnabledProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.IsRightTapEnabledProperty">Microsoft.UI.Xaml.UIElement.IsRightTapEnabledProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.IsTapEnabledProperty">Microsoft.UI.Xaml.UIElement.IsTapEnabledProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyTipHorizontalOffsetProperty">Microsoft.UI.Xaml.UIElement.KeyTipHorizontalOffsetProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyTipPlacementModeProperty">Microsoft.UI.Xaml.UIElement.KeyTipPlacementModeProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyTipTargetProperty">Microsoft.UI.Xaml.UIElement.KeyTipTargetProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyTipVerticalOffsetProperty">Microsoft.UI.Xaml.UIElement.KeyTipVerticalOffsetProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.LightsProperty">Microsoft.UI.Xaml.UIElement.LightsProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PreviewKeyDownEvent">Microsoft.UI.Xaml.UIElement.PreviewKeyDownEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PreviewKeyUpEvent">Microsoft.UI.Xaml.UIElement.PreviewKeyUpEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ProjectionProperty">Microsoft.UI.Xaml.UIElement.ProjectionProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Transform3DProperty">Microsoft.UI.Xaml.UIElement.Transform3DProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.UseLayoutRoundingProperty">Microsoft.UI.Xaml.UIElement.UseLayoutRoundingProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.DesiredSize">Microsoft.UI.Xaml.UIElement.DesiredSize</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ActualSize">Microsoft.UI.Xaml.UIElement.ActualSize</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ActualOffset">Microsoft.UI.Xaml.UIElement.ActualOffset</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Translation">Microsoft.UI.Xaml.UIElement.Translation</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Shadow">Microsoft.UI.Xaml.UIElement.Shadow</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ShadowProperty">Microsoft.UI.Xaml.UIElement.ShadowProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Clip">Microsoft.UI.Xaml.UIElement.Clip</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ClipProperty">Microsoft.UI.Xaml.UIElement.ClipProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.RenderTransform">Microsoft.UI.Xaml.UIElement.RenderTransform</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.RenderTransformProperty">Microsoft.UI.Xaml.UIElement.RenderTransformProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.RenderTransformOrigin">Microsoft.UI.Xaml.UIElement.RenderTransformOrigin</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.RenderTransformOriginProperty">Microsoft.UI.Xaml.UIElement.RenderTransformOriginProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.RenderSize">Microsoft.UI.Xaml.UIElement.RenderSize</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusKeyboardNavigation">Microsoft.UI.Xaml.UIElement.XYFocusKeyboardNavigation</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusKeyboardNavigationProperty">Microsoft.UI.Xaml.UIElement.XYFocusKeyboardNavigationProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusDownNavigationStrategy">Microsoft.UI.Xaml.UIElement.XYFocusDownNavigationStrategy</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusDownNavigationStrategyProperty">Microsoft.UI.Xaml.UIElement.XYFocusDownNavigationStrategyProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusLeftNavigationStrategy">Microsoft.UI.Xaml.UIElement.XYFocusLeftNavigationStrategy</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusLeftNavigationStrategyProperty">Microsoft.UI.Xaml.UIElement.XYFocusLeftNavigationStrategyProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusRightNavigationStrategy">Microsoft.UI.Xaml.UIElement.XYFocusRightNavigationStrategy</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusRightNavigationStrategyProperty">Microsoft.UI.Xaml.UIElement.XYFocusRightNavigationStrategyProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusUpNavigationStrategy">Microsoft.UI.Xaml.UIElement.XYFocusUpNavigationStrategy</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusUpNavigationStrategyProperty">Microsoft.UI.Xaml.UIElement.XYFocusUpNavigationStrategyProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.TabFocusNavigation">Microsoft.UI.Xaml.UIElement.TabFocusNavigation</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.TabFocusNavigationProperty">Microsoft.UI.Xaml.UIElement.TabFocusNavigationProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ProtectedCursor">Microsoft.UI.Xaml.UIElement.ProtectedCursor</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.FocusState">Microsoft.UI.Xaml.UIElement.FocusState</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.FocusStateProperty">Microsoft.UI.Xaml.UIElement.FocusStateProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.IsTabStop">Microsoft.UI.Xaml.UIElement.IsTabStop</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.IsTabStopProperty">Microsoft.UI.Xaml.UIElement.IsTabStopProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.TabIndex">Microsoft.UI.Xaml.UIElement.TabIndex</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.TabIndexProperty">Microsoft.UI.Xaml.UIElement.TabIndexProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusUp">Microsoft.UI.Xaml.UIElement.XYFocusUp</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusUpProperty">Microsoft.UI.Xaml.UIElement.XYFocusUpProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusDown">Microsoft.UI.Xaml.UIElement.XYFocusDown</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusDownProperty">Microsoft.UI.Xaml.UIElement.XYFocusDownProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusLeft">Microsoft.UI.Xaml.UIElement.XYFocusLeft</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusLeftProperty">Microsoft.UI.Xaml.UIElement.XYFocusLeftProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusRight">Microsoft.UI.Xaml.UIElement.XYFocusRight</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XYFocusRightProperty">Microsoft.UI.Xaml.UIElement.XYFocusRightProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.UseSystemFocusVisuals">Microsoft.UI.Xaml.UIElement.UseSystemFocusVisuals</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.UseSystemFocusVisualsProperty">Microsoft.UI.Xaml.UIElement.UseSystemFocusVisualsProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ManipulationModeProperty">Microsoft.UI.Xaml.UIElement.ManipulationModeProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ManipulationMode">Microsoft.UI.Xaml.UIElement.ManipulationMode</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.CanDragProperty">Microsoft.UI.Xaml.UIElement.CanDragProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.CanDrag">Microsoft.UI.Xaml.UIElement.CanDrag</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.AllowDropProperty">Microsoft.UI.Xaml.UIElement.AllowDropProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.AllowDrop">Microsoft.UI.Xaml.UIElement.AllowDrop</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerCapturesProperty">Microsoft.UI.Xaml.UIElement.PointerCapturesProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerCaptures">Microsoft.UI.Xaml.UIElement.PointerCaptures</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.IsHitTestVisibleProperty">Microsoft.UI.Xaml.UIElement.IsHitTestVisibleProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.IsHitTestVisible">Microsoft.UI.Xaml.UIElement.IsHitTestVisible</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.OpacityProperty">Microsoft.UI.Xaml.UIElement.OpacityProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Opacity">Microsoft.UI.Xaml.UIElement.Opacity</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.VisibilityProperty">Microsoft.UI.Xaml.UIElement.VisibilityProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Visibility">Microsoft.UI.Xaml.UIElement.Visibility</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ContextFlyoutProperty">Microsoft.UI.Xaml.UIElement.ContextFlyoutProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ContextFlyout">Microsoft.UI.Xaml.UIElement.ContextFlyout</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyboardAccelerators">Microsoft.UI.Xaml.UIElement.KeyboardAccelerators</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyboardAcceleratorPlacementMode">Microsoft.UI.Xaml.UIElement.KeyboardAcceleratorPlacementMode</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyboardAcceleratorPlacementModeProperty">Microsoft.UI.Xaml.UIElement.KeyboardAcceleratorPlacementModeProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyboardAcceleratorPlacementTarget">Microsoft.UI.Xaml.UIElement.KeyboardAcceleratorPlacementTarget</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyboardAcceleratorPlacementTargetProperty">Microsoft.UI.Xaml.UIElement.KeyboardAcceleratorPlacementTargetProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Handle">Microsoft.UI.Xaml.UIElement.Handle</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerPressedEvent">Microsoft.UI.Xaml.UIElement.PointerPressedEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerReleasedEvent">Microsoft.UI.Xaml.UIElement.PointerReleasedEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerEnteredEvent">Microsoft.UI.Xaml.UIElement.PointerEnteredEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerExitedEvent">Microsoft.UI.Xaml.UIElement.PointerExitedEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerMovedEvent">Microsoft.UI.Xaml.UIElement.PointerMovedEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerCanceledEvent">Microsoft.UI.Xaml.UIElement.PointerCanceledEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerCaptureLostEvent">Microsoft.UI.Xaml.UIElement.PointerCaptureLostEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerWheelChangedEvent">Microsoft.UI.Xaml.UIElement.PointerWheelChangedEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ManipulationStartingEvent">Microsoft.UI.Xaml.UIElement.ManipulationStartingEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ManipulationStartedEvent">Microsoft.UI.Xaml.UIElement.ManipulationStartedEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ManipulationDeltaEvent">Microsoft.UI.Xaml.UIElement.ManipulationDeltaEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ManipulationInertiaStartingEvent">Microsoft.UI.Xaml.UIElement.ManipulationInertiaStartingEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ManipulationCompletedEvent">Microsoft.UI.Xaml.UIElement.ManipulationCompletedEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.TappedEvent">Microsoft.UI.Xaml.UIElement.TappedEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.DoubleTappedEvent">Microsoft.UI.Xaml.UIElement.DoubleTappedEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.RightTappedEvent">Microsoft.UI.Xaml.UIElement.RightTappedEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.HoldingEvent">Microsoft.UI.Xaml.UIElement.HoldingEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.DragEnterEvent">Microsoft.UI.Xaml.UIElement.DragEnterEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.DragOverEvent">Microsoft.UI.Xaml.UIElement.DragOverEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.DragLeaveEvent">Microsoft.UI.Xaml.UIElement.DragLeaveEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.DropEvent">Microsoft.UI.Xaml.UIElement.DropEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyDownEvent">Microsoft.UI.Xaml.UIElement.KeyDownEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyUpEvent">Microsoft.UI.Xaml.UIElement.KeyUpEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.GettingFocusEvent">Microsoft.UI.Xaml.UIElement.GettingFocusEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.LosingFocusEvent">Microsoft.UI.Xaml.UIElement.LosingFocusEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.NoFocusCandidateFoundEvent">Microsoft.UI.Xaml.UIElement.NoFocusCandidateFoundEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.BringIntoViewRequestedEvent">Microsoft.UI.Xaml.UIElement.BringIntoViewRequestedEvent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.EventsBubblingInManagedCodeProperty">Microsoft.UI.Xaml.UIElement.EventsBubblingInManagedCodeProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.EventsBubblingInManagedCode">Microsoft.UI.Xaml.UIElement.EventsBubblingInManagedCode</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.XamlRoot">Microsoft.UI.Xaml.UIElement.XamlRoot</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Dispatcher">Microsoft.UI.Xaml.UIElement.Dispatcher</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.DispatcherQueue">Microsoft.UI.Xaml.UIElement.DispatcherQueue</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.IsStoreInitialized">Microsoft.UI.Xaml.UIElement.IsStoreInitialized</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Microsoft-UI-Xaml-IDependencyObjectStoreProvider-Store">Microsoft.UI.Xaml.UIElement.Microsoft.UI.Xaml.IDependencyObjectStoreProvider.Store</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Uno-UI-DataBinding-IWeakReferenceProvider-WeakReference">Microsoft.UI.Xaml.UIElement.Uno.UI.DataBinding.IWeakReferenceProvider.WeakReference</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.DataContext">Microsoft.UI.Xaml.UIElement.DataContext</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.DataContextProperty">Microsoft.UI.Xaml.UIElement.DataContextProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.TemplatedParent">Microsoft.UI.Xaml.UIElement.TemplatedParent</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.TemplatedParentProperty">Microsoft.UI.Xaml.UIElement.TemplatedParentProperty</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.AccessKeyDisplayDismissed">Microsoft.UI.Xaml.UIElement.AccessKeyDisplayDismissed</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.AccessKeyDisplayRequested">Microsoft.UI.Xaml.UIElement.AccessKeyDisplayRequested</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.CharacterReceived">Microsoft.UI.Xaml.UIElement.CharacterReceived</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ContextCanceled">Microsoft.UI.Xaml.UIElement.ContextCanceled</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ContextRequested">Microsoft.UI.Xaml.UIElement.ContextRequested</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PreviewKeyDown">Microsoft.UI.Xaml.UIElement.PreviewKeyDown</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PreviewKeyUp">Microsoft.UI.Xaml.UIElement.PreviewKeyUp</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.AccessKeyInvoked">Microsoft.UI.Xaml.UIElement.AccessKeyInvoked</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ProcessKeyboardAccelerators">Microsoft.UI.Xaml.UIElement.ProcessKeyboardAccelerators</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.LostFocus">Microsoft.UI.Xaml.UIElement.LostFocus</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.GotFocus">Microsoft.UI.Xaml.UIElement.GotFocus</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.LosingFocus">Microsoft.UI.Xaml.UIElement.LosingFocus</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.GettingFocus">Microsoft.UI.Xaml.UIElement.GettingFocus</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.NoFocusCandidateFound">Microsoft.UI.Xaml.UIElement.NoFocusCandidateFound</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.BringIntoViewRequested">Microsoft.UI.Xaml.UIElement.BringIntoViewRequested</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerCanceled">Microsoft.UI.Xaml.UIElement.PointerCanceled</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerCaptureLost">Microsoft.UI.Xaml.UIElement.PointerCaptureLost</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerEntered">Microsoft.UI.Xaml.UIElement.PointerEntered</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerExited">Microsoft.UI.Xaml.UIElement.PointerExited</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerMoved">Microsoft.UI.Xaml.UIElement.PointerMoved</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerPressed">Microsoft.UI.Xaml.UIElement.PointerPressed</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerReleased">Microsoft.UI.Xaml.UIElement.PointerReleased</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.PointerWheelChanged">Microsoft.UI.Xaml.UIElement.PointerWheelChanged</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ManipulationStarting">Microsoft.UI.Xaml.UIElement.ManipulationStarting</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ManipulationStarted">Microsoft.UI.Xaml.UIElement.ManipulationStarted</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ManipulationDelta">Microsoft.UI.Xaml.UIElement.ManipulationDelta</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ManipulationInertiaStarting">Microsoft.UI.Xaml.UIElement.ManipulationInertiaStarting</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.ManipulationCompleted">Microsoft.UI.Xaml.UIElement.ManipulationCompleted</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Tapped">Microsoft.UI.Xaml.UIElement.Tapped</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.DoubleTapped">Microsoft.UI.Xaml.UIElement.DoubleTapped</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.RightTapped">Microsoft.UI.Xaml.UIElement.RightTapped</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Holding">Microsoft.UI.Xaml.UIElement.Holding</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.DragStarting">Microsoft.UI.Xaml.UIElement.DragStarting</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.DragEnter">Microsoft.UI.Xaml.UIElement.DragEnter</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.DragLeave">Microsoft.UI.Xaml.UIElement.DragLeave</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.DragOver">Microsoft.UI.Xaml.UIElement.DragOver</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.Drop">Microsoft.UI.Xaml.UIElement.Drop</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.DropCompleted">Microsoft.UI.Xaml.UIElement.DropCompleted</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyDown">Microsoft.UI.Xaml.UIElement.KeyDown</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.KeyUp">Microsoft.UI.Xaml.UIElement.KeyUp</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/Microsoft.UI.Xaml.UIElement.DataContextChanged">Microsoft.UI.Xaml.UIElement.DataContextChanged</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.Equals-System.Object">System.Object.Equals(System.Object)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.Equals-System.Object-System.Object">System.Object.Equals(System.Object, System.Object)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.GetHashCode">System.Object.GetHashCode()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.GetType">System.Object.GetType()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.MemberwiseClone">System.Object.MemberwiseClone()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.ReferenceEquals-System.Object-System.Object">System.Object.ReferenceEquals(System.Object, System.Object)</a></li>
+</ul>
+</details>
+</div>
+<pre><code class="language-csharp">[ContentProperty(Name = &quot;Path&quot;)]
+public sealed class Svg : SKCanvasElement, IAnimationObject, IVisualElement, IVisualElement2, IXUidProvider, IDependencyObjectStoreProvider, IDependencyObjectInternal, IWeakReferenceProvider, IEnumerable, IFrameworkElementInternal, IFrameworkElement, IDataContextProvider, DependencyObject, IDependencyObjectParse, ILayoutConstraints, IFrameworkElement_EffectiveViewport
+</code></pre>
+<div class="api-dotnet-member-filter" data-api-dotnet-filter>
+<div class="api-dotnet-member-filter-row">
+<label class="api-dotnet-member-filter-label" for="api-dotnet-member-filter-uno-svg-skia-svg">Filter members:</label>
+<input id="api-dotnet-member-filter-uno-svg-skia-svg" class="form-control form-control-sm api-dotnet-member-filter-input" type="search" placeholder="name, kind, summary (e.g. kind:method)" autocomplete="off" spellcheck="false" />
+<div class="api-dotnet-member-filter-status" aria-live="polite"></div>
+</div>
+<div class="form-text api-dotnet-member-filter-help">Tip: use <code>kind:method</code>, <code>kind:property</code>, <code>kind:ctor</code>. Press <kbd>Esc</kbd> to clear.</div>
+</div>
+<h2 id="constructors">Constructors <span class="api-dotnet-count">(1)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="constructors">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Constructor"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.-ctor/"><i class="bi bi-hammer api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Svg()</code></a></div>
+</div>
+<h2 id="fields">Fields <span class="api-dotnet-count">(13)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="fields">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Field"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.CssProperty/"><i class="bi bi-hash api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">CssProperty</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Field"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.CurrentCssProperty/"><i class="bi bi-hash api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">CurrentCssProperty</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Field"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.DisableFiltersProperty/"><i class="bi bi-hash api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">DisableFiltersProperty</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Field"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.EnableCacheProperty/"><i class="bi bi-hash api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">EnableCacheProperty</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Field"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.PanXProperty/"><i class="bi bi-hash api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">PanXProperty</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Field"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.PanYProperty/"><i class="bi bi-hash api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">PanYProperty</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Field"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.PathProperty/"><i class="bi bi-hash api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">PathProperty</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Field"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.SourceProperty/"><i class="bi bi-hash api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">SourceProperty</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Field"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.StretchDirectionProperty/"><i class="bi bi-hash api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">StretchDirectionProperty</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Field"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.StretchProperty/"><i class="bi bi-hash api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">StretchProperty</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Field"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.SvgSourceProperty/"><i class="bi bi-hash api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">SvgSourceProperty</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Field"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.WireframeProperty/"><i class="bi bi-hash api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">WireframeProperty</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Field"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.ZoomProperty/"><i class="bi bi-hash api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">ZoomProperty</code></a></div>
+</div>
+<h2 id="properties">Properties <span class="api-dotnet-count">(15)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="properties">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.Css/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Css</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.CurrentCss/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">CurrentCss</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.DisableFilters/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">DisableFilters</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.EnableCache/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">EnableCache</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.PanX/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">PanX</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.PanY/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">PanY</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.Path/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Path</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.Picture/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Picture</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.SkSvg/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">SkSvg</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.Source/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Source</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.Stretch/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Stretch</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.StretchDirection/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">StretchDirection</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.SvgSource/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">SvgSource</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.Wireframe/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Wireframe</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.Zoom/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Zoom</code></a></div>
+</div>
+<h2 id="methods">Methods <span class="api-dotnet-count">(6)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="methods">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.ArrangeOverride-Windows.Foundation.Size/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">ArrangeOverride(Size)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.HitTestElements-Windows.Foundation.Point/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">HitTestElements(Point)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.MeasureOverride-Windows.Foundation.Size/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">MeasureOverride(Size)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.RenderOverride-SkiaSharp.SKCanvas-Windows.Foundation.Size/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">RenderOverride(SKCanvas, Size)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.TryGetPicturePoint-Windows.Foundation.Point-ShimSkiaSharp.SKPoint-/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">TryGetPicturePoint(Point, out SKPoint)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Uno.Svg.Skia.Svg.ZoomToPoint-System.Double-Windows.Foundation.Point/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">ZoomToPoint(Double, Point)</code></a></div>
+</div>
+</div>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

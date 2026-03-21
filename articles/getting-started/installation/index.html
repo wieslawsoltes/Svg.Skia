@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Installation | Svg.Skia">
-<meta name="twitter:description" content="Installation NuGet packages Core renderer: dotnet add package Svg.Skia Avalonia controls backed by Skia: dotnet add package Svg.Controls.Skia.Avalonia Avalonia controls backed by the Avalonia drawing stack: dotnet add package Svg.Controls.Avalonia General-purpose Skia controls for Avalonia: dotnet add package Skia.Controls.Avalonia Source generator: dotnet add package Svg.SourceGenerator.Skia Converter as a global tool: dotnet tool install -g Svg.Skia.Converter Target frameworks...">
+<meta name="twitter:description" content="Installation NuGet packages Core renderer: dotnet add package Svg.Skia Uno control package: dotnet add package Svg.Controls.Skia.Uno Avalonia controls backed by Skia: dotnet add package Svg.Controls.Skia.Avalonia Avalonia controls backed by the Avalonia drawing stack: dotnet add package Svg.Controls.Avalonia General-purpose Skia controls for Avalonia: dotnet add package Skia.Controls.Avalonia Source generator: dotnet add package Svg.SourceGenerator.Skia Converter as a global tool:...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="Installation | Svg.Skia">
 <meta property="og:title" content="Installation | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Installation NuGet packages Core renderer: dotnet add package Svg.Skia Avalonia controls backed by Skia: dotnet add package Svg.Controls.Skia.Avalonia Avalonia controls backed by the Avalonia drawing stack: dotnet add package Svg.Controls.Avalonia General-purpose Skia controls for Avalonia: dotnet add package Skia.Controls.Avalonia Source generator: dotnet add package Svg.SourceGenerator.Skia Converter as a global tool: dotnet tool install -g Svg.Skia.Converter Target frameworks...">
+<meta property="og:description" content="Installation NuGet packages Core renderer: dotnet add package Svg.Skia Uno control package: dotnet add package Svg.Controls.Skia.Uno Avalonia controls backed by Skia: dotnet add package Svg.Controls.Skia.Avalonia Avalonia controls backed by the Avalonia drawing stack: dotnet add package Svg.Controls.Avalonia General-purpose Skia controls for Avalonia: dotnet add package Skia.Controls.Avalonia Source generator: dotnet add package Svg.SourceGenerator.Skia Converter as a global tool:...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="Installation | Svg.Skia">
   </head>
@@ -108,6 +108,8 @@
             <li id='menu-item-getting_started-4' class='menu-item '>
               <span class='menu-item-row'><a href='/Svg.Skia/articles/getting-started/quickstart-loading-and-rendering/' class='menu-link  '>Quickstart: Loading and Rendering</a></span>  </li>
             <li id='menu-item-getting_started-5' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/getting-started/quickstart-uno/' class='menu-link  '>Quickstart: Uno</a></span>  </li>
+            <li id='menu-item-getting_started-6' class='menu-item '>
               <span class='menu-item-row'><a href='/Svg.Skia/articles/getting-started/quickstart-avalonia/' class='menu-link  '>Quickstart: Avalonia</a></span>  </li>
           </ol>
 
@@ -160,6 +162,9 @@
 <p>Core renderer:</p>
 <pre><code class="language-bash">dotnet add package Svg.Skia
 </code></pre>
+<p>Uno control package:</p>
+<pre><code class="language-bash">dotnet add package Svg.Controls.Skia.Uno
+</code></pre>
 <p>Avalonia controls backed by Skia:</p>
 <pre><code class="language-bash">dotnet add package Svg.Controls.Skia.Avalonia
 </code></pre>
@@ -191,6 +196,9 @@
 </code></pre>
 <p>The local docs pipeline also uses a .NET tool manifest for Lunet:</p>
 <pre><code class="language-bash">dotnet tool restore
+</code></pre>
+<p>The standalone Uno sample app additionally needs Uno workloads configured through <code>uno-check</code>, but the default repository solution does not:</p>
+<pre><code class="language-bash">uno-check --target desktop --target web --target android --target ios
 </code></pre>
 <h2 id="project-workflow-commands">Project workflow commands</h2>
 <p>Formatting:</p>

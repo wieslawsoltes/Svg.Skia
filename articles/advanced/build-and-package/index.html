@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Build and Package | Svg.Skia">
-<meta name="twitter:description" content="Build and Package Local repository workflow The expected local sequence is: git submodule update --init --recursive dotnet format --no-restore dotnet build Svg.Skia.slnx -c Release dotnet test Svg.Skia.slnx -c Release CI workflows The repository now has dedicated workflows for: build and test, release packaging, docs publishing. The docs workflow builds the Lunet site and publishes site/.lunet/build/www to GitHub Pages on pushes to main...">
+<meta name="twitter:description" content="Build and Package Local repository workflow The expected local sequence is: git submodule update --init --recursive dotnet format --no-restore dotnet build Svg.Skia.slnx -c Release dotnet test Svg.Skia.slnx -c Release The Uno sample app is intentionally not part of Svg.Skia.slnx, so those default commands do not require Uno workloads. CI workflows The repository now has dedicated workflows for: build and test, release packaging, docs publishing....">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="Build and Package | Svg.Skia">
 <meta property="og:title" content="Build and Package | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Build and Package Local repository workflow The expected local sequence is: git submodule update --init --recursive dotnet format --no-restore dotnet build Svg.Skia.slnx -c Release dotnet test Svg.Skia.slnx -c Release CI workflows The repository now has dedicated workflows for: build and test, release packaging, docs publishing. The docs workflow builds the Lunet site and publishes site/.lunet/build/www to GitHub Pages on pushes to main...">
+<meta property="og:description" content="Build and Package Local repository workflow The expected local sequence is: git submodule update --init --recursive dotnet format --no-restore dotnet build Svg.Skia.slnx -c Release dotnet test Svg.Skia.slnx -c Release The Uno sample app is intentionally not part of Svg.Skia.slnx, so those default commands do not require Uno workloads. CI workflows The repository now has dedicated workflows for: build and test, release packaging, docs publishing....">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="Build and Package | Svg.Skia">
   </head>
@@ -107,7 +107,9 @@
               <span class='menu-item-row'><a href='/Svg.Skia/articles/advanced/trimming-aot-and-nativeaot/' class='menu-link  '>Trimming, AOT, and NativeAOT</a></span>  </li>
             <li id='menu-item-advanced-4' class='menu-item '>
               <span class='menu-item-row'><a href='/Svg.Skia/articles/advanced/testing-and-w3c-suite/' class='menu-link  '>Testing and W3C Suite</a></span>  </li>
-            <li id='menu-item-advanced-5' class='menu-item  active'>
+            <li id='menu-item-advanced-5' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/advanced/uno-sample-publishing/' class='menu-link  '>Uno Sample Publishing</a></span>  </li>
+            <li id='menu-item-advanced-6' class='menu-item  active'>
               <span class='menu-item-row'><a href='/Svg.Skia/articles/advanced/build-and-package/' class='menu-link  '>Build and Package</a></span>  </li>
           </ol>
 
@@ -163,6 +165,7 @@ dotnet format --no-restore
 dotnet build Svg.Skia.slnx -c Release
 dotnet test Svg.Skia.slnx -c Release
 </code></pre>
+<p>The Uno sample app is intentionally not part of <code>Svg.Skia.slnx</code>, so those default commands do not require Uno workloads.</p>
 <h2 id="ci-workflows">CI workflows</h2>
 <p>The repository now has dedicated workflows for:</p>
 <ul>
@@ -176,6 +179,7 @@ dotnet test Svg.Skia.slnx -c Release
 <ul>
 <li><code>Svg.Skia</code></li>
 <li><code>Svg.Model</code></li>
+<li><code>Svg.Controls.Skia.Uno</code></li>
 <li><code>Svg.Controls.Avalonia</code></li>
 <li><code>Svg.Controls.Skia.Avalonia</code></li>
 <li><code>Skia.Controls.Avalonia</code></li>
@@ -193,6 +197,14 @@ dotnet test Svg.Skia.slnx -c Release
 <li>pushes packages to NuGet,</li>
 <li>creates a GitHub release with the packaged artifacts attached.</li>
 </ul>
+<h2 id="uno-sample-publishing">Uno sample publishing</h2>
+<p>Use the standalone sample project when validating the Uno control package:</p>
+<pre><code class="language-bash">uno-check --target desktop --target web --target android --target ios
+dotnet build samples/UnoSvgSkiaSample/UnoSvgSkiaSample.csproj -c Release -f net10.0-desktop
+dotnet publish samples/UnoSvgSkiaSample/UnoSvgSkiaSample.csproj -c Release -f net10.0-browserwasm
+dotnet build samples/UnoSvgSkiaSample/UnoSvgSkiaSample.csproj -c Release -f net10.0-android
+dotnet build samples/UnoSvgSkiaSample/UnoSvgSkiaSample.csproj -c Release -f net10.0-ios
+</code></pre>
 
       </div>
   </div>
