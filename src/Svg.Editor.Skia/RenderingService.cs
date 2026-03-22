@@ -18,9 +18,9 @@ public class RenderingService
     private readonly PathService _pathService;
     private readonly ToolService _toolService;
 
-    private readonly SK.SKColor _boundsColor = SK.SKColors.Red;
-    private readonly SK.SKColor _segmentColor = SK.SKColors.OrangeRed;
-    private readonly SK.SKColor _controlColor = SK.SKColors.SkyBlue;
+    private readonly SK.SKColor _boundsColor = new(13, 153, 255);
+    private readonly SK.SKColor _segmentColor = new(13, 153, 255);
+    private readonly SK.SKColor _controlColor = new(111, 207, 255);
 
     private const float HandleSize = 10f;
 

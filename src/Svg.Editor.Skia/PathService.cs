@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ShimSkiaSharp.Editing;
 using Svg;
 using Svg.Model.Drawables;
 using Svg.Pathing;
@@ -97,6 +98,35 @@ public class PathService
         _activeIndex = -1;
     }
 
+    public static bool NormalizeEditablePath(SvgPath path)
+    {
+        if (path.PathData is null || path.Transforms is not { Count: > 0 } transforms)
+        {
+            return false;
+        }
+
+        var matrix = ToSkMatrix(transforms);
+        if (!IsAxisAligned(matrix))
+        {
+            return false;
+        }
+
+        var skPath = ElementToPath(path);
+        if (skPath is null)
+        {
+            return false;
+        }
+
+        skPath.Transform(matrix);
+        var data = ToSvgPathData(skPath);
+        var segments = SvgPathBuilder.Parse(data.AsSpan());
+        segments.Owner = path;
+        path.PathData = segments;
+        path.Transforms = new SvgTransformCollection();
+        path.OnPathUpdated();
+        return true;
+    }
+
     public void AddPoint(Shim.SKPoint point)
     {
         if (_path == null)
@@ -151,9 +181,17 @@ public class PathService
         if (_path == null || _activeIndex < 0)
             return;
         var pp = _points[_activeIndex];
+        var delta = new Shim.SKPoint(local.X - pp.Point.X, local.Y - pp.Point.Y);
         pp.Point = local;
         _points[_activeIndex] = pp;
         UpdatePathPoint(pp);
+
+        if (pp.Type == 0)
+        {
+            MoveAdjacentControlPoint(_activeIndex - 1, delta);
+            MoveAdjacentControlPoint(_activeIndex + 1, delta);
+        }
+
         _path.OnPathUpdated();
     }
 
@@ -263,6 +301,19 @@ public class PathService
         }
     }
 
+    private void MoveAdjacentControlPoint(int index, Shim.SKPoint delta)
+    {
+        if (index < 0 || index >= _points.Count || _points[index].Type == 0)
+        {
+            return;
+        }
+
+        var point = _points[index];
+        point.Point = new Shim.SKPoint(point.Point.X + delta.X, point.Point.Y + delta.Y);
+        _points[index] = point;
+        UpdatePathPoint(point);
+    }
+
     private static Shim.SKPoint Reflect(Shim.SKPoint point, Shim.SKPoint mirror)
     {
         var dx = Math.Abs(mirror.X - point.X);
@@ -270,6 +321,55 @@ public class PathService
         var x = mirror.X + (mirror.X >= point.X ? dx : -dx);
         var y = mirror.Y + (mirror.Y >= point.Y ? dy : -dy);
         return new Shim.SKPoint(x, y);
+    }
+
+    private static bool IsAxisAligned(SK.SKMatrix matrix)
+    {
+        return matrix.SkewX == 0f
+               && matrix.SkewY == 0f
+               && matrix.Persp0 == 0f
+               && matrix.Persp1 == 0f
+               && matrix.Persp2 == 1f;
+    }
+
+    private static SK.SKMatrix ToSkMatrix(SvgTransformCollection transforms)
+    {
+        var matrix = SK.SKMatrix.CreateIdentity();
+        foreach (var transform in transforms)
+        {
+            matrix = matrix.PreConcat(ToSkMatrix(transform));
+        }
+
+        return matrix;
+    }
+
+    private static SK.SKMatrix ToSkMatrix(SvgTransform transform)
+    {
+        return transform switch
+        {
+            SvgMatrix svgMatrix => new SK.SKMatrix
+            {
+                ScaleX = svgMatrix.Points[0],
+                SkewY = svgMatrix.Points[1],
+                SkewX = svgMatrix.Points[2],
+                ScaleY = svgMatrix.Points[3],
+                TransX = svgMatrix.Points[4],
+                TransY = svgMatrix.Points[5],
+                Persp0 = 0f,
+                Persp1 = 0f,
+                Persp2 = 1f
+            },
+            SvgRotate svgRotate => SK.SKMatrix.CreateRotationDegrees(
+                svgRotate.Angle,
+                svgRotate.CenterX,
+                svgRotate.CenterY),
+            SvgScale svgScale => SK.SKMatrix.CreateScale(svgScale.X, svgScale.Y),
+            SvgSkew svgSkew => SK.SKMatrix.CreateSkew(
+                (float)Math.Tan(Math.PI * svgSkew.AngleX / 180.0),
+                (float)Math.Tan(Math.PI * svgSkew.AngleY / 180.0)),
+            SvgTranslate svgTranslate => SK.SKMatrix.CreateTranslation(svgTranslate.X, svgTranslate.Y),
+            _ => SK.SKMatrix.CreateIdentity()
+        };
     }
 
     private static void MakePathAbsolute(SvgPath path)

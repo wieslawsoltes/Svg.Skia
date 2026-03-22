@@ -13,6 +13,10 @@ namespace Svg.Model.Drawables.Elements;
 public sealed class TextDrawable : DrawableBase
 {
     private static readonly Regex s_multipleSpaces = new(@" {2,}", RegexOptions.Compiled);
+    private const string TextBoxLeftAttribute = "data-svgskia-text-box-left";
+    private const string TextBoxTopAttribute = "data-svgskia-text-box-top";
+    private const string TextBoxWidthAttribute = "data-svgskia-text-box-width";
+    private const string TextBoxHeightAttribute = "data-svgskia-text-box-height";
 
     public SvgText? Text { get; set; }
 
@@ -55,6 +59,13 @@ public sealed class TextDrawable : DrawableBase
             return;
         }
 
+        if (TryGetTextBoxRect(Text, out var textBoxRect))
+        {
+            GeometryBounds = textBoxRect;
+            Transform = TransformsService.ToMatrix(Text.Transforms);
+            return;
+        }
+
         // Approximate geometry bounds using the full text content
         var builder = new StringBuilder();
         foreach (var node in GetContentNodes(Text))
@@ -91,6 +102,31 @@ public sealed class TextDrawable : DrawableBase
         GeometryBounds = new SKRect(x, y + metricsAscent, x + width, y + metricsDescent);
         Path = AssetLoader.GetTextPath(text, paint, x, y);
         Transform = TransformsService.ToMatrix(Text.Transforms);
+    }
+
+    private static bool TryGetTextBoxRect(SvgTextBase text, out SKRect rect)
+    {
+        rect = default;
+        return TryParseTextBoxValue(text, TextBoxLeftAttribute, out var left)
+            && TryParseTextBoxValue(text, TextBoxTopAttribute, out var top)
+            && TryParseTextBoxValue(text, TextBoxWidthAttribute, out var width)
+            && TryParseTextBoxValue(text, TextBoxHeightAttribute, out var height)
+            && width >= 0f
+            && height >= 0f
+            && AssignRect(out rect, left, top, width, height);
+    }
+
+    private static bool TryParseTextBoxValue(SvgTextBase text, string key, out float value)
+    {
+        value = 0f;
+        return text.CustomAttributes.TryGetValue(key, out var raw)
+            && float.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+    }
+
+    private static bool AssignRect(out SKRect rect, float left, float top, float width, float height)
+    {
+        rect = new SKRect(left, top, left + width, top + height);
+        return true;
     }
 
     internal void GetPositionsX(SvgTextBase svgTextBase, SKRect skBounds, List<float> xs)
@@ -176,7 +212,7 @@ public sealed class TextDrawable : DrawableBase
         };
     }
 
-    internal void BeginDraw(SvgTextBase svgTextBase, SKCanvas skCanvas, SKRect skBounds, DrawAttributes ignoreAttributes, bool enableTransform, out MaskDrawable? maskDrawable, out SKPaint? maskDstIn, out SKPaint? skPaintOpacity, out SKPaint? skPaintFilter, out SKRect? skFilterClip)
+    internal void BeginDraw(SvgTextBase svgTextBase, SKCanvas skCanvas, SKRect skBounds, DrawAttributes ignoreAttributes, bool enableTransform, out SKPaint? skPaintBlend, out MaskDrawable? maskDrawable, out SKPaint? maskDstIn, out SKPaint? skPaintOpacity, out SKPaint? skPaintFilter, out SKRect? skFilterClip)
     {
         var enableClip = !ignoreAttributes.HasFlag(DrawAttributes.ClipPath);
         var enableMask = !ignoreAttributes.HasFlag(DrawAttributes.Mask);
@@ -204,6 +240,12 @@ public sealed class TextDrawable : DrawableBase
                 var antialias = PaintingService.IsAntialias(svgTextBase);
                 skCanvas.ClipPath(clipPath, SKClipOperation.Intersect, antialias);
             }
+        }
+
+        skPaintBlend = BlendModeService.GetBlendPaint(svgTextBase);
+        if (skPaintBlend is { })
+        {
+            skCanvas.SaveLayer(skPaintBlend);
         }
 
         if (enableMask)
@@ -274,7 +316,7 @@ public sealed class TextDrawable : DrawableBase
         }
     }
 
-    internal void EndDraw(SKCanvas skCanvas, DrawAttributes ignoreAttributes, MaskDrawable? maskDrawable, SKPaint? maskDstIn, SKPaint? skPaintOpacity, SKPaint? skPaintFilter, SKRect? skFilterClip, DrawableBase? until)
+    internal void EndDraw(SKCanvas skCanvas, DrawAttributes ignoreAttributes, SKPaint? skPaintBlend, MaskDrawable? maskDrawable, SKPaint? maskDstIn, SKPaint? skPaintOpacity, SKPaint? skPaintFilter, SKRect? skFilterClip, DrawableBase? until)
     {
         var enableMask = !ignoreAttributes.HasFlag(DrawAttributes.Mask);
         var enableOpacity = !ignoreAttributes.HasFlag(DrawAttributes.Opacity);
@@ -295,6 +337,11 @@ public sealed class TextDrawable : DrawableBase
             skCanvas.SaveLayer(maskDstIn);
             maskDrawable.Draw(skCanvas, ignoreAttributes, until, true);
             skCanvas.Restore();
+            skCanvas.Restore();
+        }
+
+        if (skPaintBlend is { })
+        {
             skCanvas.Restore();
         }
 
@@ -579,7 +626,7 @@ public sealed class TextDrawable : DrawableBase
         // gradient and pattern paints.
         var skBounds = skPath.Bounds;
 
-        BeginDraw(svgTextPath, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
+        BeginDraw(svgTextPath, skCanvas, skBounds, ignoreAttributes, enableTransform, out var skPaintBlend, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
         // TODO: Fix SvgTextPath rendering.
         var isValidFill = PaintingService.IsValidFill(svgTextPath);
@@ -613,7 +660,7 @@ public sealed class TextDrawable : DrawableBase
             }
         }
 
-        EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, skFilterClip, until);
+        EndDraw(skCanvas, ignoreAttributes, skPaintBlend, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, skFilterClip, until);
     }
 
     internal void DrawTextRef(SvgTextRef svgTextRef, ref float currentX, ref float currentY, SKRect skViewport, DrawAttributes ignoreAttributes, bool enableTransform, SKCanvas skCanvas, DrawableBase? until)
@@ -638,11 +685,11 @@ public sealed class TextDrawable : DrawableBase
         // referenced text elements.
         var skBounds = GeometryBounds;
 
-        BeginDraw(svgTextRef, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
+        BeginDraw(svgTextRef, skCanvas, skBounds, ignoreAttributes, enableTransform, out var skPaintBlend, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
         DrawTextBase(svgReferencedText, ref currentX, ref currentY, skViewport, ignoreAttributes, skCanvas, until);
 
-        EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, skFilterClip, until);
+        EndDraw(skCanvas, ignoreAttributes, skPaintBlend, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, skFilterClip, until);
     }
 
     internal void DrawTextSpan(SvgTextSpan svgTextSpan, ref float currentX, ref float currentY, SKRect skViewport, DrawAttributes ignoreAttributes, bool enableTransform, SKCanvas skCanvas, DrawableBase? until)
@@ -656,11 +703,11 @@ public sealed class TextDrawable : DrawableBase
         // objectBoundingBox work correctly for text spans.
         var skBounds = GeometryBounds;
 
-        BeginDraw(svgTextSpan, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
+        BeginDraw(svgTextSpan, skCanvas, skBounds, ignoreAttributes, enableTransform, out var skPaintBlend, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
         DrawTextBase(svgTextSpan, ref currentX, ref currentY, skViewport, ignoreAttributes, skCanvas, until);
 
-        EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, skFilterClip, until);
+        EndDraw(skCanvas, ignoreAttributes, skPaintBlend, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, skFilterClip, until);
     }
 
     internal void DrawText(SvgText svgText, SKRect skViewport, DrawAttributes ignoreAttributes, SKCanvas skCanvas, DrawableBase? until, bool enableTransform)
@@ -673,7 +720,7 @@ public sealed class TextDrawable : DrawableBase
         // Paints for the root <text> element depend on its geometry bounds.
         var skBounds = GeometryBounds;
 
-        BeginDraw(svgText, skCanvas, skBounds, ignoreAttributes, enableTransform, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
+        BeginDraw(svgText, skCanvas, skBounds, ignoreAttributes, enableTransform, out var skPaintBlend, out var maskDrawable, out var maskDstIn, out var skPaintOpacity, out var skPaintFilter, out var skFilterClip);
 
         var xs = new List<float>();
         var ys = new List<float>();
@@ -694,7 +741,7 @@ public sealed class TextDrawable : DrawableBase
 
         DrawTextBase(svgText, ref currentX, ref currentY, skViewport, ignoreAttributes, skCanvas, until);
 
-        EndDraw(skCanvas, ignoreAttributes, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, skFilterClip, until);
+        EndDraw(skCanvas, ignoreAttributes, skPaintBlend, maskDrawable, maskDstIn, skPaintOpacity, skPaintFilter, skFilterClip, until);
     }
 
     public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)

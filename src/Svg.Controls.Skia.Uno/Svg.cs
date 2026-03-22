@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;
 using Svg;
 using Svg.Model;
+using Svg.Model.Drawables;
 using Svg.Skia;
 using Uno.WinUI.Graphics2DSK;
 using Windows.Foundation;
@@ -245,16 +246,85 @@ public sealed class Svg : SKCanvasElement
         return Array.Empty<SvgElement>();
     }
 
+    public SvgDocument? Document
+    {
+        get
+        {
+            var root = (SkSvg?.Drawable as DrawableBase)?.Element;
+            return root switch
+            {
+                SvgDocument svgDocument => svgDocument,
+                SvgElement element => element.OwnerDocument,
+                _ => null
+            };
+        }
+    }
+
+    public bool TryGetViewPoint(ShimPoint picturePoint, out Point viewPoint)
+    {
+        viewPoint = default;
+
+        if (!TryGetRenderInfo(out var renderInfo))
+        {
+            return false;
+        }
+
+        var mapped = Vector2.Transform(new Vector2(picturePoint.X, picturePoint.Y), renderInfo.Matrix);
+        viewPoint = new Point(mapped.X, mapped.Y);
+        return true;
+    }
+
+    public bool TryGetViewMatrix(out Matrix3x2 matrix)
+    {
+        matrix = default;
+
+        if (!TryGetRenderInfo(out var renderInfo))
+        {
+            return false;
+        }
+
+        matrix = renderInfo.Matrix;
+        return true;
+    }
+
+    public bool ReloadFromDocument(SvgDocument document)
+    {
+        if (_svg?.Svg is not { } skSvg)
+        {
+            return false;
+        }
+
+        var previousPicture = _svg.Picture;
+        skSvg.FromSvgDocument(document);
+        var currentPicture = skSvg.Picture;
+        _svg.Picture = currentPicture;
+        InvalidateAfterPictureChange(previousPicture, currentPicture);
+        return true;
+    }
+
+    public bool RebuildFromModel()
+    {
+        if (_svg is null)
+        {
+            return false;
+        }
+
+        var previousPicture = _svg.Picture;
+        _svg.RebuildFromModel();
+        InvalidateAfterPictureChange(previousPicture, _svg.Picture);
+        return true;
+    }
+
     protected override Size MeasureOverride(Size availableSize)
     {
-        if (_svg?.Picture is not { } picture)
+        if (!TryGetLayoutBounds(out var layoutBounds))
         {
             return default;
         }
 
         var size = SvgRenderLayout.CalculateSize(
             new SvgSize(availableSize.Width, availableSize.Height),
-            new SvgSize(picture.CullRect.Width, picture.CullRect.Height),
+            new SvgSize(layoutBounds.Width, layoutBounds.Height),
             Stretch,
             StretchDirection);
 
@@ -263,14 +333,14 @@ public sealed class Svg : SKCanvasElement
 
     protected override Size ArrangeOverride(Size finalSize)
     {
-        if (_svg?.Picture is not { } picture)
+        if (!TryGetLayoutBounds(out var layoutBounds))
         {
             return default;
         }
 
         var size = SvgRenderLayout.CalculateSize(
             new SvgSize(finalSize.Width, finalSize.Height),
-            new SvgSize(picture.CullRect.Width, picture.CullRect.Height),
+            new SvgSize(layoutBounds.Width, layoutBounds.Height),
             Stretch,
             StretchDirection);
 
@@ -287,11 +357,7 @@ public sealed class Svg : SKCanvasElement
 
         if (!SvgRenderLayout.TryCreateRenderInfo(
                 new SvgSize(area.Width, area.Height),
-                new SvgRect(
-                    source.Picture.CullRect.Left,
-                    source.Picture.CullRect.Top,
-                    source.Picture.CullRect.Width,
-                    source.Picture.CullRect.Height),
+                GetLayoutBounds(source.Picture),
                 Stretch,
                 StretchDirection,
                 Zoom,
@@ -310,7 +376,7 @@ public sealed class Svg : SKCanvasElement
         try
         {
             using var restore = new SkiaAutoCanvasRestore(canvas, true);
-            canvas.ClipRect(ToSKRect(renderInfo.DestinationRect));
+            canvas.ClipRect(new SkiaRect(0f, 0f, (float)area.Width, (float)area.Height));
             var matrix = ToSKMatrix(renderInfo.Matrix);
             canvas.Concat(in matrix);
             source.Svg.Draw(canvas);
@@ -428,6 +494,27 @@ public sealed class Svg : SKCanvasElement
             .ToArray();
 
         return filtered.Length == 0 ? null : string.Join(" ", filtered);
+    }
+
+    private static bool HavePictureBoundsChanged(SkiaPicture? previousPicture, SkiaPicture? currentPicture)
+    {
+        if (previousPicture is null || currentPicture is null)
+        {
+            return !ReferenceEquals(previousPicture, currentPicture);
+        }
+
+        return !previousPicture.CullRect.Equals(currentPicture.CullRect);
+    }
+
+    private void InvalidateAfterPictureChange(SkiaPicture? previousPicture, SkiaPicture? currentPicture)
+    {
+        if (HavePictureBoundsChanged(previousPicture, currentPicture))
+        {
+            InvalidateMeasure();
+            InvalidateArrange();
+        }
+
+        Invalidate();
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -548,14 +635,14 @@ public sealed class Svg : SKCanvasElement
     {
         renderInfo = default;
 
-        if (_svg?.Picture is not { } picture)
+        if (!TryGetLayoutBounds(out var layoutBounds))
         {
             return false;
         }
 
         return SvgRenderLayout.TryCreateRenderInfo(
             new SvgSize(ActualWidth, ActualHeight),
-            new SvgRect(picture.CullRect.Left, picture.CullRect.Top, picture.CullRect.Width, picture.CullRect.Height),
+            layoutBounds,
             Stretch,
             StretchDirection,
             Zoom,
@@ -636,4 +723,35 @@ public sealed class Svg : SKCanvasElement
     }
 
     private readonly record struct LoadResult(SvgSource? Source, bool IsCacheEntry);
+
+    private bool TryGetLayoutBounds(out SvgRect bounds)
+    {
+        bounds = default;
+
+        if (_svg?.Picture is not { } picture)
+        {
+            return false;
+        }
+
+        bounds = GetLayoutBounds(picture);
+        return bounds.Width > 0.0 && bounds.Height > 0.0;
+    }
+
+    private SvgRect GetLayoutBounds(SkiaPicture picture)
+    {
+        if (Document is { ViewBox.Width: > 0f, ViewBox.Height: > 0f } document)
+        {
+            return new SvgRect(
+                document.ViewBox.MinX,
+                document.ViewBox.MinY,
+                document.ViewBox.Width,
+                document.ViewBox.Height);
+        }
+
+        return new SvgRect(
+            picture.CullRect.Left,
+            picture.CullRect.Top,
+            picture.CullRect.Width,
+            picture.CullRect.Height);
+    }
 }

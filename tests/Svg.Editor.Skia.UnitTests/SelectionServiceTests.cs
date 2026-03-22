@@ -1,4 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using ShimSkiaSharp;
+using Svg;
 using Svg.Editor.Skia;
+using Svg.Editor.Svg;
+using Svg.Model;
+using Svg.Model.Drawables;
+using Svg.Pathing;
+using Svg.Transforms;
 using Xunit;
 using SK = SkiaSharp;
 
@@ -42,5 +52,137 @@ public class SelectionServiceTests
         Assert.Equal(new SK.SKPoint(50, 50), center);
         Assert.Equal(0, topLeft);
         Assert.Equal(8, rotate);
+    }
+
+    [Fact]
+    public void GetInteractiveBounds_UsesDrawableGeometryForStandardElements()
+    {
+        var ellipse = new SvgEllipse
+        {
+            CenterX = 50,
+            CenterY = 40,
+            RadiusX = 20,
+            RadiusY = 10
+        };
+
+        var drawable = new TestDrawable
+        {
+            Element = ellipse,
+            GeometryBounds = new SKRect(28, 29, 72, 51)
+        };
+
+        var bounds = SelectionService.GetInteractiveBounds(drawable);
+
+        Assert.Equal(28f, bounds.Left);
+        Assert.Equal(29f, bounds.Top);
+        Assert.Equal(72f, bounds.Right);
+        Assert.Equal(51f, bounds.Bottom);
+    }
+
+    [Fact]
+    public void GetLocalCenter_UsesInteractiveBoundsCenter()
+    {
+        var drawable = new TestDrawable
+        {
+            Element = new SvgRectangle(),
+            GeometryBounds = new SKRect(20, 40, 100, 120)
+        };
+
+        var center = SelectionService.GetLocalCenter(drawable);
+
+        Assert.Equal(60f, center.X);
+        Assert.Equal(80f, center.Y);
+    }
+
+    [Fact]
+    public void NormalizeWorldTranslation_MovesSinglePreRotateTranslateToTrailingWorldSpace()
+    {
+        var service = new SelectionService();
+        var rectangle = new SvgRectangle
+        {
+            Width = 20,
+            Height = 20,
+            Transforms =
+            [
+                new SvgTranslate(10, 0),
+                new SvgRotate(90, 10, 10)
+            ]
+        };
+
+        var normalized = service.NormalizeWorldTranslation(rectangle);
+
+        Assert.True(normalized);
+        Assert.Collection(
+            rectangle.Transforms!,
+            transform => Assert.IsType<SvgRotate>(transform),
+            transform =>
+            {
+                var translate = Assert.IsType<SvgTranslate>(transform);
+                Assert.True(Math.Abs(translate.X) < 0.001f);
+                Assert.True(Math.Abs(Math.Abs(translate.Y) - 10f) < 0.001f);
+            });
+    }
+
+    [Fact]
+    public void ResizeElement_UpdatesPathGeometryForResizeHandles()
+    {
+        var service = new SelectionService();
+        var path = new SvgPath
+        {
+            PathData =
+            [
+                new SvgMoveToSegment(false, new PointF(0, 0)),
+                new SvgLineSegment(false, new PointF(10, 0)),
+                new SvgLineSegment(false, new PointF(10, 10)),
+                new SvgLineSegment(false, new PointF(0, 10)),
+                new SvgClosePathSegment(false)
+            ]
+        };
+
+        service.ResizeElement(
+            path,
+            handle: 4,
+            dx: 10,
+            dy: 10,
+            startRect: new SK.SKRect(0, 0, 10, 10),
+            startTransX: 0,
+            startTransY: 0,
+            startScaleX: 1,
+            startScaleY: 1);
+
+        var resizedPath = PathService.ElementToPath(path);
+        var bounds = resizedPath!.TightBounds;
+
+        Assert.Equal(0f, bounds.Left);
+        Assert.Equal(0f, bounds.Top);
+        Assert.Equal(20f, bounds.Right);
+        Assert.Equal(20f, bounds.Bottom);
+        Assert.Null(path.Transforms);
+    }
+
+    private sealed class TestDrawable : DrawableBase
+    {
+        public TestDrawable() : base(null!, new HashSet<Uri>())
+        {
+            IsDrawable = true;
+            Transform = SKMatrix.Identity;
+            TotalTransform = SKMatrix.Identity;
+        }
+
+        public override void OnDraw(SKCanvas canvas, DrawAttributes ignoreAttributes, DrawableBase? until)
+        {
+        }
+
+        public override SKDrawable Clone()
+        {
+            return new TestDrawable
+            {
+                Element = Element,
+                GeometryBounds = GeometryBounds,
+                TransformedBounds = TransformedBounds,
+                Transform = Transform,
+                TotalTransform = TotalTransform
+            };
+        }
     }
 }
