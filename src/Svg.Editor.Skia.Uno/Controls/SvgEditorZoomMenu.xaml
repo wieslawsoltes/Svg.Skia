@@ -1,0 +1,191 @@
+<UserControl
+    x:Class="Svg.Editor.Skia.Uno.Controls.SvgEditorZoomMenu"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Name="Root">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///Svg.Editor.Skia.Uno/Themes/EditorThemeResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <Border Width="364"
+          Style="{StaticResource ZoomMenuFrameBorderStyle}">
+    <StackPanel Spacing="12">
+      <Border Style="{StaticResource ZoomMenuInputBorderStyle}">
+        <TextBox x:Name="ZoomTextBox"
+                 Style="{StaticResource ZoomMenuInputTextBoxStyle}"
+                 KeyDown="OnZoomTextBoxKeyDown"
+                 PlaceholderText="100%" />
+      </Border>
+
+      <Border Style="{StaticResource ZoomMenuDividerStyle}" />
+
+      <StackPanel Spacing="2">
+        <Button Style="{StaticResource ZoomMenuRowButtonStyle}"
+                Tag="ZoomIn"
+                Click="OnCommandClick">
+          <Grid ColumnDefinitions="20,*,Auto">
+            <TextBlock Style="{StaticResource ZoomMenuRowTextStyle}" />
+            <TextBlock Grid.Column="1"
+                       Text="Zoom in"
+                       Style="{StaticResource ZoomMenuRowTextStyle}" />
+            <TextBlock Grid.Column="2"
+                       Text="⌘+"
+                       Style="{StaticResource ZoomMenuShortcutTextStyle}" />
+          </Grid>
+        </Button>
+
+        <Button Style="{StaticResource ZoomMenuRowButtonStyle}"
+                Tag="ZoomOut"
+                Click="OnCommandClick">
+          <Grid ColumnDefinitions="20,*,Auto">
+            <TextBlock Style="{StaticResource ZoomMenuRowTextStyle}" />
+            <TextBlock Grid.Column="1"
+                       Text="Zoom out"
+                       Style="{StaticResource ZoomMenuRowTextStyle}" />
+            <TextBlock Grid.Column="2"
+                       Text="⌘−"
+                       Style="{StaticResource ZoomMenuShortcutTextStyle}" />
+          </Grid>
+        </Button>
+
+        <Button Style="{StaticResource ZoomMenuRowButtonStyle}"
+                Tag="ZoomToFit"
+                Click="OnCommandClick">
+          <Grid ColumnDefinitions="20,*,Auto">
+            <TextBlock Style="{StaticResource ZoomMenuRowTextStyle}" />
+            <TextBlock Grid.Column="1"
+                       Text="Zoom to fit"
+                       Style="{StaticResource ZoomMenuRowTextStyle}" />
+            <TextBlock Grid.Column="2"
+                       Text="⇧1"
+                       Style="{StaticResource ZoomMenuShortcutTextStyle}" />
+          </Grid>
+        </Button>
+
+        <Button Style="{StaticResource ZoomMenuRowButtonStyle}"
+                Tag="ZoomTo50"
+                Click="OnCommandClick">
+          <Grid ColumnDefinitions="20,*,Auto">
+            <TextBlock Style="{StaticResource ZoomMenuRowTextStyle}" />
+            <TextBlock Grid.Column="1"
+                       Text="Zoom to 50%"
+                       Style="{StaticResource ZoomMenuRowTextStyle}" />
+          </Grid>
+        </Button>
+
+        <Button Style="{StaticResource ZoomMenuRowButtonStyle}"
+                Tag="ZoomTo100"
+                Click="OnCommandClick">
+          <Grid ColumnDefinitions="20,*,Auto">
+            <TextBlock Style="{StaticResource ZoomMenuRowTextStyle}" />
+            <TextBlock Grid.Column="1"
+                       Text="Zoom to 100%"
+                       Style="{StaticResource ZoomMenuRowTextStyle}" />
+            <TextBlock Grid.Column="2"
+                       Text="⌘0"
+                       Style="{StaticResource ZoomMenuShortcutTextStyle}" />
+          </Grid>
+        </Button>
+
+        <Button Style="{StaticResource ZoomMenuRowButtonStyle}"
+                Tag="ZoomTo200"
+                Click="OnCommandClick">
+          <Grid ColumnDefinitions="20,*,Auto">
+            <TextBlock Style="{StaticResource ZoomMenuRowTextStyle}" />
+            <TextBlock Grid.Column="1"
+                       Text="Zoom to 200%"
+                       Style="{StaticResource ZoomMenuRowTextStyle}" />
+          </Grid>
+        </Button>
+
+        <Button Style="{StaticResource ZoomMenuRowButtonStyle}"
+                Tag="ZoomToSelection"
+                Click="OnCommandClick">
+          <Grid ColumnDefinitions="20,*,Auto">
+            <TextBlock Style="{StaticResource ZoomMenuRowTextStyle}" />
+            <TextBlock Grid.Column="1"
+                       Text="Zoom to selection"
+                       Style="{StaticResource ZoomMenuRowTextStyle}" />
+            <TextBlock Grid.Column="2"
+                       Text="⇧2"
+                       Style="{StaticResource ZoomMenuShortcutTextStyle}" />
+          </Grid>
+        </Button>
+      </StackPanel>
+
+      <Border Style="{StaticResource ZoomMenuDividerStyle}" />
+
+      <StackPanel Spacing="2">
+        <Button Style="{StaticResource ZoomMenuRowButtonStyle}"
+                Tag="ToggleGrid"
+                Click="OnCommandClick">
+          <Grid ColumnDefinitions="20,*,Auto">
+            <TextBlock x:Name="GridCheckTextBlock"
+                       Style="{StaticResource ZoomMenuCheckTextStyle}" />
+            <TextBlock Grid.Column="1"
+                       Text="Pixel grid"
+                       Style="{StaticResource ZoomMenuRowTextStyle}" />
+          </Grid>
+        </Button>
+
+        <Button Style="{StaticResource ZoomMenuRowButtonStyle}"
+                Tag="ToggleSnap"
+                Click="OnCommandClick">
+          <Grid ColumnDefinitions="20,*,Auto">
+            <TextBlock x:Name="SnapCheckTextBlock"
+                       Style="{StaticResource ZoomMenuCheckTextStyle}" />
+            <TextBlock Grid.Column="1"
+                       Text="Snap to pixel grid"
+                       Style="{StaticResource ZoomMenuRowTextStyle}" />
+          </Grid>
+        </Button>
+
+        <Button Style="{StaticResource ZoomMenuRowButtonStyle}"
+                Tag="ToggleRulers"
+                Click="OnCommandClick">
+          <Grid ColumnDefinitions="20,*,Auto">
+            <TextBlock x:Name="RulersCheckTextBlock"
+                       Style="{StaticResource ZoomMenuCheckTextStyle}" />
+            <TextBlock Grid.Column="1"
+                       Text="Rulers"
+                       Style="{StaticResource ZoomMenuRowTextStyle}" />
+          </Grid>
+        </Button>
+
+        <Button Style="{StaticResource ZoomMenuRowButtonStyle}"
+                Tag="ToggleWireframe"
+                Click="OnCommandClick">
+          <Grid ColumnDefinitions="20,*,Auto">
+            <TextBlock x:Name="OutlinesCheckTextBlock"
+                       Style="{StaticResource ZoomMenuCheckTextStyle}" />
+            <TextBlock Grid.Column="1"
+                       Text="Outlines"
+                       Style="{StaticResource ZoomMenuRowTextStyle}" />
+          </Grid>
+        </Button>
+      </StackPanel>
+
+      <Border Style="{StaticResource ZoomMenuDividerStyle}" />
+
+      <Button Style="{StaticResource ZoomMenuRowButtonStyle}"
+              Tag="ToggleCommentsInspector"
+              Click="OnCommandClick">
+        <Grid ColumnDefinitions="20,*,Auto">
+          <TextBlock x:Name="CommentsCheckTextBlock"
+                     Style="{StaticResource ZoomMenuCheckTextStyle}" />
+          <TextBlock Grid.Column="1"
+                     Text="Comments"
+                     Style="{StaticResource ZoomMenuRowTextStyle}" />
+          <TextBlock Grid.Column="2"
+                     Text="C"
+                     Style="{StaticResource ZoomMenuShortcutTextStyle}" />
+        </Grid>
+      </Button>
+    </StackPanel>
+  </Border>
+</UserControl>

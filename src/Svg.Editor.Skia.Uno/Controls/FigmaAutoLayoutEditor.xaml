@@ -1,0 +1,319 @@
+<UserControl
+    x:Class="Svg.Editor.Skia.Uno.Controls.FigmaAutoLayoutEditor"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Svg.Editor.Skia.Uno.Controls"
+    x:Name="Root">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///Svg.Editor.Skia.Uno/Themes/EditorThemeResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <StackPanel Spacing="12">
+    <Grid x:Name="HeaderGrid"
+          ColumnDefinitions="*,Auto">
+      <TextBlock Text="Auto layout"
+                 Style="{StaticResource ShellTitleStyle}"
+                 FontSize="14" />
+      <Button x:Name="ToggleAutoLayoutButton"
+              Grid.Column="1"
+              Style="{StaticResource SegmentButtonStyle}"
+              Click="OnToggleAutoLayoutClick">
+        <TextBlock x:Name="ToggleAutoLayoutTextBlock"
+                   Style="{StaticResource ShellTitleStyle}"
+                   FontSize="12" />
+      </Button>
+    </Grid>
+
+    <TextBlock x:Name="HintTextBlock"
+               Style="{StaticResource SectionCaptionStyle}"
+               TextWrapping="WrapWholeWords" />
+
+    <StackPanel x:Name="EditorStack"
+                Spacing="12">
+      <StackPanel Spacing="8">
+        <TextBlock Text="Flow"
+                   Style="{StaticResource InspectorSubLabelStyle}" />
+        <Grid ColumnDefinitions="*,*,*,*"
+              ColumnSpacing="8">
+          <Button x:Name="HorizontalFlowButton"
+                  Style="{StaticResource SegmentButtonStyle}"
+                  Tag="Horizontal"
+                  Click="OnFlowButtonClick">
+            <controls:FigmaIcon Kind="AutoLayoutHorizontal"
+                                Width="16"
+                                Height="16"
+                                IconStroke="{StaticResource TextBrush}" />
+          </Button>
+          <Button x:Name="VerticalFlowButton"
+                  Grid.Column="1"
+                  Style="{StaticResource SegmentButtonStyle}"
+                  Tag="Vertical"
+                  Click="OnFlowButtonClick">
+            <controls:FigmaIcon Kind="AutoLayoutVertical"
+                                Width="16"
+                                Height="16"
+                                IconStroke="{StaticResource TextBrush}" />
+          </Button>
+          <Button x:Name="WrapFlowButton"
+                  Grid.Column="2"
+                  Style="{StaticResource SegmentButtonStyle}"
+                  Tag="Wrap"
+                  Click="OnFlowButtonClick">
+            <controls:FigmaIcon Kind="AutoLayoutWrap"
+                                Width="16"
+                                Height="16"
+                                IconStroke="{StaticResource TextBrush}" />
+          </Button>
+          <Button x:Name="GridFlowButton"
+                  Grid.Column="3"
+                  Style="{StaticResource SegmentButtonStyle}"
+                  Tag="Grid"
+                  Click="OnFlowButtonClick">
+            <controls:FigmaIcon Kind="AutoLayoutGrid"
+                                Width="16"
+                                Height="16"
+                                IconStroke="{StaticResource TextBrush}" />
+          </Button>
+        </Grid>
+      </StackPanel>
+
+      <StackPanel Spacing="8">
+        <TextBlock Text="Dimensions"
+                   Style="{StaticResource InspectorSubLabelStyle}" />
+        <Grid ColumnDefinitions="*,*"
+              ColumnSpacing="10">
+          <StackPanel Spacing="6">
+            <Grid ColumnDefinitions="Auto,*"
+                  ColumnSpacing="8">
+              <ComboBox x:Name="WidthModeComboBox"
+                        MinWidth="92"
+                        Style="{StaticResource PickerComboBoxStyle}"
+                        SelectionChanged="OnWidthModeSelectionChanged">
+                <ComboBoxItem Content="Fixed" Tag="Fixed" />
+                <ComboBoxItem Content="Hug" Tag="Hug" />
+              </ComboBox>
+              <TextBox x:Name="WidthTextBox"
+                       Grid.Column="1"
+                       Style="{StaticResource ShellTextBoxStyle}"
+                       Text="{Binding WidthValue, ElementName=Root, Mode=TwoWay}" />
+            </Grid>
+          </StackPanel>
+
+          <StackPanel Grid.Column="1"
+                      Spacing="6">
+            <Grid ColumnDefinitions="Auto,*"
+                  ColumnSpacing="8">
+              <ComboBox x:Name="HeightModeComboBox"
+                        MinWidth="92"
+                        Style="{StaticResource PickerComboBoxStyle}"
+                        SelectionChanged="OnHeightModeSelectionChanged">
+                <ComboBoxItem Content="Fixed" Tag="Fixed" />
+                <ComboBoxItem Content="Hug" Tag="Hug" />
+              </ComboBox>
+              <TextBox x:Name="HeightTextBox"
+                       Grid.Column="1"
+                       Style="{StaticResource ShellTextBoxStyle}"
+                       Text="{Binding HeightValue, ElementName=Root, Mode=TwoWay}" />
+            </Grid>
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+
+      <StackPanel x:Name="AdvancedSettingsStack"
+                  Spacing="12">
+        <Grid ColumnDefinitions="*,*"
+              ColumnSpacing="10">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Alignment"
+                       Style="{StaticResource InspectorSubLabelStyle}" />
+            <Grid Background="{StaticResource PickerSectionBrush}"
+                  BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                  BorderThickness="1"
+                  CornerRadius="12"
+                  Padding="8"
+                  RowDefinitions="Auto,Auto,Auto"
+                  ColumnDefinitions="Auto,Auto,Auto">
+            <Button x:Name="AlignTopLeftButton"
+                    Style="{StaticResource MatrixButtonStyle}"
+                    Tag="Start,Start"
+                    Click="OnAlignmentButtonClick">
+              <Grid Width="16"
+                    Height="16">
+                <Border Width="4"
+                        Height="4"
+                        CornerRadius="2"
+                        Background="{StaticResource AccentBrush}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top" />
+              </Grid>
+            </Button>
+            <Button x:Name="AlignTopCenterButton"
+                    Grid.Column="1"
+                    Style="{StaticResource MatrixButtonStyle}"
+                    Tag="Center,Start"
+                    Click="OnAlignmentButtonClick">
+              <Grid Width="16"
+                    Height="16">
+                <Border Width="4"
+                        Height="4"
+                        CornerRadius="2"
+                        Background="{StaticResource AccentBrush}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top" />
+              </Grid>
+            </Button>
+            <Button x:Name="AlignTopRightButton"
+                    Grid.Column="2"
+                    Style="{StaticResource MatrixButtonStyle}"
+                    Tag="End,Start"
+                    Click="OnAlignmentButtonClick">
+              <Grid Width="16"
+                    Height="16">
+                <Border Width="4"
+                        Height="4"
+                        CornerRadius="2"
+                        Background="{StaticResource AccentBrush}"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top" />
+              </Grid>
+            </Button>
+
+            <Button x:Name="AlignMiddleLeftButton"
+                    Grid.Row="1"
+                    Style="{StaticResource MatrixButtonStyle}"
+                    Tag="Start,Center"
+                    Click="OnAlignmentButtonClick">
+              <Grid Width="16"
+                    Height="16">
+                <Border Width="4"
+                        Height="4"
+                        CornerRadius="2"
+                        Background="{StaticResource AccentBrush}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center" />
+              </Grid>
+            </Button>
+            <Button x:Name="AlignMiddleCenterButton"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Style="{StaticResource MatrixButtonStyle}"
+                    Tag="Center,Center"
+                    Click="OnAlignmentButtonClick">
+              <Grid Width="16"
+                    Height="16">
+                <Border Width="4"
+                        Height="4"
+                        CornerRadius="2"
+                        Background="{StaticResource AccentBrush}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center" />
+              </Grid>
+            </Button>
+            <Button x:Name="AlignMiddleRightButton"
+                    Grid.Row="1"
+                    Grid.Column="2"
+                    Style="{StaticResource MatrixButtonStyle}"
+                    Tag="End,Center"
+                    Click="OnAlignmentButtonClick">
+              <Grid Width="16"
+                    Height="16">
+                <Border Width="4"
+                        Height="4"
+                        CornerRadius="2"
+                        Background="{StaticResource AccentBrush}"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center" />
+              </Grid>
+            </Button>
+
+            <Button x:Name="AlignBottomLeftButton"
+                    Grid.Row="2"
+                    Style="{StaticResource MatrixButtonStyle}"
+                    Tag="Start,End"
+                    Click="OnAlignmentButtonClick">
+              <Grid Width="16"
+                    Height="16">
+                <Border Width="4"
+                        Height="4"
+                        CornerRadius="2"
+                        Background="{StaticResource AccentBrush}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Bottom" />
+              </Grid>
+            </Button>
+            <Button x:Name="AlignBottomCenterButton"
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    Style="{StaticResource MatrixButtonStyle}"
+                    Tag="Center,End"
+                    Click="OnAlignmentButtonClick">
+              <Grid Width="16"
+                    Height="16">
+                <Border Width="4"
+                        Height="4"
+                        CornerRadius="2"
+                        Background="{StaticResource AccentBrush}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Bottom" />
+              </Grid>
+            </Button>
+            <Button x:Name="AlignBottomRightButton"
+                    Grid.Row="2"
+                    Grid.Column="2"
+                    Style="{StaticResource MatrixButtonStyle}"
+                    Tag="End,End"
+                    Click="OnAlignmentButtonClick">
+              <Grid Width="16"
+                    Height="16">
+                <Border Width="4"
+                        Height="4"
+                        CornerRadius="2"
+                        Background="{StaticResource AccentBrush}"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom" />
+              </Grid>
+            </Button>
+            </Grid>
+          </StackPanel>
+
+          <StackPanel Grid.Column="1"
+                      Spacing="6">
+            <TextBlock Text="Gap"
+                       Style="{StaticResource InspectorSubLabelStyle}" />
+            <TextBox x:Name="GapTextBox"
+                     Style="{StaticResource ShellTextBoxStyle}"
+                     Text="{Binding GapValue, ElementName=Root, Mode=TwoWay}" />
+          </StackPanel>
+        </Grid>
+
+        <StackPanel Spacing="8">
+          <TextBlock Text="Padding"
+                     Style="{StaticResource InspectorSubLabelStyle}" />
+          <Grid ColumnDefinitions="*,*"
+                ColumnSpacing="10">
+            <StackPanel Spacing="6">
+              <TextBox x:Name="PaddingHorizontalTextBox"
+                       Style="{StaticResource ShellTextBoxStyle}"
+                       Text="{Binding PaddingHorizontalValue, ElementName=Root, Mode=TwoWay}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1"
+                        Spacing="6">
+              <TextBox x:Name="PaddingVerticalTextBox"
+                       Style="{StaticResource ShellTextBoxStyle}"
+                       Text="{Binding PaddingVerticalValue, ElementName=Root, Mode=TwoWay}" />
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </StackPanel>
+
+      <CheckBox x:Name="ClipContentCheckBox"
+                Content="Clip content"
+                IsChecked="{Binding IsClipContent, ElementName=Root, Mode=TwoWay}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

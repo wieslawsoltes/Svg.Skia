@@ -1,0 +1,35 @@
+namespace Svg.Editor.Skia.Uno;
+
+public enum SelectionContextMenuCommand
+{
+    Copy,
+    PasteHere,
+    PasteReplace,
+    SelectLayer,
+    MoveToPage,
+    BringToFront,
+    SendToBack,
+    ConvertToSection,
+    GroupSelection,
+    FrameSelection,
+    Ungroup,
+    Rename,
+    BooleanUnion,
+    BooleanSubtract,
+    BooleanIntersect,
+    BooleanExclude,
+    Flatten,
+    OutlineStroke,
+    UseAsMask,
+    RemoveAutoLayout,
+    SetAutoLayoutHorizontal,
+    SetAutoLayoutVertical,
+    SetAutoLayoutWrap,
+    SetAutoLayoutGrid,
+    ToggleAutoLayoutClipContent,
+    CreateComponent,
+    ToggleVisibility,
+    ToggleLock,
+    FlipHorizontal,
+    FlipVertical
+}

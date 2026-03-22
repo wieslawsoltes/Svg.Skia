@@ -1,0 +1,38 @@
+<UserControl
+    x:Class="Svg.Editor.Skia.Uno.Controls.EditorLabeledField"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Name="Root">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///Svg.Editor.Skia.Uno/Themes/EditorThemeResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <StackPanel Spacing="5">
+    <TextBlock x:Name="LabelTextBlock"
+               Style="{StaticResource InspectorSubLabelStyle}" />
+    <Border Style="{StaticResource InspectorInlineFieldBorderStyle}">
+      <Grid ColumnDefinitions="Auto,*,Auto"
+            ColumnSpacing="8">
+        <TextBlock x:Name="InlineLabelTextBlock"
+                   Style="{StaticResource InspectorInlinePrefixStyle}" />
+        <TextBox x:Name="InputTextBox"
+                 Grid.Column="1"
+                 Style="{StaticResource InspectorInlineFieldTextBoxStyle}"
+                 Text="{Binding Text, ElementName=Root, Mode=TwoWay}"
+                 PlaceholderText="{Binding PlaceholderText, ElementName=Root, Mode=OneWay}"
+                 IsReadOnly="{Binding IsReadOnly, ElementName=Root, Mode=OneWay}"
+                 LostFocus="OnInputTextBoxLostFocus"
+                 KeyDown="OnInputTextBoxKeyDown" />
+        <TextBlock x:Name="SuffixTextBlock"
+                   Grid.Column="2"
+                   Style="{StaticResource InspectorInlinePrefixStyle}"
+                   HorizontalAlignment="Right" />
+      </Grid>
+    </Border>
+  </StackPanel>
+</UserControl>

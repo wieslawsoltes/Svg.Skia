@@ -1,0 +1,36 @@
+<UserControl
+    x:Class="Svg.Editor.Skia.Uno.Controls.EditorPanelSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Name="Root">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///Svg.Editor.Skia.Uno/Themes/EditorThemeResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <Border x:Name="DividerBorder"
+          Padding="{Binding SectionPadding, ElementName=Root, Mode=OneWay}">
+    <StackPanel Spacing="10">
+      <Grid x:Name="HeaderGrid"
+            ColumnDefinitions="*,Auto"
+            ColumnSpacing="10">
+        <StackPanel Spacing="2">
+          <TextBlock x:Name="TitleTextBlock"
+                     Style="{StaticResource SectionHeadingStyle}" />
+          <TextBlock x:Name="MetaTextBlock"
+                     Style="{StaticResource SectionCaptionStyle}"
+                     TextWrapping="WrapWholeWords" />
+        </StackPanel>
+        <ContentPresenter x:Name="HeaderPresenter"
+                          Grid.Column="1"
+                          VerticalAlignment="Center" />
+      </Grid>
+
+      <ContentPresenter x:Name="SectionPresenter" />
+    </StackPanel>
+  </Border>
+</UserControl>

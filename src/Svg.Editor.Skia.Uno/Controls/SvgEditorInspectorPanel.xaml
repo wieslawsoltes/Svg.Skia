@@ -1,0 +1,899 @@
+<UserControl
+    x:Class="Svg.Editor.Skia.Uno.Controls.SvgEditorInspectorPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Svg.Editor.Skia.Uno.Controls"
+    xmlns:editorModels="using:Svg.Editor.Skia.Uno.Models"
+    xmlns:svgModels="using:Svg.Editor.Svg.Models"
+    x:Name="Root">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///Svg.Editor.Skia.Uno/Themes/EditorThemeResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <Border Style="{StaticResource SidebarSurfaceBorderStyle}">
+    <Grid RowDefinitions="Auto,Auto,*">
+      <Grid Padding="18,12,18,10"
+            ColumnDefinitions="Auto,Auto,*,Auto">
+        <Grid Visibility="{Binding ViewModel.InspectorTabsVisibility, ElementName=Root, Mode=OneWay}"
+              ColumnDefinitions="Auto,Auto,Auto,*,Auto">
+          <Border Background="{Binding ViewModel.IsDesignInspectorActive, ElementName=Root, Mode=OneWay, Converter={StaticResource BooleanToSidebarTabBrushConverter}}"
+                  CornerRadius="10">
+            <ToggleButton IsChecked="{Binding ViewModel.IsDesignInspectorActive, ElementName=Root, Mode=OneWay}"
+                          Style="{StaticResource InspectorTabToggleStyle}"
+                          Click="OnDesignInspectorClick"
+                          Content="Design" />
+          </Border>
+
+          <Border Grid.Column="1"
+                  Margin="6,0,0,0"
+                  Background="{Binding ViewModel.IsPrototypeInspectorActive, ElementName=Root, Mode=OneWay, Converter={StaticResource BooleanToSidebarTabBrushConverter}}"
+                  CornerRadius="10">
+            <ToggleButton IsChecked="{Binding ViewModel.IsPrototypeInspectorActive, ElementName=Root, Mode=OneWay}"
+                          Style="{StaticResource InspectorTabToggleStyle}"
+                          Click="OnPrototypeInspectorClick"
+                          Content="Prototype" />
+          </Border>
+
+          <Border Grid.Column="2"
+                  Margin="6,0,0,0"
+                  Background="{Binding ViewModel.IsDevInspectorActive, ElementName=Root, Mode=OneWay, Converter={StaticResource BooleanToSidebarTabBrushConverter}}"
+                  CornerRadius="10">
+            <ToggleButton IsChecked="{Binding ViewModel.IsDevInspectorActive, ElementName=Root, Mode=OneWay}"
+                          Style="{StaticResource InspectorTabToggleStyle}"
+                          Click="OnDevInspectorClick"
+                          Content="Dev" />
+          </Border>
+
+          <Border Grid.Column="4"
+                  Background="{StaticResource SurfaceAltBrush}"
+                  BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                  BorderThickness="1"
+                  CornerRadius="10"
+                  Padding="10,7"
+                  VerticalAlignment="Center">
+            <TextBlock Text="{Binding ViewModel.ViewportLabel, ElementName=Root, Mode=OneWay}"
+                       Style="{StaticResource ShellTitleStyle}"
+                       FontSize="12.5" />
+          </Border>
+        </Grid>
+
+        <Grid Visibility="{Binding ViewModel.CommentsInspectorVisibility, ElementName=Root, Mode=OneWay}"
+              ColumnDefinitions="*,Auto">
+          <TextBlock Text="Comments"
+                     Style="{StaticResource InspectorHeaderTitleStyle}"
+                     VerticalAlignment="Center" />
+          <Border Grid.Column="1"
+                  Background="{StaticResource SurfaceAltBrush}"
+                  BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                  BorderThickness="1"
+                  CornerRadius="10"
+                  Padding="10,7"
+                  VerticalAlignment="Center">
+            <TextBlock Text="{Binding ViewModel.ViewportLabel, ElementName=Root, Mode=OneWay}"
+                       Style="{StaticResource ShellTitleStyle}"
+                       FontSize="12.5" />
+          </Border>
+        </Grid>
+      </Grid>
+
+      <Border Grid.Row="1"
+              Padding="18,12,18,12"
+              BorderBrush="{StaticResource SidebarDividerBrush}"
+              BorderThickness="0,1,0,1"
+              Visibility="{Binding ViewModel.InspectorSelectionVisibility, ElementName=Root, Mode=OneWay}">
+        <Grid ColumnDefinitions="*,Auto,Auto">
+          <StackPanel Spacing="2">
+            <StackPanel Orientation="Horizontal"
+                        Spacing="6">
+              <TextBlock Text="{Binding ViewModel.SelectedSubtitle, ElementName=Root, Mode=OneWay}"
+                         Style="{StaticResource InspectorHeaderTitleStyle}" />
+            </StackPanel>
+            <TextBlock Text="{Binding ViewModel.SelectedTitle, ElementName=Root, Mode=OneWay}"
+                       Style="{StaticResource SectionCaptionStyle}"
+                       TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+
+          <Button Grid.Column="1"
+                  Style="{StaticResource PlainIconButtonStyle}"
+                  HorizontalAlignment="Right"
+                  VerticalAlignment="Center"
+                  Margin="0,0,6,0"
+                  IsEnabled="{Binding ViewModel.CanShowVectorOperations, ElementName=Root, Mode=OneWay}"
+                  ToolTipService.ToolTip="Vector operations">
+            <Button.Flyout>
+              <MenuFlyout Opening="OnVectorOperationsFlyoutOpening">
+                <MenuFlyoutItem x:Name="UnionMenuItem"
+                                Text="Union"
+                                Tag="BooleanUnion"
+                                Click="OnInspectorCommandClick" />
+                <MenuFlyoutItem x:Name="SubtractMenuItem"
+                                Text="Subtract"
+                                Tag="BooleanSubtract"
+                                Click="OnInspectorCommandClick" />
+                <MenuFlyoutItem x:Name="IntersectMenuItem"
+                                Text="Intersect"
+                                Tag="BooleanIntersect"
+                                Click="OnInspectorCommandClick" />
+                <MenuFlyoutItem x:Name="ExcludeMenuItem"
+                                Text="Exclude"
+                                Tag="BooleanExclude"
+                                Click="OnInspectorCommandClick" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem x:Name="FlattenMenuItem"
+                                Text="Flatten"
+                                Tag="FlattenSelection"
+                                Click="OnInspectorCommandClick" />
+              </MenuFlyout>
+            </Button.Flyout>
+            <controls:FigmaIcon Kind="Boolean"
+                                Width="16"
+                                Height="16"
+                                IconStroke="{StaticResource TextBrush}" />
+          </Button>
+
+          <Button Grid.Column="2"
+                  Style="{StaticResource PlainIconButtonStyle}"
+                  HorizontalAlignment="Right"
+                  VerticalAlignment="Center"
+                  IsEnabled="{Binding ViewModel.CanCreateComponent, ElementName=Root, Mode=OneWay}"
+                  Click="OnCreateComponentClick"
+                  ToolTipService.ToolTip="Create component">
+            <controls:FigmaIcon Kind="Component"
+                                Width="16"
+                                Height="16"
+                                IconStroke="{StaticResource TextBrush}" />
+          </Button>
+        </Grid>
+      </Border>
+
+      <ScrollViewer Grid.Row="2"
+                    Padding="0,0,0,14"
+                    VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="0">
+          <StackPanel Visibility="{Binding ViewModel.DesignInspectorVisibility, ElementName=Root, Mode=OneWay}"
+                      Spacing="0">
+            <controls:EditorPanelSection Title="Component"
+                                         ShowDivider="False"
+                                         SectionPadding="14,14,14,0">
+              <controls:EditorPanelSection.HeaderContent>
+                <Button Style="{StaticResource InspectorSectionActionButtonStyle}"
+                        IsEnabled="{Binding ViewModel.CanCreateComponent, ElementName=Root, Mode=OneWay}"
+                        Click="OnCreateComponentClick"
+                        ToolTipService.ToolTip="Create component">
+                  <controls:FigmaIcon Kind="Component"
+                                      Width="16"
+                                      Height="16"
+                                      IconStroke="{StaticResource TextBrush}" />
+                </Button>
+              </controls:EditorPanelSection.HeaderContent>
+              <controls:EditorPanelSection.SectionContent>
+                <StackPanel Spacing="10">
+                  <Border Style="{StaticResource InsetFrameBorderStyle}"
+                          Padding="12">
+                    <StackPanel Spacing="3">
+                      <TextBlock Text="{Binding ViewModel.ComponentPrimaryLabel, ElementName=Root, Mode=OneWay}"
+                                 Style="{StaticResource ShellTitleStyle}"
+                                 FontSize="13" />
+                      <TextBlock Text="{Binding ViewModel.ComponentSecondaryLabel, ElementName=Root, Mode=OneWay}"
+                                 Style="{StaticResource SectionCaptionStyle}"
+                                 TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                  </Border>
+
+                  <StackPanel Spacing="8">
+                    <TextBlock Text="Asset"
+                               Style="{StaticResource InspectorSubLabelStyle}" />
+                    <ComboBox Style="{StaticResource PickerComboBoxStyle}"
+                              ItemsSource="{Binding ViewModel.ComponentAssets, ElementName=Root, Mode=OneWay}"
+                              SelectedItem="{Binding ViewModel.SelectedComponentAsset, ElementName=Root, Mode=TwoWay}">
+                      <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="editorModels:EditorComponentItem">
+                          <Grid ColumnDefinitions="Auto,*"
+                                ColumnSpacing="10">
+                            <Border Width="28"
+                                    Height="28"
+                                    Background="{StaticResource SurfaceAltBrush}"
+                                    BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    VerticalAlignment="Top">
+                              <controls:FigmaIcon Kind="Component"
+                                                  Width="14"
+                                                  Height="14"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  IconStroke="{StaticResource TextBrush}" />
+                            </Border>
+                            <StackPanel Grid.Column="1"
+                                        Spacing="2">
+                              <TextBlock Text="{x:Bind Name}"
+                                         Style="{StaticResource ShellTitleStyle}"
+                                         FontSize="12.5"
+                                         TextTrimming="CharacterEllipsis" />
+                              <TextBlock Text="{x:Bind SourceSubtitle}"
+                                         Style="{StaticResource SectionCaptionStyle}"
+                                         TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                          </Grid>
+                        </DataTemplate>
+                      </ComboBox.ItemTemplate>
+                    </ComboBox>
+                  </StackPanel>
+
+                  <Grid ColumnDefinitions="*,*"
+                        ColumnSpacing="10">
+                    <Button Style="{StaticResource GhostPillButtonStyle}"
+                            Content="Create component"
+                            IsEnabled="{Binding ViewModel.CanCreateComponent, ElementName=Root, Mode=OneWay}"
+                            Click="OnCreateComponentClick" />
+                    <Button Grid.Column="1"
+                            Style="{StaticResource GhostPillButtonStyle}"
+                            Content="Insert instance"
+                            IsEnabled="{Binding ViewModel.CanInsertComponentInstance, ElementName=Root, Mode=OneWay}"
+                            Click="OnInsertComponentClick" />
+                  </Grid>
+
+                  <Grid ColumnDefinitions="*,*"
+                        ColumnSpacing="10">
+                    <Button Style="{StaticResource GhostPillButtonStyle}"
+                            Content="Swap instance"
+                            IsEnabled="{Binding ViewModel.CanSwapComponentInstance, ElementName=Root, Mode=OneWay}"
+                            Click="OnSwapComponentClick" />
+                    <Button Grid.Column="1"
+                            Style="{StaticResource GhostPillButtonStyle}"
+                            Content="Detach instance"
+                            IsEnabled="{Binding ViewModel.CanDetachComponentInstance, ElementName=Root, Mode=OneWay}"
+                            Click="OnDetachComponentClick" />
+                  </Grid>
+                </StackPanel>
+              </controls:EditorPanelSection.SectionContent>
+            </controls:EditorPanelSection>
+
+            <controls:EditorPanelSection Title="Position"
+                                         SectionPadding="14,14,14,0">
+              <controls:EditorPanelSection.SectionContent>
+                <StackPanel Spacing="12">
+                  <StackPanel Spacing="8">
+                    <TextBlock Text="Alignment"
+                               Style="{StaticResource InspectorSubLabelStyle}" />
+                    <Grid ColumnDefinitions="*,*,Auto"
+                          ColumnSpacing="8">
+                      <Border Style="{StaticResource InspectorSegmentHostBorderStyle}">
+                        <Grid ColumnDefinitions="*,1,*,1,*">
+                          <Button Style="{StaticResource InspectorSegmentButtonStyle}"
+                                  Tag="Left"
+                                  IsEnabled="{Binding ViewModel.CanAlignSelection, ElementName=Root, Mode=OneWay}"
+                                  Click="OnAlignSelectionClick">
+                            <controls:FigmaIcon Kind="AlignLeft"
+                                                Width="16"
+                                                Height="16"
+                                                IconStroke="{StaticResource TextBrush}" />
+                          </Button>
+                          <Border Grid.Column="1"
+                                  Width="1"
+                                  Background="{StaticResource SidebarDividerBrush}" />
+                          <Button Grid.Column="2"
+                                  Style="{StaticResource InspectorSegmentButtonStyle}"
+                                  Tag="HCenter"
+                                  IsEnabled="{Binding ViewModel.CanAlignSelection, ElementName=Root, Mode=OneWay}"
+                                  Click="OnAlignSelectionClick">
+                            <controls:FigmaIcon Kind="AlignHorizontalCenter"
+                                                Width="16"
+                                                Height="16"
+                                                IconStroke="{StaticResource TextBrush}" />
+                          </Button>
+                          <Border Grid.Column="3"
+                                  Width="1"
+                                  Background="{StaticResource SidebarDividerBrush}" />
+                          <Button Grid.Column="4"
+                                  Style="{StaticResource InspectorSegmentButtonStyle}"
+                                  Tag="Right"
+                                  IsEnabled="{Binding ViewModel.CanAlignSelection, ElementName=Root, Mode=OneWay}"
+                                  Click="OnAlignSelectionClick">
+                            <controls:FigmaIcon Kind="AlignRight"
+                                                Width="16"
+                                                Height="16"
+                                                IconStroke="{StaticResource TextBrush}" />
+                          </Button>
+                        </Grid>
+                      </Border>
+
+                      <Border Grid.Column="1"
+                              Style="{StaticResource InspectorSegmentHostBorderStyle}">
+                        <Grid ColumnDefinitions="*,1,*,1,*">
+                          <Button Style="{StaticResource InspectorSegmentButtonStyle}"
+                                  Tag="Top"
+                                  IsEnabled="{Binding ViewModel.CanAlignSelection, ElementName=Root, Mode=OneWay}"
+                                  Click="OnAlignSelectionClick">
+                            <controls:FigmaIcon Kind="AlignTop"
+                                                Width="16"
+                                                Height="16"
+                                                IconStroke="{StaticResource TextBrush}" />
+                          </Button>
+                          <Border Grid.Column="1"
+                                  Width="1"
+                                  Background="{StaticResource SidebarDividerBrush}" />
+                          <Button Grid.Column="2"
+                                  Style="{StaticResource InspectorSegmentButtonStyle}"
+                                  Tag="VCenter"
+                                  IsEnabled="{Binding ViewModel.CanAlignSelection, ElementName=Root, Mode=OneWay}"
+                                  Click="OnAlignSelectionClick">
+                            <controls:FigmaIcon Kind="AlignVerticalCenter"
+                                                Width="16"
+                                                Height="16"
+                                                IconStroke="{StaticResource TextBrush}" />
+                          </Button>
+                          <Border Grid.Column="3"
+                                  Width="1"
+                                  Background="{StaticResource SidebarDividerBrush}" />
+                          <Button Grid.Column="4"
+                                  Style="{StaticResource InspectorSegmentButtonStyle}"
+                                  Tag="Bottom"
+                                  IsEnabled="{Binding ViewModel.CanAlignSelection, ElementName=Root, Mode=OneWay}"
+                                  Click="OnAlignSelectionClick">
+                            <controls:FigmaIcon Kind="AlignBottom"
+                                                Width="16"
+                                                Height="16"
+                                                IconStroke="{StaticResource TextBrush}" />
+                          </Button>
+                        </Grid>
+                      </Border>
+
+                      <Border Grid.Column="2"
+                              Style="{StaticResource InspectorSegmentHostBorderStyle}">
+                        <Grid ColumnDefinitions="*,1,*">
+                          <Button Style="{StaticResource InspectorSegmentButtonStyle}"
+                                  Tag="Horizontal"
+                                  IsEnabled="{Binding ViewModel.CanDistributeSelection, ElementName=Root, Mode=OneWay}"
+                                  Click="OnDistributeSelectionClick">
+                            <controls:FigmaIcon Kind="DistributeHorizontal"
+                                                Width="16"
+                                                Height="16"
+                                                IconStroke="{StaticResource TextBrush}" />
+                          </Button>
+                          <Border Grid.Column="1"
+                                  Width="1"
+                                  Background="{StaticResource SidebarDividerBrush}" />
+                          <Button Grid.Column="2"
+                                  Style="{StaticResource InspectorSegmentButtonStyle}"
+                                  Tag="Vertical"
+                                  IsEnabled="{Binding ViewModel.CanDistributeSelection, ElementName=Root, Mode=OneWay}"
+                                  Click="OnDistributeSelectionClick">
+                            <controls:FigmaIcon Kind="DistributeVertical"
+                                                Width="16"
+                                                Height="16"
+                                                IconStroke="{StaticResource TextBrush}" />
+                          </Button>
+                        </Grid>
+                      </Border>
+                    </Grid>
+                  </StackPanel>
+
+                  <StackPanel Spacing="8">
+                    <TextBlock Text="Position"
+                               Style="{StaticResource InspectorSubLabelStyle}" />
+                    <Grid ColumnDefinitions="*,*"
+                          ColumnSpacing="10">
+                      <controls:EditorLabeledField InlineLabel="X"
+                                                   Text="{Binding ViewModel.QuickX, ElementName=Root, Mode=OneWay}"
+                                                   FieldTag="X"
+                                                   Committed="OnQuickFieldCommitted"
+                                                   EditorKeyDown="OnQuickFieldKeyDown" />
+                      <controls:EditorLabeledField Grid.Column="1"
+                                                   InlineLabel="Y"
+                                                   Text="{Binding ViewModel.QuickY, ElementName=Root, Mode=OneWay}"
+                                                   FieldTag="Y"
+                                                   Committed="OnQuickFieldCommitted"
+                                                   EditorKeyDown="OnQuickFieldKeyDown" />
+                    </Grid>
+                  </StackPanel>
+
+                  <StackPanel Spacing="8">
+                    <TextBlock Text="Rotation"
+                               Style="{StaticResource InspectorSubLabelStyle}" />
+                    <Grid ColumnDefinitions="*,Auto"
+                          ColumnSpacing="10">
+                      <controls:EditorLabeledField InlineLabel="↺"
+                                                   Text="{Binding ViewModel.QuickRotation, ElementName=Root, Mode=OneWay}"
+                                                   FieldTag="Rotation"
+                                                   Committed="OnQuickFieldCommitted"
+                                                   EditorKeyDown="OnQuickFieldKeyDown" />
+                      <Border Grid.Column="1"
+                              Style="{StaticResource InspectorSegmentHostBorderStyle}">
+                        <Grid ColumnDefinitions="*,1,*,1,*">
+                          <Button Style="{StaticResource InspectorSegmentButtonStyle}"
+                                  Tag="RotateLeft90"
+                                  IsEnabled="{Binding ViewModel.CanRotateSelection, ElementName=Root, Mode=OneWay}"
+                                  Click="OnInspectorCommandClick">
+                            <controls:FigmaIcon Kind="Rotate"
+                                                Width="16"
+                                                Height="16"
+                                                IconStroke="{StaticResource TextBrush}" />
+                          </Button>
+                          <Border Grid.Column="1"
+                                  Width="1"
+                                  Background="{StaticResource SidebarDividerBrush}" />
+                          <Button Grid.Column="2"
+                                  Style="{StaticResource InspectorSegmentButtonStyle}"
+                                  Tag="FlipHorizontal"
+                                  IsEnabled="{Binding ViewModel.CanRotateSelection, ElementName=Root, Mode=OneWay}"
+                                  Click="OnInspectorCommandClick">
+                            <controls:FigmaIcon Kind="FlipHorizontal"
+                                                Width="16"
+                                                Height="16"
+                                                IconStroke="{StaticResource TextBrush}" />
+                          </Button>
+                          <Border Grid.Column="3"
+                                  Width="1"
+                                  Background="{StaticResource SidebarDividerBrush}" />
+                          <Button Grid.Column="4"
+                                  Style="{StaticResource InspectorSegmentButtonStyle}"
+                                  Tag="FlipVertical"
+                                  IsEnabled="{Binding ViewModel.CanRotateSelection, ElementName=Root, Mode=OneWay}"
+                                  Click="OnInspectorCommandClick">
+                            <controls:FigmaIcon Kind="FlipVertical"
+                                                Width="16"
+                                                Height="16"
+                                                IconStroke="{StaticResource TextBrush}" />
+                          </Button>
+                        </Grid>
+                      </Border>
+                    </Grid>
+                  </StackPanel>
+                </StackPanel>
+              </controls:EditorPanelSection.SectionContent>
+            </controls:EditorPanelSection>
+
+            <controls:EditorPanelSection Title="Layout"
+                                         SectionPadding="14,14,14,0">
+              <controls:EditorPanelSection.HeaderContent>
+                <StackPanel Orientation="Horizontal"
+                            Spacing="4">
+                  <Button Style="{StaticResource InspectorSectionActionButtonStyle}">
+                    <controls:FigmaIcon Kind="Expand"
+                                        Width="15"
+                                        Height="15"
+                                        IconStroke="{StaticResource TextBrush}" />
+                  </Button>
+                  <Button Style="{StaticResource InspectorSectionActionButtonStyle}">
+                    <controls:FigmaIcon Kind="AutoLayoutGrid"
+                                        Width="15"
+                                        Height="15"
+                                        IconStroke="{StaticResource TextBrush}" />
+                  </Button>
+                </StackPanel>
+              </controls:EditorPanelSection.HeaderContent>
+              <controls:EditorPanelSection.SectionContent>
+                <StackPanel Spacing="12">
+                  <controls:FigmaFrameEditor IsEditable="{Binding ViewModel.CanEditFrame, ElementName=Root, Mode=OneWay}"
+                                             CanUsePresets="{Binding ViewModel.CanUseFramePresets, ElementName=Root, Mode=OneWay}"
+                                             ShowHeader="False"
+                                             ContainerKind="{Binding ViewModel.FrameKind, ElementName=Root, Mode=TwoWay}"
+                                             SelectedPresetId="{Binding ViewModel.SelectedFramePresetId, ElementName=Root, Mode=TwoWay}"
+                                             SummaryText="{Binding ViewModel.FrameSummary, ElementName=Root, Mode=OneWay}"
+                                             Presets="{Binding ViewModel.FramePresets, ElementName=Root, Mode=OneWay}" />
+
+                  <controls:FigmaAutoLayoutEditor IsEditable="{Binding ViewModel.CanEditAutoLayout, ElementName=Root, Mode=OneWay}"
+                                                  ShowHeader="False"
+                                                  IsAutoLayoutEnabled="{Binding ViewModel.IsAutoLayoutEnabled, ElementName=Root, Mode=TwoWay}"
+                                                  Flow="{Binding ViewModel.AutoLayoutFlow, ElementName=Root, Mode=TwoWay}"
+                                                  WidthMode="{Binding ViewModel.AutoLayoutWidthMode, ElementName=Root, Mode=TwoWay}"
+                                                  HeightMode="{Binding ViewModel.AutoLayoutHeightMode, ElementName=Root, Mode=TwoWay}"
+                                                  HorizontalAlignmentMode="{Binding ViewModel.AutoLayoutHorizontalAlignment, ElementName=Root, Mode=TwoWay}"
+                                                  VerticalAlignmentMode="{Binding ViewModel.AutoLayoutVerticalAlignment, ElementName=Root, Mode=TwoWay}"
+                                                  WidthValue="{Binding ViewModel.AutoLayoutWidth, ElementName=Root, Mode=TwoWay}"
+                                                  HeightValue="{Binding ViewModel.AutoLayoutHeight, ElementName=Root, Mode=TwoWay}"
+                                                  GapValue="{Binding ViewModel.AutoLayoutGap, ElementName=Root, Mode=TwoWay}"
+                                                  PaddingHorizontalValue="{Binding ViewModel.AutoLayoutPaddingHorizontal, ElementName=Root, Mode=TwoWay}"
+                                                  PaddingVerticalValue="{Binding ViewModel.AutoLayoutPaddingVertical, ElementName=Root, Mode=TwoWay}"
+                                                  IsClipContent="{Binding ViewModel.IsAutoLayoutClipContent, ElementName=Root, Mode=TwoWay}" />
+                </StackPanel>
+              </controls:EditorPanelSection.SectionContent>
+            </controls:EditorPanelSection>
+
+            <controls:EditorPanelSection Title="Appearance"
+                                         SectionPadding="14,14,14,0">
+              <controls:EditorPanelSection.HeaderContent>
+                <StackPanel Orientation="Horizontal"
+                            Spacing="6">
+                  <controls:FigmaIcon Kind="Eye"
+                                      Width="16"
+                                      Height="16"
+                                      IconStroke="{StaticResource TextBrush}" />
+                  <controls:FigmaIcon Kind="Droplet"
+                                      Width="16"
+                                      Height="16"
+                                      IconStroke="{StaticResource TextBrush}" />
+                </StackPanel>
+              </controls:EditorPanelSection.HeaderContent>
+              <controls:EditorPanelSection.SectionContent>
+                <StackPanel Spacing="10">
+                  <StackPanel Spacing="8">
+                    <TextBlock Text="Blend mode"
+                               Style="{StaticResource InspectorSubLabelStyle}" />
+                    <ComboBox Style="{StaticResource PickerComboBoxStyle}"
+                              ItemsSource="{Binding ViewModel.BlendModes, ElementName=Root, Mode=OneWay}"
+                              SelectedValuePath="Id"
+                              SelectedValue="{Binding ViewModel.SelectedBlendModeId, ElementName=Root, Mode=TwoWay}"
+                              IsEnabled="{Binding ViewModel.CanEditBlendMode, ElementName=Root, Mode=OneWay}">
+                      <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="editorModels:EditorBlendModeItem">
+                          <TextBlock Text="{x:Bind Label}"
+                                     Style="{StaticResource ShellTitleStyle}"
+                                     FontSize="12.5" />
+                        </DataTemplate>
+                      </ComboBox.ItemTemplate>
+                    </ComboBox>
+                  </StackPanel>
+
+                  <Grid ColumnDefinitions="*,*"
+                        ColumnSpacing="10">
+                  <controls:EditorLabeledField Label="Opacity"
+                                               SuffixText="%"
+                                               Text="{Binding ViewModel.QuickOpacity, ElementName=Root, Mode=OneWay}"
+                                               FieldTag="Opacity"
+                                               Committed="OnQuickFieldCommitted"
+                                               EditorKeyDown="OnQuickFieldKeyDown" />
+                  <controls:EditorLabeledField Grid.Column="1"
+                                               Label="Corner radius"
+                                               InlineLabel=""
+                                               Text="{Binding ViewModel.QuickCornerRadius, ElementName=Root, Mode=OneWay}"
+                                               FieldTag="CornerRadius"
+                                               Committed="OnQuickFieldCommitted"
+                                               EditorKeyDown="OnQuickFieldKeyDown" />
+                  </Grid>
+                </StackPanel>
+              </controls:EditorPanelSection.SectionContent>
+            </controls:EditorPanelSection>
+
+            <controls:EditorPanelSection Title="Fill"
+                                         SectionPadding="14,14,14,0">
+              <controls:EditorPanelSection.HeaderContent>
+                <StackPanel Orientation="Horizontal"
+                            Spacing="6">
+                  <controls:FigmaIcon Kind="Group"
+                                      Width="16"
+                                      Height="16"
+                                      IconStroke="{StaticResource TextBrush}" />
+                  <controls:FigmaIcon Kind="Add"
+                                      Width="16"
+                                      Height="16"
+                                      IconStroke="{StaticResource TextBrush}" />
+                </StackPanel>
+              </controls:EditorPanelSection.HeaderContent>
+              <controls:EditorPanelSection.SectionContent>
+                <controls:FigmaColorFieldEditor SelectedColor="{Binding ViewModel.FillColor, ElementName=Root, Mode=TwoWay}"
+                                               IsColorEnabled="{Binding ViewModel.IsFillEnabled, ElementName=Root, Mode=TwoWay}"
+                                               IsColorEditable="{Binding ViewModel.IsFillColorEditable, ElementName=Root, Mode=OneWay}"
+                                               SummaryText="{Binding ViewModel.QuickFill, ElementName=Root, Mode=OneWay}"
+                                               Swatches="{Binding ViewModel.DocumentColorSwatches, ElementName=Root, Mode=OneWay}"
+                                               LibraryStyles="{Binding ViewModel.LibraryPaintStyles, ElementName=Root, Mode=OneWay}"
+                                               PaintTarget="Fill"
+                                               PaintStyleRequested="OnPaintStyleRequested"
+                                               PaintStyleCreateRequested="OnPaintStyleCreateRequested" />
+              </controls:EditorPanelSection.SectionContent>
+            </controls:EditorPanelSection>
+
+            <controls:EditorPanelSection Title="Stroke"
+                                         SectionPadding="14,14,14,0">
+              <controls:EditorPanelSection.HeaderContent>
+                <Button Style="{StaticResource InspectorSectionActionButtonStyle}"
+                        Tag="Stroke"
+                        Click="OnInspectorSectionToggleClick">
+                  <controls:FigmaIcon x:Name="StrokeToggleIcon"
+                                      Kind="Add"
+                                      Width="14"
+                                      Height="14"
+                                      IconStroke="{StaticResource TextBrush}" />
+                </Button>
+              </controls:EditorPanelSection.HeaderContent>
+              <controls:EditorPanelSection.SectionContent>
+                <StackPanel x:Name="StrokeSectionContent"
+                            Visibility="Collapsed"
+                            Spacing="8">
+                  <controls:FigmaColorFieldEditor SelectedColor="{Binding ViewModel.StrokeColor, ElementName=Root, Mode=TwoWay}"
+                                                 IsColorEnabled="{Binding ViewModel.IsStrokeEnabled, ElementName=Root, Mode=TwoWay}"
+                                                 IsColorEditable="{Binding ViewModel.IsStrokeColorEditable, ElementName=Root, Mode=OneWay}"
+                                                 SummaryText="{Binding ViewModel.QuickStroke, ElementName=Root, Mode=OneWay}"
+                                                 Swatches="{Binding ViewModel.DocumentColorSwatches, ElementName=Root, Mode=OneWay}"
+                                                 LibraryStyles="{Binding ViewModel.LibraryPaintStyles, ElementName=Root, Mode=OneWay}"
+                                                 PaintTarget="Stroke"
+                                                 CurrentStrokeWidthText="{Binding ViewModel.QuickStrokeWidth, ElementName=Root, Mode=OneWay}"
+                                                 PaintStyleRequested="OnPaintStyleRequested"
+                                                 PaintStyleCreateRequested="OnPaintStyleCreateRequested" />
+
+                  <controls:EditorLabeledField Label="Stroke width"
+                                               InlineLabel=""
+                                               Text="{Binding ViewModel.QuickStrokeWidth, ElementName=Root, Mode=OneWay}"
+                                               FieldTag="StrokeWidth"
+                                               Committed="OnQuickFieldCommitted"
+                                               EditorKeyDown="OnQuickFieldKeyDown" />
+                </StackPanel>
+              </controls:EditorPanelSection.SectionContent>
+            </controls:EditorPanelSection>
+
+            <controls:EditorPanelSection Title="Effects"
+                                         SectionPadding="14,14,14,0">
+              <controls:EditorPanelSection.HeaderContent>
+                <StackPanel Orientation="Horizontal"
+                            Spacing="6">
+                  <Button Style="{StaticResource InspectorSectionActionButtonStyle}"
+                          IsEnabled="{Binding ViewModel.CanEditEffects, ElementName=Root, Mode=OneWay}">
+                    <Button.Flyout>
+                      <MenuFlyout>
+                        <MenuFlyoutItem Text="Drop shadow" Tag="DropShadow" Click="OnAddEffectMenuItemClick" />
+                        <MenuFlyoutItem Text="Inner shadow" Tag="InnerShadow" Click="OnAddEffectMenuItemClick" />
+                        <MenuFlyoutItem Text="Layer blur" Tag="LayerBlur" Click="OnAddEffectMenuItemClick" />
+                        <MenuFlyoutItem Text="Background blur" Tag="BackgroundBlur" Click="OnAddEffectMenuItemClick" />
+                        <MenuFlyoutItem Text="Noise" Tag="Noise" Click="OnAddEffectMenuItemClick" />
+                        <MenuFlyoutItem Text="Texture" Tag="Texture" Click="OnAddEffectMenuItemClick" />
+                        <MenuFlyoutItem Text="Glass" Tag="Glass" Click="OnAddEffectMenuItemClick" />
+                      </MenuFlyout>
+                    </Button.Flyout>
+                    <controls:FigmaIcon Kind="Add"
+                                        Width="14"
+                                        Height="14"
+                                        IconStroke="{StaticResource TextBrush}" />
+                  </Button>
+                  <Button Style="{StaticResource InspectorSectionActionButtonStyle}"
+                          Tag="Effects"
+                          Click="OnInspectorSectionToggleClick">
+                    <controls:FigmaIcon x:Name="EffectsToggleIcon"
+                                        Kind="Add"
+                                        Width="14"
+                                        Height="14"
+                                        IconStroke="{StaticResource TextBrush}" />
+                  </Button>
+                </StackPanel>
+              </controls:EditorPanelSection.HeaderContent>
+              <controls:EditorPanelSection.SectionContent>
+                <StackPanel x:Name="EffectsSectionContent"
+                            Visibility="Collapsed"
+                            Spacing="8">
+                  <controls:FigmaEffectsEditor ItemsSource="{Binding ViewModel.EffectItems, ElementName=Root, Mode=OneWay}"
+                                               ShowHeader="False"
+                                               IsEditable="{Binding ViewModel.CanEditEffects, ElementName=Root, Mode=OneWay}"
+                                               Swatches="{Binding ViewModel.DocumentColorSwatches, ElementName=Root, Mode=OneWay}" />
+                </StackPanel>
+              </controls:EditorPanelSection.SectionContent>
+            </controls:EditorPanelSection>
+
+            <controls:EditorPanelSection Title="Selection colors"
+                                         SectionPadding="14,14,14,0">
+              <controls:EditorPanelSection.HeaderContent>
+                <StackPanel Orientation="Horizontal"
+                            Spacing="6"
+                            VerticalAlignment="Center">
+                  <ItemsControl ItemsSource="{Binding ViewModel.SelectionColorSwatches, ElementName=Root, Mode=OneWay}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="4" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="editorModels:ColorSwatchItem">
+                        <Border Style="{StaticResource InspectorSwatchChipBorderStyle}"
+                                Background="{Binding Color, Converter={StaticResource ColorToBrushConverter}}" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <TextBlock Text="{Binding ViewModel.SelectionColorOverflowLabel, ElementName=Root, Mode=OneWay}"
+                             Style="{StaticResource SectionCaptionStyle}"
+                             FontWeight="SemiBold"
+                             VerticalAlignment="Center" />
+                  <Button Style="{StaticResource InspectorSectionActionButtonStyle}"
+                          Tag="SelectionColors"
+                          Click="OnInspectorSectionToggleClick">
+                    <TextBlock x:Name="SelectionColorsToggleGlyph"
+                               Text="›"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextBrush}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center" />
+                  </Button>
+                </StackPanel>
+              </controls:EditorPanelSection.HeaderContent>
+              <controls:EditorPanelSection.SectionContent>
+                <StackPanel x:Name="SelectionColorsSectionContent"
+                            Visibility="Collapsed"
+                            Spacing="8">
+                  <ItemsControl ItemsSource="{Binding ViewModel.SelectionColorItems, ElementName=Root, Mode=OneWay}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="editorModels:EditorSelectionColorItem">
+                        <Border Margin="0,0,0,8">
+                          <controls:FigmaColorFieldEditor SelectedColor="{x:Bind Color, Mode=TwoWay}"
+                                                         IsColorEnabled="True"
+                                                         IsColorEditable="True"
+                                                         SummaryText="{x:Bind SummaryText, Mode=OneWay}"
+                                                         Swatches="{Binding ViewModel.DocumentColorSwatches, ElementName=Root, Mode=OneWay}"
+                                                         LibraryStyles="{Binding ViewModel.LibraryPaintStyles, ElementName=Root, Mode=OneWay}"
+                                                         PaintTarget="{x:Bind Target, Mode=OneWay}"
+                                                         CurrentStrokeWidthText="{x:Bind CurrentStrokeWidthText, Mode=OneWay}"
+                                                         ShowActions="False"
+                                                         PaintStyleRequested="OnPaintStyleRequested"
+                                                         PaintStyleCreateRequested="OnPaintStyleCreateRequested" />
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </controls:EditorPanelSection.SectionContent>
+            </controls:EditorPanelSection>
+
+            <controls:EditorPanelSection Title="Layout guide"
+                                         SectionPadding="14,14,14,0">
+              <controls:EditorPanelSection.HeaderContent>
+                <Button Style="{StaticResource InspectorSectionActionButtonStyle}"
+                        Tag="LayoutGuide"
+                        Click="OnInspectorSectionToggleClick">
+                  <controls:FigmaIcon x:Name="LayoutGuideToggleIcon"
+                                      Kind="Add"
+                                      Width="14"
+                                      Height="14"
+                                      IconStroke="{StaticResource TextBrush}" />
+                </Button>
+              </controls:EditorPanelSection.HeaderContent>
+              <controls:EditorPanelSection.SectionContent>
+                <StackPanel x:Name="LayoutGuideSectionContent"
+                            Visibility="Collapsed"
+                            Spacing="8">
+                  <Border Style="{StaticResource InsetFrameBorderStyle}"
+                          Padding="12">
+                    <TextBlock Text="Layout guides are not wired into the Uno editor canvas yet. Use the ruler and grid controls while guide authoring is still being built out."
+                               Style="{StaticResource SectionCaptionStyle}"
+                               TextWrapping="WrapWholeWords" />
+                  </Border>
+                </StackPanel>
+              </controls:EditorPanelSection.SectionContent>
+            </controls:EditorPanelSection>
+
+            <controls:EditorPanelSection Title="Styles"
+                                         SectionPadding="14,14,14,0">
+              <controls:EditorPanelSection.SectionContent>
+                <controls:SvgEditorStylesPanel TextStyles="{Binding ViewModel.TextStyles, ElementName=Root, Mode=OneWay}"
+                                               ColorStyles="{Binding ViewModel.ColorStyles, ElementName=Root, Mode=OneWay}"
+                                               EffectStyles="{Binding ViewModel.EffectStyles, ElementName=Root, Mode=OneWay}"
+                                               LayoutGuideStyles="{Binding ViewModel.LayoutGuideStyles, ElementName=Root, Mode=OneWay}"
+                                               StyleRequested="OnStyleRequested" />
+              </controls:EditorPanelSection.SectionContent>
+            </controls:EditorPanelSection>
+
+            <controls:EditorPanelSection Title="Export"
+                                         SectionPadding="14,14,14,0">
+              <controls:EditorPanelSection.HeaderContent>
+                <Button Style="{StaticResource InspectorSectionActionButtonStyle}"
+                        Tag="Export"
+                        Click="OnInspectorSectionToggleClick">
+                  <controls:FigmaIcon x:Name="ExportToggleIcon"
+                                      Kind="Add"
+                                      Width="14"
+                                      Height="14"
+                                      IconStroke="{StaticResource TextBrush}" />
+                </Button>
+              </controls:EditorPanelSection.HeaderContent>
+              <controls:EditorPanelSection.SectionContent>
+                <StackPanel x:Name="ExportSectionContent"
+                            Visibility="Collapsed"
+                            Spacing="8">
+                  <Grid ColumnDefinitions="*,*"
+                        ColumnSpacing="10">
+                    <Button Style="{StaticResource GhostPillButtonStyle}"
+                            Content="Copy selection SVG"
+                            Tag="CopySelectionSvg"
+                            Click="OnInspectorCommandClick" />
+                    <Button Grid.Column="1"
+                            Style="{StaticResource GhostPillButtonStyle}"
+                            Content="Copy document SVG"
+                            Tag="CopyDocumentSvg"
+                            Click="OnInspectorCommandClick" />
+                  </Grid>
+                </StackPanel>
+              </controls:EditorPanelSection.SectionContent>
+            </controls:EditorPanelSection>
+
+            <controls:EditorPanelSection Title="SVG attributes"
+                                         SectionPadding="14,14,14,0">
+              <controls:EditorPanelSection.HeaderContent>
+                <Button Style="{StaticResource InspectorSectionActionButtonStyle}"
+                        Tag="Advanced"
+                        Click="OnInspectorSectionToggleClick">
+                  <controls:FigmaIcon x:Name="AdvancedToggleIcon"
+                                      Kind="Add"
+                                      Width="14"
+                                      Height="14"
+                                      IconStroke="{StaticResource TextBrush}" />
+                </Button>
+              </controls:EditorPanelSection.HeaderContent>
+              <controls:EditorPanelSection.SectionContent>
+                <StackPanel x:Name="AdvancedSectionContent"
+                            Visibility="Collapsed"
+                            Spacing="12">
+                  <controls:EditorSearchField x:Name="PropertyFilterTextBox"
+                                              PlaceholderText="Filter properties"
+                                              TextChanged="OnPropertyFilterTextChanged" />
+                  <ItemsControl ItemsSource="{Binding ViewModel.FilteredProperties, ElementName=Root, Mode=OneWay}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="svgModels:PropertyEntry">
+                        <Border Margin="0,0,0,8"
+                                Style="{StaticResource InsetFrameBorderStyle}"
+                                Padding="10">
+                          <Grid ColumnDefinitions="*,116"
+                                ColumnSpacing="12">
+                            <StackPanel Spacing="2">
+                              <TextBlock Text="{x:Bind Name}"
+                                         Style="{StaticResource ShellTitleStyle}"
+                                         FontSize="12.5" />
+                              <TextBlock Text="{x:Bind Value, Mode=OneWay}"
+                                         Style="{StaticResource SectionCaptionStyle}"
+                                         TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                            <TextBox Grid.Column="1"
+                                     Style="{StaticResource QuickFieldTextBoxStyle}"
+                                     Text="{x:Bind Value, Mode=TwoWay}"
+                                     LostFocus="OnPropertyValueCommitted"
+                                     KeyDown="OnPropertyValueKeyDown" />
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </controls:EditorPanelSection.SectionContent>
+            </controls:EditorPanelSection>
+          </StackPanel>
+
+          <StackPanel Visibility="{Binding ViewModel.PrototypeInspectorVisibility, ElementName=Root, Mode=OneWay}"
+                      Spacing="0">
+            <controls:EditorPanelSection Title="Prototype"
+                                         Meta="Interaction metadata can layer over the live SVG AST without breaking design editing."
+                                         ShowDivider="False"
+                                         SectionPadding="14,14,14,0">
+              <controls:EditorPanelSection.SectionContent>
+                <Border Style="{StaticResource InsetFrameBorderStyle}"
+                        Padding="12">
+                  <TextBlock Text="This lane is reserved for interaction metadata. The editor keeps the SVG AST live, so design changes remain the source of truth while prototype affordances can be layered on later."
+                             Style="{StaticResource ShellBodyStyle}"
+                             TextWrapping="WrapWholeWords"
+                             FontSize="12" />
+                </Border>
+              </controls:EditorPanelSection.SectionContent>
+            </controls:EditorPanelSection>
+          </StackPanel>
+
+          <StackPanel Visibility="{Binding ViewModel.DevInspectorVisibility, ElementName=Root, Mode=OneWay}"
+                      Spacing="0">
+            <controls:SvgEditorDevPanel ViewModel="{Binding ViewModel, ElementName=Root, Mode=OneWay}"
+                                        SnippetRequested="OnDevSnippetRequested"
+                                        CopyActiveSnippetRequested="OnCopyActiveDevSnippetRequested"
+                                        CommandRequested="OnDevCommandRequested" />
+          </StackPanel>
+
+          <StackPanel Visibility="{Binding ViewModel.CommentsInspectorVisibility, ElementName=Root, Mode=OneWay}"
+                      Spacing="0">
+            <controls:EditorPanelSection Title="Threads"
+                                         Meta="Pinned page discussions stay anchored to the live SVG canvas."
+                                         ShowDivider="False"
+                                         SectionPadding="14,14,14,0">
+              <controls:EditorPanelSection.SectionContent>
+                <controls:SvgEditorCommentsPanel ItemsSource="{Binding ViewModel.CommentThreads, ElementName=Root, Mode=OneWay}"
+                                                 SelectedThread="{Binding ViewModel.SelectedCommentThread, ElementName=Root, Mode=OneWay}"
+                                                 SummaryText="{Binding ViewModel.CommentsSummary, ElementName=Root, Mode=OneWay}"
+                                                 ThreadRequested="OnCommentThreadRequested"
+                                                 ReplyRequested="OnCommentReplyRequested"
+                                                 ResolveRequested="OnCommentResolveRequested"
+                                                 DeleteRequested="OnCommentDeleteRequested" />
+              </controls:EditorPanelSection.SectionContent>
+            </controls:EditorPanelSection>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+  </Border>
+</UserControl>

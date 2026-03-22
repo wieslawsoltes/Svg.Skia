@@ -1,0 +1,29 @@
+<Project Sdk="Uno.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-android;net10.0-ios;net10.0-browserwasm;net10.0-desktop</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+    <ApplicationTitle>UnoSvgEditorSample</ApplicationTitle>
+    <ApplicationId>com.wieslawsoltes.unosvgeditorsample</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationPublisher>Svg.Skia</ApplicationPublisher>
+    <Description>Figma-inspired Uno SVG editor sample built on Svg.Controls.Skia.Uno.</Description>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UnoFeatures>
+      SkiaRenderer;
+    </UnoFeatures>
+    <IsPackable>False</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Svg.Controls.Skia.Uno\Svg.Controls.Skia.Uno.csproj" />
+    <ProjectReference Include="..\..\src\Svg.Editor.Core\Svg.Editor.Core.csproj" />
+    <ProjectReference Include="..\..\src\Svg.Editor.Svg\Svg.Editor.Svg.csproj" />
+    <ProjectReference Include="..\..\src\Svg.Editor.Skia\Svg.Editor.Skia.csproj" />
+    <ProjectReference Include="..\..\src\Svg.Editor.Skia.Uno\Svg.Editor.Skia.Uno.csproj" />
+  </ItemGroup>
+
+</Project>

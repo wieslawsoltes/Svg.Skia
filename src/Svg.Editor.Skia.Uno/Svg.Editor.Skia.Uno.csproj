@@ -1,0 +1,37 @@
+<Project Sdk="Uno.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <UnoSingleProject>true</UnoSingleProject>
+    <GenerateLibraryLayout>true</GenerateLibraryLayout>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoWarn>CS1591</NoWarn>
+    <IsPackable>true</IsPackable>
+    <RootNamespace>Svg.Editor.Skia.Uno</RootNamespace>
+    <PackageId>Svg.Editor.Skia.Uno</PackageId>
+    <Description>Reusable Uno Platform SVG editor shell, panels, and overlay controls backed by Svg.Skia editing services.</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageTags>svg;editor;uno;skia;vector;design;controls;xaml</PackageTags>
+    <UnoFeatures>
+      SkiaRenderer;
+    </UnoFeatures>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VersionPrefix>$(UnoVersionPrefix)</VersionPrefix>
+    <VersionSuffix>$(UnoVersionSuffix)</VersionSuffix>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\SourceLink.props" />
+  <Import Project="..\..\build\SkiaSharp.v3.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\Svg.Controls.Skia.Uno\Svg.Controls.Skia.Uno.csproj" />
+    <ProjectReference Include="..\Svg.Editor.Core\Svg.Editor.Core.csproj" />
+    <ProjectReference Include="..\Svg.Editor.Svg\Svg.Editor.Svg.csproj" />
+    <ProjectReference Include="..\Svg.Editor.Skia\Svg.Editor.Skia.csproj" />
+  </ItemGroup>
+
+</Project>

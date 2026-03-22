@@ -1,0 +1,179 @@
+<UserControl
+    x:Class="Svg.Editor.Skia.Uno.Controls.SvgEditorDevPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Svg.Editor.Skia.Uno.Controls"
+    xmlns:models="using:Svg.Editor.Skia.Uno.Models"
+    x:Name="Root">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///Svg.Editor.Skia.Uno/Themes/EditorThemeResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+
+      <DataTemplate x:Key="DevSpecTemplate"
+                    x:DataType="models:EditorDevSpecItem">
+        <Border Style="{StaticResource InsetFrameBorderStyle}"
+                Padding="10">
+          <StackPanel Spacing="4">
+            <TextBlock Text="{x:Bind Label}"
+                       Style="{StaticResource FieldLabelStyle}" />
+            <TextBlock Text="{x:Bind Value}"
+                       Style="{StaticResource DevSpecValueStyle}"
+                       TextWrapping="WrapWholeWords" />
+            <TextBlock Text="{x:Bind Description}"
+                       Visibility="{x:Bind DescriptionVisibility}"
+                       Style="{StaticResource SectionCaptionStyle}"
+                       TextWrapping="WrapWholeWords" />
+          </StackPanel>
+        </Border>
+      </DataTemplate>
+
+      <DataTemplate x:Key="DevSnippetTabTemplate"
+                    x:DataType="models:EditorDevCodeSnippet">
+        <Border Background="{x:Bind IsSelected, Converter={StaticResource BooleanToSidebarTabBrushConverter}}"
+                CornerRadius="10"
+                Margin="0,0,8,0">
+          <Button Style="{StaticResource DevCodeTabButtonStyle}"
+                  Tag="{x:Bind Id}"
+                  Click="OnSnippetTabClick">
+            <StackPanel Spacing="2">
+              <TextBlock Text="{x:Bind Title}"
+                         Style="{StaticResource ShellTitleStyle}"
+                         FontSize="12.5" />
+              <TextBlock Text="{x:Bind Summary}"
+                         Visibility="{x:Bind SummaryVisibility}"
+                         Style="{StaticResource SectionCaptionStyle}"
+                         FontSize="10.5"
+                         TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+          </Button>
+        </Border>
+      </DataTemplate>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <StackPanel Spacing="0">
+    <controls:EditorPanelSection Title="Inspect"
+                                 Meta="Selection specs and spacing derived from the live SVG AST."
+                                 ShowDivider="False"
+                                 SectionPadding="0,14,0,0">
+      <controls:EditorPanelSection.SectionContent>
+        <StackPanel Spacing="12">
+          <Border Style="{StaticResource InsetFrameBorderStyle}"
+                  Padding="10">
+            <StackPanel Spacing="4">
+              <TextBlock Text="Selection path"
+                         Style="{StaticResource FieldLabelStyle}" />
+              <TextBlock Text="{Binding ViewModel.DevSelectionPath, ElementName=Root, Mode=OneWay}"
+                         Style="{StaticResource ShellTitleStyle}"
+                         FontSize="12.5"
+                         TextWrapping="WrapWholeWords" />
+              <TextBlock Text="{Binding ViewModel.DevMeasurementSummary, ElementName=Root, Mode=OneWay}"
+                         Style="{StaticResource SectionCaptionStyle}"
+                         TextWrapping="WrapWholeWords" />
+            </StackPanel>
+          </Border>
+
+          <ItemsControl ItemsSource="{Binding ViewModel.DevSpecs, ElementName=Root, Mode=OneWay}"
+                        ItemTemplate="{StaticResource DevSpecTemplate}" />
+        </StackPanel>
+      </controls:EditorPanelSection.SectionContent>
+    </controls:EditorPanelSection>
+
+    <controls:EditorPanelSection Title="Code"
+                                 Meta="Generated snippets for handoff, implementation, and export.">
+      <controls:EditorPanelSection.SectionContent>
+        <StackPanel Spacing="12">
+          <ScrollViewer HorizontalScrollMode="Enabled"
+                        HorizontalScrollBarVisibility="Hidden"
+                        VerticalScrollMode="Disabled"
+                        VerticalScrollBarVisibility="Hidden"
+                        ZoomMode="Disabled">
+            <ItemsControl ItemsSource="{Binding ViewModel.DevCodeSnippets, ElementName=Root, Mode=OneWay}"
+                          ItemTemplate="{StaticResource DevSnippetTabTemplate}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+            </ItemsControl>
+          </ScrollViewer>
+
+          <Border Style="{StaticResource DevCodePreviewBorderStyle}">
+            <Grid RowDefinitions="Auto,*"
+                  RowSpacing="10">
+              <Grid ColumnDefinitions="*,Auto"
+                    ColumnSpacing="10">
+                <StackPanel Spacing="3">
+                  <TextBlock Text="{Binding ViewModel.SelectedDevCodeSnippetTitle, ElementName=Root, Mode=OneWay}"
+                             Style="{StaticResource ShellTitleStyle}"
+                             FontSize="14"
+                             Foreground="{StaticResource DarkSurfaceTextBrush}" />
+                  <TextBlock Text="{Binding ViewModel.SelectedDevCodeSnippetLanguage, ElementName=Root, Mode=OneWay}"
+                             Style="{StaticResource SectionCaptionStyle}"
+                             Foreground="{StaticResource DarkSurfaceMutedTextBrush}" />
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        Style="{StaticResource GhostPillButtonStyle}"
+                        Click="OnCopyActiveSnippetClick">
+                  <StackPanel Orientation="Horizontal"
+                              Spacing="6">
+                    <controls:FigmaIcon Kind="Code"
+                                        Width="14"
+                                        Height="14"
+                                        IconStroke="{StaticResource TextBrush}" />
+                    <TextBlock Text="Copy active"
+                               Style="{StaticResource ShellTitleStyle}"
+                               FontSize="12" />
+                  </StackPanel>
+                </Button>
+              </Grid>
+
+              <TextBox Grid.Row="1"
+                       Style="{StaticResource DevCodeTextBoxStyle}"
+                       Text="{Binding ViewModel.SelectedDevCodeSnippetContent, ElementName=Root, Mode=OneWay}"
+                       AcceptsReturn="True"
+                       IsReadOnly="True"
+                       TextWrapping="NoWrap"
+                       ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                       ScrollViewer.VerticalScrollBarVisibility="Auto" />
+            </Grid>
+          </Border>
+        </StackPanel>
+      </controls:EditorPanelSection.SectionContent>
+    </controls:EditorPanelSection>
+
+    <controls:EditorPanelSection Title="Export"
+                                 Meta="Copy the active handoff snippet or raw SVG markup.">
+      <controls:EditorPanelSection.SectionContent>
+        <Grid ColumnDefinitions="*,*"
+              ColumnSpacing="10"
+              RowDefinitions="Auto,Auto"
+              RowSpacing="10">
+          <Button Style="{StaticResource GhostPillButtonStyle}"
+                  Click="OnCopyActiveSnippetClick"
+                  Content="Copy active code" />
+          <Button Grid.Column="1"
+                  Style="{StaticResource GhostPillButtonStyle}"
+                  Tag="CopySelectionSvg"
+                  Click="OnCommandClick"
+                  Content="Copy selection SVG" />
+          <Button Grid.Row="1"
+                  Style="{StaticResource GhostPillButtonStyle}"
+                  Tag="CopyDocumentSvg"
+                  Click="OnCommandClick"
+                  Content="Copy document SVG" />
+          <Button Grid.Row="1"
+                  Grid.Column="1"
+                  Style="{StaticResource GhostPillButtonStyle}"
+                  Tag="OpenActionsPalette"
+                  Click="OnCommandClick"
+                  Content="Open actions" />
+        </Grid>
+      </controls:EditorPanelSection.SectionContent>
+    </controls:EditorPanelSection>
+  </StackPanel>
+</UserControl>

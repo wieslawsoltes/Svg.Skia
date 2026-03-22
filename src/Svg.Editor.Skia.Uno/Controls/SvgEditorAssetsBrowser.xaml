@@ -1,0 +1,275 @@
+<UserControl
+    x:Class="Svg.Editor.Skia.Uno.Controls.SvgEditorAssetsBrowser"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Svg.Editor.Skia.Uno.Controls"
+    xmlns:models="using:Svg.Editor.Skia.Uno.Models"
+    x:Name="Root">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///Svg.Editor.Skia.Uno/Themes/EditorThemeResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+
+      <Style x:Key="AssetGridViewItemStyle"
+             TargetType="GridViewItem">
+        <Setter Property="Padding"
+                Value="0" />
+        <Setter Property="Margin"
+                Value="0,0,12,16" />
+        <Setter Property="HorizontalContentAlignment"
+                Value="Stretch" />
+      </Style>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <Grid RowDefinitions="Auto,*">
+    <Grid Padding="0,2,0,0"
+          RowDefinitions="Auto,Auto"
+          RowSpacing="14">
+      <controls:EditorSearchField x:Name="SearchTextBox"
+                                  PlaceholderText="Search all libraries"
+                                  TextChanged="OnSearchTextChanged">
+        <controls:EditorSearchField.TrailingContent>
+          <Button Style="{StaticResource SubtleIconButtonStyle}"
+                  Click="OnFilterClick">
+            <controls:FigmaIcon Kind="Adjust"
+                                Width="18"
+                                Height="18"
+                                IconStroke="{StaticResource TextBrush}" />
+          </Button>
+        </controls:EditorSearchField.TrailingContent>
+      </controls:EditorSearchField>
+
+      <Grid x:Name="OverviewHeader"
+            ColumnDefinitions="*,Auto"
+            VerticalAlignment="Center">
+        <StackPanel Spacing="2">
+          <TextBlock Text="All libraries"
+                     Style="{StaticResource SectionHeadingStyle}" />
+          <TextBlock x:Name="OverviewSubtitleText"
+                     Style="{StaticResource SectionCaptionStyle}" />
+        </StackPanel>
+        <Button Grid.Column="1"
+                Style="{StaticResource SubtleIconButtonStyle}"
+                Click="OnManageLibrariesClick">
+          <controls:FigmaIcon Kind="Library"
+                              Width="18"
+                              Height="18"
+                              IconStroke="{StaticResource TextBrush}" />
+        </Button>
+      </Grid>
+
+      <Grid x:Name="DetailHeader"
+            ColumnDefinitions="Auto,*"
+            ColumnSpacing="8"
+            Visibility="Collapsed">
+        <Button Style="{StaticResource ChromeButtonStyle}"
+                Padding="4"
+                Click="OnBackClick">
+          <controls:FigmaIcon Kind="Back"
+                              Width="16"
+                              Height="16"
+                              IconStroke="{StaticResource TextBrush}" />
+        </Button>
+        <StackPanel Grid.Column="1"
+                    Spacing="2">
+          <TextBlock x:Name="BreadcrumbText"
+                     Style="{StaticResource SectionHeadingStyle}" />
+          <TextBlock x:Name="DetailSubtitleText"
+                     Style="{StaticResource SectionCaptionStyle}"
+                     TextWrapping="WrapWholeWords" />
+        </StackPanel>
+      </Grid>
+
+      <ScrollViewer Grid.Row="1"
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="14">
+          <StackPanel x:Name="OverviewPanel"
+                      Spacing="18">
+            <ItemsControl x:Name="LibraryCardsList">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="models:EditorLibraryItem">
+                  <Border Margin="0,0,0,2">
+                    <Button Background="Transparent"
+                            BorderBrush="Transparent"
+                            Padding="0"
+                            HorizontalContentAlignment="Stretch"
+                            Click="OnLibraryCardClick">
+                      <StackPanel Spacing="10"
+                                  HorizontalAlignment="Stretch">
+                        <Border Height="170"
+                                CornerRadius="16"
+                                Background="{x:Bind PreviewSecondaryColor, Converter={StaticResource ColorToBrushConverter}}">
+                          <Grid Padding="16">
+                            <Border Width="122"
+                                    Height="72"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    CornerRadius="16"
+                                    Background="{x:Bind PreviewPrimaryColor, Converter={StaticResource ColorToBrushConverter}}" />
+                          <Border Width="132"
+                                    Height="56"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom"
+                                    CornerRadius="18"
+                                    Background="{x:Bind PreviewAccentColor, Converter={StaticResource ColorToBrushConverter}}" />
+                            <TextBlock Text="{x:Bind PreviewLabel}"
+                                       Margin="16,16,16,0"
+                                       Style="{StaticResource ShellTitleStyle}"
+                                       FontSize="22"
+                                       Foreground="White"
+                                       TextWrapping="WrapWholeWords" />
+                            <Border HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Background="{StaticResource SurfaceBrush}"
+                                    BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    Padding="8,3"
+                                    Visibility="{x:Bind UpdateVisibility}">
+                              <TextBlock Text="Update"
+                                         Style="{StaticResource ShellTitleStyle}"
+                                         FontSize="10.5"
+                                         Foreground="{StaticResource AccentBrush}" />
+                            </Border>
+                          </Grid>
+                        </Border>
+
+                        <StackPanel Spacing="2">
+                          <StackPanel Orientation="Horizontal"
+                                      Spacing="6">
+                            <TextBlock Text="{x:Bind Name}"
+                                       Style="{StaticResource ShellTitleStyle}"
+                                       FontSize="14" />
+                            <controls:FigmaIcon Kind="{x:Bind CategoryIconKind}"
+                                                Width="14"
+                                                Height="14"
+                                                VerticalAlignment="Center"
+                                                IconStroke="{StaticResource SidebarMetaBrush}" />
+                          </StackPanel>
+                          <TextBlock Text="{x:Bind AssetsCountLabel}"
+                                     Style="{StaticResource ShellBodyStyle}"
+                                     FontSize="11.5" />
+                        </StackPanel>
+                      </StackPanel>
+                    </Button>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Button HorizontalAlignment="Stretch"
+                    Style="{StaticResource GhostPillButtonStyle}"
+                    Click="OnManageLibrariesClick">
+              <TextBlock Text="Add more libraries"
+                         Style="{StaticResource ShellTitleStyle}"
+                         FontSize="12.5" />
+            </Button>
+          </StackPanel>
+
+          <StackPanel x:Name="DetailPanel"
+                      Visibility="Collapsed"
+                      Spacing="14">
+            <ScrollViewer HorizontalScrollBarVisibility="Hidden"
+                          VerticalScrollBarVisibility="Disabled">
+              <ItemsControl x:Name="SectionTabsList">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="models:EditorAssetSectionItem">
+                    <Border Background="{x:Bind IsSelected, Converter={StaticResource BooleanToSidebarTabBrushConverter}}"
+                            CornerRadius="10"
+                            Margin="0,0,8,0">
+                      <Button Background="Transparent"
+                              BorderBrush="Transparent"
+                              Padding="12,7"
+                              Click="OnSectionClick">
+                        <TextBlock Text="{x:Bind Label}"
+                                   Style="{StaticResource ShellTitleStyle}"
+                                   FontSize="11.5" />
+                      </Button>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+
+            <GridView x:Name="AssetsGridView"
+                      IsItemClickEnabled="False"
+                      SelectionMode="None"
+                      HorizontalAlignment="Stretch">
+              <GridView.ItemContainerStyle>
+                <Style TargetType="GridViewItem"
+                       BasedOn="{StaticResource AssetGridViewItemStyle}" />
+              </GridView.ItemContainerStyle>
+              <GridView.ItemTemplate>
+                <DataTemplate x:DataType="models:EditorComponentItem">
+                  <Border Width="186"
+                          Background="Transparent">
+                    <Button Background="Transparent"
+                            BorderBrush="Transparent"
+                            CanDrag="True"
+                            Padding="0"
+                            HorizontalContentAlignment="Stretch"
+                            Click="OnAssetClick"
+                            DragStarting="OnAssetDragStarting">
+                      <StackPanel Spacing="8"
+                                  HorizontalAlignment="Stretch">
+                        <Border Background="{x:Bind IsSelected, Converter={StaticResource BooleanToBrushConverter}}"
+                                BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="14"
+                                Padding="10">
+                          <Grid>
+                            <controls:SvgSymbolPreview Symbol="{x:Bind Symbol}"
+                                                       Height="168"
+                                                       PreviewCornerRadius="12" />
+                            <Border HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Background="{StaticResource AccentSoftBrush}"
+                                    CornerRadius="8"
+                                    Padding="6,2"
+                                    Visibility="{x:Bind UpdateVisibility}">
+                              <TextBlock Text="New"
+                                         Style="{StaticResource ShellTitleStyle}"
+                                         FontSize="10"
+                                         Foreground="{StaticResource AccentBrush}" />
+                            </Border>
+                          </Grid>
+                        </Border>
+
+                        <StackPanel Spacing="2">
+                          <TextBlock Text="{x:Bind Name}"
+                                     Style="{StaticResource ShellTitleStyle}"
+                                     FontSize="12.5"
+                                     TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{x:Bind SourceSubtitle}"
+                                     Style="{StaticResource ShellBodyStyle}"
+                                     FontSize="11"
+                                     Foreground="{StaticResource SidebarMetaBrush}"
+                                     TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                      </StackPanel>
+                    </Button>
+                  </Border>
+                </DataTemplate>
+              </GridView.ItemTemplate>
+            </GridView>
+
+            <TextBlock x:Name="AssetsEmptyStateText"
+                       Style="{StaticResource ShellBodyStyle}"
+                       FontSize="12"
+                       TextWrapping="WrapWholeWords"
+                       Visibility="Collapsed" />
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+  </Grid>
+</UserControl>

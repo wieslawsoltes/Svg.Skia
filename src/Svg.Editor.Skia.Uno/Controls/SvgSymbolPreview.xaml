@@ -1,0 +1,16 @@
+<UserControl
+    x:Class="Svg.Editor.Skia.Uno.Controls.SvgSymbolPreview"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:svg="using:Uno.Svg.Skia"
+    x:Name="Root">
+
+  <Border Background="{Binding PreviewBackground, ElementName=Root, Mode=OneWay}"
+          CornerRadius="{Binding PreviewCornerRadius, ElementName=Root, Mode=OneWay}">
+    <svg:Svg x:Name="PreviewSvg"
+             Stretch="Uniform"
+             Zoom="1"
+             PanX="0"
+             PanY="0" />
+  </Border>
+</UserControl>

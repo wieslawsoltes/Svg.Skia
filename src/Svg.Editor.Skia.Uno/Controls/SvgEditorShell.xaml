@@ -1,0 +1,152 @@
+<UserControl
+    x:Class="Svg.Editor.Skia.Uno.Controls.SvgEditorShell"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Svg.Editor.Skia.Uno.Controls"
+    x:Name="Root">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///Svg.Editor.Skia.Uno/Themes/EditorThemeResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <Grid Background="{StaticResource ShellBrush}">
+    <Grid RowDefinitions="Auto,*">
+      <controls:SvgEditorTopBar Grid.Row="0"
+                                ViewModel="{Binding ViewModel, ElementName=Root, Mode=OneWay}"
+                                MainMenuRequested="OnMainMenuRequested"
+                                LeftPanelToggleRequested="OnLeftPanelToggleRequested"
+                                ResetRequested="OnResetRequested"
+                                FitRequested="OnFitRequested"
+                                ZoomMenuCommandRequested="OnZoomMenuCommandRequested"
+                                ZoomPercentRequested="OnZoomPercentRequested"
+                                ShareRequested="OnShareRequested" />
+
+      <Grid x:Name="WorkspaceGrid"
+            Grid.Row="1"
+            Margin="10,0,10,10">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition x:Name="LeftPanelColumn"
+                            Width="378" />
+          <ColumnDefinition x:Name="LeftPanelSplitterColumn"
+                            Width="10" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition x:Name="RightPanelSplitterColumn"
+                            Width="10" />
+          <ColumnDefinition x:Name="InspectorColumn"
+                            Width="328" />
+        </Grid.ColumnDefinitions>
+
+        <Grid x:Name="LeftPanelHost"
+              MinWidth="300"
+              Visibility="{Binding ViewModel.LeftPanelVisibility, ElementName=Root, Mode=OneWay}"
+              SizeChanged="OnLeftPanelHostSizeChanged"
+              ColumnDefinitions="Auto,*"
+              ColumnSpacing="10">
+          <controls:SvgEditorUtilityRail ViewModel="{Binding ViewModel, ElementName=Root, Mode=OneWay}"
+                                         MainMenuRequested="OnMainMenuRequested"
+                                         LeftPanelToggleRequested="OnLeftPanelToggleRequested"
+                                         LayersTabRequested="OnLayersTabRequested"
+                                         AssetsTabRequested="OnAssetsTabRequested"
+                                         ActionsRequested="OnActionsRequested" />
+          <controls:SvgEditorSidebar Grid.Column="1"
+                                     ViewModel="{Binding ViewModel, ElementName=Root, Mode=OneWay}"
+                                     LayersTabRequested="OnLayersTabRequested"
+                                     AssetsTabRequested="OnAssetsTabRequested"
+                                     ManageLibrariesRequested="OnManageLibrariesRequested"
+                                     PageAddRequested="OnPageAddRequested"
+                                     PageSelectionRequested="OnPageSelectionRequested"
+                                     ComponentAssetRequested="OnComponentAssetRequested"
+                                     OutlineSelectionRequested="OnOutlineSelectionRequested"
+                                     OutlineContextRequested="OnOutlineContextRequested"
+                                     OutlineNodeExpansionRequested="OnOutlineNodeExpansionRequested"
+                                     OutlineFilterChanged="OnOutlineFilterChanged"
+                                     ObjectLockChanged="OnObjectLockChanged"
+                                     ObjectVisibilityChanged="OnObjectVisibilityChanged" />
+        </Grid>
+
+        <Grid Grid.Column="1"
+              x:Name="LeftPanelSplitterHost"
+              Background="Transparent"
+              Visibility="{Binding ViewModel.LeftPanelVisibility, ElementName=Root, Mode=OneWay}">
+          <Border Style="{StaticResource ShellPanelSplitterLineStyle}"
+                  IsHitTestVisible="False" />
+          <Border Style="{StaticResource ShellPanelSplitterGripStyle}"
+                  IsHitTestVisible="False" />
+          <Border Background="Transparent"
+                  PointerPressed="OnLeftSplitterPointerPressed"
+                  PointerMoved="OnLeftSplitterPointerMoved"
+                  PointerReleased="OnLeftSplitterPointerReleased"
+                  PointerCanceled="OnLeftSplitterPointerCanceled"
+                  PointerCaptureLost="OnLeftSplitterPointerCaptureLost" />
+        </Grid>
+
+        <controls:SvgEditorStagePanel Grid.Column="2"
+                                      ViewModel="{Binding ViewModel, ElementName=Root, Mode=OneWay}"
+                                      StageContent="{Binding StageContent, ElementName=Root, Mode=OneWay}"
+                                      ViewportToggleChanged="OnViewportToggleChanged"
+                                      ZoomOutRequested="OnZoomOutRequested"
+                                      ZoomInRequested="OnZoomInRequested"
+                                      CreateFrameRequested="OnCreateFrameRequested"
+                                      DuplicateFrameRequested="OnDuplicateFrameRequested"
+                                      ToolButtonRequested="OnToolButtonRequested"
+                                      ActionsRequested="OnActionsRequested"
+                                      DevModeRequested="OnDevModeRequested"
+                                      AlignSelectionRequested="OnAlignSelectionRequested"
+                                      DistributeSelectionRequested="OnDistributeSelectionRequested"
+                                      CommentThreadRequested="OnCommentThreadRequested"
+                                      CommentComposerSubmitted="OnCommentComposerSubmitted"
+                                      CommentComposerCanceled="OnCommentComposerCanceled" />
+
+        <Grid Grid.Column="3"
+              x:Name="RightPanelSplitterHost"
+              Background="Transparent">
+          <Border Style="{StaticResource ShellPanelSplitterLineStyle}"
+                  IsHitTestVisible="False" />
+          <Border Style="{StaticResource ShellPanelSplitterGripStyle}"
+                  IsHitTestVisible="False" />
+          <Border Background="Transparent"
+                  PointerPressed="OnRightSplitterPointerPressed"
+                  PointerMoved="OnRightSplitterPointerMoved"
+                  PointerReleased="OnRightSplitterPointerReleased"
+                  PointerCanceled="OnRightSplitterPointerCanceled"
+                  PointerCaptureLost="OnRightSplitterPointerCaptureLost" />
+        </Grid>
+
+        <controls:SvgEditorInspectorPanel x:Name="InspectorPanelHost"
+                                          Grid.Column="4"
+                                          MinWidth="284"
+                                          SizeChanged="OnInspectorPanelHostSizeChanged"
+                                          ViewModel="{Binding ViewModel, ElementName=Root, Mode=OneWay}"
+                                          AlignSelectionRequested="OnAlignSelectionRequested"
+                                          DistributeSelectionRequested="OnDistributeSelectionRequested"
+                                          DesignInspectorRequested="OnDesignInspectorRequested"
+                                          PrototypeInspectorRequested="OnPrototypeInspectorRequested"
+                                          DevInspectorRequested="OnDevInspectorRequested"
+                                          CreateComponentRequested="OnCreateComponentRequested"
+                                          InsertComponentRequested="OnInsertComponentRequested"
+                                          SwapComponentRequested="OnSwapComponentRequested"
+                                          DetachComponentRequested="OnDetachComponentRequested"
+                                          QuickFieldCommitted="OnQuickFieldCommitted"
+                                          QuickFieldKeyDown="OnQuickFieldKeyDown"
+                                          StyleRequested="OnStyleRequested"
+                                          PaintStyleRequested="OnPaintStyleRequested"
+                                          PaintStyleCreateRequested="OnPaintStyleCreateRequested"
+                                          PropertyFilterChanged="OnPropertyFilterChanged"
+                                          PropertyValueCommitted="OnPropertyValueCommitted"
+                                          PropertyValueKeyDown="OnPropertyValueKeyDown"
+                                          DevSnippetRequested="OnDevSnippetRequested"
+                                          CopyActiveDevSnippetRequested="OnCopyActiveDevSnippetRequested"
+                                          CommandRequested="OnInspectorCommandRequested"
+                                          DevCommandRequested="OnDevCommandRequested"
+                                          CommentThreadRequested="OnCommentThreadRequested"
+                                          CommentReplyRequested="OnCommentReplyRequested"
+                                          CommentResolveRequested="OnCommentResolveRequested"
+                                          CommentDeleteRequested="OnCommentDeleteRequested" />
+      </Grid>
+    </Grid>
+  </Grid>
+</UserControl>

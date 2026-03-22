@@ -1,0 +1,246 @@
+<UserControl
+    x:Class="Svg.Editor.Skia.Uno.Controls.SvgEditorSidebar"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Svg.Editor.Skia.Uno.Controls"
+    xmlns:models="using:Svg.Editor.Skia.Uno.Models"
+    x:Name="Root">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///Svg.Editor.Skia.Uno/Themes/EditorThemeResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <Border Style="{StaticResource SidebarSurfaceBorderStyle}">
+    <Grid RowDefinitions="Auto,Auto,*">
+      <StackPanel Padding="20,18,20,14"
+                  Spacing="16">
+        <StackPanel Spacing="6">
+          <StackPanel Orientation="Horizontal"
+                      Spacing="6">
+            <TextBlock Text="{Binding ViewModel.DocumentTitle, ElementName=Root, Mode=OneWay}"
+                       Style="{StaticResource SidebarPrimaryTitleStyle}" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal"
+                      Spacing="8">
+            <TextBlock Text="Drafts"
+                       Style="{StaticResource SidebarSectionLabelStyle}" />
+            <Border Background="{StaticResource AccentSoftBrush}"
+                    CornerRadius="8"
+                    Padding="8,2">
+              <TextBlock Text="Free"
+                         Style="{StaticResource ShellTitleStyle}"
+                         FontSize="11"
+                         Foreground="{StaticResource AccentBrush}" />
+            </Border>
+          </StackPanel>
+        </StackPanel>
+
+        <Grid ColumnDefinitions="Auto,Auto,*,Auto"
+              ColumnSpacing="8">
+          <Border Background="{Binding ViewModel.IsLayersViewActive, ElementName=Root, Mode=OneWay, Converter={StaticResource BooleanToSidebarTabBrushConverter}}"
+                  CornerRadius="11">
+            <Button Style="{StaticResource SidebarTabButtonStyle}"
+                    Padding="14,8"
+                    Click="OnLayersTabClick"
+                    Content="Layers" />
+          </Border>
+
+          <Border Grid.Column="1"
+                  Background="{Binding ViewModel.IsAssetsViewActive, ElementName=Root, Mode=OneWay, Converter={StaticResource BooleanToSidebarTabBrushConverter}}"
+                  CornerRadius="11">
+            <Button Style="{StaticResource SidebarTabButtonStyle}"
+                    Padding="14,8"
+                    Click="OnAssetsTabClick"
+                    Content="Assets" />
+          </Border>
+
+          <Button Grid.Column="3"
+                  Style="{StaticResource PlainIconButtonStyle}"
+                  Click="OnManageLibrariesClick">
+            <controls:FigmaIcon Kind="Library"
+                                Width="17"
+                                Height="17"
+                                IconStroke="{StaticResource TextBrush}" />
+          </Button>
+        </Grid>
+      </StackPanel>
+
+      <Border Grid.Row="1"
+              Height="1"
+              Background="{StaticResource SidebarDividerBrush}" />
+
+      <Grid Grid.Row="2"
+            Padding="20,14,20,18"
+            RowDefinitions="Auto,*">
+        <StackPanel Visibility="{Binding ViewModel.LayersPanelVisibility, ElementName=Root, Mode=OneWay}"
+                    Spacing="0">
+          <controls:EditorPanelSection Title="Pages"
+                                       ShowDivider="False"
+                                       SectionPadding="0">
+            <controls:EditorPanelSection.HeaderContent>
+              <Button Style="{StaticResource SubtleIconButtonStyle}"
+                      Width="30"
+                      Height="30"
+                      Click="OnAddPageClick">
+                <controls:FigmaIcon Kind="Add"
+                                    Width="14"
+                                    Height="14"
+                                    IconStroke="{StaticResource TextBrush}" />
+              </Button>
+            </controls:EditorPanelSection.HeaderContent>
+            <controls:EditorPanelSection.SectionContent>
+              <ItemsControl ItemsSource="{Binding ViewModel.Pages, ElementName=Root, Mode=OneWay}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="models:EditorPageItem">
+                    <Border Background="{x:Bind IsSelected, Converter={StaticResource BooleanToBrushConverter}}"
+                            CornerRadius="10"
+                            Margin="0,0,0,4">
+                      <Button Background="Transparent"
+                              BorderBrush="Transparent"
+                              Padding="12,8"
+                              Click="OnPageClick">
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="10"
+                                    HorizontalAlignment="Left">
+                          <controls:FigmaIcon Kind="Page"
+                                              Width="14"
+                                              Height="14"
+                                              IconStroke="{StaticResource SidebarMetaBrush}" />
+                          <StackPanel Spacing="1">
+                            <TextBlock Text="{x:Bind Title}"
+                                       Style="{StaticResource ShellTitleStyle}"
+                                       FontSize="12.5" />
+                            <TextBlock Text="{x:Bind Subtitle}"
+                                       Style="{StaticResource SectionCaptionStyle}"
+                                       TextTrimming="CharacterEllipsis" />
+                          </StackPanel>
+                        </StackPanel>
+                      </Button>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </controls:EditorPanelSection.SectionContent>
+          </controls:EditorPanelSection>
+
+          <controls:EditorPanelSection Title="Layers"
+                                       SectionPadding="0,18,0,0">
+            <controls:EditorPanelSection.HeaderContent>
+              <controls:FigmaIcon Kind="Menu"
+                                  Width="15"
+                                  Height="15"
+                                  IconStroke="{StaticResource SidebarMetaBrush}" />
+            </controls:EditorPanelSection.HeaderContent>
+            <controls:EditorPanelSection.SectionContent>
+              <controls:EditorSearchField x:Name="OutlineFilterTextBox"
+                       PlaceholderText="Filter layers"
+                       TextChanged="OnOutlineFilterTextChanged" />
+            </controls:EditorPanelSection.SectionContent>
+          </controls:EditorPanelSection>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+          <Grid Visibility="{Binding ViewModel.LayersPanelVisibility, ElementName=Root, Mode=OneWay}"
+                RowDefinitions="*,Auto">
+            <ListView x:Name="OutlineListView"
+                      Style="{StaticResource OutlineListStyle}"
+                      IsItemClickEnabled="False"
+                      IsTabStop="True"
+                      RightTapped="OnOutlineListRightTapped"
+                      KeyDown="OnOutlineListKeyDown"
+                      ItemsSource="{Binding ViewModel.ObjectNodes, ElementName=Root, Mode=OneWay}"
+                      SelectionMode="None">
+              <ListView.ItemTemplate>
+                <DataTemplate x:DataType="models:EditorObjectNode">
+                  <Border Background="{x:Bind IsSelected, Converter={StaticResource BooleanToBrushConverter}}"
+                          CornerRadius="8"
+                          Padding="8,5"
+                          PointerPressed="OnOutlineItemPointerPressed"
+                          RightTapped="OnOutlineItemRightTapped"
+                                      PointerEntered="OnOutlineItemPointerEntered"
+                                      PointerExited="OnOutlineItemPointerExited">
+                    <Grid Margin="{x:Bind Indent}"
+                          ColumnDefinitions="14,18,*,18,18"
+                          ColumnSpacing="7"
+                          MinHeight="28">
+                      <Button Background="Transparent"
+                              BorderBrush="Transparent"
+                              Padding="0"
+                              Opacity="{x:Bind ExpanderOpacity}"
+                              IsEnabled="{x:Bind HasChildren}"
+                              Click="OnOutlineExpansionClick">
+                        <TextBlock Text="{x:Bind DisclosureGlyph}"
+                                   Style="{StaticResource SectionCaptionStyle}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                      </Button>
+
+                      <controls:FigmaIcon Grid.Column="1"
+                                          Kind="{x:Bind IconKind}"
+                                          Width="14"
+                                          Height="14"
+                                          Opacity="{x:Bind RowContentOpacity}"
+                                          IconStroke="{StaticResource SidebarMetaBrush}" />
+
+                      <TextBlock Grid.Column="2"
+                                 Text="{x:Bind Name}"
+                                 VerticalAlignment="Center"
+                                 Style="{StaticResource ShellTitleStyle}"
+                                 FontSize="12"
+                                 FontWeight="Medium"
+                                 Opacity="{x:Bind RowContentOpacity}"
+                                 TextTrimming="CharacterEllipsis" />
+
+                      <Button Grid.Column="3"
+                              Background="Transparent"
+                              BorderBrush="Transparent"
+                              Padding="0"
+                              Opacity="{x:Bind LockActionOpacity}"
+                              Click="OnObjectLockClick">
+                        <controls:FigmaIcon Kind="{x:Bind LockIconKind}"
+                                            Width="14"
+                                            Height="14"
+                                            IconStroke="{StaticResource SidebarIconBrush}" />
+                      </Button>
+
+                      <Button Grid.Column="4"
+                              Background="Transparent"
+                              BorderBrush="Transparent"
+                              Padding="0"
+                              Opacity="{x:Bind VisibilityActionOpacity}"
+                              Click="OnObjectVisibilityClick">
+                        <controls:FigmaIcon Kind="{x:Bind VisibilityIconKind}"
+                                            Width="14"
+                                            Height="14"
+                                            IconStroke="{StaticResource SidebarIconBrush}" />
+                      </Button>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ListView.ItemTemplate>
+            </ListView>
+
+            <TextBlock Grid.Row="1"
+                       Margin="0,12,0,0"
+                       Text="Shift-click to build a selection. Drag empty canvas for a marquee."
+                       Style="{StaticResource SectionCaptionStyle}"
+                       Foreground="{StaticResource SidebarMetaBrush}"
+                       TextWrapping="WrapWholeWords" />
+          </Grid>
+
+          <controls:SvgEditorAssetsBrowser Visibility="{Binding ViewModel.AssetsPanelVisibility, ElementName=Root, Mode=OneWay}"
+                                           Libraries="{Binding ViewModel.Libraries, ElementName=Root, Mode=OneWay}"
+                                           Components="{Binding ViewModel.ComponentAssets, ElementName=Root, Mode=OneWay}"
+                                           DocumentTitle="{Binding ViewModel.DocumentTitle, ElementName=Root, Mode=OneWay}"
+                                           ManageLibrariesRequested="OnAssetsBrowserManageLibrariesRequested"
+                                           ComponentRequested="OnAssetsBrowserComponentRequested" />
+        </Grid>
+      </Grid>
+    </Grid>
+  </Border>
+</UserControl>

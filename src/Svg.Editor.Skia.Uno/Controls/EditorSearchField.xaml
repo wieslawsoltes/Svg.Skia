@@ -1,0 +1,39 @@
+<UserControl
+    x:Class="Svg.Editor.Skia.Uno.Controls.EditorSearchField"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Svg.Editor.Skia.Uno.Controls"
+    x:Name="Root">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///Svg.Editor.Skia.Uno/Themes/EditorThemeResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <Border Style="{StaticResource SearchFieldBorderStyle}">
+    <Grid ColumnDefinitions="Auto,*,Auto"
+          ColumnSpacing="8">
+      <controls:FigmaIcon Kind="Search"
+                          Width="16"
+                          Height="16"
+                          VerticalAlignment="Center"
+                          IconStroke="{StaticResource SidebarMetaBrush}" />
+
+      <TextBox x:Name="SearchTextBox"
+               Grid.Column="1"
+               Style="{StaticResource SearchFieldTextBoxStyle}"
+               Text="{Binding Text, ElementName=Root, Mode=TwoWay}"
+               PlaceholderText="{Binding PlaceholderText, ElementName=Root, Mode=OneWay}"
+               TextChanged="OnSearchTextBoxTextChanged"
+               KeyDown="OnSearchTextBoxKeyDown" />
+
+      <ContentPresenter x:Name="TrailingPresenter"
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        Content="{Binding TrailingContent, ElementName=Root, Mode=OneWay}" />
+    </Grid>
+  </Border>
+</UserControl>

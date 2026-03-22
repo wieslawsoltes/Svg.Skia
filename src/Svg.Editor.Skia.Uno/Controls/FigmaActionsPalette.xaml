@@ -1,0 +1,172 @@
+<UserControl
+    x:Class="Svg.Editor.Skia.Uno.Controls.FigmaActionsPalette"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Svg.Editor.Skia.Uno.Controls"
+    xmlns:models="using:Svg.Editor.Skia.Uno.Models"
+    x:Name="Root">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///Svg.Editor.Skia.Uno/Themes/EditorThemeResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+
+      <DataTemplate x:Key="ActionItemTemplate"
+                    x:DataType="models:EditorActionPaletteItem">
+        <Button Style="{StaticResource ActionPaletteRowButtonStyle}"
+                Click="OnActionItemClick"
+                IsEnabled="{x:Bind IsEnabled, Mode=OneWay}">
+          <Grid ColumnDefinitions="32,*,Auto"
+                ColumnSpacing="12">
+            <Grid Width="24"
+                  Height="24"
+                  VerticalAlignment="Center">
+              <Border Visibility="{x:Bind ToggleVisibility, Mode=OneWay}"
+                      Background="{x:Bind IsChecked, Converter={StaticResource BooleanToBrushConverter}}"
+                      BorderBrush="{StaticResource FieldBorderBrush}"
+                      BorderThickness="1"
+                      CornerRadius="8">
+                <TextBlock Text="✓"
+                           Visibility="{x:Bind CheckedIndicatorVisibility, Mode=OneWay}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Foreground="{StaticResource AccentBrush}"
+                           FontSize="13"
+                           FontWeight="SemiBold" />
+              </Border>
+
+              <controls:FigmaIcon Visibility="{x:Bind IconVisibility, Mode=OneWay}"
+                                  Kind="{x:Bind IconKind, Mode=OneWay}"
+                                  Width="18"
+                                  Height="18"
+                                  VerticalAlignment="Center"
+                                  HorizontalAlignment="Center"
+                                  IconStroke="{StaticResource TextBrush}" />
+            </Grid>
+
+            <StackPanel Grid.Column="1"
+                        Spacing="2">
+              <TextBlock Text="{x:Bind Title, Mode=OneWay}"
+                         Style="{StaticResource ShellTitleStyle}"
+                         FontSize="14.5"
+                         TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{x:Bind Subtitle, Mode=OneWay}"
+                         Visibility="{x:Bind SubtitleVisibility, Mode=OneWay}"
+                         Style="{StaticResource SectionCaptionStyle}"
+                         TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+
+            <TextBlock Grid.Column="2"
+                       Text="{x:Bind ShortcutText, Mode=OneWay}"
+                       Visibility="{x:Bind ShortcutVisibility, Mode=OneWay}"
+                       Style="{StaticResource ActionPaletteShortcutTextStyle}"
+                       VerticalAlignment="Center"
+                       Margin="12,0,0,0" />
+          </Grid>
+        </Button>
+      </DataTemplate>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <Border Style="{StaticResource ActionPaletteFrameBorderStyle}"
+          Width="920"
+          MaxHeight="700"
+          Padding="16">
+    <Grid RowDefinitions="Auto,Auto,*"
+          RowSpacing="14">
+      <controls:EditorSearchField x:Name="SearchTextBox"
+                                  PlaceholderText="Search actions, assets, and libraries"
+                                  TextChanged="OnSearchTextChanged"
+                                  SearchKeyDown="OnSearchTextBoxKeyDown">
+        <controls:EditorSearchField.TrailingContent>
+          <Button Style="{StaticResource SubtleIconButtonStyle}"
+                  Width="30"
+                  Height="30"
+                  Click="OnCloseClick">
+            <controls:FigmaIcon Kind="Close"
+                                Width="16"
+                                Height="16"
+                                IconStroke="{StaticResource TextBrush}" />
+          </Button>
+        </controls:EditorSearchField.TrailingContent>
+      </controls:EditorSearchField>
+
+      <StackPanel Grid.Row="1"
+                  Orientation="Horizontal"
+                  Spacing="8">
+        <Border x:Name="AllTabBorder"
+                CornerRadius="10"
+                Background="{StaticResource SurfaceAltBrush}">
+          <Button Tag="All"
+                  Style="{StaticResource ActionPaletteTabButtonStyle}"
+                  Click="OnTabClick">
+            <TextBlock Text="All"
+                       Style="{StaticResource ShellTitleStyle}" />
+          </Button>
+        </Border>
+
+        <Border x:Name="AssetsTabBorder"
+                CornerRadius="10"
+                Background="Transparent">
+          <Button Tag="Assets"
+                  Style="{StaticResource ActionPaletteTabButtonStyle}"
+                  Click="OnTabClick">
+            <TextBlock Text="Assets"
+                       Style="{StaticResource ShellTitleStyle}" />
+          </Button>
+        </Border>
+
+        <Border x:Name="LibrariesTabBorder"
+                CornerRadius="10"
+                Background="Transparent">
+          <Button Tag="Libraries"
+                  Style="{StaticResource ActionPaletteTabButtonStyle}"
+                  Click="OnTabClick">
+            <TextBlock Text="Libraries"
+                       Style="{StaticResource ShellTitleStyle}" />
+          </Button>
+        </Border>
+      </StackPanel>
+
+      <ScrollViewer Grid.Row="2"
+                    VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="18">
+          <StackPanel x:Name="SuggestionsPanel"
+                      Spacing="10">
+            <TextBlock Text="Suggestions"
+                       Style="{StaticResource SectionHeadingStyle}" />
+            <ItemsControl x:Name="SuggestionsList"
+                          ItemTemplate="{StaticResource ActionItemTemplate}" />
+          </StackPanel>
+
+          <StackPanel x:Name="SettingsPanel"
+                      Spacing="10">
+            <TextBlock Text="Common settings"
+                       Style="{StaticResource SectionHeadingStyle}" />
+            <ItemsControl x:Name="SettingsList"
+                          ItemTemplate="{StaticResource ActionItemTemplate}" />
+          </StackPanel>
+
+          <StackPanel x:Name="ResultsPanel"
+                      Spacing="10">
+            <TextBlock x:Name="ResultsHeaderText"
+                       Text="Results"
+                       Style="{StaticResource SectionHeadingStyle}" />
+            <ItemsControl x:Name="ResultsList"
+                          ItemTemplate="{StaticResource ActionItemTemplate}" />
+          </StackPanel>
+
+          <Border x:Name="EmptyStateBorder"
+                  Background="{StaticResource SurfaceAltBrush}"
+                  CornerRadius="16"
+                  Padding="18,16">
+            <TextBlock x:Name="EmptyStateText"
+                       Style="{StaticResource SectionCaptionStyle}"
+                       TextWrapping="WrapWholeWords" />
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+  </Border>
+</UserControl>

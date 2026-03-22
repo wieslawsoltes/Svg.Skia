@@ -1,0 +1,139 @@
+<UserControl
+    x:Class="Svg.Editor.Skia.Uno.Controls.SvgEditorToolTray"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Svg.Editor.Skia.Uno.Controls"
+    xmlns:models="using:Svg.Editor.Skia.Uno.Models"
+    x:Name="Root">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///Svg.Editor.Skia.Uno/Themes/EditorThemeResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <Border Style="{StaticResource FloatingTrayBorderStyle}"
+          Padding="10,8">
+    <StackPanel Orientation="Horizontal"
+                Spacing="10">
+      <ItemsControl ItemsSource="{x:Bind VisibleGroups, Mode=OneWay}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Horizontal" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="models:EditorToolGroupDefinition">
+              <Border Background="{x:Bind IsSelected, Converter={StaticResource BooleanToSidebarTabBrushConverter}}"
+                    CornerRadius="12"
+                    Margin="0,0,4,0">
+                <Grid ColumnDefinitions="Auto,Auto">
+                  <ToggleButton Style="{StaticResource ToolTrayPrimaryButtonStyle}"
+                                Tag="{x:Bind CurrentItem}"
+                              IsChecked="{x:Bind IsSelected, Mode=OneWay}"
+                              Click="OnGroupPrimaryClick"
+                              ToolTipService.ToolTip="{x:Bind CurrentToolTip}">
+                  <Grid Width="18"
+                        Height="18">
+                    <TextBlock Text="{x:Bind CurrentGlyph}"
+                               Visibility="{x:Bind CurrentGlyphVisibility}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Foreground="{StaticResource TextBrush}" />
+                    <controls:FigmaIcon Kind="{x:Bind CurrentIconKind}"
+                                        Width="18"
+                                        Height="18"
+                                        Visibility="{x:Bind CurrentIconVisibility}"
+                                        IconStroke="{StaticResource TextBrush}" />
+                  </Grid>
+                </ToggleButton>
+
+                <Button Grid.Column="1"
+                        Style="{StaticResource ToolTrayChevronButtonStyle}"
+                        Tag="{x:Bind}"
+                        Visibility="{x:Bind FlyoutVisibility}"
+                        Click="OnGroupMenuClick"
+                        ToolTipService.ToolTip="{x:Bind Label}">
+                  <TextBlock Text="⌄"
+                             FontSize="12"
+                             Foreground="{StaticResource TextBrush}" />
+                </Button>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <Border Width="1"
+              Margin="2,4"
+              Background="{StaticResource SurfaceStrokeBrush}" />
+
+      <Border Style="{StaticResource InsetFrameBorderStyle}"
+              Padding="4">
+        <StackPanel Orientation="Horizontal"
+                    Spacing="4">
+          <Border x:Name="DrawModeBorder"
+                  CornerRadius="12">
+            <Button x:Name="DrawModeButton"
+                    Style="{StaticResource ToolTrayModeChipButtonStyle}"
+                    Click="OnDrawModeClick"
+                    ToolTipService.ToolTip="Draw">
+              <StackPanel Orientation="Horizontal"
+                          Spacing="8">
+                <controls:FigmaIcon Kind="Brush"
+                                    Width="16"
+                                    Height="16"
+                                    IconStroke="{StaticResource TextBrush}" />
+                <TextBlock Text="Draw"
+                           Style="{StaticResource ShellTitleStyle}"
+                           FontSize="12" />
+              </StackPanel>
+            </Button>
+          </Border>
+
+          <Border x:Name="DesignModeBorder"
+                  CornerRadius="12">
+            <Button x:Name="DesignModeButton"
+                    Style="{StaticResource ToolTrayModeChipButtonStyle}"
+                    Click="OnDesignModeClick"
+                    ToolTipService.ToolTip="Design">
+              <StackPanel Orientation="Horizontal"
+                          Spacing="8">
+                <controls:FigmaIcon Kind="Design"
+                                    Width="16"
+                                    Height="16"
+                                    IconStroke="{StaticResource TextBrush}" />
+                <TextBlock Text="Design"
+                           Style="{StaticResource ShellTitleStyle}"
+                           FontSize="12" />
+              </StackPanel>
+            </Button>
+          </Border>
+
+          <Border x:Name="CodeModeBorder"
+                  CornerRadius="12">
+            <Button x:Name="CodeModeButton"
+                    Style="{StaticResource ToolTrayModeChipButtonStyle}"
+                    Click="OnCodeModeClick"
+                    ToolTipService.ToolTip="Dev mode">
+              <StackPanel Orientation="Horizontal"
+                          Spacing="8">
+                <controls:FigmaIcon Kind="Code"
+                                    Width="16"
+                                    Height="16"
+                                    IconStroke="{StaticResource TextBrush}" />
+                <TextBlock Text="Dev"
+                           Style="{StaticResource ShellTitleStyle}"
+                           FontSize="12" />
+              </StackPanel>
+            </Button>
+          </Border>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </Border>
+</UserControl>

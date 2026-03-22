@@ -1,0 +1,49 @@
+<UserControl
+    x:Class="Svg.Editor.Skia.Uno.Controls.EditorBrandMark"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///Svg.Editor.Skia.Uno/Themes/EditorThemeResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <Viewbox Stretch="Uniform">
+    <Grid Width="18"
+          Height="26">
+      <Border Width="8"
+              Height="8"
+              Background="{StaticResource AccentBrush}"
+              CornerRadius="4"
+              HorizontalAlignment="Left"
+              VerticalAlignment="Top" />
+      <Border Width="8"
+              Height="8"
+              Background="{StaticResource AccentBrush}"
+              CornerRadius="4"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Top" />
+      <Border Width="8"
+              Height="8"
+              Background="{StaticResource AccentBrush}"
+              CornerRadius="4"
+              HorizontalAlignment="Left"
+              VerticalAlignment="Center" />
+      <Border Width="8"
+              Height="8"
+              Background="{StaticResource AccentBrush}"
+              CornerRadius="4"
+              HorizontalAlignment="Left"
+              VerticalAlignment="Bottom" />
+      <Border Width="8"
+              Height="8"
+              Background="{StaticResource AccentBrush}"
+              CornerRadius="4"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Bottom" />
+    </Grid>
+  </Viewbox>
+</UserControl>

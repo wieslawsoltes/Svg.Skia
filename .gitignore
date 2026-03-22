@@ -295,3 +295,6 @@ __pycache__/
 
 # macOS
 .DS_Store
+/.playwright-cli
+/output
+/src/Svg.Editor.Skia.Uno/obj/

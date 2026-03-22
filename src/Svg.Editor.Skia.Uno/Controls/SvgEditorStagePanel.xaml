@@ -1,0 +1,200 @@
+<UserControl
+    x:Class="Svg.Editor.Skia.Uno.Controls.SvgEditorStagePanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Svg.Editor.Skia.Uno.Controls"
+    xmlns:models="using:Svg.Editor.Skia.Uno.Models"
+    x:Name="Root">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///Svg.Editor.Skia.Uno/Themes/EditorThemeResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <Grid RowDefinitions="Auto,*">
+      <Grid ColumnDefinitions="*,Auto"
+            ColumnSpacing="12"
+            Margin="0,0,0,8">
+        <StackPanel Spacing="6"
+                    VerticalAlignment="Center">
+          <TextBlock Text="{Binding ViewModel.CanvasLabel, ElementName=Root, Mode=OneWay}"
+                     Style="{StaticResource SectionHeadingStyle}"
+                     FontSize="16" />
+          <StackPanel Orientation="Horizontal"
+                      Spacing="8">
+            <Border Background="{StaticResource AccentSoftBrush}"
+                    BorderBrush="{StaticResource AccentStrongBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="10,4">
+              <TextBlock Text="{Binding ViewModel.CurrentToolLabel, ElementName=Root, Mode=OneWay}"
+                         Style="{StaticResource ShellTitleStyle}"
+                         FontSize="11.75"
+                         Foreground="{StaticResource AccentBrush}" />
+            </Border>
+            <Border Style="{StaticResource FloatingTrayBorderStyle}"
+                    Padding="10,4">
+              <TextBlock Text="{Binding ViewModel.SelectionSummary, ElementName=Root, Mode=OneWay}"
+                         Style="{StaticResource SectionCaptionStyle}"
+                         FontSize="11.75" />
+            </Border>
+          </StackPanel>
+          <TextBlock Text="{Binding ViewModel.CanvasStatus, ElementName=Root, Mode=OneWay}"
+                     Style="{StaticResource SectionCaptionStyle}"
+                     MaxLines="1"
+                     TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="1"
+                    Orientation="Horizontal"
+                    Spacing="8"
+                    HorizontalAlignment="Right">
+          <Border Style="{StaticResource FloatingTrayBorderStyle}"
+                  Padding="4">
+            <StackPanel Orientation="Horizontal"
+                        Spacing="4">
+              <Border Background="{Binding ViewModel.IsGridVisible, ElementName=Root, Mode=OneWay, Converter={StaticResource BooleanToSidebarTabBrushConverter}}"
+                      CornerRadius="10">
+                <ToggleButton Style="{StaticResource ToolButtonStyle}"
+                              IsChecked="{Binding ViewModel.IsGridVisible, ElementName=Root, Mode=TwoWay}"
+                              Click="OnViewportToggleChanged"
+                              Content="Grid" />
+              </Border>
+              <Border Background="{Binding ViewModel.IsSnapEnabled, ElementName=Root, Mode=OneWay, Converter={StaticResource BooleanToSidebarTabBrushConverter}}"
+                      CornerRadius="10">
+                <ToggleButton Style="{StaticResource ToolButtonStyle}"
+                              IsChecked="{Binding ViewModel.IsSnapEnabled, ElementName=Root, Mode=TwoWay}"
+                              Click="OnViewportToggleChanged"
+                              Content="Snap" />
+              </Border>
+              <Border Background="{Binding ViewModel.IsWireframeEnabled, ElementName=Root, Mode=OneWay, Converter={StaticResource BooleanToSidebarTabBrushConverter}}"
+                      CornerRadius="10">
+                <ToggleButton Style="{StaticResource ToolButtonStyle}"
+                              IsChecked="{Binding ViewModel.IsWireframeEnabled, ElementName=Root, Mode=TwoWay}"
+                              Click="OnViewportToggleChanged"
+                              Content="Wireframe" />
+              </Border>
+              <Border Background="{Binding ViewModel.AreFiltersDisabled, ElementName=Root, Mode=OneWay, Converter={StaticResource BooleanToSidebarTabBrushConverter}}"
+                      CornerRadius="10">
+                <ToggleButton Style="{StaticResource ToolButtonStyle}"
+                              IsChecked="{Binding ViewModel.AreFiltersDisabled, ElementName=Root, Mode=TwoWay}"
+                              Click="OnViewportToggleChanged"
+                              Content="Flat filters" />
+              </Border>
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource FloatingTrayBorderStyle}"
+                  Padding="4">
+            <StackPanel Orientation="Horizontal"
+                        Spacing="6">
+              <Button Style="{StaticResource GhostPillButtonStyle}"
+                      Click="OnCreateFrameClick">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <controls:FigmaIcon Kind="Frame"
+                                      Width="14"
+                                      Height="14"
+                                      IconStroke="{StaticResource TextBrush}" />
+                  <TextBlock Text="Frame"
+                             Style="{StaticResource ShellTitleStyle}"
+                             FontSize="12" />
+                </StackPanel>
+              </Button>
+              <Button Style="{StaticResource GhostPillButtonStyle}"
+                      Click="OnDuplicateFrameClick">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <controls:FigmaIcon Kind="Instance"
+                                      Width="14"
+                                      Height="14"
+                                      IconStroke="{StaticResource TextBrush}" />
+                  <TextBlock Text="Duplicate"
+                             Style="{StaticResource ShellTitleStyle}"
+                             FontSize="12" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource FloatingTrayBorderStyle}"
+                  Padding="4">
+            <StackPanel Orientation="Horizontal"
+                        Spacing="4">
+              <Button Content="-"
+                      Style="{StaticResource SubtleIconButtonStyle}"
+                      Width="30"
+                      Height="30"
+                      Click="OnZoomOutClick" />
+              <Button Content="+"
+                      Style="{StaticResource SubtleIconButtonStyle}"
+                      Width="30"
+                      Height="30"
+                      Click="OnZoomInClick" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Grid>
+
+      <Grid Grid.Row="1">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="{Binding ViewModel.HorizontalRulerLength, ElementName=Root, Mode=OneWay}" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="{Binding ViewModel.VerticalRulerLength, ElementName=Root, Mode=OneWay}" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="1"
+                Background="{StaticResource CanvasRulerBrush}"
+                BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                BorderThickness="1,1,1,0"
+                CornerRadius="16,16,0,0">
+          <controls:SvgEditorRulerCanvas Orientation="Horizontal"
+                                         Marks="{Binding ViewModel.HorizontalRulerMarks, ElementName=Root, Mode=OneWay}"
+                                         Markers="{Binding ViewModel.HorizontalRulerMarkers, ElementName=Root, Mode=OneWay}" />
+        </Border>
+
+        <Border Grid.Row="1"
+                Background="{StaticResource CanvasRulerBrush}"
+                BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                BorderThickness="1,0,0,1"
+                CornerRadius="0,0,0,16">
+          <controls:SvgEditorRulerCanvas Orientation="Vertical"
+                                         Marks="{Binding ViewModel.VerticalRulerMarks, ElementName=Root, Mode=OneWay}"
+                                         Markers="{Binding ViewModel.VerticalRulerMarkers, ElementName=Root, Mode=OneWay}" />
+        </Border>
+
+        <Border Grid.Row="1"
+                Grid.Column="1"
+                Background="{StaticResource CanvasWorkspaceBrush}"
+                BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                BorderThickness="1"
+                CornerRadius="0,0,20,20">
+          <Grid>
+            <ContentPresenter Content="{Binding StageContent, ElementName=Root, Mode=OneWay}" />
+
+            <controls:SvgEditorCommentsLayer ItemsSource="{Binding ViewModel.CommentThreads, ElementName=Root, Mode=OneWay}"
+                                             SelectedThread="{Binding ViewModel.SelectedCommentThread, ElementName=Root, Mode=OneWay}"
+                                             IsCommentModeActive="{Binding ViewModel.IsCommentsInspectorActive, ElementName=Root, Mode=OneWay}"
+                                             IsComposerVisible="{Binding ViewModel.IsCommentDraftVisible, ElementName=Root, Mode=OneWay}"
+                                             ComposerText="{Binding ViewModel.CommentDraftText, ElementName=Root, Mode=OneWay}"
+                                             ComposerPosition="{Binding ViewModel.CommentDraftViewPosition, ElementName=Root, Mode=OneWay}"
+                                             ThreadRequested="OnCommentThreadRequested"
+                                             ComposerSubmitted="OnCommentComposerSubmitted"
+                                             ComposerCanceled="OnCommentComposerCanceled" />
+
+            <controls:SvgEditorToolTray HorizontalAlignment="Center"
+                                        VerticalAlignment="Bottom"
+                                        Margin="12"
+                                        IsDevModeActive="{Binding ViewModel.IsDevInspectorActive, ElementName=Root, Mode=OneWay}"
+                                        ToolGroups="{Binding ViewModel.ToolGroups, ElementName=Root, Mode=OneWay}"
+                                        ToolRequested="OnToolRequested"
+                                        DevModeRequested="OnDevModeClick" />
+          </Grid>
+        </Border>
+      </Grid>
+    </Grid>
+</UserControl>
