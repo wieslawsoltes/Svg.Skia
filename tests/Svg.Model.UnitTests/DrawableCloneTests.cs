@@ -42,6 +42,7 @@ public class DrawableCloneTests
         Assert.Same(clone, clone.MaskDrawable!.Parent);
         Assert.NotSame(drawable.Mask, clone.Mask);
         Assert.NotSame(drawable.MaskDstIn, clone.MaskDstIn);
+        Assert.NotSame(drawable.Blend, clone.Blend);
         Assert.NotSame(drawable.Opacity, clone.Opacity);
         Assert.NotSame(drawable.Filter, clone.Filter);
         Assert.NotSame(drawable.Fill, clone.Fill);
@@ -253,6 +254,7 @@ public class DrawableCloneTests
         drawable.ClipPath = DrawableCloneTestData.CreateClipPath();
         drawable.Mask = DrawableCloneTestData.CreatePaint(1);
         drawable.MaskDstIn = DrawableCloneTestData.CreatePaint(2);
+        drawable.Blend = DrawableCloneTestData.CreatePaint(7);
         drawable.Opacity = DrawableCloneTestData.CreatePaint(3);
         drawable.Filter = DrawableCloneTestData.CreatePaint(4);
         drawable.FilterClip = SKRect.Create(2, 2, 3, 3);

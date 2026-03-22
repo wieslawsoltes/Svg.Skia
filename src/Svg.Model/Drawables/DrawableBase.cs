@@ -29,6 +29,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
     public MaskDrawable? MaskDrawable { get; set; }
     public SKPaint? Mask { get; set; }
     public SKPaint? MaskDstIn { get; set; }
+    public SKPaint? Blend { get; set; }
     public SKPaint? Opacity { get; set; }
     public SKPaint? Filter { get; set; }
     public SKRect? FilterClip { get; set; }
@@ -85,6 +86,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
         target.MaskDrawable = CloneDrawableWithParent(MaskDrawable, this, target);
         target.Mask = Mask?.DeepClone();
         target.MaskDstIn = MaskDstIn?.DeepClone();
+        target.Blend = Blend?.DeepClone();
         target.Opacity = Opacity?.DeepClone();
         target.Filter = Filter?.DeepClone();
         target.FilterClip = FilterClip;
@@ -181,6 +183,11 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
             canvas.ClipPath(ClipPath, SKClipOperation.Intersect, IsAntialias);
         }
 
+        if (Blend is { })
+        {
+            canvas.SaveLayer(Blend);
+        }
+
         if (MaskDrawable is { } && Mask is { } && enableMask)
         {
             canvas.SaveLayer(Mask);
@@ -256,6 +263,11 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
             canvas.Restore();
         }
 
+        if (Blend is { })
+        {
+            canvas.Restore();
+        }
+
         canvas.Restore();
     }
 
@@ -321,6 +333,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
             MaskDrawable = null;
         }
 
+        Blend = BlendModeService.GetBlendPaint(element);
         Opacity = enableOpacity ? PaintingService.GetOpacityPaint(element) : null;
 
         if (visualElement is { } && enableFilter)

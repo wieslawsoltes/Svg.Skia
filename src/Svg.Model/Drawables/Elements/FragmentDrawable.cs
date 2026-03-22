@@ -122,6 +122,7 @@ public sealed class FragmentDrawable : DrawableContainer
 
         Fill = null;
         Stroke = null;
+        Blend = BlendModeService.GetBlendPaint(svgFragment);
     }
 
     public override void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
@@ -136,6 +137,7 @@ public sealed class FragmentDrawable : DrawableContainer
 
         ClipPath = null;
         MaskDrawable = null;
+        Blend = BlendModeService.GetBlendPaint(element);
         Opacity = enableOpacity ? PaintingService.GetOpacityPaint(element) : null;
         Filter = null;
 

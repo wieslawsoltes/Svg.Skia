@@ -52,6 +52,7 @@ public sealed class AnchorDrawable : DrawableContainer
 
         ClipPath = null;
         MaskDrawable = null;
+        Blend = BlendModeService.GetBlendPaint(svgAnchor);
         Opacity = IgnoreAttributes.HasFlag(DrawAttributes.Opacity)
             ? null
             : PaintingService.GetOpacityPaint(svgAnchor);
@@ -70,6 +71,7 @@ public sealed class AnchorDrawable : DrawableContainer
 
         ClipPath = null;
         MaskDrawable = null;
+        Blend = BlendModeService.GetBlendPaint(element);
         Opacity = enableOpacity ? PaintingService.GetOpacityPaint(element) : null;
         Filter = null;
 
