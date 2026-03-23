@@ -161,7 +161,134 @@
                           VerticalScrollMode="Enabled"
                           HorizontalScrollMode="Disabled"
                           ZoomMode="Disabled">
-              <Grid>
+              <StackPanel Spacing="18">
+                <Border x:Name="SelectedLibraryCard"
+                        Visibility="Collapsed"
+                        Background="{StaticResource SurfaceAltBrush}"
+                        BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="18"
+                        Padding="16">
+                  <Grid ColumnDefinitions="112,*,Auto"
+                        ColumnSpacing="16">
+                    <Border Width="112"
+                            Height="88"
+                            CornerRadius="14"
+                            Background="{Binding PreviewSecondaryColor, Converter={StaticResource ColorToBrushConverter}}">
+                      <Grid Padding="12">
+                        <Border Width="58"
+                                Height="28"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                CornerRadius="9"
+                                Background="{Binding PreviewPrimaryColor, Converter={StaticResource ColorToBrushConverter}}" />
+                        <Border Width="48"
+                                Height="20"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Bottom"
+                                CornerRadius="8"
+                                Background="{Binding PreviewAccentColor, Converter={StaticResource ColorToBrushConverter}}" />
+                        <TextBlock Text="{Binding PreviewLabel}"
+                                   Margin="8,8,8,0"
+                                   Foreground="White"
+                                   FontWeight="Bold"
+                                   FontSize="12"
+                                   TextWrapping="WrapWholeWords"
+                                   MaxLines="2" />
+                      </Grid>
+                    </Border>
+
+                    <StackPanel Grid.Column="1"
+                                MinWidth="0"
+                                Spacing="5">
+                      <TextBlock Text="{Binding Name}"
+                                 Style="{StaticResource ShellTitleStyle}"
+                                 FontSize="16"
+                                 TextTrimming="CharacterEllipsis"
+                                 MaxLines="1" />
+                      <TextBlock Text="{Binding Publisher}"
+                                 Style="{StaticResource ShellBodyStyle}"
+                                 FontSize="12.5"
+                                 TextTrimming="CharacterEllipsis"
+                                 MaxLines="1" />
+                      <TextBlock Text="{Binding StatusLabel}"
+                                 Style="{StaticResource ShellBodyStyle}"
+                                 FontSize="12"
+                                 TextWrapping="WrapWholeWords"
+                                 MaxLines="2" />
+                      <TextBlock Text="{Binding AssetsCountLabel}"
+                                 Style="{StaticResource ShellBodyStyle}"
+                                 FontSize="11.5"
+                                 Foreground="{StaticResource MutedTextBrush}" />
+
+                      <StackPanel x:Name="SelectedLibraryAssetsHost"
+                                  Visibility="Collapsed"
+                                  Spacing="8"
+                                  Margin="0,8,0,0">
+                        <TextBlock Text="Assets"
+                                   Style="{StaticResource ShellTitleStyle}"
+                                   FontSize="12.5" />
+                        <ItemsControl x:Name="SelectedLibraryAssetsList">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:EditorComponentItem">
+                              <Border Background="{StaticResource SurfaceBrush}"
+                                      BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                                      BorderThickness="1"
+                                      CornerRadius="10"
+                                      Padding="10,8"
+                                      Margin="0,0,0,8">
+                                <Grid ColumnDefinitions="Auto,*"
+                                      ColumnSpacing="10">
+                                  <controls:SvgSymbolPreview Symbol="{x:Bind Symbol}"
+                                                             Width="54"
+                                                             Height="40"
+                                                             PreviewCornerRadius="10" />
+                                  <StackPanel Grid.Column="1"
+                                              MinWidth="0"
+                                              Spacing="2"
+                                              VerticalAlignment="Center">
+                                    <TextBlock Text="{x:Bind Name}"
+                                               Style="{StaticResource ShellTitleStyle}"
+                                               FontSize="12.5"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxLines="1" />
+                                    <TextBlock Text="{x:Bind SectionName}"
+                                               Style="{StaticResource ShellBodyStyle}"
+                                               FontSize="11"
+                                               Foreground="{StaticResource SidebarMetaBrush}"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxLines="1" />
+                                  </StackPanel>
+                                </Grid>
+                              </Border>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2"
+                                VerticalAlignment="Top"
+                                Spacing="8">
+                      <Button Content="{Binding ActionLabel}"
+                              Style="{StaticResource ChromeButtonStyle}"
+                              BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                              BorderThickness="1"
+                              Background="{StaticResource SurfaceBrush}"
+                              Padding="14,9"
+                              Click="OnLibraryToggleClick" />
+                      <Button Content="Update"
+                              Style="{StaticResource ChromeButtonStyle}"
+                              BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                              BorderThickness="1"
+                              Background="{StaticResource SurfaceAltBrush}"
+                              Padding="14,9"
+                              Visibility="{Binding UpdateVisibility}"
+                              Click="OnLibraryUpdateClick" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+
                 <StackPanel x:Name="ThisFilePanel"
                             Spacing="20">
               <Border Background="#F7F8FA"
@@ -216,70 +343,80 @@
                 <ItemsControl x:Name="EnabledLibrariesList">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="models:EditorLibraryItem">
-                      <Border Background="{StaticResource SurfaceBrush}"
+                      <Border Background="{x:Bind IsSelected, Converter={StaticResource BooleanToSidebarTabBrushConverter}}"
                               BorderBrush="{StaticResource SurfaceStrokeBrush}"
                               BorderThickness="1"
                               CornerRadius="18"
                               Padding="14"
                               Margin="0,0,0,12">
-                        <Grid ColumnDefinitions="132,*,Auto"
-                              ColumnSpacing="14">
-                          <Border Width="132"
-                                  Height="84"
-                                  CornerRadius="14"
-                                  Background="{x:Bind PreviewSecondaryColor, Converter={StaticResource ColorToBrushConverter}}">
-                            <Grid Padding="12">
-                              <Border Width="62"
-                                      Height="30"
-                                      HorizontalAlignment="Left"
-                                      VerticalAlignment="Top"
-                                      CornerRadius="9"
-                                      Background="{x:Bind PreviewPrimaryColor, Converter={StaticResource ColorToBrushConverter}}" />
-                              <Border Width="52"
-                                      Height="22"
-                                      HorizontalAlignment="Right"
-                                      VerticalAlignment="Bottom"
-                                      CornerRadius="8"
-                                      Background="{x:Bind PreviewAccentColor, Converter={StaticResource ColorToBrushConverter}}" />
-                              <TextBlock Text="{x:Bind PreviewLabel}"
-                                         Margin="8,8,8,0"
-                                         Foreground="White"
-                                         FontWeight="Bold"
-                                         FontSize="12"
-                                         TextWrapping="WrapWholeWords"
-                                         MaxLines="2" />
+                        <Grid ColumnDefinitions="*,Auto"
+                              ColumnSpacing="12">
+                          <Button Style="{StaticResource ChromeButtonStyle}"
+                                  Background="Transparent"
+                                  BorderBrush="Transparent"
+                                  HorizontalContentAlignment="Stretch"
+                                  Padding="0"
+                                  Click="OnLibraryCardClick">
+                            <Grid ColumnDefinitions="112,*"
+                                  ColumnSpacing="14">
+                              <Border Width="112"
+                                      Height="84"
+                                      CornerRadius="14"
+                                      Background="{x:Bind PreviewSecondaryColor, Converter={StaticResource ColorToBrushConverter}}">
+                                <Grid Padding="12">
+                                  <Border Width="58"
+                                          Height="28"
+                                          HorizontalAlignment="Left"
+                                          VerticalAlignment="Top"
+                                          CornerRadius="9"
+                                          Background="{x:Bind PreviewPrimaryColor, Converter={StaticResource ColorToBrushConverter}}" />
+                                  <Border Width="48"
+                                          Height="20"
+                                          HorizontalAlignment="Right"
+                                          VerticalAlignment="Bottom"
+                                          CornerRadius="8"
+                                          Background="{x:Bind PreviewAccentColor, Converter={StaticResource ColorToBrushConverter}}" />
+                                  <TextBlock Text="{x:Bind PreviewLabel}"
+                                             Margin="8,8,8,0"
+                                             Foreground="White"
+                                             FontWeight="Bold"
+                                             FontSize="12"
+                                             TextWrapping="WrapWholeWords"
+                                             MaxLines="2" />
+                                </Grid>
+                              </Border>
+
+                              <StackPanel Grid.Column="1"
+                                          MinWidth="0"
+                                          VerticalAlignment="Center"
+                                          Spacing="4">
+                                <TextBlock Text="{x:Bind Name}"
+                                           Style="{StaticResource ShellTitleStyle}"
+                                           FontSize="15"
+                                           TextTrimming="CharacterEllipsis"
+                                           MaxLines="1" />
+                                <TextBlock Text="{x:Bind Publisher}"
+                                           Style="{StaticResource ShellBodyStyle}"
+                                           FontSize="12.5"
+                                           TextTrimming="CharacterEllipsis"
+                                           MaxLines="1" />
+                                <TextBlock Text="{x:Bind StatusLabel}"
+                                           Style="{StaticResource ShellBodyStyle}"
+                                           FontSize="12"
+                                           TextWrapping="WrapWholeWords"
+                                           MaxLines="2" />
+                                <TextBlock Text="{x:Bind AssetsCountLabel}"
+                                           Style="{StaticResource ShellBodyStyle}"
+                                           FontSize="11.5"
+                                           Foreground="{StaticResource MutedTextBrush}" />
+                              </StackPanel>
                             </Grid>
-                          </Border>
+                          </Button>
 
                           <StackPanel Grid.Column="1"
-                                      MinWidth="0"
-                                      VerticalAlignment="Center"
-                                      Spacing="4">
-                            <TextBlock Text="{x:Bind Name}"
-                                       Style="{StaticResource ShellTitleStyle}"
-                                       FontSize="15"
-                                       TextTrimming="CharacterEllipsis"
-                                       MaxLines="1" />
-                            <TextBlock Text="{x:Bind Publisher}"
-                                       Style="{StaticResource ShellBodyStyle}"
-                                       FontSize="12.5"
-                                       TextTrimming="CharacterEllipsis"
-                                       MaxLines="1" />
-                            <TextBlock Text="{x:Bind StatusLabel}"
-                                       Style="{StaticResource ShellBodyStyle}"
-                                       FontSize="12"
-                                       TextWrapping="WrapWholeWords"
-                                       MaxLines="2" />
-                            <TextBlock Text="{x:Bind AssetsCountLabel}"
-                                       Style="{StaticResource ShellBodyStyle}"
-                                       FontSize="11.5"
-                                       Foreground="{StaticResource MutedTextBrush}" />
-                          </StackPanel>
-
-                          <StackPanel Grid.Column="2"
                                       VerticalAlignment="Center"
                                       Spacing="8">
-                            <Button Content="Remove"
+                            <Button Content="{x:Bind ActionLabel}"
                                     Style="{StaticResource ChromeButtonStyle}"
                                     BorderBrush="{StaticResource SurfaceStrokeBrush}"
                                     BorderThickness="1"
@@ -334,7 +471,7 @@
               <ItemsControl x:Name="UpdatesLibrariesList">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="models:EditorLibraryItem">
-                      <Border Background="{StaticResource SurfaceAltBrush}"
+                      <Border Background="{x:Bind IsSelected, Converter={StaticResource BooleanToSidebarTabBrushConverter}}"
                             BorderBrush="{StaticResource SurfaceStrokeBrush}"
                             BorderThickness="1"
                             CornerRadius="16"
@@ -342,17 +479,24 @@
                             Margin="0,0,0,12">
                         <Grid ColumnDefinitions="*,Auto"
                               ColumnSpacing="12">
-                        <StackPanel Spacing="4"
-                                    MinWidth="0">
-                          <TextBlock Text="{x:Bind Name}"
-                                     Style="{StaticResource ShellTitleStyle}"
-                                     FontSize="15"
-                                     TextTrimming="CharacterEllipsis"
-                                     MaxLines="1" />
-                          <TextBlock Text="{x:Bind StatusLabel}"
-                                     Style="{StaticResource ShellBodyStyle}"
-                                     FontSize="12.5" />
-                        </StackPanel>
+                        <Button Style="{StaticResource ChromeButtonStyle}"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                HorizontalContentAlignment="Stretch"
+                                Padding="0"
+                                Click="OnLibraryCardClick">
+                          <StackPanel Spacing="4"
+                                      MinWidth="0">
+                            <TextBlock Text="{x:Bind Name}"
+                                       Style="{StaticResource ShellTitleStyle}"
+                                       FontSize="15"
+                                       TextTrimming="CharacterEllipsis"
+                                       MaxLines="1" />
+                            <TextBlock Text="{x:Bind StatusLabel}"
+                                       Style="{StaticResource ShellBodyStyle}"
+                                       FontSize="12.5" />
+                          </StackPanel>
+                        </Button>
                         <Button Grid.Column="1"
                                 Content="Update"
                                 Background="{StaticResource AccentBrush}"
@@ -388,67 +532,77 @@
               <ItemsControl x:Name="BrowseLibrariesList">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="models:EditorLibraryItem">
-                      <Border Background="{StaticResource SurfaceBrush}"
+                      <Border Background="{x:Bind IsSelected, Converter={StaticResource BooleanToSidebarTabBrushConverter}}"
                             BorderBrush="{StaticResource SurfaceStrokeBrush}"
                             BorderThickness="1"
                             CornerRadius="18"
                             Padding="14"
                             Margin="0,0,0,12">
-                      <Grid ColumnDefinitions="132,*,Auto"
+                      <Grid ColumnDefinitions="*,Auto"
                             ColumnSpacing="14">
-                        <Border Width="132"
-                                Height="84"
-                                CornerRadius="14"
-                                Background="{x:Bind PreviewSecondaryColor, Converter={StaticResource ColorToBrushConverter}}">
-                          <Grid Padding="12">
-                            <Border Width="62"
-                                    Height="28"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    CornerRadius="9"
-                                    Background="{x:Bind PreviewPrimaryColor, Converter={StaticResource ColorToBrushConverter}}" />
-                            <Border Width="52"
-                                    Height="20"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Bottom"
-                                    CornerRadius="8"
-                                    Background="{x:Bind PreviewAccentColor, Converter={StaticResource ColorToBrushConverter}}" />
-                            <TextBlock Text="{x:Bind PreviewLabel}"
-                                       Margin="8,8,8,0"
-                                       Foreground="White"
-                                       FontWeight="Bold"
-                                       FontSize="12"
-                                       TextWrapping="WrapWholeWords"
-                                       MaxLines="2" />
+                        <Button Style="{StaticResource ChromeButtonStyle}"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                HorizontalContentAlignment="Stretch"
+                                Padding="0"
+                                Click="OnLibraryCardClick">
+                          <Grid ColumnDefinitions="112,*"
+                                ColumnSpacing="14">
+                            <Border Width="112"
+                                    Height="84"
+                                    CornerRadius="14"
+                                    Background="{x:Bind PreviewSecondaryColor, Converter={StaticResource ColorToBrushConverter}}">
+                              <Grid Padding="12">
+                                <Border Width="58"
+                                        Height="28"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        CornerRadius="9"
+                                        Background="{x:Bind PreviewPrimaryColor, Converter={StaticResource ColorToBrushConverter}}" />
+                                <Border Width="48"
+                                        Height="20"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Bottom"
+                                        CornerRadius="8"
+                                        Background="{x:Bind PreviewAccentColor, Converter={StaticResource ColorToBrushConverter}}" />
+                                <TextBlock Text="{x:Bind PreviewLabel}"
+                                           Margin="8,8,8,0"
+                                           Foreground="White"
+                                           FontWeight="Bold"
+                                           FontSize="12"
+                                           TextWrapping="WrapWholeWords"
+                                           MaxLines="2" />
+                              </Grid>
+                            </Border>
+
+                            <StackPanel Grid.Column="1"
+                                        MinWidth="0"
+                                        VerticalAlignment="Center"
+                                        Spacing="4">
+                              <TextBlock Text="{x:Bind Name}"
+                                         Style="{StaticResource ShellTitleStyle}"
+                                         FontSize="15"
+                                         TextTrimming="CharacterEllipsis"
+                                         MaxLines="1" />
+                              <TextBlock Text="{x:Bind Publisher}"
+                                         Style="{StaticResource ShellBodyStyle}"
+                                         FontSize="12.5"
+                                         TextTrimming="CharacterEllipsis"
+                                         MaxLines="1" />
+                              <TextBlock Text="{x:Bind Description}"
+                                         Style="{StaticResource ShellBodyStyle}"
+                                         FontSize="12"
+                                         TextWrapping="WrapWholeWords"
+                                         MaxLines="2" />
+                              <TextBlock Text="{x:Bind AssetsCountLabel}"
+                                         Style="{StaticResource ShellBodyStyle}"
+                                         FontSize="11.5"
+                                         Foreground="{StaticResource MutedTextBrush}" />
+                            </StackPanel>
                           </Grid>
-                        </Border>
+                        </Button>
 
-                        <StackPanel Grid.Column="1"
-                                    MinWidth="0"
-                                    VerticalAlignment="Center"
-                                    Spacing="4">
-                          <TextBlock Text="{x:Bind Name}"
-                                     Style="{StaticResource ShellTitleStyle}"
-                                     FontSize="15"
-                                     TextTrimming="CharacterEllipsis"
-                                     MaxLines="1" />
-                          <TextBlock Text="{x:Bind Publisher}"
-                                     Style="{StaticResource ShellBodyStyle}"
-                                     FontSize="12.5"
-                                     TextTrimming="CharacterEllipsis"
-                                     MaxLines="1" />
-                          <TextBlock Text="{x:Bind Description}"
-                                     Style="{StaticResource ShellBodyStyle}"
-                                     FontSize="12"
-                                     TextWrapping="WrapWholeWords"
-                                     MaxLines="2" />
-                          <TextBlock Text="{x:Bind AssetsCountLabel}"
-                                     Style="{StaticResource ShellBodyStyle}"
-                                     FontSize="11.5"
-                                     Foreground="{StaticResource MutedTextBrush}" />
-                        </StackPanel>
-
-                        <Button Grid.Column="2"
+                        <Button Grid.Column="1"
                                 Content="{x:Bind ActionLabel}"
                                 Style="{StaticResource ChromeButtonStyle}"
                                 BorderBrush="{StaticResource SurfaceStrokeBrush}"
@@ -468,7 +622,7 @@
                          FontSize="13"
                          Visibility="Collapsed" />
                 </StackPanel>
-              </Grid>
+              </StackPanel>
             </ScrollViewer>
           </Grid>
         </Grid>

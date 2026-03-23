@@ -12,61 +12,107 @@
         <ResourceDictionary Source="ms-appx:///Svg.Editor.Skia.Uno/Themes/EditorThemeResources.xaml" />
       </ResourceDictionary.MergedDictionaries>
 
-      <Style x:Key="AssetGridViewItemStyle"
-             TargetType="GridViewItem">
+      <Style x:Key="LibraryShelfButtonStyle"
+             TargetType="Button"
+             BasedOn="{StaticResource ChromeButtonStyle}">
+        <Setter Property="Background"
+                Value="Transparent" />
+        <Setter Property="BorderBrush"
+                Value="Transparent" />
+        <Setter Property="BorderThickness"
+                Value="0" />
         <Setter Property="Padding"
                 Value="0" />
-        <Setter Property="Margin"
-                Value="0,0,12,16" />
         <Setter Property="HorizontalContentAlignment"
                 Value="Stretch" />
       </Style>
     </ResourceDictionary>
   </UserControl.Resources>
 
-  <Grid RowDefinitions="Auto,*">
-    <Grid Padding="0,2,0,0"
-          RowDefinitions="Auto,Auto"
-          RowSpacing="14">
-      <controls:EditorSearchField x:Name="SearchTextBox"
-                                  PlaceholderText="Search all libraries"
-                                  TextChanged="OnSearchTextChanged">
+  <Grid Padding="0,2,0,0"
+        RowDefinitions="Auto,Auto,*"
+        RowSpacing="14">
+    <controls:EditorSearchField x:Name="SearchTextBox"
+                                Grid.Row="0"
+                                PlaceholderText="Search all libraries"
+                                TextChanged="OnSearchTextChanged">
         <controls:EditorSearchField.TrailingContent>
           <Button Style="{StaticResource SubtleIconButtonStyle}"
-                  Click="OnFilterClick">
-            <controls:FigmaIcon Kind="Adjust"
+                  Click="OnManageLibrariesClick">
+            <controls:FigmaIcon Kind="Library"
                                 Width="18"
                                 Height="18"
                                 IconStroke="{StaticResource TextBrush}" />
           </Button>
         </controls:EditorSearchField.TrailingContent>
-      </controls:EditorSearchField>
+    </controls:EditorSearchField>
 
-      <Grid x:Name="OverviewHeader"
-            ColumnDefinitions="*,Auto"
-            VerticalAlignment="Center">
+    <StackPanel x:Name="OverviewHeader"
+                Grid.Row="1"
+                Spacing="10"
+                Visibility="Visible">
         <StackPanel Spacing="2">
           <TextBlock Text="All libraries"
                      Style="{StaticResource SectionHeadingStyle}" />
           <TextBlock x:Name="OverviewSubtitleText"
                      Style="{StaticResource SectionCaptionStyle}" />
         </StackPanel>
-        <Button Grid.Column="1"
-                Style="{StaticResource SubtleIconButtonStyle}"
-                Click="OnManageLibrariesClick">
-          <controls:FigmaIcon Kind="Library"
-                              Width="18"
-                              Height="18"
-                              IconStroke="{StaticResource TextBrush}" />
-        </Button>
-      </Grid>
+
+        <ScrollViewer HorizontalScrollBarVisibility="Hidden"
+                      VerticalScrollBarVisibility="Disabled">
+          <StackPanel Orientation="Horizontal"
+                      Spacing="8">
+            <Border x:Name="AllLibrariesFilterBorder"
+                    Background="{StaticResource AccentSoftBrush}"
+                    BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+              <Button Style="{StaticResource ChromeButtonStyle}"
+                      Padding="12,7"
+                      Click="OnAllLibrariesFilterClick">
+                <TextBlock Text="All"
+                           Style="{StaticResource ShellTitleStyle}"
+                           FontSize="11.5" />
+              </Button>
+            </Border>
+
+            <Border x:Name="ConnectedLibrariesFilterBorder"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+              <Button Style="{StaticResource ChromeButtonStyle}"
+                      Padding="12,7"
+                      Click="OnConnectedLibrariesFilterClick">
+                <TextBlock Text="Connected"
+                           Style="{StaticResource ShellTitleStyle}"
+                           FontSize="11.5" />
+              </Button>
+            </Border>
+
+            <Border x:Name="UpdatesLibrariesFilterBorder"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+              <Button Style="{StaticResource ChromeButtonStyle}"
+                      Padding="12,7"
+                      Click="OnUpdatesLibrariesFilterClick">
+                <TextBlock Text="Updates"
+                           Style="{StaticResource ShellTitleStyle}"
+                           FontSize="11.5" />
+              </Button>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </StackPanel>
 
       <Grid x:Name="DetailHeader"
+            Grid.Row="1"
             ColumnDefinitions="Auto,*"
-            ColumnSpacing="8"
+            ColumnSpacing="10"
             Visibility="Collapsed">
-        <Button Style="{StaticResource ChromeButtonStyle}"
-                Padding="4"
+        <Button Style="{StaticResource SubtleIconButtonStyle}"
                 Click="OnBackClick">
           <controls:FigmaIcon Kind="Back"
                               Width="16"
@@ -83,45 +129,51 @@
         </StackPanel>
       </Grid>
 
-      <ScrollViewer Grid.Row="1"
+      <ScrollViewer Grid.Row="2"
                     VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="14">
           <StackPanel x:Name="OverviewPanel"
-                      Spacing="18">
+                      Spacing="22">
             <ItemsControl x:Name="LibraryCardsList">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="models:EditorLibraryItem">
-                  <Border Margin="0,0,0,2">
-                    <Button Background="Transparent"
-                            BorderBrush="Transparent"
-                            Padding="0"
-                            HorizontalContentAlignment="Stretch"
+                  <Border Margin="0,0,0,4">
+                    <Button Style="{StaticResource LibraryShelfButtonStyle}"
                             Click="OnLibraryCardClick">
-                      <StackPanel Spacing="10"
+                      <StackPanel Spacing="12"
                                   HorizontalAlignment="Stretch">
-                        <Border Height="170"
-                                CornerRadius="16"
+                        <Border Height="152"
+                                CornerRadius="20"
                                 Background="{x:Bind PreviewSecondaryColor, Converter={StaticResource ColorToBrushConverter}}">
                           <Grid Padding="16">
-                            <Border Width="122"
-                                    Height="72"
+                            <Border MinWidth="126"
+                                    MaxWidth="188"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Top"
-                                    CornerRadius="16"
-                                    Background="{x:Bind PreviewPrimaryColor, Converter={StaticResource ColorToBrushConverter}}" />
-                          <Border Width="132"
-                                    Height="56"
+                                    CornerRadius="18"
+                                    Background="{x:Bind PreviewPrimaryColor, Converter={StaticResource ColorToBrushConverter}}"
+                                    Padding="14,11">
+                              <TextBlock Text="{x:Bind PreviewLabel}"
+                                         Style="{StaticResource ShellTitleStyle}"
+                                         FontSize="20"
+                                         Foreground="White"
+                                         TextWrapping="WrapWholeWords"
+                                         MaxLines="2" />
+                            </Border>
+                            <Border Width="112"
+                                    Height="12"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Bottom"
+                                    Margin="0,0,0,10"
+                                    CornerRadius="999"
+                                    Background="#66FFFFFF" />
+                            <Border Width="118"
+                                    Height="42"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Bottom"
-                                    CornerRadius="18"
+                                    CornerRadius="14"
                                     Background="{x:Bind PreviewAccentColor, Converter={StaticResource ColorToBrushConverter}}" />
-                            <TextBlock Text="{x:Bind PreviewLabel}"
-                                       Margin="16,16,16,0"
-                                       Style="{StaticResource ShellTitleStyle}"
-                                       FontSize="22"
-                                       Foreground="White"
-                                       TextWrapping="WrapWholeWords" />
                             <Border HorizontalAlignment="Right"
                                     VerticalAlignment="Top"
                                     Background="{StaticResource SurfaceBrush}"
@@ -138,21 +190,36 @@
                           </Grid>
                         </Border>
 
-                        <StackPanel Spacing="2">
-                          <StackPanel Orientation="Horizontal"
-                                      Spacing="6">
+                        <StackPanel Spacing="4">
+                          <Grid ColumnDefinitions="*,Auto"
+                                ColumnSpacing="8">
                             <TextBlock Text="{x:Bind Name}"
                                        Style="{StaticResource ShellTitleStyle}"
-                                       FontSize="14" />
-                            <controls:FigmaIcon Kind="{x:Bind CategoryIconKind}"
+                                       FontSize="15"
+                                       TextWrapping="WrapWholeWords"
+                                       MaxLines="2" />
+                            <controls:FigmaIcon Grid.Column="1"
+                                                Kind="{x:Bind CategoryIconKind}"
                                                 Width="14"
                                                 Height="14"
-                                                VerticalAlignment="Center"
+                                                VerticalAlignment="Top"
+                                                Margin="0,2,0,0"
                                                 IconStroke="{StaticResource SidebarMetaBrush}" />
-                          </StackPanel>
+                          </Grid>
+                          <TextBlock Text="{x:Bind Publisher}"
+                                     Style="{StaticResource ShellBodyStyle}"
+                                     FontSize="11.25"
+                                     Foreground="{StaticResource SidebarMetaBrush}"
+                                     TextTrimming="CharacterEllipsis" />
                           <TextBlock Text="{x:Bind AssetsCountLabel}"
                                      Style="{StaticResource ShellBodyStyle}"
                                      FontSize="11.5" />
+                          <TextBlock Text="{x:Bind StatusLabel}"
+                                     Style="{StaticResource ShellBodyStyle}"
+                                     FontSize="11"
+                                     Foreground="{StaticResource MutedTextBrush}"
+                                     TextWrapping="WrapWholeWords"
+                                     MaxLines="2" />
                         </StackPanel>
                       </StackPanel>
                     </Button>
@@ -164,15 +231,23 @@
             <Button HorizontalAlignment="Stretch"
                     Style="{StaticResource GhostPillButtonStyle}"
                     Click="OnManageLibrariesClick">
-              <TextBlock Text="Add more libraries"
-                         Style="{StaticResource ShellTitleStyle}"
-                         FontSize="12.5" />
+              <StackPanel Orientation="Horizontal"
+                          HorizontalAlignment="Center"
+                          Spacing="8">
+                <controls:FigmaIcon Kind="Library"
+                                    Width="16"
+                                    Height="16"
+                                    IconStroke="{StaticResource TextBrush}" />
+                <TextBlock Text="Manage libraries"
+                           Style="{StaticResource ShellTitleStyle}"
+                           FontSize="12.5" />
+              </StackPanel>
             </Button>
           </StackPanel>
 
           <StackPanel x:Name="DetailPanel"
                       Visibility="Collapsed"
-                      Spacing="14">
+                      Spacing="16">
             <ScrollViewer HorizontalScrollBarVisibility="Hidden"
                           VerticalScrollBarVisibility="Disabled">
               <ItemsControl x:Name="SectionTabsList">
@@ -200,76 +275,75 @@
               </ItemsControl>
             </ScrollViewer>
 
-            <GridView x:Name="AssetsGridView"
-                      IsItemClickEnabled="False"
-                      SelectionMode="None"
-                      HorizontalAlignment="Stretch">
-              <GridView.ItemContainerStyle>
-                <Style TargetType="GridViewItem"
-                       BasedOn="{StaticResource AssetGridViewItemStyle}" />
-              </GridView.ItemContainerStyle>
-              <GridView.ItemTemplate>
+            <ItemsControl x:Name="AssetsItemsControl">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="models:EditorComponentItem">
-                  <Border Width="186"
-                          Background="Transparent">
-                    <Button Background="Transparent"
-                            BorderBrush="Transparent"
+                  <Border Margin="0,0,0,18">
+                    <Button Style="{StaticResource LibraryShelfButtonStyle}"
                             CanDrag="True"
-                            Padding="0"
-                            HorizontalContentAlignment="Stretch"
                             Click="OnAssetClick"
                             DragStarting="OnAssetDragStarting">
-                      <StackPanel Spacing="8"
+                      <StackPanel Spacing="10"
                                   HorizontalAlignment="Stretch">
                         <Border Background="{x:Bind IsSelected, Converter={StaticResource BooleanToBrushConverter}}"
-                                BorderBrush="{StaticResource SurfaceStrokeBrush}"
-                                BorderThickness="1"
-                                CornerRadius="14"
-                                Padding="10">
-                          <Grid>
-                            <controls:SvgSymbolPreview Symbol="{x:Bind Symbol}"
-                                                       Height="168"
-                                                       PreviewCornerRadius="12" />
-                            <Border HorizontalAlignment="Right"
-                                    VerticalAlignment="Top"
-                                    Background="{StaticResource AccentSoftBrush}"
-                                    CornerRadius="8"
-                                    Padding="6,2"
-                                    Visibility="{x:Bind UpdateVisibility}">
-                              <TextBlock Text="New"
-                                         Style="{StaticResource ShellTitleStyle}"
-                                         FontSize="10"
-                                         Foreground="{StaticResource AccentBrush}" />
-                            </Border>
-                          </Grid>
+                                CornerRadius="20"
+                                Padding="4">
+                          <Border Background="{StaticResource SurfaceAltBrush}"
+                                  BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                                  BorderThickness="1"
+                                  CornerRadius="18"
+                                  Padding="12">
+                            <Grid>
+                              <controls:SvgSymbolPreview Symbol="{x:Bind Symbol}"
+                                                         Height="140"
+                                                         PreviewCornerRadius="14" />
+                              <Border HorizontalAlignment="Right"
+                                      VerticalAlignment="Top"
+                                      Background="{StaticResource AccentSoftBrush}"
+                                      CornerRadius="8"
+                                      Padding="6,2"
+                                      Visibility="{x:Bind UpdateVisibility}">
+                                <TextBlock Text="New"
+                                           Style="{StaticResource ShellTitleStyle}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource AccentBrush}" />
+                              </Border>
+                            </Grid>
+                          </Border>
                         </Border>
 
-                        <StackPanel Spacing="2">
+                        <StackPanel Spacing="3">
                           <TextBlock Text="{x:Bind Name}"
                                      Style="{StaticResource ShellTitleStyle}"
-                                     FontSize="12.5"
-                                     TextTrimming="CharacterEllipsis" />
+                                     FontSize="13.5"
+                                     TextTrimming="CharacterEllipsis"
+                                     MaxLines="1" />
                           <TextBlock Text="{x:Bind SourceSubtitle}"
                                      Style="{StaticResource ShellBodyStyle}"
-                                     FontSize="11"
+                                     FontSize="11.25"
                                      Foreground="{StaticResource SidebarMetaBrush}"
-                                     TextTrimming="CharacterEllipsis" />
+                                     TextWrapping="WrapWholeWords"
+                                     MaxLines="2" />
                         </StackPanel>
                       </StackPanel>
                     </Button>
                   </Border>
                 </DataTemplate>
-              </GridView.ItemTemplate>
-            </GridView>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
             <TextBlock x:Name="AssetsEmptyStateText"
                        Style="{StaticResource ShellBodyStyle}"
-                       FontSize="12"
+                       FontSize="12.25"
                        TextWrapping="WrapWholeWords"
                        Visibility="Collapsed" />
           </StackPanel>
         </StackPanel>
       </ScrollViewer>
-    </Grid>
   </Grid>
 </UserControl>

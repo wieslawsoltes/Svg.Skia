@@ -4836,6 +4836,7 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
                     }
                     break;
                 case EditorLibraryCommand.ViewMissingLibraries:
+            Components = ComponentAssets,
                     await ShowMissingLibrariesAsync();
                     break;
             }
@@ -8394,8 +8395,16 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
             height = parsedHeight;
         }
 
-        width = Math.Max(width, 160f);
-        height = Math.Max(height, 120f);
+        if (width <= 0f)
+        {
+            width = 160f;
+        }
+
+        if (height <= 0f)
+        {
+            height = 120f;
+        }
+
         return (width, height);
     }
 

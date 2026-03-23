@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Media;
 using Svg.Editor.Skia.Uno.Models;
 using Windows.ApplicationModel.DataTransfer;
 
@@ -50,7 +50,7 @@ public sealed partial class SvgEditorAssetsBrowser : UserControl
     {
         InitializeComponent();
         LibraryCardsList.ItemsSource = _visibleLibraries;
-        AssetsGridView.ItemsSource = _visibleAssets;
+        AssetsItemsControl.ItemsSource = _visibleAssets;
         SectionTabsList.ItemsSource = _sections;
         RefreshView();
     }
@@ -167,26 +167,22 @@ public sealed partial class SvgEditorAssetsBrowser : UserControl
         RefreshView();
     }
 
-    private void OnFilterClick(object sender, RoutedEventArgs e)
+    private void OnAllLibrariesFilterClick(object sender, RoutedEventArgs e)
     {
-        var flyout = new MenuFlyout();
+        _filter = AssetsLibraryFilter.All;
+        RefreshView();
+    }
 
-        if (_selectedLibrary is null)
-        {
-            flyout.Items.Add(CreateFilterItem("All libraries", AssetsLibraryFilter.All));
-            flyout.Items.Add(CreateFilterItem("Connected libraries", AssetsLibraryFilter.Connected));
-            flyout.Items.Add(CreateFilterItem("Updates", AssetsLibraryFilter.Updates));
-        }
-        else
-        {
-            flyout.Items.Add(CreateSectionItem("All assets", null));
-            foreach (var section in BuildSections(GetLibraryAssets(_selectedLibrary)))
-            {
-                flyout.Items.Add(CreateSectionItem(section.Name, section.Name));
-            }
-        }
+    private void OnConnectedLibrariesFilterClick(object sender, RoutedEventArgs e)
+    {
+        _filter = AssetsLibraryFilter.Connected;
+        RefreshView();
+    }
 
-        flyout.ShowAt((FrameworkElement)sender, new FlyoutShowOptions { Placement = FlyoutPlacementMode.BottomEdgeAlignedRight });
+    private void OnUpdatesLibrariesFilterClick(object sender, RoutedEventArgs e)
+    {
+        _filter = AssetsLibraryFilter.Updates;
+        RefreshView();
     }
 
     public void RefreshView()
@@ -201,7 +197,8 @@ public sealed partial class SvgEditorAssetsBrowser : UserControl
         OverviewHeader.Visibility = OverviewPanel.Visibility;
         DetailPanel.Visibility = _selectedLibrary is null ? Visibility.Collapsed : Visibility.Visible;
         DetailHeader.Visibility = DetailPanel.Visibility;
-        SearchTextBox.PlaceholderText = _selectedLibrary is null ? "Search all libraries" : "Search in this library";
+        SearchTextBox.PlaceholderText = _selectedLibrary is null ? "Search all libraries" : "Search this library";
+        UpdateOverviewFilterChrome();
 
         if (_selectedLibrary is null)
         {
@@ -265,7 +262,7 @@ public sealed partial class SvgEditorAssetsBrowser : UserControl
             : $"{library.Name} / {activeSection}";
         DetailSubtitleText.Text = library.IsEnabled || library.IsCurrentFile
             ? library.AssetsCountLabel
-            : "Browse assets first. Selecting one will add the library to this file and prepare it for placement.";
+            : "Click or drag an asset to connect this library and place it on the canvas.";
 
         AssetsEmptyStateText.Visibility = visibleAssets.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         AssetsEmptyStateText.Text = string.IsNullOrWhiteSpace(SearchTextBox.Text)
@@ -335,34 +332,29 @@ public sealed partial class SvgEditorAssetsBrowser : UserControl
     private string BuildOverviewSubtitle(List<EditorLibraryItem> libraries)
     {
         var visibleCount = ApplyLibraryFilter(libraries).Count();
-        return visibleCount == 1 ? "1 library ready to browse" : $"{visibleCount} libraries ready to browse";
+        return _filter switch
+        {
+            AssetsLibraryFilter.Connected => visibleCount == 1
+                ? "1 connected library in this file"
+                : $"{visibleCount} connected libraries in this file",
+            AssetsLibraryFilter.Updates => visibleCount == 1
+                ? "1 library needs an update"
+                : $"{visibleCount} libraries need an update",
+            _ => visibleCount == 1
+                ? "1 library ready to browse"
+                : $"{visibleCount} libraries ready to browse"
+        };
     }
 
-    private MenuFlyoutItem CreateFilterItem(string label, AssetsLibraryFilter filter)
+    private void UpdateOverviewFilterChrome()
     {
-        var item = new MenuFlyoutItem
-        {
-            Text = label
-        };
-        item.Click += (_, _) =>
-        {
-            _filter = filter;
-            RefreshView();
-        };
-        return item;
+        SetOverviewFilterState(AllLibrariesFilterBorder, _filter == AssetsLibraryFilter.All);
+        SetOverviewFilterState(ConnectedLibrariesFilterBorder, _filter == AssetsLibraryFilter.Connected);
+        SetOverviewFilterState(UpdatesLibrariesFilterBorder, _filter == AssetsLibraryFilter.Updates);
     }
 
-    private MenuFlyoutItem CreateSectionItem(string label, string? sectionName)
+    private static void SetOverviewFilterState(Border border, bool isActive)
     {
-        var item = new MenuFlyoutItem
-        {
-            Text = label
-        };
-        item.Click += (_, _) =>
-        {
-            _selectedSection = sectionName;
-            RefreshView();
-        };
-        return item;
+        border.Background = (Brush)Application.Current.Resources[isActive ? "AccentSoftBrush" : "SurfaceBrush"];
     }
 }

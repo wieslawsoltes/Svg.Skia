@@ -23,6 +23,7 @@ public sealed class EditorLibraryItem : INotifyPropertyChanged
     private Color _previewPrimaryColor;
     private Color _previewSecondaryColor;
     private Color _previewAccentColor;
+    private bool _isSelected;
 
     public EditorLibraryItem(string id, string name, string publisher, EditorLibraryCategory category)
     {
@@ -204,6 +205,12 @@ public sealed class EditorLibraryItem : INotifyPropertyChanged
     public FigmaIconKind CategoryIconKind => Category == EditorLibraryCategory.Team
         ? FigmaIconKind.Team
         : FigmaIconKind.Library;
+
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set => SetField(ref _isSelected, value, nameof(IsSelected));
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

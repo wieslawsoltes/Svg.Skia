@@ -21,14 +21,23 @@ public sealed partial class FigmaLibrariesManager : UserControl
     private readonly ObservableCollection<EditorLibraryItem> _enabledLibraries = [];
     private readonly ObservableCollection<EditorLibraryItem> _updateLibraries = [];
     private readonly ObservableCollection<EditorLibraryItem> _browseLibraries = [];
+    private readonly ObservableCollection<EditorComponentItem> _selectedLibraryAssets = [];
     private LibrariesSection _section = LibrariesSection.ThisFile;
+    private EditorLibraryItem? _selectedLibrary;
 
     public static readonly DependencyProperty LibrariesProperty =
         DependencyProperty.Register(
             nameof(Libraries),
             typeof(IEnumerable<EditorLibraryItem>),
             typeof(FigmaLibrariesManager),
-            new PropertyMetadata(null, OnLibrariesChanged));
+            new PropertyMetadata(null, OnInputCollectionChanged));
+
+    public static readonly DependencyProperty ComponentsProperty =
+        DependencyProperty.Register(
+            nameof(Components),
+            typeof(IEnumerable<EditorComponentItem>),
+            typeof(FigmaLibrariesManager),
+            new PropertyMetadata(null, OnInputCollectionChanged));
 
     public static readonly DependencyProperty DocumentTitleProperty =
         DependencyProperty.Register(
@@ -50,6 +59,7 @@ public sealed partial class FigmaLibrariesManager : UserControl
         EnabledLibrariesList.ItemsSource = _enabledLibraries;
         UpdatesLibrariesList.ItemsSource = _updateLibraries;
         BrowseLibrariesList.ItemsSource = _browseLibraries;
+        SelectedLibraryAssetsList.ItemsSource = _selectedLibraryAssets;
         UpdateSectionChrome();
         RefreshView();
     }
@@ -58,6 +68,12 @@ public sealed partial class FigmaLibrariesManager : UserControl
     {
         get => (IEnumerable<EditorLibraryItem>?)GetValue(LibrariesProperty);
         set => SetValue(LibrariesProperty, value);
+    }
+
+    public IEnumerable<EditorComponentItem>? Components
+    {
+        get => (IEnumerable<EditorComponentItem>?)GetValue(ComponentsProperty);
+        set => SetValue(ComponentsProperty, value);
     }
 
     public string DocumentTitle
@@ -78,13 +94,16 @@ public sealed partial class FigmaLibrariesManager : UserControl
 
     public void RefreshView()
     {
+        var filteredLibraries = GetFilteredLibraries().ToList();
+        SyncSelectedLibrary(filteredLibraries);
         UpdatePanels();
-        UpdateThisFileSection();
-        UpdateUpdatesSection();
-        UpdateBrowseSection();
+        UpdateThisFileSection(filteredLibraries);
+        UpdateUpdatesSection(filteredLibraries);
+        UpdateBrowseSection(filteredLibraries);
+        UpdateSelectedLibraryCard();
     }
 
-    private static void OnLibrariesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnInputCollectionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var control = (FigmaLibrariesManager)d;
         if (e.OldValue is INotifyCollectionChanged oldCollection)
@@ -143,6 +162,17 @@ public sealed partial class FigmaLibrariesManager : UserControl
         RefreshView();
     }
 
+    private void OnLibraryCardClick(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not EditorLibraryItem library)
+        {
+            return;
+        }
+
+        _selectedLibrary = library;
+        RefreshView();
+    }
+
     private void OnCloseClick(object sender, RoutedEventArgs e)
     {
         CloseRequested?.Invoke(this, EventArgs.Empty);
@@ -188,7 +218,7 @@ public sealed partial class FigmaLibrariesManager : UserControl
         BrowsePanel.Visibility = _section is LibrariesSection.Teams or LibrariesSection.UiKits ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    private void UpdateThisFileSection()
+    private void UpdateThisFileSection(List<EditorLibraryItem> filteredLibraries)
     {
         var currentFile = Libraries?.FirstOrDefault(static item => item.IsCurrentFile);
         if (currentFile is null)
@@ -211,7 +241,7 @@ public sealed partial class FigmaLibrariesManager : UserControl
         }
 
         _enabledLibraries.Clear();
-        foreach (var item in GetFilteredLibraries().Where(static item => !item.IsCurrentFile && item.IsEnabled))
+        foreach (var item in filteredLibraries.Where(static item => !item.IsCurrentFile && (item.IsEnabled || item.IsMissing)))
         {
             _enabledLibraries.Add(item);
         }
@@ -223,10 +253,10 @@ public sealed partial class FigmaLibrariesManager : UserControl
             : $"View {MissingLibraryCount} missing libraries";
     }
 
-    private void UpdateUpdatesSection()
+    private void UpdateUpdatesSection(List<EditorLibraryItem> filteredLibraries)
     {
         _updateLibraries.Clear();
-        foreach (var item in GetFilteredLibraries().Where(static item => !item.IsCurrentFile && item.HasUpdate))
+        foreach (var item in filteredLibraries.Where(static item => !item.IsCurrentFile && item.HasUpdate))
         {
             _updateLibraries.Add(item);
         }
@@ -236,14 +266,14 @@ public sealed partial class FigmaLibrariesManager : UserControl
         UpdatesBadgeText.Text = _updateLibraries.Count.ToString();
     }
 
-    private void UpdateBrowseSection()
+    private void UpdateBrowseSection(List<EditorLibraryItem> filteredLibraries)
     {
         _browseLibraries.Clear();
         var category = _section == LibrariesSection.Teams
             ? EditorLibraryCategory.Team
             : EditorLibraryCategory.UiKit;
 
-        foreach (var item in GetFilteredLibraries().Where(item => !item.IsCurrentFile && item.Category == category))
+        foreach (var item in filteredLibraries.Where(item => !item.IsCurrentFile && item.Category == category))
         {
             _browseLibraries.Add(item);
         }
@@ -253,6 +283,61 @@ public sealed partial class FigmaLibrariesManager : UserControl
             ? "Browse shared libraries published by your file, team, and local sample catalog."
             : "Enable design kits and component collections that can be inserted as SVG symbol instances.";
         BrowseEmptyState.Visibility = _browseLibraries.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void SyncSelectedLibrary(List<EditorLibraryItem> filteredLibraries)
+    {
+        List<EditorLibraryItem> visibleLibraries = _section switch
+        {
+            LibrariesSection.ThisFile => filteredLibraries.Where(static item => !item.IsCurrentFile && (item.IsEnabled || item.IsMissing)).ToList(),
+            LibrariesSection.Updates => filteredLibraries.Where(static item => !item.IsCurrentFile && item.HasUpdate).ToList(),
+            LibrariesSection.Teams => filteredLibraries.Where(item => !item.IsCurrentFile && item.Category == EditorLibraryCategory.Team).ToList(),
+            LibrariesSection.UiKits => filteredLibraries.Where(item => !item.IsCurrentFile && item.Category == EditorLibraryCategory.UiKit).ToList(),
+            _ => []
+        };
+
+        if (_selectedLibrary is not null)
+        {
+            _selectedLibrary = visibleLibraries.FirstOrDefault(item => string.Equals(item.Id, _selectedLibrary.Id, StringComparison.Ordinal));
+        }
+
+        _selectedLibrary ??= visibleLibraries.FirstOrDefault();
+
+        foreach (var library in Libraries ?? Enumerable.Empty<EditorLibraryItem>())
+        {
+            library.IsSelected = _selectedLibrary is not null
+                && string.Equals(library.Id, _selectedLibrary.Id, StringComparison.Ordinal);
+        }
+    }
+
+    private void UpdateSelectedLibraryCard()
+    {
+        if (_selectedLibrary is null)
+        {
+            SelectedLibraryCard.Visibility = Visibility.Collapsed;
+            SelectedLibraryCard.DataContext = null;
+            _selectedLibraryAssets.Clear();
+            SelectedLibraryAssetsHost.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        SelectedLibraryCard.Visibility = Visibility.Visible;
+        SelectedLibraryCard.DataContext = _selectedLibrary;
+
+        var selectedAssets = (Components ?? Enumerable.Empty<EditorComponentItem>())
+            .Where(asset => string.Equals(asset.LibraryId, _selectedLibrary.Id, StringComparison.Ordinal))
+            .OrderBy(asset => asset.SectionName)
+            .ThenBy(asset => asset.Name)
+            .Take(6)
+            .ToList();
+
+        _selectedLibraryAssets.Clear();
+        foreach (var asset in selectedAssets)
+        {
+            _selectedLibraryAssets.Add(asset);
+        }
+
+        SelectedLibraryAssetsHost.Visibility = selectedAssets.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private IEnumerable<EditorLibraryItem> GetFilteredLibraries()
