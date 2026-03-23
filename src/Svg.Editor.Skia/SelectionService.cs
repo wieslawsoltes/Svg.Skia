@@ -138,6 +138,28 @@ public class SelectionService
         return drawable.GeometryBounds;
     }
 
+    public static SK.SKRect GetTransformedInteractiveBounds(DrawableBase drawable)
+    {
+        var rect = GetInteractiveBounds(drawable);
+        if (rect.IsEmpty)
+        {
+            return SK.SKRect.Empty;
+        }
+
+        var transform = drawable.TotalTransform;
+        var mappedTl = transform.MapPoint(new Shim.SKPoint(rect.Left, rect.Top));
+        var mappedTr = transform.MapPoint(new Shim.SKPoint(rect.Right, rect.Top));
+        var mappedBr = transform.MapPoint(new Shim.SKPoint(rect.Right, rect.Bottom));
+        var mappedBl = transform.MapPoint(new Shim.SKPoint(rect.Left, rect.Bottom));
+
+        var left = (float)Math.Min(Math.Min(mappedTl.X, mappedTr.X), Math.Min(mappedBl.X, mappedBr.X));
+        var top = (float)Math.Min(Math.Min(mappedTl.Y, mappedTr.Y), Math.Min(mappedBl.Y, mappedBr.Y));
+        var right = (float)Math.Max(Math.Max(mappedTl.X, mappedTr.X), Math.Max(mappedBl.X, mappedBr.X));
+        var bottom = (float)Math.Max(Math.Max(mappedTl.Y, mappedTr.Y), Math.Max(mappedBl.Y, mappedBr.Y));
+
+        return new SK.SKRect(left, top, right, bottom);
+    }
+
     private static bool TryGetTextBoxRect(SvgTextBase text, out Shim.SKRect rect)
     {
         rect = default;

@@ -94,6 +94,7 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
     private bool _isPrototypeInspector;
     private bool _marqueeAdditive;
     private bool _marqueeToggle;
+    private bool _marqueePreferFrameChildren;
     private Point _panStart;
     private Point _marqueeStartView;
     private Point _marqueeCurrentView;
@@ -176,9 +177,11 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
     private Point _lastSelectionClickViewPoint;
     private SvgVisualElement[] _lastSelectionClickHits = [];
     private int _lastSelectionClickIndex = -1;
+    private SvgGroup? _selectionScopeFrame;
     private bool _pendingSelectionPress;
     private bool _pendingSelectionAdditive;
     private bool _pendingSelectionToggle;
+    private bool _pendingSelectionFrameBackgroundOnly;
     private Point _pendingSelectionViewPoint;
     private Shim.SKPoint _pendingSelectionPicturePoint;
     private SvgVisualElement[] _pendingSelectionHits = [];
@@ -1094,7 +1097,7 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
 
             if (IsSelectionTool(_toolService.CurrentTool))
             {
-                var hits = GetVisualHits(viewPoint);
+                var hits = GetSelectionHits(viewPoint);
                 if (hits.Count == 0)
                 {
                     ResetSelectionClickCycle();
@@ -1156,10 +1159,17 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
                 return;
             }
 
-            var hits = GetVisualHits(viewPoint);
+            var hits = GetSelectionHits(viewPoint);
             if (hits.Count > 0)
             {
-                if (additive || toggle)
+                var frameBackgroundOnly = IsFrameBackgroundSelectionOnly(hits);
+                if (frameBackgroundOnly)
+                {
+                    CancelPendingSelectionPress();
+                    BeginPendingSelectionPress(viewPoint, picturePoint, hits, additive, toggle, frameBackgroundOnly: true);
+                    CanvasHost.CapturePointer(e.Pointer);
+                }
+                else if (additive || toggle)
                 {
                     CancelPendingSelectionPress();
                     var hit = GetSelectionTraversalHit(viewPoint, additive, toggle, hits);
@@ -1301,6 +1311,13 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
     {
         var hostPoint = e.GetCurrentPoint(CanvasHost).Position;
         var viewPoint = e.GetCurrentPoint(EditorSvg).Position;
+        var properties = e.GetCurrentPoint(CanvasHost).Properties;
+
+        if (TryPromoteMiddlePointerPan(hostPoint, properties))
+        {
+            e.Handled = true;
+            return;
+        }
 
         if (_isPanning)
         {
@@ -1328,6 +1345,11 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
         }
 
         TryStartPendingSelectionDrag(viewPoint);
+        if (_isMarqueeSelecting)
+        {
+            e.Handled = true;
+            return;
+        }
 
         if (_pathService.ActivePoint >= 0)
         {
@@ -1439,6 +1461,16 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
     protected void OnCanvasPointerReleased(object sender, PointerRoutedEventArgs e)
     {
         CanvasHost.ReleasePointerCapture(e.Pointer);
+
+        var properties = e.GetCurrentPoint(CanvasHost).Properties;
+        if ((_isPanning || _pendingSelectionPress || _isMarqueeSelecting) && IsMiddlePointerPanRelease(properties))
+        {
+            CancelPendingSelectionPress();
+            CancelMarqueeSelection();
+            EndCanvasPan();
+            e.Handled = true;
+            return;
+        }
 
         if (_pathService.ActivePoint >= 0)
         {
@@ -3868,6 +3900,7 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
             _selectedElement = _selectedElements.LastOrDefault();
         }
 
+        UpdateSelectionScope();
         RefreshSelectedDrawables();
         SyncPathEditingSelection();
         SyncOutlineSelectionState();
@@ -4803,6 +4836,7 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
         var manager = new FigmaLibrariesManager
         {
             Libraries = Libraries,
+            Components = ComponentAssets,
             DocumentTitle = DocumentTitle,
             MissingLibraryCount = Libraries.Count(static item => item.IsMissing),
             Width = Math.Clamp(XamlRoot.Size.Width - 72.0, 720.0, 1180.0),
@@ -4836,7 +4870,6 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
                     }
                     break;
                 case EditorLibraryCommand.ViewMissingLibraries:
-            Components = ComponentAssets,
                     await ShowMissingLibrariesAsync();
                     break;
             }
@@ -8747,17 +8780,47 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
         return GetVisualHits(viewPoint).FirstOrDefault();
     }
 
+    private List<SvgVisualElement> GetSelectionHits(Point viewPoint, bool includeLocked = false)
+    {
+        var hits = GetVisualHits(viewPoint, includeLocked);
+        if (hits.Count == 0)
+        {
+            if (_selectionScopeFrame is not null && !IsPointInsideFrame(viewPoint, _selectionScopeFrame))
+            {
+                _selectionScopeFrame = null;
+            }
+
+            return hits;
+        }
+
+        if (GetFrameScopeEntryCandidate(viewPoint, hits) is { } selectedFrame)
+        {
+            var frameHits = FilterHitsToFrameScope(hits, selectedFrame, includeFrame: false);
+            if (frameHits.Count > 0)
+            {
+                return frameHits;
+            }
+        }
+
+        if (_selectionScopeFrame is not { } scopeFrame)
+        {
+            return hits;
+        }
+
+        if (!IsPointInsideFrame(viewPoint, scopeFrame))
+        {
+            _selectionScopeFrame = null;
+            return hits;
+        }
+
+        var scopedHits = FilterHitsToFrameScope(hits, scopeFrame, includeFrame: true);
+        return scopedHits.Count > 0 ? scopedHits : hits;
+    }
+
     private List<SvgVisualElement> GetVisualHits(Point viewPoint, bool includeLocked = false)
     {
-        return EditorSvg
-            .HitTestElements(viewPoint)
-            .OfType<SvgVisualElement>()
-            .Where(static element => !string.Equals(element.Display, "none", StringComparison.OrdinalIgnoreCase))
-            .Select(PromoteFrameHit)
-            .OfType<SvgVisualElement>()
-            .Where(element => includeLocked || !IsElementLocked(element))
-            .Distinct()
-            .ToList();
+        var hits = CollectVisualHits(EditorSvg.HitTestElements(viewPoint), includeLocked);
+        return PrioritizeFrameSelectionHits(hits);
     }
 
     private SvgVisualElement? GetSelectionTraversalHit(Point viewPoint, bool additive, bool toggle, IReadOnlyList<SvgVisualElement>? providedHits = null)
@@ -8861,11 +8924,127 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
         _lastSelectionClickIndex = -1;
     }
 
-    private void BeginPendingSelectionPress(Point viewPoint, Shim.SKPoint picturePoint, IReadOnlyList<SvgVisualElement> hits)
+    private void UpdateSelectionScope()
+    {
+        SvgGroup? scopeFrame = null;
+
+        foreach (var element in _selectedElements)
+        {
+            var frame = GetNearestFrameAncestor(element);
+            if (frame is null)
+            {
+                _selectionScopeFrame = null;
+                return;
+            }
+
+            if (scopeFrame is null)
+            {
+                scopeFrame = frame;
+                continue;
+            }
+
+            if (!ReferenceEquals(scopeFrame, frame))
+            {
+                _selectionScopeFrame = null;
+                return;
+            }
+        }
+
+        _selectionScopeFrame = scopeFrame;
+    }
+
+    private SvgGroup? GetFrameScopeEntryCandidate(Point viewPoint, IReadOnlyList<SvgVisualElement> hits)
+    {
+        if (_selectedElement is not SvgGroup selectedFrame
+            || !IsFrameGroup(selectedFrame)
+            || !IsPointInsideFrame(viewPoint, selectedFrame))
+        {
+            return null;
+        }
+
+        return FilterHitsToFrameScope(hits, selectedFrame, includeFrame: false).Count > 0
+            ? selectedFrame
+            : null;
+    }
+
+    private List<SvgVisualElement> FilterHitsToFrameScope(IReadOnlyList<SvgVisualElement> hits, SvgGroup frame, bool includeFrame)
+    {
+        var scopedHits = new List<SvgVisualElement>();
+        foreach (var hit in hits)
+        {
+            if (ReferenceEquals(hit, frame))
+            {
+                if (includeFrame)
+                {
+                    scopedHits.Add(hit);
+                }
+
+                continue;
+            }
+
+            if (IsElementInsideFrame(hit, frame))
+            {
+                scopedHits.Add(hit);
+            }
+        }
+
+        return scopedHits;
+    }
+
+    private SvgGroup? GetNearestFrameAncestor(SvgVisualElement? element)
+    {
+        if (element is null)
+        {
+            return null;
+        }
+
+        return element.Parents
+            .OfType<SvgGroup>()
+            .FirstOrDefault(IsFrameGroup);
+    }
+
+    private bool IsPointInsideFrame(Point viewPoint, SvgGroup frame)
+    {
+        if (!EditorSvg.TryGetPicturePoint(viewPoint, out var picturePoint)
+            || !TryGetFramePictureBounds(frame, out var frameBounds))
+        {
+            return false;
+        }
+
+        return picturePoint.X >= frameBounds.Left
+            && picturePoint.X <= frameBounds.Right
+            && picturePoint.Y >= frameBounds.Top
+            && picturePoint.Y <= frameBounds.Bottom;
+    }
+
+    private static bool TryGetFramePictureBounds(SvgGroup frame, out Shim.SKRect bounds)
+    {
+        bounds = default;
+        if (!TryGetFrameBackground(frame, out var background))
+        {
+            return false;
+        }
+
+        bounds = new Shim.SKRect(
+            background.X.Value,
+            background.Y.Value,
+            background.X.Value + background.Width.Value,
+            background.Y.Value + background.Height.Value);
+        return true;
+    }
+
+    private void BeginPendingSelectionPress(
+        Point viewPoint,
+        Shim.SKPoint picturePoint,
+        IReadOnlyList<SvgVisualElement> hits,
+        bool additive = false,
+        bool toggle = false,
+        bool frameBackgroundOnly = false)
     {
         _pendingSelectionPress = true;
-        _pendingSelectionAdditive = false;
-        _pendingSelectionToggle = false;
+        _pendingSelectionAdditive = additive;
+        _pendingSelectionToggle = toggle;
+        _pendingSelectionFrameBackgroundOnly = frameBackgroundOnly;
         _pendingSelectionViewPoint = viewPoint;
         _pendingSelectionPicturePoint = picturePoint;
         _pendingSelectionHits = hits.ToArray();
@@ -8877,6 +9056,7 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
         _pendingSelectionPress = false;
         _pendingSelectionAdditive = false;
         _pendingSelectionToggle = false;
+        _pendingSelectionFrameBackgroundOnly = false;
         _pendingSelectionViewPoint = default;
         _pendingSelectionPicturePoint = default;
         _pendingSelectionHits = [];
@@ -8928,8 +9108,20 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
 
         var dragElement = _pendingSelectionDragElement;
         var dragStartPicture = _pendingSelectionPicturePoint;
+        var dragStartView = _pendingSelectionViewPoint;
+        var additive = _pendingSelectionAdditive;
+        var toggle = _pendingSelectionToggle;
+        var frameBackgroundOnly = _pendingSelectionFrameBackgroundOnly;
         CancelPendingSelectionPress();
         ResetSelectionClickCycle();
+
+        if (frameBackgroundOnly && ShouldStartFrameBackgroundMarquee(dragElement))
+        {
+            StartMarqueeSelection(dragStartView, additive, toggle, preferFrameChildren: true);
+            _marqueeCurrentView = viewPoint;
+            RefreshOverlay();
+            return;
+        }
 
         if (dragElement is null)
         {
@@ -8949,6 +9141,21 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
             _selectionService.NormalizeWorldTranslation(element);
             _dragStartTranslations[element] = _selectionService.GetTranslation(element);
         }
+    }
+
+    private bool ShouldStartFrameBackgroundMarquee(SvgVisualElement? dragElement)
+    {
+        if (dragElement is not SvgGroup frame || !IsFrameGroup(frame))
+        {
+            return false;
+        }
+
+        if (_selectionScopeFrame is not null && ReferenceEquals(_selectionScopeFrame, frame))
+        {
+            return true;
+        }
+
+        return _selectedElements.Any(element => IsElementInsideFrame(element, frame));
     }
 
     private bool TryGetPicturePoint(PointerRoutedEventArgs e, out Shim.SKPoint picturePoint)
@@ -9178,12 +9385,13 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
         return MathF.Max(0.0001f, MathF.Sqrt((matrix.M11 * matrix.M11) + (matrix.M12 * matrix.M12)));
     }
 
-    private void StartMarqueeSelection(Point viewPoint, bool additive, bool toggle)
+    private void StartMarqueeSelection(Point viewPoint, bool additive, bool toggle, bool preferFrameChildren = false)
     {
         ResetSelectionClickCycle();
         _isMarqueeSelecting = true;
         _marqueeAdditive = additive;
         _marqueeToggle = toggle;
+        _marqueePreferFrameChildren = preferFrameChildren;
         _marqueeStartView = viewPoint;
         _marqueeCurrentView = viewPoint;
         RefreshOverlay();
@@ -9204,6 +9412,7 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
 
             _marqueeAdditive = false;
             _marqueeToggle = false;
+            _marqueePreferFrameChildren = false;
             RefreshOverlay();
             return;
         }
@@ -9214,19 +9423,17 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
         {
             _marqueeAdditive = false;
             _marqueeToggle = false;
+            _marqueePreferFrameChildren = false;
             RefreshOverlay();
             return;
         }
 
         var pictureRect = CreatePictureRect(startPoint, endPoint);
-        var hits = EditorSvg.SkSvg
-            .HitTestElements(pictureRect)
-            .OfType<SvgVisualElement>()
-            .Where(static element => !string.Equals(element.Display, "none", StringComparison.OrdinalIgnoreCase))
-            .Select(PromoteFrameHit)
-            .OfType<SvgVisualElement>()
-            .Distinct()
-            .ToList();
+        var hits = CollectVisualHits(EditorSvg.SkSvg.HitTestElements(pictureRect));
+        if (_marqueePreferFrameChildren)
+        {
+            hits = PruneFrameContainerMarqueeHits(hits);
+        }
 
         if (_marqueeToggle)
         {
@@ -9261,7 +9468,97 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
 
         _marqueeAdditive = false;
         _marqueeToggle = false;
+        _marqueePreferFrameChildren = false;
         RefreshOverlay();
+    }
+
+    private List<SvgVisualElement> CollectVisualHits(IEnumerable<SvgElement> hits, bool includeLocked = false)
+    {
+        return hits
+            .OfType<SvgVisualElement>()
+            .Where(static element => !string.Equals(element.Display, "none", StringComparison.OrdinalIgnoreCase))
+            .Select(PromoteFrameHit)
+            .OfType<SvgVisualElement>()
+            .Where(element => includeLocked || !IsElementLocked(element))
+            .Distinct()
+            .ToList();
+    }
+
+    private List<SvgVisualElement> PrioritizeFrameSelectionHits(List<SvgVisualElement> hits)
+    {
+        if (hits.Count < 2 || GetPrimaryFrameSelectionHit(hits) is not { } frame)
+        {
+            return hits;
+        }
+
+        var containsFrameChildren = hits.Any(hit => !ReferenceEquals(hit, frame) && IsElementInsideFrame(hit, frame));
+        if (!containsFrameChildren)
+        {
+            return hits;
+        }
+
+        var reordered = new List<SvgVisualElement> { frame };
+        foreach (var hit in hits)
+        {
+            if (!ReferenceEquals(hit, frame))
+            {
+                reordered.Add(hit);
+            }
+        }
+
+        return reordered;
+    }
+
+    private List<SvgVisualElement> PruneFrameContainerMarqueeHits(List<SvgVisualElement> hits)
+    {
+        if (hits.Count < 2)
+        {
+            return hits;
+        }
+
+        return hits
+            .Where(hit => hit is not SvgGroup frame
+                || !IsFrameGroup(frame)
+                || !hits.Any(other => !ReferenceEquals(other, hit) && IsElementInsideFrame(other, frame)))
+            .ToList();
+    }
+
+    private static bool IsFrameBackgroundSelectionOnly(IReadOnlyList<SvgVisualElement> hits)
+    {
+        return hits.Count == 1
+            && hits[0] is SvgGroup group
+            && IsFrameGroup(group);
+    }
+
+    private static bool IsElementInsideFrame(SvgElement element, SvgGroup frame)
+    {
+        if (ReferenceEquals(element, frame))
+        {
+            return false;
+        }
+
+        return element.Parents.OfType<SvgGroup>().Any(parent => ReferenceEquals(parent, frame));
+    }
+
+    private SvgGroup? GetPrimaryFrameSelectionHit(IReadOnlyList<SvgVisualElement> hits)
+    {
+        foreach (var hit in hits)
+        {
+            if (hit is SvgGroup group && IsFrameGroup(group))
+            {
+                return group;
+            }
+
+            var parentFrame = hit.Parents
+                .OfType<SvgGroup>()
+                .FirstOrDefault(group => IsFrameGroup(group) && !IsElementLocked(group));
+            if (parentFrame is not null)
+            {
+                return parentFrame;
+            }
+        }
+
+        return null;
     }
 
     private void TranslateSelection(float dx, float dy)
@@ -9329,10 +9626,12 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
             return null;
         }
 
-        var result = _selectedDrawables[0].TransformedBounds;
+        var firstBounds = SelectionService.GetTransformedInteractiveBounds(_selectedDrawables[0]);
+        var result = new Shim.SKRect(firstBounds.Left, firstBounds.Top, firstBounds.Right, firstBounds.Bottom);
         for (var index = 1; index < _selectedDrawables.Count; index++)
         {
-            result = UnionRect(result, _selectedDrawables[index].TransformedBounds);
+            var bounds = SelectionService.GetTransformedInteractiveBounds(_selectedDrawables[index]);
+            result = UnionRect(result, new Shim.SKRect(bounds.Left, bounds.Top, bounds.Right, bounds.Bottom));
         }
 
         return result;
@@ -9762,6 +10061,65 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
     {
         return properties.IsMiddleButtonPressed
             || properties.PointerUpdateKind == PointerUpdateKind.MiddleButtonPressed;
+    }
+
+    private static bool IsMiddlePointerPanRelease(PointerPointProperties properties)
+    {
+        return properties.PointerUpdateKind == PointerUpdateKind.MiddleButtonReleased;
+    }
+
+    private bool TryPromoteMiddlePointerPan(Point hostPoint, PointerPointProperties properties)
+    {
+        if (_isPanning
+            || !properties.IsMiddleButtonPressed
+            || _isDragging
+            || _isResizing
+            || _isRotating
+            || _isCreating
+            || _pathService.ActivePoint >= 0
+            || IsVectorPathDrawing)
+        {
+            return false;
+        }
+
+        var canceledSelectionGesture = false;
+        if (_pendingSelectionPress)
+        {
+            CancelPendingSelectionPress();
+            canceledSelectionGesture = true;
+        }
+
+        if (_isMarqueeSelecting)
+        {
+            CancelMarqueeSelection();
+            canceledSelectionGesture = true;
+        }
+
+        if (!canceledSelectionGesture)
+        {
+            return false;
+        }
+
+        ResetSelectionClickCycle();
+        _isPanning = true;
+        _panStart = hostPoint;
+        RefreshOverlay();
+        return true;
+    }
+
+    private void CancelMarqueeSelection()
+    {
+        if (!_isMarqueeSelecting)
+        {
+            return;
+        }
+
+        _isMarqueeSelecting = false;
+        EditorOverlay.Marquee = null;
+        _marqueeAdditive = false;
+        _marqueeToggle = false;
+        _marqueePreferFrameChildren = false;
+        RefreshOverlay();
     }
 
     private void EndCanvasPan()

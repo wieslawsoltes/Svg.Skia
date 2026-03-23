@@ -82,6 +82,13 @@ public sealed class SvgEditorOverlayCanvas : SKCanvasElement
         var svgView = SvgView;
         var skSvg = svgView?.SkSvg;
         var picture = svgView?.Picture;
+        var svgOrigin = new Point(0.0, 0.0);
+        var hasSvgOrigin = svgView is not null;
+
+        if (svgView is not null)
+        {
+            svgOrigin = svgView.TransformToVisual(this).TransformPoint(new Point(0.0, 0.0));
+        }
 
         if (svgView is not null
             && skSvg is not null
@@ -89,7 +96,6 @@ public sealed class SvgEditorOverlayCanvas : SKCanvasElement
             && svgView.TryGetViewMatrix(out var matrix))
         {
             using var restore = new SK.SKAutoCanvasRestore(canvas, true);
-            var svgOrigin = svgView.TransformToVisual(this).TransformPoint(new Point(0.0, 0.0));
             canvas.Translate((float)svgOrigin.X, (float)svgOrigin.Y);
             var skMatrix = ToSkMatrix(matrix);
             canvas.Concat(in skMatrix);
@@ -124,6 +130,12 @@ public sealed class SvgEditorOverlayCanvas : SKCanvasElement
 
         if (Marquee is { } marquee)
         {
+            using var restore = new SK.SKAutoCanvasRestore(canvas, true);
+            if (hasSvgOrigin)
+            {
+                canvas.Translate((float)svgOrigin.X, (float)svgOrigin.Y);
+            }
+
             using var fill = new SK.SKPaint
             {
                 IsAntialias = true,
@@ -328,13 +340,13 @@ public sealed class SvgEditorOverlayCanvas : SKCanvasElement
 
     private static SK.SKRect? GetGuideBounds(DrawableBase drawable)
     {
-        var bounds = drawable.TransformedBounds;
+        var bounds = SelectionService.GetTransformedInteractiveBounds(drawable);
         if (bounds.IsEmpty)
         {
             return null;
         }
 
-        return new SK.SKRect(bounds.Left, bounds.Top, bounds.Right, bounds.Bottom);
+        return bounds;
     }
 
     private static void DrawSelectionSizeBadge(SK.SKCanvas canvas, SK.SKRect selectionBounds, float scale)

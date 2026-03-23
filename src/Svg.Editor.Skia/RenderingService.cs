@@ -151,34 +151,33 @@ public class RenderingService
             var hs = HandleSize / 2f / scale;
             var size = HandleSize / scale;
             using var fill = new SK.SKPaint { IsAntialias = true, Style = SK.SKPaintStyle.Fill, Color = SK.SKColors.White };
+            var drawAggregateSelection = selectedDrawables.Count > 1
+                && _toolService.CurrentTool != ToolService.Tool.PathSelect
+                && _toolService.CurrentTool != ToolService.Tool.PolygonSelect
+                && _toolService.CurrentTool != ToolService.Tool.PolylineSelect;
+
+            if (drawAggregateSelection)
+            {
+                var aggregateBounds = GetBoundsRect(getBounds(selectedDrawables[0]));
+                for (var index = 1; index < selectedDrawables.Count; index++)
+                {
+                    aggregateBounds = SK.SKRect.Union(aggregateBounds, GetBoundsRect(getBounds(selectedDrawables[index])));
+                }
+
+                var aggregateInfo = CreateAxisAlignedBoundsInfo(aggregateBounds, scale);
+                DrawSelectionBounds(canvas, aggregateInfo, paint, fill, hs, size);
+            }
+
             foreach (var selectedDrawable in selectedDrawables)
             {
                 var info = getBounds(selectedDrawable);
 
-                if (_toolService.CurrentTool != ToolService.Tool.PathSelect &&
-                    _toolService.CurrentTool != ToolService.Tool.PolygonSelect &&
-                    _toolService.CurrentTool != ToolService.Tool.PolylineSelect)
+                if (!drawAggregateSelection
+                    && _toolService.CurrentTool != ToolService.Tool.PathSelect
+                    && _toolService.CurrentTool != ToolService.Tool.PolygonSelect
+                    && _toolService.CurrentTool != ToolService.Tool.PolylineSelect)
                 {
-                    using (var path = new SK.SKPath())
-                    {
-                        path.MoveTo(info.TL);
-                        path.LineTo(info.TR);
-                        path.LineTo(info.BR);
-                        path.LineTo(info.BL);
-                        path.Close();
-                        canvas.DrawPath(path, paint);
-                    }
-
-                    var pts = new[] { info.TL, info.TopMid, info.TR, info.RightMid, info.BR, info.BottomMid, info.BL, info.LeftMid };
-                    foreach (var pt in pts)
-                    {
-                        canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, fill);
-                        canvas.DrawRect(pt.X - hs, pt.Y - hs, size, size, paint);
-                    }
-
-                    canvas.DrawLine(info.TopMid, info.RotHandle, paint);
-                    canvas.DrawCircle(info.RotHandle, hs, fill);
-                    canvas.DrawCircle(info.RotHandle, hs, paint);
+                    DrawSelectionBounds(canvas, info, paint, fill, hs, size);
                 }
 
                 if (selectedDrawable.Element is SvgVisualElement vis &&
@@ -332,4 +331,48 @@ public class RenderingService
         }
     }
 
+    private static BoundsInfo CreateAxisAlignedBoundsInfo(SK.SKRect rect, float scale)
+    {
+        var tl = new SK.SKPoint(rect.Left, rect.Top);
+        var tr = new SK.SKPoint(rect.Right, rect.Top);
+        var br = new SK.SKPoint(rect.Right, rect.Bottom);
+        var bl = new SK.SKPoint(rect.Left, rect.Bottom);
+        var topMid = Mid(tl, tr);
+        var rightMid = Mid(tr, br);
+        var bottomMid = Mid(br, bl);
+        var leftMid = Mid(bl, tl);
+        var center = Mid(tl, br);
+        var rotHandle = new SK.SKPoint(topMid.X, topMid.Y - (20f / scale));
+        return new BoundsInfo(tl, tr, br, bl, topMid, rightMid, bottomMid, leftMid, center, rotHandle);
+    }
+
+    private static void DrawSelectionBounds(
+        SK.SKCanvas canvas,
+        BoundsInfo info,
+        SK.SKPaint stroke,
+        SK.SKPaint fill,
+        float handleHalfSize,
+        float handleSize)
+    {
+        using (var path = new SK.SKPath())
+        {
+            path.MoveTo(info.TL);
+            path.LineTo(info.TR);
+            path.LineTo(info.BR);
+            path.LineTo(info.BL);
+            path.Close();
+            canvas.DrawPath(path, stroke);
+        }
+
+        var pts = new[] { info.TL, info.TopMid, info.TR, info.RightMid, info.BR, info.BottomMid, info.BL, info.LeftMid };
+        foreach (var pt in pts)
+        {
+            canvas.DrawRect(pt.X - handleHalfSize, pt.Y - handleHalfSize, handleSize, handleSize, fill);
+            canvas.DrawRect(pt.X - handleHalfSize, pt.Y - handleHalfSize, handleSize, handleSize, stroke);
+        }
+
+        canvas.DrawLine(info.TopMid, info.RotHandle, stroke);
+        canvas.DrawCircle(info.RotHandle, handleHalfSize, fill);
+        canvas.DrawCircle(info.RotHandle, handleHalfSize, stroke);
+    }
 }
