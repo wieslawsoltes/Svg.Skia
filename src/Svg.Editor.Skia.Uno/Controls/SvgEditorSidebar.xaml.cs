@@ -67,6 +67,7 @@ public sealed partial class SvgEditorSidebar : UserControl
     {
         if ((sender as FrameworkElement)?.DataContext is EditorPageItem page)
         {
+            SyncPageSelectionState(page);
             PageSelectionRequested?.Invoke(this, new PageRequestedEventArgs(page));
         }
     }
@@ -167,6 +168,7 @@ public sealed partial class SvgEditorSidebar : UserControl
 
         var selection = BuildSelectionForNode(node, e.KeyModifiers);
         SetFocusedNode(node, updateAnchor: !e.KeyModifiers.HasFlag(VirtualKeyModifiers.Shift));
+        SyncNodeSelectionState(selection);
         OutlineSelectionRequested?.Invoke(this, new OutlineSelectionRequestedEventArgs(selection, node));
         e.Handled = true;
     }
@@ -187,6 +189,7 @@ public sealed partial class SvgEditorSidebar : UserControl
             : BuildSelectionForNode(node, VirtualKeyModifiers.None);
 
         SetFocusedNode(node, updateAnchor: true);
+        SyncNodeSelectionState(selection);
         OutlineSelectionRequested?.Invoke(this, new OutlineSelectionRequestedEventArgs(selection, node));
         var position = e.GetPosition(element);
         OutlineContextRequested?.Invoke(this, new OutlineContextRequestedEventArgs(node, element, position));
@@ -207,6 +210,7 @@ public sealed partial class SvgEditorSidebar : UserControl
             ? nodes.Where(static item => item.IsSelected).ToList()
             : BuildSelectionForNode(node, VirtualKeyModifiers.None);
         SetFocusedNode(node, updateAnchor: true);
+        SyncNodeSelectionState(selection);
         OutlineSelectionRequested?.Invoke(this, new OutlineSelectionRequestedEventArgs(selection, node));
         OutlineContextRequested?.Invoke(this, new OutlineContextRequestedEventArgs(node, OutlineListView, e.GetPosition(OutlineListView)));
         e.Handled = true;
@@ -278,6 +282,7 @@ public sealed partial class SvgEditorSidebar : UserControl
                 break;
             case VirtualKey.A when IsToggleModifier(GetKeyboardModifiers()):
                 SetFocusedNode(nodes.LastOrDefault(node => node.IsSelected) ?? nodes.First(), updateAnchor: true);
+                SyncNodeSelectionState(nodes);
                 OutlineSelectionRequested?.Invoke(this, new OutlineSelectionRequestedEventArgs(nodes, nodes.LastOrDefault() ?? nodes.First()));
                 e.Handled = true;
                 break;
@@ -300,7 +305,30 @@ public sealed partial class SvgEditorSidebar : UserControl
     {
         var selection = BuildSelectionForNode(node, modifiers);
         SetFocusedNode(node, updateAnchor: !modifiers.HasFlag(VirtualKeyModifiers.Shift));
+        SyncNodeSelectionState(selection);
         OutlineSelectionRequested?.Invoke(this, new OutlineSelectionRequestedEventArgs(selection, node));
+    }
+
+    private void SyncNodeSelectionState(IReadOnlyList<EditorObjectNode> selection)
+    {
+        var nodes = GetNodes();
+        foreach (var node in nodes)
+        {
+            node.IsSelected = selection.Contains(node);
+        }
+    }
+
+    private void SyncPageSelectionState(EditorPageItem selectedPage)
+    {
+        if (ViewModel?.Pages is null)
+        {
+            return;
+        }
+
+        foreach (var page in ViewModel.Pages)
+        {
+            page.IsSelected = ReferenceEquals(page, selectedPage);
+        }
     }
 
     private IReadOnlyList<EditorObjectNode> BuildSelectionForNode(EditorObjectNode node, VirtualKeyModifiers modifiers)

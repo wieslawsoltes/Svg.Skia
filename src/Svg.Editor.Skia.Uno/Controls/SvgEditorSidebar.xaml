@@ -94,32 +94,39 @@
               </Button>
             </controls:EditorPanelSection.HeaderContent>
             <controls:EditorPanelSection.SectionContent>
-              <ItemsControl ItemsSource="{Binding ViewModel.Pages, ElementName=Root, Mode=OneWay}">
+              <ItemsControl HorizontalAlignment="Stretch"
+                            ItemsSource="{Binding ViewModel.Pages, ElementName=Root, Mode=OneWay}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="models:EditorPageItem">
                     <Border Background="{x:Bind IsSelected, Converter={StaticResource BooleanToBrushConverter}}"
                             CornerRadius="10"
-                            Margin="0,0,0,4">
+                            Margin="0,0,0,6"
+                            HorizontalAlignment="Stretch">
                       <Button Background="Transparent"
                               BorderBrush="Transparent"
-                              Padding="12,8"
+                              HorizontalAlignment="Stretch"
+                              HorizontalContentAlignment="Stretch"
+                              Padding="12,10"
                               Click="OnPageClick">
-                        <StackPanel Orientation="Horizontal"
-                                    Spacing="10"
-                                    HorizontalAlignment="Left">
+                        <Grid ColumnDefinitions="Auto,*"
+                              ColumnSpacing="10">
                           <controls:FigmaIcon Kind="Page"
                                               Width="14"
                                               Height="14"
+                                              VerticalAlignment="Center"
                                               IconStroke="{StaticResource SidebarMetaBrush}" />
-                          <StackPanel Spacing="1">
+                          <StackPanel Grid.Column="1"
+                                      Spacing="1"
+                                      HorizontalAlignment="Stretch">
                             <TextBlock Text="{x:Bind Title}"
                                        Style="{StaticResource ShellTitleStyle}"
-                                       FontSize="12.5" />
+                                       FontSize="12.5"
+                                       TextTrimming="CharacterEllipsis" />
                             <TextBlock Text="{x:Bind Subtitle}"
                                        Style="{StaticResource SectionCaptionStyle}"
                                        TextTrimming="CharacterEllipsis" />
                           </StackPanel>
-                        </StackPanel>
+                        </Grid>
                       </Button>
                     </Border>
                   </DataTemplate>
