@@ -10,7 +10,7 @@ using Svg.Model.Services;
 
 namespace Svg.Model.Drawables;
 
-public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
+public abstract partial class DrawableBase : SKDrawable, IFilterSource, IPictureSource
 {
     public ISvgAssetLoader AssetLoader { get; }
     public HashSet<Uri>? References { get; }
@@ -105,7 +105,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
         return IsDrawable ? GeometryBounds : SKRect.Empty;
     }
 
-    protected void CreateMaskPaints()
+    protected void CreateMaskPaints(MaskType maskType)
     {
         Mask = new SKPaint
         {
@@ -113,15 +113,13 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
             Style = SKPaintStyle.StrokeAndFill
         };
 
-        var lumaColor = SKColorFilter.CreateLumaColor();
-
         MaskDstIn = new SKPaint
         {
             IsAntialias = true,
             Style = SKPaintStyle.StrokeAndFill,
             BlendMode = SKBlendMode.DstIn,
             Color = FilterEffectsService.s_transparentBlack,
-            ColorFilter = lumaColor
+            ColorFilter = maskType == MaskType.Alpha ? null : SKColorFilter.CreateLumaColor()
         };
     }
 
@@ -268,6 +266,18 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
     {
         return HitTestService.IntersectsWith(TransformedBounds, rect);
     }
+    
+    private static MaskType GetMaskType(MaskDrawable maskDrawable)
+    {
+        var maskType = MaskType.Luminance;
+        if (maskDrawable.Element != null
+            && maskDrawable.Element.TryGetAttribute("mask-type", out var maskTypeStr))
+        {
+            maskType = maskTypeStr == "alpha" ? MaskType.Alpha : MaskType.Luminance;
+        }
+        
+        return maskType;
+    }
 
     public virtual void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
     {
@@ -313,7 +323,8 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
             MaskDrawable = MaskingService.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader, References);
             if (MaskDrawable is { })
             {
-                CreateMaskPaints();
+                var maskType = GetMaskType(MaskDrawable);
+                CreateMaskPaints(maskType);
             }
         }
         else

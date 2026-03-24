@@ -98,7 +98,7 @@ public sealed class MaskDrawable : DrawableContainer
             MaskDrawable = MaskingService.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader, References);
             if (MaskDrawable is { })
             {
-                CreateMaskPaints();
+                CreateMaskPaints(MaskType.Luminance);
             }
         }
         else
