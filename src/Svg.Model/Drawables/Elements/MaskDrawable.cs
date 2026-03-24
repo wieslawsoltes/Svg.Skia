@@ -61,6 +61,18 @@ public sealed class MaskDrawable : DrawableContainer
 
         return drawable;
     }
+    
+    public MaskType GetMaskType()
+    {
+        var maskType = MaskType.Luminance;
+        if (Element != null
+            && Element.TryGetAttribute("mask-type", out var maskTypeStr))
+        {
+            maskType = maskTypeStr == "alpha" ? MaskType.Alpha : MaskType.Luminance;
+        }
+        
+        return maskType;
+    }
 
     private void Initialize(SKRect skRectTransformed, SKMatrix skMatrix)
     {

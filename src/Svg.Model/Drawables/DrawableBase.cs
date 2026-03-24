@@ -267,18 +267,6 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
         return HitTestService.IntersectsWith(TransformedBounds, rect);
     }
     
-    private static MaskType GetMaskType(MaskDrawable maskDrawable)
-    {
-        var maskType = MaskType.Luminance;
-        if (maskDrawable.Element != null
-            && maskDrawable.Element.TryGetAttribute("mask-type", out var maskTypeStr))
-        {
-            maskType = maskTypeStr == "alpha" ? MaskType.Alpha : MaskType.Luminance;
-        }
-        
-        return maskType;
-    }
-
     public virtual void PostProcess(SKRect? viewport, SKMatrix totalMatrix)
     {
         var element = Element;
@@ -323,7 +311,7 @@ public abstract class DrawableBase : SKDrawable, IFilterSource, IPictureSource
             MaskDrawable = MaskingService.GetSvgElementMask(element, GeometryBounds, new HashSet<Uri>(), AssetLoader, References);
             if (MaskDrawable is { })
             {
-                var maskType = GetMaskType(MaskDrawable);
+                var maskType = MaskDrawable.GetMaskType();
                 CreateMaskPaints(maskType);
             }
         }
