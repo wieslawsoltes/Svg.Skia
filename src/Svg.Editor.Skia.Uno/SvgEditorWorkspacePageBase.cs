@@ -1768,7 +1768,7 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
         {
             _selectedElement.Fill = SvgPaintServer.None;
             _selectedElement.FillOpacity = 1f;
-            ClearPaintStyleLink(_selectedElement, EditorPaintTarget.Fill);
+            ClearPaintStyleLink(_selectedElement, PaintStyleTarget.Fill);
             RefreshDocumentVisual(rebuildOutline: false, reloadProperties: true);
             return;
         }
@@ -1785,7 +1785,7 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
         }
 
         _selectedElement.FillOpacity = FillColor.A / 255f;
-        ClearPaintStyleLink(_selectedElement, EditorPaintTarget.Fill);
+        ClearPaintStyleLink(_selectedElement, PaintStyleTarget.Fill);
         RefreshDocumentVisual(rebuildOutline: false, reloadProperties: true);
     }
 
@@ -2888,7 +2888,7 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
             case "StrokeWidth" when _selectedElements.Count == 1 && _selectedElement is not null:
                 {
                     _selectedElement.StrokeWidth = new SvgUnit(Math.Max((float)value, 0f));
-                    ClearPaintStyleLink(_selectedElement, EditorPaintTarget.Stroke);
+                    ClearPaintStyleLink(_selectedElement, PaintStyleTarget.Stroke);
                     break;
                 }
             case "CornerRadius" when _selectedElements.Count == 1 && TryGetCornerRadiusTarget(_selectedElement, out var radiusTarget):
@@ -4186,8 +4186,8 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
         {
             QuickRotation = _selectionService.GetRotation(_selectedElement).ToString("0.##", CultureInfo.InvariantCulture);
             QuickOpacity = (_selectedElement.Opacity * 100f).ToString("0.##", CultureInfo.InvariantCulture);
-            QuickFill = FormatPaintWithLibraryStyle(_selectedElement, EditorPaintTarget.Fill);
-            QuickStroke = FormatPaintWithLibraryStyle(_selectedElement, EditorPaintTarget.Stroke);
+            QuickFill = FormatPaintWithLibraryStyle(_selectedElement, PaintStyleTarget.Fill);
+            QuickStroke = FormatPaintWithLibraryStyle(_selectedElement, PaintStyleTarget.Stroke);
             QuickStrokeWidth = _selectedElement.StrokeWidth.Value.ToString("0.##", CultureInfo.InvariantCulture);
             QuickCornerRadius = TryGetCornerRadiusTarget(_selectedElement, out var radiusTarget)
                 ? GetCornerRadiusValue(radiusTarget).ToString("0.##", CultureInfo.InvariantCulture)
@@ -4302,7 +4302,7 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
                     IsFillColorEditable = true;
                     break;
                 default:
-                    if (TryResolveEffectivePaintColor(element, EditorPaintTarget.Fill, out var inheritedFillColor))
+                    if (TryResolveEffectivePaintColor(element, PaintStyleTarget.Fill, out var inheritedFillColor))
                     {
                         FillColor = inheritedFillColor;
                     }
@@ -4318,13 +4318,13 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
         }
     }
 
-    private static bool TryResolveEffectivePaintColor(SvgVisualElement element, EditorPaintTarget target, out Color color)
+    private static bool TryResolveEffectivePaintColor(SvgVisualElement element, PaintStyleTarget target, out Color color)
     {
         SvgElement? current = element;
         while (current is SvgVisualElement visual)
         {
-            var paint = target == EditorPaintTarget.Stroke ? visual.Stroke : visual.Fill;
-            var opacity = target == EditorPaintTarget.Stroke ? visual.StrokeOpacity : visual.FillOpacity;
+            var paint = target == PaintStyleTarget.Stroke ? visual.Stroke : visual.Fill;
+            var opacity = target == PaintStyleTarget.Stroke ? visual.StrokeOpacity : visual.FillOpacity;
 
             if (TryGetExplicitPaintColor(paint, opacity, out color))
             {
@@ -5044,14 +5044,14 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
                     seen,
                     element.Fill,
                     element.FillOpacity,
-                    EditorPaintTarget.Fill,
+                    PaintStyleTarget.Fill,
                     strokeWidth: 1.0);
                 AppendPublishedPaintStyle(
                     swatches,
                     seen,
                     element.Stroke,
                     element.StrokeOpacity,
-                    EditorPaintTarget.Stroke,
+                    PaintStyleTarget.Stroke,
                     element.StrokeWidth.Value);
             }
 
@@ -5067,9 +5067,9 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
                     var style = CreateLibraryPaintStyle(
                         "current-file",
                         DocumentTitle,
-                        BuildPaintStyleLabel(color, EditorPaintTarget.Fill, 1.0),
+                        BuildPaintStyleLabel(color, PaintStyleTarget.Fill, 1.0),
                         color,
-                        EditorPaintTarget.Fill,
+                        PaintStyleTarget.Fill,
                         "Fill styles",
                         "published flood fill style");
                     if (seen.Add(style.StyleId))
@@ -5185,12 +5185,12 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
                 CreateLibraryAsset(CreateLibraryDeviceSymbol("ios-device-frame", 220f, 440f, System.Drawing.Color.FromArgb(245, 248, 252), System.Drawing.Color.FromArgb(184, 198, 216)), "Device Frame", "Templates", "phone mock device")
             ],
             [
-                CreateLibraryPaintStyle("ios-ipados-26", "iOS and iPadOS 26 UI Kit", "Primary fill", Color.FromArgb(255, 31, 111, 235), EditorPaintTarget.Fill, "Fill styles", "ios primary fill"),
-                CreateLibraryPaintStyle("ios-ipados-26", "iOS and iPadOS 26 UI Kit", "Surface fill", Color.FromArgb(255, 245, 248, 252), EditorPaintTarget.Fill, "Fill styles", "ios surface fill"),
-                CreateLibraryPaintStyle("ios-ipados-26", "iOS and iPadOS 26 UI Kit", "Accent fill", Color.FromArgb(255, 0, 188, 212), EditorPaintTarget.Fill, "Fill styles", "ios accent fill"),
-                CreateLibraryPaintStyle("ios-ipados-26", "iOS and iPadOS 26 UI Kit", "Ink fill", Color.FromArgb(255, 17, 24, 39), EditorPaintTarget.Fill, "Fill styles", "ios ink fill"),
-                CreateLibraryPaintStyle("ios-ipados-26", "iOS and iPadOS 26 UI Kit", "Divider stroke", Color.FromArgb(255, 184, 198, 216), EditorPaintTarget.Stroke, "Stroke styles", "ios divider stroke", 1.5),
-                CreateLibraryPaintStyle("ios-ipados-26", "iOS and iPadOS 26 UI Kit", "Selection stroke", Color.FromArgb(255, 31, 111, 235), EditorPaintTarget.Stroke, "Stroke styles", "ios selection stroke", 2.0)
+                CreateLibraryPaintStyle("ios-ipados-26", "iOS and iPadOS 26 UI Kit", "Primary fill", Color.FromArgb(255, 31, 111, 235), PaintStyleTarget.Fill, "Fill styles", "ios primary fill"),
+                CreateLibraryPaintStyle("ios-ipados-26", "iOS and iPadOS 26 UI Kit", "Surface fill", Color.FromArgb(255, 245, 248, 252), PaintStyleTarget.Fill, "Fill styles", "ios surface fill"),
+                CreateLibraryPaintStyle("ios-ipados-26", "iOS and iPadOS 26 UI Kit", "Accent fill", Color.FromArgb(255, 0, 188, 212), PaintStyleTarget.Fill, "Fill styles", "ios accent fill"),
+                CreateLibraryPaintStyle("ios-ipados-26", "iOS and iPadOS 26 UI Kit", "Ink fill", Color.FromArgb(255, 17, 24, 39), PaintStyleTarget.Fill, "Fill styles", "ios ink fill"),
+                CreateLibraryPaintStyle("ios-ipados-26", "iOS and iPadOS 26 UI Kit", "Divider stroke", Color.FromArgb(255, 184, 198, 216), PaintStyleTarget.Stroke, "Stroke styles", "ios divider stroke", 1.5),
+                CreateLibraryPaintStyle("ios-ipados-26", "iOS and iPadOS 26 UI Kit", "Selection stroke", Color.FromArgb(255, 31, 111, 235), PaintStyleTarget.Stroke, "Stroke styles", "ios selection stroke", 2.0)
             ]);
     }
 
@@ -5224,12 +5224,12 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
                 CreateLibraryAsset(CreateLibraryMetricSymbol("m3-stat", 156f, 96f, System.Drawing.Color.White, System.Drawing.Color.FromArgb(54, 44, 92), "89%", "Engagement"), "Engagement Tile", "Widgets", "metric stat widget")
             ],
             [
-                CreateLibraryPaintStyle("material-3", "Material 3 Design Kit", "Primary fill", Color.FromArgb(255, 124, 58, 237), EditorPaintTarget.Fill, "Fill styles", "material primary fill"),
-                CreateLibraryPaintStyle("material-3", "Material 3 Design Kit", "Accent fill", Color.FromArgb(255, 236, 72, 153), EditorPaintTarget.Fill, "Fill styles", "material accent fill"),
-                CreateLibraryPaintStyle("material-3", "Material 3 Design Kit", "Surface fill", Color.FromArgb(255, 250, 244, 255), EditorPaintTarget.Fill, "Fill styles", "material surface fill"),
-                CreateLibraryPaintStyle("material-3", "Material 3 Design Kit", "Ink fill", Color.FromArgb(255, 54, 44, 92), EditorPaintTarget.Fill, "Fill styles", "material ink fill"),
-                CreateLibraryPaintStyle("material-3", "Material 3 Design Kit", "Outline stroke", Color.FromArgb(255, 124, 58, 237), EditorPaintTarget.Stroke, "Stroke styles", "material outline stroke", 1.0),
-                CreateLibraryPaintStyle("material-3", "Material 3 Design Kit", "Strong stroke", Color.FromArgb(255, 236, 72, 153), EditorPaintTarget.Stroke, "Stroke styles", "material strong stroke", 2.0)
+                CreateLibraryPaintStyle("material-3", "Material 3 Design Kit", "Primary fill", Color.FromArgb(255, 124, 58, 237), PaintStyleTarget.Fill, "Fill styles", "material primary fill"),
+                CreateLibraryPaintStyle("material-3", "Material 3 Design Kit", "Accent fill", Color.FromArgb(255, 236, 72, 153), PaintStyleTarget.Fill, "Fill styles", "material accent fill"),
+                CreateLibraryPaintStyle("material-3", "Material 3 Design Kit", "Surface fill", Color.FromArgb(255, 250, 244, 255), PaintStyleTarget.Fill, "Fill styles", "material surface fill"),
+                CreateLibraryPaintStyle("material-3", "Material 3 Design Kit", "Ink fill", Color.FromArgb(255, 54, 44, 92), PaintStyleTarget.Fill, "Fill styles", "material ink fill"),
+                CreateLibraryPaintStyle("material-3", "Material 3 Design Kit", "Outline stroke", Color.FromArgb(255, 124, 58, 237), PaintStyleTarget.Stroke, "Stroke styles", "material outline stroke", 1.0),
+                CreateLibraryPaintStyle("material-3", "Material 3 Design Kit", "Strong stroke", Color.FromArgb(255, 236, 72, 153), PaintStyleTarget.Stroke, "Stroke styles", "material strong stroke", 2.0)
             ]);
     }
 
@@ -5259,12 +5259,12 @@ public partial class SvgEditorWorkspacePage : Page, ISvgEditorShellViewModel, IN
                 CreateLibraryAsset(CreateLibraryChipSymbol("simple-chip", 124f, 40f, System.Drawing.Color.FromArgb(17, 24, 39), System.Drawing.Color.White, "Active"), "Status Chip", "Controls", "chip status")
             ],
             [
-                CreateLibraryPaintStyle("simple-design-system", "Simple Design System", "Ink fill", Color.FromArgb(255, 17, 24, 39), EditorPaintTarget.Fill, "Fill styles", "simple ink fill"),
-                CreateLibraryPaintStyle("simple-design-system", "Simple Design System", "Blue fill", Color.FromArgb(255, 13, 153, 255), EditorPaintTarget.Fill, "Fill styles", "simple blue fill"),
-                CreateLibraryPaintStyle("simple-design-system", "Simple Design System", "Surface fill", Color.FromArgb(255, 245, 247, 250), EditorPaintTarget.Fill, "Fill styles", "simple surface fill"),
-                CreateLibraryPaintStyle("simple-design-system", "Simple Design System", "Muted fill", Color.FromArgb(255, 98, 108, 128), EditorPaintTarget.Fill, "Fill styles", "simple muted fill"),
-                CreateLibraryPaintStyle("simple-design-system", "Simple Design System", "Accent stroke", Color.FromArgb(255, 13, 153, 255), EditorPaintTarget.Stroke, "Stroke styles", "simple accent stroke", 1.5),
-                CreateLibraryPaintStyle("simple-design-system", "Simple Design System", "Outline stroke", Color.FromArgb(255, 17, 24, 39), EditorPaintTarget.Stroke, "Stroke styles", "simple outline stroke", 2.0)
+                CreateLibraryPaintStyle("simple-design-system", "Simple Design System", "Ink fill", Color.FromArgb(255, 17, 24, 39), PaintStyleTarget.Fill, "Fill styles", "simple ink fill"),
+                CreateLibraryPaintStyle("simple-design-system", "Simple Design System", "Blue fill", Color.FromArgb(255, 13, 153, 255), PaintStyleTarget.Fill, "Fill styles", "simple blue fill"),
+                CreateLibraryPaintStyle("simple-design-system", "Simple Design System", "Surface fill", Color.FromArgb(255, 245, 247, 250), PaintStyleTarget.Fill, "Fill styles", "simple surface fill"),
+                CreateLibraryPaintStyle("simple-design-system", "Simple Design System", "Muted fill", Color.FromArgb(255, 98, 108, 128), PaintStyleTarget.Fill, "Fill styles", "simple muted fill"),
+                CreateLibraryPaintStyle("simple-design-system", "Simple Design System", "Accent stroke", Color.FromArgb(255, 13, 153, 255), PaintStyleTarget.Stroke, "Stroke styles", "simple accent stroke", 1.5),
+                CreateLibraryPaintStyle("simple-design-system", "Simple Design System", "Outline stroke", Color.FromArgb(255, 17, 24, 39), PaintStyleTarget.Stroke, "Stroke styles", "simple outline stroke", 2.0)
             ]);
     }
 

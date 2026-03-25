@@ -512,7 +512,7 @@ public partial class SvgEditorWorkspacePage
             return;
         }
 
-        var target = style.Target == EditorPaintTarget.Stroke ? EditorPaintTarget.Stroke : EditorPaintTarget.Fill;
+        var target = style.Target == PaintStyleTarget.Stroke ? PaintStyleTarget.Stroke : PaintStyleTarget.Fill;
         ApplyPaintStyleToSelection(new PaintStyleRequestedEventArgs(style, target));
     }
 
@@ -717,7 +717,7 @@ public partial class SvgEditorWorkspacePage
                 return new ColorSwatchItem(
                     color,
                     "Color style",
-                    EditorPaintTarget.Fill,
+                    PaintStyleTarget.Fill,
                     CreateUniqueStyleId("color-style", "fill"),
                     "current-file",
                     DocumentTitle,
@@ -735,7 +735,7 @@ public partial class SvgEditorWorkspacePage
                 return new ColorSwatchItem(
                     color,
                     "Stroke style",
-                    EditorPaintTarget.Stroke,
+                    PaintStyleTarget.Stroke,
                     CreateUniqueStyleId("color-style", "stroke"),
                     "current-file",
                     DocumentTitle,
@@ -748,7 +748,7 @@ public partial class SvgEditorWorkspacePage
         return new ColorSwatchItem(
             Color.FromArgb(255, 217, 217, 217),
             "Neutral",
-            EditorPaintTarget.Fill,
+            PaintStyleTarget.Fill,
             CreateUniqueStyleId("color-style", "neutral"),
             "current-file",
             DocumentTitle,
@@ -1088,12 +1088,12 @@ public partial class SvgEditorWorkspacePage
         }
     }
 
-    private void ClearPaintStyleLinksAcrossPages(string styleId, string libraryId, EditorPaintTarget target)
+    private void ClearPaintStyleLinksAcrossPages(string styleId, string libraryId, PaintStyleTarget target)
     {
         foreach (var element in _pageStates.SelectMany(static state => state.Document.Descendants().OfType<SvgVisualElement>()))
         {
-            var idAttribute = target == EditorPaintTarget.Stroke ? LibraryStrokeStyleIdAttribute : LibraryFillStyleIdAttribute;
-            var libraryAttribute = target == EditorPaintTarget.Stroke ? LibraryStrokeStyleLibraryIdAttribute : LibraryFillStyleLibraryIdAttribute;
+            var idAttribute = target == PaintStyleTarget.Stroke ? LibraryStrokeStyleIdAttribute : LibraryFillStyleIdAttribute;
+            var libraryAttribute = target == PaintStyleTarget.Stroke ? LibraryStrokeStyleLibraryIdAttribute : LibraryFillStyleLibraryIdAttribute;
             if (element.CustomAttributes.TryGetValue(idAttribute, out var linkedStyleId)
                 && string.Equals(linkedStyleId, styleId, StringComparison.Ordinal)
                 && element.CustomAttributes.TryGetValue(libraryAttribute, out var linkedLibraryId)
@@ -1306,10 +1306,10 @@ public partial class SvgEditorWorkspacePage
         {
             Items =
             {
-                new ComboBoxItem { Content = "Fill", Tag = EditorPaintTarget.Fill },
-                new ComboBoxItem { Content = "Stroke", Tag = EditorPaintTarget.Stroke }
+                new ComboBoxItem { Content = "Fill", Tag = PaintStyleTarget.Fill },
+                new ComboBoxItem { Content = "Stroke", Tag = PaintStyleTarget.Stroke }
             },
-            SelectedIndex = draft.Target == EditorPaintTarget.Stroke ? 1 : 0,
+            SelectedIndex = draft.Target == PaintStyleTarget.Stroke ? 1 : 0,
             IsEnabled = !isEditing,
             Style = (Style)Resources["PickerComboBoxStyle"]
         };
@@ -1423,7 +1423,7 @@ public partial class SvgEditorWorkspacePage
             var hex = ColorPickerColorHelper.ToHexRgb(colorPicker.SelectedColor);
             var styleName = string.IsNullOrWhiteSpace(nameBox.Text) ? "Untitled color style" : nameBox.Text.Trim();
             var detailText = string.IsNullOrWhiteSpace(descriptionBox.Text)
-                ? target == EditorPaintTarget.Stroke
+                ? target == PaintStyleTarget.Stroke
                     ? "Reusable stroke token for outlines, dividers, and focused states."
                     : "Reusable fill token for surfaces, accents, and key blocks."
                 : descriptionBox.Text.Trim();
@@ -1432,20 +1432,20 @@ public partial class SvgEditorWorkspacePage
             colorPicker.CurrentStrokeWidthText = strokeWidthBox.Text;
 
             previewTitle.Text = styleName;
-            previewMeta.Text = target == EditorPaintTarget.Stroke
+            previewMeta.Text = target == PaintStyleTarget.Stroke
                 ? $"Stroke · {strokeWidth:0.##} px · #{hex} · {opacityPercent}%"
                 : $"Fill · #{hex} · {opacityPercent}%";
             previewDescription.Text = detailText;
 
-            previewChip.Background = target == EditorPaintTarget.Fill
+            previewChip.Background = target == PaintStyleTarget.Fill
                 ? brush
                 : new SolidColorBrush(Color.FromArgb(18, colorPicker.SelectedColor.R, colorPicker.SelectedColor.G, colorPicker.SelectedColor.B));
             previewChip.BorderBrush = brush;
-            previewChip.BorderThickness = target == EditorPaintTarget.Stroke
+            previewChip.BorderThickness = target == PaintStyleTarget.Stroke
                 ? new Thickness(Math.Clamp(strokeWidth, 1.0, 6.0))
                 : new Thickness(0);
 
-            strokeWidthField.Visibility = target == EditorPaintTarget.Stroke ? Visibility.Visible : Visibility.Collapsed;
+            strokeWidthField.Visibility = target == PaintStyleTarget.Stroke ? Visibility.Visible : Visibility.Collapsed;
         }
 
         colorPicker.RegisterPropertyChangedCallback(FigmaColorPicker.SelectedColorProperty, (_, _) => UpdateColorPreview());
@@ -1488,7 +1488,7 @@ public partial class SvgEditorWorkspacePage
 
         var target = GetSelectedPaintTarget(targetBox);
         var strokeWidth = TryParseDouble(strokeWidthBox.Text, out var parsedStrokeWidth) ? parsedStrokeWidth : draft.StrokeWidth;
-        var sectionName = target == EditorPaintTarget.Stroke ? "Stroke styles" : "Fill styles";
+        var sectionName = target == PaintStyleTarget.Stroke ? "Stroke styles" : "Fill styles";
         var style = new ColorSwatchItem(
             colorPicker.SelectedColor,
             nameBox.Text,
@@ -1498,7 +1498,7 @@ public partial class SvgEditorWorkspacePage
             DocumentTitle,
             sectionName,
             $"{nameBox.Text} {descriptionBox.Text}",
-            target == EditorPaintTarget.Stroke ? strokeWidth : 1.0,
+            target == PaintStyleTarget.Stroke ? strokeWidth : 1.0,
             descriptionBox.Text);
         return (result, style);
     }
@@ -1754,11 +1754,11 @@ public partial class SvgEditorWorkspacePage
             : SvgFontWeight.Normal;
     }
 
-    private static EditorPaintTarget GetSelectedPaintTarget(ComboBox comboBox)
+    private static PaintStyleTarget GetSelectedPaintTarget(ComboBox comboBox)
     {
-        return comboBox.SelectedItem is ComboBoxItem { Tag: EditorPaintTarget target }
+        return comboBox.SelectedItem is ComboBoxItem { Tag: PaintStyleTarget target }
             ? target
-            : EditorPaintTarget.Fill;
+            : PaintStyleTarget.Fill;
     }
 
     private static FontWeight ToWindowsFontWeight(SvgFontWeight weight)

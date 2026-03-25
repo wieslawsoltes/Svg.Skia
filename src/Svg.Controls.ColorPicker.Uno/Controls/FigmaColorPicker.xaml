@@ -1,0 +1,757 @@
+<UserControl
+    x:Class="Svg.Controls.ColorPicker.Uno.Controls.FigmaColorPicker"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Svg.Controls.ColorPicker.Uno.Controls"
+    xmlns:models="using:Svg.Controls.ColorPicker.Uno.Models"
+    x:Name="Root">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///Svg.Controls.ColorPicker.Uno/Themes/ColorPickerThemeResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <Grid Width="412">
+    <Border Margin="0,6,0,0"
+            Background="{StaticResource PickerShadowBrush}"
+            CornerRadius="24"
+            Opacity="0.28" />
+
+    <Border Background="{StaticResource PickerSurfaceBrush}"
+            BorderBrush="{StaticResource PickerDividerBrush}"
+            BorderThickness="1"
+            CornerRadius="24">
+      <Grid RowDefinitions="Auto,Auto,Auto,*">
+        <Grid Padding="12,12,12,9"
+              ColumnDefinitions="Auto,*,Auto,Auto">
+          <Border x:Name="CustomTabBorder"
+                  Background="{StaticResource PickerChipBrush}"
+                  CornerRadius="13">
+            <Button Style="{StaticResource PickerHeaderButtonStyle}"
+                    Click="OnCustomTabClick"
+                    Content="Custom" />
+          </Border>
+          <Border x:Name="LibrariesTabBorder"
+                  Grid.Column="1"
+                  Background="Transparent"
+                  CornerRadius="13"
+                  Margin="8,0,0,0">
+            <Button Style="{StaticResource PickerHeaderButtonStyle}"
+                    Click="OnLibrariesTabClick"
+                    Content="Libraries" />
+          </Border>
+          <Button x:Name="AddSwatchButton"
+                  Grid.Column="2"
+                  Style="{StaticResource PickerIconButtonStyle}"
+                  Click="OnAddSwatchClick"
+                  Margin="8,0,0,0">
+            <controls:PickerIcon Kind="Add"
+                                 Width="15"
+                                 Height="15"
+                                 IconStroke="{StaticResource TextBrush}" />
+          </Button>
+          <Button x:Name="ClosePickerButton"
+                  Grid.Column="3"
+                  Style="{StaticResource PickerIconButtonStyle}"
+                  Click="OnCloseClick"
+                  Margin="4,0,0,0">
+            <controls:PickerIcon Kind="Close"
+                                 Width="14"
+                                 Height="14"
+                                 IconStroke="{StaticResource TextBrush}" />
+          </Button>
+        </Grid>
+
+        <Border Grid.Row="1"
+                Height="1"
+                Background="{StaticResource PickerDividerBrush}" />
+
+        <Grid Grid.Row="2"
+              Padding="12,10"
+              ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*,Auto,Auto">
+          <Border x:Name="SolidModeBorder"
+                  Background="Transparent"
+                  CornerRadius="11">
+            <Button x:Name="SolidModeButton"
+                    Style="{StaticResource PickerIconButtonStyle}"
+                    Click="OnPaintModeButtonClick"
+                    Tag="Solid">
+              <controls:PickerIcon Kind="SolidPaint"
+                                  Width="16"
+                                  Height="16"
+                                  IconStroke="{StaticResource TextBrush}"
+                                  IconFill="{Binding SelectedColor, ElementName=Root, Converter={StaticResource ColorToBrushConverter}}" />
+            </Button>
+          </Border>
+
+          <Border x:Name="LinearGradientModeBorder"
+                  Grid.Column="1"
+                  Background="Transparent"
+                  CornerRadius="11"
+                  Margin="8,0,0,0">
+            <Button x:Name="LinearGradientModeButton"
+                    Style="{StaticResource PickerIconButtonStyle}"
+                    Click="OnPaintModeButtonClick"
+                    Tag="LinearGradient">
+              <controls:PickerIcon Kind="GradientLinear"
+                                  Width="16"
+                                  Height="16"
+                                  IconStroke="{StaticResource TextBrush}" />
+            </Button>
+          </Border>
+
+          <Border x:Name="RadialGradientModeBorder"
+                  Grid.Column="2"
+                  Background="Transparent"
+                  CornerRadius="11"
+                  Margin="8,0,0,0">
+            <Button x:Name="RadialGradientModeButton"
+                    Style="{StaticResource PickerIconButtonStyle}"
+                    Click="OnPaintModeButtonClick"
+                    Tag="RadialGradient">
+              <controls:PickerIcon Kind="GradientRadial"
+                                  Width="16"
+                                  Height="16"
+                                  IconStroke="{StaticResource TextBrush}" />
+            </Button>
+          </Border>
+
+          <Border x:Name="ImagePaintModeBorder"
+                  Grid.Column="3"
+                  Background="Transparent"
+                  CornerRadius="11"
+                  Margin="8,0,0,0">
+            <Button x:Name="ImagePaintModeButton"
+                    Style="{StaticResource PickerIconButtonStyle}"
+                    Click="OnPaintModeButtonClick"
+                    Tag="ImagePaint">
+              <controls:PickerIcon Kind="ImagePaint"
+                                  Width="16"
+                                  Height="16"
+                                  IconStroke="{StaticResource TextBrush}" />
+            </Button>
+          </Border>
+
+          <Border x:Name="VideoPaintModeBorder"
+                  Grid.Column="4"
+                  Background="Transparent"
+                  CornerRadius="11"
+                  Margin="8,0,0,0">
+            <Button x:Name="VideoPaintModeButton"
+                    Style="{StaticResource PickerIconButtonStyle}"
+                    Click="OnPaintModeButtonClick"
+                    Tag="VideoPaint">
+              <controls:PickerIcon Kind="VideoPaint"
+                                  Width="16"
+                                  Height="16"
+                                  IconStroke="{StaticResource TextBrush}" />
+            </Button>
+          </Border>
+
+          <Border x:Name="ImageAssetModeBorder"
+                  Grid.Column="5"
+                  Background="Transparent"
+                  CornerRadius="11"
+                  Margin="8,0,0,0">
+            <Button x:Name="ImageAssetModeButton"
+                    Style="{StaticResource PickerIconButtonStyle}"
+                    Click="OnPaintModeButtonClick"
+                    Tag="ImageAsset">
+              <controls:PickerIcon Kind="Image"
+                                  Width="16"
+                                  Height="16"
+                                  IconStroke="{StaticResource TextBrush}" />
+            </Button>
+          </Border>
+
+          <Border x:Name="EyeDropperEnableBorder"
+                  Grid.Column="7"
+                  Background="Transparent"
+                  CornerRadius="11">
+            <Button x:Name="EyeDropperEnableButton"
+                    Style="{StaticResource PickerIconButtonStyle}"
+                    Click="OnEyeDropperEnableClick">
+              <controls:PickerIcon Kind="Droplet"
+                                  Width="16"
+                                  Height="16"
+                                  IconStroke="{StaticResource TextBrush}" />
+            </Button>
+          </Border>
+
+          <Border x:Name="EyeDropperDisableBorder"
+                  Grid.Column="8"
+                  Background="Transparent"
+                  CornerRadius="11"
+                  Margin="4,0,0,0">
+            <Button x:Name="EyeDropperDisableButton"
+                    Style="{StaticResource PickerIconButtonStyle}"
+                    Click="OnEyeDropperDisableClick">
+              <controls:PickerIcon Kind="DropletOff"
+                                  Width="16"
+                                  Height="16"
+                                  IconStroke="{StaticResource TextBrush}" />
+            </Button>
+          </Border>
+        </Grid>
+
+        <ScrollViewer Grid.Row="3"
+                      HorizontalScrollMode="Disabled"
+                      HorizontalScrollBarVisibility="Hidden"
+                      VerticalScrollBarVisibility="Auto">
+          <Grid>
+            <StackPanel x:Name="CustomPanel"
+                        Padding="12,6,12,12"
+                        Spacing="12">
+              <Border Background="{StaticResource PickerSectionBrush}"
+                      BorderBrush="{StaticResource PickerDividerBrush}"
+                      BorderThickness="1"
+                      CornerRadius="18"
+                      Padding="14">
+                <StackPanel Spacing="12">
+                  <Grid ColumnDefinitions="*,Auto"
+                        ColumnSpacing="12">
+                    <StackPanel Spacing="3">
+                      <TextBlock x:Name="PaintModeTitleText"
+                                 Style="{StaticResource ShellTitleStyle}"
+                                 FontSize="14" />
+                      <TextBlock x:Name="PaintModeSubtitleText"
+                                 Style="{StaticResource SectionCaptionStyle}"
+                                 TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                    <controls:PickerIcon x:Name="PaintModePreviewIcon"
+                                         Width="18"
+                                         Height="18"
+                                         IconStroke="{StaticResource TextBrush}" />
+                  </Grid>
+
+                  <Border x:Name="PaintPreviewSurface"
+                          Height="92"
+                          Background="{StaticResource PickerChipBrush}"
+                          BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                          BorderThickness="1"
+                          CornerRadius="16" />
+
+                  <StackPanel Spacing="2">
+                    <TextBlock x:Name="PaintPreviewPrimaryText"
+                               Style="{StaticResource ShellTitleStyle}"
+                               FontSize="12.75" />
+                    <TextBlock x:Name="PaintPreviewSecondaryText"
+                               Style="{StaticResource SectionCaptionStyle}"
+                               TextWrapping="WrapWholeWords" />
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <Border x:Name="GradientToolsPanel"
+                      Background="{StaticResource PickerSectionBrush}"
+                      BorderBrush="{StaticResource PickerDividerBrush}"
+                      BorderThickness="1"
+                      CornerRadius="16"
+                      Padding="14"
+                      Visibility="Collapsed">
+                <StackPanel Spacing="12">
+                  <Grid ColumnDefinitions="*,Auto,Auto"
+                        ColumnSpacing="8">
+                    <StackPanel Spacing="2">
+                      <TextBlock Text="Gradient stops"
+                                 Style="{StaticResource ShellTitleStyle}"
+                                 FontSize="13" />
+                      <TextBlock x:Name="SelectedGradientStopText"
+                                 Style="{StaticResource SectionCaptionStyle}"
+                                 TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                    <Button x:Name="AddGradientStopButton"
+                            Grid.Column="1"
+                            Click="OnAddGradientStopClick"
+                            Padding="12,8"
+                            Content="Add stop" />
+                    <Button x:Name="RemoveGradientStopButton"
+                            Grid.Column="2"
+                            Click="OnRemoveGradientStopClick"
+                            Padding="12,8"
+                            Content="Remove" />
+                  </Grid>
+
+                  <GridView x:Name="GradientStopsGrid"
+                            IsItemClickEnabled="True"
+                            ItemClick="OnGradientStopItemClick"
+                            SelectionMode="None"
+                            ScrollViewer.HorizontalScrollMode="Disabled"
+                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                            ScrollViewer.VerticalScrollMode="Disabled"
+                            ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                            BorderThickness="0"
+                            Padding="0">
+                    <GridView.ItemContainerStyle>
+                      <Style TargetType="GridViewItem">
+                        <Setter Property="Margin" Value="0,0,10,10" />
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="Background" Value="Transparent" />
+                      </Style>
+                    </GridView.ItemContainerStyle>
+                    <GridView.ItemTemplate>
+                      <DataTemplate x:DataType="models:ColorPickerGradientStop">
+                        <Grid Width="88">
+                          <Border Background="{StaticResource FieldSurfaceBrush}"
+                                  BorderBrush="{StaticResource PickerDividerBrush}"
+                                  BorderThickness="1"
+                                  CornerRadius="12"
+                                  Padding="8">
+                            <StackPanel Spacing="6">
+                              <Border Height="28"
+                                      Background="{Binding Color, Converter={StaticResource ColorToBrushConverter}}"
+                                      BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                                      BorderThickness="1"
+                                      CornerRadius="8" />
+                              <TextBlock Text="{x:Bind Label}"
+                                         Style="{StaticResource ShellTitleStyle}"
+                                         FontSize="12" />
+                              <TextBlock Text="{x:Bind OffsetLabel}"
+                                         Style="{StaticResource SectionCaptionStyle}"
+                                         FontSize="11" />
+                            </StackPanel>
+                          </Border>
+                          <Border BorderBrush="{Binding Color, Converter={StaticResource ColorToBrushConverter}}"
+                                  BorderThickness="2"
+                                  CornerRadius="12"
+                                  Visibility="{x:Bind SelectionVisibility, Mode=OneWay}" />
+                        </Grid>
+                      </DataTemplate>
+                    </GridView.ItemTemplate>
+                  </GridView>
+
+                  <StackPanel Spacing="6">
+                    <TextBlock Text="Selected stop position"
+                               Style="{StaticResource ShellBodyStyle}" />
+                    <Slider x:Name="GradientStopOffsetSlider"
+                            Minimum="0"
+                            Maximum="100"
+                            ValueChanged="OnGradientStopOffsetChanged" />
+                  </StackPanel>
+
+                  <StackPanel x:Name="LinearGradientSettingsPanel"
+                              Spacing="6"
+                              Visibility="Collapsed">
+                    <TextBlock Text="Linear angle"
+                               Style="{StaticResource ShellBodyStyle}" />
+                    <Slider x:Name="LinearAngleSlider"
+                            Minimum="0"
+                            Maximum="360"
+                            ValueChanged="OnLinearAngleChanged" />
+                  </StackPanel>
+
+                  <StackPanel x:Name="RadialGradientSettingsPanel"
+                              Spacing="10"
+                              Visibility="Collapsed">
+                    <Grid ColumnDefinitions="*,*"
+                          ColumnSpacing="10">
+                      <StackPanel Spacing="6">
+                        <TextBlock Text="Center X"
+                                   Style="{StaticResource ShellBodyStyle}" />
+                        <Slider x:Name="RadialCenterXSlider"
+                                Minimum="0"
+                                Maximum="100"
+                                ValueChanged="OnRadialCenterXChanged" />
+                      </StackPanel>
+                      <StackPanel Grid.Column="1"
+                                  Spacing="6">
+                        <TextBlock Text="Center Y"
+                                   Style="{StaticResource ShellBodyStyle}" />
+                        <Slider x:Name="RadialCenterYSlider"
+                                Minimum="0"
+                                Maximum="100"
+                                ValueChanged="OnRadialCenterYChanged" />
+                      </StackPanel>
+                    </Grid>
+                    <StackPanel Spacing="6">
+                      <TextBlock Text="Radius"
+                                 Style="{StaticResource ShellBodyStyle}" />
+                      <Slider x:Name="RadialRadiusSlider"
+                              Minimum="10"
+                              Maximum="100"
+                              ValueChanged="OnRadialRadiusChanged" />
+                    </StackPanel>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <Border x:Name="AssetToolsPanel"
+                      Background="{StaticResource PickerSectionBrush}"
+                      BorderBrush="{StaticResource PickerDividerBrush}"
+                      BorderThickness="1"
+                      CornerRadius="16"
+                      Padding="14"
+                      Visibility="Collapsed">
+                <StackPanel Spacing="12">
+                  <StackPanel Spacing="3">
+                    <TextBlock x:Name="AssetPanelCaptionText"
+                               Style="{StaticResource ShellTitleStyle}"
+                               FontSize="13" />
+                    <TextBlock x:Name="AssetPanelHintText"
+                               Style="{StaticResource SectionCaptionStyle}"
+                               TextWrapping="WrapWholeWords" />
+                  </StackPanel>
+
+                  <StackPanel Spacing="6">
+                    <TextBlock x:Name="AssetSourceLabelText"
+                               Style="{StaticResource ShellBodyStyle}" />
+                    <TextBox x:Name="AssetSourceTextBox"
+                             Style="{StaticResource PickerTextBoxStyle}"
+                             TextChanged="OnAssetSourceTextChanged" />
+                  </StackPanel>
+
+                  <Grid ColumnDefinitions="*,*"
+                        ColumnSpacing="10">
+                    <StackPanel Spacing="6">
+                      <TextBlock x:Name="AssetOptionLabelText"
+                                 Style="{StaticResource ShellBodyStyle}" />
+                      <ComboBox x:Name="AssetOptionComboBox"
+                                Style="{StaticResource PickerComboBoxStyle}"
+                                SelectionChanged="OnAssetOptionSelectionChanged" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1"
+                                Spacing="6">
+                      <TextBlock x:Name="AssetSecondaryLabelText"
+                                 Style="{StaticResource ShellBodyStyle}" />
+                      <TextBox x:Name="AssetSecondaryTextBox"
+                               Style="{StaticResource PickerTextBoxStyle}"
+                               TextChanged="OnAssetSecondaryTextChanged" />
+                    </StackPanel>
+                  </Grid>
+
+                  <CheckBox x:Name="AssetToggleCheckBox"
+                            Checked="OnAssetToggleChanged"
+                            Unchecked="OnAssetToggleChanged" />
+                </StackPanel>
+              </Border>
+
+              <Border x:Name="EyeDropperPanel"
+                      Background="{StaticResource PickerSectionBrush}"
+                      BorderBrush="{StaticResource PickerDividerBrush}"
+                      BorderThickness="1"
+                      CornerRadius="16"
+                      Padding="14"
+                      Visibility="Collapsed">
+                <StackPanel Spacing="10">
+                  <StackPanel Spacing="3">
+                    <TextBlock Text="Eyedropper sample palette"
+                               Style="{StaticResource ShellTitleStyle}"
+                               FontSize="13" />
+                    <TextBlock Text="Pick from the current swatches and library colors when no host-level eyedropper is attached."
+                               Style="{StaticResource SectionCaptionStyle}"
+                               TextWrapping="WrapWholeWords" />
+                  </StackPanel>
+
+                  <GridView x:Name="EyeDropperPaletteGrid"
+                            IsItemClickEnabled="True"
+                            ItemClick="OnEyeDropperPaletteItemClick"
+                            SelectionMode="None"
+                            ScrollViewer.HorizontalScrollMode="Disabled"
+                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                            ScrollViewer.VerticalScrollMode="Disabled"
+                            ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                            BorderThickness="0"
+                            Padding="0">
+                    <GridView.ItemContainerStyle>
+                      <Style TargetType="GridViewItem">
+                        <Setter Property="Margin" Value="0,0,10,10" />
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="Background" Value="Transparent" />
+                      </Style>
+                    </GridView.ItemContainerStyle>
+                    <GridView.ItemTemplate>
+                      <DataTemplate x:DataType="models:ColorSwatchItem">
+                        <StackPanel Width="64"
+                                    Spacing="4">
+                          <Border Width="32"
+                                  Height="32"
+                                  HorizontalAlignment="Center"
+                                  Background="{Binding Color, Converter={StaticResource ColorToBrushConverter}}"
+                                  BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                                  BorderThickness="1"
+                                  CornerRadius="9" />
+                          <TextBlock Text="{x:Bind Label}"
+                                     Style="{StaticResource SectionCaptionStyle}"
+                                     FontSize="10.75"
+                                     TextAlignment="Center"
+                                     TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </GridView.ItemTemplate>
+                  </GridView>
+                </StackPanel>
+              </Border>
+
+              <controls:FigmaColorSpectrumCanvas x:Name="SpectrumCanvas"
+                                                 Height="308"
+                                                 MinWidth="0" />
+
+              <Grid ColumnDefinitions="Auto,*"
+                    ColumnSpacing="12">
+                <Button x:Name="InlineEyeDropperButton"
+                        Style="{StaticResource PickerIconButtonStyle}"
+                        Click="OnInlineEyeDropperClick"
+                        Width="36"
+                        Height="36"
+                        VerticalAlignment="Center">
+                  <controls:PickerIcon x:Name="InlineEyeDropperIcon"
+                                       Kind="Droplet"
+                                       Width="16"
+                                       Height="16"
+                                       IconStroke="{StaticResource TextBrush}" />
+                </Button>
+                <StackPanel Grid.Column="1"
+                            Spacing="10">
+                  <controls:FigmaHueSliderCanvas x:Name="HueSlider"
+                                                 Height="30" />
+                  <controls:FigmaAlphaSliderCanvas x:Name="AlphaSlider"
+                                                   Height="30" />
+                </StackPanel>
+              </Grid>
+
+              <Grid ColumnDefinitions="106,*"
+                    ColumnSpacing="12">
+                <ComboBox x:Name="FormatComboBox"
+                          Style="{StaticResource PickerComboBoxStyle}"
+                          SelectionChanged="OnFormatSelectionChanged">
+                  <ComboBoxItem Content="RGB" Tag="Rgb" />
+                  <ComboBoxItem Content="HSL" Tag="Hsl" />
+                  <ComboBoxItem Content="HEX" Tag="Hex" />
+                </ComboBox>
+
+                <Grid Grid.Column="1">
+                  <Border x:Name="NumericFieldsBorder"
+                          Background="{StaticResource PickerSectionBrush}"
+                          BorderBrush="{StaticResource PickerDividerBrush}"
+                          BorderThickness="1"
+                          CornerRadius="12">
+                    <Grid ColumnDefinitions="*,*,*,*,Auto">
+                      <TextBox x:Name="Channel1TextBox"
+                               Style="{StaticResource PickerInlineTextBoxStyle}"
+                               KeyDown="OnChannelKeyDown"
+                               LostFocus="OnChannelLostFocus" />
+                      <TextBox x:Name="Channel2TextBox"
+                               Grid.Column="1"
+                               Style="{StaticResource PickerInlineTextBoxStyle}"
+                               KeyDown="OnChannelKeyDown"
+                               LostFocus="OnChannelLostFocus" />
+                      <TextBox x:Name="Channel3TextBox"
+                               Grid.Column="2"
+                               Style="{StaticResource PickerInlineTextBoxStyle}"
+                               KeyDown="OnChannelKeyDown"
+                               LostFocus="OnChannelLostFocus" />
+                      <TextBox x:Name="AlphaPercentTextBox"
+                               Grid.Column="3"
+                               Style="{StaticResource PickerInlineTextBoxStyle}"
+                               KeyDown="OnChannelKeyDown"
+                               LostFocus="OnChannelLostFocus" />
+                      <Border Grid.Column="1"
+                              Width="1"
+                              HorizontalAlignment="Left"
+                              Background="{StaticResource PickerDividerBrush}" />
+                      <Border Grid.Column="2"
+                              Width="1"
+                              HorizontalAlignment="Left"
+                              Background="{StaticResource PickerDividerBrush}" />
+                      <Border Grid.Column="3"
+                              Width="1"
+                              HorizontalAlignment="Left"
+                              Background="{StaticResource PickerDividerBrush}" />
+                      <Border Grid.Column="4"
+                              Width="1"
+                              HorizontalAlignment="Left"
+                              Background="{StaticResource PickerDividerBrush}" />
+                      <TextBlock Grid.Column="4"
+                                 Margin="0,0,12,0"
+                                 VerticalAlignment="Center"
+                                 Text="%"
+                                 Style="{StaticResource ShellBodyStyle}" />
+                    </Grid>
+                  </Border>
+
+                  <Border x:Name="HexFieldsBorder"
+                          Background="{StaticResource PickerSectionBrush}"
+                          BorderBrush="{StaticResource PickerDividerBrush}"
+                          BorderThickness="1"
+                          CornerRadius="12"
+                          Visibility="Collapsed">
+                    <Grid ColumnDefinitions="*,88,Auto">
+                      <TextBox x:Name="HexTextBox"
+                               Style="{StaticResource PickerInlineTextBoxStyle}"
+                               PlaceholderText="RRGGBB"
+                               KeyDown="OnHexKeyDown"
+                               LostFocus="OnHexLostFocus" />
+                      <TextBox x:Name="HexAlphaPercentTextBox"
+                               Grid.Column="1"
+                               Style="{StaticResource PickerInlineTextBoxStyle}"
+                               KeyDown="OnHexKeyDown"
+                               LostFocus="OnHexLostFocus" />
+                      <Border Grid.Column="1"
+                              Width="1"
+                              HorizontalAlignment="Left"
+                              Background="{StaticResource PickerDividerBrush}" />
+                      <Border Grid.Column="2"
+                              Width="1"
+                              HorizontalAlignment="Left"
+                              Background="{StaticResource PickerDividerBrush}" />
+                      <TextBlock Grid.Column="2"
+                                 Margin="0,0,12,0"
+                                 VerticalAlignment="Center"
+                                 Text="%"
+                                 Style="{StaticResource ShellBodyStyle}" />
+                    </Grid>
+                  </Border>
+                </Grid>
+              </Grid>
+
+              <Border Height="1"
+                      Background="{StaticResource PickerDividerBrush}" />
+
+              <StackPanel Spacing="12">
+                <ComboBox x:Name="PaletteSourceComboBox"
+                          Style="{StaticResource PickerComboBoxStyle}"
+                          HorizontalAlignment="Stretch">
+                  <ComboBoxItem Content="On this page" />
+                </ComboBox>
+
+                <GridView x:Name="SwatchGrid"
+                          IsItemClickEnabled="True"
+                          ItemClick="OnSwatchItemClick"
+                          SelectionMode="None"
+                          ScrollViewer.HorizontalScrollMode="Disabled"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          ScrollViewer.VerticalScrollMode="Disabled"
+                          ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                          BorderThickness="0"
+                          Padding="0">
+                  <GridView.ItemContainerStyle>
+                    <Style TargetType="GridViewItem">
+                      <Setter Property="Margin" Value="0,0,10,10" />
+                      <Setter Property="Padding" Value="0" />
+                      <Setter Property="BorderThickness" Value="0" />
+                      <Setter Property="Background" Value="Transparent" />
+                    </Style>
+                  </GridView.ItemContainerStyle>
+                  <GridView.ItemTemplate>
+                    <DataTemplate x:DataType="models:ColorSwatchItem">
+                      <Border Width="32"
+                              Height="32"
+                              Background="{Binding Color, Converter={StaticResource ColorToBrushConverter}}"
+                              BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                              BorderThickness="1"
+                              CornerRadius="9" />
+                    </DataTemplate>
+                  </GridView.ItemTemplate>
+                </GridView>
+              </StackPanel>
+            </StackPanel>
+
+            <StackPanel x:Name="LibrariesPanel"
+                        Padding="14,14,14,14"
+                        Spacing="14"
+                        Visibility="Collapsed">
+              <TextBox x:Name="LibrarySearchTextBox"
+                       PlaceholderText="Search"
+                       Style="{StaticResource PickerTextBoxStyle}"
+                       TextChanged="OnLibrarySearchTextChanged" />
+
+              <Grid ColumnDefinitions="*,Auto"
+                    ColumnSpacing="10">
+                <ComboBox x:Name="LibrariesSourceComboBox"
+                          Style="{StaticResource PickerComboBoxStyle}"
+                          SelectionChanged="OnLibrarySourceSelectionChanged" />
+                <Button Grid.Column="1"
+                        Style="{StaticResource PickerIconButtonStyle}">
+                  <controls:PickerIcon Kind="Group"
+                                       Width="16"
+                                       Height="16"
+                                       IconStroke="{StaticResource TextBrush}" />
+                </Button>
+              </Grid>
+
+              <ListView x:Name="LibrariesStylesListView"
+                        IsItemClickEnabled="True"
+                        ItemClick="OnLibraryStyleItemClick"
+                        SelectionMode="None"
+                        ScrollViewer.HorizontalScrollMode="Disabled"
+                        ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                        BorderThickness="0"
+                        Background="Transparent">
+                <ListView.ItemContainerStyle>
+                  <Style TargetType="ListViewItem">
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="Margin" Value="0,0,0,8" />
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="Background" Value="Transparent" />
+                  </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                  <DataTemplate x:DataType="models:ColorSwatchItem">
+                    <Border Background="{StaticResource PickerSectionBrush}"
+                            BorderBrush="{StaticResource PickerDividerBrush}"
+                            BorderThickness="1"
+                            CornerRadius="14"
+                            Padding="10,9">
+                      <Grid ColumnDefinitions="Auto,*,Auto"
+                            ColumnSpacing="10">
+                        <Grid Width="30"
+                              Height="30"
+                              VerticalAlignment="Center">
+                          <Border Background="{Binding Color, Converter={StaticResource ColorToBrushConverter}}"
+                                  BorderBrush="{StaticResource SurfaceStrokeBrush}"
+                                  BorderThickness="1"
+                                  CornerRadius="8" />
+                          <Border Background="Transparent"
+                                  BorderBrush="{Binding Color, Converter={StaticResource ColorToBrushConverter}}"
+                                  BorderThickness="{x:Bind StrokePreviewThickness, Mode=OneWay}"
+                                  CornerRadius="8"
+                                  Visibility="{x:Bind StrokePreviewVisibility, Mode=OneWay}" />
+                        </Grid>
+
+                        <StackPanel Grid.Column="1"
+                                    Spacing="2">
+                          <TextBlock Text="{x:Bind Label}"
+                                     Style="{StaticResource ShellTitleStyle}"
+                                     FontSize="13" />
+                          <TextBlock Text="{x:Bind LibrarySummary}"
+                                     Style="{StaticResource SectionCaptionStyle}"
+                                     FontSize="11.5"
+                                     TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Spacing="2">
+                          <TextBlock Text="{x:Bind StyleSummary}"
+                                     Style="{StaticResource ShellBodyStyle}"
+                                     FontSize="11.5"
+                                     HorizontalAlignment="Right" />
+                          <TextBlock Text="{x:Bind OpacityLabel}"
+                                     Style="{StaticResource SectionCaptionStyle}"
+                                     FontSize="11"
+                                     HorizontalAlignment="Right" />
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ListView.ItemTemplate>
+              </ListView>
+
+              <TextBlock x:Name="LibrariesEmptyStateText"
+                         Text="No paint styles match the current filter."
+                         Style="{StaticResource SectionCaptionStyle}"
+                         Visibility="Collapsed"
+                         TextWrapping="WrapWholeWords" />
+            </StackPanel>
+          </Grid>
+        </ScrollViewer>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

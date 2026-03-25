@@ -74,8 +74,8 @@ public partial class SvgEditorWorkspacePage
 
         foreach (var element in _selectedElements)
         {
-            AppendSelectionColorItem(buckets, element, EditorPaintTarget.Fill, element.Fill, element.FillOpacity, 1.0);
-            AppendSelectionColorItem(buckets, element, EditorPaintTarget.Stroke, element.Stroke, element.StrokeOpacity, Math.Max(element.StrokeWidth.Value, 1.0));
+            AppendSelectionColorItem(buckets, element, PaintStyleTarget.Fill, element.Fill, element.FillOpacity, 1.0);
+            AppendSelectionColorItem(buckets, element, PaintStyleTarget.Stroke, element.Stroke, element.StrokeOpacity, Math.Max(element.StrokeWidth.Value, 1.0));
         }
 
         return buckets.Values
@@ -91,7 +91,7 @@ public partial class SvgEditorWorkspacePage
     private void AppendSelectionColorItem(
         Dictionary<int, SelectionColorBucket> buckets,
         SvgVisualElement element,
-        EditorPaintTarget target,
+        PaintStyleTarget target,
         SvgPaintServer? paint,
         float opacity,
         double strokeWidth)
@@ -119,7 +119,7 @@ public partial class SvgEditorWorkspacePage
         };
     }
 
-    private string BuildSelectionColorLabel(SvgVisualElement element, EditorPaintTarget target, Color color)
+    private string BuildSelectionColorLabel(SvgVisualElement element, PaintStyleTarget target, Color color)
     {
         if (TryResolveLinkedPaintStyle(element, target, out var style))
         {
@@ -174,23 +174,23 @@ public partial class SvgEditorWorkspacePage
     {
         return item.Target switch
         {
-            EditorPaintTarget.Fill => TryGetPaintColor(element.Fill, element.FillOpacity, out var fillColor) && ColorsEqual(fillColor, item.OriginalColor),
-            EditorPaintTarget.Stroke => TryGetPaintColor(element.Stroke, element.StrokeOpacity, out var strokeColor) && ColorsEqual(strokeColor, item.OriginalColor),
+            PaintStyleTarget.Fill => TryGetPaintColor(element.Fill, element.FillOpacity, out var fillColor) && ColorsEqual(fillColor, item.OriginalColor),
+            PaintStyleTarget.Stroke => TryGetPaintColor(element.Stroke, element.StrokeOpacity, out var strokeColor) && ColorsEqual(strokeColor, item.OriginalColor),
             _ => false
         };
     }
 
-    private void ApplyColorToElementPaint(SvgVisualElement element, EditorPaintTarget target, Color color, double strokeWidth)
+    private void ApplyColorToElementPaint(SvgVisualElement element, PaintStyleTarget target, Color color, double strokeWidth)
     {
         var drawingColor = System.Drawing.Color.FromArgb(255, color.R, color.G, color.B);
         switch (target)
         {
-            case EditorPaintTarget.Fill:
+            case PaintStyleTarget.Fill:
                 element.Fill = new SvgColourServer(drawingColor);
                 element.FillOpacity = color.A / 255f;
-                ClearPaintStyleLink(element, EditorPaintTarget.Fill);
+                ClearPaintStyleLink(element, PaintStyleTarget.Fill);
                 break;
-            case EditorPaintTarget.Stroke:
+            case PaintStyleTarget.Stroke:
                 element.Stroke = new SvgColourServer(drawingColor);
                 element.StrokeOpacity = color.A / 255f;
                 if (element.StrokeWidth.Value <= 0f)
@@ -198,7 +198,7 @@ public partial class SvgEditorWorkspacePage
                     element.StrokeWidth = new SvgUnit((float)Math.Max(strokeWidth, 1.0));
                 }
 
-                ClearPaintStyleLink(element, EditorPaintTarget.Stroke);
+                ClearPaintStyleLink(element, PaintStyleTarget.Stroke);
                 break;
         }
     }
@@ -230,7 +230,7 @@ public partial class SvgEditorWorkspacePage
             && left.B == right.B;
     }
 
-    private static int GetSelectionColorKey(EditorPaintTarget target, Color color)
+    private static int GetSelectionColorKey(PaintStyleTarget target, Color color)
     {
         return HashCode.Combine((int)target, color.A, color.R, color.G, color.B);
     }
@@ -239,7 +239,7 @@ public partial class SvgEditorWorkspacePage
     {
         public Color Color { get; set; }
 
-        public EditorPaintTarget Target { get; set; }
+        public PaintStyleTarget Target { get; set; }
 
         public string Label { get; set; } = string.Empty;
 

@@ -2,7 +2,7 @@ using Uno.WinUI.Graphics2DSK;
 using Windows.Foundation;
 using SK = SkiaSharp;
 
-namespace Svg.Editor.Skia.Uno.Controls;
+namespace Svg.Controls.ColorPicker.Uno.Controls;
 
 public sealed class FigmaColorSpectrumCanvas : SKCanvasElement
 {

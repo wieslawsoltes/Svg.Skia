@@ -9,11 +9,11 @@
     <Nullable>enable</Nullable>
     <NoWarn>CS1591</NoWarn>
     <IsPackable>true</IsPackable>
-    <RootNamespace>Svg.Editor.Skia.Uno</RootNamespace>
-    <PackageId>Svg.Editor.Skia.Uno</PackageId>
-    <Description>Reusable Uno Platform SVG editor shell, panels, and overlay controls backed by Svg.Skia editing services.</Description>
+    <RootNamespace>Svg.Controls.ColorPicker.Uno</RootNamespace>
+    <PackageId>Svg.Controls.ColorPicker.Uno</PackageId>
+    <Description>Reusable Uno Platform color picker controls, swatches, and paint-style helpers.</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageTags>svg;editor;uno;skia;vector;design;controls;xaml</PackageTags>
+    <PackageTags>color;picker;uno;winui;xaml;control;skia</PackageTags>
     <UnoFeatures>
       SkiaRenderer;
     </UnoFeatures>
@@ -26,13 +26,5 @@
 
   <Import Project="..\..\build\SourceLink.props" />
   <Import Project="..\..\build\SkiaSharp.v3.props" />
-
-  <ItemGroup>
-    <ProjectReference Include="..\Svg.Controls.Skia.Uno\Svg.Controls.Skia.Uno.csproj" />
-    <ProjectReference Include="..\Svg.Controls.ColorPicker.Uno\Svg.Controls.ColorPicker.Uno.csproj" />
-    <ProjectReference Include="..\Svg.Editor.Core\Svg.Editor.Core.csproj" />
-    <ProjectReference Include="..\Svg.Editor.Svg\Svg.Editor.Svg.csproj" />
-    <ProjectReference Include="..\Svg.Editor.Skia\Svg.Editor.Skia.csproj" />
-  </ItemGroup>
 
 </Project>

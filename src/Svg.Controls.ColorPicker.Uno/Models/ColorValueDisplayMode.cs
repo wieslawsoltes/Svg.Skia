@@ -1,4 +1,4 @@
-namespace Svg.Editor.Skia.Uno.Models;
+namespace Svg.Controls.ColorPicker.Uno.Models;
 
 public enum ColorValueDisplayMode
 {

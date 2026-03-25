@@ -1,8 +1,8 @@
 using Windows.UI;
 
-namespace Svg.Editor.Skia.Uno;
+namespace Svg.Controls.ColorPicker.Uno;
 
-internal static class ColorPickerColorHelper
+public static class ColorPickerColorHelper
 {
     public static Color FromHsv(double hue, double saturation, double value, double alpha = 1.0)
     {

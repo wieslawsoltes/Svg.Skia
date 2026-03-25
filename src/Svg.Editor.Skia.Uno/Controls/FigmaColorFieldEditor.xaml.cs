@@ -50,9 +50,9 @@ public sealed partial class FigmaColorFieldEditor : UserControl
     public static readonly DependencyProperty PaintTargetProperty =
         DependencyProperty.Register(
             nameof(PaintTarget),
-            typeof(EditorPaintTarget),
+            typeof(PaintStyleTarget),
             typeof(FigmaColorFieldEditor),
-            new PropertyMetadata(EditorPaintTarget.Fill));
+            new PropertyMetadata(PaintStyleTarget.Fill));
 
     public static readonly DependencyProperty CurrentStrokeWidthTextProperty =
         DependencyProperty.Register(
@@ -117,9 +117,9 @@ public sealed partial class FigmaColorFieldEditor : UserControl
         set => SetValue(LibraryStylesProperty, value);
     }
 
-    public EditorPaintTarget PaintTarget
+    public PaintStyleTarget PaintTarget
     {
-        get => (EditorPaintTarget)GetValue(PaintTargetProperty);
+        get => (PaintStyleTarget)GetValue(PaintTargetProperty);
         set => SetValue(PaintTargetProperty, value);
     }
 

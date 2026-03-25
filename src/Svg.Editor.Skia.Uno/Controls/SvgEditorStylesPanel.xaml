@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Svg.Editor.Skia.Uno.Controls"
     xmlns:models="using:Svg.Editor.Skia.Uno.Models"
+    xmlns:pickerModels="using:Svg.Controls.ColorPicker.Uno.Models"
     x:Name="Root">
 
   <UserControl.Resources>
@@ -106,7 +107,7 @@
                  Style="{StaticResource SectionCaptionStyle}" />
       <ItemsControl ItemsSource="{Binding ColorStyles, ElementName=Root, Mode=OneWay}">
         <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="models:ColorSwatchItem">
+          <DataTemplate x:DataType="pickerModels:ColorSwatchItem">
             <Grid Margin="0,0,0,8"
                   ColumnDefinitions="*,Auto"
                   ColumnSpacing="8">

@@ -84,7 +84,7 @@ public partial class SvgEditorWorkspacePage
         {
             _selectedElement.Stroke = SvgPaintServer.None;
             _selectedElement.StrokeOpacity = 1f;
-            ClearPaintStyleLink(_selectedElement, EditorPaintTarget.Stroke);
+            ClearPaintStyleLink(_selectedElement, PaintStyleTarget.Stroke);
             RefreshDocumentVisual(rebuildOutline: false, reloadProperties: true);
             return;
         }
@@ -109,7 +109,7 @@ public partial class SvgEditorWorkspacePage
             _selectedElement.StrokeWidth = new SvgUnit(1f);
         }
 
-        ClearPaintStyleLink(_selectedElement, EditorPaintTarget.Stroke);
+        ClearPaintStyleLink(_selectedElement, PaintStyleTarget.Stroke);
         RefreshDocumentVisual(rebuildOutline: false, reloadProperties: true);
     }
 
@@ -137,7 +137,7 @@ public partial class SvgEditorWorkspacePage
                     IsStrokeColorEditable = true;
                     break;
                 default:
-                    if (TryResolveEffectivePaintColor(element, EditorPaintTarget.Stroke, out var inheritedStrokeColor))
+                    if (TryResolveEffectivePaintColor(element, PaintStyleTarget.Stroke, out var inheritedStrokeColor))
                     {
                         StrokeColor = inheritedStrokeColor;
                     }
@@ -195,7 +195,7 @@ public partial class SvgEditorWorkspacePage
         CanvasStatus = $"Saved {style.Label} to {DocumentTitle}.";
     }
 
-    private ColorSwatchItem? CreateOrUpdateCurrentFilePaintStyle(Color color, EditorPaintTarget target, double strokeWidth)
+    private ColorSwatchItem? CreateOrUpdateCurrentFilePaintStyle(Color color, PaintStyleTarget target, double strokeWidth)
     {
         PublishCurrentFileLibrary();
 
@@ -217,7 +217,7 @@ public partial class SvgEditorWorkspacePage
             BuildPaintStyleLabel(color, target, strokeWidth),
             color,
             target,
-            target == EditorPaintTarget.Stroke ? "Stroke styles" : "Fill styles",
+            target == PaintStyleTarget.Stroke ? "Stroke styles" : "Fill styles",
             "current file published paint style",
             strokeWidth,
             styleId);
@@ -254,26 +254,26 @@ public partial class SvgEditorWorkspacePage
         return style;
     }
 
-    private static string BuildPaintStyleId(Color color, EditorPaintTarget target, double strokeWidth)
+    private static string BuildPaintStyleId(Color color, PaintStyleTarget target, double strokeWidth)
     {
         var widthToken = strokeWidth.ToString("0.##", CultureInfo.InvariantCulture).Replace('.', '-');
         var targetToken = target switch
         {
-            EditorPaintTarget.Fill => "fill",
-            EditorPaintTarget.Stroke => "stroke",
+            PaintStyleTarget.Fill => "fill",
+            PaintStyleTarget.Stroke => "stroke",
             _ => "paint"
         };
 
         return $"{targetToken}-{color.A:x2}{color.R:x2}{color.G:x2}{color.B:x2}-{widthToken}";
     }
 
-    private static string BuildPaintStyleLabel(Color color, EditorPaintTarget target, double strokeWidth)
+    private static string BuildPaintStyleLabel(Color color, PaintStyleTarget target, double strokeWidth)
     {
         var hex = ColorPickerColorHelper.ToHexRgb(color);
         return target switch
         {
-            EditorPaintTarget.Fill => $"Fill / {hex}",
-            EditorPaintTarget.Stroke => $"Stroke / {hex} / {strokeWidth:0.##} px",
+            PaintStyleTarget.Fill => $"Fill / {hex}",
+            PaintStyleTarget.Stroke => $"Stroke / {hex} / {strokeWidth:0.##} px",
             _ => $"Paint / {hex}"
         };
     }
@@ -283,7 +283,7 @@ public partial class SvgEditorWorkspacePage
         string libraryName,
         string label,
         Color color,
-        EditorPaintTarget target,
+        PaintStyleTarget target,
         string sectionName,
         string searchKeywords,
         double strokeWidth = 1.0,
@@ -338,7 +338,7 @@ public partial class SvgEditorWorkspacePage
         HashSet<string> seen,
         SvgPaintServer? paint,
         float opacity,
-        EditorPaintTarget target,
+        PaintStyleTarget target,
         double strokeWidth)
     {
         if (paint is not SvgColourServer colorServer
@@ -360,7 +360,7 @@ public partial class SvgEditorWorkspacePage
             BuildPaintStyleLabel(color, target, strokeWidth),
             color,
             target,
-            target == EditorPaintTarget.Stroke ? "Stroke styles" : "Fill styles",
+            target == PaintStyleTarget.Stroke ? "Stroke styles" : "Fill styles",
             "published file paint style",
             strokeWidth);
         if (seen.Add(style.StyleId))
@@ -381,21 +381,21 @@ public partial class SvgEditorWorkspacePage
     {
         foreach (var element in document.Descendants().OfType<SvgVisualElement>())
         {
-            if (TryResolveLinkedPaintStyle(element, EditorPaintTarget.Fill, out var fillStyle)
+            if (TryResolveLinkedPaintStyle(element, PaintStyleTarget.Fill, out var fillStyle)
                 && (libraryId is null || string.Equals(fillStyle.LibraryId, libraryId, StringComparison.Ordinal)))
             {
-                ApplyPaintStyleToElement(element, fillStyle, EditorPaintTarget.Fill);
+                ApplyPaintStyleToElement(element, fillStyle, PaintStyleTarget.Fill);
             }
 
-            if (TryResolveLinkedPaintStyle(element, EditorPaintTarget.Stroke, out var strokeStyle)
+            if (TryResolveLinkedPaintStyle(element, PaintStyleTarget.Stroke, out var strokeStyle)
                 && (libraryId is null || string.Equals(strokeStyle.LibraryId, libraryId, StringComparison.Ordinal)))
             {
-                ApplyPaintStyleToElement(element, strokeStyle, EditorPaintTarget.Stroke);
+                ApplyPaintStyleToElement(element, strokeStyle, PaintStyleTarget.Stroke);
             }
         }
     }
 
-    private bool TryResolveLinkedPaintStyle(SvgVisualElement element, EditorPaintTarget target, out ColorSwatchItem style)
+    private bool TryResolveLinkedPaintStyle(SvgVisualElement element, PaintStyleTarget target, out ColorSwatchItem style)
     {
         var styleIdAttribute = GetPaintStyleIdAttribute(target);
         var libraryIdAttribute = GetPaintStyleLibraryIdAttribute(target);
@@ -423,25 +423,25 @@ public partial class SvgEditorWorkspacePage
         return true;
     }
 
-    private static void ApplyPaintStyleToElement(SvgVisualElement element, ColorSwatchItem style, EditorPaintTarget target)
+    private static void ApplyPaintStyleToElement(SvgVisualElement element, ColorSwatchItem style, PaintStyleTarget target)
     {
         var drawingColor = System.Drawing.Color.FromArgb(255, style.Color.R, style.Color.G, style.Color.B);
-        if (target == EditorPaintTarget.Fill && style.SupportsFill)
+        if (target == PaintStyleTarget.Fill && style.SupportsFill)
         {
             element.Fill = new SvgColourServer(drawingColor);
             element.FillOpacity = style.Color.A / 255f;
-            SetPaintStyleLink(element, style, EditorPaintTarget.Fill);
+            SetPaintStyleLink(element, style, PaintStyleTarget.Fill);
         }
-        else if (target == EditorPaintTarget.Stroke && style.SupportsStroke)
+        else if (target == PaintStyleTarget.Stroke && style.SupportsStroke)
         {
             element.Stroke = new SvgColourServer(drawingColor);
             element.StrokeOpacity = style.Color.A / 255f;
             element.StrokeWidth = new SvgUnit(Math.Max((float)style.StrokeWidth, 0.25f));
-            SetPaintStyleLink(element, style, EditorPaintTarget.Stroke);
+            SetPaintStyleLink(element, style, PaintStyleTarget.Stroke);
         }
     }
 
-    private static void SetPaintStyleLink(SvgVisualElement element, ColorSwatchItem style, EditorPaintTarget target)
+    private static void SetPaintStyleLink(SvgVisualElement element, ColorSwatchItem style, PaintStyleTarget target)
     {
         if (string.IsNullOrWhiteSpace(style.StyleId) || string.IsNullOrWhiteSpace(style.LibraryId))
         {
@@ -453,17 +453,17 @@ public partial class SvgEditorWorkspacePage
         element.CustomAttributes[GetPaintStyleLibraryIdAttribute(target)] = style.LibraryId;
     }
 
-    private static void ClearPaintStyleLink(SvgVisualElement element, EditorPaintTarget target)
+    private static void ClearPaintStyleLink(SvgVisualElement element, PaintStyleTarget target)
     {
         element.CustomAttributes.Remove(GetPaintStyleIdAttribute(target));
         element.CustomAttributes.Remove(GetPaintStyleLibraryIdAttribute(target));
     }
 
-    private static string GetPaintStyleIdAttribute(EditorPaintTarget target) => target == EditorPaintTarget.Stroke
+    private static string GetPaintStyleIdAttribute(PaintStyleTarget target) => target == PaintStyleTarget.Stroke
         ? LibraryStrokeStyleIdAttribute
         : LibraryFillStyleIdAttribute;
 
-    private static string GetPaintStyleLibraryIdAttribute(EditorPaintTarget target) => target == EditorPaintTarget.Stroke
+    private static string GetPaintStyleLibraryIdAttribute(PaintStyleTarget target) => target == PaintStyleTarget.Stroke
         ? LibraryStrokeStyleLibraryIdAttribute
         : LibraryFillStyleLibraryIdAttribute;
 
@@ -475,7 +475,7 @@ public partial class SvgEditorWorkspacePage
                && string.Equals(strokeLibraryId, libraryId, StringComparison.Ordinal);
     }
 
-    private string FormatPaintWithLibraryStyle(SvgVisualElement element, EditorPaintTarget target)
+    private string FormatPaintWithLibraryStyle(SvgVisualElement element, PaintStyleTarget target)
     {
         if (TryResolveLinkedPaintStyle(element, target, out var style))
         {
@@ -484,10 +484,10 @@ public partial class SvgEditorWorkspacePage
                 : $"{style.LibraryName} · {style.Label}";
         }
 
-        return target == EditorPaintTarget.Stroke
+        return target == PaintStyleTarget.Stroke
             ? FormatPaint(element.Stroke)
             : FormatPaint(element.Fill);
     }
 
-    private static string GetPaintTargetLabel(EditorPaintTarget target) => target == EditorPaintTarget.Stroke ? "stroke" : "fill";
+    private static string GetPaintTargetLabel(PaintStyleTarget target) => target == PaintStyleTarget.Stroke ? "stroke" : "fill";
 }

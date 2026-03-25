@@ -1,14 +1,41 @@
 using Microsoft.UI.Xaml;
 using Windows.UI;
 
-namespace Svg.Editor.Skia.Uno.Models;
+namespace Svg.Controls.ColorPicker.Uno.Models;
 
 public sealed class ColorSwatchItem
 {
     public ColorSwatchItem(
         Color color,
+        string? label,
+        PaintStyleTarget target,
+        string? styleId,
+        string? libraryId,
+        string? libraryName,
+        string? sectionName,
+        string? searchKeywords,
+        double strokeWidth = 1.0,
+        string? description = null)
+        : this(
+            color,
+            label,
+            target,
+            ColorPickerPaintMode.Solid,
+            styleId,
+            libraryId,
+            libraryName,
+            sectionName,
+            searchKeywords,
+            strokeWidth,
+            description)
+    {
+    }
+
+    public ColorSwatchItem(
+        Color color,
         string? label = null,
-        EditorPaintTarget target = EditorPaintTarget.Both,
+        PaintStyleTarget target = PaintStyleTarget.Both,
+        ColorPickerPaintMode paintMode = ColorPickerPaintMode.Solid,
         string? styleId = null,
         string? libraryId = null,
         string? libraryName = null,
@@ -23,6 +50,7 @@ public sealed class ColorSwatchItem
             : label;
         Description = description ?? string.Empty;
         Target = target;
+        PaintMode = paintMode;
         StyleId = styleId ?? string.Empty;
         LibraryId = libraryId ?? string.Empty;
         LibraryName = libraryName ?? string.Empty;
@@ -37,7 +65,9 @@ public sealed class ColorSwatchItem
 
     public string Description { get; }
 
-    public EditorPaintTarget Target { get; }
+    public PaintStyleTarget Target { get; }
+
+    public ColorPickerPaintMode PaintMode { get; }
 
     public string StyleId { get; }
 
@@ -53,11 +83,13 @@ public sealed class ColorSwatchItem
 
     public bool IsLibraryStyle => !string.IsNullOrWhiteSpace(StyleId) && !string.IsNullOrWhiteSpace(LibraryId);
 
-    public bool SupportsFill => Target is EditorPaintTarget.Fill or EditorPaintTarget.Both;
+    public bool SupportsFill => Target is PaintStyleTarget.Fill or PaintStyleTarget.Both;
 
-    public bool SupportsStroke => Target is EditorPaintTarget.Stroke or EditorPaintTarget.Both;
+    public bool SupportsStroke => Target is PaintStyleTarget.Stroke or PaintStyleTarget.Both;
 
-    public string SearchText => $"{Label} {LibraryName} {SectionName} {SearchKeywords}";
+    public string ModeLabel => ColorPickerPaintModeHelper.GetDisplayName(PaintMode);
+
+    public string SearchText => $"{Label} {LibraryName} {SectionName} {SearchKeywords} {ModeLabel}";
 
     public string LibrarySummary => string.IsNullOrWhiteSpace(LibraryName)
         ? SectionName
@@ -73,8 +105,11 @@ public sealed class ColorSwatchItem
 
     public string StyleSummary => Target switch
     {
-        EditorPaintTarget.Fill => $"Fill style · {OpacityLabel}",
-        EditorPaintTarget.Stroke => $"Stroke style · {StrokeWidthLabel}",
-        _ => $"Paint style · {OpacityLabel}"
+        PaintStyleTarget.Fill when PaintMode == ColorPickerPaintMode.Solid => $"Fill style · {OpacityLabel}",
+        PaintStyleTarget.Fill => $"{ModeLabel} · {OpacityLabel}",
+        PaintStyleTarget.Stroke when PaintMode == ColorPickerPaintMode.Solid => $"Stroke style · {StrokeWidthLabel}",
+        PaintStyleTarget.Stroke => $"{ModeLabel} · {StrokeWidthLabel}",
+        _ when PaintMode == ColorPickerPaintMode.Solid => $"Paint style · {OpacityLabel}",
+        _ => $"{ModeLabel} · {OpacityLabel}"
     };
 }

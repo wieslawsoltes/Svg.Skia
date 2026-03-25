@@ -11,7 +11,7 @@ public sealed class EditorSelectionColorItem : INotifyPropertyChanged
 
     public EditorSelectionColorItem(
         Color color,
-        EditorPaintTarget target,
+        PaintStyleTarget target,
         string summaryText,
         double strokeWidth,
         int usageCount)
@@ -30,7 +30,7 @@ public sealed class EditorSelectionColorItem : INotifyPropertyChanged
 
     public Color OriginalColor { get; }
 
-    public EditorPaintTarget Target { get; }
+    public PaintStyleTarget Target { get; }
 
     public string SummaryText { get; }
 

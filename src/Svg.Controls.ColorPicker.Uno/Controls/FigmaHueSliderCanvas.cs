@@ -1,17 +1,15 @@
 using Uno.WinUI.Graphics2DSK;
 using Windows.Foundation;
-using Windows.UI;
 using SK = SkiaSharp;
 
-namespace Svg.Editor.Skia.Uno.Controls;
+namespace Svg.Controls.ColorPicker.Uno.Controls;
 
-public sealed class FigmaAlphaSliderCanvas : SKCanvasElement
+public sealed class FigmaHueSliderCanvas : SKCanvasElement
 {
     private bool _isDragging;
-    private double _alpha = 1.0;
-    private Color _baseColor = Color.FromArgb(255, 255, 0, 0);
+    private double _hue;
 
-    public FigmaAlphaSliderCanvas()
+    public FigmaHueSliderCanvas()
     {
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;
@@ -19,35 +17,20 @@ public sealed class FigmaAlphaSliderCanvas : SKCanvasElement
         PointerCanceled += OnPointerCanceled;
     }
 
-    public event EventHandler<double>? AlphaChanged;
+    public event EventHandler<double>? HueChanged;
 
-    public double Alpha
+    public double Hue
     {
-        get => _alpha;
+        get => _hue;
         set
         {
-            var clamped = Math.Clamp(value, 0.0, 1.0);
-            if (Math.Abs(_alpha - clamped) < 0.001)
+            var normalized = ((value % 360.0) + 360.0) % 360.0;
+            if (Math.Abs(_hue - normalized) < 0.001)
             {
                 return;
             }
 
-            _alpha = clamped;
-            Invalidate();
-        }
-    }
-
-    public Color BaseColor
-    {
-        get => _baseColor;
-        set
-        {
-            if (_baseColor.Equals(value))
-            {
-                return;
-            }
-
-            _baseColor = value;
+            _hue = normalized;
             Invalidate();
         }
     }
@@ -58,13 +41,9 @@ public sealed class FigmaAlphaSliderCanvas : SKCanvasElement
         var height = Math.Max(1f, (float)area.Height);
         var rect = new SK.SKRect(0f, 0f, width, height);
 
-        using var clipPath = new SK.SKPath();
-        clipPath.AddRoundRect(rect, 12f, 12f);
-        canvas.Save();
-        canvas.ClipPath(clipPath, SK.SKClipOperation.Intersect, true);
-        DrawCheckerboard(canvas, rect);
+        DrawTrackBase(canvas, rect);
 
-        using var alphaPaint = new SK.SKPaint
+        using var huePaint = new SK.SKPaint
         {
             IsAntialias = true,
             Shader = SK.SKShader.CreateLinearGradient(
@@ -72,32 +51,33 @@ public sealed class FigmaAlphaSliderCanvas : SKCanvasElement
                 new SK.SKPoint(rect.Right, rect.Top),
                 new[]
                 {
-                    new SK.SKColor(BaseColor.R, BaseColor.G, BaseColor.B, 0),
-                    new SK.SKColor(BaseColor.R, BaseColor.G, BaseColor.B, 255)
+                    new SK.SKColor(255, 0, 0),
+                    new SK.SKColor(255, 255, 0),
+                    new SK.SKColor(0, 255, 0),
+                    new SK.SKColor(0, 255, 255),
+                    new SK.SKColor(0, 0, 255),
+                    new SK.SKColor(255, 0, 255),
+                    new SK.SKColor(255, 0, 0)
                 },
-                null,
+                new[] { 0f, 0.17f, 0.33f, 0.5f, 0.67f, 0.83f, 1f },
                 SK.SKShaderTileMode.Clamp)
         };
-        canvas.DrawRect(rect, alphaPaint);
+
+        using var clipPath = new SK.SKPath();
+        clipPath.AddRoundRect(rect, 12f, 12f);
+        canvas.Save();
+        canvas.ClipPath(clipPath, SK.SKClipOperation.Intersect, true);
+        canvas.DrawRect(rect, huePaint);
         canvas.Restore();
 
-        using var stroke = new SK.SKPaint
-        {
-            IsAntialias = true,
-            Style = SK.SKPaintStyle.Stroke,
-            StrokeWidth = 1f,
-            Color = new SK.SKColor(209, 213, 219)
-        };
-        canvas.DrawRoundRect(rect, 12f, 12f, stroke);
-
-        DrawThumb(canvas, rect, Alpha);
+        DrawThumb(canvas, rect, Hue / 360.0);
     }
 
     private void OnPointerPressed(object sender, PointerRoutedEventArgs e)
     {
         _isDragging = true;
         CapturePointer(e.Pointer);
-        UpdateAlpha(e.GetCurrentPoint(this).Position);
+        UpdateHue(e.GetCurrentPoint(this).Position);
         e.Handled = true;
     }
 
@@ -108,7 +88,7 @@ public sealed class FigmaAlphaSliderCanvas : SKCanvasElement
             return;
         }
 
-        UpdateAlpha(e.GetCurrentPoint(this).Position);
+        UpdateHue(e.GetCurrentPoint(this).Position);
         e.Handled = true;
     }
 
@@ -121,7 +101,7 @@ public sealed class FigmaAlphaSliderCanvas : SKCanvasElement
 
         _isDragging = false;
         ReleasePointerCapture(e.Pointer);
-        UpdateAlpha(e.GetCurrentPoint(this).Position);
+        UpdateHue(e.GetCurrentPoint(this).Position);
         e.Handled = true;
     }
 
@@ -131,29 +111,23 @@ public sealed class FigmaAlphaSliderCanvas : SKCanvasElement
         ReleasePointerCapture(e.Pointer);
     }
 
-    private void UpdateAlpha(Point point)
+    private void UpdateHue(Point point)
     {
         var width = Math.Max(1.0, ActualWidth);
-        Alpha = Math.Clamp(point.X / width, 0.0, 1.0);
-        AlphaChanged?.Invoke(this, Alpha);
+        Hue = Math.Clamp(point.X / width, 0.0, 1.0) * 360.0;
+        HueChanged?.Invoke(this, Hue);
     }
 
-    private static void DrawCheckerboard(SK.SKCanvas canvas, SK.SKRect rect)
+    private static void DrawTrackBase(SK.SKCanvas canvas, SK.SKRect rect)
     {
-        const float cellSize = 10f;
-        using var light = new SK.SKPaint { Color = new SK.SKColor(255, 255, 255) };
-        using var dark = new SK.SKPaint { Color = new SK.SKColor(225, 227, 230) };
-
-        for (var y = rect.Top; y < rect.Bottom; y += cellSize)
+        using var stroke = new SK.SKPaint
         {
-            for (var x = rect.Left; x < rect.Right; x += cellSize)
-            {
-                var isDark = (((int)((x - rect.Left) / cellSize)) + ((int)((y - rect.Top) / cellSize))) % 2 == 0;
-                canvas.DrawRect(
-                    new SK.SKRect(x, y, Math.Min(x + cellSize, rect.Right), Math.Min(y + cellSize, rect.Bottom)),
-                    isDark ? dark : light);
-            }
-        }
+            IsAntialias = true,
+            Style = SK.SKPaintStyle.Stroke,
+            StrokeWidth = 1f,
+            Color = new SK.SKColor(209, 213, 219)
+        };
+        canvas.DrawRoundRect(rect, 12f, 12f, stroke);
     }
 
     private static void DrawThumb(SK.SKCanvas canvas, SK.SKRect rect, double position)
