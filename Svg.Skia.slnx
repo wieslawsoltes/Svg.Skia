@@ -80,6 +80,7 @@
     <Project Path="src/Svg.CodeGen.Skia/Svg.CodeGen.Skia.csproj" />
     <Project Path="src/Svg.Controls.Avalonia/Svg.Controls.Avalonia.csproj" />
     <Project Path="src/Svg.Controls.Skia.Uno/Svg.Controls.Skia.Uno.csproj" />
+    <Project Path="src/Svg.Controls.ColorPicker.Uno/Svg.Controls.ColorPicker.Uno.csproj" />
     <Project Path="src/Svg.Controls.Skia.Avalonia/Svg.Controls.Skia.Avalonia.csproj" />
     <Project Path="src/Svg.Model/Svg.Model.csproj" />
     <Project Path="src/Svg.Skia/Svg.Skia.csproj" />
@@ -90,6 +91,7 @@
     <Project Path="tests/Svg.Controls.Avalonia.UnitTests/Svg.Controls.Avalonia.UnitTests.csproj" />
     <Project Path="tests/Svg.Controls.Skia.Avalonia.UnitTests/Svg.Controls.Skia.Avalonia.UnitTests.csproj" />
     <Project Path="tests/Svg.Controls.Skia.Uno.UnitTests/Svg.Controls.Skia.Uno.UnitTests.csproj" />
+    <Project Path="tests/Svg.Controls.ColorPicker.Uno.UnitTests/Svg.Controls.ColorPicker.Uno.UnitTests.csproj" />
     <Project Path="tests/Svg.Editor.Skia.Avalonia.UnitTests/Svg.Editor.Skia.Avalonia.UnitTests.csproj" />
     <Project Path="tests/Svg.Editor.Skia.UnitTests/Svg.Editor.Skia.UnitTests.csproj" />
     <Project Path="tests/Svg.Editor.Svg.UnitTests/Svg.Editor.Svg.UnitTests.csproj" />

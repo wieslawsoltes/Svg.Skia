@@ -1,0 +1,25 @@
+<Project Sdk="Uno.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-android;net10.0-ios;net10.0-browserwasm;net10.0-desktop</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+    <ApplicationTitle>UnoColorPickerSample</ApplicationTitle>
+    <ApplicationId>com.wieslawsoltes.unocolorpickersample</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationPublisher>Svg.Skia</ApplicationPublisher>
+    <Description>Standalone Uno sample showcasing the reusable Svg.Controls.ColorPicker.Uno library.</Description>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UnoFeatures>
+      SkiaRenderer;
+    </UnoFeatures>
+    <IsPackable>False</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Svg.Controls.ColorPicker.Uno\Svg.Controls.ColorPicker.Uno.csproj" />
+  </ItemGroup>
+
+</Project>

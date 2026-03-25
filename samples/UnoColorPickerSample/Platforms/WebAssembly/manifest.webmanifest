@@ -1,0 +1,10 @@
+{
+  "background_color": "#ffffff",
+  "description": "Uno sample for Svg.Controls.Skia.Uno.",
+  "display": "standalone",
+  "name": "UnoSvgSkiaSample",
+  "short_name": "UnoSvgSkiaSample",
+  "start_url": "/index.html",
+  "theme_color": "#ffffff",
+  "scope": "/"
+}

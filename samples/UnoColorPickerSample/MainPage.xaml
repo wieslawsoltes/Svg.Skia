@@ -1,0 +1,175 @@
+<Page x:Class="UnoColorPickerSample.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:picker="using:Svg.Controls.ColorPicker.Uno.Controls"
+      xmlns:pickerModels="using:Svg.Controls.ColorPicker.Uno.Models"
+      xmlns:pickerConverters="using:Svg.Controls.ColorPicker.Uno.Converters"
+      x:Name="Root">
+
+  <Page.Resources>
+    <pickerConverters:ColorToBrushConverter x:Key="ColorToBrushConverter" />
+  </Page.Resources>
+
+  <Grid Background="#F8FAFC">
+    <ScrollViewer HorizontalScrollMode="Disabled"
+                  HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto">
+      <Grid MaxWidth="1180"
+            Padding="32"
+            ColumnDefinitions="440,*"
+            ColumnSpacing="24">
+        <picker:FigmaColorPicker SelectedColor="{x:Bind SelectedColor, Mode=TwoWay}"
+                                 Swatches="{x:Bind Swatches, Mode=OneWay}"
+                                 LibraryStyles="{x:Bind LibraryStyles, Mode=OneWay}"
+                                 PaintTarget="{x:Bind SelectedPaintTarget, Mode=OneWay}"
+                                 SelectedPaintMode="{x:Bind SelectedPaintMode, Mode=TwoWay}"
+                                 IsEyeDropperActive="{x:Bind IsEyeDropperActive, Mode=TwoWay}"
+                                 CurrentStrokeWidthText="{x:Bind CurrentStrokeWidthText, Mode=OneWay}"
+                                 ShowCloseButton="False"
+                                 PaintStyleRequested="OnPaintStyleRequested"
+                                 CreateStyleRequested="OnCreateStyleRequested" />
+
+        <StackPanel Grid.Column="1" Spacing="18">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Uno Color Picker Sample"
+                       FontSize="28"
+                       FontWeight="SemiBold"
+                       Foreground="#101828" />
+            <TextBlock Text="This sample hosts the extracted `Svg.Controls.ColorPicker.Uno` library directly, including solid fills, linear/radial gradients, image and video metadata modes, a fallback eyedropper palette, and paint-style save/apply events."
+                       TextWrapping="WrapWholeWords"
+                       FontSize="14"
+                       Foreground="#475467" />
+          </StackPanel>
+
+          <Border Background="White"
+                  BorderBrush="#D0D5DD"
+                  BorderThickness="1"
+                  CornerRadius="24"
+                  Padding="22">
+            <StackPanel Spacing="16">
+              <TextBlock Text="Selected color"
+                         FontSize="18"
+                         FontWeight="SemiBold"
+                         Foreground="#101828" />
+              <Grid ColumnDefinitions="160,*" ColumnSpacing="18">
+                <Border Width="160"
+                        Height="160"
+                        Background="{Binding SelectedColor, ElementName=Root, Converter={StaticResource ColorToBrushConverter}}"
+                        BorderBrush="#D0D5DD"
+                        BorderThickness="1"
+                        CornerRadius="22" />
+                <StackPanel Grid.Column="1" Spacing="10" VerticalAlignment="Center">
+                  <TextBlock Text="{x:Bind SelectedColorHex, Mode=OneWay}"
+                             FontSize="22"
+                             FontWeight="SemiBold"
+                             Foreground="#101828" />
+                  <TextBlock Text="{x:Bind SelectedColorRgba, Mode=OneWay}"
+                             FontSize="14"
+                             Foreground="#475467" />
+                  <Grid ColumnDefinitions="Auto,*"
+                        RowDefinitions="Auto,Auto"
+                        ColumnSpacing="10"
+                        RowSpacing="4">
+                    <TextBlock Text="Mode"
+                               FontWeight="SemiBold"
+                               Foreground="#101828" />
+                    <TextBlock Grid.Column="1"
+                               Text="{x:Bind SelectedPaintModeLabel, Mode=OneWay}"
+                               Foreground="#475467" />
+                    <TextBlock Grid.Row="1"
+                               Text="Eyedropper"
+                               FontWeight="SemiBold"
+                               Foreground="#101828" />
+                    <TextBlock Grid.Row="1"
+                               Grid.Column="1"
+                               Text="{x:Bind EyeDropperStateLabel, Mode=OneWay}"
+                               Foreground="#475467" />
+                  </Grid>
+                  <TextBlock Text="{x:Bind StatusText, Mode=OneWay}"
+                             TextWrapping="WrapWholeWords"
+                             FontSize="13"
+                             Foreground="#667085" />
+                </StackPanel>
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Border Background="White"
+                  BorderBrush="#D0D5DD"
+                  BorderThickness="1"
+                  CornerRadius="24"
+                  Padding="22">
+            <StackPanel Spacing="14">
+              <TextBlock Text="Sample configuration"
+                         FontSize="18"
+                         FontWeight="SemiBold"
+                         Foreground="#101828" />
+
+              <StackPanel Spacing="6">
+                <TextBlock Text="Paint target" FontWeight="SemiBold" Foreground="#101828" />
+                <ComboBox SelectionChanged="OnPaintTargetSelectionChanged">
+                  <ComboBoxItem Content="Fill" Tag="Fill" IsSelected="True" />
+                  <ComboBoxItem Content="Stroke" Tag="Stroke" />
+                  <ComboBoxItem Content="Both" Tag="Both" />
+                </ComboBox>
+              </StackPanel>
+
+              <StackPanel Spacing="6">
+                <TextBlock Text="Stroke width used when saving stroke styles" FontWeight="SemiBold" Foreground="#101828" />
+                <TextBox Text="{x:Bind CurrentStrokeWidthText, Mode=TwoWay}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border Background="White"
+                  BorderBrush="#D0D5DD"
+                  BorderThickness="1"
+                  CornerRadius="24"
+                  Padding="22">
+            <StackPanel Spacing="14">
+              <TextBlock Text="Library styles"
+                         FontSize="18"
+                         FontWeight="SemiBold"
+                         Foreground="#101828" />
+              <ItemsControl ItemsSource="{x:Bind LibraryStyles, Mode=OneWay}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="pickerModels:ColorSwatchItem">
+                    <Border Margin="0,0,0,10"
+                            Padding="12"
+                            Background="#F8FAFC"
+                            BorderBrush="#E4E7EC"
+                            BorderThickness="1"
+                            CornerRadius="16">
+                      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                        <Grid Width="28" Height="28" VerticalAlignment="Center">
+                          <Border Background="{Binding Color, Converter={StaticResource ColorToBrushConverter}}"
+                                  BorderBrush="#D0D5DD"
+                                  BorderThickness="1"
+                                  CornerRadius="8" />
+                          <Border Background="Transparent"
+                                  BorderBrush="{Binding Color, Converter={StaticResource ColorToBrushConverter}}"
+                                  BorderThickness="{x:Bind StrokePreviewThickness, Mode=OneWay}"
+                                  CornerRadius="8"
+                                  Visibility="{x:Bind StrokePreviewVisibility, Mode=OneWay}" />
+                        </Grid>
+                        <StackPanel Grid.Column="1" Spacing="2">
+                          <TextBlock Text="{x:Bind Label}" FontWeight="SemiBold" Foreground="#101828" />
+                          <TextBlock Text="{x:Bind LibrarySummary}" FontSize="12" Foreground="#667085" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="2"
+                                   Text="{x:Bind StyleSummary}"
+                                   VerticalAlignment="Center"
+                                   FontSize="12"
+                                   Foreground="#667085" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Grid>
+    </ScrollViewer>
+  </Grid>
+</Page>
