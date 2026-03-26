@@ -8,6 +8,8 @@ public class Settings
     public DirectoryInfo? InputDirectory { get; set; }
     public FileInfo[]? OutputFiles { get; set; }
     public DirectoryInfo? OutputDirectory { get; set; }
+    public string[]? AllowedInputPaths { get; set; }
+    public string[]? AllowedOutputPaths { get; set; }
     public string? Pattern { get; set; }
     public string Format { get; set; } = "png";
     public int Quality { get; set; } = 100;
