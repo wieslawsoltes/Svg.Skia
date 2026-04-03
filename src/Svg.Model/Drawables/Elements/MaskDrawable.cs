@@ -65,10 +65,14 @@ public sealed class MaskDrawable : DrawableContainer
     public MaskType GetMaskType()
     {
         var maskType = MaskType.Luminance;
+        
         if (Element != null
-            && Element.TryGetAttribute("mask-type", out var maskTypeStr))
+            && Element.TryGetAttribute("mask-type", out var maskTypeStr)
+            && !string.IsNullOrWhiteSpace(maskTypeStr))
         {
-            maskType = maskTypeStr == "alpha" ? MaskType.Alpha : MaskType.Luminance;
+            return string.Equals(maskTypeStr.Trim(), "alpha", StringComparison.OrdinalIgnoreCase)
+                ? MaskType.Alpha
+                : MaskType.Luminance;
         }
         
         return maskType;
